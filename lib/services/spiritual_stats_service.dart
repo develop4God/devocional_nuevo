@@ -7,8 +7,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/spiritual_stats_model.dart';
+import 'i_spiritual_stats_service.dart';
 
-class SpiritualStatsService {
+class SpiritualStatsService implements ISpiritualStatsService {
   static const String _statsKey = 'spiritual_stats';
   static const String _readDatesKey = 'read_dates';
   static const String _lastReadDevocionalKey = 'last_read_devocional';
@@ -25,6 +26,7 @@ class SpiritualStatsService {
   static const int _maxBackupFiles = 7; // Mantener 7 backups rotativos
 
   /// Configurar backup automático (habilitado por defecto para mejor UX)
+  @override
   Future<void> setAutoBackupEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_autoBackupEnabledKey, enabled);
@@ -38,6 +40,7 @@ class SpiritualStatsService {
   }
 
   /// Verificar si auto-backup está habilitado
+  @override
   Future<bool> isAutoBackupEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     // Por defecto habilitado para mejor experiencia de usuario
@@ -45,6 +48,7 @@ class SpiritualStatsService {
   }
 
   /// NUEVO: Habilitar/deshabilitar backup JSON manual
+  @override
   Future<void> setJsonBackupEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_jsonBackupEnabledKey, enabled);
@@ -55,6 +59,7 @@ class SpiritualStatsService {
   }
 
   /// Verificar si JSON backup manual está habilitado
+  @override
   Future<bool> isJsonBackupEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_jsonBackupEnabledKey) ?? false;
@@ -94,6 +99,7 @@ class SpiritualStatsService {
   }
 
   /// Get current spiritual statistics
+  @override
   Future<SpiritualStats> getStats() async {
     final prefs = await SharedPreferences.getInstance();
     final String? statsJson = prefs.getString(_statsKey);
@@ -131,6 +137,7 @@ class SpiritualStatsService {
   }
 
   /// Save spiritual statistics con auto-backup inteligente
+  @override
   Future<void> saveStats(SpiritualStats stats) async {
     final prefs = await SharedPreferences.getInstance();
     final String statsJson = json.encode(stats.toJson());
@@ -281,6 +288,7 @@ class SpiritualStatsService {
   }
 
   /// Record that a devotional was read - SOLO cuenta devocionales, NO afecta racha
+  @override
   Future<SpiritualStats> recordDevocionalCompletado({
     required String devocionalId,
     int readingTimeSeconds = 0,
@@ -383,6 +391,7 @@ class SpiritualStatsService {
     return updatedStats;
   }
 
+  @override
   Future<SpiritualStats> recordDevocionalRead({
     required String devocionalId,
     int? favoritesCount,
@@ -400,6 +409,7 @@ class SpiritualStatsService {
   }
 
   /// Registra que un devocional fue escuchado (para TTS)
+  @override
   Future<SpiritualStats> recordDevocionalHeard({
     required String devocionalId,
     required double listenedPercentage,
@@ -520,6 +530,7 @@ class SpiritualStatsService {
   }
 
   /// NUEVO: Forzar creación de backup manual
+  @override
   Future<bool> createManualBackup() async {
     try {
       await _createJsonBackup();
@@ -531,6 +542,7 @@ class SpiritualStatsService {
   }
 
   /// Actualiza el número de favoritos en las estadísticas espirituales
+  @override
   Future<SpiritualStats> updateFavoritesCount(int favoritesCount) async {
     final stats = await getStats();
     final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
@@ -583,6 +595,7 @@ class SpiritualStatsService {
     }
   }
 
+  @override
   Future<String?> exportStatsAsJson() async {
     try {
       final stats = await getStats();
@@ -600,6 +613,7 @@ class SpiritualStatsService {
     }
   }
 
+  @override
   Future<bool> importStatsFromJson(String jsonString) async {
     try {
       final importData = json.decode(jsonString);
@@ -624,6 +638,7 @@ class SpiritualStatsService {
     }
   }
 
+  @override
   Future<String?> getBackupFilePath() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
@@ -734,6 +749,7 @@ class SpiritualStatsService {
     return unlockedAchievements;
   }
 
+  @override
   Future<void> resetStats() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_statsKey);
@@ -770,16 +786,19 @@ class SpiritualStatsService {
     }
   }
 
+  @override
   Future<List<DateTime>> getReadDatesForVisualization() async {
     return await _getReadDates();
   }
 
+  @override
   Future<bool> hasDevocionalBeenRead(String devocionalId) async {
     final stats = await getStats();
     return stats.readDevocionalIds.contains(devocionalId);
   }
 
   /// Get all stats as a map for backup purposes
+  @override
   Future<Map<String, dynamic>> getAllStats() async {
     try {
       final stats = await getStats();
@@ -797,6 +816,7 @@ class SpiritualStatsService {
   }
 
   /// Restore stats from backup data
+  @override
   Future<void> restoreStats(Map<String, dynamic> backupData) async {
     try {
       if (backupData.containsKey('stats')) {

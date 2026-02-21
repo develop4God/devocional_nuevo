@@ -26,17 +26,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues({});
 
   group('TTS Service - Real User Behavior Tests', () {
     late ITtsService ttsService;
 
-    setUp(() {
+    setUp(() async {
       // Reset service locator for each test
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({});
 
       // Setup all required services
-      setupServiceLocator();
+      await setupServiceLocator();
 
       // Mock flutter_tts platform channel
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -431,7 +432,7 @@ void main() {
       () async {
         // Given: Service locator is setup
         ServiceLocator().reset();
-        setupServiceLocator();
+        await setupServiceLocator();
 
         // When: We retrieve the service
         final service = getService<ITtsService>();
@@ -448,7 +449,7 @@ void main() {
     test('Multiple retrievals return same instance (lazy singleton)', () async {
       // Given: Service locator is setup
       ServiceLocator().reset();
-      setupServiceLocator();
+      await setupServiceLocator();
 
       // When: We retrieve service multiple times
       final service1 = getService<ITtsService>();
@@ -467,6 +468,7 @@ void main() {
     test('Service can be injected into AudioController', () async {
       // Given: A TTS service instance
       TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
       SharedPreferences.setMockInitialValues({});
 
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

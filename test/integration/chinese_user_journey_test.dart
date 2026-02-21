@@ -14,8 +14,9 @@ void main() {
   group('Chinese Language - Complete User Journey Tests', () {
     late LocalizationProvider provider;
 
-    setUp(() {
+    setUp(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
 
       // Use helper to mock flutter_tts plugin channel
       FlutterTtsMockHelper.setupMockFlutterTts();
@@ -24,7 +25,7 @@ void main() {
       // to simulate app starting in Spanish for user journey tests
       SharedPreferences.setMockInitialValues({'locale': 'es'});
       ServiceLocator().reset();
-      setupServiceLocator();
+      await setupServiceLocator();
       provider = LocalizationProvider();
     });
 
@@ -118,7 +119,7 @@ void main() {
 
       // Simulate app restart - create new provider instance
       ServiceLocator().reset();
-      setupServiceLocator();
+      await setupServiceLocator();
       final newProvider = LocalizationProvider();
 
       // WHEN: New provider initializes

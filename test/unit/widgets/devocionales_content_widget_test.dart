@@ -5,11 +5,13 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
 
@@ -56,8 +58,12 @@ void main() {
     late bool streakTapped;
     late bool favoriteToggled;
     late bool shared;
+    late SupporterPetService petService;
 
-    setUp(() {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      petService = SupporterPetService(prefs);
       devocional = Devocional(
         id: 'test-id',
         versiculo: 'Juan 3:16',
@@ -100,6 +106,7 @@ void main() {
               isFavorite: isFavorite,
               onFavoriteToggle: () => favoriteToggled = true,
               onShare: () => shared = true,
+              petService: petService,
             ),
           ),
         ),
