@@ -161,7 +161,7 @@ class TierCard extends StatelessWidget {
               const Icon(Icons.auto_awesome, color: Colors.amber, size: 16),
               const SizedBox(width: 8),
               Text(
-                '¡REGALO EXCLUSIVO!'.toUpperCase(),
+                'supporter.exclusive_gift'.tr().toUpperCase(),
                 style: textTheme.labelSmall?.copyWith(
                   color: tier.badgeColor,
                   fontWeight: FontWeight.w900,
@@ -174,7 +174,7 @@ class TierCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Desbloquea una mascota para tu devocional diario',
+            'supporter.pet_preview_description'.tr(),
             textAlign: TextAlign.center,
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurface.withValues(alpha: 0.8),
