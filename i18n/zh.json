@@ -79,7 +79,8 @@
     "share_footer_and_more": "以及更多功能...",
     "share_footer_download": "下载: 基督教灵修",
     "share_footer_benefits": "100%免费 | 无广告 | 离线使用",
-    "share_footer_developer": "Develop4God"
+    "share_footer_developer": "Develop4God",
+    "no_devocionales_available": "PENDING"
   },
   "prayer": {
     "invitation_title": "祷告邀请",
@@ -173,7 +174,9 @@
     "paypal_no_app_error": "无法打开PayPal。请确保您已安装网络浏览器 或 PayPal应用程序。",
     "backup_option": "备份",
     "backup_subtitle": "安全备份 和 恢复您的数据",
-    "voice_sample_text": "点击收听音频样本。然后保存您的偏好。"
+    "voice_sample_text": "点击收听音频样本。然后保存您的偏好。",
+    "cannot_open_url": "PENDING",
+    "url_error": "PENDING"
   },
   "notifications_config_page": {
     "notifications_config": "通知配置",
@@ -324,7 +327,8 @@
     "progress": "进度",
     "settings": "设置",
     "bible": "圣经",
-    "add_prayer_or_thanksgiving": "添加祷告 或 感恩"
+    "add_prayer_or_thanksgiving": "添加祷告 或 感恩",
+    "support": "PENDING"
   },
   "share": {
     "share_text": "分享文本",
@@ -821,6 +825,10 @@
     "disclaimer": "付款由 Google Play 处理。每个级别都是一次性购买，将授予您一枚数字徽章，作为对您支持事工的感谢象征。",
     "thanks_section_title": "感谢我们的事工伙伴",
     "gold_name_hint": "您希望如何出现在感谢部分？",
-    "gold_name_helper": "可选：您的名字将显示在关于页面中"
+    "gold_name_helper": "可选：您的名字将显示在关于页面中",
+    "purchase_success_verse": "\"慷慨施舍的必慷慨收获。\" 🙏",
+    "purchase_success_verse_ref": "哥林多后书 9:6",
+    "purchase_success_button": "阿门！🙌",
+    "no_new_restores": "未找到要恢复的新购买。"
   }
 }
