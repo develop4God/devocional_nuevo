@@ -819,9 +819,9 @@
     "pet_preview_description": "Unlock a pet to accompany you in your daily devotional.",
     "select_pet_button": "Choose my pet 🎁",
     "pet_selection_title": "Excellent choice!",
-    "pet_selection_message": "{petName} will now appear on your devotional page.",
+    "pet_selection_message": "{petName} now appear on your devotional page.",
     "final_celebration_title": "Let's get started!",
-    "final_celebration_message": "{petName} will now appear on your devotional page.",
+    "final_celebration_message": "{petName} now appear on your devotional page.",
     "final_celebration_button": "Start 🚀",
     "purchase_error": "Error processing payment. Please try again.",
     "restore_purchases": "Sync my purchases from Google Play",
@@ -832,6 +832,8 @@
     "thanks_section_title": "Thanks to our Ministry Partners",
     "gold_name_hint": "How would you like to appear in the Thanks section?",
     "gold_name_helper": "Optional: your name will be shown in the About page",
-    "no_new_restores": "No new purchases found to restore."
+    "no_new_restores": "No new purchases found to restore.",
+    "status_title": "Honor Medals",
+    "status_thanks": "Thank you for being part of this ministry with your generous heart."
   }
 }

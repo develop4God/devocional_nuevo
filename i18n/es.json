@@ -70,7 +70,6 @@
     "online_mode": "Modo en línea",
     "choose_option": "Elige una opción",
     "no_devotionals": "No hay devocionales",
-    "no_devotionals_available": "No hay devocionales disponibles",
     "share_footer_title": "Esto es solo el comienzo...",
     "share_footer_complete_app": "La app completa incluye:",
     "share_footer_daily_devotionals": "Devocionales diarios actualizados",
@@ -359,7 +358,12 @@
     "support_my_badges": "Mis Insignias",
     "support_badges_progress": "insignias desbloqueadas",
     "support_badge_unlock": "¡Insignia Desbloqueada!",
-    "support_badge_share": "Compartir Insignia"
+    "support_badge_share": "Compartir Insignia",
+    "exclusive_gift": "¡Regalo exclusivo!",
+    "pet_preview_description": "Desbloquea una mascota para tu devocional diario.",
+    "final_celebration_title": "¡A EMPEZAR!",
+    "final_celebration_message": "{petName} ahora aparecerá en tu página de devocionales.",
+    "final_celebration_button": "¡A EMPEZAR! 🚀"
   },
   "about": {
     "title": "Acerca de tu app",
@@ -807,7 +811,7 @@
     "benefit_silver_badge": "Insignia Plateada de Apoyo",
     "benefit_silver_icon": "Ícono especial en tu colección",
     "benefit_gold_badge": "Insignia Dorada de Apoyo",
-    "benefit_gold_thanks": "Tu nombre en la sección \"Gracias\" de la app",
+    "benefit_gold_thanks": "Colocar tu nombre en la aplicación",
     "purchased": "Obtenido",
     "badge_active": "Insignia Activa ✓",
     "get_tier": "Apoyar Ahora",
@@ -826,8 +830,6 @@
     "billing_unavailable_body": "La facturación no está disponible en este dispositivo. Por favor verifica tu conexión a Google Play.",
     "disclaimer": "Los pagos son procesados por Google Play. Cada nivel es una compra única que te otorga una insignia digital como señal de agradecimiento por tu apoyo al ministerio.",
     "thanks_section_title": "Gracias a nuestros Socios del Ministerio",
-    "gold_name_hint": "¿Cómo quieres aparecer en la sección Gracias?",
-    "gold_name_helper": "Opcional: tu nombre se mostrará en la página Acerca de",
     "no_new_restores": "No se encontraron compras nuevas para restaurar."
   }
 }
