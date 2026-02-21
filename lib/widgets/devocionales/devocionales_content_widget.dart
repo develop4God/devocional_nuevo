@@ -2,8 +2,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
-import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.dart';
@@ -12,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 /// Widget that displays the content of a devotional.
-class DevocionalesContentWidget extends StatefulWidget {
+class DevocionalesContentWidget extends StatelessWidget {
   final Devocional devocional;
   final double fontSize;
   final VoidCallback onVerseCopy;
@@ -25,9 +23,9 @@ class DevocionalesContentWidget extends StatefulWidget {
   final VoidCallback onFavoriteToggle;
   final VoidCallback onShare;
 
-  // Allow injection of a SupporterPetService for tests; when null the widget
-  // will use the global service locator (moved out of build to initState).
-  final SupporterPetService? petService;
+  /// Pet service injected by the caller — keeps [build] free of service-locator
+  /// calls, which violates the project's DI rules.
+  final SupporterPetService petService;
 
   const DevocionalesContentWidget({
     super.key,
@@ -42,38 +40,8 @@ class DevocionalesContentWidget extends StatefulWidget {
     required this.isFavorite,
     required this.onFavoriteToggle,
     required this.onShare,
-    this.petService,
+    required this.petService,
   });
-
-  @override
-  State<DevocionalesContentWidget> createState() =>
-      _DevocionalesContentWidgetState();
-}
-
-class _DevocionalesContentWidgetState extends State<DevocionalesContentWidget> {
-  String? _profileName;
-
-  // Both services resolved once in initState — keeps build() pure and avoids
-  // repeated service-locator lookups on every rebuild.
-  late final SupporterPetService _petService;
-  late final ISupporterProfileRepository _profileRepo;
-
-  @override
-  void initState() {
-    super.initState();
-    _petService = widget.petService ?? getService<SupporterPetService>();
-    _profileRepo = getService<ISupporterProfileRepository>();
-    _loadProfileName();
-  }
-
-  Future<void> _loadProfileName() async {
-    final name = await _profileRepo.loadProfileName();
-    if (mounted) {
-      setState(() {
-        _profileName = name;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,38 +49,39 @@ class _DevocionalesContentWidgetState extends State<DevocionalesContentWidget> {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return SingleChildScrollView(
-      controller: widget.scrollController,
+      controller: scrollController,
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Use the cached _petService instead of resolving inside build
-          if (_petService.showPetHeader && _petService.isPetUnlocked)
+          if (petService.showPetHeader && petService.isPetUnlocked)
             Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
+              padding: const EdgeInsets.only(bottom: 16.0),
               child: PetHeroSection(
-                profileName: _profileName,
+                formattedDate: getLocalizedDateFormat(context),
                 showPetHint: false,
                 onTap: () {
                   // Optional: navigate to selection or do nothing
                 },
-                selectedPet: _petService.selectedPet,
+                selectedPet: petService.selectedPet,
                 selectedTheme: (
                   colors: [colorScheme.primary, colorScheme.tertiary]
-                ), // Simple theme for now
+                ),
+                // Simple theme for now
+                introMessage: 'messages.welcome'.tr(),
               ),
             ),
           DevocionalHeaderWidget(
-            date: widget.getLocalizedDateFormat(context),
-            currentStreak: widget.currentStreak,
-            streakFuture: widget.streakFuture,
-            isFavorite: widget.isFavorite,
-            onFavoriteToggle: widget.onFavoriteToggle,
-            onShare: widget.onShare,
-            onStreakTap: widget.onStreakBadgeTap,
+            date: getLocalizedDateFormat(context),
+            currentStreak: currentStreak,
+            streakFuture: streakFuture,
+            isFavorite: isFavorite,
+            onFavoriteToggle: onFavoriteToggle,
+            onShare: onShare,
+            onStreakTap: onStreakBadgeTap,
           ),
           GestureDetector(
-            onTap: widget.onVerseCopy,
+            onTap: onVerseCopy,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -124,11 +93,30 @@ class _DevocionalesContentWidgetState extends State<DevocionalesContentWidget> {
                     colorScheme.primary.withValues(alpha: 0.08),
                     colorScheme.secondary.withValues(alpha: 0.06),
                   ],
+                  stops: const [0.0, 0.6, 1.0],
                 ),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.primary.withValues(alpha: 0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                    spreadRadius: -4,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 40,
+                    offset: const Offset(0, 16),
+                    spreadRadius: -8,
+                  ),
+                ],
               ),
               child: AutoSizeText(
-                widget.devocional.versiculo,
+                devocional.versiculo,
                 textAlign: TextAlign.center,
                 style: textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w600,
@@ -148,9 +136,9 @@ class _DevocionalesContentWidgetState extends State<DevocionalesContentWidget> {
           ),
           const SizedBox(height: 10),
           Text(
-            widget.devocional.reflexion,
+            devocional.reflexion,
             style: textTheme.bodyMedium?.copyWith(
-              fontSize: widget.fontSize,
+              fontSize: fontSize,
               color: colorScheme.onSurface,
             ),
           ),
@@ -163,7 +151,7 @@ class _DevocionalesContentWidgetState extends State<DevocionalesContentWidget> {
             ),
           ),
           const SizedBox(height: 10),
-          ...widget.devocional.paraMeditar.map((item) {
+          ...devocional.paraMeditar.map((item) {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: Text.rich(
@@ -173,14 +161,14 @@ class _DevocionalesContentWidgetState extends State<DevocionalesContentWidget> {
                       text: '${item.cita}: ',
                       style: textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: widget.fontSize,
+                        fontSize: fontSize,
                         color: colorScheme.primary,
                       ),
                     ),
                     TextSpan(
                       text: item.texto,
                       style: textTheme.bodyMedium?.copyWith(
-                        fontSize: widget.fontSize,
+                        fontSize: fontSize,
                         color: colorScheme.onSurface,
                       ),
                     ),
@@ -199,16 +187,16 @@ class _DevocionalesContentWidgetState extends State<DevocionalesContentWidget> {
           ),
           const SizedBox(height: 10),
           Text(
-            widget.devocional.oracion,
+            devocional.oracion,
             style: textTheme.bodyMedium?.copyWith(
-              fontSize: widget.fontSize,
+              fontSize: fontSize,
               color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 20),
-          if (widget.devocional.version != null ||
-              widget.devocional.language != null ||
-              widget.devocional.tags != null)
+          if (devocional.version != null ||
+              devocional.language != null ||
+              devocional.tags != null)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -220,21 +208,19 @@ class _DevocionalesContentWidgetState extends State<DevocionalesContentWidget> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                if (widget.devocional.tags != null &&
-                    widget.devocional.tags!.isNotEmpty)
+                if (devocional.tags != null && devocional.tags!.isNotEmpty)
                   Text(
                     'devotionals.topics'.tr({
-                      'topics': widget.devocional.tags!.join(', '),
+                      'topics': devocional.tags!.join(', '),
                     }),
                     style: textTheme.bodySmall?.copyWith(
                       fontSize: 14,
                       color: colorScheme.onSurface,
                     ),
                   ),
-                if (widget.devocional.version != null)
+                if (devocional.version != null)
                   Text(
-                    'devotionals.version'
-                        .tr({'version': widget.devocional.version}),
+                    'devotionals.version'.tr({'version': devocional.version}),
                     style: textTheme.bodySmall?.copyWith(
                       fontSize: 14,
                       color: colorScheme.onSurface,

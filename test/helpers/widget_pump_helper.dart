@@ -1,4 +1,5 @@
 // test/helpers/widget_pump_helper.dart
+import 'dart:async';
 //
 // Helpers for pumping SupporterPage in widget tests.
 //
@@ -101,7 +102,7 @@ Future<void> pumpSupporterPage(
         child: MultiBlocProvider(
           providers: [
             BlocProvider<SupporterBloc>.value(value: bloc),
-            BlocProvider<ThemeBloc>.value(value: _FakeThemeBloc()),
+            BlocProvider<ThemeBloc>(create: (_) => ThemeBloc()),
           ],
           child: const SupporterPage(),
         ),
