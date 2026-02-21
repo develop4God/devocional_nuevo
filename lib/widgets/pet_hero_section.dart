@@ -16,6 +16,8 @@ class PetHeroSection extends StatelessWidget {
     required this.onTap,
     required this.selectedPet,
     required this.selectedTheme,
+    required String formattedDate,
+    required String introMessage,
   });
 
   @override
