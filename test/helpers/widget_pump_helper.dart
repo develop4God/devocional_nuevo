@@ -1,5 +1,4 @@
 // test/helpers/widget_pump_helper.dart
-import 'dart:async';
 //
 // Helpers for pumping SupporterPage in widget tests.
 //
@@ -18,34 +17,11 @@ import 'dart:convert';
 
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
-import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
-import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-/// Test-only [ThemeBloc] fake that immediately provides a loaded theme state.
-class _FakeThemeBloc extends Fake implements ThemeBloc {
-  final ThemeState _state = ThemeLoaded.withThemeData(
-      themeFamily: 'Deep Purple', brightness: Brightness.light);
-
-  @override
-  Stream<ThemeState> get stream => Stream.value(_state);
-
-  @override
-  ThemeState get state => _state;
-
-  @override
-  bool get isClosed => false;
-
-  @override
-  void add(ThemeEvent event) {}
-
-  @override
-  Future<void> close() async {}
-}
 
 /// Minimal valid Lottie JSON with a short non-repeating animation.
 ///
