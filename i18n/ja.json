@@ -29,7 +29,7 @@
     "app_title": "毎日のデボーション",
     "my_intimate_space_with_god": "神様との親密な時間",
     "devotional_of_the_day": "今日のデボーション",
-    "no_devotionals_available": "選択された言語/バージョンのデボーションはありません。",
+    "no_devotionals_available": "選択した言語やバージョンには利用可能なデボーショナルがありません。",
     "verse": "聖書の言葉:",
     "reflection": "思い巡らし:",
     "to_meditate": "默想:",
@@ -80,7 +80,7 @@
     "share_footer_download": "ダウンロード: クリスチャンデボーション",
     "share_footer_benefits": "100%無料 | 広告なし | オフライン使用",
     "share_footer_developer": "Develop4God",
-    "no_devocionales_available": "PENDING"
+    "no_devocionales_available": "選択した言語やバージョンには利用可能なデボーショナルがありません。"
   },
   "prayer": {
     "invitation_title": "祈りへの招き",
@@ -325,7 +325,7 @@
     "settings": "設定",
     "bible": "聖書",
     "add_prayer_or_thanksgiving": "祈りまたは感謝を追加",
-    "support": "PENDING"
+    "support": "ミニストリーをサポート"
   },
   "share": {
     "share_text": "テキストを共有",
