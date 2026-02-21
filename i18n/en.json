@@ -841,6 +841,9 @@
     "go_to_progress": "View my medals in Progress 🏅",
     "medal_unlocked_body": "Your new honor medal is now available in your Spiritual Progress profile.",
     "medal_unlocked_title": "Honor Medal Unlocked!",
-    "badge_unlock": "Badge Unlocked!"
+    "badge_unlock": "Badge Unlocked!",
+    "supporter_section_title": "MINISTRY PARTNER",
+    "show_pet_header": "Show my pet in the devotional",
+    "pet_currently_selected": "Currently"
   }
 }
