@@ -47,16 +47,14 @@ void main() {
       expect(prefs.getString('profile_display_name'), equals('María José'));
     });
 
-    test('loadProfileName() reads from pre-seeded SharedPreferences',
-        () async {
+    test('loadProfileName() reads from pre-seeded SharedPreferences', () async {
       SharedPreferences.setMockInitialValues({
         'iap_gold_supporter_name': 'Pre-seeded Name',
       });
       final seededRepo = SupporterProfileRepository(
         prefsFactory: SharedPreferences.getInstance,
       );
-      expect(
-          await seededRepo.loadProfileName(), equals('Pre-seeded Name'));
+      expect(await seededRepo.loadProfileName(), equals('Pre-seeded Name'));
     });
 
     // ── Unicode & special characters ─────────────────────────────────────────
