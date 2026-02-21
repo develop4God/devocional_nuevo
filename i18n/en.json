@@ -832,11 +832,15 @@
     "thanks_section_title": "Thanks to our Ministry Partners",
     "gold_name_hint": "How would you like to appear in the Thanks section?",
     "gold_name_helper": "Optional: your name will be shown in the About page",
+    "gold_edit_name_button": "Edit my name",
+    "gold_set_name_button": "Set my name",
+    "gold_edit_name_title": "Edit name as Ministry Partner",
     "no_new_restores": "No new purchases found to restore.",
     "status_title": "Honor Medals",
     "status_thanks": "Thank you for being part of this ministry with your generous heart.",
     "go_to_progress": "View my medals in Progress 🏅",
     "medal_unlocked_body": "Your new honor medal is now available in your Spiritual Progress profile.",
-    "medal_unlocked_title": "Honor Medal Unlocked!"
+    "medal_unlocked_title": "Honor Medal Unlocked!",
+    "badge_unlock": "Badge Unlocked!"
   }
 }
