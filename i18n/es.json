@@ -817,6 +817,7 @@
     "purchase_success_verse": "\"El que siembra generosamente, generosamente también segará.\" 🙏",
     "purchase_success_verse_ref": "2 Corintios 9:6",
     "purchase_success_button": "¡Amén! 🙌",
+    "select_pet_button": "Elegir mi mascota 🎁",
     "purchase_error": "Error al procesar el pago. Por favor intenta de nuevo.",
     "restore_purchases": "Sincronizar mis compras desde Google Play",
     "restore_complete": "Compras restauradas correctamente",

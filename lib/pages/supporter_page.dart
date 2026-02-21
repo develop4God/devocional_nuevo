@@ -160,16 +160,6 @@ class _SupporterPageState extends State<SupporterPage>
                           ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'supporter.purchase_success_subtitle'.tr(),
-                  style:
-                      Theme.of(dialogContext).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(dialogContext).colorScheme.primary,
-                          ),
-                  textAlign: TextAlign.center,
-                ),
                 const SizedBox(height: 16),
                 Text(
                   'supporter.purchase_success_body'.tr(),
@@ -292,7 +282,7 @@ class _SupporterPageState extends State<SupporterPage>
                     ),
                     child: Text(
                       isGold
-                          ? 'ELEGIR MI MASCOTA 🎁'
+                          ? 'supporter.select_pet_button'.tr()
                           : 'supporter.purchase_success_button'.tr(),
                       style: const TextStyle(
                           fontWeight: FontWeight.w900, fontSize: 18),
