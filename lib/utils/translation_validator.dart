@@ -9,6 +9,7 @@ const supportedLanguages = [
   'fr',
   'ja',
   'zh', // Added Chinese
+  'hi', // Added Hindi
 ];
 
 /// Utility to validate and complete translations between the reference file in.json and any language file

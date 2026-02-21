@@ -47,10 +47,18 @@ class DevocionalTtsMiniplayerPresenter {
         return ValueListenableBuilder<TtsPlayerState>(
           valueListenable: ttsAudioController.state,
           builder: (context, state, _) {
+            debugPrint('[TtsMiniplayerModal] 🎵 State changed to: $state');
             if (state == TtsPlayerState.completed) {
+              debugPrint(
+                  '[TtsMiniplayerModal] ✅ TTS Completed - Scheduling modal close');
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (Navigator.canPop(ctx)) {
+                  debugPrint(
+                      '[TtsMiniplayerModal] 🔚 Closing modal via Navigator.pop()');
                   Navigator.of(ctx).pop();
+                } else {
+                  debugPrint(
+                      '[TtsMiniplayerModal] ⚠️ Cannot pop - Navigator.canPop() returned false');
                 }
               });
             }

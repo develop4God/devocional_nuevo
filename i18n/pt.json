@@ -118,7 +118,7 @@
     "answered": "Respondida: {date}",
     "answer_prayer": "Responder Oração",
     "answer_prayer_description": "Adicione um comentário sobre como esta oração foi respondida (opcional).",
-    "answer_placeholder": "Deus respondeu esta oração através de...\n\nSou grato por...",
+    "answer_placeholder": "Deus respondeu esta oração através de...\n\nEstoy agradecido por...",
     "confirm_answered": "Confirmar Respondida",
     "prayer_marked_answered": "Oração marcada como respondida",
     "created": "Criada: {date}",
@@ -131,7 +131,7 @@
     "prayers": "Orações",
     "edit_answered_comment": "Editar Resposta",
     "edit_answered_comment_description": "Edite o comentário sobre como esta oração foi respondida.",
-    "edit_answered_placeholder": "Deus respondeu esta oração através de...\n\nSou grato por...",
+    "edit_answered_placeholder": "Deus respondeu esta oração através de...\n\nEstoy agradecido por...",
     "add_prayer_thanksgiving_hint": "Orar ou agradecer"
   },
   "settings": {
@@ -235,7 +235,7 @@
     "download_success": "Devocionais baixados com sucesso",
     "download_error": "Erro no download. Verifique sua conexão e tente novamente.",
     "offline_access_ready": "Agora você pode acessar seu conteúdo sem internet",
-    "share_message": "Si você busca um momento de paz diária em sua vida, recomendo o Devocionais Cristãos.\n\nPalavra de Deus para o crescimento espiritual e totalmente gratuito. Você pode baixá-lo aqui:\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo",
+    "share_message": "📖 *Devocionais Cristãos*\n\nSe você busca um momento de paz diária em sua vida, recomendo este aplicativo. 🙏\n\nPalavra de Deus para o crescimento espiritual e totalmente gratuito. ✨\n\n⬇️ *Baixe aqui:*\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo\n\n🔥 _100% Grátis | Sem Anúncios | Uso Offline_",
     "switching_version": "Alterando versão da Bíblia..."
   },
   "progress": {
@@ -550,7 +550,7 @@
     "select_amount_and_badge": "Por favor selecione um valor e uma medalha",
     "badge_selected": "Selecionada",
     "select_badge": "Selecionar",
-    "badge_gratitude_message": "✨ As medalhas são nosso agradecimento por sua generosidade e apoio ao ministério. Cada uma representa uma virtude espiritual para sua coleção.",
+    "badge_gratitude_message": "✨ As medalhas are our agradecimento por sua generosidade e apoio ao ministério. Cada uma representa uma virtude espiritual para sua coleção.",
     "custom_amount_label": "Valor Personalizado"
   },
   "badges": {
@@ -614,7 +614,7 @@
     "no_verses": "Sem versículos",
     "select_version": "Selecionar versão",
     "search": "Buscar",
-    "search_placeholder": "Buscar palavras ou frases...",
+    "search_placeholder": "Buscar palavras ou phrases...",
     "no_search_results": "Nenhum resultado encontrado",
     "loading_version": "Carregando {version}...",
     "search_book": "Buscar livro",

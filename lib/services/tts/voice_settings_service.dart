@@ -63,7 +63,8 @@ class VoiceSettingsService {
       'pt': ['pt-BR', 'pt-PT'],
       'fr': ['fr-FR', 'fr-CA'],
       'ja': ['ja-JP'],
-      'zh': ['zh-CN', 'zh-TW', 'yue-HK'], // Add zh with fallback order
+      'zh': ['zh-CN', 'zh-TW', 'yue-HK'],
+      'hi': ['hi-IN'], // Hindi
     };
     final locales = preferredLocales[language] ?? [language];
 
