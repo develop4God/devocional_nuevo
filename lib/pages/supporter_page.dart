@@ -399,7 +399,7 @@ class _SupporterPageState extends State<SupporterPage>
                 repeat: false),
             const SizedBox(height: 16),
             Text(
-              '¡Excelente elección!',
+              'supporter.pet_selection_title'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleLarge
@@ -407,7 +407,7 @@ class _SupporterPageState extends State<SupporterPage>
             ),
             const SizedBox(height: 8),
             Text(
-              '${pet.name} ahora aparecerá en tu página de devocionales.',
+              'supporter.pet_selection_message'.tr({'petName': pet.name}),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
