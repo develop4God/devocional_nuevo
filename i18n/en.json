@@ -594,7 +594,7 @@
     "onboarding_complete_subtitle": "Your devotional space is configured. It's time to begin your daily spiritual journey.",
     "onboarding_your_setup": "Your Setup",
     "onboarding_start_app": "Start my space with God",
-    "onboarding_setup_theme_configured": "Custom theme selected",
+    "onboarding_theme_configured": "Custom theme selected",
     "onboarding_setup_backup_configured": "Auto backup configured",
     "onboarding_setup_protection_active": "Data protection active",
     "onboarding_setup_backup_skipped": "Backup skipped for now",
@@ -834,6 +834,9 @@
     "gold_name_helper": "Optional: your name will be shown in the About page",
     "no_new_restores": "No new purchases found to restore.",
     "status_title": "Honor Medals",
-    "status_thanks": "Thank you for being part of this ministry with your generous heart."
+    "status_thanks": "Thank you for being part of this ministry with your generous heart.",
+    "go_to_progress": "View my medals in Progress 🏅",
+    "medal_unlocked_body": "Your new honor medal is now available in your Spiritual Progress profile.",
+    "medal_unlocked_title": "Honor Medal Unlocked!"
   }
 }
