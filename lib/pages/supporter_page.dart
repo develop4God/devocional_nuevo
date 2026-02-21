@@ -314,7 +314,7 @@ class _SupporterPageState extends State<SupporterPage>
                   color: Colors.amber, size: 48),
               const SizedBox(height: 16),
               Text(
-                '¡Regalo Desbloqueado!',
+                'supporter.pet_selection_title'.tr(),
                 style:
                     Theme.of(dialogContext).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w900,
@@ -323,10 +323,10 @@ class _SupporterPageState extends State<SupporterPage>
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Elige el compañero que te acompañará en tu devocional diario.',
+              Text(
+                'supporter.pet_preview_description'.tr(),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.w500),
+                style: const TextStyle(fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 24),
               Flexible(
@@ -399,7 +399,7 @@ class _SupporterPageState extends State<SupporterPage>
                 repeat: false),
             const SizedBox(height: 16),
             Text(
-              'supporter.pet_selection_title'.tr(),
+              'supporter.final_celebration_title'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleLarge
@@ -407,7 +407,7 @@ class _SupporterPageState extends State<SupporterPage>
             ),
             const SizedBox(height: 8),
             Text(
-              'supporter.pet_selection_message'.tr({'petName': pet.name}),
+              'supporter.final_celebration_message'.tr({'petName': pet.name}),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -422,8 +422,8 @@ class _SupporterPageState extends State<SupporterPage>
                       borderRadius: BorderRadius.circular(16)),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text('¡A EMPEZAR! 🚀',
-                    style: TextStyle(fontWeight: FontWeight.w900)),
+                child: Text('supporter.final_celebration_button'.tr(),
+                    style: const TextStyle(fontWeight: FontWeight.w900)),
               ),
             ),
           ],
