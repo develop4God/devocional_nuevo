@@ -809,6 +809,7 @@
     "get_tier": "Soutenir Maintenant",
     "purchase_success_title": "Merci, Partenaire!",
     "purchase_success_body": "Votre soutien rend possible notre service continu. Que Dieu vous bénisse abondamment!",
+    "select_pet_button": "Choisir mon animal de compagnie 🎁",
     "purchase_error": "Erreur lors du traitement du paiement. Veuillez réessayer.",
     "restore_purchases": "Synchroniser mes achats depuis Google Play",
     "restore_complete": "Achats restaurés avec succès",

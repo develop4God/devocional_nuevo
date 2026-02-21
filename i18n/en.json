@@ -816,6 +816,7 @@
     "purchase_success_verse": "\"He who sows generously will also reap generously.\" 🙏",
     "purchase_success_verse_ref": "2 Corinthians 9:6",
     "purchase_success_button": "Amen! 🙌",
+    "select_pet_button": "Choose my pet 🎁",
     "purchase_error": "Error processing payment. Please try again.",
     "restore_purchases": "Sync my purchases from Google Play",
     "restore_complete": "Purchases restored successfully",
