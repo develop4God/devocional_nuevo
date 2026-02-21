@@ -815,7 +815,7 @@
     "purchase_success_title": "Obrigado, Parceiro!",
     "purchase_success_body": "Seu apoio torna possível que continuemos servindo. Deus te abençoe grandemente!",
     "purchase_error": "Erro ao processar o pagamento. Por favor, tente novamente.",
-    "restore_purchases": "Restaurar compras anteriores",
+    "restore_purchases": "Sincronizar minhas compras do Google Play",
     "restore_complete": "Compras restauradas com sucesso",
     "billing_unavailable_title": "Pagamento não disponível",
     "billing_unavailable_body": "A cobrança não está disponível neste dispositivo.",

@@ -811,7 +811,7 @@
     "purchase_success_title": "谢谢您，伙伴！",
     "purchase_success_body": "您的支持使我们能够继续服务。愿神大大祝福您！",
     "purchase_error": "处理付款时出错。请重试。",
-    "restore_purchases": "恢复之前的购买",
+    "restore_purchases": "从Google Play同步我的购买",
     "restore_complete": "购买已成功恢复",
     "billing_unavailable_title": "付款不可用",
     "billing_unavailable_body": "此设备不支持付款功能。",
