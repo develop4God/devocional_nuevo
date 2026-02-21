@@ -828,6 +828,13 @@
     "purchase_success_verse": "\"Celui qui sème généreusement moissonnera aussi généreusement.\" 🙏",
     "purchase_success_verse_ref": "2 Corinthiens 9:6",
     "purchase_success_button": "Amen! 🙌",
-    "no_new_restores": "Aucun nouvel achat trouvé à restaurer."
+    "no_new_restores": "Aucun nouvel achat trouvé à restaurer.",
+    "exclusive_gift": "PENDING",
+    "pet_preview_description": "PENDING",
+    "final_celebration_title": "PENDING",
+    "final_celebration_message": "PENDING",
+    "final_celebration_button": "PENDING",
+    "status_title": "PENDING",
+    "status_thanks": "PENDING"
   }
 }

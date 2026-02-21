@@ -829,6 +829,13 @@
     "purchase_success_verse": "\"慷慨施舍的必慷慨收获。\" 🙏",
     "purchase_success_verse_ref": "哥林多后书 9:6",
     "purchase_success_button": "阿门！🙌",
-    "no_new_restores": "未找到要恢复的新购买。"
+    "no_new_restores": "未找到要恢复的新购买。",
+    "exclusive_gift": "PENDING",
+    "pet_preview_description": "PENDING",
+    "final_celebration_title": "PENDING",
+    "final_celebration_message": "PENDING",
+    "final_celebration_button": "PENDING",
+    "status_title": "PENDING",
+    "status_thanks": "PENDING"
   }
 }

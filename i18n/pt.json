@@ -830,6 +830,13 @@
     "purchase_success_verse": "\"Quem semeia com generosidade, também ceifará com generosidade.\" 🙏",
     "purchase_success_verse_ref": "2 Coríntios 9:6",
     "purchase_success_button": "Amém! 🙌",
-    "no_new_restores": "Nenhuma compra nova encontrada para restaurar."
+    "no_new_restores": "Nenhuma compra nova encontrada para restaurar.",
+    "exclusive_gift": "PENDING",
+    "pet_preview_description": "PENDING",
+    "final_celebration_title": "PENDING",
+    "final_celebration_message": "PENDING",
+    "final_celebration_button": "PENDING",
+    "status_title": "PENDING",
+    "status_thanks": "PENDING"
   }
 }
