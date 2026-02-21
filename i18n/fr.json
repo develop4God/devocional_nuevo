@@ -80,7 +80,7 @@
     "share_footer_download": "Télécharger: Méditations Chrétiennes",
     "share_footer_benefits": "100% gratuit | Sans publicité | Utilisation hors ligne",
     "share_footer_developer": "Develop4God",
-    "no_devocionales_available": "PENDING"
+    "no_devocionales_available": "Aucune méditation disponible pour la langue/version sélectionnée."
   },
   "prayer": {
     "invitation_title": "Invitation à la Prière",
@@ -175,8 +175,8 @@
     "backup_option": "Sauvegarde",
     "backup_subtitle": "Sauvegardez et restaurez vos données en toute sécurité",
     "voice_sample_text": "Appuyez pour écouter un échantillon audio. Ensuite, enregistrez votre préférence.",
-    "cannot_open_url": "PENDING",
-    "url_error": "PENDING"
+    "cannot_open_url": "Impossible d'ouvrir le lien de support",
+    "url_error": "Erreur lors de l'ouverture du lien"
   },
   "notifications_config_page": {
     "notifications_config": "Configuration des Notifications",
@@ -328,7 +328,7 @@
     "settings": "Paramètres",
     "bible": "Bible",
     "add_prayer_or_thanksgiving": "Ajouter une prière ou action de grâce",
-    "support": "PENDING"
+    "support": "Soutenir le Ministère"
   },
   "share": {
     "share_text": "Partager le texte",

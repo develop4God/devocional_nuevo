@@ -29,7 +29,7 @@
     "app_title": "每日灵修",
     "my_intimate_space_with_god": "我与神的亲密空间",
     "devotional_of_the_day": "今日灵修",
-    "no_devotionals_available": "所选语言/版本没有可用的灵修。",
+    "no_devotionals_available": "所选语言或版本没有可用的灵修。",
     "verse": "经文：",
     "reflection": "反思：",
     "to_meditate": "默想：",
@@ -80,7 +80,7 @@
     "share_footer_download": "下载: 基督教灵修",
     "share_footer_benefits": "100%免费 | 无广告 | 离线使用",
     "share_footer_developer": "Develop4God",
-    "no_devocionales_available": "PENDING"
+    "no_devocionales_available": "所选语言或版本没有可用的灵修。"
   },
   "prayer": {
     "invitation_title": "祷告邀请",
@@ -175,8 +175,8 @@
     "backup_option": "备份",
     "backup_subtitle": "安全备份 和 恢复您的数据",
     "voice_sample_text": "点击收听音频样本。然后保存您的偏好。",
-    "cannot_open_url": "PENDING",
-    "url_error": "PENDING"
+    "cannot_open_url": "无法打开支持链接",
+    "url_error": "打开链接时出错"
   },
   "notifications_config_page": {
     "notifications_config": "通知配置",
@@ -328,7 +328,7 @@
     "settings": "设置",
     "bible": "圣经",
     "add_prayer_or_thanksgiving": "添加祷告 或 感恩",
-    "support": "PENDING"
+    "support": "支持事工"
   },
   "share": {
     "share_text": "分享文本",
