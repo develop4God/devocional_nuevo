@@ -1,6 +1,7 @@
 // lib/models/spiritual_stats_model.dart
 
 import 'package:flutter/material.dart';
+
 import '../services/localization_service.dart';
 import '../services/service_locator.dart';
 
@@ -223,18 +224,6 @@ class PredefinedAchievements {
           icon: Icons.eco,
           lottieAsset: 'assets/lottie/silver_medal.json',
           color: const Color(0xFFC0C0C0),
-          threshold: 1,
-          type: AchievementType.special,
-        ),
-        Achievement(
-          id: 'supporter_gold',
-          title: getService<LocalizationService>()
-              .translate('supporter.tier_gold_name'),
-          description: getService<LocalizationService>()
-              .translate('supporter.tier_gold_description'),
-          icon: Icons.verified,
-          lottieAsset: 'assets/lottie/trophy_star.json',
-          color: const Color(0xFFFFD700),
           threshold: 1,
           type: AchievementType.special,
         ),

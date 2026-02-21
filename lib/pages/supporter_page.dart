@@ -273,8 +273,10 @@ class _SupporterPageState extends State<SupporterPage>
                       // Capture the bloc reference before any async gaps.
                       final bloc = context.read<SupporterBloc>();
 
-                      // ✅ Register the badge unlock
-                      await _unlockSupporterBadge(tier.level);
+                      // ✅ Register badge unlock only for Bronze and Silver
+                      if (!isGold) {
+                        await _unlockSupporterBadge(tier.level);
+                      }
 
                       if (isGold) {
                         final name = nameController.text.trim();
