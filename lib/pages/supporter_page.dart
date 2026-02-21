@@ -12,6 +12,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 import 'package:devocional_nuevo/models/supporter_pet.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
+import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
@@ -185,9 +186,9 @@ class _SupporterPageState extends State<SupporterPage>
                           ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Text(
-                  'supporter.purchase_success_body'.tr(),
+                  'supporter.medal_unlocked_body'.tr(),
                   style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(dialogContext)
                             .colorScheme
@@ -297,6 +298,8 @@ class _SupporterPageState extends State<SupporterPage>
                         _showPetSelectionDialog();
                       } else {
                         Navigator.pop(dialogContext);
+                        // Redirect or show final feedback for non-gold tiers
+                        _showFinalMedalFeedback();
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -320,6 +323,61 @@ class _SupporterPageState extends State<SupporterPage>
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showFinalMedalFeedback() {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Lottie.asset('assets/lottie/success_check_celebration.json',
+                repeat: false),
+            const SizedBox(height: 16),
+            Text(
+              'supporter.badge_unlock'.tr(),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'supporter.medal_unlocked_body'.tr(),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ProgressPage()),
+                  );
+                },
+                icon: const Icon(Icons.auto_graph_rounded),
+                label: Text('supporter.go_to_progress'.tr().toUpperCase()),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('app.close'.tr()),
+            ),
+          ],
         ),
       ),
     );
@@ -441,18 +499,28 @@ class _SupporterPageState extends State<SupporterPage>
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(ctx),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ProgressPage()),
+                  );
+                },
+                icon: const Icon(Icons.auto_graph_rounded),
+                label: Text('supporter.go_to_progress'.tr().toUpperCase()),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber.shade700,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16)),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: Text('supporter.final_celebration_button'.tr(),
-                    style: const TextStyle(fontWeight: FontWeight.w900)),
               ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('app.close'.tr()),
             ),
           ],
         ),

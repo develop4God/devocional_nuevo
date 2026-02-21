@@ -303,7 +303,7 @@ class _ProgressPageState extends State<ProgressPage>
                   color: Colors.amber.shade700, size: 20),
               const SizedBox(width: 8),
               Text(
-                'supporter.status_title'.tr(),
+                'supporter.purchase_success_title'.tr(),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.primary,
@@ -322,15 +322,45 @@ class _ProgressPageState extends State<ProgressPage>
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'supporter.status_thanks'.tr(),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontStyle: FontStyle.italic,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.6),
-                ),
+          Builder(
+            builder: (context) {
+              if (supporterBadges
+                  .any((badge) => badge.id == 'supporter_silver')) {
+                return Text(
+                  'supporter.benefit_silver_badge'.tr(),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
+                      ),
+                );
+              } else if (supporterBadges
+                  .any((badge) => badge.id == 'supporter_bronze')) {
+                return Text(
+                  'supporter.benefit_bronze_badge'.tr(),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
+                      ),
+                );
+              } else {
+                return Text(
+                  'supporter.status_thanks'.tr(),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
+                      ),
+                );
+              }
+            },
           ),
           const Divider(height: 32),
         ],

@@ -930,6 +930,32 @@ class _DebugPageState extends State<DebugPage> {
                                       side: const BorderSide(color: Colors.red),
                                     ),
                                   ),
+
+                                  // Restore all purchases
+                                  OutlinedButton.icon(
+                                    onPressed: () {
+                                      context
+                                          .read<SupporterBloc>()
+                                          .add(RestorePurchases());
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              '🔄 Restore Purchases triggered'),
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(
+                                        Icons.settings_backup_restore,
+                                        color: Colors.blue),
+                                    label: const Text('Restore Purchases',
+                                        style: TextStyle(color: Colors.blue)),
+                                    style: OutlinedButton.styleFrom(
+                                      side:
+                                          const BorderSide(color: Colors.blue),
+                                    ),
+                                  ),
                                 ],
                               );
                             },
