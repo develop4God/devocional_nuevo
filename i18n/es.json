@@ -70,6 +70,7 @@
     "online_mode": "Modo en línea",
     "choose_option": "Elige una opción",
     "no_devotionals": "No hay devocionales",
+    "no_devotionals_available": "No hay devocionales disponibles",
     "share_footer_title": "Esto es solo el comienzo...",
     "share_footer_complete_app": "La app completa incluye:",
     "share_footer_daily_devotionals": "Devocionales diarios actualizados",
@@ -794,7 +795,7 @@
     "page_title": "Apoyar Ministerio Develop4God",
     "header_title": "Todo lo hacemos por amor a Dios",
     "header_subtitle": "Tu apoyo nos permite enfocarnos en este ministerio y llegar a más corazones y naciones",
-    "ministry_message": "Todo en esta app no tiene costo. Pero si el Señor pone en tu corazón apoyarnos, te regalamos una insignia especial como señal de que eres parte de lo que Dios está haciendo con esta aplicación.\n\n2 Corintios 9:7 RVR1960 Cada uno dé como propuso en su corazón: no con tristeza, ni por necesidad, porque Dios ama al dador alegre.",
+    "ministry_message": "Nuestra app y contenido es GRATIS. Pero si el Señor pone en tu corazón apoyarnos, te regalamos una insignia especial como señal de que eres parte de lo que Dios está haciendo con esta aplicación.\n\nNo es una compra, es un agradecimeinto por tu apoyo.\n\n2 Corintios 9:7 RVR1960 Cada uno dé como propuso en su corazón: no con tristeza, ni por necesidad, porque Dios ama al dador alegre.",
     "choose_tier": "Elige tu huella en este ministerio",
     "tier_bronze_name": "Cafecito",
     "tier_bronze_description": "Un café para el camino — ¡cada granito cuenta!",
@@ -827,13 +828,6 @@
     "thanks_section_title": "Gracias a nuestros Socios del Ministerio",
     "gold_name_hint": "¿Cómo quieres aparecer en la sección Gracias?",
     "gold_name_helper": "Opcional: tu nombre se mostrará en la página Acerca de",
-    "no_new_restores": "No se encontraron compras nuevas para restaurar.",
-    "status_title": "Medallas de Honor",
-    "status_thanks": "Gracias por ser parte de este ministerio con tu corazón generoso.",
-    "exclusive_gift": "PENDING",
-    "pet_preview_description": "PENDING",
-    "final_celebration_title": "PENDING",
-    "final_celebration_message": "PENDING",
-    "final_celebration_button": "PENDING"
+    "no_new_restores": "No se encontraron compras nuevas para restaurar."
   }
 }
