@@ -359,7 +359,8 @@ class _SupporterPageState extends State<SupporterPage>
                   Navigator.pop(ctx);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ProgressPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const ProgressPage()),
                   );
                 },
                 icon: const Icon(Icons.auto_graph_rounded),
@@ -504,7 +505,8 @@ class _SupporterPageState extends State<SupporterPage>
                   Navigator.pop(ctx);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ProgressPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const ProgressPage()),
                   );
                 },
                 icon: const Icon(Icons.auto_graph_rounded),

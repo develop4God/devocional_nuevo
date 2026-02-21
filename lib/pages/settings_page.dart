@@ -29,10 +29,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(titleText: 'settings.title'.tr()),
-      body: const _SettingsView(),
-    );
+    return const _SettingsView();
   }
 }
 
@@ -109,170 +106,181 @@ class _SettingsViewState extends State<_SettingsView> {
 
   @override
   Widget build(BuildContext context) {
-    final localizationProvider = Provider.of<LocalizationProvider>(context);
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final TextTheme textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themeState.systemUiOverlayStyle,
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Support/Donation Button
-              SizedBox(
-                child: Align(
-                  alignment: Alignment.topRight,
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      final Uri url =
-                          Uri.parse('https://www.develop4god.com/apoyanos');
-                      try {
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url,
-                              mode: LaunchMode.externalApplication);
-                        } else {
-                          if (mounted) {
-                            _showErrorSnackBar('settings.cannot_open_url'.tr());
-                          }
-                        }
-                      } catch (e) {
+      child: Scaffold(
+        appBar: CustomAppBar(titleText: 'settings.title'.tr()),
+        body: _buildSettingsBody(context, colorScheme, theme.textTheme),
+      ),
+    );
+  }
+
+  Widget _buildSettingsBody(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    final localizationProvider = Provider.of<LocalizationProvider>(context);
+
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Support/Donation Button
+            SizedBox(
+              child: Align(
+                alignment: Alignment.topRight,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    final Uri url =
+                        Uri.parse('https://www.develop4god.com/apoyanos');
+                    try {
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url,
+                            mode: LaunchMode.externalApplication);
+                      } else {
                         if (mounted) {
-                          _showErrorSnackBar(
-                              '${'settings.url_error'.tr()}: $e');
+                          _showErrorSnackBar('settings.cannot_open_url'.tr());
                         }
                       }
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: colorScheme.onSurface,
-                      side: BorderSide(color: colorScheme.primary, width: 2.0),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20.0)),
+                    } catch (e) {
+                      if (mounted) {
+                        _showErrorSnackBar('${'settings.url_error'.tr()}: $e');
+                      }
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: colorScheme.onSurface,
+                    side: BorderSide(color: colorScheme.primary, width: 2.0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.0)),
+                  ),
+                  icon: const Icon(Icons.volunteer_activism),
+                  label: Text(
+                    'settings.donate'.tr(),
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
-                    icon: const Icon(Icons.volunteer_activism),
-                    label: Text(
-                      'settings.donate'.tr(),
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // GOLD SUPPORTER SECTION
+            if (_petService.isPetUnlocked) ...[
+              Text(
+                'SOCIO DEL MINISTERIO',
+                style: textTheme.labelLarge?.copyWith(
+                  color: Colors.amber.shade700,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(16),
+                  border:
+                      Border.all(color: Colors.amber.withValues(alpha: 0.2)),
+                ),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _nameController,
+                      textInputAction: TextInputAction.done,
+                      decoration: InputDecoration(
+                        labelText: 'settings.profile_name'.tr(),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        prefixIcon:
+                            Icon(Icons.person, color: Colors.amber.shade700),
+                        suffixIcon: IconButton(
+                          icon: Icon(Icons.save_outlined,
+                              color: Colors.amber.shade700),
+                          tooltip: 'app.save'.tr(),
+                          onPressed: () => _saveProfileName(),
+                        ),
                       ),
+                      onSubmitted: (_) => _saveProfileName(),
                     ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // GOLD SUPPORTER SECTION
-              if (_petService.isPetUnlocked) ...[
-                Text(
-                  'SOCIO DEL MINISTERIO',
-                  style: textTheme.labelLarge?.copyWith(
-                    color: Colors.amber.shade700,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(16),
-                    border:
-                        Border.all(color: Colors.amber.withValues(alpha: 0.2)),
-                  ),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: _nameController,
-                        textInputAction: TextInputAction.done,
-                        decoration: InputDecoration(
-                          labelText: 'settings.profile_name'.tr(),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          prefixIcon:
-                              Icon(Icons.person, color: Colors.amber.shade700),
-                          suffixIcon: IconButton(
-                            icon: Icon(Icons.save_outlined,
-                                color: Colors.amber.shade700),
-                            tooltip: 'app.save'.tr(),
-                            onPressed: () => _saveProfileName(),
-                          ),
-                        ),
-                        onSubmitted: (_) => _saveProfileName(),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: Text(
+                        'Mostrar mi mascota en el devocional',
+                        style: textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 16),
-                      SwitchListTile(
-                        title: Text(
-                          'Mostrar mi mascota en el devocional',
-                          style: textTheme.bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          'Actualmente: ${_petService.selectedPet.name} ${_petService.selectedPet.emoji}',
-                          style: textTheme.bodySmall,
-                        ),
-                        value: _petService.showPetHeader,
-                        onChanged: (bool value) async {
-                          await _petService.setShowPetHeader(value);
-                          setState(() {});
-                        },
-                        activeThumbColor: colorScheme.primary,
-                        contentPadding: EdgeInsets.zero,
+                      subtitle: Text(
+                        'Actualmente: ${_petService.selectedPet.name} ${_petService.selectedPet.emoji}',
+                        style: textTheme.bodySmall,
                       ),
-                    ],
-                  ),
+                      value: _petService.showPetHeader,
+                      onChanged: (bool value) async {
+                        await _petService.setShowPetHeader(value);
+                        setState(() {});
+                      },
+                      activeThumbColor: colorScheme.primary,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 32),
-              ],
-
-              // Language Selection
-              _buildSettingTile(
-                icon: Icons.language,
-                title: 'settings.language'.tr(),
-                subtitle: Constants.supportedLanguages[
-                        localizationProvider.currentLocale.languageCode] ??
-                    localizationProvider.currentLocale.languageCode,
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const ApplicationLanguagePage())),
-                colorScheme: colorScheme,
-                textTheme: textTheme,
               ),
-
-              const SizedBox(height: 20),
-
-              // Contact
-              _buildSettingTile(
-                icon: Icons.contact_mail,
-                title: 'settings.contact_us'.tr(),
-                onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const ContactPage())),
-                colorScheme: colorScheme,
-                textTheme: textTheme,
-              ),
-
-              const SizedBox(height: 20),
-
-              // About
-              _buildSettingTile(
-                icon: Icons.perm_device_info_outlined,
-                title: 'settings.about_app'.tr(),
-                onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const AboutPage())),
-                colorScheme: colorScheme,
-                textTheme: textTheme,
-              ),
-
-              const SizedBox(height: 20),
+              const SizedBox(height: 32),
             ],
-          ),
+
+            // Language Selection
+            _buildSettingTile(
+              icon: Icons.language,
+              title: 'settings.language'.tr(),
+              subtitle: Constants.supportedLanguages[
+                      localizationProvider.currentLocale.languageCode] ??
+                  localizationProvider.currentLocale.languageCode,
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const ApplicationLanguagePage())),
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+            ),
+
+            const SizedBox(height: 20),
+
+            // Contact
+            _buildSettingTile(
+              icon: Icons.contact_mail,
+              title: 'settings.contact_us'.tr(),
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ContactPage())),
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+            ),
+
+            const SizedBox(height: 20),
+
+            // About
+            _buildSettingTile(
+              icon: Icons.perm_device_info_outlined,
+              title: 'settings.about_app'.tr(),
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const AboutPage())),
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+            ),
+
+            const SizedBox(height: 20),
+          ],
         ),
       ),
     );
