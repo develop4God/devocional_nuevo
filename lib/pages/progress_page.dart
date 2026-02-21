@@ -120,6 +120,9 @@ class _ProgressPageState extends State<ProgressPage>
   }
 
   void _showEducationalSnackBar() {
+    // Check if widget is still mounted before accessing context
+    if (!mounted) return;
+
     final colorScheme = Theme.of(context).colorScheme;
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -172,7 +175,9 @@ class _ProgressPageState extends State<ProgressPage>
           label: 'progress.understood'.tr(),
           textColor: Colors.white,
           onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            if (mounted) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            }
           },
         ),
       ),
