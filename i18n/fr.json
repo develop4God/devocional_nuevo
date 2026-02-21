@@ -810,7 +810,7 @@
     "purchase_success_title": "Merci, Partenaire!",
     "purchase_success_body": "Votre soutien rend possible notre service continu. Que Dieu vous bénisse abondamment!",
     "purchase_error": "Erreur lors du traitement du paiement. Veuillez réessayer.",
-    "restore_purchases": "Restaurer les achats précédents",
+    "restore_purchases": "Synchroniser mes achats depuis Google Play",
     "restore_complete": "Achats restaurés avec succès",
     "billing_unavailable_title": "Paiement non disponible",
     "billing_unavailable_body": "La facturation n'est pas disponible sur cet appareil.",

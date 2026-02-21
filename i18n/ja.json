@@ -810,7 +810,7 @@
     "purchase_success_title": "ありがとう、パートナー！",
     "purchase_success_body": "あなたのサポートのおかげで、私たちは奉仕を続けることができます。神の豊かな祝福がありますように！",
     "purchase_error": "支払い処理エラー。もう一度お試しください。",
-    "restore_purchases": "以前の購入を復元",
+    "restore_purchases": "Google Playから購入を同期",
     "restore_complete": "購入が正常に復元されました",
     "billing_unavailable_title": "支払い不可",
     "billing_unavailable_body": "このデバイスでは課金が利用できません。",

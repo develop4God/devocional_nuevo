@@ -817,7 +817,7 @@
     "purchase_success_verse_ref": "2 Corinthians 9:6",
     "purchase_success_button": "Amen! 🙌",
     "purchase_error": "Error processing payment. Please try again.",
-    "restore_purchases": "Restore previous purchases",
+    "restore_purchases": "Sync my purchases from Google Play",
     "restore_complete": "Purchases restored successfully",
     "billing_unavailable_title": "Payment unavailable",
     "billing_unavailable_body": "Billing is not available on this device. Please check your Google Play connection.",

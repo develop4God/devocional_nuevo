@@ -3,13 +3,8 @@ library;
 
 import 'dart:io';
 
-import 'package:devocional_nuevo/services/i_connectivity_service.dart';
-import 'package:devocional_nuevo/services/i_google_drive_auth_service.dart';
-import 'package:devocional_nuevo/services/i_google_drive_backup_service.dart';
-import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -189,8 +184,7 @@ void main() {
           // registrations by checking the actual setupServiceLocator() code
 
           // Read the service locator file
-          final serviceLocatorFile =
-              File('lib/services/service_locator.dart');
+          final serviceLocatorFile = File('lib/services/service_locator.dart');
           final content = await serviceLocatorFile.readAsString();
 
           // Verify all required service registrations exist
@@ -216,7 +210,8 @@ void main() {
           );
 
           expect(
-            content.contains('registerLazySingleton<IGoogleDriveBackupService>'),
+            content
+                .contains('registerLazySingleton<IGoogleDriveBackupService>'),
             isTrue,
             reason:
                 'IGoogleDriveBackupService should be registered in service locator',
@@ -273,7 +268,8 @@ void main() {
         expect(
           content.contains('getService<IGoogleDriveBackupService>()'),
           isTrue,
-          reason: 'BackupBloc should use getService for IGoogleDriveBackupService',
+          reason:
+              'BackupBloc should use getService for IGoogleDriveBackupService',
         );
 
         // Verify no inline instantiation of these services
