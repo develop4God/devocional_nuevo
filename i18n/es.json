@@ -846,6 +846,9 @@
     "go_to_progress": "Ver mis insignias en Progreso 🏅",
     "medal_unlocked_body": "Tu nueva insignia de honor ahora está disponible en tu perfil de Progreso Espiritual.",
     "medal_unlocked_title": "¡Insignia de Honor Desbloqueada!",
-    "badge_unlock": "¡Insignia Desbloqueada!"
+    "badge_unlock": "¡Insignia Desbloqueada!",
+    "supporter_section_title": "SOCIO DEL MINISTERIO",
+    "show_pet_header": "Mostrar mi mascota en el devocional",
+    "pet_currently_selected": "Actualmente"
   }
 }

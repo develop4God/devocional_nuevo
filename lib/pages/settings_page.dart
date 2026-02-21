@@ -178,7 +178,7 @@ class _SettingsViewState extends State<_SettingsView> {
             // GOLD SUPPORTER SECTION
             if (_petService.isPetUnlocked) ...[
               Text(
-                'SOCIO DEL MINISTERIO',
+                'supporter.supporter_section_title'.tr(),
                 style: textTheme.labelLarge?.copyWith(
                   color: Colors.amber.shade700,
                   fontWeight: FontWeight.w900,
@@ -218,12 +218,12 @@ class _SettingsViewState extends State<_SettingsView> {
                     const SizedBox(height: 16),
                     SwitchListTile(
                       title: Text(
-                        'Mostrar mi mascota en el devocional',
+                        'supporter.show_pet_header'.tr(),
                         style: textTheme.bodyMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        'Actualmente: ${_petService.selectedPet.name} ${_petService.selectedPet.emoji}',
+                        '${'supporter.pet_currently_selected'.tr()}: ${_petService.selectedPet.name} ${_petService.selectedPet.emoji}',
                         style: textTheme.bodySmall,
                       ),
                       value: _petService.showPetHeader,
