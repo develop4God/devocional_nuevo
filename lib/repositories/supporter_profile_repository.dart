@@ -63,3 +63,4 @@ class SupporterProfileRepository implements ISupporterProfileRepository {
       debugPrint('❌ [SupporterProfileRepository] Error saving name: $e');
     }
   }
+}
