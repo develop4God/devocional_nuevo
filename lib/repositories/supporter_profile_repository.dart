@@ -63,13 +63,3 @@ class SupporterProfileRepository implements ISupporterProfileRepository {
       debugPrint('❌ [SupporterProfileRepository] Error saving name: $e');
     }
   }
-
-  // to depend on ISupporterProfileRepository (loadProfileName / saveProfileName)
-  // directly.  No caller should hold a concrete SupporterProfileRepository
-  // reference — they should all go through the interface.
-
-  Future<String?> loadGoldSupporterName() async => loadProfileName();
-
-  Future<void> saveGoldSupporterName(String name) async =>
-      saveProfileName(name);
-}
