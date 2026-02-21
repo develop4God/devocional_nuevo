@@ -68,7 +68,6 @@ class DevocionalesContentWidget extends StatelessWidget {
                   colors: [colorScheme.primary, colorScheme.tertiary]
                 ),
                 // Simple theme for now
-                introMessage: 'messages.welcome'.tr(),
               ),
             ),
           DevocionalHeaderWidget(
