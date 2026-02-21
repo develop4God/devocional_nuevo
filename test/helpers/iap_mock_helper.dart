@@ -141,13 +141,6 @@ class FakeSupporterProfileRepository implements ISupporterProfileRepository {
   Future<void> saveProfileName(String name) async {
     _goldName = name;
   }
-
-  // Backwards compatibility shims used by older tests still referencing
-  // the old method names. They delegate to the new interface methods.
-  Future<String?> loadGoldSupporterName() async => loadProfileName();
-
-  Future<void> saveGoldSupporterName(String name) async =>
-      saveProfileName(name);
 }
 
 // ── Stream scenario helpers ───────────────────────────────────────────────────
