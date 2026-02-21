@@ -820,9 +820,14 @@
     "purchase_success_verse": "\"El que siembra generosamente, generosamente también segará.\" 🙏",
     "purchase_success_verse_ref": "2 Corintios 9:6",
     "purchase_success_button": "¡Amén! 🙌",
+    "exclusive_gift": "¡Regalo Exclusivo!",
+    "pet_preview_description": "Desbloquea una mascota para acompañarte en tu devocional diario.",
     "select_pet_button": "Elegir mi mascota 🎁",
     "pet_selection_title": "¡Excelente elección!",
     "pet_selection_message": "{petName} ahora aparecerá en tu página de devocionales.",
+    "final_celebration_title": "¡A empezar!",
+    "final_celebration_message": "{petName} ahora aparecerá en tu página de devocionales.",
+    "final_celebration_button": "Comenzar 🚀",
     "purchase_error": "Error al procesar el pago. Por favor intenta de nuevo.",
     "restore_purchases": "Sincronizar mis compras desde Google Play",
     "restore_complete": "Compras restauradas correctamente",
@@ -830,6 +835,17 @@
     "billing_unavailable_body": "La facturación no está disponible en este dispositivo. Por favor verifica tu conexión a Google Play.",
     "disclaimer": "Los pagos son procesados por Google Play. Cada nivel es una compra única que te otorga una insignia digital como señal de agradecimiento por tu apoyo al ministerio.",
     "thanks_section_title": "Gracias a nuestros Socios del Ministerio",
-    "no_new_restores": "No se encontraron compras nuevas para restaurar."
+    "no_new_restores": "No se encontraron compras nuevas para restaurar.",
+    "gold_name_hint": "¿Cómo deseas aparecer en la sección de Gracias?",
+    "gold_name_helper": "Opcional: tu nombre será mostrado en la página Acerca de",
+    "gold_edit_name_button": "Editar mi nombre",
+    "gold_set_name_button": "Establecer mi nombre",
+    "gold_edit_name_title": "Editar nombre como Socio",
+    "status_title": "Insignias de Honor",
+    "status_thanks": "Gracias por ser parte de este ministerio con tu corazón generoso.",
+    "go_to_progress": "Ver mis insignias en Progreso 🏅",
+    "medal_unlocked_body": "Tu nueva insignia de honor ahora está disponible en tu perfil de Progreso Espiritual.",
+    "medal_unlocked_title": "¡Insignia de Honor Desbloqueada!",
+    "badge_unlock": "¡Insignia Desbloqueada!"
   }
 }

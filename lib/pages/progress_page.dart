@@ -273,7 +273,9 @@ class _ProgressPageState extends State<ProgressPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(height: 16),
           _buildSupporterSection(), // 👈 NEW MEDALS SECTION
+          const SizedBox(height: 16),
           _buildStreakCard(),
           const SizedBox(height: 18),
           _buildStatsCards(),
@@ -291,6 +293,9 @@ class _ProgressPageState extends State<ProgressPage>
         .toList();
 
     if (supporterBadges.isEmpty) return const SizedBox.shrink();
+
+    final hasBronze = supporterBadges.any((b) => b.id == 'supporter_bronze');
+    final hasSilver = supporterBadges.any((b) => b.id == 'supporter_silver');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -312,53 +317,89 @@ class _ProgressPageState extends State<ProgressPage>
             ],
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            height: 100,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: supporterBadges.length,
-              itemBuilder: (context, index) =>
-                  _buildSupporterBadgeItem(supporterBadges[index]),
-            ),
-          ),
-          const SizedBox(height: 8),
+          // Display badges based on count
           Builder(
             builder: (context) {
-              if (supporterBadges
-                  .any((badge) => badge.id == 'supporter_silver')) {
-                return Text(
-                  'supporter.benefit_silver_badge'.tr(),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontStyle: FontStyle.italic,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.6),
-                      ),
+              if (hasBronze && hasSilver) {
+                final bronzeBadge = supporterBadges
+                    .firstWhere((b) => b.id == 'supporter_bronze');
+                final silverBadge = supporterBadges
+                    .firstWhere((b) => b.id == 'supporter_silver');
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      children: [
+                        _buildSingleBadge(bronzeBadge, size: 80),
+                        const SizedBox(height: 8),
+                        Text(
+                          'supporter.benefit_bronze_badge'.tr(),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        _buildSingleBadge(silverBadge, size: 80),
+                        const SizedBox(height: 8),
+                        Text(
+                          'supporter.benefit_silver_badge'.tr(),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ],
                 );
-              } else if (supporterBadges
-                  .any((badge) => badge.id == 'supporter_bronze')) {
-                return Text(
-                  'supporter.benefit_bronze_badge'.tr(),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontStyle: FontStyle.italic,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.6),
+              } else if (hasBronze) {
+                final bronzeBadge = supporterBadges
+                    .firstWhere((b) => b.id == 'supporter_bronze');
+                return Center(
+                  child: Column(
+                    children: [
+                      _buildSingleBadge(bronzeBadge, size: 100),
+                      const SizedBox(height: 12),
+                      Text(
+                        'supporter.benefit_bronze_badge'.tr(),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                        textAlign: TextAlign.center,
                       ),
+                    ],
+                  ),
+                );
+              } else if (hasSilver) {
+                final silverBadge = supporterBadges
+                    .firstWhere((b) => b.id == 'supporter_silver');
+                return Center(
+                  child: Column(
+                    children: [
+                      _buildSingleBadge(silverBadge, size: 100),
+                      const SizedBox(height: 12),
+                      Text(
+                        'supporter.benefit_silver_badge'.tr(),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 );
               } else {
-                return Text(
-                  'supporter.status_thanks'.tr(),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontStyle: FontStyle.italic,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.6),
-                      ),
-                );
+                return const SizedBox.shrink();
               }
             },
           ),
@@ -368,54 +409,42 @@ class _ProgressPageState extends State<ProgressPage>
     );
   }
 
-  Widget _buildSupporterBadgeItem(Achievement badge) {
-    return Container(
-      margin: const EdgeInsets.only(right: 16),
-      child: Column(
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: badge.color.withValues(alpha: 0.1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: badge.color.withValues(alpha: 0.2),
-                      blurRadius: 10,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: badge.lottieAsset != null
-                    ? Lottie.asset(badge.lottieAsset!, fit: BoxFit.contain)
-                    : Icon(badge.icon, color: badge.color, size: 30),
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: badge.color,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: Icon(badge.icon, size: 10, color: Colors.white),
-                ),
+  Widget _buildSingleBadge(Achievement badge, {required double size}) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: badge.color.withValues(alpha: 0.1),
+            boxShadow: [
+              BoxShadow(
+                color: badge.color.withValues(alpha: 0.2),
+                blurRadius: 10,
+                spreadRadius: 1,
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            badge.title,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+          child: badge.lottieAsset != null
+              ? Lottie.asset(badge.lottieAsset!, fit: BoxFit.contain)
+              : Icon(badge.icon, color: badge.color, size: size * 0.4),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: badge.color,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: Icon(badge.icon, size: 10, color: Colors.white),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
