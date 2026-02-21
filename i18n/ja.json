@@ -79,7 +79,8 @@
     "share_footer_and_more": "そしてさらに多くの機能...",
     "share_footer_download": "ダウンロード: クリスチャンデボーション",
     "share_footer_benefits": "100%無料 | 広告なし | オフライン使用",
-    "share_footer_developer": "Develop4God"
+    "share_footer_developer": "Develop4God",
+    "no_devocionales_available": "PENDING"
   },
   "prayer": {
     "invitation_title": "祈りへの招き",
@@ -172,8 +173,7 @@
     "paypal_launch_error": "PayPalを開けませんでした。システムがURLを起動できませんでした。",
     "paypal_error": "PayPalを開く際にエラーが発生しました: {error}",
     "paypal_no_app_error": "PayPalを開けませんでした。ウェブブラウザまたはPayPalアプリがインストールされていることを確認してください。",
-    "backup_option": "バックアップ",
-    "backup_subtitle": "データを安全にバックアップして復元"
+    "backup_option": "バックアップ"
   },
   "notifications_config_page": {
     "notifications_config": "通知の設定",
@@ -324,7 +324,8 @@
     "progress": "進歩",
     "settings": "設定",
     "bible": "聖書",
-    "add_prayer_or_thanksgiving": "祈りまたは感謝を追加"
+    "add_prayer_or_thanksgiving": "祈りまたは感謝を追加",
+    "support": "PENDING"
   },
   "share": {
     "share_text": "テキストを共有",
@@ -819,7 +820,11 @@
     "billing_unavailable_body": "このデバイスでは課金が利用できません。",
     "disclaimer": "支払いはGoogle Playによって処理されます。各レベルは一回限りの購入で、ミニストリーへのサポートへの感謝のしるしとしてデジタルバッジが授与されます。",
     "thanks_section_title": "ミニストリーパートナーへの感謝",
-    "gold_name_hint": "「感謝」セクションにどのように表示されたいですか？",
-    "gold_name_helper": "任意: あなたの名前はアバウトページに表示されます"
+    "gold_name_hint": "感謝セクションにどのように表示されたいですか？",
+    "gold_name_helper": "オプション：お名前はアバウトページに表示されます",
+    "purchase_success_verse": "「惜しみなく蒔く者は、惜しみなく刈り取り、喜んで与える者は、喜んで受ける。」🙏",
+    "purchase_success_verse_ref": "2コリント9:6",
+    "purchase_success_button": "アーメン！🙌",
+    "no_new_restores": "復元する新しい購入は見つかりませんでした。"
   }
 }

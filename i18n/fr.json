@@ -79,7 +79,8 @@
     "share_footer_and_more": "Et bien plus encore...",
     "share_footer_download": "Télécharger: Méditations Chrétiennes",
     "share_footer_benefits": "100% gratuit | Sans publicité | Utilisation hors ligne",
-    "share_footer_developer": "Develop4God"
+    "share_footer_developer": "Develop4God",
+    "no_devocionales_available": "PENDING"
   },
   "prayer": {
     "invitation_title": "Invitation à la Prière",
@@ -173,7 +174,9 @@
     "paypal_no_app_error": "Impossible d'ouvrir PayPal. Assurez-vous d'avoir un navigateur web ou l'application PayPal installée.",
     "backup_option": "Sauvegarde",
     "backup_subtitle": "Sauvegardez et restaurez vos données en toute sécurité",
-    "voice_sample_text": "Appuyez pour écouter un échantillon audio. Ensuite, enregistrez votre préférence."
+    "voice_sample_text": "Appuyez pour écouter un échantillon audio. Ensuite, enregistrez votre préférence.",
+    "cannot_open_url": "PENDING",
+    "url_error": "PENDING"
   },
   "notifications_config_page": {
     "notifications_config": "Configuration des Notifications",
@@ -324,7 +327,8 @@
     "progress": "Progrès",
     "settings": "Paramètres",
     "bible": "Bible",
-    "add_prayer_or_thanksgiving": "Ajouter une prière ou action de grâce"
+    "add_prayer_or_thanksgiving": "Ajouter une prière ou action de grâce",
+    "support": "PENDING"
   },
   "share": {
     "share_text": "Partager le texte",
@@ -820,6 +824,10 @@
     "disclaimer": "Les paiements sont traités par Google Play. Chaque niveau est un achat unique qui vous accorde un badge numérique en guise de remerciement pour votre soutien au ministère.",
     "thanks_section_title": "Merci à nos Partenaires du Ministère",
     "gold_name_hint": "Comment souhaitez-vous apparaître dans la section Merci?",
-    "gold_name_helper": "Optionnel: votre nom sera affiché dans la page À propos"
+    "gold_name_helper": "Optionnel: votre nom sera affiché dans la page À propos",
+    "purchase_success_verse": "\"Celui qui sème généreusement moissonnera aussi généreusement.\" 🙏",
+    "purchase_success_verse_ref": "2 Corinthiens 9:6",
+    "purchase_success_button": "Amen! 🙌",
+    "no_new_restores": "Aucun nouvel achat trouvé à restaurer."
   }
 }
