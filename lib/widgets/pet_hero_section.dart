@@ -17,7 +17,6 @@ class PetHeroSection extends StatelessWidget {
     required this.selectedPet,
     required this.selectedTheme,
     required String formattedDate,
-    required String introMessage,
   });
 
   @override
@@ -65,16 +64,24 @@ class PetHeroSection extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'messages.welcome_name'.tr(
-                              {'name': profileName ?? ''},
-                            ),
+                            'messages.welcome'.tr(),
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                               letterSpacing: -0.5,
                             ),
                           ),
+                          if (profileName != null && profileName!.isNotEmpty)
+                            Text(
+                              profileName!,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
                         ],
                       ),
                     ),
