@@ -14,6 +14,7 @@ void main() {
       expect(languages, contains('en'));
       expect(languages, contains('pt'));
       expect(languages, contains('fr'));
+      expect(languages, contains('hi'));
     });
 
     test('should get language name', () {
@@ -21,6 +22,7 @@ void main() {
       expect(BibleVersionRegistry.getLanguageName('en'), equals('English'));
       expect(BibleVersionRegistry.getLanguageName('pt'), equals('Português'));
       expect(BibleVersionRegistry.getLanguageName('fr'), equals('Français'));
+      expect(BibleVersionRegistry.getLanguageName('hi'), equals('हिन्दी'));
     });
 
     test('should get versions for Spanish language', () async {
@@ -61,6 +63,20 @@ void main() {
       expect(versions.every((v) => v.language == 'Français'), isTrue);
     });
 
+    test('should get versions for Hindi language', () async {
+      final versions = await BibleVersionRegistry.getVersionsForLanguage('hi');
+
+      expect(versions, isNotEmpty);
+      expect(versions.length, equals(2));
+      expect(
+        versions.any((v) => v.name == 'पवित्र बाइबिल (ओ.वी.)'),
+        isTrue,
+      );
+      expect(versions.any((v) => v.name == 'पवित्र बाइबिल'), isTrue);
+      expect(versions.every((v) => v.languageCode == 'hi'), isTrue);
+      expect(versions.every((v) => v.language == 'हिन्दी'), isTrue);
+    });
+
     test('should return empty list for unsupported language', () async {
       final versions = await BibleVersionRegistry.getVersionsForLanguage('de');
 
@@ -71,12 +87,14 @@ void main() {
       final versions = await BibleVersionRegistry.getAllVersions();
 
       expect(versions, isNotEmpty);
-      expect(versions.length, greaterThanOrEqualTo(12)); // At least 12 versions
+      expect(versions.length,
+          greaterThanOrEqualTo(14)); // At least 14 versions (including Hindi)
       expect(versions.any((v) => v.name == 'RVR1960'), isTrue);
       expect(versions.any((v) => v.name == 'KJV'), isTrue);
       expect(versions.any((v) => v.name == 'ARC'), isTrue);
       expect(versions.any((v) => v.name == 'LSG1910'), isTrue);
       expect(versions.any((v) => v.name == 'BDS'), isTrue);
+      expect(versions.any((v) => v.name == 'पवित्र बाइबिल (ओ.वी.)'), isTrue);
     });
 
     test('all versions should have proper metadata', () async {
