@@ -19,8 +19,8 @@ void main() {
     late TtsAudioController controller;
     late FlutterTts mockFlutterTts;
 
-    setUp(() {
-      registerTestServices();
+    setUp(() async {
+      await registerTestServices();
       // Ensure VoiceSettingsService is registered (defensive)
       if (!ServiceLocator().isRegistered<VoiceSettingsService>()) {
         ServiceLocator().registerLazySingleton<VoiceSettingsService>(
@@ -226,8 +226,8 @@ void main() {
     late TtsAudioController controller;
     late FlutterTts mockFlutterTts;
 
-    setUp(() {
-      registerTestServices();
+    setUp(() async {
+      await registerTestServices();
       SharedPreferences.setMockInitialValues({});
 
       // Mock the flutter_tts platform channel

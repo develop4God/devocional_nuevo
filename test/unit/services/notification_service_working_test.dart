@@ -10,17 +10,18 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 
 void main() {
   group('NotificationService Critical Business Logic Tests', () {
-    setUpAll(() {
+    setUpAll(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
     });
 
-    setUp(() {
+    setUp(() async {
       // Initialize SharedPreferences mock
       SharedPreferences.setMockInitialValues({});
 
       // Reset and setup ServiceLocator for testing
       ServiceLocator().reset();
-      setupServiceLocator();
+      await setupServiceLocator();
     });
 
     tearDown(() {

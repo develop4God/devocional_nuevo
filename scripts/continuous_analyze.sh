@@ -4,8 +4,22 @@
 
 set -e  # Exit on any command failure
 
+# Add Dart and Flutter to PATH for all environments (fixes Android Studio UI push)
+export PATH="$PATH:/home/develop4god/development/flutter/bin"
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Debug: Print environment and path info for hook troubleshooting
+(
+  echo "[DEBUG] Current PATH: $PATH"
+  echo "[DEBUG] which dart: $(which dart || echo 'dart not found')"
+  echo "[DEBUG] which flutter: $(which flutter || echo 'flutter not found')"
+  echo "[DEBUG] whoami: $(whoami)"
+  echo "[DEBUG] SHELL: $SHELL"
+  echo "[DEBUG] env (filtered):"
+  env | grep -E 'PATH|DART|FLUTTER' || true
+) >&2
 
 echo "================================================"
 echo "Flutter Check - $(date '+%Y-%m-%d %H:%M:%S')"

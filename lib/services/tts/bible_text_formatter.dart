@@ -8,6 +8,23 @@ class BibleTextFormatter {
     return text.isNotEmpty && text[0].trim().isEmpty;
   }
 
+  /// Remove problematic control characters and Unicode replacement chars
+  /// This helps tests and TTS normalization when source strings include
+  /// malformed bytes or invisible control characters (e.g. U+FFFD).
+  static String _sanitizeInput(String input) {
+    if (input.isEmpty) return input;
+    // Remove Unicode replacement character U+FFFD which appears when decoding
+    // with wrong encoding or malformed bytes.
+    String out = input.replaceAll('\uFFFD', '');
+
+    // Remove C0 control characters except common whitespace (tab/newline/carriage)
+    out = out.replaceAll(RegExp(r"[\x00-\x08\x0B\x0C\x0E-\x1F]"), '');
+
+    // Also trim and normalize multiple whitespace to single spaces for stable matching
+    out = out.replaceAll(RegExp(r"\s+"), ' ').trim();
+    return out;
+  }
+
   /// Formats Bible book names with ordinals based on the specified language
   static String formatBibleBook(String reference, String language) {
     final maxLogLength = 80;
@@ -172,7 +189,9 @@ class BibleTextFormatter {
     String language, [
     String? version,
   ]) {
-    String normalized = text;
+    // Sanitize early to remove any malformed or invisible characters that
+    // could break subsequent regex-based formatting.
+    String normalized = _sanitizeInput(text);
     // 1. Formatear libros bíblicos PRIMERO (con RegExp corregido)
     normalized = formatBibleBook(normalized, language);
     // 2. Expandir versiones bíblicas
