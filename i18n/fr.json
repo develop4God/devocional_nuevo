@@ -855,6 +855,11 @@
     "pet_dog_name": "Ami fidèle",
     "pet_fish_name": "Petit poisson de paix",
     "pet_tiger_name": "Courageux",
-    "pet_cat_name": "Compagnon"
+    "pet_cat_name": "Compagnon",
+    "profile_name": "Nom du profil",
+    "profile_name_save": "Enregistrer le nom",
+    "profile_name_saved": "✅ Nom enregistré avec succès !",
+    "profile_name_hint": "Votre nom (max 15 caractères)",
+    "profile_name_helper": "Apparaîtra dans votre dévotion quotidienne. Ne sera pas partagé."
   }
 }

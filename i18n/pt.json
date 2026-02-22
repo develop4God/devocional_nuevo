@@ -857,6 +857,11 @@
     "pet_dog_name": "Amigo fiel",
     "pet_fish_name": "Peixinho da paz",
     "pet_tiger_name": "Valente",
-    "pet_cat_name": "Companheiro"
+    "pet_cat_name": "Companheiro",
+    "profile_name": "Nome do perfil",
+    "profile_name_save": "Salvar nome",
+    "profile_name_saved": "✅ Nome salvo com sucesso!",
+    "profile_name_hint": "Seu nome (máx. 15 caracteres)",
+    "profile_name_helper": "Aparecerá no seu devocional diário. Não será compartilhado."
   }
 }

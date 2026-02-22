@@ -863,6 +863,11 @@
     "pet_dog_name": "Faithful friend",
     "pet_fish_name": "Little fish of peace",
     "pet_tiger_name": "Brave one",
-    "pet_cat_name": "Companion"
+    "pet_cat_name": "Companion",
+    "profile_name": "Profile name",
+    "profile_name_save": "Save name",
+    "profile_name_saved": "✅ Name saved successfully!",
+    "profile_name_hint": "Your name (max 15 characters)",
+    "profile_name_helper": "Will appear in your daily devotional. Will not be shared."
   }
 }

@@ -856,6 +856,11 @@
     "pet_dog_name": "忠实的朋友",
     "pet_fish_name": "平安小鱼",
     "pet_tiger_name": "勇敢者",
-    "pet_cat_name": "伴侣"
+    "pet_cat_name": "伴侣",
+    "profile_name": "个人资料名称",
+    "profile_name_save": "保存名称",
+    "profile_name_saved": "✅ 名称保存成功！",
+    "profile_name_hint": "您的名字（最多15个字符）",
+    "profile_name_helper": "将出现在您的每日灵修中。不会被分享。"
   }
 }
