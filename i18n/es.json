@@ -608,7 +608,8 @@
     "onboarding_error_title": "Error de configuración",
     "onboarding_error_loading": "Error al cargar la configuración inicial",
     "onboarding_completed": "¡Onboarding completado!",
-    "onboarding_retry": "Reintentar"
+    "onboarding_retry": "Reintentar",
+    "onboarding_theme_configured": "Tema personalizado seleccionado"
   },
   "bible": {
     "title": "Biblia",
@@ -837,8 +838,8 @@
     "disclaimer": "Los pagos son procesados por Google Play. Cada nivel es una compra única que te otorga una insignia digital como señal de agradecimiento por tu apoyo al ministerio.",
     "thanks_section_title": "Gracias a nuestros Socios del Ministerio",
     "no_new_restores": "No se encontraron compras nuevas para restaurar.",
-    "gold_name_hint": "✏\uFE0F Tu nombre",
-    "gold_confirmation_title": "\uD83D\uDC3EMascota y \uD83D\uDC64nombre desbloqueado",
+    "gold_name_hint": "✏️ Tu nombre",
+    "gold_confirmation_title": "🐾Mascota y 👤nombre desbloqueado",
     "gold_name_helper": "Tu nombre estara en la pagina principal, no será compartido",
     "gold_edit_name_button": "Editar mi nombre",
     "gold_set_name_button": "Establecer mi nombre",
@@ -852,7 +853,7 @@
     "medal_unlocked_title": "¡Insignia de Apoyo Desbloqueada!",
     "badge_unlock": "¡Insignia Desbloqueada!",
     "supporter_section_title": "SOCIO DEL MINISTERIO",
-    "show_pet_header": "Mostrar mi mascota en el devocional",
+    "show_pet_header": "Mostrar mi mascota y nombre en el devocional",
     "pet_currently_selected": "Actualmente",
     "silver_confirmation_title": "🌱 ¡Gracias, tu apoyo importa!",
     "gold_step_name": "Paso 1 de 2 — Tu nombre",
@@ -870,7 +871,7 @@
     "profile_name": "Nombre de perfil",
     "profile_name_save": "Guardar nombre",
     "profile_name_saved": "✅ ¡Nombre guardado correctamente!",
-    "profile_name_hint": "Tu nombre (máx. 15 caracteres)",
+    "profile_name_hint": "(máx. 15 caracteres)",
     "profile_name_helper": "Aparecerá en tu devocional diario. No será compartido."
   }
 }
