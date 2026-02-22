@@ -221,9 +221,9 @@ class _SupporterGoldPurchaseDialogState
   void _navigateTo(Widget page) {
     Navigator.pop(widget.dialogContext);
     if (!mounted) return;
+    final navigator = Navigator.of(context, rootNavigator: true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      Navigator.of(context, rootNavigator: true).pushReplacement(
+      navigator.pushReplacement(
         MaterialPageRoute(builder: (_) => page),
       );
     });
@@ -237,8 +237,9 @@ class _SupporterGoldPurchaseDialogState
       canPop: _phase == _GoldPhase.confirmation,
       onPopInvokedWithResult: (didPop, _) async {
         if (!didPop) {
+          final nav = Navigator.of(widget.dialogContext);
           await _onWillPop().then((leave) {
-            if (leave && mounted) Navigator.pop(widget.dialogContext);
+            if (leave && mounted) nav.pop();
           });
         }
       },
