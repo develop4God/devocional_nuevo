@@ -10,12 +10,12 @@ class SupporterGoldPurchaseDialog extends StatelessWidget {
   final VoidCallback onConfirm;
 
   const SupporterGoldPurchaseDialog({
-    Key? key,
+    super.key,
     required this.tier,
     required this.dialogContext,
     required this.nameController,
     required this.onConfirm,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
