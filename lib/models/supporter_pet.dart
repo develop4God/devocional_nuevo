@@ -2,13 +2,16 @@ import 'package:equatable/equatable.dart';
 
 class SupporterPet extends Equatable {
   final String id;
-  final String name;
+
+  /// Translation key for the pet's display name (e.g. 'supporter.pet_dog_name').
+  /// Use `.tr()` to resolve the localized string at render time.
+  final String nameKey;
   final String lottieAsset;
   final String emoji;
 
   const SupporterPet({
     required this.id,
-    required this.name,
+    required this.nameKey,
     required this.lottieAsset,
     required this.emoji,
   });
@@ -16,25 +19,25 @@ class SupporterPet extends Equatable {
   static const List<SupporterPet> allPets = [
     SupporterPet(
       id: 'dog',
-      name: 'Fiel amigo',
+      nameKey: 'supporter.pet_dog_name',
       lottieAsset: 'assets/lottie/pets/box_dog.json',
       emoji: '🐶',
     ),
     SupporterPet(
       id: 'fish',
-      name: 'Pecesito de paz',
+      nameKey: 'supporter.pet_fish_name',
       lottieAsset: 'assets/lottie/pets/lion_fish.json',
       emoji: '🐠',
     ),
     SupporterPet(
       id: 'tiger',
-      name: 'Valiente',
+      nameKey: 'supporter.pet_tiger_name',
       lottieAsset: 'assets/lottie/pets/tiger_cute.json',
       emoji: '🐯',
     ),
     SupporterPet(
       id: 'cat',
-      name: 'Compañero',
+      nameKey: 'supporter.pet_cat_name',
       lottieAsset: 'assets/lottie/pets/cat_play_ball.json',
       emoji: '🐱',
     ),
@@ -46,5 +49,5 @@ class SupporterPet extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, name, lottieAsset, emoji];
+  List<Object?> get props => [id, nameKey, lottieAsset, emoji];
 }

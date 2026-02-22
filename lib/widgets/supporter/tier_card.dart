@@ -245,6 +245,8 @@ class TierCard extends StatelessWidget {
 
     if (tier.level == SupporterTierLevel.bronze) {
       isLottie = true;
+      // coffee_enter.json has significant padding in its canvas; scale: 3.5
+      // crops it to fill the circular badge without empty whitespace.
       badgeContent = Transform.scale(
         scale: 3.5,
         child: Lottie.asset(
@@ -252,6 +254,9 @@ class TierCard extends StatelessWidget {
           width: badgeSize,
           height: badgeSize,
           fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Center(
+            child: Text(tier.emoji, style: const TextStyle(fontSize: 42)),
+          ),
         ),
       );
     } else if (tier.level == SupporterTierLevel.silver) {
@@ -263,6 +268,9 @@ class TierCard extends StatelessWidget {
           width: badgeSize,
           height: badgeSize,
           fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => Center(
+            child: Text(tier.emoji, style: const TextStyle(fontSize: 42)),
+          ),
         ),
       );
     } else if (tier.level == SupporterTierLevel.gold) {
@@ -274,6 +282,9 @@ class TierCard extends StatelessWidget {
           width: badgeSize,
           height: badgeSize,
           fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => Center(
+            child: Text(tier.emoji, style: const TextStyle(fontSize: 42)),
+          ),
         ),
       );
     } else {

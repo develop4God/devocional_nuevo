@@ -128,10 +128,7 @@ class _SupporterGoldPurchaseDialogState
     if (_phase == _GoldPhase.confirmation) return true;
     // Show warm "set up later?" sheet
     final leave = await _showLeaveSheet();
-    if (leave == true) {
-      // Mark pending so banner shows on supporter page
-      await getService<SupporterPetService>().markGoldSetupPending();
-    }
+    // markGoldSetupPending() is already called in initState — no need to repeat here.
     return leave == true;
   }
 
@@ -220,6 +217,10 @@ class _SupporterGoldPurchaseDialogState
   // ── Final navigation ──────────────────────────────────────────────────────
 
   void _navigateTo(Widget page) {
+    // Must use widget.dialogContext here — the gold dialog is a multi-phase
+    // flow pushed from a parent route. By Phase 2, the local BuildContext may
+    // no longer be associated with the original dialog route, so we hold a
+    // reference to the push-site context to ensure the correct route is popped.
     Navigator.pop(widget.dialogContext);
     if (!mounted) return;
     final navigator = Navigator.of(context, rootNavigator: true);
@@ -611,11 +612,19 @@ class _PetCard extends StatelessWidget {
               SizedBox(
                 width: 72,
                 height: 72,
-                child: Lottie.asset(pet.lottieAsset),
+                child: Lottie.asset(
+                  pet.lottieAsset,
+                  errorBuilder: (_, __, ___) => Center(
+                    child: Text(
+                      pet.emoji,
+                      style: const TextStyle(fontSize: 32),
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 6),
               Text(
-                '${pet.emoji} ${pet.name}',
+                '${pet.emoji} ${pet.nameKey.tr()}',
                 style: TextStyle(
                   color: isSelected ? _gold : Colors.white,
                   fontWeight: FontWeight.w800,

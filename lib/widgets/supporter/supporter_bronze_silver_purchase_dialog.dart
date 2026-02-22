@@ -103,7 +103,14 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
       canPop: true,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop && !_isLoading) {
-          widget.onConfirm();
+          // onConfirm is guaranteed to only emit BLoC events that manage their
+          // own lifecycle — no setState or Navigator calls inside it.
+          // No mounted check needed here because the widget is already popped
+          // and onConfirm does not touch widget state directly.
+          () async {
+            await widget.onConfirm();
+            // No setState here — widget is already popped.
+          }();
         }
       },
       child: Dialog(
@@ -129,8 +136,15 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
                     Stack(
                       alignment: Alignment.center,
                       children: [
-                        Lottie.asset('assets/lottie/confetti.json',
-                            width: 200, height: 200, repeat: false),
+                        Lottie.asset(
+                          'assets/lottie/confetti.json',
+                          width: 200,
+                          height: 200,
+                          repeat: false,
+                          // Decorative asset — fail silently so the confirmation
+                          // screen remains fully functional if the file is missing.
+                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                        ),
                         _buildBadgeCircle(),
                       ],
                     ),

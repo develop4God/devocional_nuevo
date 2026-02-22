@@ -7,7 +7,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.dart';
-import 'package:devocional_nuevo/widgets/pet_hero_section.dart';
+import 'package:devocional_nuevo/widgets/supporter/pet_hero_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';

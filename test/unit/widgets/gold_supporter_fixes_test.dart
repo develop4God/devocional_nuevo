@@ -19,7 +19,7 @@ import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
-import 'package:devocional_nuevo/widgets/pet_hero_section.dart';
+import 'package:devocional_nuevo/widgets/supporter/pet_hero_section.dart';
 import 'package:devocional_nuevo/widgets/supporter/tier_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
