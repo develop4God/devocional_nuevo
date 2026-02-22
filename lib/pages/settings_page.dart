@@ -1,6 +1,9 @@
 // lib/pages/settings_page.dart - SENIOR SIMPLE APPROACH (HARD DISABLE badges, backup, force PayPal donation)
 import 'dart:developer' as developer;
 
+import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_event.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -16,6 +19,7 @@ import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -49,6 +53,8 @@ class _SettingsViewState extends State<_SettingsView> {
       getService<ISupporterProfileRepository>();
 
   final _nameController = TextEditingController();
+  bool _isSavingName = false;
+  bool _nameSavedSuccess = false;
 
   @override
   void initState() {
@@ -58,10 +64,25 @@ class _SettingsViewState extends State<_SettingsView> {
 
   Future<void> _loadInitialData() async {
     await _loadTtsSettings();
-    final name = await _profileRepo.loadProfileName();
-    if (mounted) {
-      _nameController.text = name ?? '';
-      setState(() {});
+    _loadNameFromBlocOrPrefs();
+  }
+
+  /// Loads the current profile name, preferring the BLoC state (in-memory)
+  /// over the repository (SharedPreferences) so we get the freshest value.
+  void _loadNameFromBlocOrPrefs() {
+    final supporterState = context.read<SupporterBloc>().state;
+    if (supporterState is SupporterLoaded &&
+        supporterState.goldSupporterName != null) {
+      final name = supporterState.goldSupporterName!;
+      debugPrint('📱 [SettingsPage] Loaded name from BLoC state: "$name"');
+      if (mounted) setState(() => _nameController.text = name);
+    } else {
+      // Fallback: load directly from SharedPreferences (e.g. BLoC not yet initialized)
+      _profileRepo.loadProfileName().then((name) {
+        debugPrint(
+            '📱 [SettingsPage] Loaded name from SharedPreferences: "$name"');
+        if (mounted) setState(() => _nameController.text = name ?? '');
+      });
     }
   }
 
@@ -93,14 +114,58 @@ class _SettingsViewState extends State<_SettingsView> {
 
   Future<void> _saveProfileName() async {
     final name = _nameController.text.trim();
-    await _profileRepo.saveProfileName(name);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('supporter.profile_name_saved'.tr()),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    debugPrint('💾 [SettingsPage] _saveProfileName() called — name: "$name"');
+
+    if (_isSavingName) {
+      debugPrint('⚠️ [SettingsPage] Save already in progress, skipping.');
+      return;
+    }
+
+    setState(() {
+      _isSavingName = true;
+      _nameSavedSuccess = false;
+    });
+
+    try {
+      // 1. Persist to SharedPreferences via repository
+      await _profileRepo.saveProfileName(name);
+      debugPrint('✅ [SettingsPage] Name saved to SharedPreferences: "$name"');
+
+      // 2. Verify the save by reading back
+      final verified = await _profileRepo.loadProfileName();
+      debugPrint(
+          '🔍 [SettingsPage] Verification read from SharedPreferences: "$verified"');
+      if (verified != name) {
+        debugPrint(
+            '❌ [SettingsPage] Verification FAILED — expected "$name" got "$verified"');
+      } else {
+        debugPrint(
+            '✅ [SettingsPage] Verification OK — name persisted correctly.');
+      }
+
+      // 3. Dispatch to BLoC so in-memory state and other widgets update
+      if (mounted) {
+        context.read<SupporterBloc>().add(SaveGoldSupporterName(name));
+        debugPrint(
+            '📡 [SettingsPage] Dispatched SaveGoldSupporterName("$name") to SupporterBloc');
+      }
+
+      if (mounted) {
+        setState(() {
+          _isSavingName = false;
+          _nameSavedSuccess = true;
+        });
+        // Auto-hide success indicator after 2 seconds
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) setState(() => _nameSavedSuccess = false);
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ [SettingsPage] Error saving name: $e');
+      if (mounted) {
+        setState(() => _isSavingName = false);
+        _showErrorSnackBar('app.error'.tr());
+      }
     }
   }
 
@@ -186,55 +251,166 @@ class _SettingsViewState extends State<_SettingsView> {
                 ),
               ),
               const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(16),
-                  border:
-                      Border.all(color: Colors.amber.withValues(alpha: 0.2)),
-                ),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _nameController,
-                      textInputAction: TextInputAction.done,
-                      decoration: InputDecoration(
-                        labelText: 'supporter.profile_name'.tr(),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        prefixIcon:
-                            Icon(Icons.person, color: Colors.amber.shade700),
-                        suffixIcon: IconButton(
-                          icon: Icon(Icons.save_outlined,
-                              color: Colors.amber.shade700),
-                          tooltip: 'app.save'.tr(),
-                          onPressed: () => _saveProfileName(),
+              BlocListener<SupporterBloc, SupporterState>(
+                listenWhen: (_, state) => state is SupporterLoaded,
+                listener: (context, state) {
+                  if (state is SupporterLoaded) {
+                    final name = state.goldSupporterName ?? '';
+                    if (_nameController.text != name) {
+                      debugPrint(
+                          '🔄 [SettingsPage] BLoC state updated — syncing name field: "$name"');
+                      setState(() => _nameController.text = name);
+                    }
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(16),
+                    border:
+                        Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Section header with icon
+                      Row(
+                        children: [
+                          Icon(Icons.person_pin,
+                              color: Colors.amber.shade700, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'supporter.profile_name'.tr(),
+                            style: textTheme.labelMedium?.copyWith(
+                              color: Colors.amber.shade700,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      // Name text field (no confusing icon button inside)
+                      TextField(
+                        controller: _nameController,
+                        textInputAction: TextInputAction.done,
+                        maxLength: 15,
+                        onSubmitted: (_) => _saveProfileName(),
+                        decoration: InputDecoration(
+                          hintText: 'supporter.profile_name_hint'.tr(),
+                          helperText: 'supporter.profile_name_helper'.tr(),
+                          helperMaxLines: 2,
+                          counterText: '',
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                                color: Colors.amber.shade300
+                                    .withValues(alpha: 0.6)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                                color: Colors.amber.shade600, width: 2),
+                          ),
+                          prefixIcon:
+                              Icon(Icons.person, color: Colors.amber.shade700),
+                          suffixIcon: _nameController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(Icons.clear,
+                                      color: colorScheme.onSurfaceVariant,
+                                      size: 18),
+                                  tooltip: 'app.close'.tr(),
+                                  onPressed: () {
+                                    _nameController.clear();
+                                    setState(() {});
+                                  },
+                                )
+                              : null,
                         ),
+                        onChanged: (_) => setState(() {}),
                       ),
-                      onSubmitted: (_) => _saveProfileName(),
-                    ),
-                    const SizedBox(height: 16),
-                    SwitchListTile(
-                      title: Text(
-                        'supporter.show_pet_header'.tr(),
-                        style: textTheme.bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                      const SizedBox(height: 12),
+                      // Explicit save button — clear and prominent
+                      SizedBox(
+                        width: double.infinity,
+                        child: _isSavingName
+                            ? const Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2.5),
+                                ),
+                              )
+                            : _nameSavedSuccess
+                                ? Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.shade50,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                          color: Colors.green.shade400),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.check_circle,
+                                            color: Colors.green.shade600,
+                                            size: 18),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'supporter.profile_name_saved'.tr(),
+                                          style: TextStyle(
+                                            color: Colors.green.shade700,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : ElevatedButton.icon(
+                                    onPressed: _saveProfileName,
+                                    icon: const Icon(Icons.save_outlined,
+                                        size: 18),
+                                    label: Text(
+                                        'supporter.profile_name_save'.tr()),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.amber.shade600,
+                                      foregroundColor: Colors.black87,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                    ),
+                                  ),
                       ),
-                      subtitle: Text(
-                        '${'supporter.pet_currently_selected'.tr()}: ${_petService.selectedPet.nameKey.tr()} ${_petService.selectedPet.emoji}',
-                        style: textTheme.bodySmall,
+                      const SizedBox(height: 16),
+                      SwitchListTile(
+                        title: Text(
+                          'supporter.show_pet_header'.tr(),
+                          style: textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '${'supporter.pet_currently_selected'.tr()}: ${_petService.selectedPet.nameKey.tr()} ${_petService.selectedPet.emoji}',
+                          style: textTheme.bodySmall,
+                        ),
+                        value: _petService.showPetHeader,
+                        onChanged: (bool value) async {
+                          await _petService.setShowPetHeader(value);
+                          setState(() {});
+                        },
+                        activeThumbColor: colorScheme.primary,
+                        contentPadding: EdgeInsets.zero,
                       ),
-                      value: _petService.showPetHeader,
-                      onChanged: (bool value) async {
-                        await _petService.setShowPetHeader(value);
-                        setState(() {});
-                      },
-                      activeThumbColor: colorScheme.primary,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 32),

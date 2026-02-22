@@ -868,6 +868,9 @@
     "pet_tiger_name": "Valiente",
     "pet_cat_name": "Compañero",
     "profile_name": "Nombre de perfil",
-    "profile_name_save": "Guardar nombre"
+    "profile_name_save": "Guardar nombre",
+    "profile_name_saved": "✅ ¡Nombre guardado correctamente!",
+    "profile_name_hint": "Tu nombre (máx. 15 caracteres)",
+    "profile_name_helper": "Aparecerá en tu devocional diario. No será compartido."
   }
 }

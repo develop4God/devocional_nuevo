@@ -855,6 +855,11 @@
     "pet_dog_name": "忠実な友",
     "pet_fish_name": "平和の小魚",
     "pet_tiger_name": "勇敢な仲間",
-    "pet_cat_name": "仲間"
+    "pet_cat_name": "仲間",
+    "profile_name": "プロフィール名",
+    "profile_name_save": "名前を保存",
+    "profile_name_saved": "✅ 名前が正常に保存されました！",
+    "profile_name_hint": "あなたの名前（最大15文字）",
+    "profile_name_helper": "毎日のデボーションに表示されます。共有されません。"
   }
 }
