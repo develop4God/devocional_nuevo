@@ -53,8 +53,11 @@ class _SettingsViewState extends State<_SettingsView> {
       getService<ISupporterProfileRepository>();
 
   final _nameController = TextEditingController();
+  final _focusNode = FocusNode();
+  String _initialName = '';
   bool _isSavingName = false;
   bool _nameSavedSuccess = false;
+  bool _isEditingName = false;
 
   @override
   void initState() {
@@ -75,13 +78,23 @@ class _SettingsViewState extends State<_SettingsView> {
         supporterState.goldSupporterName != null) {
       final name = supporterState.goldSupporterName!;
       debugPrint('📱 [SettingsPage] Loaded name from BLoC state: "$name"');
-      if (mounted) setState(() => _nameController.text = name);
+      if (mounted) {
+        setState(() {
+          _nameController.text = name;
+          _initialName = name;
+        });
+      }
     } else {
       // Fallback: load directly from SharedPreferences (e.g. BLoC not yet initialized)
       _profileRepo.loadProfileName().then((name) {
         debugPrint(
             '📱 [SettingsPage] Loaded name from SharedPreferences: "$name"');
-        if (mounted) setState(() => _nameController.text = name ?? '');
+        if (mounted) {
+          setState(() {
+            _nameController.text = name ?? '';
+            _initialName = name ?? '';
+          });
+        }
       });
     }
   }
@@ -126,34 +139,24 @@ class _SettingsViewState extends State<_SettingsView> {
       _nameSavedSuccess = false;
     });
 
+    FocusScope.of(context).unfocus();
+
     try {
       // 1. Persist to SharedPreferences via repository
       await _profileRepo.saveProfileName(name);
       debugPrint('✅ [SettingsPage] Name saved to SharedPreferences: "$name"');
 
-      // 2. Verify the save by reading back
-      final verified = await _profileRepo.loadProfileName();
-      debugPrint(
-          '🔍 [SettingsPage] Verification read from SharedPreferences: "$verified"');
-      if (verified != name) {
-        debugPrint(
-            '❌ [SettingsPage] Verification FAILED — expected "$name" got "$verified"');
-      } else {
-        debugPrint(
-            '✅ [SettingsPage] Verification OK — name persisted correctly.');
-      }
-
-      // 3. Dispatch to BLoC so in-memory state and other widgets update
+      // 2. Dispatch to BLoC so in-memory state and other widgets update
       if (mounted) {
         context.read<SupporterBloc>().add(SaveGoldSupporterName(name));
-        debugPrint(
-            '📡 [SettingsPage] Dispatched SaveGoldSupporterName("$name") to SupporterBloc');
       }
 
       if (mounted) {
         setState(() {
           _isSavingName = false;
           _nameSavedSuccess = true;
+          _initialName = name;
+          _isEditingName = false;
         });
         // Auto-hide success indicator after 2 seconds
         Future.delayed(const Duration(seconds: 2), () {
@@ -168,6 +171,28 @@ class _SettingsViewState extends State<_SettingsView> {
       }
     }
   }
+
+  void _startEditing() {
+    setState(() {
+      _isEditingName = true;
+    });
+    // Use a small delay to ensure the text field is built before requesting focus.
+    Future.delayed(const Duration(milliseconds: 50), () {
+      if (mounted && _isEditingName) {
+        _focusNode.requestFocus();
+      }
+    });
+  }
+
+  void _cancelEditing() {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _isEditingName = false;
+      _nameController.text = _initialName;
+    });
+  }
+
+  bool get _isDirty => _nameController.text.trim() != _initialName;
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +284,10 @@ class _SettingsViewState extends State<_SettingsView> {
                     if (_nameController.text != name) {
                       debugPrint(
                           '🔄 [SettingsPage] BLoC state updated — syncing name field: "$name"');
-                      setState(() => _nameController.text = name);
+                      setState(() {
+                        _nameController.text = name;
+                        _initialName = name;
+                      });
                     }
                   }
                 },
@@ -268,146 +296,228 @@ class _SettingsViewState extends State<_SettingsView> {
                   decoration: BoxDecoration(
                     color: colorScheme.surfaceContainerHighest
                         .withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(24),
                     border:
-                        Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                        Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Section header with icon
                       Row(
                         children: [
-                          Icon(Icons.person_pin,
-                              color: Colors.amber.shade700, size: 20),
-                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.person_pin,
+                                color: Colors.amber.shade700, size: 20),
+                          ),
+                          const SizedBox(width: 12),
                           Text(
                             'supporter.profile_name'.tr(),
-                            style: textTheme.labelMedium?.copyWith(
-                              color: Colors.amber.shade700,
-                              fontWeight: FontWeight.w700,
+                            style: textTheme.titleSmall?.copyWith(
+                              color: colorScheme.onSurface,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
+                          const Spacer(),
+                          if (!_isEditingName && !_nameSavedSuccess)
+                            IconButton(
+                              onPressed: _startEditing,
+                              icon: const Icon(Icons.edit_rounded, size: 18),
+                              color: Colors.amber.shade700,
+                              tooltip: 'supporter.gold_edit_name_button'.tr(),
+                            ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      // Name text field (no confusing icon button inside)
-                      TextField(
-                        controller: _nameController,
-                        textInputAction: TextInputAction.done,
-                        maxLength: 15,
-                        onSubmitted: (_) => _saveProfileName(),
-                        decoration: InputDecoration(
-                          hintText: 'supporter.profile_name_hint'.tr(),
-                          helperText: 'supporter.profile_name_helper'.tr(),
-                          helperMaxLines: 2,
-                          counterText: '',
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                                color: Colors.amber.shade300
-                                    .withValues(alpha: 0.6)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                                color: Colors.amber.shade600, width: 2),
-                          ),
-                          prefixIcon:
-                              Icon(Icons.person, color: Colors.amber.shade700),
-                          suffixIcon: _nameController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: Icon(Icons.clear,
-                                      color: colorScheme.onSurfaceVariant,
-                                      size: 18),
-                                  tooltip: 'app.close'.tr(),
-                                  onPressed: () {
-                                    _nameController.clear();
-                                    setState(() {});
-                                  },
-                                )
-                              : null,
-                        ),
-                        onChanged: (_) => setState(() {}),
-                      ),
                       const SizedBox(height: 12),
-                      // Explicit save button — clear and prominent
-                      SizedBox(
-                        width: double.infinity,
-                        child: _isSavingName
-                            ? const Center(
-                                child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2.5),
-                                ),
-                              )
-                            : _nameSavedSuccess
-                                ? Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.shade50,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                          color: Colors.green.shade400),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: _isEditingName
+                            ? Column(
+                                key: const ValueKey('editing_state'),
+                                children: [
+                                  TextField(
+                                    controller: _nameController,
+                                    focusNode: _focusNode,
+                                    textInputAction: TextInputAction.done,
+                                    maxLength: 15,
+                                    onSubmitted: (_) {
+                                      if (_isDirty) _saveProfileName();
+                                    },
+                                    style: textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.onSurface,
                                     ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.check_circle,
-                                            color: Colors.green.shade600,
-                                            size: 18),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          'supporter.profile_name_saved'.tr(),
-                                          style: TextStyle(
-                                            color: Colors.green.shade700,
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                    decoration: InputDecoration(
+                                      hintText:
+                                          'supporter.profile_name_hint'.tr(),
+                                      counterText: '',
+                                      filled: true,
+                                      fillColor: colorScheme.surface,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 14),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        borderSide: BorderSide(
+                                            color: Colors.amber.shade300,
+                                            width: 1),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        borderSide: BorderSide(
+                                            color: Colors.amber.shade700,
+                                            width: 2),
+                                      ),
+                                      prefixIcon: Icon(Icons.badge_outlined,
+                                          color: Colors.amber.shade700,
+                                          size: 20),
+                                    ),
+                                    onChanged: (_) => setState(() {}),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextButton(
+                                          onPressed: _cancelEditing,
+                                          child: Text('app.cancel'.tr()),
                                         ),
-                                      ],
-                                    ),
-                                  )
-                                : ElevatedButton.icon(
-                                    onPressed: _saveProfileName,
-                                    icon: const Icon(Icons.save_outlined,
-                                        size: 18),
-                                    label: Text(
-                                        'supporter.profile_name_save'.tr()),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.amber.shade600,
-                                      foregroundColor: Colors.black87,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12)),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 12),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed: _isDirty && !_isSavingName
+                                              ? _saveProfileName
+                                              : null,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                Colors.amber.shade600,
+                                            foregroundColor: Colors.black87,
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12)),
+                                          ),
+                                          child: _isSavingName
+                                              ? const SizedBox(
+                                                  height: 18,
+                                                  width: 18,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                          strokeWidth: 2),
+                                                )
+                                              : Text(
+                                                  'app.save'.tr(),
+                                                  style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              )
+                            : GestureDetector(
+                                key: const ValueKey('display_state'),
+                                onTap: _startEditing,
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 14),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surface
+                                        .withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: _nameSavedSuccess
+                                          ? Colors.green.withValues(alpha: 0.3)
+                                          : colorScheme.outline
+                                              .withValues(alpha: 0.1),
                                     ),
                                   ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.badge_outlined,
+                                          color: _nameSavedSuccess
+                                              ? Colors.green
+                                              : Colors.amber.shade700,
+                                          size: 20),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          _nameController.text.isNotEmpty
+                                              ? _nameController.text
+                                              : 'supporter.profile_name_hint'
+                                                  .tr(),
+                                          style: textTheme.bodyLarge?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            color: _nameController
+                                                    .text.isNotEmpty
+                                                ? colorScheme.onSurface
+                                                : colorScheme.onSurfaceVariant
+                                                    .withValues(alpha: 0.5),
+                                          ),
+                                        ),
+                                      ),
+                                      if (_nameSavedSuccess)
+                                        const Icon(Icons.check_circle_rounded,
+                                            color: Colors.green, size: 18)
+                                      else
+                                        Icon(Icons.edit_rounded,
+                                            color: colorScheme.onSurfaceVariant
+                                                .withValues(alpha: 0.3),
+                                            size: 16),
+                                    ],
+                                  ),
+                                ),
+                              ),
                       ),
-                      const SizedBox(height: 16),
-                      SwitchListTile(
-                        title: Text(
-                          'supporter.show_pet_header'.tr(),
-                          style: textTheme.bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                      const SizedBox(height: 12),
+                      if (!_isEditingName)
+                        Text(
+                          'supporter.profile_name_helper'.tr(),
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.7),
+                          ),
                         ),
-                        subtitle: Text(
-                          '${'supporter.pet_currently_selected'.tr()}: ${_petService.selectedPet.nameKey.tr()} ${_petService.selectedPet.emoji}',
-                          style: textTheme.bodySmall,
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        value: _petService.showPetHeader,
-                        onChanged: (bool value) async {
-                          await _petService.setShowPetHeader(value);
-                          setState(() {});
-                        },
-                        activeThumbColor: colorScheme.primary,
-                        contentPadding: EdgeInsets.zero,
+                        child: SwitchListTile(
+                          title: Text(
+                            'supporter.show_pet_header'.tr(),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            '${'supporter.pet_currently_selected'.tr()}: ${_petService.selectedPet.nameKey.tr()} ${_petService.selectedPet.emoji}',
+                            style: textTheme.bodySmall,
+                          ),
+                          value: _petService.showPetHeader,
+                          onChanged: (bool value) async {
+                            await _petService.setShowPetHeader(value);
+                            setState(() {});
+                          },
+                          activeColor: Colors.amber.shade700,
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 12),
+                        ),
                       ),
                     ],
                   ),
@@ -418,7 +528,7 @@ class _SettingsViewState extends State<_SettingsView> {
 
             // Language Selection
             _buildSettingTile(
-              icon: Icons.language,
+              icon: Icons.language_rounded,
               title: 'settings.language'.tr(),
               subtitle: Constants.supportedLanguages[
                       localizationProvider.currentLocale.languageCode] ??
@@ -431,11 +541,11 @@ class _SettingsViewState extends State<_SettingsView> {
               textTheme: textTheme,
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
 
             // Contact
             _buildSettingTile(
-              icon: Icons.contact_mail,
+              icon: Icons.contact_support_rounded,
               title: 'settings.contact_us'.tr(),
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const ContactPage())),
@@ -443,11 +553,11 @@ class _SettingsViewState extends State<_SettingsView> {
               textTheme: textTheme,
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
 
             // About
             _buildSettingTile(
-              icon: Icons.perm_device_info_outlined,
+              icon: Icons.info_outline_rounded,
               title: 'settings.about_app'.tr(),
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const AboutPage())),
@@ -465,6 +575,7 @@ class _SettingsViewState extends State<_SettingsView> {
   @override
   void dispose() {
     _nameController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -476,36 +587,54 @@ class _SettingsViewState extends State<_SettingsView> {
     required ColorScheme colorScheme,
     required TextTheme textTheme,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8.0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-        child: Row(
-          children: [
-            Icon(icon, color: colorScheme.primary),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: textTheme.bodyMedium
-                        ?.copyWith(fontSize: 16, color: colorScheme.onSurface),
-                  ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant, fontSize: 12),
-                    ),
-                  ],
-                ],
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: colorScheme.primary, size: 22),
               ),
-            ),
-          ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded,
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+            ],
+          ),
         ),
       ),
     );
