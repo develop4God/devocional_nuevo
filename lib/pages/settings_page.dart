@@ -97,7 +97,7 @@ class _SettingsViewState extends State<_SettingsView> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('settings.profile_name_saved'.tr()),
+          content: Text('supporter.profile_name_saved'.tr()),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -201,7 +201,7 @@ class _SettingsViewState extends State<_SettingsView> {
                       controller: _nameController,
                       textInputAction: TextInputAction.done,
                       decoration: InputDecoration(
-                        labelText: 'settings.profile_name'.tr(),
+                        labelText: 'supporter.profile_name'.tr(),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12)),
                         prefixIcon:
