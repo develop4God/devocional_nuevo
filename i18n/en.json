@@ -359,7 +359,9 @@
     "support_my_badges": "My Badges",
     "support_badges_progress": "badges unlocked",
     "support_badge_unlock": "Badge Unlocked!",
-    "support_badge_share": "Share Badge"
+    "support_badge_share": "Share Badge",
+    "profile_name": "Profile name",
+    "profile_name_save": "Save name"
   },
   "about": {
     "title": "About your app",

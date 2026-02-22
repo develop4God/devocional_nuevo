@@ -360,7 +360,9 @@
     "support_my_badges": "Mes Badges",
     "support_badges_progress": "badges débloqués",
     "support_badge_unlock": "Badge Débloqué !",
-    "support_badge_share": "Partager le Badge"
+    "support_badge_share": "Partager le Badge",
+    "profile_name": "Nom du profil",
+    "profile_name_save": "Enregistrer le nom"
   },
   "about": {
     "title": "À propos de votre application",
@@ -839,7 +841,7 @@
     "status_thanks": "PENDING",
     "gold_confirmation_title": "🌟 Bienvenue, Partenaire du Ministère!",
     "go_to_settings": "Aller aux Paramètres (animal et nom) ⚙️",
-    "go_to_devotionals": "Aller aux Dévotionnels 📖",
+    "go_to_devotionals": "Aller aux Dévotionals 📖",
     "go_to_progress": "Voir mes médailles dans Progrès 🏅",
     "silver_confirmation_title": "🌱 Merci, votre soutien compte!",
     "gold_step_name": "Étape 1 sur 2 — Votre nom",

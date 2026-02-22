@@ -360,7 +360,9 @@
     "support_my_badges": "マイバッジ",
     "support_badges_progress": "バッジのロック解除",
     "support_badge_unlock": "バッジのロック解除！",
-    "support_badge_share": "バッジを共有"
+    "support_badge_share": "バッジを共有",
+    "profile_name": "プロフィール名",
+    "profile_name_save": "名前を保存"
   },
   "onboarding": {
     "onboarding_welcome_header": "神があなたを祝福し、あなたの人生を平和で満たしますように",
