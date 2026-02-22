@@ -64,6 +64,11 @@ class IapService implements IIapService {
   final Set<SupporterTierLevel> _purchasedLevels = {};
   final Map<String, ProductDetails> _products = {};
 
+  // Track which products have already been delivered to prevent duplicate
+  // deliveries when restoring purchases (Google Play may return the same
+  // purchase multiple times during a restore call)
+  final Set<String> _deliveredProductIds = {};
+
   bool _isAvailable = false;
   bool _isInitialized = false;
   bool _disposed = false;
@@ -99,6 +104,8 @@ class IapService implements IIapService {
     _isInitialized = true;
 
     try {
+      // Clear any previously loaded purchases before loading from prefs
+      _purchasedLevels.clear();
       await _loadPurchasedFromPrefs();
       _isAvailable = await _iap.isAvailable();
 
@@ -194,7 +201,19 @@ class IapService implements IIapService {
     _products.clear();
     _isAvailable = false;
     _isInitialized = false;
-    _disposed = false;
+    _initStatus = IapInitStatus.notStarted;
+    _deliveredProductIds.clear();
+    debugPrint('🔄 [IapService] Reset for testing');
+  }
+
+  /// Force re-initialization by clearing the initialized flag.
+  /// Used in debug mode when resetting IAP state.
+  void forceReinitialize() {
+    if (!kDebugMode) return;
+    debugPrint('🔄 [IapService] Forcing re-initialization');
+    _isInitialized = false;
+    _purchasedLevels.clear();
+    _deliveredProductIds.clear();
     _initStatus = IapInitStatus.notStarted;
   }
 
@@ -284,6 +303,14 @@ class IapService implements IIapService {
       return;
     }
 
+    // Skip if already delivered (deduplication for restore calls)
+    if (_deliveredProductIds.contains(productId)) {
+      debugPrint(
+          '⏭️ [IapService] Skipping duplicate delivery: $productId (already delivered)');
+      return;
+    }
+
+    _deliveredProductIds.add(productId);
     _purchasedLevels.add(tier.level);
     await _savePurchasedToPrefs(tier.level);
 

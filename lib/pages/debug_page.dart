@@ -20,6 +20,7 @@ import 'package:devocional_nuevo/models/testimony_model.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
+import 'package:devocional_nuevo/services/iap/iap_prefs_keys.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
@@ -954,6 +955,65 @@ class _DebugPageState extends State<DebugPage> {
                                     style: OutlinedButton.styleFrom(
                                       side:
                                           const BorderSide(color: Colors.blue),
+                                    ),
+                                  ),
+
+                                  // Clear all purchased items
+                                  OutlinedButton.icon(
+                                    onPressed: () async {
+                                      try {
+                                        final prefs = await SharedPreferences
+                                            .getInstance();
+                                        // Clear all purchase flags from SharedPreferences
+                                        for (final tier
+                                            in SupporterTier.tiers) {
+                                          await prefs.remove(
+                                              IapPrefsKeys.purchasedKey(
+                                                  tier.productId));
+                                        }
+                                        // Also reset the IapService
+                                        try {
+                                          serviceLocator
+                                              .unregister<IIapService>();
+                                        } catch (_) {
+                                          // Already unregistered
+                                        }
+                                        // Trigger IAP state reset in BLoC
+                                        if (mounted) {
+                                          context
+                                              .read<SupporterBloc>()
+                                              .add(DebugResetIapState());
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  '✨ All purchased items cleared — app will restore fresh on next init'),
+                                              duration: Duration(seconds: 3),
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        debugPrint(
+                                            '❌ Error clearing purchases: $e');
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Error clearing purchases: $e'),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                                    icon: const Icon(Icons.delete_sweep,
+                                        color: Colors.deepOrange),
+                                    label: const Text('Clear All Purchases',
+                                        style: TextStyle(
+                                            color: Colors.deepOrange)),
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(
+                                          color: Colors.deepOrange),
                                     ),
                                   ),
                                 ],

@@ -10,6 +10,7 @@ import '../../models/supporter_tier.dart';
 import '../../repositories/i_supporter_profile_repository.dart';
 import '../../services/iap/i_iap_service.dart';
 import '../../services/iap/iap_prefs_keys.dart';
+import '../../services/iap/iap_service.dart';
 import 'supporter_event.dart';
 import 'supporter_state.dart';
 
@@ -303,6 +304,12 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     Emitter<SupporterState> emit,
   ) async {
     if (!kDebugMode) return;
+
+    // Force re-initialization of the IAP service
+    final iapServiceConcrete = _iapService;
+    if (iapServiceConcrete is IapService) {
+      iapServiceConcrete.forceReinitialize();
+    }
 
     // Clear the IAP SharedPreferences keys so auto-restore won't skip.
     final prefs = await SharedPreferences.getInstance();
