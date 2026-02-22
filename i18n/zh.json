@@ -836,6 +836,10 @@
     "final_celebration_message": "PENDING",
     "final_celebration_button": "PENDING",
     "status_title": "PENDING",
-    "status_thanks": "PENDING"
+    "status_thanks": "PENDING",
+    "gold_confirmation_title": "🌟 欢迎，事工伙伴！",
+    "go_to_settings": "前往设置（宠物和名字）⚙️",
+    "go_to_devotionals": "前往灵修页面 📖",
+    "go_to_progress": "在进度中查看我的奖牌 🏅"
   }
 }

@@ -835,6 +835,10 @@
     "final_celebration_message": "PENDING",
     "final_celebration_button": "PENDING",
     "status_title": "PENDING",
-    "status_thanks": "PENDING"
+    "status_thanks": "PENDING",
+    "gold_confirmation_title": "🌟 Bienvenue, Partenaire du Ministère!",
+    "go_to_settings": "Aller aux Paramètres (animal et nom) ⚙️",
+    "go_to_devotionals": "Aller aux Dévotionnels 📖",
+    "go_to_progress": "Voir mes médailles dans Progrès 🏅"
   }
 }

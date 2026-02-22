@@ -835,6 +835,10 @@
     "final_celebration_message": "PENDING",
     "final_celebration_button": "PENDING",
     "status_title": "PENDING",
-    "status_thanks": "PENDING"
+    "status_thanks": "PENDING",
+    "gold_confirmation_title": "🌟 ようこそ、ミニストリーパートナー！",
+    "go_to_settings": "設定へ（ペットと名前）⚙️",
+    "go_to_devotionals": "デボーションへ 📖",
+    "go_to_progress": "進捗でメダルを見る 🏅"
   }
 }
