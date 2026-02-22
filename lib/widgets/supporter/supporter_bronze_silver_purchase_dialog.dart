@@ -233,7 +233,7 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
                           : _TierButton(
                               label:
                                   'supporter.go_to_progress'.tr().toUpperCase(),
-                              icon: Icons.auto_graph_rounded,
+                              icon: Icons.emoji_events_outlined,
                               accent: _accent,
                               accentDark: _accentDark,
                               onTap: () => _handleAction(goToProgress: true),
