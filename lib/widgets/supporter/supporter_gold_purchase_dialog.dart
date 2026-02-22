@@ -301,7 +301,7 @@ class _SupporterGoldPurchaseDialogState
         const SizedBox(height: 12),
 
         // Shimmer title
-        _GoldShimmerText('supporter.gold_name_title'.tr(), fontSize: 22),
+        _GoldShimmerText('purchase_success_title'.tr(), fontSize: 22),
         const SizedBox(height: 20),
 
         // Name field
