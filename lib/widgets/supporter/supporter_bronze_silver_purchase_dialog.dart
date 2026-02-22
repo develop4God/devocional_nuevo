@@ -9,11 +9,11 @@ class SupporterPurchaseDialog extends StatelessWidget {
   final VoidCallback onConfirm;
 
   const SupporterPurchaseDialog({
-    Key? key,
+    super.key,
     required this.tier,
     required this.dialogContext,
     required this.onConfirm,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
