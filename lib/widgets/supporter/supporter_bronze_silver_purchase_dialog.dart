@@ -1,12 +1,25 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
+import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
+/// Success confirmation dialog shown after a Bronze or Silver tier purchase.
+///
+/// Displays confetti + check animation, the tier emoji, a congratulatory
+/// message, an inspirational verse, and two action buttons:
+///   • "Go to Progress" — unlocks the badge then navigates to [ProgressPage].
+///   • "Close"          — unlocks the badge and closes the dialog.
+///
+/// [onConfirm] is an async callback that must handle the badge-unlock
+/// business logic (BLoC events, etc.) but must NOT pop the dialog or
+/// perform any navigation — the widget owns those responsibilities.
 class SupporterPurchaseDialog extends StatelessWidget {
   final SupporterTier tier;
   final BuildContext dialogContext;
-  final VoidCallback onConfirm;
+
+  /// Async badge-unlock logic. Must NOT call Navigator.pop or navigate.
+  final Future<void> Function() onConfirm;
 
   const SupporterPurchaseDialog({
     super.key,
@@ -14,6 +27,23 @@ class SupporterPurchaseDialog extends StatelessWidget {
     required this.dialogContext,
     required this.onConfirm,
   });
+
+  // ── helpers ──────────────────────────────────────────────────────────────
+
+  Future<void> _handleAction(BuildContext ctx,
+      {required bool goToProgress}) async {
+    await onConfirm();
+    if (!ctx.mounted) return;
+    Navigator.pop(dialogContext);
+    if (goToProgress && ctx.mounted) {
+      Navigator.push(
+        ctx,
+        MaterialPageRoute(builder: (_) => const ProgressPage()),
+      );
+    }
+  }
+
+  // ── build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +55,7 @@ class SupporterPurchaseDialog extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // ── Animation ────────────────────────────────────────────────
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -41,11 +72,12 @@ class SupporterPurchaseDialog extends StatelessWidget {
                   ),
                 ],
               ),
-              Text(
-                tier.emoji,
-                style: const TextStyle(fontSize: 50),
-              ),
+
+              // ── Tier emoji ────────────────────────────────────────────────
+              Text(tier.emoji, style: const TextStyle(fontSize: 50)),
               const SizedBox(height: 16),
+
+              // ── Title ─────────────────────────────────────────────────────
               Text(
                 'supporter.purchase_success_title'.tr(),
                 style:
@@ -56,6 +88,8 @@ class SupporterPurchaseDialog extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
+
+              // ── Body ──────────────────────────────────────────────────────
               Text(
                 'supporter.medal_unlocked_body'.tr(),
                 style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
@@ -68,6 +102,8 @@ class SupporterPurchaseDialog extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
+
+              // ── Verse card ────────────────────────────────────────────────
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -110,10 +146,18 @@ class SupporterPurchaseDialog extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 32),
+
+              // ── Primary CTA: go to Progress ───────────────────────────────
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: onConfirm,
+                child: ElevatedButton.icon(
+                  onPressed: () => _handleAction(context, goToProgress: true),
+                  icon: const Icon(Icons.auto_graph_rounded),
+                  label: Text(
+                    'supporter.go_to_progress'.tr().toUpperCase(),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w900, fontSize: 16),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: tier.badgeColor,
                     foregroundColor: Colors.white,
@@ -123,12 +167,14 @@ class SupporterPurchaseDialog extends StatelessWidget {
                     elevation: 4,
                     shadowColor: tier.badgeColor.withValues(alpha: 0.5),
                   ),
-                  child: Text(
-                    'supporter.purchase_success_button'.tr(),
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w900, fontSize: 18),
-                  ),
                 ),
+              ),
+              const SizedBox(height: 8),
+
+              // ── Secondary: close ──────────────────────────────────────────
+              TextButton(
+                onPressed: () => _handleAction(context, goToProgress: false),
+                child: Text('app.close'.tr()),
               ),
             ],
           ),

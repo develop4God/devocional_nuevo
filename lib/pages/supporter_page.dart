@@ -10,9 +10,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
-import 'package:devocional_nuevo/models/supporter_pet.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
-import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
@@ -155,6 +153,8 @@ class _SupporterPageState extends State<SupporterPage>
               tier: tier,
               dialogContext: dialogContext,
               nameController: nameController,
+              // Business logic only — no Navigator.pop, no navigation.
+              // The widget handles pop + phase transition internally.
               onConfirm: () async {
                 final bloc = context.read<SupporterBloc>();
                 final name = nameController.text.trim();
@@ -164,224 +164,20 @@ class _SupporterPageState extends State<SupporterPage>
                 await getService<SupporterPetService>().unlockPetFeature();
                 if (!context.mounted) return;
                 bloc.add(ClearSupporterError());
-                Navigator.pop(dialogContext);
-                _showPetSelectionDialog();
               },
             )
           : SupporterPurchaseDialog(
               tier: tier,
               dialogContext: dialogContext,
+              // Business logic only — no Navigator.pop, no navigation.
+              // The widget handles pop + go_to_progress internally.
               onConfirm: () async {
                 final bloc = context.read<SupporterBloc>();
                 await _unlockSupporterBadge(tier.level);
                 if (!context.mounted) return;
                 bloc.add(ClearSupporterError());
-                Navigator.pop(dialogContext);
-                _showFinalMedalFeedback();
               },
             ),
-    );
-  }
-
-  void _showFinalMedalFeedback() {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Lottie.asset('assets/lottie/success_check_celebration.json',
-                repeat: false),
-            const SizedBox(height: 16),
-            Text(
-              'supporter.badge_unlock'.tr(),
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'supporter.medal_unlocked_body'.tr(),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ProgressPage()),
-                  );
-                },
-                icon: const Icon(Icons.auto_graph_rounded),
-                label: Text('supporter.go_to_progress'.tr().toUpperCase()),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text('app.close'.tr()),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showPetSelectionDialog() {
-    final petService = getService<SupporterPetService>();
-
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.card_giftcard_rounded,
-                  color: Colors.amber, size: 48),
-              const SizedBox(height: 16),
-              Text(
-                'supporter.pet_selection_title'.tr(),
-                style:
-                    Theme.of(dialogContext).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: Colors.amber.shade900,
-                        ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'supporter.pet_preview_description'.tr(),
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 24),
-              Flexible(
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 0.85,
-                  ),
-                  itemCount: SupporterPet.allPets.length,
-                  itemBuilder: (context, index) {
-                    final pet = SupporterPet.allPets[index];
-                    return InkWell(
-                      onTap: () async {
-                        await petService.setSelectedPet(pet.id);
-                        if (!context.mounted) return;
-                        Navigator.pop(dialogContext);
-                        _showFinalCelebration(pet);
-                      },
-                      borderRadius: BorderRadius.circular(24),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest
-                              .withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                              color: Colors.amber.withValues(alpha: 0.3)),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              height: 80,
-                              width: 80,
-                              child: Lottie.asset(pet.lottieAsset),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              pet.name,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w900),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showFinalCelebration(SupporterPet pet) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Lottie.asset('assets/lottie/success_check_celebration.json',
-                repeat: false),
-            const SizedBox(height: 16),
-            Text(
-              'supporter.final_celebration_title'.tr(),
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'supporter.final_celebration_message'.tr({'petName': pet.name}),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ProgressPage()),
-                  );
-                },
-                icon: const Icon(Icons.auto_graph_rounded),
-                label: Text('supporter.go_to_progress'.tr().toUpperCase()),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text('app.close'.tr()),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
