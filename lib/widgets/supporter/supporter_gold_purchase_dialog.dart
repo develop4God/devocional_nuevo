@@ -248,10 +248,10 @@ class _SupporterGoldPurchaseDialogState
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
         clipBehavior: Clip.antiAlias,
-        insetPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         // Reduce padding for autofit
         child: ConstrainedBox(
-          constraints: BoxConstraints(
+          constraints: const BoxConstraints(
             minWidth: 280,
             maxWidth: 400,
             minHeight: 200,
@@ -317,14 +317,18 @@ class _SupporterGoldPurchaseDialogState
         // Name field
         TextField(
           controller: widget.nameController,
-          style: const TextStyle(color: Colors.white),
+          style:
+              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           decoration: InputDecoration(
-            labelText: 'supporter.gold_name_hint'.tr(),
-            labelStyle: const TextStyle(color: _gold),
-            helperText: 'supporter.gold_name_helper'.tr(),
+            labelText: 'supporter.profile_name'.tr(),
+            labelStyle:
+                const TextStyle(color: _gold, fontWeight: FontWeight.bold),
+            hintText: 'supporter.profile_name_hint'.tr(),
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+            helperText: 'supporter.profile_name_helper'.tr(),
             helperStyle: TextStyle(
                 color: Colors.white.withValues(alpha: 0.55), fontSize: 11),
-            prefixIcon: const Icon(Icons.person, color: _gold),
+            prefixIcon: const Icon(Icons.badge_outlined, color: _gold),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(color: _gold.withValues(alpha: 0.4)),
@@ -339,20 +343,8 @@ class _SupporterGoldPurchaseDialogState
                 TextStyle(color: Colors.white.withValues(alpha: 0.45)),
           ),
           maxLength: 15,
-          maxLines: 2,
-          // Allow two lines for clearer text
           cursorColor: _gold,
-          buildCounter: (BuildContext context,
-              {required int currentLength,
-              required bool isFocused,
-              required int? maxLength}) {
-            return currentLength > 15
-                ? Text(
-                    'Max 15 characters',
-                    style: TextStyle(color: Colors.redAccent, fontSize: 11),
-                  )
-                : null;
-          },
+          onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 24),
 

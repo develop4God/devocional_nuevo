@@ -704,53 +704,100 @@ class _GoldNameEditDialogState extends State<_GoldNameEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      title: Row(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      backgroundColor: colorScheme.surface,
+      surfaceTintColor: _goldColor,
+      title: Column(
         children: [
-          const Icon(Icons.person_pin_rounded, color: _goldColor),
-          const SizedBox(width: 8),
-          Text('supporter.gold_edit_name_title'.tr()),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _goldColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.person_pin_rounded,
+                color: _goldColor, size: 32),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'supporter.gold_edit_name_title'.tr(),
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
-      content: TextField(
-        key: const ValueKey('gold_name_text_field'),
-        controller: _controller,
-        decoration: InputDecoration(
-          labelText: 'supporter.gold_name_hint'.tr(),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            key: const ValueKey('gold_name_text_field'),
+            controller: _controller,
+            style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+            decoration: InputDecoration(
+              labelText: 'supporter.profile_name'.tr(),
+              hintText: 'supporter.profile_name_hint'.tr(),
+              prefixIcon: const Icon(Icons.badge_outlined, color: _goldColor),
+              filled: true,
+              fillColor:
+                  colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: _goldColor, width: 2),
+              ),
+              helperText: 'supporter.profile_name_helper'.tr(),
+              helperMaxLines: 2,
+            ),
+            maxLength: 15,
+            autofocus: true,
+            onChanged: (_) => setState(() {}),
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: _goldColor, width: 2),
-          ),
-          helperText: 'supporter.gold_name_helper'.tr(),
-          prefixIcon: const Icon(Icons.person, color: _goldColor),
-        ),
-        maxLength: 40,
-        autofocus: true,
+        ],
       ),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text('app.cancel'.tr()),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            final name = _controller.text.trim();
-            if (name.isNotEmpty) {
-              widget.onSave(name);
-            }
-            Navigator.pop(context);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _goldColor,
-            foregroundColor: Colors.black87,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          ),
-          child: Text('app.save'.tr()),
+        Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                ),
+                child: Text('app.cancel'.tr(),
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {
+                  final name = _controller.text.trim();
+                  widget.onSave(name);
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _goldColor,
+                  foregroundColor: Colors.black87,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                ),
+                child: Text('app.save'.tr(),
+                    style: const TextStyle(fontWeight: FontWeight.w900)),
+              ),
+            ),
+          ],
         ),
       ],
     );
