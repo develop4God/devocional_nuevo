@@ -150,79 +150,92 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
                     ),
                     const SizedBox(height: 4),
 
-                    // ── Shimmer title ───────────────────────────────────────
-                    ShaderMask(
-                      shaderCallback: (bounds) => LinearGradient(
-                        colors: [
-                          _accentDark,
-                          _accent,
-                          Colors.white,
-                          _accent,
-                          _accentDark
-                        ],
-                        stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
-                      ).createShader(bounds),
-                      child: Text(
-                        'supporter.purchase_success_title'.tr(),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 22,
-                          color: Colors.white,
-                          height: 1.3,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // ── Body ───────────────────────────────────────────────
-                    Text(
-                      'supporter.medal_unlocked_body'.tr(),
+                    // ── Shimmer title - responsive with autofit ──────────────
+                    AutoSizeText(
+                      'supporter.purchase_success_title'.tr(),
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.75),
-                        fontSize: 13,
-                        height: 1.5,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        height: 1.3,
+                        foreground: Paint()
+                          ..shader = LinearGradient(
+                            colors: [
+                              _accentDark,
+                              _accent,
+                              Colors.white,
+                              _accent,
+                              _accentDark
+                            ],
+                            stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
+                          ).createShader(
+                            const Rect.fromLTWH(0, 0, 200, 70),
+                          ),
                       ),
                       textAlign: TextAlign.center,
+                      maxLines: 2,
+                      minFontSize: 18,
+                      maxFontSize: 26,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
 
-                    // ── Verse card ──────────────────────────────────────────
+                    // ── Body - responsive with better visibility ────────────
+                    AutoSizeText(
+                      'supporter.medal_unlocked_body'.tr(),
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        height: 1.6,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      minFontSize: 12,
+                      maxFontSize: 14,
+                    ),
+                    const SizedBox(height: 22),
+
+                    // ── Verse card (responsive with autofit) ────────────────
                     Container(
-                      padding: const EdgeInsets.all(18),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: _accent.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border:
-                            Border.all(color: _accent.withValues(alpha: 0.25)),
+                        border: Border.all(
+                          color: _accent.withValues(alpha: 0.25),
+                          width: 1.5,
+                        ),
                       ),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
+                          AutoSizeText(
                             'supporter.purchase_success_verse'.tr(),
                             style: TextStyle(
                               fontStyle: FontStyle.italic,
                               fontWeight: FontWeight.w600,
                               color: Colors.white.withValues(alpha: 0.9),
-                              fontSize: 13,
-                              height: 1.5,
+                              height: 1.6,
                             ),
                             textAlign: TextAlign.center,
+                            maxLines: 6,
+                            minFontSize: 11,
+                            maxFontSize: 14,
                           ),
-                          const SizedBox(height: 6),
-                          Text(
+                          const SizedBox(height: 8),
+                          AutoSizeText(
                             'supporter.purchase_success_verse_ref'.tr(),
                             style: TextStyle(
                               color: _accent,
                               fontWeight: FontWeight.bold,
-                              fontSize: 11,
                               letterSpacing: 0.5,
                             ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            minFontSize: 10,
+                            maxFontSize: 12,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 32),
 
                     // ── Primary CTA ─────────────────────────────────────────
                     SizedBox(
@@ -241,15 +254,20 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
                     ),
                     const SizedBox(height: 10),
 
-                    // ── Secondary: close ────────────────────────────────────
+                    // ── Secondary: close (responsive) ────────────────────────
                     TextButton(
                       onPressed: _isLoading
                           ? null
                           : () => _handleAction(goToProgress: false),
-                      child: Text(
+                      child: AutoSizeText(
                         'app.close'.tr(),
                         style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.6)),
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        minFontSize: 12,
+                        maxFontSize: 14,
                       ),
                     ),
                   ],

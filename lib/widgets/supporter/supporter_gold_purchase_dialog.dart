@@ -298,8 +298,19 @@ class _SupporterGoldPurchaseDialogState
       key: const ValueKey('phase_name'),
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Step label
-        _StepLabel(label: 'supporter.gold_step_name'.tr()),
+        // Step label - responsive autofit
+        AutoSizeText(
+          'supporter.gold_step_name'.tr(),
+          style: const TextStyle(
+            color: _gold,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.2,
+          ),
+          maxLines: 1,
+          minFontSize: 10,
+          maxFontSize: 13,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 16),
 
         // Badge + confetti
@@ -310,43 +321,122 @@ class _SupporterGoldPurchaseDialogState
         ]),
         const SizedBox(height: 12),
 
-        // Shimmer title
-        _GoldShimmerText('supporter.purchase_success_title'.tr(), fontSize: 22),
-        const SizedBox(height: 20),
+        // Shimmer title - responsive with autofit
+        AutoSizeText(
+          'supporter.purchase_success_title'.tr(),
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            height: 1.3,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          minFontSize: 18,
+          maxFontSize: 26,
+        ),
+        const SizedBox(height: 16),
 
-        // Name field
+        // ── Verse card (responsive with autofit) ──────────────────
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFD700).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFFFFD700).withValues(alpha: 0.25),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AutoSizeText(
+                'supporter.purchase_success_verse'.tr(),
+                style: TextStyle(
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withValues(alpha: 0.9),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 6,
+                minFontSize: 10,
+                maxFontSize: 14,
+              ),
+              const SizedBox(height: 8),
+              AutoSizeText(
+                'supporter.purchase_success_verse_ref'.tr(),
+                style: const TextStyle(
+                  color: Color(0xFFFFD700),
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                minFontSize: 9,
+                maxFontSize: 12,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+
+        // Name field - responsive with better accessibility
         TextField(
           controller: widget.nameController,
-          style:
-              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+          ),
           decoration: InputDecoration(
             labelText: 'supporter.profile_name'.tr(),
-            labelStyle:
-                const TextStyle(color: _gold, fontWeight: FontWeight.bold),
+            labelStyle: const TextStyle(
+              color: _gold,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
             hintText: 'supporter.profile_name_hint'.tr(),
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+            hintStyle: TextStyle(
+              color: Colors.white.withValues(alpha: 0.3),
+              fontSize: 13,
+            ),
             helperText: 'supporter.profile_name_helper'.tr(),
             helperStyle: TextStyle(
-                color: Colors.white.withValues(alpha: 0.55), fontSize: 11),
-            prefixIcon: const Icon(Icons.badge_outlined, color: _gold),
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 12,
+              height: 1.5,
+            ),
+            helperMaxLines: 2,
+            prefixIcon:
+                const Icon(Icons.badge_outlined, color: _gold, size: 22),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: _gold.withValues(alpha: 0.4)),
+              borderSide:
+                  BorderSide(color: _gold.withValues(alpha: 0.4), width: 1.5),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: _gold, width: 2),
+              borderSide: const BorderSide(color: _gold, width: 2.5),
             ),
             filled: true,
             fillColor: Colors.white.withValues(alpha: 0.05),
-            counterStyle:
-                TextStyle(color: Colors.white.withValues(alpha: 0.45)),
+            counterStyle: TextStyle(
+              color: Colors.white.withValues(alpha: 0.45),
+              fontSize: 12,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+            isDense: false,
           ),
           maxLength: 15,
           cursorColor: _gold,
+          cursorHeight: 22,
+          cursorWidth: 2,
           onChanged: (_) => setState(() {}),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
 
         SizedBox(
           width: double.infinity,
@@ -367,17 +457,45 @@ class _SupporterGoldPurchaseDialogState
       key: const ValueKey('phase_pet'),
       mainAxisSize: MainAxisSize.min,
       children: [
-        _StepLabel(label: 'supporter.gold_step_pet'.tr()),
+        // Step label - responsive autofit
+        AutoSizeText(
+          'supporter.gold_step_pet'.tr(),
+          style: const TextStyle(
+            color: _gold,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.2,
+          ),
+          maxLines: 1,
+          minFontSize: 10,
+          maxFontSize: 13,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 12),
-        _GoldShimmerText('supporter.pet_selection_title'.tr(), fontSize: 20),
-        const SizedBox(height: 8),
-        Text(
+        // Pet selection title - responsive with autofit
+        AutoSizeText(
+          'supporter.pet_selection_title'.tr(),
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            height: 1.3,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          minFontSize: 16,
+          maxFontSize: 22,
+        ),
+        const SizedBox(height: 12),
+        // Description - responsive with better visibility
+        AutoSizeText(
           'supporter.pet_preview_description'.tr(),
           style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.65),
-              fontSize: 13,
-              height: 1.4),
+            color: Colors.white.withValues(alpha: 0.7),
+            height: 1.5,
+          ),
           textAlign: TextAlign.center,
+          maxLines: 3,
+          minFontSize: 12,
+          maxFontSize: 14,
         ),
         const SizedBox(height: 20),
         if (_isLoading)
@@ -426,28 +544,40 @@ class _SupporterGoldPurchaseDialogState
         ]),
         const SizedBox(height: 8),
 
-        // Shimmer title
-        _GoldShimmerText('supporter.gold_confirmation_title'.tr(),
-            fontSize: 24),
-        const SizedBox(height: 12),
+        // Shimmer title - responsive with autofit
+        AutoSizeText(
+          'supporter.gold_confirmation_title'.tr(),
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            height: 1.3,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          minFontSize: 20,
+          maxFontSize: 28,
+        ),
+        const SizedBox(height: 14),
 
-        // Gold helper / subtitle
+        // Gold helper / subtitle - responsive with better visibility
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: _gold.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _gold.withValues(alpha: 0.3)),
+            border: Border.all(color: _gold.withValues(alpha: 0.3), width: 1.5),
           ),
-          child: Text(
+          child: AutoSizeText(
             'supporter.gold_name_helper'.tr(),
             style: TextStyle(
-              color: _goldLight.withValues(alpha: 0.9),
-              fontSize: 13,
+              color: _goldLight.withValues(alpha: 0.95),
               fontStyle: FontStyle.italic,
-              height: 1.5,
+              height: 1.6,
             ),
             textAlign: TextAlign.center,
+            maxLines: 2,
+            minFontSize: 11,
+            maxFontSize: 14,
           ),
         ),
         const SizedBox(height: 32),
@@ -468,13 +598,16 @@ class _SupporterGoldPurchaseDialogState
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: () => _navigateTo(const DevocionalesPage()),
-            icon: const Icon(Icons.home_filled, color: _gold),
+            icon: const Icon(Icons.home_filled, color: _gold, size: 20),
             label: AutoSizeText(
               'supporter.go_to_devotionals'.tr(),
               maxLines: 1,
-              minFontSize: 11,
+              minFontSize: 12,
+              maxFontSize: 15,
               style: const TextStyle(
-                  color: _gold, fontWeight: FontWeight.w700, fontSize: 15),
+                color: _gold,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -490,64 +623,6 @@ class _SupporterGoldPurchaseDialogState
 }
 
 // ── Shared sub-widgets ────────────────────────────────────────────────────────
-
-class _StepLabel extends StatelessWidget {
-  final String label;
-
-  const _StepLabel({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFD700).withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
-        border:
-            Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.35)),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Color(0xFFFFD700),
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-          letterSpacing: 0.4,
-        ),
-      ),
-    );
-  }
-}
-
-class _GoldShimmerText extends StatelessWidget {
-  final String text;
-  final double fontSize;
-
-  const _GoldShimmerText(this.text, {required this.fontSize});
-
-  static const _gold = Color(0xFFFFD700);
-  static const _goldDark = Color(0xFFB8860B);
-
-  @override
-  Widget build(BuildContext context) {
-    return ShaderMask(
-      shaderCallback: (bounds) => const LinearGradient(
-        colors: [_goldDark, _gold, Colors.white, _gold, _goldDark],
-        stops: [0.0, 0.25, 0.5, 0.75, 1.0],
-      ).createShader(bounds),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontWeight: FontWeight.w900,
-          fontSize: fontSize,
-          color: Colors.white,
-          height: 1.3,
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-}
 
 class _GoldCircle extends StatelessWidget {
   final String emoji;
