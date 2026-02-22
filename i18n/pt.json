@@ -13,6 +13,7 @@
     "no": "Não",
     "delete": "Excluir",
     "skip": "Pular",
+    "next": "Próximo →",
     "voice_feature_title": "🎤✨ Novo recurso disponível! ✨🎤",
     "voice_feature_description": "Agora você pode escolher entre diferentes vozes para a leitura devocional. Personalize sua experiência e aproveite uma leitura mais agradável e moderna. 😃🔊",
     "voice_feature_configure": "Configurar vozes",
@@ -841,6 +842,15 @@
     "gold_confirmation_title": "🌟 Bem-vindo, Parceiro do Ministério!",
     "go_to_settings": "Ir para Configurações (pet e nome) ⚙️",
     "go_to_devotionals": "Ir para Devocionais 📖",
-    "go_to_progress": "Ver minhas medalhas no Progresso 🏅"
+    "go_to_progress": "Ver minhas medalhas no Progresso 🏅",
+    "silver_confirmation_title": "🌱 Obrigado, seu apoio importa!",
+    "gold_step_name": "Passo 1 de 2 — Seu nome",
+    "gold_step_pet": "Passo 2 de 2 — Escolha seu pet",
+    "gold_back_warning_title": "Tem certeza?",
+    "gold_back_warning_body": "Você pode completar a configuração do pet e nome mais tarde em Configurações. Seu badge Gold já está salvo! 🏅",
+    "gold_back_confirm": "Configurar depois",
+    "gold_back_dismiss": "Continuar configuração",
+    "gold_setup_pending_banner": "🎁 Complete sua configuração Gold! Escolha seu pet e nome.",
+    "gold_setup_complete_now": "Completar agora"
   }
 }

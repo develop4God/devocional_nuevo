@@ -16,6 +16,7 @@
     "no": "Non",
     "delete": "Supprimer",
     "skip": "Passer",
+    "next": "Suivant →",
     "voice_feature_title": "🎤✨ Nouvelle fonctionnalité disponible ! ✨🎤",
     "voice_feature_description": "Vous pouvez maintenant choisir entre différentes voix pour la lecture de vos méditations. Personnalisez votre expérience et profitez d'une lecture plus agréable et moderne. 😃🔊",
     "voice_feature_configure": "Configurer les voix",
@@ -839,6 +840,15 @@
     "gold_confirmation_title": "🌟 Bienvenue, Partenaire du Ministère!",
     "go_to_settings": "Aller aux Paramètres (animal et nom) ⚙️",
     "go_to_devotionals": "Aller aux Dévotionnels 📖",
-    "go_to_progress": "Voir mes médailles dans Progrès 🏅"
+    "go_to_progress": "Voir mes médailles dans Progrès 🏅",
+    "silver_confirmation_title": "🌱 Merci, votre soutien compte!",
+    "gold_step_name": "Étape 1 sur 2 — Votre nom",
+    "gold_step_pet": "Étape 2 sur 2 — Choisissez votre animal",
+    "gold_back_warning_title": "Êtes-vous sûr?",
+    "gold_back_warning_body": "Vous pouvez configurer votre animal et nom plus tard dans Paramètres. Votre badge Gold est déjà sauvegardé! 🏅",
+    "gold_back_confirm": "Configurer plus tard",
+    "gold_back_dismiss": "Continuer la configuration",
+    "gold_setup_pending_banner": "🎁 Complétez votre configuration Gold! Choisissez votre animal et nom.",
+    "gold_setup_complete_now": "Compléter maintenant"
   }
 }

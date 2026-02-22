@@ -16,6 +16,7 @@
     "no": "No",
     "delete": "Delete",
     "skip": "Skip",
+    "next": "Next →",
     "voice_feature_title": "🎤✨ New Feature Available! ✨🎤",
     "voice_feature_description": "Now you can choose between different voices for devotional reading. Personalize your experience and enjoy a more pleasant and modern reading. 😃🔊",
     "voice_feature_configure": "Configure voices",
@@ -847,6 +848,15 @@
     "badge_unlock": "Badge Unlocked!",
     "supporter_section_title": "MINISTRY PARTNER",
     "show_pet_header": "Show my pet in the devotional",
-    "pet_currently_selected": "Currently"
+    "pet_currently_selected": "Currently",
+    "silver_confirmation_title": "🌱 Thank you, your support matters!",
+    "gold_step_name": "Step 1 of 2 — Your name",
+    "gold_step_pet": "Step 2 of 2 — Choose your pet",
+    "gold_back_warning_title": "Are you sure?",
+    "gold_back_warning_body": "You can complete your pet and name setup later from Settings. Your Gold badge is already saved! 🏅",
+    "gold_back_confirm": "Set up later",
+    "gold_back_dismiss": "Continue setup",
+    "gold_setup_pending_banner": "🎁 Complete your Gold setup! Choose your pet and name.",
+    "gold_setup_complete_now": "Complete Now"
   }
 }

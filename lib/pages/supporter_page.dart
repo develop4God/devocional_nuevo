@@ -141,8 +141,9 @@ class _SupporterPageState extends State<SupporterPage>
 
   // ── Success dialog ────────────────────────────────────────────────────────
 
-  void _showSuccessDialog(SupporterTier tier) {
-    final nameController = TextEditingController();
+  void _showSuccessDialog(SupporterTier tier,
+      {TextEditingController? existingNameController}) {
+    final nameController = existingNameController ?? TextEditingController();
     final isGold = tier.level == SupporterTierLevel.gold;
 
     showDialog<void>(
@@ -154,7 +155,8 @@ class _SupporterPageState extends State<SupporterPage>
               dialogContext: dialogContext,
               nameController: nameController,
               // Business logic only — no Navigator.pop, no navigation.
-              // The widget handles pop + phase transition internally.
+              // Pet unlock + selection are handled inside the dialog.
+              // This callback: save name to BLoC + clear errors.
               onConfirm: () async {
                 final bloc = context.read<SupporterBloc>();
                 final name = nameController.text.trim();
@@ -476,9 +478,28 @@ class _SupporterPageState extends State<SupporterPage>
   ) {
     const goldColor = Color(0xFFFFD700);
     final isGoldPurchased = state.isPurchased(SupporterTierLevel.gold);
+    final petService = getService<SupporterPetService>();
+    final showPendingBanner = isGoldPurchased && petService.isGoldSetupPending;
 
     return Column(
       children: [
+        // ── Pending Gold setup banner ─────────────────────────────────────
+        if (showPendingBanner) ...[
+          _GoldSetupPendingBanner(
+            onTap: () async {
+              await petService.clearGoldSetupPending();
+              if (!mounted) return;
+              final nameController = TextEditingController(
+                text: state.goldSupporterName ?? '',
+              );
+              _showSuccessDialog(
+                SupporterTier.fromLevel(SupporterTierLevel.gold),
+                existingNameController: nameController,
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
         Text(
           'supporter.choose_tier'.tr(),
           style: textTheme.titleLarge?.copyWith(
@@ -552,6 +573,93 @@ class _SupporterPageState extends State<SupporterPage>
           fontSize: 10,
         ),
         textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
+
+// ── Gold pending-setup banner ─────────────────────────────────────────────────
+
+/// Shown on the supporter page when gold was purchased but the user dismissed
+/// the setup dialog before choosing a name/pet (crash-recovery fallback).
+class _GoldSetupPendingBanner extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _GoldSetupPendingBanner({required this.onTap});
+
+  static const _gold = Color(0xFFFFD700);
+  static const _goldDark = Color(0xFFB8860B);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1A1A2E), Color(0xFF0F3460)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _gold.withValues(alpha: 0.5), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: _gold.withValues(alpha: 0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                const Icon(Icons.card_giftcard_rounded, color: _gold, size: 32),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'supporter.gold_setup_pending_banner'.tr(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 5),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [_goldDark, _gold],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          'supporter.gold_setup_complete_now'.tr(),
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right_rounded, color: _gold, size: 24),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

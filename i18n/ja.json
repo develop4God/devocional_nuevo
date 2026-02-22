@@ -16,6 +16,7 @@
     "no": "いいえ",
     "delete": "削除",
     "skip": "スキップ",
+    "next": "次へ →",
     "voice_feature_title": "🎤✨ 新機能が利用可能になりました！ ✨🎤",
     "voice_feature_description": "デボーションの読み上げにさまざまな声を選べるようになりました。体験をカスタマイズして、より快適でモダンな読み上げをお楽しみください。😃🔊",
     "voice_feature_configure": "音声を設定",
@@ -839,6 +840,15 @@
     "gold_confirmation_title": "🌟 ようこそ、ミニストリーパートナー！",
     "go_to_settings": "設定へ（ペットと名前）⚙️",
     "go_to_devotionals": "デボーションへ 📖",
-    "go_to_progress": "進捗でメダルを見る 🏅"
+    "go_to_progress": "進捗でメダルを見る 🏅",
+    "silver_confirmation_title": "🌱 ありがとうございます、あなたのサポートは大切です！",
+    "gold_step_name": "ステップ1/2 — お名前",
+    "gold_step_pet": "ステップ2/2 — ペットを選んでください",
+    "gold_back_warning_title": "よろしいですか？",
+    "gold_back_warning_body": "ペットと名前の設定は後で設定から完了できます。ゴールドバッジはすでに保存されています！🏅",
+    "gold_back_confirm": "後で設定する",
+    "gold_back_dismiss": "設定を続ける",
+    "gold_setup_pending_banner": "🎁 ゴールドの設定を完了してください！ペットと名前を選んでください。",
+    "gold_setup_complete_now": "今すぐ完了"
   }
 }
