@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/supporter_pet.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
@@ -127,10 +128,7 @@ class _SupporterGoldPurchaseDialogState
     if (_phase == _GoldPhase.confirmation) return true;
     // Show warm "set up later?" sheet
     final leave = await _showLeaveSheet();
-    if (leave == true) {
-      // Mark pending so banner shows on supporter page
-      await getService<SupporterPetService>().markGoldSetupPending();
-    }
+    // markGoldSetupPending() is already called in initState — no need to repeat here.
     return leave == true;
   }
 
@@ -219,11 +217,15 @@ class _SupporterGoldPurchaseDialogState
   // ── Final navigation ──────────────────────────────────────────────────────
 
   void _navigateTo(Widget page) {
+    // Must use widget.dialogContext here — the gold dialog is a multi-phase
+    // flow pushed from a parent route. By Phase 2, the local BuildContext may
+    // no longer be associated with the original dialog route, so we hold a
+    // reference to the push-site context to ensure the correct route is popped.
     Navigator.pop(widget.dialogContext);
     if (!mounted) return;
+    final navigator = Navigator.of(context, rootNavigator: true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      Navigator.of(context, rootNavigator: true).pushReplacement(
+      navigator.pushReplacement(
         MaterialPageRoute(builder: (_) => page),
       );
     });
@@ -237,28 +239,39 @@ class _SupporterGoldPurchaseDialogState
       canPop: _phase == _GoldPhase.confirmation,
       onPopInvokedWithResult: (didPop, _) async {
         if (!didPop) {
+          final nav = Navigator.of(widget.dialogContext);
           await _onWillPop().then((leave) {
-            if (leave && mounted) Navigator.pop(widget.dialogContext);
+            if (leave && mounted) nav.pop();
           });
         }
       },
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
         clipBehavior: Clip.antiAlias,
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [_bgStart, _bgMid, _bgEnd],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        // Reduce padding for autofit
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: 280,
+            maxWidth: 400,
+            minHeight: 200,
+            maxHeight: 600,
           ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(28),
-              child: FadeTransition(
-                opacity: _fadeAnim,
-                child: _buildPhase(context),
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [_bgStart, _bgMid, _bgEnd],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(28),
+                child: FadeTransition(
+                  opacity: _fadeAnim,
+                  child: _buildPhase(context),
+                ),
               ),
             ),
           ),
@@ -298,20 +311,24 @@ class _SupporterGoldPurchaseDialogState
         const SizedBox(height: 12),
 
         // Shimmer title
-        _GoldShimmerText('supporter.gold_name_title'.tr(), fontSize: 22),
+        _GoldShimmerText('supporter.purchase_success_title'.tr(), fontSize: 22),
         const SizedBox(height: 20),
 
         // Name field
         TextField(
           controller: widget.nameController,
-          style: const TextStyle(color: Colors.white),
+          style:
+              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           decoration: InputDecoration(
-            labelText: 'supporter.gold_name_hint'.tr(),
-            labelStyle: const TextStyle(color: _gold),
-            helperText: 'supporter.gold_name_helper'.tr(),
+            labelText: 'supporter.profile_name'.tr(),
+            labelStyle:
+                const TextStyle(color: _gold, fontWeight: FontWeight.bold),
+            hintText: 'supporter.profile_name_hint'.tr(),
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+            helperText: 'supporter.profile_name_helper'.tr(),
             helperStyle: TextStyle(
                 color: Colors.white.withValues(alpha: 0.55), fontSize: 11),
-            prefixIcon: const Icon(Icons.person, color: _gold),
+            prefixIcon: const Icon(Icons.badge_outlined, color: _gold),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(color: _gold.withValues(alpha: 0.4)),
@@ -325,8 +342,9 @@ class _SupporterGoldPurchaseDialogState
             counterStyle:
                 TextStyle(color: Colors.white.withValues(alpha: 0.45)),
           ),
-          maxLength: 40,
+          maxLength: 15,
           cursorColor: _gold,
+          onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 24),
 
@@ -450,9 +468,11 @@ class _SupporterGoldPurchaseDialogState
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: () => _navigateTo(const DevocionalesPage()),
-            icon: const Icon(Icons.menu_book_rounded, color: _gold),
-            label: Text(
+            icon: const Icon(Icons.home_filled, color: _gold),
+            label: AutoSizeText(
               'supporter.go_to_devotionals'.tr(),
+              maxLines: 1,
+              minFontSize: 11,
               style: const TextStyle(
                   color: _gold, fontWeight: FontWeight.w700, fontSize: 15),
             ),
@@ -607,11 +627,19 @@ class _PetCard extends StatelessWidget {
               SizedBox(
                 width: 72,
                 height: 72,
-                child: Lottie.asset(pet.lottieAsset),
+                child: Lottie.asset(
+                  pet.lottieAsset,
+                  errorBuilder: (_, __, ___) => Center(
+                    child: Text(
+                      pet.emoji,
+                      style: const TextStyle(fontSize: 32),
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 6),
               Text(
-                '${pet.emoji} ${pet.name}',
+                '${pet.emoji} ${pet.nameKey.tr()}',
                 style: TextStyle(
                   color: isSelected ? _gold : Colors.white,
                   fontWeight: FontWeight.w800,
@@ -668,21 +696,28 @@ class _GoldButton extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.black87, size: 20),
-              const SizedBox(width: 10),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 15,
-                  letterSpacing: 0.3,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: Colors.black87, size: 20),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: AutoSizeText(
+                    label,
+                    maxLines: 1,
+                    minFontSize: 11,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

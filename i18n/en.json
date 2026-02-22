@@ -166,7 +166,7 @@
     "developer": "Developer",
     "privacy_policy": "Privacy Policy",
     "terms_of_service": "Terms of Service",
-    "donate": "❤️ Support",
+    "donate": "❤️ Donate",
     "contact_us": "Contact Us",
     "about_app": "About Christian Devotionals",
     "paypal_launch_error": "Could not open PayPal. The system could not launch the URL.",
@@ -359,7 +359,9 @@
     "support_my_badges": "My Badges",
     "support_badges_progress": "badges unlocked",
     "support_badge_unlock": "Badge Unlocked!",
-    "support_badge_share": "Share Badge"
+    "support_badge_share": "Share Badge",
+    "profile_name": "Profile name",
+    "profile_name_save": "Save name"
   },
   "about": {
     "title": "About your app",
@@ -847,7 +849,7 @@
     "medal_unlocked_title": "Honor Medal Unlocked!",
     "badge_unlock": "Badge Unlocked!",
     "supporter_section_title": "MINISTRY PARTNER",
-    "show_pet_header": "Show my pet in the devotional",
+    "show_pet_header": "Show my pet and name in the devotional",
     "pet_currently_selected": "Currently",
     "silver_confirmation_title": "🌱 Thank you, your support matters!",
     "gold_step_name": "Step 1 of 2 — Your name",
@@ -857,6 +859,15 @@
     "gold_back_confirm": "Set up later",
     "gold_back_dismiss": "Continue setup",
     "gold_setup_pending_banner": "🎁 Complete your Gold setup! Choose your pet and name.",
-    "gold_setup_complete_now": "Complete Now"
+    "gold_setup_complete_now": "Complete Now",
+    "pet_dog_name": "Faithful friend",
+    "pet_fish_name": "Little fish of peace",
+    "pet_tiger_name": "Brave one",
+    "pet_cat_name": "Companion",
+    "profile_name": "Profile name",
+    "profile_name_save": "Save name",
+    "profile_name_saved": "✅ Name saved successfully!",
+    "profile_name_hint": "Your name (max 15 characters)",
+    "profile_name_helper": "Will appear in your daily devotional. Will not be shared."
   }
 }

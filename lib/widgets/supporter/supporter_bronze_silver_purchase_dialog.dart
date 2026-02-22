@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
@@ -102,7 +103,14 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
       canPop: true,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop && !_isLoading) {
-          widget.onConfirm();
+          // onConfirm is guaranteed to only emit BLoC events that manage their
+          // own lifecycle — no setState or Navigator calls inside it.
+          // No mounted check needed here because the widget is already popped
+          // and onConfirm does not touch widget state directly.
+          () async {
+            await widget.onConfirm();
+            // No setState here — widget is already popped.
+          }();
         }
       },
       child: Dialog(
@@ -128,8 +136,15 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
                     Stack(
                       alignment: Alignment.center,
                       children: [
-                        Lottie.asset('assets/lottie/confetti.json',
-                            width: 200, height: 200, repeat: false),
+                        Lottie.asset(
+                          'assets/lottie/confetti.json',
+                          width: 200,
+                          height: 200,
+                          repeat: false,
+                          // Decorative asset — fail silently so the confirmation
+                          // screen remains fully functional if the file is missing.
+                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                        ),
                         _buildBadgeCircle(),
                       ],
                     ),
@@ -218,7 +233,7 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
                           : _TierButton(
                               label:
                                   'supporter.go_to_progress'.tr().toUpperCase(),
-                              icon: Icons.auto_graph_rounded,
+                              icon: Icons.emoji_events_outlined,
                               accent: _accent,
                               accentDark: _accentDark,
                               onTap: () => _handleAction(goToProgress: true),
@@ -319,21 +334,28 @@ class _TierButton extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.black87, size: 20),
-              const SizedBox(width: 10),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 14,
-                  letterSpacing: 0.3,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: Colors.black87, size: 20),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: AutoSizeText(
+                    label,
+                    maxLines: 1,
+                    minFontSize: 11,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
