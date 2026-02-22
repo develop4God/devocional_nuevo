@@ -17,6 +17,8 @@ import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/supporter/supporter_gold_purchase_dialog.dart';
+import 'package:devocional_nuevo/widgets/supporter/supporter_purchase_dialog.dart';
 import 'package:devocional_nuevo/widgets/supporter/tier_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -148,185 +150,35 @@ class _SupporterPageState extends State<SupporterPage>
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Lottie.asset(
-                      'assets/lottie/confetti.json',
-                      width: 200,
-                      height: 200,
-                      repeat: false,
-                    ),
-                    const Icon(
-                      Icons.verified_rounded,
-                      color: Colors.green,
-                      size: 100,
-                    ),
-                  ],
-                ),
-                Text(
-                  tier.emoji,
-                  style: const TextStyle(fontSize: 50),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'supporter.purchase_success_title'.tr(),
-                  style:
-                      Theme.of(dialogContext).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            color: tier.badgeColor,
-                          ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'supporter.medal_unlocked_body'.tr(),
-                  style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(dialogContext)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.8),
-                        height: 1.5,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Theme.of(dialogContext)
-                        .colorScheme
-                        .surfaceContainerHighest
-                        .withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color: tier.badgeColor.withValues(alpha: 0.2)),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'supporter.purchase_success_verse'.tr(),
-                        style: Theme.of(dialogContext)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(
-                              fontStyle: FontStyle.italic,
-                              fontWeight: FontWeight.w600,
-                              color:
-                                  Theme.of(dialogContext).colorScheme.onSurface,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'supporter.purchase_success_verse_ref'.tr(),
-                        style: Theme.of(dialogContext)
-                            .textTheme
-                            .labelSmall
-                            ?.copyWith(
-                              color: tier.badgeColor,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (isGold) ...[
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      labelText: 'supporter.gold_name_hint'.tr(),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(
-                            color: tier.badgeColor.withValues(alpha: 0.3)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide:
-                            BorderSide(color: tier.badgeColor, width: 2),
-                      ),
-                      helperText: 'supporter.gold_name_helper'.tr(),
-                      prefixIcon: Icon(Icons.person, color: tier.badgeColor),
-                    ),
-                    maxLength: 40,
-                  ),
-                ],
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      // Capture the bloc reference before any async gaps.
-                      final bloc = context.read<SupporterBloc>();
-
-                      // ✅ Register badge unlock only for Bronze and Silver
-                      if (!isGold) {
-                        await _unlockSupporterBadge(tier.level);
-                      }
-
-                      if (isGold) {
-                        final name = nameController.text.trim();
-                        if (name.isNotEmpty) {
-                          bloc.add(SaveGoldSupporterName(name));
-                        }
-
-                        // Unlock pet feature and show selection
-                        await getService<SupporterPetService>()
-                            .unlockPetFeature();
-
-                        // Guard against widget being unmounted during await
-                        if (!context.mounted) return;
-                      }
-
-                      // Clear the just-delivered tier from state
-                      bloc.add(ClearSupporterError());
-
-                      if (isGold) {
-                        Navigator.pop(dialogContext);
-                        _showPetSelectionDialog();
-                      } else {
-                        Navigator.pop(dialogContext);
-                        // Redirect or show final feedback for non-gold tiers
-                        _showFinalMedalFeedback();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: tier.badgeColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                      elevation: 4,
-                      shadowColor: tier.badgeColor.withValues(alpha: 0.5),
-                    ),
-                    child: Text(
-                      isGold
-                          ? 'supporter.select_pet_button'.tr()
-                          : 'supporter.purchase_success_button'.tr(),
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w900, fontSize: 18),
-                    ),
-                  ),
-                ),
-              ],
+      builder: (dialogContext) => isGold
+          ? SupporterGoldPurchaseDialog(
+              tier: tier,
+              dialogContext: dialogContext,
+              nameController: nameController,
+              onConfirm: () async {
+                final bloc = context.read<SupporterBloc>();
+                final name = nameController.text.trim();
+                if (name.isNotEmpty) {
+                  bloc.add(SaveGoldSupporterName(name));
+                }
+                await getService<SupporterPetService>().unlockPetFeature();
+                if (!context.mounted) return;
+                bloc.add(ClearSupporterError());
+                Navigator.pop(dialogContext);
+                _showPetSelectionDialog();
+              },
+            )
+          : SupporterPurchaseDialog(
+              tier: tier,
+              dialogContext: dialogContext,
+              onConfirm: () async {
+                final bloc = context.read<SupporterBloc>();
+                await _unlockSupporterBadge(tier.level);
+                bloc.add(ClearSupporterError());
+                Navigator.pop(dialogContext);
+                _showFinalMedalFeedback();
+              },
             ),
-          ),
-        ),
-      ),
     );
   }
 
