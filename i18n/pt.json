@@ -161,7 +161,7 @@
     "language_change_success": "Idioma alterado para {language}. O aplicativo será reiniciado para aplicar as alterações.",
     "notifications": "Notificaciones",
     "enable_notifications": "Habilitar notificaciones",
-    "notification_time": "Hora de notificación",
+    "notification_time": "Hora de notificação",
     "about": "Sobre",
     "version": "Versão",
     "developer": "Desenvolvedor",
@@ -360,7 +360,9 @@
     "support_my_badges": "Meus Distintivos",
     "support_badges_progress": "distintivos desbloqueados",
     "support_badge_unlock": "Distintivo Desbloqueado!",
-    "support_badge_share": "Compartilhar Distintivo"
+    "support_badge_share": "Compartilhar Distintivo",
+    "profile_name": "Nome do perfil",
+    "profile_name_save": "Salvar nome"
   },
   "about": {
     "title": "Sobre o seu app",

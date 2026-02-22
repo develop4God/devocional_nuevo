@@ -360,7 +360,9 @@
     "support_my_badges": "我的徽章",
     "support_badges_progress": "徽章已解锁",
     "support_badge_unlock": "徽章已解锁！",
-    "support_badge_share": "分享徽章"
+    "support_badge_share": "分享徽章",
+    "profile_name": "个人资料名称",
+    "profile_name_save": "保存名称"
   },
   "onboarding": {
     "onboarding_welcome_header": "神祝福你，让你的生活充满平安",

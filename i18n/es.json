@@ -866,6 +866,8 @@
     "pet_dog_name": "Fiel amigo",
     "pet_fish_name": "Pecesito de paz",
     "pet_tiger_name": "Valiente",
-    "pet_cat_name": "Compañero"
+    "pet_cat_name": "Compañero",
+    "profile_name": "Nombre de perfil",
+    "profile_name_save": "Guardar nombre"
   }
 }
