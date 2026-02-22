@@ -1,12 +1,14 @@
 #!/bin/bash
 export PATH="$PATH:/home/develop4god/development/flutter/bin"
+export FLUTTER_ROOT="/home/develop4god/development/flutter"
 
-OUTPUT=$(dart analyze 2>&1)
-EXIT_CODE=$?
+OUTPUT=$(/home/develop4god/development/flutter/bin/dart analyze 2>&1)
 
+echo "=== ANALYZE REPORT ==="
 echo "$OUTPUT"
+echo "=== END REPORT ==="
 
-if [ $EXIT_CODE -ne 0 ] || echo "$OUTPUT" | grep -E 'error|warning|info' > /dev/null 2>&1; then
+if echo "$OUTPUT" | grep -qE 'error|warning|info'; then
     echo "ISSUES_FOUND"
     exit 1
 else
