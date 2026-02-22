@@ -61,7 +61,6 @@ class _SupporterGoldPurchaseDialogState
     with SingleTickerProviderStateMixin {
   // ── Palette ───────────────────────────────────────────────────────────────
   static const _gold = Color(0xFFFFD700);
-  static const _goldDark = Color(0xFFB8860B);
   static const _goldLight = Color(0xFFFFF8DC);
   static const _bgStart = Color(0xFF1A1A2E);
   static const _bgMid = Color(0xFF16213E);
@@ -221,10 +220,13 @@ class _SupporterGoldPurchaseDialogState
 
   void _navigateTo(Widget page) {
     Navigator.pop(widget.dialogContext);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => page),
-    );
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pushReplacement(
+        MaterialPageRoute(builder: (_) => page),
+      );
+    });
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
@@ -234,10 +236,11 @@ class _SupporterGoldPurchaseDialogState
     return PopScope(
       canPop: _phase == _GoldPhase.confirmation,
       onPopInvokedWithResult: (didPop, _) async {
-        if (!didPop)
+        if (!didPop) {
           await _onWillPop().then((leave) {
             if (leave && mounted) Navigator.pop(widget.dialogContext);
           });
+        }
       },
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),

@@ -1,5 +1,15 @@
 #!/bin/bash
-# errors.sh - Run flutter analyze with fatal infos and grep for issues
+export PATH="$PATH:/home/develop4god/development/flutter/bin"
 
-flutter analyze --fatal-infos | grep -E 'error|warning|info' || echo "No errors, warnings, or infos found."
+OUTPUT=$(dart analyze 2>&1)
+EXIT_CODE=$?
 
+echo "$OUTPUT"
+
+if [ $EXIT_CODE -ne 0 ] || echo "$OUTPUT" | grep -E 'error|warning|info' > /dev/null 2>&1; then
+    echo "ISSUES_FOUND"
+    exit 1
+else
+    echo "CLEAN"
+    exit 0
+fi

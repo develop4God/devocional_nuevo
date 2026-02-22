@@ -83,7 +83,7 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
     await widget.onConfirm();
     if (!mounted) return;
     setState(() => _isLoading = false);
-    Navigator.pop(widget.dialogContext);
+    Navigator.pop(context); // Use local context, not widget.dialogContext
     if (goToProgress && mounted) {
       Navigator.push(
         context,
