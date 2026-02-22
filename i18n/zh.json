@@ -850,6 +850,10 @@
     "gold_back_confirm": "稍后设置",
     "gold_back_dismiss": "继续设置",
     "gold_setup_pending_banner": "🎁 完成您的黄金设置！选择您的宠物和名字。",
-    "gold_setup_complete_now": "立即完成"
+    "gold_setup_complete_now": "立即完成",
+    "pet_dog_name": "忠实的朋友",
+    "pet_fish_name": "平安小鱼",
+    "pet_tiger_name": "勇敢者",
+    "pet_cat_name": "伴侣"
   }
 }

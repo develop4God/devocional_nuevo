@@ -849,6 +849,10 @@
     "gold_back_confirm": "後で設定する",
     "gold_back_dismiss": "設定を続ける",
     "gold_setup_pending_banner": "🎁 ゴールドの設定を完了してください！ペットと名前を選んでください。",
-    "gold_setup_complete_now": "今すぐ完了"
+    "gold_setup_complete_now": "今すぐ完了",
+    "pet_dog_name": "忠実な友",
+    "pet_fish_name": "平和の小魚",
+    "pet_tiger_name": "勇敢な仲間",
+    "pet_cat_name": "仲間"
   }
 }

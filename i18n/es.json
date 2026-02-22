@@ -862,6 +862,10 @@
     "gold_back_confirm": "Configurar después",
     "gold_back_dismiss": "Continuar configuración",
     "gold_setup_pending_banner": "🎁 ¡Completa tu configuración Gold! Elige tu mascota y nombre.",
-    "gold_setup_complete_now": "Completar ahora"
+    "gold_setup_complete_now": "Completar ahora",
+    "pet_dog_name": "Fiel amigo",
+    "pet_fish_name": "Pecesito de paz",
+    "pet_tiger_name": "Valiente",
+    "pet_cat_name": "Compañero"
   }
 }

@@ -223,7 +223,7 @@ class _SettingsViewState extends State<_SettingsView> {
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        '${'supporter.pet_currently_selected'.tr()}: ${_petService.selectedPet.name} ${_petService.selectedPet.emoji}',
+                        '${'supporter.pet_currently_selected'.tr()}: ${_petService.selectedPet.nameKey.tr()} ${_petService.selectedPet.emoji}',
                         style: textTheme.bodySmall,
                       ),
                       value: _petService.showPetHeader,
@@ -231,7 +231,7 @@ class _SettingsViewState extends State<_SettingsView> {
                         await _petService.setShowPetHeader(value);
                         setState(() {});
                       },
-                      activeColor: colorScheme.primary,
+                      activeThumbColor: colorScheme.primary,
                       contentPadding: EdgeInsets.zero,
                     ),
                   ],
