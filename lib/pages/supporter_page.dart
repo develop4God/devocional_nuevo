@@ -174,6 +174,7 @@ class _SupporterPageState extends State<SupporterPage>
               onConfirm: () async {
                 final bloc = context.read<SupporterBloc>();
                 await _unlockSupporterBadge(tier.level);
+                if (!context.mounted) return;
                 bloc.add(ClearSupporterError());
                 Navigator.pop(dialogContext);
                 _showFinalMedalFeedback();
