@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/supporter_pet.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
@@ -451,8 +452,10 @@ class _SupporterGoldPurchaseDialogState
           child: OutlinedButton.icon(
             onPressed: () => _navigateTo(const DevocionalesPage()),
             icon: const Icon(Icons.menu_book_rounded, color: _gold),
-            label: Text(
+            label: AutoSizeText(
               'supporter.go_to_devotionals'.tr(),
+              maxLines: 1,
+              minFontSize: 11,
               style: const TextStyle(
                   color: _gold, fontWeight: FontWeight.w700, fontSize: 15),
             ),
@@ -668,21 +671,28 @@ class _GoldButton extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.black87, size: 20),
-              const SizedBox(width: 10),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 15,
-                  letterSpacing: 0.3,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: Colors.black87, size: 20),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: AutoSizeText(
+                    label,
+                    maxLines: 1,
+                    minFontSize: 11,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
