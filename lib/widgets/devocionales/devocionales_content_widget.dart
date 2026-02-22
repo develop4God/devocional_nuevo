@@ -1,4 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
@@ -7,6 +9,7 @@ import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.dart';
 import 'package:devocional_nuevo/widgets/pet_hero_section.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
 /// Widget that displays the content of a devotional.
@@ -57,17 +60,24 @@ class DevocionalesContentWidget extends StatelessWidget {
           if (petService.showPetHeader && petService.isPetUnlocked)
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
-              child: PetHeroSection(
-                formattedDate: getLocalizedDateFormat(context),
-                showPetHint: false,
-                onTap: () {
-                  // Optional: navigate to selection or do nothing
+              child: BlocBuilder<SupporterBloc, SupporterState>(
+                builder: (context, supporterState) {
+                  final goldName = supporterState is SupporterLoaded
+                      ? supporterState.goldSupporterName
+                      : null;
+                  return PetHeroSection(
+                    formattedDate: getLocalizedDateFormat(context),
+                    showPetHint: false,
+                    onTap: () {
+                      // Optional: navigate to selection or do nothing
+                    },
+                    selectedPet: petService.selectedPet,
+                    selectedTheme: (
+                      colors: [colorScheme.primary, colorScheme.tertiary]
+                    ),
+                    profileName: goldName,
+                  );
                 },
-                selectedPet: petService.selectedPet,
-                selectedTheme: (
-                  colors: [colorScheme.primary, colorScheme.tertiary]
-                ),
-                // Simple theme for now
               ),
             ),
           DevocionalHeaderWidget(

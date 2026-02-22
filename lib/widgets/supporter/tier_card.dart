@@ -183,26 +183,45 @@ class TierCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           SizedBox(
-            height: 60,
+            height: 80,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: SupporterPet.allPets.take(4).map((pet) {
                 return Container(
-                  width: 50,
-                  height: 50,
+                  width: 60,
+                  height: 70,
                   decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    shape: BoxShape.circle,
+                    color: tier.badgeColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: tier.badgeColor.withValues(alpha: 0.3),
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 4,
-                      )
+                        color: tier.badgeColor.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
                     ],
                   ),
-                  child: Center(
-                    child:
-                        Text(pet.emoji, style: const TextStyle(fontSize: 24)),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: Lottie.asset(
+                          pet.lottieAsset,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => Center(
+                            child: Text(
+                              pet.emoji,
+                              style: const TextStyle(fontSize: 24),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               }).toList(),

@@ -231,7 +231,7 @@ class _SettingsViewState extends State<_SettingsView> {
                         await _petService.setShowPetHeader(value);
                         setState(() {});
                       },
-                      activeThumbColor: colorScheme.primary,
+                      activeColor: colorScheme.primary,
                       contentPadding: EdgeInsets.zero,
                     ),
                   ],
