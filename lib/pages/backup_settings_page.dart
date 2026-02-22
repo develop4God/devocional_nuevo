@@ -13,10 +13,8 @@ import '../blocs/theme/theme_bloc.dart';
 import '../blocs/theme/theme_state.dart';
 import '../extensions/string_extensions.dart';
 import '../providers/devocional_provider.dart';
-import '../services/connectivity_service.dart';
-import '../services/google_drive_auth_service.dart';
-import '../services/google_drive_backup_service.dart';
-import '../services/spiritual_stats_service.dart';
+import '../services/i_google_drive_backup_service.dart';
+import '../services/service_locator.dart';
 import '../widgets/backup_configuration_sheet.dart';
 
 /// BackupSettingsPage with simplified progressive UI
@@ -37,27 +35,11 @@ class BackupSettingsPage extends StatelessWidget {
       );
     }
 
-    // Otherwise, create services with dependencies (production)
-    final authService = GoogleDriveAuthService();
-    debugPrint('🔧 [DEBUG] GoogleDriveAuthService creado');
-
-    final connectivityService = ConnectivityService();
-    debugPrint('🔧 [DEBUG] ConnectivityService creado');
-
-    final statsService = SpiritualStatsService();
-    debugPrint('🔧 [DEBUG] SpiritualStatsService creado');
-
-    final backupService = GoogleDriveBackupService(
-      authService: authService,
-      connectivityService: connectivityService,
-      statsService: statsService,
-    );
-    debugPrint('🔧 [DEBUG] GoogleDriveBackupService creado con dependencias');
-
+    // Otherwise, resolve services via DI (production)
     return BlocProvider(
       create: (context) {
-        final bloc = BackupBloc(
-          backupService: backupService,
+        final backupBloc = BackupBloc(
+          backupService: getService<IGoogleDriveBackupService>(),
           devocionalProvider: Provider.of<DevocionalProvider>(
             context,
             listen: false,
@@ -65,8 +47,8 @@ class BackupSettingsPage extends StatelessWidget {
           prayerBloc: context.read<PrayerBloc>(), // 🔧 RESTAURADO
         );
 
-        bloc.add(const LoadBackupSettings());
-        return bloc;
+        backupBloc.add(const LoadBackupSettings());
+        return backupBloc;
       },
       child: const _BackupSettingsView(),
     );

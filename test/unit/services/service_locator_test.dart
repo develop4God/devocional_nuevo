@@ -1,6 +1,8 @@
 @Tags(['unit', 'services'])
 library;
 
+import 'dart:io';
+
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -171,6 +173,133 @@ void main() {
         // is prevented by the private constructor pattern.
         // Attempting NotificationService() would result in a compile-time error:
         // "The constructor 'NotificationService._' is private and can't be accessed outside the library."
+      });
+    });
+
+    group('Service Locator - Interface Registrations', () {
+      test(
+        'Service locator file imports and registers all required services',
+        () async {
+          // This test validates that the service locator has the proper
+          // registrations by checking the actual setupServiceLocator() code
+
+          // Read the service locator file
+          final serviceLocatorFile = File('lib/services/service_locator.dart');
+          final content = await serviceLocatorFile.readAsString();
+
+          // Verify all required service registrations exist
+          expect(
+            content.contains('registerLazySingleton<IGoogleDriveAuthService>'),
+            isTrue,
+            reason:
+                'IGoogleDriveAuthService should be registered in service locator',
+          );
+
+          expect(
+            content.contains('registerLazySingleton<IConnectivityService>'),
+            isTrue,
+            reason:
+                'IConnectivityService should be registered in service locator',
+          );
+
+          expect(
+            content.contains('registerLazySingleton<ISpiritualStatsService>'),
+            isTrue,
+            reason:
+                'ISpiritualStatsService should be registered in service locator',
+          );
+
+          expect(
+            content
+                .contains('registerLazySingleton<IGoogleDriveBackupService>'),
+            isTrue,
+            reason:
+                'IGoogleDriveBackupService should be registered in service locator',
+          );
+
+          expect(
+            content.contains('registerLazySingleton<SupporterPetService>'),
+            isTrue,
+            reason:
+                'SupporterPetService should be registered in service locator',
+          );
+
+          // Verify proper DI - services get dependencies from locator
+          expect(
+            content.contains('locator.get<IGoogleDriveAuthService>()') ||
+                content.contains('getService<IGoogleDriveAuthService>()'),
+            isTrue,
+            reason:
+                'GoogleDriveBackupService should resolve IGoogleDriveAuthService via DI',
+          );
+
+          expect(
+            content.contains('locator.get<IConnectivityService>()') ||
+                content.contains('getService<IConnectivityService>()'),
+            isTrue,
+            reason:
+                'GoogleDriveBackupService should resolve IConnectivityService via DI',
+          );
+
+          expect(
+            content.contains('locator.get<ISpiritualStatsService>()') ||
+                content.contains('getService<ISpiritualStatsService>()'),
+            isTrue,
+            reason:
+                'GoogleDriveBackupService should resolve ISpiritualStatsService via DI',
+          );
+
+          expect(
+            content.contains('locator.get<SharedPreferences>()') ||
+                content.contains('getService<SharedPreferences>()'),
+            isTrue,
+            reason:
+                'SupporterPetService should resolve SharedPreferences via DI',
+          );
+        },
+      );
+
+      test('Main.dart uses DI for BackupBloc', () async {
+        // Read the main.dart file
+        final mainFile = File('lib/main.dart');
+        final content = await mainFile.readAsString();
+
+        // Verify BackupBloc uses DI
+        expect(
+          content.contains('getService<IGoogleDriveBackupService>()'),
+          isTrue,
+          reason:
+              'BackupBloc should use getService for IGoogleDriveBackupService',
+        );
+
+        // Verify no inline instantiation of these services
+        expect(
+          content.contains('GoogleDriveBackupService('),
+          isFalse,
+          reason:
+              'Should not directly instantiate GoogleDriveBackupService in main.dart',
+        );
+
+        expect(
+          content.contains('GoogleDriveAuthService('),
+          isFalse,
+          reason:
+              'Should not directly instantiate GoogleDriveAuthService in main.dart',
+        );
+
+        expect(
+          content.contains('ConnectivityService('),
+          isFalse,
+          reason:
+              'Should not directly instantiate ConnectivityService in main.dart',
+        );
+
+        expect(
+          content.contains('SpiritualStatsService('),
+          isFalse,
+          reason:
+              'Should not directly instantiate SpiritualStatsService in main.dart',
+        );
       });
     });
   });

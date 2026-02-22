@@ -11,8 +11,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
 
     // Path provider mock setup FIRST
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -64,10 +65,10 @@ void main() {
       },
     );
 
-    setupServiceLocator();
+    await setupServiceLocator();
   });
 
-  setUp(() {
+  setUp(() async {
     SharedPreferences.setMockInitialValues({});
   });
 

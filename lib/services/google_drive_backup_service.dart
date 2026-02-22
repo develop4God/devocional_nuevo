@@ -10,14 +10,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../blocs/prayer_bloc.dart';
 import '../blocs/prayer_event.dart';
 import '../providers/devocional_provider.dart';
-import '../services/spiritual_stats_service.dart';
+import '../services/i_spiritual_stats_service.dart';
 import 'compression_service.dart';
-import 'connectivity_service.dart';
-import 'google_drive_auth_service.dart';
+import 'i_connectivity_service.dart';
+import 'i_google_drive_auth_service.dart';
+import 'i_google_drive_backup_service.dart';
 
 /// Service for managing Google Drive backup functionality
 /// Integrates with real Google Drive API for cloud storage
-class GoogleDriveBackupService {
+class GoogleDriveBackupService implements IGoogleDriveBackupService {
   static const String _lastBackupTimeKey = 'last_google_drive_backup_time';
   static const String _autoBackupEnabledKey =
       'google_drive_auto_backup_enabled';
@@ -36,25 +37,27 @@ class GoogleDriveBackupService {
   static const String _backupFileName = 'devocional_backup.json';
   static const String _backupFolderName = 'Devocional Backup';
 
-  final GoogleDriveAuthService _authService;
-  final ConnectivityService _connectivityService;
-  final SpiritualStatsService _statsService;
+  final IGoogleDriveAuthService _authService;
+  final IConnectivityService _connectivityService;
+  final ISpiritualStatsService _statsService;
 
   GoogleDriveBackupService({
-    required GoogleDriveAuthService authService,
-    required ConnectivityService connectivityService,
-    required SpiritualStatsService statsService,
+    required IGoogleDriveAuthService authService,
+    required IConnectivityService connectivityService,
+    required ISpiritualStatsService statsService,
   })  : _authService = authService,
         _connectivityService = connectivityService,
         _statsService = statsService;
 
   /// Check if Google Drive backup is enabled
+  @override
   Future<bool> isAutoBackupEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_autoBackupEnabledKey) ?? false;
   }
 
   /// Enable/disable automatic Google Drive backup
+  @override
   Future<void> setAutoBackupEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_autoBackupEnabledKey, enabled);
@@ -62,6 +65,7 @@ class GoogleDriveBackupService {
   }
 
   /// Get backup frequency
+  @override
   Future<String> getBackupFrequency() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_backupFrequencyKey) ??
@@ -69,6 +73,7 @@ class GoogleDriveBackupService {
   }
 
   /// Set backup frequency
+  @override
   Future<void> setBackupFrequency(String frequency) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_backupFrequencyKey, frequency);
@@ -76,6 +81,7 @@ class GoogleDriveBackupService {
   }
 
   /// Check if WiFi-only backup is enabled
+  @override
   Future<bool> isWifiOnlyEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_wifiOnlyKey) ??
@@ -83,6 +89,7 @@ class GoogleDriveBackupService {
   }
 
   /// Enable/disable WiFi-only backup
+  @override
   Future<void> setWifiOnlyEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_wifiOnlyKey, enabled);
@@ -92,6 +99,7 @@ class GoogleDriveBackupService {
   }
 
   /// Check if data compression is enabled
+  @override
   Future<bool> isCompressionEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_compressDataKey) ??
@@ -99,6 +107,7 @@ class GoogleDriveBackupService {
   }
 
   /// Enable/disable data compression
+  @override
   Future<void> setCompressionEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_compressDataKey, enabled);
@@ -106,6 +115,7 @@ class GoogleDriveBackupService {
   }
 
   /// Get backup options (what to include in backup)
+  @override
   Future<Map<String, bool>> getBackupOptions() async {
     final prefs = await SharedPreferences.getInstance();
     final optionsJson = prefs.getString(_backupOptionsKey);
@@ -125,6 +135,7 @@ class GoogleDriveBackupService {
   }
 
   /// Set backup options
+  @override
   Future<void> setBackupOptions(Map<String, bool> options) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_backupOptionsKey, json.encode(options));
@@ -132,6 +143,7 @@ class GoogleDriveBackupService {
   }
 
   /// Get last backup timestamp
+  @override
   Future<DateTime?> getLastBackupTime() async {
     final prefs = await SharedPreferences.getInstance();
     final timestamp = prefs.getInt(_lastBackupTimeKey);
@@ -147,6 +159,7 @@ class GoogleDriveBackupService {
   }
 
   /// Calculate next backup time - Always today for startup approach
+  @override
   Future<DateTime?> getNextBackupTime() async {
     final frequency = await getBackupFrequency();
 
@@ -163,6 +176,7 @@ class GoogleDriveBackupService {
   }
 
   /// Get estimated backup size in bytes
+  @override
   Future<int> getEstimatedBackupSize(DevocionalProvider? provider) async {
     int totalSize = 0;
     final options = await getBackupOptions();
@@ -192,6 +206,7 @@ class GoogleDriveBackupService {
   }
 
   /// Get storage usage info from Google Drive API
+  @override
   Future<Map<String, dynamic>> getStorageInfo() async {
     try {
       final driveApi = await _authService.getDriveApi();
@@ -247,6 +262,7 @@ class GoogleDriveBackupService {
   }
 
   /// Create backup to Google Drive
+  @override
   Future<bool> createBackup(DevocionalProvider? provider) async {
     try {
       debugPrint('Creating Google Drive backup...');
@@ -422,6 +438,7 @@ class GoogleDriveBackupService {
   }
 
   /// Restore from Google Drive backup
+  @override
   Future<bool> restoreBackup() async {
     try {
       debugPrint('Restoring from Google Drive backup...');
@@ -499,6 +516,7 @@ class GoogleDriveBackupService {
   }
 
   /// Check if backup should be created automatically
+  @override
   Future<bool> shouldCreateAutoBackup() async {
     if (!await isAutoBackupEnabled()) {
       return false;
@@ -719,17 +737,20 @@ class GoogleDriveBackupService {
   }
 
   /// Check if user is authenticated with Google Drive
+  @override
   Future<bool> isAuthenticated() async {
     return await _authService.isSignedIn();
   }
 
   /// Sign in to Google Drive
+  @override
   Future<bool?> signIn() async {
     // Era: Future<bool> signIn() async {
     return await _authService.signIn(); // El metodo ya queda simple
   }
 
   /// Sign out from Google Drive
+  @override
   Future<void> signOut() async {
     await _authService.signOut();
     // Clear backup folder cache
@@ -738,11 +759,13 @@ class GoogleDriveBackupService {
   }
 
   /// Get current user email
+  @override
   Future<String?> getUserEmail() async {
     return await _authService.getUserEmail();
   }
 
   /// Check for existing backups on Google Drive when user signs in
+  @override
   Future<Map<String, dynamic>?> checkForExistingBackup() async {
     try {
       final driveApi = await _authService.getDriveApi();
@@ -788,6 +811,7 @@ class GoogleDriveBackupService {
   }
 
   /// Restore backup from existing file on Google Drive
+  @override
   Future<bool> restoreExistingBackup(
     String fileId, {
     DevocionalProvider? devocionalProvider,

@@ -36,6 +36,10 @@ tags:
   utils:
     # Utility and helper function tests
     # Example: @Tags(['unit', 'utils'])
+  iap:
+    # In-app purchase tests
+    # Example: @Tags(['unit', 'iap'])
+
   integration:
     # Integration tests across multiple components
     # Example: @Tags(['integration'])

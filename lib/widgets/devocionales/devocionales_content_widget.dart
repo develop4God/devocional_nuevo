@@ -2,21 +2,14 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.dart';
+import 'package:devocional_nuevo/widgets/pet_hero_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 /// Widget that displays the content of a devotional.
-///
-/// This is a stateless widget extracted from DevocionalesPage to improve
-/// maintainability and reduce file size. It displays:
-/// - Date and streak badge
-/// - Verse (with copy functionality)
-/// - Reflection
-/// - Meditations
-/// - Prayer
-/// - Details (version, tags, copyright)
 class DevocionalesContentWidget extends StatelessWidget {
   final Devocional devocional;
   final double fontSize;
@@ -29,6 +22,10 @@ class DevocionalesContentWidget extends StatelessWidget {
   final bool isFavorite;
   final VoidCallback onFavoriteToggle;
   final VoidCallback onShare;
+
+  /// Pet service injected by the caller — keeps [build] free of service-locator
+  /// calls, which violates the project's DI rules.
+  final SupporterPetService petService;
 
   const DevocionalesContentWidget({
     super.key,
@@ -43,6 +40,7 @@ class DevocionalesContentWidget extends StatelessWidget {
     required this.isFavorite,
     required this.onFavoriteToggle,
     required this.onShare,
+    required this.petService,
   });
 
   @override
@@ -56,6 +54,22 @@ class DevocionalesContentWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (petService.showPetHeader && petService.isPetUnlocked)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: PetHeroSection(
+                formattedDate: getLocalizedDateFormat(context),
+                showPetHint: false,
+                onTap: () {
+                  // Optional: navigate to selection or do nothing
+                },
+                selectedPet: petService.selectedPet,
+                selectedTheme: (
+                  colors: [colorScheme.primary, colorScheme.tertiary]
+                ),
+                // Simple theme for now
+              ),
+            ),
           DevocionalHeaderWidget(
             date: getLocalizedDateFormat(context),
             currentStreak: currentStreak,
@@ -70,33 +84,30 @@ class DevocionalesContentWidget extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                // Gradiente existente
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    colorScheme.primary.withAlpha((0.25 * 255).round()),
-                    colorScheme.primary.withAlpha((0.08 * 255).round()),
-                    colorScheme.secondary.withAlpha((0.06 * 255).round()),
+                    colorScheme.primary.withValues(alpha: 0.25),
+                    colorScheme.primary.withValues(alpha: 0.08),
+                    colorScheme.secondary.withValues(alpha: 0.06),
                   ],
                   stops: const [0.0, 0.6, 1.0],
                 ),
                 borderRadius: BorderRadius.circular(20),
-                // NUEVO: Borde sutil que ayuda a definir el contenedor
                 border: Border.all(
-                  color: colorScheme.primary.withAlpha((0.3 * 255).round()),
+                  color: colorScheme.primary.withValues(alpha: 0.3),
                   width: 1.5,
                 ),
-                // Sombras existentes
                 boxShadow: [
                   BoxShadow(
-                    color: colorScheme.primary.withAlpha((0.2 * 255).round()),
+                    color: colorScheme.primary.withValues(alpha: 0.2),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                     spreadRadius: -4,
                   ),
                   BoxShadow(
-                    color: Colors.black.withAlpha((0.05 * 255).round()),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 40,
                     offset: const Offset(0, 16),
                     spreadRadius: -8,

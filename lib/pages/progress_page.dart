@@ -1,10 +1,11 @@
-// lib/pages/progress_page.dart - Fixed themed shadows
+// lib/pages/progress_page.dart - Restored with Medals section
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,7 +42,6 @@ class _ProgressPageState extends State<ProgressPage>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Guardar referencia al ScaffoldMessenger para uso seguro en dispose
     _scaffoldMessenger = ScaffoldMessenger.of(context);
   }
 
@@ -95,31 +95,27 @@ class _ProgressPageState extends State<ProgressPage>
     }
   }
 
-  // 💡 MOSTRAR TIP EDUCATIVO SOBRE LOGROS (SOLO 2 VECES)
   Future<void> _showAchievementTipIfNeeded() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final tipShownCount = prefs.getInt('achievement_tip_count') ?? 0;
 
-      // Solo mostrar si se ha mostrado menos de 2 veces
       if (tipShownCount < 2) {
-        // Esperar un poco para que la pantalla cargue completamente
         await Future.delayed(const Duration(milliseconds: 1500));
 
         if (mounted) {
           _showEducationalSnackBar();
-
-          // Incrementar contador
           await prefs.setInt('achievement_tip_count', tipShownCount + 1);
         }
       }
     } catch (e) {
-      // Si hay error con SharedPreferences, no mostrar el tip
       debugPrint('Error showing achievement tip: $e');
     }
   }
 
   void _showEducationalSnackBar() {
+    if (!mounted) return;
+
     final colorScheme = Theme.of(context).colorScheme;
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -172,7 +168,9 @@ class _ProgressPageState extends State<ProgressPage>
           label: 'progress.understood'.tr(),
           textColor: Colors.white,
           onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            if (mounted) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            }
           },
         ),
       ),
@@ -182,7 +180,6 @@ class _ProgressPageState extends State<ProgressPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    // Hide the snackbar usando la referencia guardada
     _scaffoldMessenger?.hideCurrentSnackBar();
     _streakAnimationController.dispose();
     super.dispose();
@@ -192,7 +189,6 @@ class _ProgressPageState extends State<ProgressPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      // Cerrar SnackBar cuando la app va a segundo plano o se pausa
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
       }
@@ -277,14 +273,178 @@ class _ProgressPageState extends State<ProgressPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(height: 16),
+          _buildSupporterSection(), // 👈 NEW MEDALS SECTION
+          const SizedBox(height: 16),
           _buildStreakCard(),
           const SizedBox(height: 18),
           _buildStatsCards(),
           const SizedBox(height: 1),
           _buildAchievementsSection(),
-          const SizedBox(height: 18), // Extra bottom padding
+          const SizedBox(height: 18),
         ],
       ),
+    );
+  }
+
+  Widget _buildSupporterSection() {
+    final supporterBadges = _stats!.unlockedAchievements
+        .where((a) => a.id.startsWith('supporter_'))
+        .toList();
+
+    if (supporterBadges.isEmpty) return const SizedBox.shrink();
+
+    final hasBronze = supporterBadges.any((b) => b.id == 'supporter_bronze');
+    final hasSilver = supporterBadges.any((b) => b.id == 'supporter_silver');
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.verified_rounded,
+                  color: Colors.amber.shade700, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'supporter.purchase_success_title'.tr(),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Display badges based on count
+          Builder(
+            builder: (context) {
+              if (hasBronze && hasSilver) {
+                final bronzeBadge = supporterBadges
+                    .firstWhere((b) => b.id == 'supporter_bronze');
+                final silverBadge = supporterBadges
+                    .firstWhere((b) => b.id == 'supporter_silver');
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      children: [
+                        _buildSingleBadge(bronzeBadge, size: 80),
+                        const SizedBox(height: 8),
+                        Text(
+                          'supporter.benefit_bronze_badge'.tr(),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        _buildSingleBadge(silverBadge, size: 80),
+                        const SizedBox(height: 8),
+                        Text(
+                          'supporter.benefit_silver_badge'.tr(),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              } else if (hasBronze) {
+                final bronzeBadge = supporterBadges
+                    .firstWhere((b) => b.id == 'supporter_bronze');
+                return Center(
+                  child: Column(
+                    children: [
+                      _buildSingleBadge(bronzeBadge, size: 100),
+                      const SizedBox(height: 12),
+                      Text(
+                        'supporter.benefit_bronze_badge'.tr(),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                );
+              } else if (hasSilver) {
+                final silverBadge = supporterBadges
+                    .firstWhere((b) => b.id == 'supporter_silver');
+                return Center(
+                  child: Column(
+                    children: [
+                      _buildSingleBadge(silverBadge, size: 100),
+                      const SizedBox(height: 12),
+                      Text(
+                        'supporter.benefit_silver_badge'.tr(),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
+            },
+          ),
+          const Divider(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSingleBadge(Achievement badge, {required double size}) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: badge.color.withValues(alpha: 0.1),
+            boxShadow: [
+              BoxShadow(
+                color: badge.color.withValues(alpha: 0.2),
+                blurRadius: 10,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: badge.lottieAsset != null
+              ? Lottie.asset(badge.lottieAsset!, fit: BoxFit.contain)
+              : Icon(badge.icon, color: badge.color, size: size * 0.4),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: badge.color,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: Icon(badge.icon, size: 10, color: Colors.white),
+          ),
+        ),
+      ],
     );
   }
 
@@ -302,7 +462,6 @@ class _ProgressPageState extends State<ProgressPage>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
-            // ✨ AQUÍ APLICAMOS COLOR DEL TEMA A LA SOMBRA
             shadowColor: colorScheme.primary.withValues(alpha: 1),
             child: Container(
               decoration: BoxDecoration(
@@ -343,7 +502,7 @@ class _ProgressPageState extends State<ProgressPage>
                   Text(
                     '${_stats!.currentStreak}',
                     style: TextStyle(
-                      fontSize: 30, //tamaño de caha de racha actual
+                      fontSize: 30,
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onPrimary,
                     ),
@@ -407,7 +566,7 @@ class _ProgressPageState extends State<ProgressPage>
         return milestone;
       }
     }
-    return 0; // No more milestones
+    return 0;
   }
 
   Widget _buildStatsCards() {
@@ -416,7 +575,7 @@ class _ProgressPageState extends State<ProgressPage>
         Expanded(
           child: InkWell(
             onTap: () {
-              Navigator.of(context).pop(); // Regresa a la página anterior
+              Navigator.of(context).pop();
             },
             borderRadius: BorderRadius.circular(16),
             child: _buildStatCard(
@@ -460,7 +619,6 @@ class _ProgressPageState extends State<ProgressPage>
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      // ✨ SOMBRA TEMÁTICA
       shadowColor: colorScheme.primary.withValues(alpha: 1),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -509,7 +667,9 @@ class _ProgressPageState extends State<ProgressPage>
   }
 
   Widget _buildAchievementsSection() {
-    final allAchievements = PredefinedAchievements.all;
+    final allAchievements = PredefinedAchievements.all
+        .where((a) => a.type != AchievementType.special)
+        .toList();
     final unlockedIds = _stats!.unlockedAchievements.map((a) => a.id).toSet();
 
     return Column(
@@ -518,7 +678,7 @@ class _ProgressPageState extends State<ProgressPage>
       children: [
         Text(
           'progress.achievements'.tr(),
-          textAlign: TextAlign.center, //
+          textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,
@@ -543,7 +703,6 @@ class _ProgressPageState extends State<ProgressPage>
           },
         ),
         const SizedBox(height: 12),
-        // Última actividad cerca del grid
         Row(
           children: [
             const Icon(Icons.schedule, color: Colors.green, size: 16),
@@ -571,7 +730,6 @@ class _ProgressPageState extends State<ProgressPage>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // 🎯 TOOLTIP CON TAP SIMPLE + AUTO-CIERRE
     return Tooltip(
       message: '${achievement.title}\n${achievement.description}',
       triggerMode: TooltipTriggerMode.tap,
@@ -595,7 +753,6 @@ class _ProgressPageState extends State<ProgressPage>
       child: Card(
         elevation: isUnlocked ? 4 : 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        // ✨ SOMBRA TEMÁTICA DIFERENCIADA
         shadowColor: isUnlocked
             ? achievement.color.withValues(alpha: 1)
             : colorScheme.outline.withValues(alpha: 1),
