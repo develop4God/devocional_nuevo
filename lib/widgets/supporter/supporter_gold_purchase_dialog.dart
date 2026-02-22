@@ -248,20 +248,30 @@ class _SupporterGoldPurchaseDialogState
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
         clipBehavior: Clip.antiAlias,
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [_bgStart, _bgMid, _bgEnd],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+        insetPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        // Reduce padding for autofit
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minWidth: 280,
+            maxWidth: 400,
+            minHeight: 200,
+            maxHeight: 600,
           ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(28),
-              child: FadeTransition(
-                opacity: _fadeAnim,
-                child: _buildPhase(context),
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [_bgStart, _bgMid, _bgEnd],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(28),
+                child: FadeTransition(
+                  opacity: _fadeAnim,
+                  child: _buildPhase(context),
+                ),
               ),
             ),
           ),
@@ -301,7 +311,7 @@ class _SupporterGoldPurchaseDialogState
         const SizedBox(height: 12),
 
         // Shimmer title
-        _GoldShimmerText('purchase_success_title'.tr(), fontSize: 22),
+        _GoldShimmerText('supporter.purchase_success_title'.tr(), fontSize: 22),
         const SizedBox(height: 20),
 
         // Name field
@@ -328,8 +338,21 @@ class _SupporterGoldPurchaseDialogState
             counterStyle:
                 TextStyle(color: Colors.white.withValues(alpha: 0.45)),
           ),
-          maxLength: 40,
+          maxLength: 15,
+          maxLines: 2,
+          // Allow two lines for clearer text
           cursorColor: _gold,
+          buildCounter: (BuildContext context,
+              {required int currentLength,
+              required bool isFocused,
+              required int? maxLength}) {
+            return currentLength > 15
+                ? Text(
+                    'Max 15 characters',
+                    style: TextStyle(color: Colors.redAccent, fontSize: 11),
+                  )
+                : null;
+          },
         ),
         const SizedBox(height: 24),
 
@@ -453,7 +476,7 @@ class _SupporterGoldPurchaseDialogState
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: () => _navigateTo(const DevocionalesPage()),
-            icon: const Icon(Icons.menu_book_rounded, color: _gold),
+            icon: const Icon(Icons.home_filled, color: _gold),
             label: AutoSizeText(
               'supporter.go_to_devotionals'.tr(),
               maxLines: 1,
