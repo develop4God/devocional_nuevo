@@ -10,7 +10,6 @@ import '../../models/supporter_tier.dart';
 import '../../repositories/i_supporter_profile_repository.dart';
 import '../../services/iap/i_iap_service.dart';
 import '../../services/iap/iap_prefs_keys.dart';
-import '../../services/iap/iap_service.dart';
 import 'supporter_event.dart';
 import 'supporter_state.dart';
 
@@ -20,6 +19,14 @@ class _PurchaseFailed extends SupporterEvent {
   final String productId;
 
   _PurchaseFailed(this.productId);
+}
+
+/// Internal event: user cancelled (back/dismiss) the payment sheet.
+/// Clears the loading spinner without showing an error message.
+class _PurchaseCancelled extends SupporterEvent {
+  final String productId;
+
+  _PurchaseCancelled(this.productId);
 }
 
 class _PurchaseDelivered extends SupporterEvent {
@@ -38,6 +45,7 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
   final ISupporterProfileRepository _profileRepo;
   StreamSubscription<SupporterTier>? _deliveredSubscription;
   StreamSubscription<String>? _errorSubscription;
+  StreamSubscription<String>? _cancelledSubscription;
 
   SupporterBloc({
     required IIapService iapService,
@@ -50,6 +58,7 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     on<RestorePurchases>(_onRestorePurchases);
     on<_PurchaseDelivered>(_onPurchaseDelivered);
     on<_PurchaseFailed>(_onPurchaseFailed);
+    on<_PurchaseCancelled>(_onPurchaseCancelled);
     on<SaveGoldSupporterName>(_onSaveGoldName);
     on<EditGoldSupporterName>(_onEditGoldName);
     on<AcknowledgeGoldNameEdit>(_onAcknowledgeGoldNameEdit);
@@ -63,6 +72,11 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     _errorSubscription = _iapService.onPurchaseError.listen(
       (productId) => add(_PurchaseFailed(productId)),
       onError: (Object e) => debugPrint('❌ [SupporterBloc] Error stream: $e'),
+    );
+    _cancelledSubscription = _iapService.onPurchaseCancelled.listen(
+      (productId) => add(_PurchaseCancelled(productId)),
+      onError: (Object e) =>
+          debugPrint('❌ [SupporterBloc] Cancelled stream: $e'),
     );
     _deliveredSubscription = _iapService.onPurchaseDelivered.listen(
       (tier) {
@@ -82,6 +96,8 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     _deliveredSubscription = null;
     await _errorSubscription?.cancel();
     _errorSubscription = null;
+    await _cancelledSubscription?.cancel();
+    _cancelledSubscription = null;
     return super.close();
   }
 
@@ -213,6 +229,20 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
         clearPurchasing: true, errorMessage: 'purchase_error'));
   }
 
+  /// Clears the loading spinner when the user cancels (backs out of) the
+  /// payment sheet.  Does NOT set an error message — cancellation is a
+  /// normal user action, not an error.
+  void _onPurchaseCancelled(
+    _PurchaseCancelled event,
+    Emitter<SupporterState> emit,
+  ) {
+    final current = state;
+    if (current is! SupporterLoaded) return;
+    debugPrint(
+        '🚫 [SupporterBloc] Purchase cancelled by user -> ${event.productId}');
+    emit(current.copyWith(clearPurchasing: true));
+  }
+
   void _onPurchaseDelivered(
     _PurchaseDelivered event,
     Emitter<SupporterState> emit,
@@ -305,11 +335,9 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
   ) async {
     if (!kDebugMode) return;
 
-    // Force re-initialization of the IAP service
-    final iapServiceConcrete = _iapService;
-    if (iapServiceConcrete is IapService) {
-      iapServiceConcrete.forceReinitialize();
-    }
+    // Force re-initialization of the IAP service via the interface method
+    // (debug-only no-op in production builds and fakes).
+    _iapService.forceReinitialize();
 
     // Clear the IAP SharedPreferences keys so auto-restore won't skip.
     final prefs = await SharedPreferences.getInstance();

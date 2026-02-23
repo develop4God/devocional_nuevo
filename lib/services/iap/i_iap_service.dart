@@ -36,6 +36,11 @@ abstract class IIapService {
   /// Broadcast stream that emits a product ID when a purchase fails at store level.
   Stream<String> get onPurchaseError;
 
+  /// Broadcast stream that emits a product ID when the user actively cancels
+  /// (dismisses / backs out of) the payment sheet.  Unlike [onPurchaseError],
+  /// this should NOT trigger an error snackbar — it simply clears the spinner.
+  Stream<String> get onPurchaseCancelled;
+
   /// Whether the Google Play / App Store billing is available on this device.
   bool get isAvailable;
 
@@ -62,4 +67,11 @@ abstract class IIapService {
 
   /// Cancel active stream subscriptions and free resources.
   Future<void> dispose();
+
+  /// Clears the initialised flag so the next [initialize] call starts fresh.
+  ///
+  /// **Debug builds only** — implementations must no-op in release builds
+  /// (guard with [kDebugMode]).  Kept on the interface so [SupporterBloc] can
+  /// call it without depending on the concrete [IapService] class.
+  void forceReinitialize();
 }

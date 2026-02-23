@@ -184,7 +184,96 @@ void main() {
       });
     });
 
-    // ── Purchase delivery via stream ────────────────────────────────────────
+    // ── Purchase cancellation (infinite spinner regression) ─────────────────
+    // Regression: when a user taps a tier, sees the Google Play sheet and then
+    // backs out (back button / system navigation / swipe-dismiss), the
+    // onPurchaseCancelled stream fires.  The BLoC must clear purchasingProductId
+    // so the tier card spinner is hidden again.
+
+    group('Purchase cancellation (infinite-spinner fix)', () {
+      late FakeIapService cancelIap;
+      late SupporterBloc cancelBloc;
+
+      setUp(() {
+        cancelIap = FakeIapService(
+          purchaseShouldSucceed: true,
+          autoDeliver: false,
+          isAvailable: true,
+        );
+        cancelBloc = _makeBloc(cancelIap, FakeSupporterProfileRepository());
+        cancelBloc.add(InitializeSupporter());
+      });
+
+      tearDown(() async {
+        await cancelBloc.close();
+        await cancelIap.dispose();
+      });
+
+      test(
+          'purchasingProductId is cleared and no error shown when user cancels silver',
+          () async {
+        await pumpEventQueue();
+
+        final silver = SupporterTier.fromLevel(SupporterTierLevel.silver);
+        cancelBloc.add(PurchaseTier(silver));
+        await pumpEventQueue();
+
+        // Verify loading spinner is shown
+        expect(
+          (cancelBloc.state as SupporterLoaded).purchasingProductId,
+          equals(silver.productId),
+        );
+
+        // User dismisses the payment sheet
+        cancelIap.cancel(silver);
+        await pumpEventQueue();
+
+        final state = cancelBloc.state as SupporterLoaded;
+        // Spinner must be gone
+        expect(state.purchasingProductId, isNull,
+            reason:
+                'Infinite spinner: purchasingProductId must be null after cancel');
+        // No error snackbar for a user-initiated cancel
+        expect(state.errorMessage, isNull,
+            reason: 'Cancel should not show an error message');
+        // Tier is NOT purchased
+        expect(state.isPurchased(SupporterTierLevel.silver), isFalse);
+      });
+
+      test('purchasingProductId is cleared when user cancels bronze', () async {
+        await pumpEventQueue();
+
+        final bronze = SupporterTier.fromLevel(SupporterTierLevel.bronze);
+        cancelBloc.add(PurchaseTier(bronze));
+        await pumpEventQueue();
+
+        cancelIap.cancel(bronze);
+        await pumpEventQueue();
+
+        final state = cancelBloc.state as SupporterLoaded;
+        expect(state.purchasingProductId, isNull,
+            reason: 'Spinner must clear after bronze cancel');
+        expect(state.errorMessage, isNull,
+            reason: 'No error snackbar should appear on user-initiated cancel');
+      });
+
+      test('purchasingProductId is cleared when user cancels gold', () async {
+        await pumpEventQueue();
+
+        final gold = SupporterTier.fromLevel(SupporterTierLevel.gold);
+        cancelBloc.add(PurchaseTier(gold));
+        await pumpEventQueue();
+
+        cancelIap.cancel(gold);
+        await pumpEventQueue();
+
+        final state = cancelBloc.state as SupporterLoaded;
+        expect(state.purchasingProductId, isNull,
+            reason: 'Spinner must clear after gold cancel');
+        expect(state.errorMessage, isNull,
+            reason: 'No error snackbar should appear on user-initiated cancel');
+      });
+    });
 
     group('Purchase delivery (stream-driven)', () {
       test('justDeliveredTier is set when tier is delivered', () async {
