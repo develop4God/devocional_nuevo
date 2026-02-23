@@ -833,7 +833,7 @@
     "billing_unavailable_body": "Billing is not available on this device. Please check your Google Play connection.",
     "disclaimer": "Payments are processed by Google Play. Each level is a one-time purchase that grants you a digital badge as a token of gratitude for your support to the ministry.",
     "thanks_section_title": "Thanks to our Ministry Partners",
-    "gold_name_hint": "How would you like to appear in the Thanks section?",
+    "gold_name_hint": "✏️ Your name",
     "gold_name_helper": "Your name will appear on the main page. Will not be shared.",
     "gold_edit_name_button": "Edit my name",
     "gold_set_name_button": "Set my name",
