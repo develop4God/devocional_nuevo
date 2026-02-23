@@ -3,19 +3,22 @@ import 'dart:io';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Sets up all required services for testing
 /// This ensures tests have access to all necessary dependencies
-void registerTestServices() {
+Future<void> registerTestServices() async {
   ServiceLocator().reset();
-  setupServiceLocator();
+  SharedPreferences.setMockInitialValues({});
+  await setupServiceLocator();
 }
 
 /// Sets up test services with fake implementations that don't require Firebase
 /// Use this instead of registerTestServices() for widget tests that need analytics
-void registerTestServicesWithFakes() {
+Future<void> registerTestServicesWithFakes() async {
   ServiceLocator().reset();
-  setupServiceLocator();
+  SharedPreferences.setMockInitialValues({});
+  await setupServiceLocator();
 
   // Override AnalyticsService with fake that doesn't require Firebase
   final locator = ServiceLocator();

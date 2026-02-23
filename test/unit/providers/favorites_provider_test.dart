@@ -34,6 +34,7 @@ void main() {
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
 
     // Mock Firebase
     const firebaseCoreChannel =
@@ -65,7 +66,7 @@ void main() {
         .setMockMethodCallHandler(ttsChannel, (_) async => null);
 
     PathProviderPlatform.instance = MockPathProviderPlatform();
-    setupServiceLocator();
+    await setupServiceLocator();
   });
 
   setUp(() async {

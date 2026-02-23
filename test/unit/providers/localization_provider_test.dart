@@ -47,6 +47,7 @@ class MockVoiceSettingsService extends VoiceSettingsService {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues({});
 
   group('LocalizationProvider Tests', () {
     late LocalizationProvider provider;
@@ -60,7 +61,7 @@ void main() {
       SharedPreferences.setMockInitialValues({});
 
       // Use centralized setup for DI
-      setupServiceLocator();
+      await setupServiceLocator();
 
       // Create mock voice service and override registration
       mockVoiceService = MockVoiceSettingsService();
@@ -134,7 +135,7 @@ void main() {
         // Reset and set up with persisted English locale
         ServiceLocator().reset();
         SharedPreferences.setMockInitialValues({'locale': 'en'});
-        setupServiceLocator();
+        await setupServiceLocator();
         mockVoiceService = MockVoiceSettingsService();
         ServiceLocator().unregister<VoiceSettingsService>();
         ServiceLocator().registerSingleton<VoiceSettingsService>(
@@ -276,7 +277,7 @@ void main() {
         // Reset and set up with unsupported locale
         ServiceLocator().reset();
         SharedPreferences.setMockInitialValues({'locale': 'xx'});
-        setupServiceLocator();
+        await setupServiceLocator();
         mockVoiceService = MockVoiceSettingsService();
         ServiceLocator().unregister<VoiceSettingsService>();
         ServiceLocator().registerSingleton<VoiceSettingsService>(
@@ -356,7 +357,7 @@ void main() {
         // Step 3: Simulate app restart - create new provider with same persisted data
         ServiceLocator().reset();
         // Do NOT reset SharedPreferences - persistence should survive
-        setupServiceLocator();
+        await setupServiceLocator();
         mockVoiceService = MockVoiceSettingsService();
         ServiceLocator().unregister<VoiceSettingsService>();
         ServiceLocator().registerSingleton<VoiceSettingsService>(

@@ -19,9 +19,9 @@ void main() {
     late TtsAudioController controller;
     late FlutterTts flutterTts;
 
-    setUp(() {
+    setUp(() async {
       // Centralized test setup
-      TtsTestSetup.initialize();
+      await TtsTestSetup.initialize();
 
       // Create FlutterTts instance and a controller that mixes in test hooks
       flutterTts = FlutterTts();

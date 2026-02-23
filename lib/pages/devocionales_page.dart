@@ -19,6 +19,7 @@ import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/utils/devotional_share_helper.dart';
 import 'package:devocional_nuevo/widgets/add_entry_choice_modal.dart';
@@ -132,6 +133,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       NavigationRepositoryImpl();
   late final DevocionalRepositoryImpl _devocionalRepository =
       DevocionalRepositoryImpl();
+
+  // Pet service resolved once (not inside build) to comply with DI rules.
+  late final SupporterPetService _petService =
+      getService<SupporterPetService>();
 
   // Font control variables
   bool _showFontControls = false;
@@ -1297,6 +1302,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   },
                                   onShare: () =>
                                       _shareAsText(currentDevocional),
+                                  petService: _petService,
                                 ),
                               ),
                             ),

@@ -6,10 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'flutter_tts_mock.dart';
 
 class TtsTestSetup {
-  static void initialize() {
+  static Future<void> initialize() async {
     SharedPreferences.setMockInitialValues({});
     FlutterTtsMock.setup();
-    setupServiceLocator();
+    await setupServiceLocator();
   }
 
   static Future<void> cleanup() async {

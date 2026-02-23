@@ -406,6 +406,10 @@ class BubbleUtils {
   }) {
     return 'icon_${type}_${icon.toString()}_${semanticLabel ?? 'unknown'}';
   }
+
+  static Future<bool> shouldShowBubble(String bubbleId) async {
+    return await _BubbleManager().shouldShowBubble(bubbleId);
+  }
 }
 
 extension BubbleExtensionsWithId on Widget {
