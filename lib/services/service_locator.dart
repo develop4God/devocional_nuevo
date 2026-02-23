@@ -3,20 +3,36 @@
 library;
 
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
+import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
+import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/connectivity_service.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart'; // NEW
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
+import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
+import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/i_connectivity_service.dart';
+import 'package:devocional_nuevo/services/i_google_drive_auth_service.dart';
+import 'package:devocional_nuevo/services/i_google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
+import 'package:devocional_nuevo/services/iap/iap_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
+import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ServiceLocator {
   static final ServiceLocator _instance = ServiceLocator._internal();
+
   factory ServiceLocator() => _instance;
+
   ServiceLocator._internal();
 
   final Map<Type, dynamic Function()> _factories = {};
@@ -52,6 +68,7 @@ class ServiceLocator {
 
   bool isRegistered<T>() =>
       _factories.containsKey(T) || _singletons.containsKey(T);
+
   void reset() {
     _factories.clear();
     _singletons.clear();
@@ -63,8 +80,11 @@ class ServiceLocator {
   }
 }
 
-void setupServiceLocator() {
+Future<void> setupServiceLocator() async {
   final locator = ServiceLocator();
+  final prefs = await SharedPreferences.getInstance();
+
+  locator.registerSingleton<SharedPreferences>(prefs);
 
   locator
       .registerLazySingleton<LocalizationService>(() => LocalizationService());
@@ -88,7 +108,39 @@ void setupServiceLocator() {
   // ✅ REGISTER DISCOVERY FAVORITES SERVICE
   locator.registerLazySingleton<DiscoveryFavoritesService>(
       () => DiscoveryFavoritesService());
+
+  // ✅ REGISTER IAP SERVICE
+  locator.registerLazySingleton<IIapService>(() => IapService());
+
+  // ✅ REGISTER SUPPORTER PROFILE REPOSITORY (via interface — DIP)
+  locator.registerLazySingleton<ISupporterProfileRepository>(
+      () => SupporterProfileRepository());
+
+  // ✅ REGISTER SPIRITUAL STATS SERVICE (via interface)
+  locator.registerLazySingleton<ISpiritualStatsService>(
+      () => SpiritualStatsService());
+
+  // ✅ REGISTER CONNECTIVITY SERVICE (via interface)
+  locator
+      .registerLazySingleton<IConnectivityService>(() => ConnectivityService());
+
+  // ✅ REGISTER GOOGLE DRIVE AUTH SERVICE (via interface)
+  locator.registerLazySingleton<IGoogleDriveAuthService>(
+      () => GoogleDriveAuthService());
+
+  // ✅ REGISTER GOOGLE DRIVE BACKUP SERVICE (via interface)
+  locator.registerLazySingleton<IGoogleDriveBackupService>(
+    () => GoogleDriveBackupService(
+      authService: locator.get<IGoogleDriveAuthService>(),
+      connectivityService: locator.get<IConnectivityService>(),
+      statsService: locator.get<ISpiritualStatsService>(),
+    ),
+  );
+
+  locator.registerLazySingleton<SupporterPetService>(
+      () => SupporterPetService(locator.get<SharedPreferences>()));
 }
 
 ServiceLocator get serviceLocator => ServiceLocator._instance;
+
 T getService<T>() => ServiceLocator().get<T>();

@@ -13,13 +13,14 @@ void main() {
   group('Devotional Tracking - Real User Behavior Tests', () {
     late SpiritualStatsService statsService;
 
-    setUp(() {
+    setUp(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
       SharedPreferences.setMockInitialValues({});
 
       // Initialize ServiceLocator for dependencies
       ServiceLocator().reset();
-      setupServiceLocator();
+      await setupServiceLocator();
 
       statsService = SpiritualStatsService();
     });
