@@ -304,8 +304,6 @@ class _ProgressPageState extends State<ProgressPage>
         children: [
           Row(
             children: [
-              Icon(Icons.verified_rounded,
-                  color: Colors.amber.shade700, size: 20),
               const SizedBox(width: 8),
               Text(
                 'supporter.purchase_success_title'.tr(),

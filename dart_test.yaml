@@ -39,6 +39,9 @@ tags:
   iap:
     # In-app purchase tests
     # Example: @Tags(['unit', 'iap'])
+  supporter:
+    # Supporter/IAP feature tests
+    # Example: @Tags(['unit', 'supporter'])
 
   integration:
     # Integration tests across multiple components

@@ -5,6 +5,7 @@ import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_event.dart';
 import 'package:devocional_nuevo/blocs/testimony_bloc.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
@@ -167,10 +168,17 @@ void main() async {
           ),
         ),
         BlocProvider(
-          create: (context) => SupporterBloc(
-            iapService: getService<IIapService>(),
-            profileRepository: getService<ISupporterProfileRepository>(),
-          ),
+          create: (context) {
+            final bloc = SupporterBloc(
+              iapService: getService<IIapService>(),
+              profileRepository: getService<ISupporterProfileRepository>(),
+            );
+            // Initialize on startup so goldSupporterName (and purchases) are
+            // loaded from SharedPreferences before the devotional page shows.
+            debugPrint('🚀 [main] Dispatching InitializeSupporter at startup');
+            bloc.add(InitializeSupporter());
+            return bloc;
+          },
         ),
       ],
       child: const MyApp(),
