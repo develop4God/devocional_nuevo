@@ -46,6 +46,12 @@ class MockIIapService extends _i1.Mock implements _i2.IIapService {
       ) as _i3.Stream<String>);
 
   @override
+  _i3.Stream<String> get onPurchaseCancelled => (super.noSuchMethod(
+        Invocation.getter(#onPurchaseCancelled),
+        returnValue: _i3.Stream<String>.empty(),
+      ) as _i3.Stream<String>);
+
+  @override
   bool get isAvailable => (super.noSuchMethod(
         Invocation.getter(#isAvailable),
         returnValue: false,
@@ -118,4 +124,13 @@ class MockIIapService extends _i1.Mock implements _i2.IIapService {
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
+
+  @override
+  void forceReinitialize() => super.noSuchMethod(
+        Invocation.method(
+          #forceReinitialize,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
 }

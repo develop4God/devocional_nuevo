@@ -53,8 +53,14 @@ class FakeIapService implements IIapService {
   final StreamController<String> _errorController =
       StreamController<String>.broadcast();
 
+  final StreamController<String> _cancelledController =
+      StreamController<String>.broadcast();
+
   @override
   Stream<String> get onPurchaseError => _errorController.stream;
+
+  @override
+  Stream<String> get onPurchaseCancelled => _cancelledController.stream;
 
   @override
   bool get isAvailable => _isAvailable;
@@ -102,6 +108,7 @@ class FakeIapService implements IIapService {
   Future<void> dispose() async {
     await _deliveredController.close();
     await _errorController.close();
+    await _cancelledController.close();
   }
 
   /// Reset state for testing. Not part of [IIapService] — call only on
@@ -113,12 +120,28 @@ class FakeIapService implements IIapService {
     _initStatus = IapInitStatus.notStarted;
   }
 
+  @override
+  void forceReinitialize() {
+    // In tests, forceReinitialize is a no-op (use resetForTesting() instead).
+  }
+
   // ── Test helpers ──────────────────────────────────────────────────────────
 
   /// Simulate a successful delivery (purchased or restored).
   Future<void> deliver(SupporterTier tier) async {
     _purchasedLevels.add(tier.level);
     _deliveredController.add(tier);
+  }
+
+  /// Simulate the user cancelling the payment sheet (back button / dismiss).
+  /// Emits to [onPurchaseCancelled] — does NOT add an error.
+  void cancel(SupporterTier tier) {
+    _cancelledController.add(tier.productId);
+  }
+
+  /// Simulate a purchase failure (store error).
+  void failPurchase(SupporterTier tier) {
+    _errorController.add(tier.productId);
   }
 
   /// Simulate billing becoming available (e.g. after connecting to store).

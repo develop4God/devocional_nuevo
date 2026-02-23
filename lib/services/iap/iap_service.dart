@@ -49,6 +49,9 @@ class IapService implements IIapService {
   final StreamController<String> _errorController =
       StreamController<String>.broadcast();
 
+  final StreamController<String> _cancelledController =
+      StreamController<String>.broadcast();
+
   final StreamController<SupporterTier> _deliveredController =
       StreamController<SupporterTier>.broadcast();
 
@@ -57,6 +60,9 @@ class IapService implements IIapService {
 
   @override
   Stream<String> get onPurchaseError => _errorController.stream;
+
+  @override
+  Stream<String> get onPurchaseCancelled => _cancelledController.stream;
 
   // ── Internal state ────────────────────────────────────────────────────────
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
@@ -186,9 +192,16 @@ class IapService implements IIapService {
     _disposed = true;
     await _purchaseSubscription?.cancel();
     _purchaseSubscription = null;
+    // Guard each controller individually: if one close() throws or is already
+    // closed, the others are still cleaned up.
     if (!_deliveredController.isClosed) {
       await _deliveredController.close();
+    }
+    if (!_errorController.isClosed) {
       await _errorController.close();
+    }
+    if (!_cancelledController.isClosed) {
+      await _cancelledController.close();
     }
     _isInitialized = false;
   }
@@ -208,6 +221,7 @@ class IapService implements IIapService {
 
   /// Force re-initialization by clearing the initialized flag.
   /// Used in debug mode when resetting IAP state.
+  @override
   void forceReinitialize() {
     if (!kDebugMode) return;
     debugPrint('🔄 [IapService] Forcing re-initialization');
@@ -281,10 +295,37 @@ class IapService implements IIapService {
       // validation here (Google Play Developer API / Apple App Store Server
       // Notifications) before calling _deliverProduct().
       await _deliverProduct(purchase.productID);
+    } else if (purchase.status == PurchaseStatus.canceled) {
+      // User dismissed / backed out of the payment sheet (back button, system
+      // navigation, or explicit cancel).  Emit to the cancelled stream so
+      // SupporterBloc clears purchasingProductId and stops the infinite
+      // spinner on the tier card — without showing an error snackbar.
+      debugPrint(
+          '🚫 [IapService] Purchase cancelled by user: ${purchase.productID}');
+      if (!_cancelledController.isClosed) {
+        _cancelledController.add(purchase.productID);
+      }
     } else if (purchase.status == PurchaseStatus.error) {
-      debugPrint('❌ [IapService] Purchase error: ${purchase.error}');
-      if (!_errorController.isClosed) {
-        _errorController.add(purchase.productID);
+      // On iOS, cancelling the payment sheet fires PurchaseStatus.error with
+      // IAPError.code == '2' (SKErrorPaymentCancelled).  IAPError.code is a
+      // String, so we parse it before comparing to the int constant.
+      // Route cancellations to the cancelled stream (no snackbar), exactly as
+      // Android's PurchaseStatus.canceled does.
+      const int kSkErrorPaymentCancelled = 2;
+      final errorCode = int.tryParse(purchase.error?.code ?? '');
+      final isCancelledOnIos = errorCode == kSkErrorPaymentCancelled;
+
+      debugPrint('❌ [IapService] Purchase error: ${purchase.error} '
+          '(isCancelledOnIos=$isCancelledOnIos)');
+
+      if (isCancelledOnIos) {
+        if (!_cancelledController.isClosed) {
+          _cancelledController.add(purchase.productID);
+        }
+      } else {
+        if (!_errorController.isClosed) {
+          _errorController.add(purchase.productID);
+        }
       }
     }
 
