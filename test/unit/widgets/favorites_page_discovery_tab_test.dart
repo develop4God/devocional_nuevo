@@ -31,8 +31,9 @@ import '../../helpers/bloc_test_helper.dart';
 void main() {
   late DiscoveryBlocTestBase testBase;
   late dynamic mockDevocionalProvider;
-  setUpAll(() {
+  setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
     // Mock platform channels
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
@@ -44,9 +45,9 @@ void main() {
       const MethodChannel('flutter_tts'),
       (call) async => null,
     );
-    setupServiceLocator();
+    await setupServiceLocator();
   });
-  setUp(() {
+  setUp(() async {
     SharedPreferences.setMockInitialValues({});
     testBase = DiscoveryBlocTestBase();
     testBase.setupMocks();

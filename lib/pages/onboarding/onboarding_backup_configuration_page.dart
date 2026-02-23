@@ -10,10 +10,8 @@ import '../../blocs/onboarding/onboarding_event.dart';
 import '../../blocs/prayer_bloc.dart';
 import '../../extensions/string_extensions.dart';
 import '../../providers/devocional_provider.dart';
-import '../../services/connectivity_service.dart';
-import '../../services/google_drive_auth_service.dart';
-import '../../services/google_drive_backup_service.dart';
-import '../../services/spiritual_stats_service.dart';
+import '../../services/i_google_drive_backup_service.dart';
+import '../../services/service_locator.dart';
 import '../../widgets/backup_settings_content.dart';
 
 class OnboardingBackupConfigurationPage extends StatefulWidget {
@@ -41,15 +39,8 @@ class _OnboardingBackupConfigurationPageState
 
   @override
   Widget build(BuildContext context) {
-    // Create BackupBloc locally with all required services
-    final authService = GoogleDriveAuthService();
-    final connectivityService = ConnectivityService();
-    final statsService = SpiritualStatsService();
-    final backupService = GoogleDriveBackupService(
-      authService: authService,
-      connectivityService: connectivityService,
-      statsService: statsService,
-    );
+    // Use services from the service locator
+    final backupService = getService<IGoogleDriveBackupService>();
 
     return BlocProvider(
       create: (context) => BackupBloc(

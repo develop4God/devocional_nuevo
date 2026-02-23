@@ -1,6 +1,7 @@
 // lib/models/spiritual_stats_model.dart
 
 import 'package:flutter/material.dart';
+
 import '../services/localization_service.dart';
 import '../services/service_locator.dart';
 
@@ -87,6 +88,7 @@ class Achievement {
   final String title;
   final String description;
   final IconData icon;
+  final String? lottieAsset; // Support for premium animated badges
   final Color color;
   final int threshold;
   final AchievementType type;
@@ -97,6 +99,7 @@ class Achievement {
     required this.title,
     required this.description,
     required this.icon,
+    this.lottieAsset,
     required this.color,
     required this.threshold,
     required this.type,
@@ -109,6 +112,7 @@ class Achievement {
       title: json['title'] ?? '',
       description: json['description'] ?? '',
       icon: _iconFromCodePoint(json['iconCodePoint'] ?? Icons.star.codePoint),
+      lottieAsset: json['lottieAsset'],
       color: Color(json['colorValue'] ?? 0xFFFFC107),
       // Colors.amber equivalent
       threshold: json['threshold'] ?? 0,
@@ -126,6 +130,7 @@ class Achievement {
       'title': title,
       'description': description,
       'iconCodePoint': icon.codePoint,
+      'lottieAsset': lottieAsset,
       'colorValue': _colorToInt(color),
       'threshold': threshold,
       'type': type.toString(),
@@ -162,6 +167,9 @@ class Achievement {
     // Icons.bookmark.codePoint
     0xe53f: Icons.star,
     // Icons.star.codePoint (fallback)
+    0xe18e: Icons.coffee,
+    0xe204: Icons.eco,
+    0xe901: Icons.verified,
   };
 
   static IconData _iconFromCodePoint(int codePoint) {
@@ -175,6 +183,7 @@ class Achievement {
       title: title,
       description: description,
       icon: icon,
+      lottieAsset: lottieAsset,
       color: color,
       threshold: threshold,
       type: type,
@@ -188,10 +197,38 @@ enum AchievementType {
   reading, // Based on total devotionals read
   streak, // Based on consecutive days
   favorites, // Based on favorites count
+  special, // For one-off events like supporting the ministry
 }
 
 /// Predefined achievements
 class PredefinedAchievements {
+  static List<Achievement> get supporterBadges => [
+        Achievement(
+          id: 'supporter_bronze',
+          title: getService<LocalizationService>()
+              .translate('supporter.tier_bronze_name'),
+          description: getService<LocalizationService>()
+              .translate('supporter.tier_bronze_description'),
+          icon: Icons.coffee,
+          lottieAsset: 'assets/lottie/bronze_medal.json',
+          color: const Color(0xFFCD7F32),
+          threshold: 1,
+          type: AchievementType.special,
+        ),
+        Achievement(
+          id: 'supporter_silver',
+          title: getService<LocalizationService>()
+              .translate('supporter.tier_silver_name'),
+          description: getService<LocalizationService>()
+              .translate('supporter.tier_silver_description'),
+          icon: Icons.eco,
+          lottieAsset: 'assets/lottie/silver_medal.json',
+          color: const Color(0xFFC0C0C0),
+          threshold: 1,
+          type: AchievementType.special,
+        ),
+      ];
+
   static List<Achievement> get all => [
         Achievement(
           id: 'first_read',

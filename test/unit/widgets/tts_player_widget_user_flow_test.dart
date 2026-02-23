@@ -84,11 +84,12 @@ void main() {
     late TtsAudioController controller;
     late VoiceSettingsService voiceSettingsService;
 
-    setUp(() {
+    setUp(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({});
       ServiceLocator().reset();
-      setupServiceLocator();
+      await setupServiceLocator();
       mockTts = MockFlutterTts();
       controller = TtsAudioController(flutterTts: mockTts);
       voiceSettingsService = getService<VoiceSettingsService>();

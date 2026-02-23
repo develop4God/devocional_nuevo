@@ -34,6 +34,7 @@ import 'package:shared_preferences/shared_preferences.dart' as _i5;
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
+// ignore_for_file: invalid_use_of_internal_member
 
 class _FakeClient_0 extends _i1.SmartFake implements _i2.Client {
   _FakeClient_0(
@@ -352,15 +353,6 @@ class MockDevocionalProvider extends _i1.Mock
   }
 
   @override
-  _i2.Client get httpClient => (super.noSuchMethod(
-        Invocation.getter(#httpClient),
-        returnValue: _FakeClient_0(
-          this,
-          Invocation.getter(#httpClient),
-        ),
-      ) as _i2.Client);
-
-  @override
   List<_i11.Devocional> get devocionales => (super.noSuchMethod(
         Invocation.getter(#devocionales),
         returnValue: <_i11.Devocional>[],
@@ -464,6 +456,15 @@ class MockDevocionalProvider extends _i1.Mock
         Invocation.getter(#availableVersions),
         returnValue: <String>[],
       ) as List<String>);
+
+  @override
+  _i2.Client get httpClient => (super.noSuchMethod(
+        Invocation.getter(#httpClient),
+        returnValue: _FakeClient_0(
+          this,
+          Invocation.getter(#httpClient),
+        ),
+      ) as _i2.Client);
 
   @override
   bool get hasListeners => (super.noSuchMethod(
