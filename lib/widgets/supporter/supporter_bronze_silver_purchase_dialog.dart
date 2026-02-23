@@ -155,7 +155,6 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
                       'supporter.purchase_success_title'.tr(),
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
-                        color: Colors.white,
                         height: 1.3,
                         foreground: Paint()
                           ..shader = LinearGradient(

@@ -255,7 +255,7 @@ class _SupporterGoldPurchaseDialogState
             minWidth: 280,
             maxWidth: 400,
             minHeight: 200,
-            maxHeight: 600,
+            maxHeight: 800,
           ),
           child: Container(
             decoration: const BoxDecoration(
@@ -267,10 +267,85 @@ class _SupporterGoldPurchaseDialogState
             ),
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.all(28),
-                child: FadeTransition(
-                  opacity: _fadeAnim,
-                  child: _buildPhase(context),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ── Header with step indicator and back button ──────────
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Back button (only on pet phase — name is first, confirmation is done)
+                        if (_phase == _GoldPhase.pet)
+                          SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => _advanceTo(_GoldPhase.name),
+                                borderRadius: BorderRadius.circular(18),
+                                child: const Icon(
+                                  Icons.arrow_back_ios_new,
+                                  color: _gold,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          const SizedBox(width: 36),
+
+                        // Step indicator — i18n keys, hidden on confirmation
+                        if (_phase == _GoldPhase.name)
+                          AutoSizeText(
+                            'supporter.gold_step_name'.tr(),
+                            style: const TextStyle(
+                              color: _gold,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 1,
+                            minFontSize: 11,
+                            maxFontSize: 13,
+                          )
+                        else if (_phase == _GoldPhase.pet)
+                          AutoSizeText(
+                            'supporter.gold_step_pet'.tr(),
+                            style: const TextStyle(
+                              color: _gold,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 1,
+                            minFontSize: 11,
+                            maxFontSize: 13,
+                          )
+                        else
+                          AutoSizeText(
+                            'onboarding.onboarding_complete_title'.tr(),
+                            style: const TextStyle(
+                              color: _gold,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 1,
+                            minFontSize: 11,
+                            maxFontSize: 13,
+                          ),
+
+                        // Placeholder for alignment
+                        const SizedBox(width: 36),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ── Content: Only current phase visible ──────────────────
+                    FadeTransition(
+                      opacity: _fadeAnim,
+                      child: _buildPhase(context),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -298,21 +373,6 @@ class _SupporterGoldPurchaseDialogState
       key: const ValueKey('phase_name'),
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Step label - responsive autofit
-        AutoSizeText(
-          'supporter.gold_step_name'.tr(),
-          style: const TextStyle(
-            color: _gold,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.2,
-          ),
-          maxLines: 1,
-          minFontSize: 10,
-          maxFontSize: 13,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 16),
-
         // Badge + confetti
         Stack(alignment: Alignment.center, children: [
           Lottie.asset('assets/lottie/confetti.json',
@@ -457,20 +517,6 @@ class _SupporterGoldPurchaseDialogState
       key: const ValueKey('phase_pet'),
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Step label - responsive autofit
-        AutoSizeText(
-          'supporter.gold_step_pet'.tr(),
-          style: const TextStyle(
-            color: _gold,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.2,
-          ),
-          maxLines: 1,
-          minFontSize: 10,
-          maxFontSize: 13,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 12),
         // Pet selection title - responsive with autofit
         AutoSizeText(
           'supporter.pet_selection_title'.tr(),
