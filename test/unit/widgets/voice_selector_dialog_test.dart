@@ -13,8 +13,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('VoiceSelectorDialog - Crashlytics Fix Tests', () {
-    setUp(() {
-      registerTestServices();
+    setUp(() async {
+      await registerTestServices();
       SharedPreferences.setMockInitialValues({});
 
       // Mock the flutter_tts platform channel

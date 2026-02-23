@@ -1,7 +1,7 @@
 @Tags(['unit', 'widgets'])
 library;
 
-import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_verse_grid_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';

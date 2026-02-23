@@ -1,13 +1,15 @@
 // lib/services/google_drive_auth_service.dart
+import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive show DriveApi;
-import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'i_google_drive_auth_service.dart';
+
 /// Service for managing Google Drive authentication
-class GoogleDriveAuthService {
+class GoogleDriveAuthService implements IGoogleDriveAuthService {
   static GoogleDriveAuthService? _singletonInstance;
 
   /// Use this factory to always get the same instance (singleton).
@@ -44,6 +46,7 @@ class GoogleDriveAuthService {
   bool _isRecreatingAuthClient = false;
 
   /// Check if user is currently signed in to Google Drive
+  @override
   Future<bool> isSignedIn() async {
     debugPrint('🔍 [DEBUG] Verificando si usuario está signed in...');
     final prefs = await SharedPreferences.getInstance();
@@ -54,6 +57,7 @@ class GoogleDriveAuthService {
   }
 
   /// Sign in to Google Drive
+  @override
   Future<bool?> signIn() async {
     debugPrint('🔑 [DEBUG] ===== INICIANDO SIGN IN =====');
     debugPrint('🔑 [DEBUG] GoogleSignIn es null: ${_googleSignIn == null}');
@@ -147,6 +151,7 @@ class GoogleDriveAuthService {
   }
 
   /// Sign out from Google Drive
+  @override
   Future<void> signOut() async {
     debugPrint('🔓 [DEBUG] Iniciando sign out...');
     try {
@@ -169,6 +174,7 @@ class GoogleDriveAuthService {
   }
 
   /// Get current user email
+  @override
   Future<String?> getUserEmail() async {
     debugPrint('👤 [DEBUG] Obteniendo user email...');
     if (_currentUser != null) {
@@ -183,6 +189,7 @@ class GoogleDriveAuthService {
   }
 
   /// Get authenticated client for Google APIs
+  @override
   Future<http.Client?> getAuthClient() async {
     debugPrint('🔐 [DEBUG] Obteniendo AuthClient...');
 
@@ -265,6 +272,7 @@ class GoogleDriveAuthService {
   }
 
   /// Get Drive API instance
+  @override
   Future<drive.DriveApi?> getDriveApi() async {
     debugPrint('📁 [DEBUG] Obteniendo Drive API...');
     final authClient = await getAuthClient();
@@ -279,6 +287,7 @@ class GoogleDriveAuthService {
   }
 
   /// Dispose resources
+  @override
   void dispose() {
     debugPrint('🗑️ [DEBUG] Disposing GoogleDriveAuthService...');
     _authClient?.close();
