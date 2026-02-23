@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/supporter_pet.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
@@ -127,10 +128,7 @@ class _SupporterGoldPurchaseDialogState
     if (_phase == _GoldPhase.confirmation) return true;
     // Show warm "set up later?" sheet
     final leave = await _showLeaveSheet();
-    if (leave == true) {
-      // Mark pending so banner shows on supporter page
-      await getService<SupporterPetService>().markGoldSetupPending();
-    }
+    // markGoldSetupPending() is already called in initState — no need to repeat here.
     return leave == true;
   }
 
@@ -219,11 +217,15 @@ class _SupporterGoldPurchaseDialogState
   // ── Final navigation ──────────────────────────────────────────────────────
 
   void _navigateTo(Widget page) {
+    // Must use widget.dialogContext here — the gold dialog is a multi-phase
+    // flow pushed from a parent route. By Phase 2, the local BuildContext may
+    // no longer be associated with the original dialog route, so we hold a
+    // reference to the push-site context to ensure the correct route is popped.
     Navigator.pop(widget.dialogContext);
     if (!mounted) return;
+    final navigator = Navigator.of(context, rootNavigator: true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      Navigator.of(context, rootNavigator: true).pushReplacement(
+      navigator.pushReplacement(
         MaterialPageRoute(builder: (_) => page),
       );
     });
@@ -237,28 +239,114 @@ class _SupporterGoldPurchaseDialogState
       canPop: _phase == _GoldPhase.confirmation,
       onPopInvokedWithResult: (didPop, _) async {
         if (!didPop) {
+          final nav = Navigator.of(widget.dialogContext);
           await _onWillPop().then((leave) {
-            if (leave && mounted) Navigator.pop(widget.dialogContext);
+            if (leave && mounted) nav.pop();
           });
         }
       },
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
         clipBehavior: Clip.antiAlias,
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [_bgStart, _bgMid, _bgEnd],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        // Reduce padding for autofit
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: 280,
+            maxWidth: 400,
+            minHeight: 200,
+            maxHeight: 800,
           ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(28),
-              child: FadeTransition(
-                opacity: _fadeAnim,
-                child: _buildPhase(context),
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [_bgStart, _bgMid, _bgEnd],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ── Header with step indicator and back button ──────────
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Back button (only on pet phase — name is first, confirmation is done)
+                        if (_phase == _GoldPhase.pet)
+                          SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => _advanceTo(_GoldPhase.name),
+                                borderRadius: BorderRadius.circular(18),
+                                child: const Icon(
+                                  Icons.arrow_back_ios_new,
+                                  color: _gold,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          const SizedBox(width: 36),
+
+                        // Step indicator — i18n keys, hidden on confirmation
+                        if (_phase == _GoldPhase.name)
+                          AutoSizeText(
+                            'supporter.gold_step_name'.tr(),
+                            style: const TextStyle(
+                              color: _gold,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 1,
+                            minFontSize: 11,
+                            maxFontSize: 13,
+                          )
+                        else if (_phase == _GoldPhase.pet)
+                          AutoSizeText(
+                            'supporter.gold_step_pet'.tr(),
+                            style: const TextStyle(
+                              color: _gold,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 1,
+                            minFontSize: 11,
+                            maxFontSize: 13,
+                          )
+                        else
+                          AutoSizeText(
+                            'onboarding.onboarding_complete_title'.tr(),
+                            style: const TextStyle(
+                              color: _gold,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 1,
+                            minFontSize: 11,
+                            maxFontSize: 13,
+                          ),
+
+                        // Placeholder for alignment
+                        const SizedBox(width: 36),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ── Content: Only current phase visible ──────────────────
+                    FadeTransition(
+                      opacity: _fadeAnim,
+                      child: _buildPhase(context),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -285,10 +373,6 @@ class _SupporterGoldPurchaseDialogState
       key: const ValueKey('phase_name'),
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Step label
-        _StepLabel(label: 'supporter.gold_step_name'.tr()),
-        const SizedBox(height: 16),
-
         // Badge + confetti
         Stack(alignment: Alignment.center, children: [
           Lottie.asset('assets/lottie/confetti.json',
@@ -297,38 +381,122 @@ class _SupporterGoldPurchaseDialogState
         ]),
         const SizedBox(height: 12),
 
-        // Shimmer title
-        _GoldShimmerText('supporter.gold_name_title'.tr(), fontSize: 22),
-        const SizedBox(height: 20),
+        // Shimmer title - responsive with autofit
+        AutoSizeText(
+          'supporter.purchase_success_title'.tr(),
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            height: 1.3,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          minFontSize: 18,
+          maxFontSize: 26,
+        ),
+        const SizedBox(height: 16),
 
-        // Name field
+        // ── Verse card (responsive with autofit) ──────────────────
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFD700).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFFFFD700).withValues(alpha: 0.25),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AutoSizeText(
+                'supporter.purchase_success_verse'.tr(),
+                style: TextStyle(
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withValues(alpha: 0.9),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 6,
+                minFontSize: 10,
+                maxFontSize: 14,
+              ),
+              const SizedBox(height: 8),
+              AutoSizeText(
+                'supporter.purchase_success_verse_ref'.tr(),
+                style: const TextStyle(
+                  color: Color(0xFFFFD700),
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                minFontSize: 9,
+                maxFontSize: 12,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+
+        // Name field - responsive with better accessibility
         TextField(
           controller: widget.nameController,
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+          ),
           decoration: InputDecoration(
-            labelText: 'supporter.gold_name_hint'.tr(),
-            labelStyle: const TextStyle(color: _gold),
-            helperText: 'supporter.gold_name_helper'.tr(),
+            labelText: 'supporter.profile_name'.tr(),
+            labelStyle: const TextStyle(
+              color: _gold,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
+            hintText: 'supporter.profile_name_hint'.tr(),
+            hintStyle: TextStyle(
+              color: Colors.white.withValues(alpha: 0.3),
+              fontSize: 13,
+            ),
+            helperText: 'supporter.profile_name_helper'.tr(),
             helperStyle: TextStyle(
-                color: Colors.white.withValues(alpha: 0.55), fontSize: 11),
-            prefixIcon: const Icon(Icons.person, color: _gold),
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 12,
+              height: 1.5,
+            ),
+            helperMaxLines: 2,
+            prefixIcon:
+                const Icon(Icons.badge_outlined, color: _gold, size: 22),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: _gold.withValues(alpha: 0.4)),
+              borderSide:
+                  BorderSide(color: _gold.withValues(alpha: 0.4), width: 1.5),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: _gold, width: 2),
+              borderSide: const BorderSide(color: _gold, width: 2.5),
             ),
             filled: true,
             fillColor: Colors.white.withValues(alpha: 0.05),
-            counterStyle:
-                TextStyle(color: Colors.white.withValues(alpha: 0.45)),
+            counterStyle: TextStyle(
+              color: Colors.white.withValues(alpha: 0.45),
+              fontSize: 12,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+            isDense: false,
           ),
-          maxLength: 40,
+          maxLength: 15,
           cursorColor: _gold,
+          cursorHeight: 22,
+          cursorWidth: 2,
+          onChanged: (_) => setState(() {}),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
 
         SizedBox(
           width: double.infinity,
@@ -349,17 +517,31 @@ class _SupporterGoldPurchaseDialogState
       key: const ValueKey('phase_pet'),
       mainAxisSize: MainAxisSize.min,
       children: [
-        _StepLabel(label: 'supporter.gold_step_pet'.tr()),
+        // Pet selection title - responsive with autofit
+        AutoSizeText(
+          'supporter.pet_selection_title'.tr(),
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            height: 1.3,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          minFontSize: 16,
+          maxFontSize: 22,
+        ),
         const SizedBox(height: 12),
-        _GoldShimmerText('supporter.pet_selection_title'.tr(), fontSize: 20),
-        const SizedBox(height: 8),
-        Text(
+        // Description - responsive with better visibility
+        AutoSizeText(
           'supporter.pet_preview_description'.tr(),
           style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.65),
-              fontSize: 13,
-              height: 1.4),
+            color: Colors.white.withValues(alpha: 0.7),
+            height: 1.5,
+          ),
           textAlign: TextAlign.center,
+          maxLines: 3,
+          minFontSize: 12,
+          maxFontSize: 14,
         ),
         const SizedBox(height: 20),
         if (_isLoading)
@@ -408,28 +590,40 @@ class _SupporterGoldPurchaseDialogState
         ]),
         const SizedBox(height: 8),
 
-        // Shimmer title
-        _GoldShimmerText('supporter.gold_confirmation_title'.tr(),
-            fontSize: 24),
-        const SizedBox(height: 12),
+        // Shimmer title - responsive with autofit
+        AutoSizeText(
+          'supporter.gold_confirmation_title'.tr(),
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            height: 1.3,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          minFontSize: 20,
+          maxFontSize: 28,
+        ),
+        const SizedBox(height: 14),
 
-        // Gold helper / subtitle
+        // Gold helper / subtitle - responsive with better visibility
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: _gold.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _gold.withValues(alpha: 0.3)),
+            border: Border.all(color: _gold.withValues(alpha: 0.3), width: 1.5),
           ),
-          child: Text(
+          child: AutoSizeText(
             'supporter.gold_name_helper'.tr(),
             style: TextStyle(
-              color: _goldLight.withValues(alpha: 0.9),
-              fontSize: 13,
+              color: _goldLight.withValues(alpha: 0.95),
               fontStyle: FontStyle.italic,
-              height: 1.5,
+              height: 1.6,
             ),
             textAlign: TextAlign.center,
+            maxLines: 2,
+            minFontSize: 11,
+            maxFontSize: 14,
           ),
         ),
         const SizedBox(height: 32),
@@ -450,11 +644,16 @@ class _SupporterGoldPurchaseDialogState
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: () => _navigateTo(const DevocionalesPage()),
-            icon: const Icon(Icons.menu_book_rounded, color: _gold),
-            label: Text(
+            icon: const Icon(Icons.home_filled, color: _gold, size: 20),
+            label: AutoSizeText(
               'supporter.go_to_devotionals'.tr(),
+              maxLines: 1,
+              minFontSize: 12,
+              maxFontSize: 15,
               style: const TextStyle(
-                  color: _gold, fontWeight: FontWeight.w700, fontSize: 15),
+                color: _gold,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -470,64 +669,6 @@ class _SupporterGoldPurchaseDialogState
 }
 
 // ── Shared sub-widgets ────────────────────────────────────────────────────────
-
-class _StepLabel extends StatelessWidget {
-  final String label;
-
-  const _StepLabel({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFD700).withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
-        border:
-            Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.35)),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Color(0xFFFFD700),
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-          letterSpacing: 0.4,
-        ),
-      ),
-    );
-  }
-}
-
-class _GoldShimmerText extends StatelessWidget {
-  final String text;
-  final double fontSize;
-
-  const _GoldShimmerText(this.text, {required this.fontSize});
-
-  static const _gold = Color(0xFFFFD700);
-  static const _goldDark = Color(0xFFB8860B);
-
-  @override
-  Widget build(BuildContext context) {
-    return ShaderMask(
-      shaderCallback: (bounds) => const LinearGradient(
-        colors: [_goldDark, _gold, Colors.white, _gold, _goldDark],
-        stops: [0.0, 0.25, 0.5, 0.75, 1.0],
-      ).createShader(bounds),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontWeight: FontWeight.w900,
-          fontSize: fontSize,
-          color: Colors.white,
-          height: 1.3,
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-}
 
 class _GoldCircle extends StatelessWidget {
   final String emoji;
@@ -607,11 +748,19 @@ class _PetCard extends StatelessWidget {
               SizedBox(
                 width: 72,
                 height: 72,
-                child: Lottie.asset(pet.lottieAsset),
+                child: Lottie.asset(
+                  pet.lottieAsset,
+                  errorBuilder: (_, __, ___) => Center(
+                    child: Text(
+                      pet.emoji,
+                      style: const TextStyle(fontSize: 32),
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 6),
               Text(
-                '${pet.emoji} ${pet.name}',
+                '${pet.emoji} ${pet.nameKey.tr()}',
                 style: TextStyle(
                   color: isSelected ? _gold : Colors.white,
                   fontWeight: FontWeight.w800,
@@ -668,21 +817,28 @@ class _GoldButton extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.black87, size: 20),
-              const SizedBox(width: 10),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 15,
-                  letterSpacing: 0.3,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: Colors.black87, size: 20),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: AutoSizeText(
+                    label,
+                    maxLines: 1,
+                    minFontSize: 11,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

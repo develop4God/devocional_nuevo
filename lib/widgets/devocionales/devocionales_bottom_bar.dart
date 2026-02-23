@@ -342,26 +342,74 @@ class DevocionalesBottomBar extends StatelessWidget {
               ),
               // 6. Support/Donate (Conditional - Remote Config)
               if (getService<RemoteConfigService>().featureSupporter)
-                IconButton(
-                  key: const Key('bottom_appbar_supporter_icon'),
-                  tooltip: 'tooltips.support'.tr(),
-                  onPressed: () {
-                    debugPrint('\u2764\ufe0f [BottomBar] Tap: supporter');
-                    getService<AnalyticsService>().logBottomBarAction(
-                      action: 'supporter',
-                    );
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SupporterPage(),
-                      ),
+                FutureBuilder<bool>(
+                  future: BubbleUtils.shouldShowBubble(
+                    BubbleUtils.getIconBubbleId(
+                      Icons.volunteer_activism,
+                      'new',
+                      semanticLabel: 'supporter_bottom_bar',
+                    ),
+                  ),
+                  builder: (context, snapshot) {
+                    final showBubble = snapshot.data ?? false;
+                    return Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        IconButton(
+                          key: const Key('bottom_appbar_supporter_icon'),
+                          tooltip: 'tooltips.support'.tr(),
+                          onPressed: () async {
+                            debugPrint(
+                                '\u2764\ufe0f [BottomBar] Tap: supporter');
+                            getService<AnalyticsService>().logBottomBarAction(
+                              action: 'supporter',
+                            );
+                            await BubbleUtils.markAsShown(
+                              BubbleUtils.getIconBubbleId(
+                                Icons.volunteer_activism,
+                                'new',
+                                semanticLabel: 'supporter_bottom_bar',
+                              ),
+                            );
+                            if (!context.mounted) return;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SupporterPage(),
+                              ),
+                            );
+                          },
+                          icon: Icon(
+                            Icons.volunteer_activism,
+                            color: colorScheme.onPrimary,
+                            size: 35,
+                          ),
+                        ),
+                        if (showBubble)
+                          Positioned(
+                            top: BubbleConstants.iconBadgeTop,
+                            right: BubbleConstants.iconBadgeRight,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: BubbleConstants.newFeatureColor,
+                                borderRadius: BorderRadius.circular(
+                                  BubbleConstants.iconBadgeRadius,
+                                ),
+                                boxShadow: BubbleConstants.bubbleShadow,
+                              ),
+                              child: Text(
+                                'bubble_constants.new_feature'.tr(),
+                                style: BubbleConstants.iconBadgeTextStyle,
+                              ),
+                            ),
+                          ),
+                      ],
                     );
                   },
-                  icon: Icon(
-                    Icons.volunteer_activism,
-                    color: colorScheme.onPrimary,
-                    size: 35,
-                  ),
                 ),
             ],
           ),
