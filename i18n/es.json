@@ -364,7 +364,9 @@
     "pet_preview_description": "Desbloquea una mascota para tu devocional diario.",
     "final_celebration_title": "¡A EMPEZAR!",
     "final_celebration_message": "{petName} ahora aparecerá en tu página de devocionales.",
-    "final_celebration_button": "¡A EMPEZAR! 🚀"
+    "final_celebration_button": "¡A EMPEZAR! 🚀",
+    "profile_name": "Nombre de perfil",
+    "profile_name_save": "Guardar nombre"
   },
   "about": {
     "title": "Acerca de tu app",
