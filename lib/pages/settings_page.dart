@@ -515,7 +515,14 @@ class _SettingsViewState extends State<_SettingsView> {
                             await _petService.setShowPetHeader(value);
                             setState(() {});
                           },
-                          activeThumbColor: Colors.amber.shade700,
+                          thumbColor: WidgetStateProperty.resolveWith<Color>(
+                            (Set<WidgetState> states) {
+                              if (states.contains(WidgetState.selected)) {
+                                return Colors.amber.shade700;
+                              }
+                              return Colors.grey;
+                            },
+                          ),
                           contentPadding:
                               const EdgeInsets.symmetric(horizontal: 12),
                         ),
