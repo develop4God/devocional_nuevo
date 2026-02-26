@@ -7,6 +7,7 @@ import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dar
 import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/connectivity_service.dart';
+import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart'; // NEW
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
@@ -139,6 +140,9 @@ Future<void> setupServiceLocator() async {
 
   locator.registerLazySingleton<SupporterPetService>(
       () => SupporterPetService(locator.get<SharedPreferences>()));
+
+  // ✅ REGISTER DEEP LINK HANDLER
+  locator.registerLazySingleton<DeepLinkHandler>(() => DeepLinkHandler());
 }
 
 ServiceLocator get serviceLocator => ServiceLocator._instance;
