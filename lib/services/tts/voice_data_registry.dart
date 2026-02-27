@@ -283,5 +283,6 @@ class VoiceDataRegistry {
   // ─── Supported Languages ──────────────────────────────────────────────
 
   /// All languages with premium voice support.
-  static List<String> get supportedLanguages => _voicesByLanguage.keys.toList();
+  static final List<String> supportedLanguages =
+      _voicesByLanguage.keys.toList();
 }
