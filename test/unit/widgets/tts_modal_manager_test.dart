@@ -6,8 +6,8 @@ import '../../helpers/test_helpers.dart';
 
 void main() {
   group('DevocionalTtsTextBuilder.build', () {
-    setUp(() {
-      registerTestServices();
+    setUp(() async {
+      await registerTestServices();
     });
 
     test('includes all sections for a complete devotional', () {
