@@ -115,8 +115,7 @@ void main() {
           'hi',
         );
         expect(meta, isNotNull);
-        expect(meta!.description, contains('पुरुष')); // Male in Hindi
-        expect(meta.description, contains('भारत')); // India in Hindi
+        expect(meta!.description, equals('पुरुष भारत'));
       });
 
       test('all voices have non-empty descriptions', () {
