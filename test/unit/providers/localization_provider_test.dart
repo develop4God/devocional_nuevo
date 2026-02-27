@@ -84,7 +84,7 @@ void main() {
       // Verify that the provider is properly instantiated and uses DI
       expect(provider, isNotNull);
       expect(provider.supportedLocales, isNotEmpty);
-      expect(provider.supportedLocales.length, equals(6));
+      expect(provider.supportedLocales.length, equals(7));
     });
 
     test('supportedLocales returns all expected languages', () {
@@ -261,13 +261,14 @@ void main() {
 
         final languages = provider.getAvailableLanguages();
 
-        expect(languages.length, equals(6));
+        expect(languages.length, equals(7));
         expect(languages['es'], equals('Español'));
         expect(languages['en'], equals('English'));
         expect(languages['pt'], equals('Português'));
         expect(languages['fr'], equals('Français'));
         expect(languages['ja'], equals('日本語'));
         expect(languages['zh'], equals('中文'));
+        expect(languages['hi'], equals('हिन्दी'));
       },
     );
 
