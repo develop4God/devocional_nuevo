@@ -72,11 +72,6 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
       encounterId: widget.entry.id,
       cardOrder: index + 1,
     );
-
-    // Check if last card
-    if (index == study.cards.length - 1) {
-      _onCompleteEncounter();
-    }
   }
 
   void _navigatePrev() {
@@ -170,8 +165,11 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                               study.cards[index],
                               onBackToEncounters: study.cards[index].type ==
                                       'completion'
-                                  ? () => Navigator.of(context)
-                                      .popUntil((route) => route.isFirst)
+                                  ? () {
+                                      _onCompleteEncounter();
+                                      Navigator.of(context)
+                                          .popUntil((route) => route.isFirst);
+                                    }
                                   : null,
                             ),
                           ),
