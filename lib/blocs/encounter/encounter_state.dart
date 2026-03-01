@@ -50,13 +50,7 @@ class EncounterLoaded extends EncounterState with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [
-        index,
-        loadedStudies,
-        completedIds,
-        errorMessage,
-        lastUpdated,
-      ];
+  List<Object?> get props => [index, loadedStudies, completedIds, errorMessage];
 }
 
 /// State when an error occurs
