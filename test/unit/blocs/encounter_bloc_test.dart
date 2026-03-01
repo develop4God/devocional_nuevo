@@ -164,18 +164,16 @@ void main() {
       act: (bloc) async {
         bloc.add(CompleteEncounter('test_001'));
         await Future.delayed(const Duration(milliseconds: 10));
-        // Second add — still only one encounter ID
+        // Second add for same ID — BLoC deduplicates: no new state emitted
         bloc.add(CompleteEncounter('test_001'));
       },
+      // Only ONE state is emitted. The second CompleteEncounter produces an
+      // EncounterLoaded whose props are identical to the first (completedIds
+      // is still {'test_001'}), so flutter_bloc suppresses the duplicate emit.
       expect: () => [
         isA<EncounterLoaded>().having(
           (s) => s.completedIds.length,
           'completed count',
-          1,
-        ),
-        isA<EncounterLoaded>().having(
-          (s) => s.completedIds.length,
-          'completed count still 1',
           1,
         ),
       ],
