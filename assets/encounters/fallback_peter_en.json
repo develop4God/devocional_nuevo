@@ -1,0 +1,79 @@
+{
+  "id": "peter_water_001",
+  "type": "encounter",
+  "schema_version": "1.0",
+  "language": "en",
+  "bible_version": "NIV",
+  "version": "1.0",
+  "estimated_reading_minutes": 10,
+  "meta": {},
+  "key_verse": {
+    "reference": "Matthew 14:29",
+    "text": "Come, he said. Then Peter got down out of the boat, walked on the water and came toward Jesus."
+  },
+  "cards": [
+    {
+      "order": 1,
+      "type": "cinematic_scene",
+      "mood": "tense",
+      "title": "The Storm",
+      "narrative": "The disciples were alone on the boat, struggling against the waves in the middle of the night.",
+      "verse_overlay": {
+        "reference": "Matthew 14:24",
+        "text": "the boat was already a considerable distance from land, buffeted by the waves"
+      }
+    },
+    {
+      "order": 2,
+      "type": "character_moment",
+      "icon": "🌊",
+      "title": "Peter's Bold Request",
+      "content": "Peter saw Jesus walking on water and, rather than shrinking back, he asked to come to Jesus on the water. This moment reveals both his faith and his humanity.",
+      "revelation_key": "Faith requires action before certainty."
+    },
+    {
+      "order": 3,
+      "type": "scripture_moment",
+      "verse_reference": "Matthew 14:29-30",
+      "verse_text": "Come, he said. Then Peter got down out of the boat, walked on the water and came toward Jesus. But when he saw the wind, he was afraid and, beginning to sink, cried out, Lord, save me!",
+      "reflection": "Notice the sequence: Peter walked on water until he shifted his focus from Jesus to the storm. The sinking began not when he stepped out, but when fear replaced faith."
+    },
+    {
+      "order": 4,
+      "type": "theological_depth",
+      "icon": "✝️",
+      "title": "Immediate Rescue",
+      "content": "Immediately Jesus reached out his hand and caught him. The word immediately in Greek is eutheos - at once, without delay. This is the character of Christ toward those who cry out in faith.",
+      "revelation_key": "Jesus rescues immediately, not eventually."
+    },
+    {
+      "order": 5,
+      "type": "discovery_activation",
+      "title": "Living It Out",
+      "discovery_questions": [
+        {
+          "category": "Reflect",
+          "question": "What storm in your life is causing you to take your eyes off Jesus?"
+        },
+        {
+          "category": "Apply",
+          "question": "What bold step of faith is Jesus inviting you to take today?"
+        }
+      ],
+      "prayer": {
+        "title": "Prayer",
+        "content": "Lord Jesus, like Peter, I want to step out in faith. When I begin to sink, remind me to cry out to You. Thank you that Your hand reaches out immediately to rescue me. Amen."
+      }
+    },
+    {
+      "order": 6,
+      "type": "completion",
+      "title": "You Walked the Water",
+      "reflection_prompt": "You've encountered the storm-walker. How has this encounter changed how you see your own storms?",
+      "completion_verse": {
+        "reference": "Matthew 14:33",
+        "text": "Then those who were in the boat worshiped him, saying, Truly you are the Son of God."
+      }
+    }
+  ]
+}

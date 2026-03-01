@@ -3,6 +3,7 @@
 library;
 
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
+import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
 import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
@@ -100,6 +101,10 @@ Future<void> setupServiceLocator() async {
 
   locator.registerLazySingleton<DiscoveryRepository>(
     () => DiscoveryRepository(httpClient: locator.get<http.Client>()),
+  );
+
+  locator.registerLazySingleton<EncounterRepository>(
+    () => EncounterRepository(httpClient: locator.get<http.Client>()),
   );
 
   locator.registerLazySingleton<DiscoveryProgressTracker>(
