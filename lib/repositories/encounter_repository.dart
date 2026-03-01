@@ -126,36 +126,47 @@ class EncounterRepository {
       return cached;
     }
 
-    // 2. Fetch from network
+    // 2. Fetch from network (non-recursive — try lang, then 'en' directly)
     try {
-      final url = Constants.getEncounterStudyUrl(id, lang);
-      debugPrint('🌐 Encounter: Fetching study $id ($lang) from $url');
-      final response = await httpClient.get(Uri.parse(url));
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body) as Map<String, dynamic>;
-        final study = EncounterStudy.fromJson(json);
-        await _saveStudyToCache(id, lang, response.body);
-        return study;
-      }
-
-      // Try English fallback if requested lang failed (and lang != 'en')
-      if (lang != 'en') {
-        debugPrint(
-            '⚠️ Encounter: $lang not found for $id, trying English fallback');
-        return fetchStudy(id, 'en');
-      }
-
-      throw Exception('Failed to load encounter study: ${response.statusCode}');
+      final study = await _fetchStudyFromNetwork(id, lang);
+      return study;
     } catch (e) {
       debugPrint('❌ Encounter: Error fetching study $id ($lang): $e');
-
       // Fallback to bundled asset for peter_water_001
       if (id == 'peter_water_001') {
         return _loadFallbackStudy();
       }
       rethrow;
     }
+  }
+
+  /// Non-recursive network fetch: tries [lang], then 'en' if different.
+  Future<EncounterStudy> _fetchStudyFromNetwork(String id, String lang) async {
+    final url = Constants.getEncounterStudyUrl(id, lang);
+    debugPrint('🌐 Encounter: Fetching study $id ($lang) from $url');
+    final response = await httpClient.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      final study = EncounterStudy.fromJson(json);
+      await _saveStudyToCache(id, lang, response.body);
+      return study;
+    }
+
+    // Try English fallback once (no recursion)
+    if (lang != 'en') {
+      debugPrint('⚠️ Encounter: $lang not found for $id, trying English fallback');
+      final enUrl = Constants.getEncounterStudyUrl(id, 'en');
+      final enResponse = await httpClient.get(Uri.parse(enUrl));
+      if (enResponse.statusCode == 200) {
+        final json = jsonDecode(enResponse.body) as Map<String, dynamic>;
+        final study = EncounterStudy.fromJson(json);
+        await _saveStudyToCache(id, 'en', enResponse.body);
+        return study;
+      }
+    }
+
+    throw Exception('Failed to load encounter study $id: ${response.statusCode}');
   }
 
   Future<EncounterStudy?> _loadStudyFromCache(String id, String lang) async {
