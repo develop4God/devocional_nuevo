@@ -320,7 +320,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                   );
                 },
                 icon: Icon(
-                  Icons.bar_chart_rounded,
+                  Icons.emoji_events_outlined,
                   color: colorScheme.onPrimary,
                   size: 32,
                 ),
