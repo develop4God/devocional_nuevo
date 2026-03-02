@@ -81,7 +81,10 @@
     "share_footer_download": "Télécharger: Méditations Chrétiennes",
     "share_footer_benefits": "100% gratuit | Sans publicité | Utilisation hors ligne",
     "share_footer_developer": "Develop4God",
-    "no_devocionales_available": "Aucune méditation disponible pour la langue/version sélectionnée."
+    "no_devocionales_available": "Aucune méditation disponible pour la langue/version sélectionnée.",
+    "error_no_content": "PENDING",
+    "content_not_available_in_language": "PENDING",
+    "go_to_settings": "PENDING"
   },
   "prayer": {
     "invitation_title": "Invitation à la Prière",
@@ -897,5 +900,11 @@
     "profile_name_saved": "✅ Nom enregistré avec succès !",
     "profile_name_hint": "Votre nom (max 15 caractères)",
     "profile_name_helper": "Apparaîtra dans votre dévotion quotidienne. Ne sera pas partagé."
+  },
+  "common": {
+    "home": "PENDING",
+    "bible": "PENDING",
+    "prayers": "PENDING",
+    "settings": "PENDING"
   }
 }

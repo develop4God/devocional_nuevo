@@ -81,7 +81,10 @@
     "share_footer_and_more": "E muito mais...",
     "share_footer_download": "Baixar: Devocionais Cristãos",
     "share_footer_benefits": "100% grátis | Sem anúncios | Uso offline",
-    "share_footer_developer": "Develop4God"
+    "share_footer_developer": "Develop4God",
+    "error_no_content": "PENDING",
+    "content_not_available_in_language": "PENDING",
+    "go_to_settings": "PENDING"
   },
   "prayer": {
     "invitation_title": "Convite à Oração",
@@ -899,5 +902,11 @@
     "profile_name_saved": "✅ Nome salvo com sucesso!",
     "profile_name_hint": "Seu nome (máx. 15 caracteres)",
     "profile_name_helper": "Aparecerá no seu devocional diário. Não será compartilhado."
+  },
+  "common": {
+    "home": "PENDING",
+    "bible": "PENDING",
+    "prayers": "PENDING",
+    "settings": "PENDING"
   }
 }
