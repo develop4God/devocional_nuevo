@@ -20,8 +20,11 @@ class EncounterRepository {
 
   static const String _indexCacheKey = 'encounter_index_cache';
   static const String _studyCacheKeyPrefix = 'encounter_cache_';
-  static const String _fallbackAsset =
+  static const String _fallbackAssetEn =
       'assets/encounters/fallback_peter_en.json';
+  static const String _fallbackAssetEs =
+      'assets/encounters/fallback_peter_es.json';
+  static const Duration _networkTimeout = Duration(seconds: 10);
 
   EncounterRepository({required this.httpClient});
 
@@ -41,7 +44,9 @@ class EncounterRepository {
       final cacheBusterUrl = '$url?cb=$timestamp';
 
       debugPrint('🌐 Encounter: Fetching index from $cacheBusterUrl');
-      final response = await httpClient.get(Uri.parse(cacheBusterUrl));
+      final response = await httpClient
+          .get(Uri.parse(cacheBusterUrl))
+          .timeout(_networkTimeout);
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
@@ -90,29 +95,38 @@ class EncounterRepository {
   /// Loads the fallback asset as a single-entry index.
   Future<List<EncounterIndexEntry>> _loadFallbackAsIndex() async {
     try {
-      final raw = await rootBundle.loadString(_fallbackAsset);
-      final json = jsonDecode(raw) as Map<String, dynamic>;
-      // Wrap the single encounter in an entry
-      final id = json['id'] as String? ?? 'peter_water_001';
+      // Build bilingual entry directly from known fallback content
       return [
         EncounterIndexEntry(
-          id: id,
-          version: json['version'] as String? ?? '1.0',
+          id: 'peter_water_001',
+          version: '1.0',
           emoji: '🌊',
           status: 'published',
-          moodPrimary: 'tense',
-          accentColor: '#0f1828',
+          moodPrimary: 'storm',
+          accentColor: '#1e3a5f',
           testament: 'new',
           character: 'Peter',
-          files: {'en': '$id.json'},
-          titles: {'en': 'Peter Walks on Water'},
-          subtitles: {'en': 'Faith Beyond the Storm'},
-          scriptureReference: {'en': 'Matthew 14:22-33'},
-          estimatedReadingMinutes: {'en': 10},
+          files: const {
+            'en': 'peter_water_001.json',
+            'es': 'peter_water_001.json'
+          },
+          titles: const {
+            'en': 'Peter Walks on Water',
+            'es': 'Pedro Camina sobre el Agua',
+          },
+          subtitles: const {
+            'en': 'Faith Beyond the Storm',
+            'es': 'Fe Más Allá de la Tormenta',
+          },
+          scriptureReference: const {
+            'en': 'Matthew 14:22-33',
+            'es': 'Mateo 14:22-33',
+          },
+          estimatedReadingMinutes: const {'en': 8, 'es': 8},
         ),
       ];
     } catch (e) {
-      developer.log('Failed to load fallback encounter asset: $e',
+      developer.log('Failed to build fallback encounter index: $e',
           name: 'EncounterRepository._loadFallbackAsIndex');
       return [];
     }
@@ -142,7 +156,7 @@ class EncounterRepository {
       debugPrint('❌ Encounter: Error fetching study $id ($lang): $e');
       // Fallback to bundled asset only when fallback is enabled
       if (Constants.enableEncounterFallback && id == 'peter_water_001') {
-        return _loadFallbackStudy();
+        return _loadFallbackStudy(lang);
       }
       rethrow;
     }
@@ -152,7 +166,8 @@ class EncounterRepository {
   Future<EncounterStudy> _fetchStudyFromNetwork(String id, String lang) async {
     final url = Constants.getEncounterStudyUrl(id, lang);
     debugPrint('🌐 Encounter: Fetching study $id ($lang) from $url');
-    final response = await httpClient.get(Uri.parse(url));
+    final response =
+        await httpClient.get(Uri.parse(url)).timeout(_networkTimeout);
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
@@ -166,7 +181,8 @@ class EncounterRepository {
       debugPrint(
           '⚠️ Encounter: $lang not found for $id, trying English fallback');
       final enUrl = Constants.getEncounterStudyUrl(id, 'en');
-      final enResponse = await httpClient.get(Uri.parse(enUrl));
+      final enResponse =
+          await httpClient.get(Uri.parse(enUrl)).timeout(_networkTimeout);
       if (enResponse.statusCode == 200) {
         final json = jsonDecode(enResponse.body) as Map<String, dynamic>;
         final study = EncounterStudy.fromJson(json);
@@ -204,11 +220,13 @@ class EncounterRepository {
     }
   }
 
-  Future<EncounterStudy> _loadFallbackStudy() async {
+  Future<EncounterStudy> _loadFallbackStudy(String lang) async {
+    // Pick language-appropriate fallback; default to EN for unsupported langs
+    final assetPath = lang == 'es' ? _fallbackAssetEs : _fallbackAssetEn;
     try {
-      final raw = await rootBundle.loadString(_fallbackAsset);
+      final raw = await rootBundle.loadString(assetPath);
       final json = jsonDecode(raw) as Map<String, dynamic>;
-      debugPrint('📂 Encounter: Using bundled fallback study');
+      debugPrint('📂 Encounter: Using bundled fallback study ($lang)');
       return EncounterStudy.fromJson(json);
     } catch (e) {
       throw Exception('Failed to load fallback encounter: $e');

@@ -27,8 +27,13 @@ class _EncountersListPageState extends State<EncountersListPage> {
   @override
   void initState() {
     super.initState();
-    final lang = context.read<DevocionalProvider>().selectedLanguage;
-    context.read<EncounterBloc>().add(LoadEncounterIndex(languageCode: lang));
+    final bloc = context.read<EncounterBloc>();
+    // Only load the index if not already loaded — prevents re-fetching on
+    // navigation return or repeated widget rebuilds.
+    if (bloc.state is! EncounterLoaded) {
+      final lang = context.read<DevocionalProvider>().selectedLanguage;
+      bloc.add(LoadEncounterIndex(languageCode: lang));
+    }
     getService<AnalyticsService>().logEncounterAction(action: 'index_loaded');
   }
 

@@ -3,6 +3,7 @@
 // Full-screen intro before the card reader.
 // Shows animated shimmer background, key info, and Begin button.
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
@@ -128,7 +129,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                         style: const TextStyle(fontSize: 56),
                       ),
                       const SizedBox(height: 20),
-                      Text(
+                      AutoSizeText(
                         entry.titleFor(widget.lang),
                         style: const TextStyle(
                           color: Colors.white,
@@ -136,6 +137,9 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                           fontWeight: FontWeight.bold,
                           height: 1.2,
                         ),
+                        minFontSize: 14,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
                       Text(

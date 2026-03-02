@@ -1,136 +1,175 @@
 {
-  "id": "peter_water_001",
-  "type": "encounter",
-  "schema_version": "1.0",
-  "language": "en",
-  "bible_version": "NIV",
-  "version": "1.1",
-  "estimated_reading_minutes": 15,
-  "meta": {},
-  "key_verse": {
-    "reference": "Matthew 14:29",
-    "text": "Come, he said. Then Peter got down out of the boat, walked on the water and came toward Jesus."
-  },
-  "cards": [
-    {
-      "order": 1,
-      "type": "cinematic_scene",
-      "mood": "storm",
-      "image_url": "peter_storm_boat.png",
-      "title": "The Fourth Watch",
-      "narrative": "Hours before dawn, the disciples were alone on the Sea of Galilee, fighting wind and waves. Jesus had gone to pray on the mountain. Now, in the darkest hour, something impossible appeared on the water.",
-      "verse_overlay": {
-        "reference": "Matthew 14:24-25",
-        "text": "the boat was already a considerable distance from land, buffeted by the waves because the wind was against it. Shortly before dawn Jesus went out to them, walking on the lake"
-      }
+    "id": "peter_water_001",
+    "type": "encounter",
+    "schema_version": "encounters_v1",
+    "language": "en",
+    "bible_version": "KJV",
+    "version": "1.0",
+    "estimated_reading_minutes": 8,
+
+    "meta": {
+        "character": "Peter",
+        "testament": "new",
+        "scripture_reference": "Matthew 14:22-33",
+        "mood_primary": "storm",
+        "accent_color": "#1e3a5f",
+        "emoji": "🌊",
+        "tags": ["faith", "fear", "miracles", "storms", "grace", "peter", "jesus"]
     },
-    {
-      "order": 2,
-      "type": "character_moment",
-      "icon": "😱",
-      "image_url": "waves_night.png",
-      "title": "It is a Ghost!",
-      "content": "The disciples saw the figure on the water and cried out in fear. After hours of battling waves, exhausted and terrified, they could not comprehend what they were seeing. Fear is often our first response when Jesus shows up in ways we do not expect.",
-      "revelation_key": "Jesus often comes to us in the storms we least expect Him to enter."
+
+    "key_verse": {
+        "reference": "Matthew 14:31",
+        "text": "And immediately Jesus stretched forth his hand, and caught him.",
+        "bible_version": "KJV"
     },
-    {
-      "order": 3,
-      "type": "scripture_moment",
-      "image_url": "jesus_light_water.png",
-      "verse_reference": "Matthew 14:27-28",
-      "verse_text": "But Jesus immediately said to them: Take courage! It is I. Do not be afraid. Lord, if it is you, Peter replied, tell me to come to you on the water.",
-      "reflection": "Peter did not just ask to be rescued. He asked to come to Jesus — toward the storm, not away from it. This reveals a faith that seeks presence over comfort. Peter wanted to be where Jesus was, even if that meant standing on impossible ground."
-    },
-    {
-      "order": 4,
-      "type": "cinematic_scene",
-      "mood": "awe",
-      "image_url": "peter_walking_water.png",
-      "title": "One Step at a Time",
-      "narrative": "Peter swung his legs over the side of the boat. The water held. Each step confirmed the impossible: faith was making solid ground of open sea. For one glorious moment, a human being stood on water because Jesus said Come.",
-      "verse_overlay": {
-        "reference": "Matthew 14:29",
-        "text": "Then Peter got down out of the boat, walked on the water and came toward Jesus"
-      }
-    },
-    {
-      "order": 5,
-      "type": "scripture_moment",
-      "image_url": "peter_hand_saved.png",
-      "verse_reference": "Matthew 14:30-31",
-      "verse_text": "But when he saw the wind, he was afraid and, beginning to sink, cried out, Lord, save me! Immediately Jesus reached out his hand and caught him. You of little faith, he said, why did you doubt?",
-      "reflection": "Peter sank not when he stepped out, but when he shifted his gaze from Jesus to the storm. The sinking began in his eyes before it began in his feet. And the rescue came immediately — the same word used when Jesus healed diseases. Eutheos. At once. Without delay."
-    },
-    {
-      "order": 6,
-      "type": "theological_depth",
-      "icon": "✝️",
-      "image_url": "jesus_light_water.png",
-      "title": "Eutheos — Immediately",
-      "content": "The Greek word eutheos appears over 40 times in the Gospel of Mark and several times in Matthew. It means at once, without delay, instantly. Jesus did not wait for Peter to fully gather his faith before rescuing him. The outstretched hand came the moment Peter cried out. This is the character of Christ: He rescues at the speed of a desperate prayer.",
-      "revelation_key": "The distance between a desperate cry and a divine rescue is zero.",
-      "scripture_connections": [
+
+    "cards": [
         {
-          "reference": "Isaiah 41:13",
-          "text": "For I am the Lord your God who takes hold of your right hand and says to you, Do not fear; I will help you."
+            "order": 1,
+            "type": "cinematic_scene",
+            "mood": "storm",
+            "image_url": "https://raw.githubusercontent.com/develop4God/Devocionales-assets/refs/heads/main/images/encounters/peter_storm_boat.png",
+            "title": "3am. Storm. No Jesus.",
+            "narrative": "The disciples had been rowing for hours against a violent wind. Jesus had sent them ahead — alone. The sea was alive with fury. And they were losing.",
+            "ambient_sound": "storm_waves",
+            "haptic": "storm_rumble",
+            "revelation_key": "God sometimes sends us into storms on purpose."
         },
         {
-          "reference": "Psalm 18:16",
-          "text": "He reached down from on high and took hold of me; he drew me out of deep waters."
+            "order": 2,
+            "type": "scripture_moment",
+            "mood": "tense",
+            "image_url": "https://raw.githubusercontent.com/develop4God/Devocionales-assets/refs/heads/main/images/encounters/waves_night.png",
+            "verse_reference": "Matthew 14:24",
+            "verse_text": "But the ship was now in the midst of the sea, tossed with waves: for the wind was contrary.",
+            "reflection": "Notice what this verse does NOT say.\n\nIt doesn't say God abandoned them. It doesn't say they were being punished. It says the wind was contrary.\n\nSome storms are not punishment. Some storms are not mistakes. Some storms are the path God chose for you to walk — because of what is waiting for you on the other side.",
+            "revelation_key": "A contrary wind doesn't mean a wrong direction."
+        },
+        {
+            "order": 3,
+            "type": "character_moment",
+            "mood": "intense",
+            "icon": "⚡",
+            "title": "The Most Reckless Prayer in the Bible",
+            "subtitle": "Matthew 14:28",
+            "content": "Peter's response is extraordinary. Not 'Lord save us all' — the whole boat praying together.\n\nJust Peter. One man. One wild request:\n\n'Lord, if it is You — command me to COME to You on the water.'\n\nThink about what he is actually asking. Not to be rescued. Not for the storm to stop. To get OUT of the boat and walk toward the storm himself.\n\n⚡ THE ELEVEN OTHER DISCIPLES:\n\nNot one of them made this request. They stayed in the boat. Safe. Dry. Reasonable.\n\nThey also never walked on water.\n\nPeter's faith was reckless. Impulsive. Probably embarrassing to the others.\n\nAnd it was the only faith that moved him onto the impossible.",
+            "revelation_key": "Peter didn't ask Jesus to come to him. He asked to go to Jesus. That changes everything."
+        },
+        {
+            "order": 4,
+            "type": "cinematic_scene",
+            "mood": "mysterious",
+            "image_url": "https://raw.githubusercontent.com/develop4God/Devocionales-assets/refs/heads/main/images/encounters/jesus_light_water.png",
+            "title": "Something is walking toward them",
+            "narrative": "Then they saw it. A figure. Moving through the storm as if it wasn't there. Walking on the water. Toward them.\n\nThey were terrified. They thought it was a ghost.",
+            "ambient_sound": "storm_fading",
+            "verse_overlay": {
+                "reference": "Matthew 14:27",
+                "text": "But straightway Jesus spake unto them, saying, Be of good cheer; it is I; be not afraid."
+            },
+            "revelation_key": "Jesus comes to us in the middle of our worst storms. Not after."
+        },
+        {
+            "order": 5,
+            "type": "cinematic_scene",
+            "mood": "awe",
+            "image_url": "https://raw.githubusercontent.com/develop4God/Devocionales-assets/refs/heads/main/images/encounters/peter_walking_water.png",
+            "title": "And he walked on the water",
+            "narrative": "One word from Jesus. 'Come.'\n\nAnd Peter got out of the boat. Into the storm. Onto the water.\n\nFor one impossible, glorious, terrifying moment — he walked.",
+            "ambient_sound": "wind_gentle",
+            "haptic": "gentle_pulse",
+            "verse_overlay": {
+                "reference": "Matthew 14:29",
+                "text": "And he came down out of the boat, and walked upon the waters to come to Jesus."
+            },
+            "revelation_key": "Peter is the only human in history besides Jesus to walk on water. Because he was the only one who asked."
+        },
+        {
+            "order": 6,
+            "type": "theological_depth",
+            "icon": "👀",
+            "title": "The Moment Everything Changed",
+            "subtitle": "Three words that explain every failure of faith",
+            "content": "Matthew gives us the exact sequence:\n\n1️⃣ 'He saw the wind' — his attention shifted\n2️⃣ 'He was afraid' — fear followed his focus\n3️⃣ 'He began to sink' — his body followed his heart\n\n🔑 THE KEY WORD: 'Began'\n\nHe didn't sink instantly. There was a moment between doubt and drowning. A window. A cry.\n\n'Lord, SAVE ME.'\n\nThree words. The shortest prayer in scripture. And the most honest.\n\nNo theology. No explanation. No bargaining. Just the raw truth of a man who tried, failed, and knew exactly who to call.\n\n⚠️ WHAT JESUS DID NOT SAY:\n\nHe did not say: 'You should have stayed in the boat.'\nHe did not say: 'I told you so.'\nHe did not let him sink to teach him a lesson.\n\nThe Greek word eutheos — immediately — appears the moment Peter cries out. At once. Without delay. This is the speed of grace.\n\nImmediately. He reached.",
+            "revelation_key": "The shortest prayer is sometimes the most powerful. 'Lord, save me' is enough.",
+            "scripture_connections": [
+                {
+                    "reference": "Isaiah 41:13",
+                    "text": "For I am the Lord your God who takes hold of your right hand and says to you, Do not fear; I will help you."
+                },
+                {
+                    "reference": "Psalm 18:16",
+                    "text": "He reached down from on high and took hold of me; he drew me out of deep waters."
+                }
+            ]
+        },
+        {
+            "order": 7,
+            "type": "cinematic_scene",
+            "mood": "grace",
+            "image_url": "https://raw.githubusercontent.com/develop4God/Devocionales-assets/refs/heads/main/images/encounters/peter_hand_saved.png",
+            "title": "Immediately",
+            "narrative": "That word — immediately — is everything.\n\nNo delay. No lecture first. No 'let me think about whether you deserve this.'\n\nImmediately Jesus stretched forth his hand and caught him.\n\nGrace moves faster than failure.",
+            "ambient_sound": "storm_stopping",
+            "haptic": "rescue_pulse",
+            "verse_overlay": {
+                "reference": "Matthew 14:31",
+                "text": "And immediately Jesus stretched forth his hand, and caught him."
+            },
+            "revelation_key": "Jesus catches us before he corrects us. Grace before rebuke. Always."
+        },
+        {
+            "order": 8,
+            "type": "character_moment",
+            "mood": "peace",
+            "icon": "🌊",
+            "title": "O Thou of Little Faith",
+            "subtitle": "The rebuke that wasn't really a rebuke",
+            "content": "Jesus asks Peter one question:\n\n'O thou of little faith, wherefore didst thou doubt?'\n\nRead this carefully. Jesus calls it LITTLE faith — not NO faith.\n\nPeter had more faith than the eleven in the boat. He got out. He walked. He cried out to the right person when he sank.\n\nThat is not faithlessness. That is faith in process.\n\n🚣 THE BOAT RESPONSE:\n\nWhen Jesus and Peter got back into the boat, something happened that had not happened before:\n\n'They that were in the ship came and worshipped him, saying: Of a truth thou art the Son of God.'\n\nThe eleven who stayed safe — who never doubted because they never tried — witnessed something through Peter's failure and rescue that brought them to worship.\n\nGod used Peter's sinking to reveal Jesus to everyone in that boat.",
+            "revelation_key": "Sometimes God lets us sink so others can see Him pull us out."
+        },
+        {
+            "order": 9,
+            "type": "interactive_moment",
+            "title": "Name Your Wave",
+            "subtitle": "What is the storm that is keeping your eyes off Jesus?",
+            "reflection_prompt": "Take a moment to name the wind and waves in your life right now. What would it look like to step out of the boat toward Jesus in that situation?"
+        },
+        {
+            "order": 10,
+            "type": "discovery_activation",
+            "icon": "🙏",
+            "title": "Your Encounter",
+            "subtitle": "Peter's story is not just history. It is a mirror.",
+            "discovery_questions": [
+                {
+                    "category": "Honesty",
+                    "question": "What storm in your life right now are you staring at instead of looking at Jesus? What are your waves?"
+                },
+                {
+                    "category": "Courage",
+                    "question": "Is there a boat you need to get out of? Something God is calling you toward that feels impossible — and you haven't asked yet?"
+                },
+                {
+                    "category": "Grace",
+                    "question": "Have you ever cried out 'Lord, save me' and felt caught? What happened? If not — what is stopping you from crying out right now?"
+                }
+            ],
+            "prayer": {
+                "title": "Prayer of the Sinking Man",
+                "content": "Lord, I confess I have been looking at the waves.\n\nThe storm is real. The wind is contrary. And I am afraid.\n\nLike Peter I cry out — Lord, save me.\n\nNot because I have enough faith. Not because I deserve rescue. But because You are the kind of God who reaches immediately.\n\nCatch me. I am reaching up.\n\nAnd when You do — keep my eyes on You and not the water beneath my feet.\n\nIn Jesus name, Amen."
+            }
+        },
+        {
+            "order": 11,
+            "type": "completion",
+            "completion_verse": {
+                "reference": "Matthew 14:33",
+                "text": "Then they that were in the ship came and worshipped him, saying, Of a truth thou art the Son of God.",
+                "bible_version": "KJV"
+            },
+            "reflection_prompt": "What is one truth from Peter's encounter you want to carry with you today?",
+            "celebration_type": "gentle_light"
         }
-      ]
-    },
-    {
-      "order": 7,
-      "type": "character_moment",
-      "icon": "🙏",
-      "image_url": "peter_thumb.png",
-      "title": "From Sinking to Worshiping",
-      "content": "What did Peter do after Jesus pulled him into the boat? He worshiped. The disciples who had been paralyzed with fear were now on their knees saying Truly you are the Son of God. The storm had not disappeared — but their perception of who was in their boat had changed everything.",
-      "revelation_key": "Encountering Jesus in a storm produces deeper worship than calm ever could."
-    },
-    {
-      "order": 8,
-      "type": "interactive_moment",
-      "image_url": "waves_night.png",
-      "title": "Name Your Wave",
-      "subtitle": "What is the storm that is keeping your eyes off Jesus?",
-      "reflection_prompt": "Take a moment to name the wind and waves in your life right now. What would it look like to step out of the boat toward Jesus in that situation?"
-    },
-    {
-      "order": 9,
-      "type": "discovery_activation",
-      "image_url": "peter_thumb.png",
-      "title": "Living It Out",
-      "discovery_questions": [
-        {
-          "category": "Reflect",
-          "question": "When have you been walking in faith and then let the storm pull your eyes away from Jesus?"
-        },
-        {
-          "category": "Apply",
-          "question": "What bold step of faith is Jesus saying Come to you right now — and what is keeping you in the boat?"
-        },
-        {
-          "category": "Commit",
-          "question": "What is one thing you will do this week to keep your eyes on Jesus instead of your circumstances?"
-        }
-      ],
-      "prayer": {
-        "title": "Prayer",
-        "content": "Lord Jesus, like Peter I want to step out of the boat. When I see the wind and begin to sink, remind me to cry out to You immediately. Thank You that Your hand reaches toward me before my prayer is finished. May this encounter change how I face every storm. Amen."
-      }
-    },
-    {
-      "order": 10,
-      "type": "completion",
-      "image_url": "peter_hand_saved.png",
-      "title": "You Walked the Water",
-      "reflection_prompt": "You have encountered the storm-walker. How has this encounter changed how you see the impossible situations in your own life?",
-      "completion_verse": {
-        "reference": "Matthew 14:33",
-        "text": "Then those who were in the boat worshiped him, saying, Truly you are the Son of God."
-      }
-    }
-  ]
+    ]
 }

@@ -223,6 +223,20 @@ class _NavObserver extends NavigatorObserver {
   }
 }
 
+// ─── Event-capturing mock bloc ────────────────────────────────────────────────
+
+class _EventCapturingMockBloc extends _MockEncounterBloc {
+  final List<EncounterEvent> capturedEvents;
+
+  _EventCapturingMockBloc(super.state, this.capturedEvents);
+
+  @override
+  void add(EncounterEvent event) {
+    capturedEvents.add(event);
+    super.add(event);
+  }
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 EncounterIndexEntry _makeEntry({
@@ -406,6 +420,117 @@ void main() {
 
       // Counter starts at "1 / 3"
       expect(find.text('1 / 3'), findsOneWidget);
+    });
+  });
+
+  // ── Test 5: InteractiveMomentCard renders title and reflection prompt ─────────
+
+  testWidgets('InteractiveMomentCard renders title and reflection prompt',
+      (tester) async {
+    const card = EncounterCard(
+      order: 9,
+      type: 'interactive_moment',
+      title: 'Name Your Wave',
+      subtitle: 'What storm is keeping your eyes off Jesus?',
+      reflectionPrompt:
+          'Take a moment to name the wind and waves in your life.',
+    );
+
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(body: InteractiveMomentCard(card: card)),
+    ));
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Name Your Wave'), findsOneWidget);
+    expect(find.textContaining('wind and waves'), findsOneWidget);
+  });
+
+  // ── Test 6: CompletionCard shows bible version disclaimer ────────────────────
+
+  testWidgets('CompletionCard shows bible version disclaimer', (tester) async {
+    const card = EncounterCard(
+      order: 11,
+      type: 'completion',
+      title: 'You Walked the Water',
+      completionVerse: EncounterCompletionVerse(
+        reference: 'Matthew 14:33',
+        text: 'Truly you are the Son of God.',
+        bibleVersion: 'KJV',
+      ),
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: CompletionCard(card: card),
+      ),
+    ));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('KJV'), findsOneWidget);
+    expect(find.text('"Truly you are the Son of God."'), findsOneWidget);
+    expect(find.text('— Matthew 14:33'), findsOneWidget);
+  });
+
+  // ── Test 7: EncounterDetailPage shows retry when study cannot be loaded ──────
+
+  testWidgets('detail page shows retry button when study is null',
+      (tester) async {
+    await tester.runAsync(() async {
+      final entry = _makeEntry();
+      // State is EncounterLoaded but study is NOT in loadedStudies map
+      final mockBloc = _MockEncounterBloc(EncounterLoaded(index: [entry]));
+
+      setPhoneViewport(tester);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BlocProvider<EncounterBloc>.value(
+            value: mockBloc,
+            child: EncounterDetailPage(entry: entry, lang: 'en'),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // The retry button must be visible — no infinite spinner
+      expect(find.byIcon(Icons.refresh), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
+  });
+
+  // ── Test 8: list page does not re-dispatch LoadEncounterIndex if already loaded
+
+  testWidgets('list page does not re-dispatch index load when already loaded',
+      (tester) async {
+    await tester.runAsync(() async {
+      final entry = _makeEntry();
+      final events = <EncounterEvent>[];
+      final mockBloc = _EventCapturingMockBloc(
+        EncounterLoaded(index: [entry]),
+        events,
+      );
+
+      setPhoneViewport(tester);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<EncounterBloc>.value(value: mockBloc),
+              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+            ],
+            child: const EncountersListPage(),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // No LoadEncounterIndex event should be dispatched since the state is
+      // already EncounterLoaded
+      expect(events.whereType<LoadEncounterIndex>(), isEmpty);
     });
   });
 }

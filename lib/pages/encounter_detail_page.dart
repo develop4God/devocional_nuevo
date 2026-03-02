@@ -59,8 +59,9 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
       encounterId: widget.entry.id,
     );
 
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) setState(() => _isCelebrating = false);
+    // Let the Lottie animation play (~3 s), then navigate back
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
     });
   }
 
@@ -117,7 +118,30 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
 
           final study = state.getStudy(widget.entry.id);
           if (study == null) {
-            return const Center(child: CircularProgressIndicator());
+            // Study failed to load — show error with retry instead of
+            // an infinite spinner that the user cannot escape.
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline,
+                      size: 48, color: Colors.orange),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Could not load this encounter.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => context.read<EncounterBloc>().add(
+                          LoadEncounterStudy(widget.entry.id, widget.lang),
+                        ),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
           }
 
           if (study.cards.isEmpty) {
@@ -162,14 +186,10 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                                 horizontal: 8, vertical: 8),
                             child: buildEncounterCardWidget(
                               study.cards[index],
-                              onBackToEncounters: study.cards[index].type ==
-                                      'completion'
-                                  ? () {
-                                      _onCompleteEncounter();
-                                      Navigator.of(context)
-                                          .popUntil((route) => route.isFirst);
-                                    }
-                                  : null,
+                              onBackToEncounters:
+                                  study.cards[index].type == 'completion'
+                                      ? _onCompleteEncounter
+                                      : null,
                             ),
                           ),
                         );
