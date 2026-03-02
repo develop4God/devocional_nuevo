@@ -1,4 +1,10 @@
 {
+  "common": {
+    "home": "Início",
+    "bible": "Bíblia",
+    "prayers": "Orações",
+    "settings": "Configurações"
+  },
   "app": {
     "title": "Devocionais Cristãos",
     "loading": "Carregando...",
@@ -9,6 +15,9 @@
     "save": "Salvar",
     "cancel": "Cancelar",
     "ok": "OK",
+    "today": "Hoje",
+    "tomorrow": "Amanhã",
+    "yesterday": "Ontem",
     "yes": "Sim",
     "no": "Não",
     "delete": "Excluir",
@@ -18,10 +27,7 @@
     "voice_feature_description": "Agora você pode escolher entre diferentes vozes para a leitura devocional. Personalize sua experiência e aproveite uma leitura mais agradável e moderna. 😃🔊",
     "voice_feature_configure": "Configurar vozes",
     "voice_feature_continue": "Continuar",
-    "audio_playing": "Reproduzindo áudio",
-    "today": "Hoje",
-    "tomorrow": "Amanhã",
-    "yesterday": "Ontem"
+    "audio_playing": "Reproduzindo áudio"
   },
   "devotionals": {
     "modern_voice_title": "🎤✨ Novo recurso disponível! ✨🎤",
@@ -46,8 +52,11 @@
     "share_text_format": "Devocional do dia:\n\nVersículo:\n{verse}\n\nReflexão:\n{reflection}\n\nPara Meditar:\n{meditations}\n\nOração:\n{prayer}\n\n────────────────────\nDescubra Devocionais Cristãos: Seu espaço íntimo com Deus todos os dias\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo",
     "loading_devotional": "Carregando devocional...",
     "loading": "Carregando devocionais...",
-    "no_devotionals": "Nenhum devocional disponível",
+    "no_devocionales": "Nenhum devocional disponível",
     "error_loading": "Erro ao carregar devocionais",
+    "error_no_content": "Não foi possível carregar o conteúdo devocional. Verifique sua conexão com a internet ou tente alterar o idioma/versão nas configurações.",
+    "content_not_available_in_language": "Conteúdo não disponível no idioma selecionado. Exibindo o idioma padrão.",
+    "go_to_settings": "Ir para Configurações",
     "generic_error": "Ocorreu um erro ao carregar os devocionais. Por favor, tente novamente.",
     "retry": "Tentar novamente",
     "share_devotional": "Compartilhar devocional",
@@ -70,8 +79,7 @@
     "offline_mode": "offline",
     "online_mode": "Modo online",
     "choose_option": "Escolha uma opção",
-    "no_devocionales": "Nenhum devocional disponível",
-    "no_devotionals_available": "Nenhum devocional disponível para o idioma/versão selecionados.",
+    "no_devotionals": "Nenhum devocional disponível",
     "share_footer_title": "Isto é apenas o começo...",
     "share_footer_complete_app": "O app completo inclui:",
     "share_footer_daily_devotionals": "Devocionais diários atualizados",
@@ -81,10 +89,7 @@
     "share_footer_and_more": "E muito mais...",
     "share_footer_download": "Baixar: Devocionais Cristãos",
     "share_footer_benefits": "100% grátis | Sem anúncios | Uso offline",
-    "share_footer_developer": "Develop4God",
-    "error_no_content": "PENDING",
-    "content_not_available_in_language": "PENDING",
-    "go_to_settings": "PENDING"
+    "share_footer_developer": "Develop4God"
   },
   "prayer": {
     "invitation_title": "Convite à Oração",
@@ -330,9 +335,9 @@
     "share_as_image": "Compartilhar como imagem",
     "progress": "Progresso",
     "settings": "Configurações",
+    "support": "Apoiar o Ministério",
     "bible": "Bíblia",
-    "add_prayer_or_thanksgiving": "Adicionar oração ou ação de graças",
-    "support": "Apoiar o Ministério"
+    "add_prayer_or_thanksgiving": "Adicionar oração ou ação de graças"
   },
   "share": {
     "share_text": "Compartilhar texto",
@@ -466,13 +471,21 @@
     "google_drive_storage": "Armazenamento do Google Drive",
     "last_backup": "Último backup",
     "next_backup": "Próximo backup",
+    "next_backup_in_hours": "em {hours} horas",
+    "next_backup_in_minutes": "em {minutes} minutos",
     "no_backup_yet": "Nenhum backup ainda",
+    "no_email": "Sem email",
     "create_backup": "Criar backup",
     "security_title": "Segurança",
     "security_text": "Seus dados são protegidos com criptografia de ponta a ponta e apenas você tem acesso a eles.",
     "created_successfully": "Backup criado com sucesso",
     "restored_successfully": "Dados restaurados com sucesso",
     "error_loading": "Erro ao carregar configurações",
+    "error_no_internet": "Sem conexão à internet",
+    "error_auth_failed": "Erro de autenticação do Google Drive",
+    "error_storage_full": "Armazenamento do Google Drive cheio",
+    "error_network": "Erro de rede. Verifique sua conexão",
+    "error_generic": "Erro inesperado. Tente novamente",
     "retry": "Tentar novamente",
     "today": "Hoje",
     "yesterday": "Ontem",
@@ -505,15 +518,7 @@
     "more_options": "Mais opções",
     "optimization": "Otimização",
     "account_management": "Gestão de Conta",
-    "logout_google_drive": "Sair do Google Drive",
-    "next_backup_in_hours": "em {hours} horas",
-    "next_backup_in_minutes": "em {minutes} minutos",
-    "no_email": "Sem email",
-    "error_no_internet": "Sem conexão à internet",
-    "error_auth_failed": "Erro de autenticação do Google Drive",
-    "error_storage_full": "Armazenamento do Google Drive cheio",
-    "error_network": "Erro de rede. Verifique sua conexão",
-    "error_generic": "Erro inesperado. Tente novamente"
+    "logout_google_drive": "Sair do Google Drive"
   },
   "review": {
     "title": "Obrigado pela sua constância 🙏",
@@ -588,6 +593,7 @@
     "onboarding_configure_later": "Configurar mais tarde",
     "onboarding_welcome_title": "Bem-vindo aos Devocionais Cristãos",
     "onboarding_welcome_subtitle": "Seu espaço íntimo com Deus todos os dias. Vamos começar configurando sua experiência personalizada.",
+    "onboarding_touch_screen": "Toque para continuar",
     "onboarding_theme_title": "Escolha seu Ambiente",
     "onboarding_theme_subtitle": "Selecione o tema que mais te inspira para seu tempo devocional.",
     "onboarding_connecting_backup": "Conectando ao Google Drive...",
@@ -600,7 +606,7 @@
     "onboarding_complete_subtitle": "Seu espaço devocional está configurado. É hora de começar sua jornada espiritual diária.",
     "onboarding_your_setup": "Sua Configuração",
     "onboarding_start_app": "Começar meu espaço com Dios",
-    "onboarding_setup_theme_configured": "Tema personalizado seleccionado",
+    "onboarding_theme_configured": "Tema personalizado selecionado",
     "onboarding_setup_backup_configured": "Backup automático configurado",
     "onboarding_setup_protection_active": "Proteção de dados ativada",
     "onboarding_setup_backup_skipped": "Backup ignorado por enquanto",
@@ -608,9 +614,7 @@
     "onboarding_error_title": "Erro de configuração",
     "onboarding_error_loading": "Error ao carregar a configuração inicial",
     "onboarding_completed": "Onboarding concluído!",
-    "onboarding_retry": "Tentar novamente",
-    "onboarding_touch_screen": "Toque para continuar",
-    "onboarding_theme_configured": "Tema personalizado selecionado"
+    "onboarding_retry": "Tentar novamente"
   },
   "bible": {
     "title": "Bíblia",
@@ -745,6 +749,8 @@
     "no_favorites_description": "Você ainda não adicionou estudos bíblicos aos favoritos.",
     "favorite_studies": "Estudos favoritos",
     "download_study": "Baixar estudo",
+    "scripture_connections": "Conexões Bíblicas",
+    "greek_words": "Palavras Gregas",
     "previous": "Anterior",
     "next": "Próximo",
     "exit": "Sair",
@@ -756,9 +762,7 @@
     "share_footer_activation_questions": "Perguntas de ativação pessoal",
     "share_footer_download": "Baixar: Devocionales Cristianos",
     "share_footer_benefits": "100% grátis | Sem anúncios | Uso offline",
-    "share_footer_developer": "Develop4God",
-    "scripture_connections": "Conexões Bíblicas",
-    "greek_words": "Palavras Gregas"
+    "share_footer_developer": "Develop4God"
   },
   "encounters": {
     "section_title": "Encontros",
@@ -791,15 +795,13 @@
     "hope": "Esperança",
     "faith": "Fé",
     "peace": "Paz",
-    "gratitude": "Gratidão",
-    "strength": "Força",
+    "grace": "Graça",
     "wisdom": "Sabedoria",
     "family": "Família",
     "prayer": "Oração",
     "discovery": "Descoberta",
     "morning": "Manhã",
-    "night": "Noite",
-    "grace": "Graça"
+    "night": "Noite"
   },
   "testimony": {
     "testimony": "Testemunho",
@@ -866,18 +868,18 @@
     "billing_unavailable_body": "A cobrança não está disponível neste dispositivo. Verifique sua conexão com o Google Play.",
     "disclaimer": "Os pagamentos são processados pelo Google Play. Cada nível é uma compra única que concede um distintivo digital como símbolo de gratidão pelo seu apoio ao ministério.",
     "thanks_section_title": "Obrigado aos nossos Parceiros do Ministério",
-    "no_new_restores": "Nenhuma compra nova encontrada para restaurar.",
     "gold_name_hint": "Como você gostaria de aparecer na seção Obrigado?",
-    "gold_confirmation_title": "🐾 Mascote e 👤 nome desbloqueados",
     "gold_name_helper": "Seu nome aparecerá na página principal. Não será compartilhado.",
     "gold_edit_name_button": "Editar meu nome",
     "gold_set_name_button": "Definir meu nome",
     "gold_edit_name_title": "Editar nome como Parceiro do Ministério",
+    "no_new_restores": "Nenhuma compra nova encontrada para restaurar.",
     "status_title": "Distintivos de Apoio",
     "status_thanks": "Obrigado por fazer parte deste ministério com seu coração generoso.",
+    "go_to_progress": "Ver minhas medalhas no Progresso 🏅",
+    "gold_confirmation_title": "🐾 Mascote e 👤 nome desbloqueados",
     "go_to_settings": "Ir para Configurações (pet e nome) ⚙️",
     "go_to_devotionals": "Ir para Devocionais 📖",
-    "go_to_progress": "Ver minhas medalhas no Progresso 🏅",
     "medal_unlocked_body": "Sua nova medalha de honra está agora disponível no seu perfil de Progresso Espiritual.",
     "medal_unlocked_title": "Medalha de Honra Desbloqueada!",
     "badge_unlock": "🏅 Distintivo Desbloqueado!",
@@ -902,11 +904,5 @@
     "profile_name_saved": "✅ Nome salvo com sucesso!",
     "profile_name_hint": "Seu nome (máx. 15 caracteres)",
     "profile_name_helper": "Aparecerá no seu devocional diário. Não será compartilhado."
-  },
-  "common": {
-    "home": "PENDING",
-    "bible": "PENDING",
-    "prayers": "PENDING",
-    "settings": "PENDING"
   }
 }

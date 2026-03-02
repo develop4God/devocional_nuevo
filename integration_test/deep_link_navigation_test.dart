@@ -121,8 +121,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('should reject invalid deep link',
-        (WidgetTester tester) async {
+    testWidgets('should reject invalid deep link', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           navigatorKey: navigatorKey,
