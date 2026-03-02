@@ -109,7 +109,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
               color: Color(0xFF0a0e1a),
             ),
           ),
-          
+
           // Decorative Blurred Orbs for modern aesthetic
           Positioned(
             top: -100,
@@ -128,7 +128,8 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
               children: [
                 // Custom Close Button
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
                     child: Container(
@@ -137,7 +138,8 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                         color: Colors.white.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.close, color: Colors.white, size: 24),
+                      child: const Icon(Icons.close,
+                          color: Colors.white, size: 24),
                     ),
                   ),
                 ),
@@ -153,7 +155,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 40),
-                            
+
                             // Hero Emoji
                             Hero(
                               tag: 'encounter_emoji_${entry.id}',
@@ -169,9 +171,9 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                                 ),
                               ),
                             ),
-                            
+
                             const SizedBox(height: 32),
-                            
+
                             // Title with bold weight
                             AutoSizeText(
                               entry.titleFor(widget.lang),
@@ -184,9 +186,9 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                               ),
                               maxLines: 2,
                             ),
-                            
+
                             const SizedBox(height: 12),
-                            
+
                             // Subtitle
                             Text(
                               entry.subtitleFor(widget.lang),
@@ -197,31 +199,33 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                                 letterSpacing: 0.2,
                               ),
                             ),
-                            
+
                             const SizedBox(height: 32),
-                            
+
                             // Scripture Reference
                             if (entry.scriptureFor(widget.lang).isNotEmpty)
                               _FeatureItem(
                                 icon: Icons.auto_stories,
                                 label: entry.scriptureFor(widget.lang),
                               ),
-                            
+
                             const SizedBox(height: 16),
-                            
+
                             // Time to read
                             _FeatureItem(
                               icon: Icons.timer_outlined,
-                              label: '${entry.readingMinutesFor(widget.lang)} min session',
+                              label:
+                                  '${entry.readingMinutesFor(widget.lang)} min session',
                             ),
 
                             const SizedBox(height: 16),
-                            
+
                             // Testament badge
                             if (entry.testament != null)
                               _FeatureItem(
                                 icon: Icons.explore_outlined,
-                                label: '${entry.testament!.toUpperCase()} TESTAMENT',
+                                label:
+                                    '${entry.testament!.toUpperCase()} TESTAMENT',
                               ),
 
                             const SizedBox(height: 48),
@@ -237,9 +241,11 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                   padding: const EdgeInsets.all(32),
                   child: BlocBuilder<EncounterBloc, EncounterState>(
                     builder: (context, state) {
-                      final loadedState = state is EncounterLoaded ? state : null;
-                      final isLoaded = loadedState != null && loadedState.isStudyLoaded(entry.id);
-                      
+                      final loadedState =
+                          state is EncounterLoaded ? state : null;
+                      final isLoaded = loadedState != null &&
+                          loadedState.isStudyLoaded(entry.id);
+
                       return Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -255,14 +261,16 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                                 ),
                               ),
                             ),
-                          
                           SizedBox(
                             width: double.infinity,
                             height: 64,
                             child: ElevatedButton(
-                              onPressed: isLoaded ? () => _beginEncounter(loadedState) : null,
+                              onPressed: isLoaded
+                                  ? () => _beginEncounter(loadedState)
+                                  : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: isLoaded ? Colors.white : Colors.white12,
+                                backgroundColor:
+                                    isLoaded ? Colors.white : Colors.white12,
                                 foregroundColor: const Color(0xFF0a0e1a),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
@@ -283,7 +291,8 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                                       width: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 3,
-                                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                                        valueColor: AlwaysStoppedAnimation(
+                                            Colors.white),
                                       ),
                                     ),
                             ),
