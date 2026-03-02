@@ -11,6 +11,7 @@
 ///   "status": "published",
 ///   "mood_primary": "tense",
 ///   "accent_color": "#0f1828",
+///   "intro_image": "peter_intro.jpg",
 ///   "has_interactive": false,
 ///   "testament": "new",
 ///   "character": "Peter",
@@ -28,6 +29,7 @@ class EncounterIndexEntry {
   final String status; // 'published' | 'coming_soon'
   final String? moodPrimary;
   final String? accentColor;
+  final String? introImage;
   final bool? hasInteractive;
   final String? testament;
   final String? character;
@@ -44,6 +46,7 @@ class EncounterIndexEntry {
     this.status = 'coming_soon',
     this.moodPrimary,
     this.accentColor,
+    this.introImage,
     this.hasInteractive,
     this.testament,
     this.character,
@@ -109,6 +112,7 @@ class EncounterIndexEntry {
       status: json['status'] as String? ?? 'coming_soon',
       moodPrimary: json['mood_primary'] as String?,
       accentColor: json['accent_color'] as String?,
+      introImage: json['intro_image'] as String?,
       hasInteractive: json['has_interactive'] as bool?,
       testament: json['testament'] as String?,
       character: json['character'] as String?,
@@ -127,6 +131,7 @@ class EncounterIndexEntry {
         'status': status,
         'mood_primary': moodPrimary,
         'accent_color': accentColor,
+        'intro_image': introImage,
         'has_interactive': hasInteractive,
         'testament': testament,
         'character': character,

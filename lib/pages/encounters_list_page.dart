@@ -200,12 +200,13 @@ class _EncounterCard extends StatelessWidget {
     final isPublished = entry.isPublished;
     final accentColor = _parseColor(entry.accentColor) ?? Colors.blueAccent;
     
-    // logic similar to bible studies for status
-    // Peter's water study is considered "today's" or "current" if not completed
-    final bool isCurrent = entry.id == 'peter_water_001' && !isCompleted;
+    // Impact logic: a study is "Today" if it's the first in the list and not completed
+    // (This can be refined later if you have a specific 'today' property in JSON)
+    final bool isToday = !isCompleted && entry.isPublished; 
+    final bool isNew = !isCompleted && !isToday; 
 
-    final imageUrl = entry.id == 'peter_water_001' 
-        ? Constants.getEncounterImageUrl('peter_intro.jpg')
+    final imageUrl = entry.introImage != null 
+        ? Constants.getEncounterImageUrl(entry.introImage!)
         : null;
 
     return GestureDetector(
@@ -247,7 +248,7 @@ class _EncounterCard extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.black.withValues(alpha: 0.0),
-                      Colors.black.withValues(alpha: 0.2),
+                      Colors.black.withValues(alpha: 0.3),
                       Colors.black.withValues(alpha: 0.95),
                     ],
                   ),
@@ -260,7 +261,7 @@ class _EncounterCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Impact Header (Status Badges - using logic like discovery)
+                    // Impact Header (Status Badges)
                     Row(
                       children: [
                         if (isCompleted)
@@ -269,11 +270,17 @@ class _EncounterCard extends StatelessWidget {
                             icon: Icons.verified_rounded,
                             color: Colors.greenAccent,
                           )
-                        else if (isCurrent)
+                        else if (isToday)
                           _StatusBadge(
                             label: 'app.today'.tr().toUpperCase(), 
-                            icon: Icons.auto_awesome,
-                            color: Colors.amberAccent,
+                            icon: Icons.local_fire_department_rounded,
+                            color: const Color(0xFFFF8F00), 
+                          )
+                        else if (isNew)
+                          _StatusBadge(
+                            label: 'bubble_constants.new_feature'.tr().toUpperCase(),
+                            icon: Icons.new_releases_rounded,
+                            color: Colors.cyanAccent,
                           ),
                         const Spacer(),
                         Container(
@@ -291,7 +298,7 @@ class _EncounterCard extends StatelessWidget {
                       ],
                     ),
                     const Spacer(),
-                    // Title with more weight
+                    // Title
                     Text(
                       entry.titleFor(lang),
                       style: const TextStyle(
@@ -307,7 +314,7 @@ class _EncounterCard extends StatelessWidget {
                     Text(
                       entry.subtitleFor(lang),
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: Colors.white.withValues(alpha: 0.95),
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                         height: 1.3,
@@ -391,7 +398,7 @@ class _StatusBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.5), width: 1.5),
+        border: Border.all(color: color.withValues(alpha: 0.6), width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

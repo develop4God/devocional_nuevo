@@ -104,6 +104,7 @@ class EncounterRepository {
           status: 'published',
           moodPrimary: 'storm',
           accentColor: '#1e3a5f',
+          introImage: 'peter_intro.jpg',
           testament: 'new',
           character: 'Peter',
           files: const {
