@@ -86,12 +86,16 @@ void main(List<String> args) async {
       if (missingKeys.isNotEmpty) {
         stdout.writeln(
             '  ❌ ${missingKeys.length} missing keys → added as PENDING:');
-        for (final k in missingKeys) stdout.writeln('    + $k');
+        for (final k in missingKeys) {
+          stdout.writeln('    + $k');
+        }
       }
       if (extraKeys.isNotEmpty) {
         stdout.writeln('  🗑️  ${extraKeys.length} extra keys → removed:');
         final shown = extraKeys.take(30).toList();
-        for (final k in shown) stdout.writeln('    - $k');
+        for (final k in shown) {
+          stdout.writeln('    - $k');
+        }
         if (extraKeys.length > 30) {
           stdout.writeln('    ... and ${extraKeys.length - 30} more.');
         }
@@ -113,8 +117,9 @@ void main(List<String> args) async {
 
   stdout.writeln('--- FINAL SUMMARY ---');
   stdout.writeln('Languages processed: ${processed.join(', ')}');
-  if (notFound.isNotEmpty)
+  if (notFound.isNotEmpty) {
     stdout.writeln('Languages not found: ${notFound.join(', ')}');
+  }
   stdout.writeln('en.json is the source of truth. All files are now in sync.');
 }
 
@@ -192,7 +197,9 @@ void _findExtra(dynamic ref, dynamic target, String prefix, List<String> out) {
 void _removeExtra(dynamic ref, dynamic target) {
   if (target is Map<String, dynamic> && ref is Map<String, dynamic>) {
     final toRemove = target.keys.where((k) => !ref.containsKey(k)).toList();
-    for (final k in toRemove) target.remove(k);
+    for (final k in toRemove) {
+      target.remove(k);
+    }
     for (final key in ref.keys) {
       if (target.containsKey(key)) _removeExtra(ref[key], target[key]);
     }
