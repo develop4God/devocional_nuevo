@@ -145,6 +145,7 @@ void main() {
       expect(languages['en'], equals('English'));
       expect(languages['pt'], equals('Português'));
       expect(languages['fr'], equals('Français'));
+      expect(languages['hi'], equals('हिन्दी'));
     });
 
     test('Chinese text formatting handles both simplified and traditional', () {
