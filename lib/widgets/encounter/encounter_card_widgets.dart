@@ -14,15 +14,24 @@ import 'package:flutter/material.dart';
 
 Color moodColor(String? mood) {
   switch (mood) {
-    case 'storm': return const Color(0xFF0d1a2e);
-    case 'tense': return const Color(0xFF0f1828);
-    case 'mysterious': return const Color(0xFF0a0e1a);
-    case 'awe': return const Color(0xFF0a1220);
-    case 'falling': return const Color(0xFF040810);
-    case 'grace': return const Color(0xFF12100a);
-    case 'peace': return const Color(0xFF0a120e);
-    case 'intense': return const Color(0xFF1a0a0e);
-    default: return const Color(0xFF0a0e1a);
+    case 'storm':
+      return const Color(0xFF0d1a2e);
+    case 'tense':
+      return const Color(0xFF0f1828);
+    case 'mysterious':
+      return const Color(0xFF0a0e1a);
+    case 'awe':
+      return const Color(0xFF0a1220);
+    case 'falling':
+      return const Color(0xFF040810);
+    case 'grace':
+      return const Color(0xFF12100a);
+    case 'peace':
+      return const Color(0xFF0a120e);
+    case 'intense':
+      return const Color(0xFF1a0a0e);
+    default:
+      return const Color(0xFF0a0e1a);
   }
 }
 

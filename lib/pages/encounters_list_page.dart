@@ -14,6 +14,7 @@ import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -196,11 +197,13 @@ class _EncounterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isPublished = entry.isPublished;
     final accentColor = _parseColor(entry.accentColor) ?? Colors.blueAccent;
     
-    // For Peter's story, we use the intro image as the card background
+    // logic similar to bible studies for status
+    // Peter's water study is considered "today's" or "current" if not completed
+    final bool isCurrent = entry.id == 'peter_water_001' && !isCompleted;
+
     final imageUrl = entry.id == 'peter_water_001' 
         ? Constants.getEncounterImageUrl('peter_intro.jpg')
         : null;
@@ -208,15 +211,15 @@ class _EncounterCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 220,
+        height: 260,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(32),
-          color: accentColor.withValues(alpha: 0.1),
+          color: accentColor.withValues(alpha: 0.15),
           boxShadow: isPublished ? [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 25,
+              offset: const Offset(0, 12),
             )
           ] : [],
         ),
@@ -236,15 +239,16 @@ class _EncounterCard extends StatelessWidget {
               else
                 Container(color: accentColor),
 
-              // 2. Dynamic Gradient Overlay for impact and readability
+              // 2. Stronger Gradient for impact
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withValues(alpha: 0.1),
-                      Colors.black.withValues(alpha: 0.8),
+                      Colors.black.withValues(alpha: 0.0),
+                      Colors.black.withValues(alpha: 0.2),
+                      Colors.black.withValues(alpha: 0.95),
                     ],
                   ),
                 ),
@@ -256,78 +260,71 @@ class _EncounterCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Badge row
+                    // Impact Header (Status Badges - using logic like discovery)
                     Row(
                       children: [
+                        if (isCompleted)
+                          _StatusBadge(
+                            label: 'discovery.completed'.tr().toUpperCase(),
+                            icon: Icons.verified_rounded,
+                            color: Colors.greenAccent,
+                          )
+                        else if (isCurrent)
+                          _StatusBadge(
+                            label: 'app.today'.tr().toUpperCase(), 
+                            icon: Icons.auto_awesome,
+                            color: Colors.amberAccent,
+                          ),
+                        const Spacer(),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(20),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                           ),
                           child: Text(
                             entry.emoji ?? '✨',
-                            style: const TextStyle(fontSize: 18),
+                            style: const TextStyle(fontSize: 22),
                           ),
                         ),
-                        const Spacer(),
-                        if (isCompleted)
-                          const Icon(Icons.check_circle, color: Colors.greenAccent, size: 28),
                       ],
                     ),
                     const Spacer(),
-                    // Title
+                    // Title with more weight
                     Text(
                       entry.titleFor(lang),
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 24,
+                        fontSize: 30,
                         fontWeight: FontWeight.w900,
-                        height: 1.1,
-                        letterSpacing: -0.5,
+                        height: 1.0,
+                        letterSpacing: -1.0,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    // Subtitle (NOW COMPLETELY VISIBLE - No maxLines constraint)
+                    const SizedBox(height: 12),
+                    // Subtitle (FULLY VISIBLE)
                     Text(
                       entry.subtitleFor(lang),
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        height: 1.2,
+                        height: 1.3,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    // Bottom meta row
+                    const SizedBox(height: 24),
+                    // Action Row
                     Row(
                       children: [
-                        const Icon(Icons.bolt, size: 16, color: Colors.amber),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${entry.readingMinutesFor(lang)} MIN',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.0,
-                          ),
+                        _MetaInfo(
+                          icon: Icons.access_time_filled_rounded,
+                          text: '${entry.readingMinutesFor(lang)} MIN',
                         ),
-                        const SizedBox(width: 16),
-                        const Icon(Icons.auto_stories, size: 14, color: Colors.white70),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            entry.scriptureFor(lang).toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        const SizedBox(width: 24),
+                        _MetaInfo(
+                          icon: Icons.menu_book_rounded,
+                          text: entry.scriptureFor(lang).toUpperCase(),
                         ),
                       ],
                     ),
@@ -338,10 +335,10 @@ class _EncounterCard extends StatelessWidget {
               // Coming Soon Overlay
               if (!isPublished)
                 Container(
-                  color: Colors.black.withValues(alpha: 0.6),
+                  color: Colors.black.withValues(alpha: 0.7),
                   child: Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(30),
@@ -350,9 +347,9 @@ class _EncounterCard extends StatelessWidget {
                         'COMING SOON',
                         style: TextStyle(
                           color: Colors.black,
-                          fontSize: 12,
+                          fontSize: 14,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 2.0,
+                          letterSpacing: 3.0,
                         ),
                       ),
                     ),
@@ -377,5 +374,72 @@ class _EncounterCard extends StatelessWidget {
       }
     } catch (_) {}
     return null;
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  const _StatusBadge({required this.label, required this.icon, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.5), width: 1.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MetaInfo extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _MetaInfo({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: Colors.white70),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
   }
 }
