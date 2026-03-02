@@ -3,15 +3,18 @@ import os
 
 I18N_PATH = "i18n"
 BASE_LANG = "en"
-LANGS = ["es", "fr", "pt", "ja"]  # Add/remove as needed
+LANGS = ["es", "fr", "pt", "ja", "hi", "zh"]  # All supported languages
+
 
 def load_json(lang):
     with open(os.path.join(I18N_PATH, f"{lang}.json"), encoding="utf-8") as f:
         return json.load(f)
 
+
 def save_json(lang, data):
     with open(os.path.join(I18N_PATH, f"{lang}.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
 
 def sync_keys(ref, target, path=""):
     added = []
@@ -42,12 +45,14 @@ def sync_keys(ref, target, path=""):
 
     return added, removed
 
+
 def write_sync_report(report_path, summary):
     with open(report_path, "w", encoding="utf-8") as f:
         for lang, changes in summary.items():
             f.write(f"File: {lang}.json\n")
             f.write(f"  Added keys: {changes['added'] or 'None'}\n")
             f.write(f"  Removed keys: {changes['removed'] or 'None'}\n\n")
+
 
 def main():
     base = load_json(BASE_LANG)
@@ -74,6 +79,7 @@ def main():
 
     # Write sync report for workflow summary
     write_sync_report("i18n_sync_report.txt", summary)
+
 
 if __name__ == "__main__":
     main()
