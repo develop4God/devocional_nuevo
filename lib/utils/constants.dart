@@ -112,9 +112,9 @@ class Constants {
   /// Feature flag for Encounters feature
   static const bool enableEncountersFeature = true;
 
-  /// Set to false to skip all fallbacks (cache + bundled asset) and always
-  /// fetch encounters from the network. Useful during content development.
-  static const bool enableEncounterFallback = false;
+  /// Set to true to use cache + bundled fallback assets when network is unavailable.
+  /// Set to false to skip all fallbacks and always require network.
+  static const bool enableEncounterFallback = true;
 
   /// Branch para debug Discovery (solo kDebugMode)
   static String debugBranch = 'main';

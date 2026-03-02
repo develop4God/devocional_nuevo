@@ -291,6 +291,10 @@ class ScriptureMomentCard extends StatelessWidget {
                 textAlign: TextAlign.left,
               ),
             ],
+            if (card.revelationKey != null) ...[
+              const SizedBox(height: 20),
+              _RevelationKeyBox(text: card.revelationKey!),
+            ],
           ],
         ),
       ),
@@ -703,6 +707,21 @@ class _CompletionCardState extends State<CompletionCard>
                         fontSize: 13,
                       ),
                     ),
+                    // Bible version disclaimer
+                    if (widget.card.completionVerse!.bibleVersion != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.card.completionVerse!.bibleVersion!,
+                        style: TextStyle(
+                          color: hasImage
+                              ? Colors.white.withValues(alpha: 0.5)
+                              : theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.4),
+                          fontSize: 11,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -734,6 +753,85 @@ class _CompletionCardState extends State<CompletionCard>
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// InteractiveMomentCard
+// ---------------------------------------------------------------------------
+
+class InteractiveMomentCard extends StatelessWidget {
+  final EncounterCard card;
+
+  const InteractiveMomentCard({required this.card, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.colorScheme.primary.withValues(alpha: 0.12),
+              theme.colorScheme.secondary.withValues(alpha: 0.08),
+            ],
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(Icons.self_improvement, size: 48),
+              const SizedBox(height: 20),
+              if (card.title != null)
+                Text(
+                  card.title!,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              if (card.subtitle != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  card.subtitle!,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              if (card.reflectionPrompt != null) ...[
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.18),
+                    ),
+                  ),
+                  child: Text(
+                    card.reflectionPrompt!,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      height: 1.7,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
@@ -812,8 +910,7 @@ Widget buildEncounterCardWidget(
     case 'completion':
       return CompletionCard(card: card, onBackToEncounters: onBackToEncounters);
     case 'interactive_moment':
-      // v1: model only, no UI — render as empty
-      return const UnknownCard();
+      return InteractiveMomentCard(card: card);
     default:
       return const UnknownCard();
   }
