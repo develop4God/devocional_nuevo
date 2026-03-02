@@ -336,7 +336,8 @@ class _EncounterCard extends StatelessWidget {
                       children: [
                         _MetaInfo(
                           icon: Icons.access_time_filled_rounded,
-                          text: '${entry.readingMinutesFor(lang)} MIN',
+                          text:
+                              '${entry.readingMinutesFor(lang)} ${'discovery.minutes_suffix'.tr()}',
                         ),
                         const SizedBox(width: 24),
                         _MetaInfo(
