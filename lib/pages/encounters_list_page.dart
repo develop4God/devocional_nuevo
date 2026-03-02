@@ -457,4 +457,4 @@ class _MetaInfo extends StatelessWidget {
   }
 }
 
-final VoidCallback? onTap;
+late final VoidCallback? onTap;
