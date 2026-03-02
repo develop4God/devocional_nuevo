@@ -135,7 +135,8 @@ void main() {
 
       // THEN: All 7 languages are present
       expect(languages.length, equals(7));
-      expect(languages.keys, containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi']));
+      expect(languages.keys,
+          containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi']));
 
       // AND: Display names are in native language
       expect(languages['zh'], equals('中文'));

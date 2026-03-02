@@ -109,6 +109,13 @@ class Constants {
   /// Feature flag for Discovery Studies feature
   static const bool enableDiscoveryFeature = true;
 
+  /// Feature flag for Encounters feature
+  static const bool enableEncountersFeature = true;
+
+  /// Set to true to use cache + bundled fallback assets when network is unavailable.
+  /// Set to false to skip all fallbacks and always require network.
+  static const bool enableEncounterFallback = true;
+
   /// Branch para debug Discovery (solo kDebugMode)
   static String debugBranch = 'main';
 
@@ -130,6 +137,27 @@ class Constants {
   /// Legacy constant for backward compatibility (deprecated)
   @Deprecated('Use getDiscoveryIndexUrl() instead')
   static String get discoveryIndexUrl => getDiscoveryIndexUrl();
+
+  // ---------------------------------------------------------------------------
+  // Encounters URLs
+  // ---------------------------------------------------------------------------
+
+  /// Obtiene la URL del índice de Encounters
+  static String getEncounterIndexUrl() {
+    final branch = kDebugMode ? debugBranch : 'main';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/encounters/index.json';
+  }
+
+  /// Obtiene la URL de un estudio de Encounter
+  static String getEncounterStudyUrl(String id, String lang) {
+    final branch = kDebugMode ? debugBranch : 'main';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/encounters/$lang/$id.json';
+  }
+
+  /// Obtiene la URL de una imagen de Encounter
+  static String getEncounterImageUrl(String filename) {
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/$filename';
+  }
 }
 
 /// Schema versioning and migration constants for favorites storage

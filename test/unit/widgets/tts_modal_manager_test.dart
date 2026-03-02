@@ -1,4 +1,5 @@
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/devocional_tts_text_builder.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -8,6 +9,10 @@ void main() {
   group('DevocionalTtsTextBuilder.build', () {
     setUp(() async {
       await registerTestServices();
+    });
+
+    tearDown(() {
+      ServiceLocator().reset();
     });
 
     test('includes all sections for a complete devotional', () {

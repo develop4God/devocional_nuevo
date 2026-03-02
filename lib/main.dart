@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
+import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_event.dart';
@@ -14,11 +15,13 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/pages/debug_page.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart';
+import 'package:devocional_nuevo/pages/encounters_list_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
+import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
@@ -161,6 +164,11 @@ void main() async {
               favoritesService: getService<
                   DiscoveryFavoritesService>(), // ✅ FIXED: Injected service
             ),
+          ),
+        if (Constants.enableEncountersFeature)
+          BlocProvider(
+            create: (context) =>
+                EncounterBloc(repository: getService<EncounterRepository>()),
           ),
         BlocProvider(
           create: (context) {
@@ -419,6 +427,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             routes: {
               '/settings': (context) => const SettingsPage(),
               '/devocionales': (context) => const DevocionalesPage(),
+              if (Constants.enableEncountersFeature)
+                '/encounters': (context) => const EncountersListPage(),
               if (kDebugMode || _developerMode)
                 '/debug': (context) => const DebugPage(),
             },
