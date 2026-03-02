@@ -81,7 +81,10 @@
     "share_footer_download": "下载: 基督教灵修",
     "share_footer_benefits": "100%免费 | 无广告 | 离线使用",
     "share_footer_developer": "Develop4God",
-    "no_devocionales_available": "所选语言或版本没有可用的灵修。"
+    "no_devocionales_available": "所选语言或版本没有可用的灵修。",
+    "error_no_content": "PENDING",
+    "content_not_available_in_language": "PENDING",
+    "go_to_settings": "PENDING"
   },
   "prayer": {
     "invitation_title": "祷告邀请",
@@ -898,5 +901,11 @@
     "profile_name_saved": "✅ 名称保存成功！",
     "profile_name_hint": "您的名字（最多15个字符）",
     "profile_name_helper": "将出现在您的每日灵修中。不会被分享。"
+  },
+  "common": {
+    "home": "PENDING",
+    "bible": "PENDING",
+    "prayers": "PENDING",
+    "settings": "PENDING"
   }
 }

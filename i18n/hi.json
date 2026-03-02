@@ -26,7 +26,8 @@
     "voice_feature_description": "अब आप भक्ति पढ़ने के लिए विभिन्न आवाज़ों में से चुन सकते हैं। अपने अनुभव को व्यक्तिगत बनाएं और अधिक सुखद और आधुनिक पढ़ने का आनंद लें। 😃🔊",
     "voice_feature_configure": "आवाज़ें कॉन्फ़िगर करें",
     "voice_feature_continue": "जारी रखें",
-    "audio_playing": "ऑडियो चल रहा है"
+    "audio_playing": "ऑडियो चल रहा है",
+    "next": "PENDING"
   },
   "devotionals": {
     "modern_voice_title": "🎤✨ नई सुविधा उपलब्ध! ✨🎤",
@@ -118,7 +119,8 @@
     "share_footer_and_more": "और भी बहुत कुछ...",
     "share_footer_download": "डाउनलोड करें: ईसाई भक्तियाँ",
     "share_footer_benefits": "100% मुफ्त | कोई विज्ञापन नहीं | ऑफ़लाइन उपयोग",
-    "share_footer_developer": "Develop4God"
+    "share_footer_developer": "Develop4God",
+    "no_devocionales_available": "PENDING"
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -216,7 +218,9 @@
     "paypal_no_app_error": "पेपैल नहीं खोल सका। सुनिश्चित करें कि आपके पास वेब ब्राउज़र या पेपैल ऐप इंस्टॉल है।",
     "backup_option": "बैकअप",
     "backup_subtitle": "अपने डेटा को सुरक्षित रूप से बैकअप और पुनर्स्थापित करें",
-    "voice_sample_text": "ऑडियो नमूना सुनने के लिए टैप करें। फिर अपनी प्राथमिकता सहेजें।"
+    "voice_sample_text": "ऑडियो नमूना सुनने के लिए टैप करें। फिर अपनी प्राथमिकता सहेजें।",
+    "cannot_open_url": "PENDING",
+    "url_error": "PENDING"
   },
   "bible": {
     "title": "पवित्र बाइबिल",
@@ -519,7 +523,8 @@
     "onboarding_error_title": "सेटअप त्रुटि",
     "onboarding_error_loading": "प्रारंभिक कॉन्फ़िगरेशन लोड करने में त्रुटि",
     "onboarding_completed": "ऑनबोर्डिंग पूर्ण!",
-    "onboarding_retry": "पुनः प्रयास करें"
+    "onboarding_retry": "पुनः प्रयास करें",
+    "onboarding_theme_configured": "PENDING"
   },
   "about": {
     "title": "के बारे में",
@@ -895,7 +900,9 @@
     "support_my_badges": "मेरे बैज",
     "support_badges_progress": "बैज अनलॉक",
     "support_badge_unlock": "बैज अनलॉक!",
-    "support_badge_share": "बैज साझा करें"
+    "support_badge_share": "बैज साझा करें",
+    "profile_name": "PENDING",
+    "profile_name_save": "PENDING"
   },
   "donate": {
     "donate_page_title": "❤️ दान करें",
@@ -1306,7 +1313,8 @@
     "share_as_image": "छवि के रूप में साझा करें",
     "progress": "प्रगति",
     "bible": "बाइबिल",
-    "add_prayer_or_thanksgiving": "प्रार्थना या धन्यवाद जोड़ें"
+    "add_prayer_or_thanksgiving": "प्रार्थना या धन्यवाद जोड़ें",
+    "support": "PENDING"
   },
   "encounters": {
     "section_title": "मुलाकातें",
@@ -1345,5 +1353,82 @@
     "reminder": "अनुस्मारक",
     "new_feature": "नया",
     "updated_feature": "अद्यतन"
+  },
+  "supporter": {
+    "page_title": "PENDING",
+    "header_title": "PENDING",
+    "header_subtitle": "PENDING",
+    "ministry_message": "PENDING",
+    "choose_tier": "PENDING",
+    "tier_bronze_name": "PENDING",
+    "tier_bronze_description": "PENDING",
+    "tier_silver_name": "PENDING",
+    "tier_silver_description": "PENDING",
+    "tier_gold_name": "PENDING",
+    "tier_gold_description": "PENDING",
+    "benefit_bronze_badge": "PENDING",
+    "benefit_silver_badge": "PENDING",
+    "benefit_silver_icon": "PENDING",
+    "benefit_gold_badge": "PENDING",
+    "benefit_gold_thanks": "PENDING",
+    "purchased": "PENDING",
+    "badge_active": "PENDING",
+    "get_tier": "PENDING",
+    "purchase_success_title": "PENDING",
+    "purchase_success_body": "PENDING",
+    "purchase_success_verse": "PENDING",
+    "purchase_success_verse_ref": "PENDING",
+    "purchase_success_button": "PENDING",
+    "exclusive_gift": "PENDING",
+    "pet_preview_description": "PENDING",
+    "select_pet_button": "PENDING",
+    "pet_selection_title": "PENDING",
+    "pet_selection_message": "PENDING",
+    "final_celebration_title": "PENDING",
+    "final_celebration_message": "PENDING",
+    "final_celebration_button": "PENDING",
+    "purchase_error": "PENDING",
+    "restore_purchases": "PENDING",
+    "restore_complete": "PENDING",
+    "billing_unavailable_title": "PENDING",
+    "billing_unavailable_body": "PENDING",
+    "disclaimer": "PENDING",
+    "thanks_section_title": "PENDING",
+    "gold_name_hint": "PENDING",
+    "gold_name_helper": "PENDING",
+    "gold_edit_name_button": "PENDING",
+    "gold_set_name_button": "PENDING",
+    "gold_edit_name_title": "PENDING",
+    "no_new_restores": "PENDING",
+    "status_title": "PENDING",
+    "status_thanks": "PENDING",
+    "go_to_progress": "PENDING",
+    "gold_confirmation_title": "PENDING",
+    "go_to_settings": "PENDING",
+    "go_to_devotionals": "PENDING",
+    "medal_unlocked_body": "PENDING",
+    "medal_unlocked_title": "PENDING",
+    "badge_unlock": "PENDING",
+    "supporter_section_title": "PENDING",
+    "show_pet_header": "PENDING",
+    "pet_currently_selected": "PENDING",
+    "silver_confirmation_title": "PENDING",
+    "gold_step_name": "PENDING",
+    "gold_step_pet": "PENDING",
+    "gold_back_warning_title": "PENDING",
+    "gold_back_warning_body": "PENDING",
+    "gold_back_confirm": "PENDING",
+    "gold_back_dismiss": "PENDING",
+    "gold_setup_pending_banner": "PENDING",
+    "gold_setup_complete_now": "PENDING",
+    "pet_dog_name": "PENDING",
+    "pet_fish_name": "PENDING",
+    "pet_tiger_name": "PENDING",
+    "pet_cat_name": "PENDING",
+    "profile_name": "PENDING",
+    "profile_name_save": "PENDING",
+    "profile_name_saved": "PENDING",
+    "profile_name_hint": "PENDING",
+    "profile_name_helper": "PENDING"
   }
 }

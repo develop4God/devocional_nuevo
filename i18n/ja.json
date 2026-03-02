@@ -81,7 +81,10 @@
     "share_footer_download": "ダウンロード: クリスチャンデボーション",
     "share_footer_benefits": "100%無料 | 広告なし | オフライン使用",
     "share_footer_developer": "Develop4God",
-    "no_devocionales_available": "選択した言語やバージョンには利用可能なデボーショナルがありません。"
+    "no_devocionales_available": "選択した言語やバージョンには利用可能なデボーショナルがありません。",
+    "error_no_content": "PENDING",
+    "content_not_available_in_language": "PENDING",
+    "go_to_settings": "PENDING"
   },
   "prayer": {
     "invitation_title": "祈りへの招き",
@@ -898,5 +901,11 @@
     "profile_name_saved": "✅ 名前が正常に保存されました！",
     "profile_name_hint": "あなたの名前（最大15文字）",
     "profile_name_helper": "毎日のデボーションに表示されます。共有されません。"
+  },
+  "common": {
+    "home": "PENDING",
+    "bible": "PENDING",
+    "prayers": "PENDING",
+    "settings": "PENDING"
   }
 }
