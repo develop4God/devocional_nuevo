@@ -1,8 +1,8 @@
 // lib/pages/encounters_list_page.dart
 //
-// Grid of encounter tiles with a modern, youthful aesthetic.
-// published  → full opacity, animated entry, tappable
-// coming_soon → glassmorphism style, badge
+// Grid of encounter tiles.
+// published  → full opacity, tappable → navigates to EncounterIntroPage
+// coming_soon → 0.45 opacity, badge, not tappable
 
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
@@ -28,6 +28,8 @@ class _EncountersListPageState extends State<EncountersListPage> {
   void initState() {
     super.initState();
     final bloc = context.read<EncounterBloc>();
+    // Only load the index if not already loaded — prevents re-fetching on
+    // navigation return or repeated widget rebuilds.
     if (bloc.state is! EncounterLoaded) {
       final lang = context.read<DevocionalProvider>().selectedLanguage;
       bloc.add(LoadEncounterIndex(languageCode: lang));
@@ -37,11 +39,7 @@ class _EncountersListPageState extends State<EncountersListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0a0e1a) : Colors.grey[50],
       appBar: const CustomAppBar(titleText: 'Encounters'),
       body: BlocBuilder<EncounterBloc, EncounterState>(
         builder: (context, state) {
@@ -57,7 +55,7 @@ class _EncountersListPageState extends State<EncountersListPage> {
             if (state.index.isEmpty) {
               return _buildEmpty();
             }
-            return _buildContent(state);
+            return _buildGrid(state);
           }
 
           return const SizedBox.shrink();
@@ -66,71 +64,26 @@ class _EncountersListPageState extends State<EncountersListPage> {
     );
   }
 
-  Widget _buildContent(EncounterLoaded state) {
+  Widget _buildGrid(EncounterLoaded state) {
     final lang = context.read<DevocionalProvider>().selectedLanguage;
-
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Section
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Dive into the Story',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Experience the Bible like never before.',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Grid
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.82,
-            ),
-            itemCount: state.index.length,
-            itemBuilder: (context, i) {
-              final entry = state.index[i];
-              return _EncounterTile(
-                entry: entry,
-                lang: lang,
-                isCompleted: state.isCompleted(entry.id),
-                onTap: entry.isPublished
-                    ? () => _openEncounter(entry, lang)
-                    : null,
-              );
-            },
-          ),
-        ],
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.75,
       ),
+      itemCount: state.index.length,
+      itemBuilder: (context, i) {
+        final entry = state.index[i];
+        return _EncounterTile(
+          entry: entry,
+          lang: lang,
+          isCompleted: state.isCompleted(entry.id),
+          onTap: entry.isPublished ? () => _openEncounter(entry, lang) : null,
+        );
+      },
     );
   }
 
@@ -140,13 +93,8 @@ class _EncountersListPageState extends State<EncountersListPage> {
       encounterId: entry.id,
     );
     Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            EncounterIntroPage(entry: entry, lang: lang),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        transitionDuration: const Duration(milliseconds: 400),
+      MaterialPageRoute(
+        builder: (_) => EncounterIntroPage(entry: entry, lang: lang),
       ),
     );
   }
@@ -191,6 +139,10 @@ class _EncountersListPageState extends State<EncountersListPage> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Single encounter tile
+// ---------------------------------------------------------------------------
+
 class _EncounterTile extends StatelessWidget {
   final EncounterIndexEntry entry;
   final String lang;
@@ -207,78 +159,52 @@ class _EncounterTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final isPublished = entry.isPublished;
-    final accentColor = _parseColor(entry.accentColor) ?? Colors.blueAccent;
+    final accentColor =
+        _parseColor(entry.accentColor) ?? theme.colorScheme.primaryContainer;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isPublished
-                ? [accentColor, accentColor.withValues(alpha: 0.8)]
-                : [Colors.grey[800]!, Colors.grey[900]!],
+    return Opacity(
+      opacity: isPublished ? 1.0 : 0.45,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                accentColor,
+                accentColor.withValues(alpha: 0.6),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: accentColor.withValues(alpha: 0.4),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          boxShadow: isPublished
-              ? [
-                  BoxShadow(
-                    color: accentColor.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
-              : [],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
           child: Stack(
             children: [
-              // Decorative circles for a modern look
-              Positioned(
-                right: -20,
-                top: -20,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.08),
-                  ),
-                ),
-              ),
-
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Emoji badge
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        entry.emoji ?? '✨',
-                        style: const TextStyle(fontSize: 28),
-                      ),
+                    Text(
+                      entry.emoji ?? '✨',
+                      style: const TextStyle(fontSize: 36),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(
                       entry.titleFor(lang),
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        height: 1.2,
-                        letterSpacing: -0.2,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        height: 1.3,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -287,60 +213,74 @@ class _EncounterTile extends StatelessWidget {
                     Text(
                       entry.subtitleFor(lang),
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        height: 1.2,
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 11,
+                        height: 1.3,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const Spacer(),
-                    // Bottom meta info
                     Row(
                       children: [
-                        const Icon(Icons.bolt, size: 14, color: Colors.amber),
+                        const Icon(Icons.timer_outlined,
+                            size: 12, color: Colors.white70),
                         const SizedBox(width: 4),
                         Text(
                           '${entry.readingMinutesFor(lang)} min',
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
+                              color: Colors.white70, fontSize: 11),
                         ),
-                        const Spacer(),
-                        if (isCompleted)
-                          const Icon(Icons.check_circle,
-                              color: Colors.white, size: 18),
                       ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      entry.scriptureFor(lang),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-
-              // "Coming Soon" Overlay
+              // Coming soon badge
               if (!isPublished)
-                Container(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'COMING SOON',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(8),
                     ),
+                    child: const Text(
+                      'Soon',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              // Completed badge
+              if (isCompleted && isPublished)
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                    ),
+                    child:
+                        const Icon(Icons.check, color: Colors.white, size: 12),
                   ),
                 ),
             ],

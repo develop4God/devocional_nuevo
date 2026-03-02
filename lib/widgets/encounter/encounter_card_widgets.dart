@@ -1,74 +1,86 @@
 // lib/widgets/encounter/encounter_card_widgets.dart
 //
 // Modern, immersive encounter card widgets.
-// Redesigned with a youthful, high-contrast aesthetic.
+// Redesigned with a "Visual First" approach and modern transitions.
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:flutter/material.dart';
 
 // ---------------------------------------------------------------------------
-// Mood → Color mapping (Updated for more depth)
+// Mood -> Color mapping
 // ---------------------------------------------------------------------------
 
 Color moodColor(String? mood) {
   switch (mood) {
-    case 'storm':
-      return const Color(0xFF0d1a2e);
-    case 'tense':
-      return const Color(0xFF0f1828);
-    case 'mysterious':
-      return const Color(0xFF0a0e1a);
-    case 'awe':
-      return const Color(0xFF0a1220);
-    case 'falling':
-      return const Color(0xFF040810);
-    case 'grace':
-      return const Color(0xFF12100a);
-    case 'peace':
-      return const Color(0xFF0a120e);
-    case 'intense':
-      return const Color(0xFF1a0a0e);
-    default:
-      return const Color(0xFF0a0e1a);
+    case 'storm': return const Color(0xFF0d1a2e);
+    case 'tense': return const Color(0xFF0f1828);
+    case 'mysterious': return const Color(0xFF0a0e1a);
+    case 'awe': return const Color(0xFF0a1220);
+    case 'falling': return const Color(0xFF040810);
+    case 'grace': return const Color(0xFF12100a);
+    case 'peace': return const Color(0xFF0a120e);
+    case 'intense': return const Color(0xFF1a0a0e);
+    default: return const Color(0xFF0a0e1a);
   }
 }
 
 // ---------------------------------------------------------------------------
-// Shared Background Helper
+// Shared Components: Animated Entry
 // ---------------------------------------------------------------------------
 
-class _CardBackground extends StatelessWidget {
+class _DelayedEntry extends StatelessWidget {
+  final Widget child;
+  final Duration delay;
+  const _DelayedEntry({required this.child, this.delay = Duration.zero});
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 20 * (1 - value)),
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Shared: Visual Header
+// ---------------------------------------------------------------------------
+
+class _VisualHeader extends StatelessWidget {
   final String? imageUrl;
   final String? mood;
-  final Widget child;
-
-  const _CardBackground({
-    required this.child,
-    this.imageUrl,
-    this.mood,
-  });
+  final String? icon;
+  const _VisualHeader({this.imageUrl, this.mood, this.icon});
 
   @override
   Widget build(BuildContext context) {
     final base = moodColor(mood);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
+    return Container(
+      height: 240,
+      width: double.infinity,
+      decoration: BoxDecoration(color: base),
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Base Layer
           if (imageUrl != null && imageUrl!.isNotEmpty)
             CachedNetworkImage(
               imageUrl: imageUrl!,
               fit: BoxFit.cover,
               placeholder: (_, __) => Container(color: base),
               errorWidget: (_, __, ___) => Container(color: base),
-            )
-          else
-            Container(color: base),
-
-          // 2. Modern Glassmorphism/Scrim Layer
+            ),
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -76,14 +88,25 @@ class _CardBackground extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.black.withValues(alpha: 0.2),
-                  Colors.black.withValues(alpha: 0.7),
+                  base.withValues(alpha: 0.8),
                 ],
               ),
             ),
           ),
-
-          // 3. Content
-          child,
+          if (icon != null)
+            Center(
+              child: _DelayedEntry(
+                delay: const Duration(milliseconds: 200),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(icon!, style: const TextStyle(fontSize: 48)),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -91,36 +114,48 @@ class _CardBackground extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Shared Scrollable Wrapper with Modern Indicator
+// Shared: Card Shell
 // ---------------------------------------------------------------------------
 
-class _ModernScrollable extends StatelessWidget {
-  final Widget child;
-  final EdgeInsets padding;
+class _CardShell extends StatelessWidget {
+  final String? imageUrl;
+  final String? mood;
+  final String? icon;
+  final List<Widget> children;
 
-  const _ModernScrollable({
-    required this.child,
-    this.padding = const EdgeInsets.all(32),
+  const _CardShell({
+    this.imageUrl,
+    this.mood,
+    this.icon,
+    required this.children,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        scrollbarTheme: ScrollbarThemeData(
-          thumbColor:
-              WidgetStateProperty.all(Colors.white.withValues(alpha: 0.3)),
-          thickness: WidgetStateProperty.all(4),
-          radius: const Radius.circular(10),
-          minThumbLength: 40,
-        ),
-      ),
-      child: Scrollbar(
-        thumbVisibility: true,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: padding,
-          child: child,
+    final base = moodColor(mood);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: Container(
+        color: base,
+        child: Column(
+          children: [
+            _VisualHeader(imageUrl: imageUrl, mood: mood, icon: icon),
+            Expanded(
+              child: RawScrollbar(
+                thumbColor: Colors.white.withValues(alpha: 0.2),
+                thickness: 4,
+                radius: const Radius.circular(10),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: children,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -133,66 +168,56 @@ class _ModernScrollable extends StatelessWidget {
 
 class CinematicSceneCard extends StatelessWidget {
   final EncounterCard card;
-
   const CinematicSceneCard({required this.card, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return _CardBackground(
+    return _CardShell(
       imageUrl: card.imageUrl,
       mood: card.mood,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            top: 0,
-            child: _ModernScrollable(
-              padding: const EdgeInsets.fromLTRB(24, 60, 24, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  // Space for cases with little text so they still align bottom
-                  const SizedBox(height: 200),
-                  if (card.title != null)
-                    Text(
-                      card.title!.toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
-                        height: 1.1,
-                      ),
-                    ),
-                  if (card.narrative != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      card.narrative!,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontSize: 16,
-                        height: 1.5,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ],
-                  if (card.verseOverlay != null) ...[
-                    const SizedBox(height: 20),
-                    _ModernVerseOverlay(overlay: card.verseOverlay!),
-                  ],
-                  if (card.revelationKey != null) ...[
-                    const SizedBox(height: 16),
-                    _ModernRevelationKey(text: card.revelationKey!),
-                  ],
-                ],
+      children: [
+        if (card.title != null)
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 300),
+            child: Text(
+              card.title!.toUpperCase(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+        if (card.narrative != null) ...[
+          const SizedBox(height: 16),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 400),
+            child: Text(
+              card.narrative!,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.8),
+                fontSize: 16,
+                height: 1.6,
               ),
             ),
           ),
         ],
-      ),
+        if (card.verseOverlay != null) ...[
+          const SizedBox(height: 24),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 500),
+            child: _ModernVerseOverlay(overlay: card.verseOverlay!),
+          ),
+        ],
+        if (card.revelationKey != null) ...[
+          const SizedBox(height: 20),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 600),
+            child: _ModernRevelationKey(text: card.revelationKey!),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -203,85 +228,87 @@ class CinematicSceneCard extends StatelessWidget {
 
 class ScriptureMomentCard extends StatelessWidget {
   final EncounterCard card;
-
   const ScriptureMomentCard({required this.card, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return _CardBackground(
+    return _CardShell(
       imageUrl: card.imageUrl,
       mood: card.mood,
-      child: Center(
-        child: _ModernScrollable(
+      children: [
+        Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (card.verseReference != null)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
-                    border:
-                        Border.all(color: Colors.amber.withValues(alpha: 0.5)),
-                  ),
-                  child: Text(
-                    card.verseReference!.toUpperCase(),
-                    style: const TextStyle(
-                      color: Colors.amber,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 300),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                    ),
+                    child: Text(
+                      card.verseReference!.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.amber,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                      ),
                     ),
                   ),
                 ),
               if (card.verseText != null) ...[
                 const SizedBox(height: 24),
-                Text(
-                  card.verseText!,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    fontStyle: FontStyle.italic,
-                    height: 1.4,
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 400),
+                  child: Text(
+                    card.verseText!,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      fontStyle: FontStyle.italic,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ],
               if (card.reflection != null) ...[
                 const SizedBox(height: 32),
-                Container(
-                  width: 40,
-                  height: 2,
-                  color: Colors.white.withValues(alpha: 0.3),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  card.reflection!,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.75),
-                    fontSize: 15,
-                    height: 1.7,
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 500),
+                  child: Text(
+                    card.reflection!,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.75),
+                      fontSize: 15,
+                      height: 1.7,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ],
               if (card.revelationKey != null) ...[
                 const SizedBox(height: 24),
-                _ModernRevelationKey(text: card.revelationKey!),
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 600),
+                  child: _ModernRevelationKey(text: card.revelationKey!),
+                ),
               ],
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// CharacterMomentCard & TheologicalDepthCard (Shared modern style)
+// CharacterMomentCard & TheologicalDepthCard
 // ---------------------------------------------------------------------------
 
 class CharacterMomentCard extends StatelessWidget {
@@ -290,10 +317,61 @@ class CharacterMomentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _CardBackground(
+    return _CardShell(
       imageUrl: card.imageUrl,
       mood: card.mood,
-      child: _ModernContentScroll(card: card),
+      icon: card.icon,
+      children: [
+        if (card.title != null)
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 300),
+            child: Text(
+              card.title!,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+        if (card.subtitle != null) ...[
+          const SizedBox(height: 8),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 400),
+            child: Text(
+              card.subtitle!.toUpperCase(),
+              style: TextStyle(
+                color: Colors.amber.withValues(alpha: 0.8),
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ),
+        ],
+        if (card.content != null) ...[
+          const SizedBox(height: 24),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 500),
+            child: Text(
+              card.content!,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.85),
+                fontSize: 16,
+                height: 1.7,
+              ),
+            ),
+          ),
+        ],
+        if (card.revelationKey != null) ...[
+          const SizedBox(height: 32),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 600),
+            child: _ModernRevelationKey(text: card.revelationKey!),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -304,51 +382,29 @@ class TheologicalDepthCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _CardBackground(
+    return _CardShell(
       imageUrl: card.imageUrl,
       mood: card.mood,
-      child: _ModernContentScroll(card: card, showConnections: true),
-    );
-  }
-}
-
-class _ModernContentScroll extends StatelessWidget {
-  final EncounterCard card;
-  final bool showConnections;
-
-  const _ModernContentScroll(
-      {required this.card, this.showConnections = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return _ModernScrollable(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (card.icon != null)
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Text(card.icon!, style: const TextStyle(fontSize: 40)),
-            ),
-          const SizedBox(height: 24),
-          if (card.title != null)
-            Text(
+      icon: card.icon,
+      children: [
+        if (card.title != null)
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 300),
+            child: Text(
               card.title!,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 32,
+                fontSize: 28,
                 fontWeight: FontWeight.w900,
-                letterSpacing: -1.0,
-                height: 1.1,
+                letterSpacing: -0.5,
               ),
             ),
-          if (card.subtitle != null) ...[
-            const SizedBox(height: 8),
-            Text(
+          ),
+        if (card.subtitle != null) ...[
+          const SizedBox(height: 8),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 400),
+            child: Text(
               card.subtitle!.toUpperCase(),
               style: TextStyle(
                 color: Colors.amber.withValues(alpha: 0.8),
@@ -357,10 +413,13 @@ class _ModernContentScroll extends StatelessWidget {
                 letterSpacing: 1.0,
               ),
             ),
-          ],
-          if (card.content != null) ...[
-            const SizedBox(height: 24),
-            Text(
+          ),
+        ],
+        if (card.content != null) ...[
+          const SizedBox(height: 24),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 500),
+            child: Text(
               card.content!,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.85),
@@ -368,10 +427,13 @@ class _ModernContentScroll extends StatelessWidget {
                 height: 1.7,
               ),
             ),
-          ],
-          if (showConnections && card.scriptureConnections != null) ...[
-            const SizedBox(height: 32),
-            const Text(
+          ),
+        ],
+        if (card.scriptureConnections != null) ...[
+          const SizedBox(height: 32),
+          const _DelayedEntry(
+            delay: Duration(milliseconds: 600),
+            child: Text(
               'DEEPER CONNECTIONS',
               style: TextStyle(
                 color: Colors.white60,
@@ -380,22 +442,174 @@ class _ModernContentScroll extends StatelessWidget {
                 letterSpacing: 2.0,
               ),
             ),
-            const SizedBox(height: 12),
-            ...card.scriptureConnections!.map((sc) => _ConnectionTile(sc: sc)),
-          ],
-          if (card.revelationKey != null) ...[
-            const SizedBox(height: 32),
-            _ModernRevelationKey(text: card.revelationKey!),
-          ],
+          ),
+          const SizedBox(height: 12),
+          ...card.scriptureConnections!.map(
+            (sc) => _DelayedEntry(
+              delay: const Duration(milliseconds: 700),
+              child: _ConnectionTile(sc: sc),
+            ),
+          ),
         ],
-      ),
+        if (card.revelationKey != null) ...[
+          const SizedBox(height: 32),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 800),
+            child: _ModernRevelationKey(text: card.revelationKey!),
+          ),
+        ],
+      ],
     );
   }
 }
 
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
+class DiscoveryActivationCard extends StatelessWidget {
+  final EncounterCard card;
+  const DiscoveryActivationCard({required this.card, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _CardShell(
+      imageUrl: card.imageUrl,
+      mood: card.mood,
+      children: [
+        if (card.title != null)
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 300),
+            child: Text(
+              card.title!.toUpperCase(),
+              style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900),
+            ),
+          ),
+        const SizedBox(height: 24),
+        if (card.discoveryQuestions != null)
+          ...card.discoveryQuestions!.asMap().entries.map(
+                (e) => _DelayedEntry(
+                  delay: Duration(milliseconds: 400 + (e.key * 100)),
+                  child: _QuestionTile(q: e.value),
+                ),
+              ),
+        if (card.prayer != null) ...[
+          const SizedBox(height: 32),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 800),
+            child: _ModernPrayerBox(prayer: card.prayer!),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class CompletionCard extends StatelessWidget {
+  final EncounterCard card;
+  final VoidCallback? onBackToEncounters;
+  const CompletionCard({required this.card, this.onBackToEncounters, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _CardShell(
+      imageUrl: card.imageUrl,
+      mood: card.mood,
+      children: [
+        Center(
+          child: Column(
+            children: [
+              const _DelayedEntry(
+                delay: Duration(milliseconds: 300),
+                child: Icon(Icons.check_circle_outline, size: 80, color: Colors.greenAccent),
+              ),
+              const SizedBox(height: 24),
+              const _DelayedEntry(
+                delay: Duration(milliseconds: 400),
+                child: Text(
+                  'ENCOUNTER COMPLETE',
+                  style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              if (card.completionVerse != null) ...[
+                const SizedBox(height: 24),
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 500),
+                  child: Text(
+                    '"${card.completionVerse!.text}"',
+                    style: const TextStyle(color: Colors.white70, fontSize: 16, fontStyle: FontStyle.italic),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 48),
+              if (onBackToEncounters != null)
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 600),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: ElevatedButton(
+                      onPressed: onBackToEncounters,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      ),
+                      child: const Text('FINISH', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2.0)),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class InteractiveMomentCard extends StatelessWidget {
+  final EncounterCard card;
+  const InteractiveMomentCard({required this.card, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _CardShell(
+      imageUrl: card.imageUrl,
+      mood: card.mood,
+      children: [
+        Center(
+          child: Column(
+            children: [
+              _DelayedEntry(
+                delay: const Duration(milliseconds: 300),
+                child: Text(card.icon ?? '🌊', style: const TextStyle(fontSize: 64)),
+              ),
+              const SizedBox(height: 24),
+              if (card.title != null)
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 400),
+                  child: Text(
+                    card.title!,
+                    style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              if (card.reflectionPrompt != null) ...[
+                const SizedBox(height: 24),
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 500),
+                  child: Text(
+                    card.reflectionPrompt!,
+                    style: const TextStyle(color: Colors.white70, fontSize: 18, height: 1.5),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class _ModernRevelationKey extends StatelessWidget {
   final String text;
@@ -406,7 +620,7 @@ class _ModernRevelationKey extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.amber.withValues(alpha: 0.15),
+        color: Colors.amber.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
       ),
@@ -441,30 +655,21 @@ class _ModernVerseOverlay extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '"${overlay.text}"',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontStyle: FontStyle.italic,
-              fontWeight: FontWeight.w300,
-            ),
+            style: const TextStyle(color: Colors.white, fontSize: 14, fontStyle: FontStyle.italic),
           ),
           const SizedBox(height: 8),
           Text(
             '— ${overlay.reference}',
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
+            style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -491,59 +696,13 @@ class _ConnectionTile extends StatelessWidget {
           children: [
             Text(
               sc.reference,
-              style: const TextStyle(
-                color: Colors.amber,
-                fontWeight: FontWeight.w800,
-                fontSize: 12,
-              ),
+              style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w800, fontSize: 12),
             ),
             const SizedBox(height: 4),
             Text(
               sc.text,
-              style: const TextStyle(
-                  color: Colors.white70, fontSize: 13, height: 1.5),
+              style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Remaining Cards (DiscoveryActivation, Completion, Interactive)
-// ---------------------------------------------------------------------------
-
-class DiscoveryActivationCard extends StatelessWidget {
-  final EncounterCard card;
-  const DiscoveryActivationCard({required this.card, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return _CardBackground(
-      imageUrl: card.imageUrl,
-      mood: card.mood,
-      child: _ModernScrollable(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (card.title != null)
-              Text(
-                card.title!.toUpperCase(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -1.0,
-                ),
-              ),
-            const SizedBox(height: 32),
-            if (card.discoveryQuestions != null)
-              ...card.discoveryQuestions!.map((q) => _QuestionTile(q: q)),
-            if (card.prayer != null) ...[
-              const SizedBox(height: 32),
-              _ModernPrayerBox(prayer: card.prayer!),
-            ],
           ],
         ),
       ),
@@ -562,7 +721,7 @@ class _QuestionTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.08),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
@@ -571,19 +730,10 @@ class _QuestionTile extends StatelessWidget {
           children: [
             Text(
               q.category.toUpperCase(),
-              style: const TextStyle(
-                color: Colors.amber,
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.5,
-              ),
+              style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5),
             ),
             const SizedBox(height: 8),
-            Text(
-              q.question,
-              style: const TextStyle(
-                  color: Colors.white, fontSize: 16, height: 1.5),
-            ),
+            Text(q.question, style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.5)),
           ],
         ),
       ),
@@ -600,182 +750,40 @@ class _ModernPrayerBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.purple.withValues(alpha: 0.15),
+        color: Colors.purple.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.purple.withValues(alpha: 0.3)),
+        border: Border.all(color: Colors.purple.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.volunteer_activism,
-                  color: Colors.purpleAccent, size: 24),
+              const Icon(Icons.volunteer_activism, color: Colors.purpleAccent, size: 24),
               const SizedBox(width: 12),
               Text(
                 (prayer.title ?? 'PRAYER').toUpperCase(),
-                style: const TextStyle(
-                  color: Colors.purpleAccent,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 14,
-                  letterSpacing: 1.0,
-                ),
+                style: const TextStyle(color: Colors.purpleAccent, fontWeight: FontWeight.w900, fontSize: 14),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            prayer.content,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontStyle: FontStyle.italic,
-              height: 1.7,
-            ),
-          ),
+          Text(prayer.content, style: const TextStyle(color: Colors.white, fontSize: 16, fontStyle: FontStyle.italic, height: 1.7)),
         ],
       ),
     );
   }
 }
 
-class CompletionCard extends StatelessWidget {
-  final EncounterCard card;
-  final VoidCallback? onBackToEncounters;
-
-  const CompletionCard(
-      {required this.card, this.onBackToEncounters, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return _CardBackground(
-      imageUrl: card.imageUrl,
-      mood: card.mood,
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.check_circle_outline,
-                size: 80, color: Colors.greenAccent),
-            const SizedBox(height: 32),
-            const Text(
-              'ENCOUNTER COMPLETE',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.0,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            if (card.completionVerse != null) ...[
-              const SizedBox(height: 24),
-              Text(
-                '"${card.completionVerse!.text}"',
-                style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                    fontStyle: FontStyle.italic),
-                textAlign: TextAlign.center,
-              ),
-            ],
-            const Spacer(),
-            if (onBackToEncounters != null)
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: onBackToEncounters,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)),
-                  ),
-                  child: const Text('FINISH',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w900, letterSpacing: 2.0)),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class InteractiveMomentCard extends StatelessWidget {
-  final EncounterCard card;
-  const InteractiveMomentCard({required this.card, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return _CardBackground(
-      imageUrl: card.imageUrl,
-      mood: card.mood,
-      child: Center(
-        child: _ModernScrollable(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(card.icon ?? '🌊', style: const TextStyle(fontSize: 64)),
-              const SizedBox(height: 32),
-              if (card.title != null)
-                Text(
-                  card.title!,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -1.0),
-                  textAlign: TextAlign.center,
-                ),
-              if (card.reflectionPrompt != null) ...[
-                const SizedBox(height: 24),
-                Text(
-                  card.reflectionPrompt!,
-                  style: const TextStyle(
-                      color: Colors.white70, fontSize: 18, height: 1.5),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class UnknownCard extends StatelessWidget {
-  const UnknownCard({super.key});
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
-}
-
-// ---------------------------------------------------------------------------
-// Factory
-// ---------------------------------------------------------------------------
-
-Widget buildEncounterCardWidget(EncounterCard card,
-    {VoidCallback? onBackToEncounters}) {
+Widget buildEncounterCardWidget(EncounterCard card, {VoidCallback? onBackToEncounters}) {
   switch (card.type) {
-    case 'cinematic_scene':
-      return CinematicSceneCard(card: card);
-    case 'scripture_moment':
-      return ScriptureMomentCard(card: card);
-    case 'character_moment':
-      return CharacterMomentCard(card: card);
-    case 'theological_depth':
-      return TheologicalDepthCard(card: card);
-    case 'discovery_activation':
-      return DiscoveryActivationCard(card: card);
-    case 'completion':
-      return CompletionCard(card: card, onBackToEncounters: onBackToEncounters);
-    case 'interactive_moment':
-      return InteractiveMomentCard(card: card);
-    default:
-      return const UnknownCard();
+    case 'cinematic_scene': return CinematicSceneCard(card: card);
+    case 'scripture_moment': return ScriptureMomentCard(card: card);
+    case 'character_moment': return CharacterMomentCard(card: card);
+    case 'theological_depth': return TheologicalDepthCard(card: card);
+    case 'discovery_activation': return DiscoveryActivationCard(card: card);
+    case 'completion': return CompletionCard(card: card, onBackToEncounters: onBackToEncounters);
+    case 'interactive_moment': return InteractiveMomentCard(card: card);
+    default: return const SizedBox.shrink();
   }
 }
