@@ -136,8 +136,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                   Expanded(
                     child: PageView.builder(
                       controller: _pageController,
-                      onPageChanged: (index) =>
-                          _onPageChanged(index, study),
+                      onPageChanged: (index) => _onPageChanged(index, study),
                       itemCount: total,
                       physics: const BouncingScrollPhysics(),
                       itemBuilder: (context, index) {
@@ -178,13 +177,14 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                     ),
                   ),
                   _buildNavRow(total, isLast, theme),
-                  SizedBox(
-                      height: MediaQuery.of(context).padding.bottom + 16),
+                  SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
                 ],
               ),
               // Bottom gradient fade
               Positioned(
-                left: 0, right: 0, bottom: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
                 height: 80,
                 child: IgnorePointer(
                   child: Container(
@@ -194,8 +194,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                         end: Alignment.bottomCenter,
                         colors: [
                           theme.scaffoldBackgroundColor.withValues(alpha: 0),
-                          theme.scaffoldBackgroundColor
-                              .withValues(alpha: 0.8),
+                          theme.scaffoldBackgroundColor.withValues(alpha: 0.8),
                           theme.scaffoldBackgroundColor,
                         ],
                       ),
@@ -245,8 +244,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
     );
   }
 
-  Widget _buildStudyHeader(
-      EncounterStudy study, int total, ThemeData theme) {
+  Widget _buildStudyHeader(EncounterStudy study, int total, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
       child: Row(

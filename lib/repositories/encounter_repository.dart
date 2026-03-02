@@ -20,7 +20,8 @@ class EncounterRepository {
 
   static const String _indexCacheKey = 'encounter_index_cache';
   static const String _studyCacheKeyPrefix = 'encounter_cache_';
-  static const String _fallbackAsset = 'assets/encounters/fallback_peter_en.json';
+  static const String _fallbackAsset =
+      'assets/encounters/fallback_peter_en.json';
 
   EncounterRepository({required this.httpClient});
 
@@ -51,6 +52,11 @@ class EncounterRepository {
       }
     } catch (e) {
       debugPrint('⚠️ Encounter: Network error fetching index: $e');
+
+      if (!Constants.enableEncounterFallback) {
+        debugPrint('🚫 Encounter: Fallback disabled — rethrowing error');
+        rethrow;
+      }
 
       // Try SharedPreferences cache
       final cached = prefs.getString(_indexCacheKey);
@@ -119,11 +125,13 @@ class EncounterRepository {
   /// Fetches an individual encounter study. Checks cache first, then network.
   /// Falls back to the bundled fallback asset for 'peter_water_001'.
   Future<EncounterStudy> fetchStudy(String id, String lang) async {
-    // 1. Check SharedPreferences cache
-    final cached = await _loadStudyFromCache(id, lang);
-    if (cached != null) {
-      debugPrint('✅ Encounter: Cache hit for $id ($lang)');
-      return cached;
+    // 1. Check SharedPreferences cache (skipped when fallback is disabled)
+    if (Constants.enableEncounterFallback) {
+      final cached = await _loadStudyFromCache(id, lang);
+      if (cached != null) {
+        debugPrint('✅ Encounter: Cache hit for $id ($lang)');
+        return cached;
+      }
     }
 
     // 2. Fetch from network (non-recursive — try lang, then 'en' directly)
@@ -132,8 +140,8 @@ class EncounterRepository {
       return study;
     } catch (e) {
       debugPrint('❌ Encounter: Error fetching study $id ($lang): $e');
-      // Fallback to bundled asset for peter_water_001
-      if (id == 'peter_water_001') {
+      // Fallback to bundled asset only when fallback is enabled
+      if (Constants.enableEncounterFallback && id == 'peter_water_001') {
         return _loadFallbackStudy();
       }
       rethrow;
@@ -155,7 +163,8 @@ class EncounterRepository {
 
     // Try English fallback once (no recursion)
     if (lang != 'en') {
-      debugPrint('⚠️ Encounter: $lang not found for $id, trying English fallback');
+      debugPrint(
+          '⚠️ Encounter: $lang not found for $id, trying English fallback');
       final enUrl = Constants.getEncounterStudyUrl(id, 'en');
       final enResponse = await httpClient.get(Uri.parse(enUrl));
       if (enResponse.statusCode == 200) {
@@ -166,7 +175,8 @@ class EncounterRepository {
       }
     }
 
-    throw Exception('Failed to load encounter study $id: ${response.statusCode}');
+    throw Exception(
+        'Failed to load encounter study $id: ${response.statusCode}');
   }
 
   Future<EncounterStudy?> _loadStudyFromCache(String id, String lang) async {

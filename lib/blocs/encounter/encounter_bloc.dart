@@ -66,7 +66,8 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
         final updatedStudies =
             Map<String, EncounterStudy>.from(newState.loadedStudies);
         updatedStudies[event.id] = study;
-        emit(newState.copyWith(loadedStudies: updatedStudies, clearError: true));
+        emit(
+            newState.copyWith(loadedStudies: updatedStudies, clearError: true));
       } else {
         // Fallback if state changed
         emit(
@@ -80,8 +81,7 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
       debugPrint('❌ [EncounterBloc] Error loading study ${event.id}: $e');
       final newState = state;
       if (newState is EncounterLoaded) {
-        emit(newState.copyWith(
-            errorMessage: 'Error loading encounter: $e'));
+        emit(newState.copyWith(errorMessage: 'Error loading encounter: $e'));
       } else {
         emit(EncounterError('Error loading encounter: $e'));
       }

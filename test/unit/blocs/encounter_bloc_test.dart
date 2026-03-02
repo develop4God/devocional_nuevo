@@ -16,7 +16,8 @@ class MockEncounterRepository extends Mock implements EncounterRepository {}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-EncounterIndexEntry _fakeEntry({String id = 'test_001', String status = 'published'}) =>
+EncounterIndexEntry _fakeEntry(
+        {String id = 'test_001', String status = 'published'}) =>
     EncounterIndexEntry(
       id: id,
       version: '1.0',

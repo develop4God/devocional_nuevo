@@ -31,8 +31,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // ─── Firebase channel mock (prevents real plugin calls) ──────────────────────
 
 void _setupFirebaseMocks() {
-  const firebaseCoreChannel =
-      MethodChannel('plugins.flutter.io/firebase_core');
+  const firebaseCoreChannel = MethodChannel('plugins.flutter.io/firebase_core');
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(firebaseCoreChannel, (call) async {
     switch (call.method) {

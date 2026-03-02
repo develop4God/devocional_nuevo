@@ -109,12 +109,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   late final DevocionalRepositoryImpl _devocionalRepository =
       DevocionalRepositoryImpl();
 
-
-
   // Pet service resolved once (not inside build) to comply with DI rules.
   late final SupporterPetService _petService =
       getService<SupporterPetService>();
-
 
   @override
   void initState() {

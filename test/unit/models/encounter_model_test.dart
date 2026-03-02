@@ -21,9 +21,18 @@ void main() {
         'has_interactive': false,
         'testament': 'new',
         'character': 'Peter',
-        'files': {'en': 'peter_water_001_en.json', 'es': 'peter_water_001_es.json'},
-        'titles': {'en': 'Peter Walks on Water', 'es': 'Pedro Camina sobre el Agua'},
-        'subtitles': {'en': 'Faith Beyond the Storm', 'es': 'Fe Más Allá de la Tormenta'},
+        'files': {
+          'en': 'peter_water_001_en.json',
+          'es': 'peter_water_001_es.json'
+        },
+        'titles': {
+          'en': 'Peter Walks on Water',
+          'es': 'Pedro Camina sobre el Agua'
+        },
+        'subtitles': {
+          'en': 'Faith Beyond the Storm',
+          'es': 'Fe Más Allá de la Tormenta'
+        },
         'scripture_reference': {'en': 'Matthew 14:22-33'},
         'estimated_reading_minutes': {'en': 10, 'es': 12},
       };
@@ -63,10 +72,15 @@ void main() {
     });
 
     test('isPublished returns true for published status', () {
-      final entry = EncounterIndexEntry.fromJson(
-          {'id': 'x', 'status': 'published', 'files': {}, 'titles': {},
-           'subtitles': {}, 'scripture_reference': {},
-           'estimated_reading_minutes': {}});
+      final entry = EncounterIndexEntry.fromJson({
+        'id': 'x',
+        'status': 'published',
+        'files': {},
+        'titles': {},
+        'subtitles': {},
+        'scripture_reference': {},
+        'estimated_reading_minutes': {}
+      });
       expect(entry.isPublished, isTrue);
     });
 
