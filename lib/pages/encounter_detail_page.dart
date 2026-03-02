@@ -58,7 +58,8 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
           final cards = study.cards;
           if (cards.isEmpty) {
             return const Center(
-              child: Text('No cards available.', style: TextStyle(color: Colors.white)),
+              child: Text('No cards available.',
+                  style: TextStyle(color: Colors.white)),
             );
           }
 
@@ -130,7 +131,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       visible: _currentIndex > 0,
                       onPressed: () => _swiperController.previous(),
                     ),
-                    
+
                     Text(
                       '${_currentIndex + 1} / ${cards.length}',
                       style: const TextStyle(
