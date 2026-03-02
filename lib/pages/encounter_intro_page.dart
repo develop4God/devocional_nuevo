@@ -8,6 +8,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/pages/encounter_detail_page.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
@@ -119,7 +120,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
     final accentColor =
         _parseColor(entry.accentColor) ?? const Color(0xFF1e3a5f);
 
-    // Dynamic intro image from JSON schema (No longer hardcoded for Peter)
+    // Dynamic intro image from JSON schema
     final imageUrl = entry.introImage != null
         ? Constants.getEncounterImageUrl(entry.introImage!)
         : null;
@@ -258,14 +259,14 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                                 _FeatureRow(
                                   icon: Icons.bolt_rounded,
                                   label:
-                                      '${entry.readingMinutesFor(widget.lang)} MIN IMMERSIVE JOURNEY',
+                                      '${entry.readingMinutesFor(widget.lang)} ${'encounters.min_immersive_journey'.tr()}',
                                 ),
                                 if (entry.testament != null) ...[
                                   const SizedBox(height: 16),
                                   _FeatureRow(
                                     icon: Icons.explore_rounded,
                                     label:
-                                        '${entry.testament!.toUpperCase()} TESTAMENT EXPERIENCE',
+                                        '${entry.testament!.toUpperCase()} ${'encounters.testament_experience'.tr()}',
                                   ),
                                 ],
                               ],
@@ -307,9 +308,9 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                               ),
                             ),
                             child: isLoaded
-                                ? const Text(
-                                    'ENTER THE EXPERIENCE',
-                                    style: TextStyle(
+                                ? Text(
+                                    'encounters.enter_experience'.tr(),
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w900,
                                       letterSpacing: 2.0,

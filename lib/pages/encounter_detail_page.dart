@@ -6,6 +6,7 @@
 import 'package:card_swiper/card_swiper.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_card_widgets.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +50,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
           if (study == null) {
             return Center(
               child: Text(
-                'Study not found',
+                'encounters.study_not_found'.tr(),
                 style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
               ),
             );
@@ -57,9 +58,11 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
 
           final cards = study.cards;
           if (cards.isEmpty) {
-            return const Center(
-              child: Text('No cards available.',
-                  style: TextStyle(color: Colors.white)),
+            return Center(
+              child: Text(
+                'encounters.no_cards_available'.tr(),
+                style: const TextStyle(color: Colors.white),
+              ),
             );
           }
 
@@ -131,7 +134,6 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       visible: _currentIndex > 0,
                       onPressed: () => _swiperController.previous(),
                     ),
-
                     Text(
                       '${_currentIndex + 1} / ${cards.length}',
                       style: const TextStyle(
@@ -141,14 +143,20 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                         letterSpacing: 1.5,
                       ),
                     ),
-
-                    // Next Button
                     _NavButton(
                       icon: Icons.chevron_right,
                       visible: _currentIndex < cards.length - 1,
                       onPressed: () => _swiperController.next(),
                     ),
                   ],
+                ),
+              ),
+              Positioned(
+                top: 50,
+                left: 16,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white70),
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
               ),
             ],

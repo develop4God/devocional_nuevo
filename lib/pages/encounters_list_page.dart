@@ -1,20 +1,21 @@
 // lib/pages/encounters_list_page.dart
 //
-// Grid of encounter tiles with a modern, youthful aesthetic.
-// Redesigned for high impact using full-bleed images and complete visibility.
+// Grid of encounter tiles.
+// published  → full opacity, tappable → navigates to EncounterIntroPage
+// coming_soon → 0.45 opacity, badge, not tappable
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/pages/encounter_intro_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
-import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -44,7 +45,7 @@ class _EncountersListPageState extends State<EncountersListPage> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0a0e1a) : Colors.grey[50],
-      appBar: const CustomAppBar(titleText: 'Encounters'),
+      appBar: CustomAppBar(titleText: 'encounters.section_title'.tr()),
       body: BlocBuilder<EncounterBloc, EncounterState>(
         builder: (context, state) {
           if (state is EncounterLoading || state is EncounterInitial) {
@@ -77,7 +78,6 @@ class _EncountersListPageState extends State<EncountersListPage> {
       itemCount: state.index.length + 1, // +1 for header
       itemBuilder: (context, i) {
         if (i == 0) return _buildHeader();
-        
         final entry = state.index[i - 1];
         return Padding(
           padding: const EdgeInsets.only(bottom: 24),
@@ -85,9 +85,7 @@ class _EncountersListPageState extends State<EncountersListPage> {
             entry: entry,
             lang: lang,
             isCompleted: state.isCompleted(entry.id),
-            onTap: entry.isPublished
-                ? () => _openEncounter(entry, lang)
-                : null,
+            onTap: entry.isPublished ? () => _openEncounter(entry, lang) : null,
           ),
         );
       },
@@ -101,7 +99,7 @@ class _EncountersListPageState extends State<EncountersListPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Dive into the Story',
+            'encounters.page_title'.tr(),
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w900,
@@ -113,7 +111,7 @@ class _EncountersListPageState extends State<EncountersListPage> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Experience the Bible like never before.',
+            'encounters.page_subtitle'.tr(),
             style: TextStyle(
               fontSize: 16,
               color: Colors.grey[600],
@@ -143,15 +141,21 @@ class _EncountersListPageState extends State<EncountersListPage> {
   }
 
   Widget _buildEmpty() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.explore_outlined, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
+          const Icon(Icons.explore_outlined, size: 64, color: Colors.grey),
+          const SizedBox(height: 16),
           Text(
-            'No encounters available yet.',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            'encounters.empty_title'.tr(),
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'encounters.empty_subtitle'.tr(),
+            style: const TextStyle(fontSize: 13, color: Colors.grey),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -165,7 +169,10 @@ class _EncountersListPageState extends State<EncountersListPage> {
         children: [
           const Icon(Icons.error_outline, size: 64, color: Colors.red),
           const SizedBox(height: 16),
-          Text(message, textAlign: TextAlign.center),
+          Text(
+            message.isNotEmpty ? message : 'encounters.error_load'.tr(),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
@@ -174,7 +181,7 @@ class _EncountersListPageState extends State<EncountersListPage> {
                   .read<EncounterBloc>()
                   .add(LoadEncounterIndex(languageCode: lang));
             },
-            child: const Text('Retry'),
+            child: Text('encounters.retry'.tr()),
           ),
         ],
       ),
@@ -199,13 +206,11 @@ class _EncounterCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPublished = entry.isPublished;
     final accentColor = _parseColor(entry.accentColor) ?? Colors.blueAccent;
-    
-    // Impact logic: a study is "Today" if it's the first in the list and not completed
-    // (This can be refined later if you have a specific 'today' property in JSON)
-    final bool isToday = !isCompleted && entry.isPublished; 
-    final bool isNew = !isCompleted && !isToday; 
 
-    final imageUrl = entry.introImage != null 
+    final bool isToday = !isCompleted && entry.isPublished;
+    final bool isNew = !isCompleted && !isToday;
+
+    final imageUrl = entry.introImage != null
         ? Constants.getEncounterImageUrl(entry.introImage!)
         : null;
 
@@ -216,13 +221,15 @@ class _EncounterCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(32),
           color: accentColor.withValues(alpha: 0.15),
-          boxShadow: isPublished ? [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 25,
-              offset: const Offset(0, 12),
-            )
-          ] : [],
+          boxShadow: isPublished
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 25,
+                    offset: const Offset(0, 12),
+                  )
+                ]
+              : [],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(32),
@@ -235,12 +242,13 @@ class _EncounterCard extends StatelessWidget {
                   imageUrl: imageUrl,
                   fit: BoxFit.cover,
                   placeholder: (context, url) => Container(color: accentColor),
-                  errorWidget: (context, url, error) => Container(color: accentColor),
+                  errorWidget: (context, url, error) =>
+                      Container(color: accentColor),
                 )
               else
                 Container(color: accentColor),
 
-              // 2. Stronger Gradient for impact
+              // 2. Gradient overlay
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -261,24 +269,25 @@ class _EncounterCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Impact Header (Status Badges)
+                    // Status Badges row
                     Row(
                       children: [
                         if (isCompleted)
                           _StatusBadge(
-                            label: 'discovery.completed'.tr().toUpperCase(),
+                            label:
+                                'encounters.badge_completed'.tr().toUpperCase(),
                             icon: Icons.verified_rounded,
                             color: Colors.greenAccent,
                           )
                         else if (isToday)
                           _StatusBadge(
-                            label: 'app.today'.tr().toUpperCase(), 
+                            label: 'encounters.badge_today'.tr().toUpperCase(),
                             icon: Icons.local_fire_department_rounded,
-                            color: const Color(0xFFFF8F00), 
+                            color: const Color(0xFFFF8F00),
                           )
                         else if (isNew)
                           _StatusBadge(
-                            label: 'bubble_constants.new_feature'.tr().toUpperCase(),
+                            label: 'encounters.badge_new'.tr().toUpperCase(),
                             icon: Icons.new_releases_rounded,
                             color: Colors.cyanAccent,
                           ),
@@ -288,7 +297,8 @@ class _EncounterCard extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                            border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.1)),
                           ),
                           child: Text(
                             entry.emoji ?? '✨',
@@ -310,7 +320,7 @@ class _EncounterCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // Subtitle (FULLY VISIBLE)
+                    // Subtitle
                     Text(
                       entry.subtitleFor(lang),
                       style: TextStyle(
@@ -321,7 +331,7 @@ class _EncounterCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    // Action Row
+                    // Meta row
                     Row(
                       children: [
                         _MetaInfo(
@@ -345,14 +355,15 @@ class _EncounterCard extends StatelessWidget {
                   color: Colors.black.withValues(alpha: 0.7),
                   child: Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 28, vertical: 14),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      child: const Text(
-                        'COMING SOON',
-                        style: TextStyle(
+                      child: Text(
+                        'encounters.coming_soon'.tr(),
+                        style: const TextStyle(
                           color: Colors.black,
                           fontSize: 14,
                           fontWeight: FontWeight.w900,
@@ -373,12 +384,8 @@ class _EncounterCard extends StatelessWidget {
     if (hex == null || hex.isEmpty) return null;
     try {
       final clean = hex.replaceAll('#', '');
-      if (clean.length == 6) {
-        return Color(int.parse('FF$clean', radix: 16));
-      }
-      if (clean.length == 8) {
-        return Color(int.parse(clean, radix: 16));
-      }
+      if (clean.length == 6) return Color(int.parse('FF$clean', radix: 16));
+      if (clean.length == 8) return Color(int.parse(clean, radix: 16));
     } catch (_) {}
     return null;
   }
@@ -389,29 +396,33 @@ class _StatusBadge extends StatelessWidget {
   final IconData icon;
   final Color color;
 
-  const _StatusBadge({required this.label, required this.icon, required this.color});
+  const _StatusBadge({
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.25),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.6), width: 1.5),
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 16),
-          const SizedBox(width: 8),
+          Icon(icon, color: color, size: 12),
+          const SizedBox(width: 5),
           Text(
             label,
             style: TextStyle(
               color: color,
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
+              letterSpacing: 1.0,
             ),
           ),
         ],
@@ -429,24 +440,21 @@ class _MetaInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: Colors.white70),
-        const SizedBox(width: 8),
-        Flexible(
-          child: Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.8,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+        Icon(icon, color: Colors.white70, size: 14),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
           ),
         ),
       ],
     );
   }
 }
+
+final VoidCallback? onTap;

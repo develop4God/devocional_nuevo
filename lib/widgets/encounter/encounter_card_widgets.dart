@@ -4,8 +4,8 @@
 // Redesigned with a "Visual First" approach and modern transitions.
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:flutter/material.dart';
 
 // ---------------------------------------------------------------------------
@@ -42,6 +42,7 @@ Color moodColor(String? mood) {
 class _DelayedEntry extends StatelessWidget {
   final Widget child;
   final Duration delay;
+
   const _DelayedEntry({required this.child, this.delay = Duration.zero});
 
   @override
@@ -72,6 +73,7 @@ class _VisualHeader extends StatelessWidget {
   final String? imageUrl;
   final String? mood;
   final String? icon;
+
   const _VisualHeader({this.imageUrl, this.mood, this.icon});
 
   @override
@@ -200,8 +202,8 @@ class _CardShellState extends State<_CardShell> {
                     thumbColor: Colors.white.withValues(alpha: 0.3),
                     thickness: 4,
                     radius: const Radius.circular(10),
-                    thumbVisibility:
-                        true, // Always show if scrollable to indicate more content
+                    thumbVisibility: true,
+                    // Always show if scrollable to indicate more content
                     child: SingleChildScrollView(
                       controller: _scrollController,
                       physics: const BouncingScrollPhysics(),
@@ -272,7 +274,7 @@ class _ScrollIndicatorState extends State<_ScrollIndicator>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'discovery.read'.tr().toUpperCase(),
+                  'encounters.scroll_for_more'.tr().toUpperCase(),
                   style: const TextStyle(
                       color: Colors.white54,
                       fontSize: 8,
@@ -296,6 +298,7 @@ class _ScrollIndicatorState extends State<_ScrollIndicator>
 
 class CinematicSceneCard extends StatelessWidget {
   final EncounterCard card;
+
   const CinematicSceneCard({required this.card, super.key});
 
   @override
@@ -356,6 +359,7 @@ class CinematicSceneCard extends StatelessWidget {
 
 class ScriptureMomentCard extends StatelessWidget {
   final EncounterCard card;
+
   const ScriptureMomentCard({required this.card, super.key});
 
   @override
@@ -443,6 +447,7 @@ class ScriptureMomentCard extends StatelessWidget {
 
 class CharacterMomentCard extends StatelessWidget {
   final EncounterCard card;
+
   const CharacterMomentCard({required this.card, super.key});
 
   @override
@@ -508,6 +513,7 @@ class CharacterMomentCard extends StatelessWidget {
 
 class TheologicalDepthCard extends StatelessWidget {
   final EncounterCard card;
+
   const TheologicalDepthCard({required this.card, super.key});
 
   @override
@@ -561,11 +567,11 @@ class TheologicalDepthCard extends StatelessWidget {
         ],
         if (card.scriptureConnections != null) ...[
           const SizedBox(height: 32),
-          const _DelayedEntry(
-            delay: Duration(milliseconds: 600),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 600),
             child: Text(
-              'DEEPER CONNECTIONS',
-              style: TextStyle(
+              'encounters.deeper_connections'.tr(),
+              style: const TextStyle(
                 color: Colors.white60,
                 fontSize: 11,
                 fontWeight: FontWeight.w900,
@@ -595,6 +601,7 @@ class TheologicalDepthCard extends StatelessWidget {
 
 class DiscoveryActivationCard extends StatelessWidget {
   final EncounterCard card;
+
   const DiscoveryActivationCard({required this.card, super.key});
 
   @override
@@ -637,6 +644,7 @@ class DiscoveryActivationCard extends StatelessWidget {
 class CompletionCard extends StatelessWidget {
   final EncounterCard card;
   final VoidCallback? onBackToEncounters;
+
   const CompletionCard(
       {required this.card, this.onBackToEncounters, super.key});
 
@@ -655,11 +663,11 @@ class CompletionCard extends StatelessWidget {
                     size: 80, color: Colors.greenAccent),
               ),
               const SizedBox(height: 24),
-              const _DelayedEntry(
-                delay: Duration(milliseconds: 400),
+              _DelayedEntry(
+                delay: const Duration(milliseconds: 400),
                 child: Text(
-                  'ENCOUNTER COMPLETE',
-                  style: TextStyle(
+                  'encounters.encounter_complete'.tr(),
+                  style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.w900),
@@ -695,9 +703,11 @@ class CompletionCard extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20)),
                       ),
-                      child: const Text('FINISH',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w900, letterSpacing: 2.0)),
+                      child: Text(
+                        'encounters.finish'.tr(),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w900, letterSpacing: 2.0),
+                      ),
                     ),
                   ),
                 ),
@@ -711,6 +721,7 @@ class CompletionCard extends StatelessWidget {
 
 class InteractiveMomentCard extends StatelessWidget {
   final EncounterCard card;
+
   const InteractiveMomentCard({required this.card, super.key});
 
   @override
@@ -762,6 +773,7 @@ class InteractiveMomentCard extends StatelessWidget {
 
 class _ModernRevelationKey extends StatelessWidget {
   final String text;
+
   const _ModernRevelationKey({required this.text});
 
   @override
@@ -797,6 +809,7 @@ class _ModernRevelationKey extends StatelessWidget {
 
 class _ModernVerseOverlay extends StatelessWidget {
   final EncounterVerseOverlay overlay;
+
   const _ModernVerseOverlay({required this.overlay});
 
   @override
@@ -832,6 +845,7 @@ class _ModernVerseOverlay extends StatelessWidget {
 
 class _ConnectionTile extends StatelessWidget {
   final EncounterScriptureConnection sc;
+
   const _ConnectionTile({required this.sc});
 
   @override
@@ -869,6 +883,7 @@ class _ConnectionTile extends StatelessWidget {
 
 class _QuestionTile extends StatelessWidget {
   final EncounterDiscoveryQuestion q;
+
   const _QuestionTile({required this.q});
 
   @override
@@ -906,6 +921,7 @@ class _QuestionTile extends StatelessWidget {
 
 class _ModernPrayerBox extends StatelessWidget {
   final EncounterPrayer prayer;
+
   const _ModernPrayerBox({required this.prayer});
 
   @override
@@ -926,7 +942,7 @@ class _ModernPrayerBox extends StatelessWidget {
                   color: Colors.purpleAccent, size: 24),
               const SizedBox(width: 12),
               Text(
-                (prayer.title ?? 'PRAYER').toUpperCase(),
+                (prayer.title ?? 'encounters.prayer_label'.tr()).toUpperCase(),
                 style: const TextStyle(
                     color: Colors.purpleAccent,
                     fontWeight: FontWeight.w900,
