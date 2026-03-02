@@ -266,87 +266,91 @@ class _EncounterCard extends StatelessWidget {
               // 3. Content Area
               Padding(
                 padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Status Badges row
-                    Row(
-                      children: [
-                        if (isCompleted)
-                          _StatusBadge(
-                            label:
-                                'encounters.badge_completed'.tr().toUpperCase(),
-                            icon: Icons.verified_rounded,
-                            color: Colors.greenAccent,
-                          )
-                        else if (isToday)
-                          _StatusBadge(
-                            label: 'encounters.badge_today'.tr().toUpperCase(),
-                            icon: Icons.local_fire_department_rounded,
-                            color: const Color(0xFFFF8F00),
-                          )
-                        else if (isNew)
-                          _StatusBadge(
-                            label: 'encounters.badge_new'.tr().toUpperCase(),
-                            icon: Icons.new_releases_rounded,
-                            color: Colors.cyanAccent,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Status Badges row
+                      Row(
+                        children: [
+                          if (isCompleted)
+                            _StatusBadge(
+                              label: 'encounters.badge_completed'
+                                  .tr()
+                                  .toUpperCase(),
+                              icon: Icons.verified_rounded,
+                              color: Colors.greenAccent,
+                            )
+                          else if (isToday)
+                            _StatusBadge(
+                              label:
+                                  'encounters.badge_today'.tr().toUpperCase(),
+                              icon: Icons.local_fire_department_rounded,
+                              color: const Color(0xFFFF8F00),
+                            )
+                          else if (isNew)
+                            _StatusBadge(
+                              label: 'encounters.badge_new'.tr().toUpperCase(),
+                              icon: Icons.new_releases_rounded,
+                              color: Colors.cyanAccent,
+                            ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.1)),
+                            ),
+                            child: Text(
+                              entry.emoji ?? '✨',
+                              style: const TextStyle(fontSize: 22),
+                            ),
                           ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.1)),
-                          ),
-                          child: Text(
-                            entry.emoji ?? '✨',
-                            style: const TextStyle(fontSize: 22),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    // Title
-                    Text(
-                      entry.titleFor(lang),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 30,
-                        fontWeight: FontWeight.w900,
-                        height: 1.0,
-                        letterSpacing: -1.0,
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Subtitle
-                    Text(
-                      entry.subtitleFor(lang),
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.95),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        height: 1.3,
+                      const Spacer(),
+                      // Title
+                      Text(
+                        entry.titleFor(lang),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w900,
+                          height: 1.0,
+                          letterSpacing: -1.0,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Meta row
-                    Row(
-                      children: [
-                        _MetaInfo(
-                          icon: Icons.access_time_filled_rounded,
-                          text:
-                              '${entry.readingMinutesFor(lang)} ${'discovery.minutes_suffix'.tr()}',
+                      const SizedBox(height: 12),
+                      // Subtitle
+                      Text(
+                        entry.subtitleFor(lang),
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.95),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          height: 1.3,
                         ),
-                        const SizedBox(width: 24),
-                        _MetaInfo(
-                          icon: Icons.menu_book_rounded,
-                          text: entry.scriptureFor(lang).toUpperCase(),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      const SizedBox(height: 24),
+                      // Meta row
+                      Row(
+                        children: [
+                          _MetaInfo(
+                            icon: Icons.access_time_filled_rounded,
+                            text:
+                                '${entry.readingMinutesFor(lang)} ${'discovery.minutes_suffix'.tr()}',
+                          ),
+                          const SizedBox(width: 24),
+                          _MetaInfo(
+                            icon: Icons.menu_book_rounded,
+                            text: entry.scriptureFor(lang).toUpperCase(),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
 

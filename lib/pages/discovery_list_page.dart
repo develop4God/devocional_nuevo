@@ -16,7 +16,7 @@ import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/discovery_share_helper.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
-import 'package:devocional_nuevo/widgets/devotional_card_premium.dart';
+import 'package:devocional_nuevo/widgets/discovery_card_premium.dart';
 import 'package:devocional_nuevo/widgets/discovery_grid_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
