@@ -114,10 +114,10 @@ class _VisualHeader extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Shared: Card Shell
+// Shared: Card Shell (Stateful to handle scroll feedback)
 // ---------------------------------------------------------------------------
 
-class _CardShell extends StatelessWidget {
+class _CardShell extends StatefulWidget {
   final String? imageUrl;
   final String? mood;
   final String? icon;
@@ -131,33 +131,138 @@ class _CardShell extends StatelessWidget {
   });
 
   @override
+  State<_CardShell> createState() => _CardShellState();
+}
+
+class _CardShellState extends State<_CardShell> {
+  final ScrollController _scrollController = ScrollController();
+  bool _canScroll = false;
+  bool _isAtTop = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scrollListener);
+    // Check for scrollability after layout
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        setState(() {
+          _canScroll = _scrollController.position.maxScrollExtent > 0;
+        });
+      }
+    });
+  }
+
+  void _scrollListener() {
+    if (_scrollController.hasClients) {
+      final atTop = _scrollController.offset <= 10;
+      if (atTop != _isAtTop) {
+        setState(() => _isAtTop = atTop);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final base = moodColor(mood);
+    final base = moodColor(widget.mood);
     return ClipRRect(
       borderRadius: BorderRadius.circular(28),
       child: Container(
         color: base,
-        child: Column(
+        child: Stack(
           children: [
-            _VisualHeader(imageUrl: imageUrl, mood: mood, icon: icon),
-            Expanded(
-              child: RawScrollbar(
-                thumbColor: Colors.white.withValues(alpha: 0.2),
-                thickness: 4,
-                radius: const Radius.circular(10),
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: children,
+            Column(
+              children: [
+                _VisualHeader(imageUrl: widget.imageUrl, mood: widget.mood, icon: widget.icon),
+                Expanded(
+                  child: RawScrollbar(
+                    controller: _scrollController,
+                    thumbColor: Colors.white.withValues(alpha: 0.3),
+                    thickness: 4,
+                    radius: const Radius.circular(10),
+                    thumbVisibility: true, // Always show if scrollable to indicate more content
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: widget.children,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
+            
+            // Modern "Scroll for more" indicator
+            if (_canScroll && _isAtTop)
+              Positioned(
+                bottom: 12,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: _ScrollIndicator(),
+                ),
+              ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ScrollIndicator extends StatefulWidget {
+  @override
+  State<_ScrollIndicator> createState() => _ScrollIndicatorState();
+}
+
+class _ScrollIndicatorState extends State<_ScrollIndicator> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
+    _animation = Tween<double>(begin: 0, end: 10).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _animation.value),
+          child: Opacity(
+            opacity: 1.0 - (_animation.value / 15.0),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'SCROLL',
+                  style: TextStyle(color: Colors.white54, fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 1.0),
+                ),
+                Icon(Icons.keyboard_arrow_down, color: Colors.white54, size: 16),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
