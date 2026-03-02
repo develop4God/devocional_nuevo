@@ -102,6 +102,7 @@ dev_dependencies:
   # integration_test package pins test_api to 0.7.4, causing version resolution failure
   test_api: ^0.7.4
   firebase_remote_config_platform_interface: any
+
 flutter:
   uses-material-design: true
   assets:
