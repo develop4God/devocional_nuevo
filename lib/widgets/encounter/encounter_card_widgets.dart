@@ -40,19 +40,21 @@ Color moodColor(String? mood) {
 
 /// Wraps [child] in a card that shows [imageUrl] as a full-bleed background
 /// when provided, with a dark scrim so text stays readable.
-/// Falls back to [fallbackColor] (or a dark blue) when no image is available.
+/// Falls back to [moodColor] (or a dark blue) when no image is available.
 class _CardWithImageBackground extends StatelessWidget {
   final String? imageUrl;
+  final String? mood;
   final Widget child;
 
   const _CardWithImageBackground({
     required this.child,
     this.imageUrl,
+    this.mood,
   });
 
   @override
   Widget build(BuildContext context) {
-    const base = Color(0xFF0a0e1a);
+    final base = moodColor(mood);
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: Stack(
@@ -68,7 +70,7 @@ class _CardWithImageBackground extends StatelessWidget {
             )
           else
             Container(color: base),
-          // Dark scrim so text is readable over any image
+          // Dark scrim so text is readable over any image or base color
           Container(color: Colors.black.withValues(alpha: 0.55)),
           // Actual card content
           child,
@@ -242,12 +244,14 @@ class ScriptureMomentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasImage = card.imageUrl != null && card.imageUrl!.isNotEmpty;
-    final textColor = hasImage ? Colors.white : null;
-    final subTextColor = hasImage ? Colors.white.withValues(alpha: 0.75) : null;
+    // Since _CardWithImageBackground always has a dark background (scrim or mood base),
+    // we use white text for visibility even if no image is present.
+    const textColor = Colors.white;
+    final subTextColor = Colors.white.withValues(alpha: 0.75);
 
     return _CardWithImageBackground(
       imageUrl: card.imageUrl,
+      mood: card.mood,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(28),
         child: Column(
@@ -256,8 +260,8 @@ class ScriptureMomentCard extends StatelessWidget {
             if (card.verseReference != null)
               Text(
                 card.verseReference!,
-                style: TextStyle(
-                  color: hasImage ? Colors.amber : theme.colorScheme.primary,
+                style: const TextStyle(
+                  color: Colors.amber,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1.2,
@@ -279,10 +283,7 @@ class ScriptureMomentCard extends StatelessWidget {
             ],
             if (card.reflection != null) ...[
               const SizedBox(height: 24),
-              Divider(
-                  color: hasImage
-                      ? Colors.white.withValues(alpha: 0.3)
-                      : theme.dividerColor),
+              Divider(color: Colors.white.withValues(alpha: 0.3)),
               const SizedBox(height: 16),
               Text(
                 card.reflection!,
@@ -314,12 +315,12 @@ class CharacterMomentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasImage = card.imageUrl != null && card.imageUrl!.isNotEmpty;
-    final textColor = hasImage ? Colors.white : null;
-    final subTextColor = hasImage ? Colors.white.withValues(alpha: 0.85) : null;
+    const textColor = Colors.white;
+    final subTextColor = Colors.white.withValues(alpha: 0.85);
 
     return _CardWithImageBackground(
       imageUrl: card.imageUrl,
+      mood: card.mood,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -372,12 +373,12 @@ class TheologicalDepthCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasImage = card.imageUrl != null && card.imageUrl!.isNotEmpty;
-    final textColor = hasImage ? Colors.white : null;
-    final subTextColor = hasImage ? Colors.white.withValues(alpha: 0.85) : null;
+    const textColor = Colors.white;
+    final subTextColor = Colors.white.withValues(alpha: 0.85);
 
     return _CardWithImageBackground(
       imageUrl: card.imageUrl,
+      mood: card.mood,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -425,9 +426,7 @@ class TheologicalDepthCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: hasImage
-                          ? Colors.white.withValues(alpha: 0.12)
-                          : theme.colorScheme.primary.withValues(alpha: 0.06),
+                      color: Colors.white.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Column(
@@ -435,10 +434,8 @@ class TheologicalDepthCard extends StatelessWidget {
                       children: [
                         Text(
                           sc.reference,
-                          style: TextStyle(
-                            color: hasImage
-                                ? Colors.amber
-                                : theme.colorScheme.primary,
+                          style: const TextStyle(
+                            color: Colors.amber,
                             fontWeight: FontWeight.w600,
                             fontSize: 12,
                           ),
@@ -476,12 +473,12 @@ class DiscoveryActivationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasImage = card.imageUrl != null && card.imageUrl!.isNotEmpty;
-    final textColor = hasImage ? Colors.white : null;
-    final subTextColor = hasImage ? Colors.white.withValues(alpha: 0.85) : null;
+    const textColor = Colors.white;
+    final subTextColor = Colors.white.withValues(alpha: 0.85);
 
     return _CardWithImageBackground(
       imageUrl: card.imageUrl,
+      mood: card.mood,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -504,9 +501,7 @@ class DiscoveryActivationCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: hasImage
-                          ? Colors.white.withValues(alpha: 0.12)
-                          : theme.colorScheme.primary.withValues(alpha: 0.07),
+                      color: Colors.white.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -515,10 +510,8 @@ class DiscoveryActivationCard extends StatelessWidget {
                         if (q.category.isNotEmpty)
                           Text(
                             q.category.toUpperCase(),
-                            style: TextStyle(
-                              color: hasImage
-                                  ? Colors.amber
-                                  : theme.colorScheme.primary,
+                            style: const TextStyle(
+                              color: Colors.amber,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.0,
@@ -539,15 +532,10 @@ class DiscoveryActivationCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: hasImage
-                      ? Colors.white.withValues(alpha: 0.12)
-                      : theme.colorScheme.secondary.withValues(alpha: 0.08),
+                  color: Colors.white.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: hasImage
-                          ? Colors.white.withValues(alpha: 0.25)
-                          : theme.colorScheme.secondary
-                              .withValues(alpha: 0.25)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.25)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -630,13 +618,12 @@ class _CompletionCardState extends State<CompletionCard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasImage =
-        widget.card.imageUrl != null && widget.card.imageUrl!.isNotEmpty;
-    final textColor = hasImage ? Colors.white : null;
-    final subTextColor = hasImage ? Colors.white.withValues(alpha: 0.85) : null;
+    const textColor = Colors.white;
+    final subTextColor = Colors.white.withValues(alpha: 0.85);
 
     return _CardWithImageBackground(
       imageUrl: widget.card.imageUrl,
+      mood: widget.card.mood,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
@@ -659,10 +646,10 @@ class _CompletionCardState extends State<CompletionCard>
                   ],
                   color: theme.colorScheme.primary.withValues(alpha: 0.15),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.check_circle_outline,
                   size: 48,
-                  color: hasImage ? Colors.white : theme.colorScheme.primary,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -681,9 +668,7 @@ class _CompletionCardState extends State<CompletionCard>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: hasImage
-                      ? Colors.white.withValues(alpha: 0.12)
-                      : theme.colorScheme.primary.withValues(alpha: 0.08),
+                  color: Colors.white.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -700,9 +685,8 @@ class _CompletionCardState extends State<CompletionCard>
                     const SizedBox(height: 8),
                     Text(
                       '— ${widget.card.completionVerse!.reference}',
-                      style: TextStyle(
-                        color:
-                            hasImage ? Colors.amber : theme.colorScheme.primary,
+                      style: const TextStyle(
+                        color: Colors.amber,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
@@ -713,10 +697,7 @@ class _CompletionCardState extends State<CompletionCard>
                       Text(
                         widget.card.completionVerse!.bibleVersion!,
                         style: TextStyle(
-                          color: hasImage
-                              ? Colors.white.withValues(alpha: 0.5)
-                              : theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.4),
+                          color: Colors.white.withValues(alpha: 0.5),
                           fontSize: 11,
                           fontStyle: FontStyle.italic,
                         ),
@@ -771,67 +752,64 @@ class InteractiveMomentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              theme.colorScheme.primary.withValues(alpha: 0.12),
-              theme.colorScheme.secondary.withValues(alpha: 0.08),
+    const textColor = Colors.white;
+    final subTextColor = Colors.white.withValues(alpha: 0.85);
+
+    return _CardWithImageBackground(
+      imageUrl: card.imageUrl,
+      mood: card.mood,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (card.icon != null)
+              Text(card.icon!, style: const TextStyle(fontSize: 48))
+            else
+              const Icon(Icons.self_improvement, size: 48, color: Colors.white),
+            const SizedBox(height: 20),
+            if (card.title != null)
+              Text(
+                card.title!,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            if (card.subtitle != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                card.subtitle!,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: subTextColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ],
-          ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Icon(Icons.self_improvement, size: 48),
-              const SizedBox(height: 20),
-              if (card.title != null)
-                Text(
-                  card.title!,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+            if (card.reflectionPrompt != null) ...[
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.18),
+                  ),
+                ),
+                child: Text(
+                  card.reflectionPrompt!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    height: 1.7,
+                    fontStyle: FontStyle.italic,
+                    color: textColor,
                   ),
                   textAlign: TextAlign.center,
                 ),
-              if (card.subtitle != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  card.subtitle!,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-              if (card.reflectionPrompt != null) ...[
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.18),
-                    ),
-                  ),
-                  child: Text(
-                    card.reflectionPrompt!,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      height: 1.7,
-                      fontStyle: FontStyle.italic,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -877,7 +855,7 @@ class _RevelationKeyBox extends StatelessWidget {
             child: Text(
               text,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.amber.shade800,
+                color: Colors.amber,
                 fontWeight: FontWeight.w600,
               ),
             ),
