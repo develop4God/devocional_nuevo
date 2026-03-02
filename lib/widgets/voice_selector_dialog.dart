@@ -1,5 +1,6 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/tts/voice_data_registry.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -42,51 +43,6 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   // Getter seguro: solo funciona en debug mode
   bool get _shouldForceFallback => kDebugMode && _forceFallbackForTesting;
 
-  // Mapeo de voces premium (con género conocido)
-  static const Map<String, String> spanishVoiceMap = {
-    'es-us-x-esd-local': '🌎',
-    'es-US-language': '🌎',
-    'es-es-x-eed-local': '🇪🇸',
-    'es-ES-language': '🇪🇸',
-  };
-
-  static const Map<String, String> englishVoiceMap = {
-    'en-us-x-tpd-network': '🇺🇸',
-    'en-us-x-tpf-local': '🇺🇸',
-    'en-us-x-iob-local': '🇺🇸',
-    'en-US-language': '🇺🇸',
-    'en-gb-x-gbb-local': '🇬🇧',
-    'en-GB-language': '🇬🇧',
-  };
-
-  static const Map<String, String> portugueseVoiceMap = {
-    'pt-br-x-ptd-network': '🇧🇷',
-    'pt-br-x-afs-network': '🇧🇷',
-    'pt-pt-x-pmj-local': '🇵🇹',
-    'pt-PT-language': '🇵🇹',
-  };
-
-  static const Map<String, String> japaneseVoiceMap = {
-    'ja-jp-x-jac-local': '🇯🇵',
-    'ja-jp-x-jab-local': '🇯🇵',
-    'ja-jp-x-jad-local': '🇯🇵',
-    'ja-jp-x-htm-local': '🇯🇵',
-  };
-
-  static const Map<String, String> frenchVoiceMap = {
-    'fr-fr-x-frd-network': '🇫🇷',
-    'fr-FR-language': '🇫🇷',
-    'fr-ca-x-cab-network': '🇨🇦',
-    'fr-CA-language': '🇨🇦',
-  };
-
-  static const Map<String, String> chineseVoiceMap = {
-    'cmn-cn-x-cce-local': '🇨🇳', // Hombre China
-    'cmn-cn-x-ccc-local': '🇨🇳', // Mujer China
-    'cmn-tw-x-cte-network': '🇹🇼', // Hombre 2 Taiwán
-    'cmn-tw-x-ctc-network': '🇹🇼', // Mujer 2 Taiwán
-  };
-
   @override
   void initState() {
     super.initState();
@@ -95,26 +51,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   }
 
   String _getSampleTextByLanguage(String language) {
-    const template =
-        'Puede guardar esta voz o seleccionar otra, de su preferencia';
-    switch (language) {
-      case 'es':
-        return template;
-      case 'en':
-        return 'You can save this voice or select another, as you prefer';
-      case 'pt':
-        return 'Você pode salvar esta voz ou selecionar outra, de sua preferência';
-      case 'fr':
-        return 'Vous pouvez enregistrer cette voix ou en choisir une autre, selon votre préférence';
-      case 'ja':
-        return 'この声を保存するか、別の声を選択することができます。お好みに合わせて';
-      case 'zh':
-        return '您可以保存此语音或选择其他语音，按您的喜好';
-      case 'hi':
-        return 'आप इस आवाज़ को सहेज सकते हैं या अपनी पसंद के अनुसार दूसरी आवाज़ चुन सकते हैं';
-      default:
-        return template;
-    }
+    return VoiceDataRegistry.getSampleText(language);
   }
 
   String _getCountryFlag(String locale) {
@@ -148,60 +85,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     return locale;
   }
 
-  bool _isPremiumVoice(String voiceName, String language) {
-    switch (language) {
-      case 'es':
-        return spanishVoiceMap.containsKey(voiceName);
-      case 'en':
-        return englishVoiceMap.containsKey(voiceName);
-      case 'pt':
-        return portugueseVoiceMap.containsKey(voiceName);
-      case 'ja':
-        return japaneseVoiceMap.containsKey(voiceName);
-      case 'fr':
-        return frenchVoiceMap.containsKey(voiceName);
-      case 'zh':
-        return chineseVoiceMap.containsKey(voiceName);
-      default:
-        return false;
-    }
-  }
-
   String _getVoiceEmoji(String voiceName, String locale, String language) {
-    // Si es voz premium, usa el mapa correspondiente
-    switch (language) {
-      case 'es':
-        if (spanishVoiceMap.containsKey(voiceName)) {
-          return spanishVoiceMap[voiceName]!;
-        }
-        break;
-      case 'en':
-        if (englishVoiceMap.containsKey(voiceName)) {
-          return englishVoiceMap[voiceName]!;
-        }
-        break;
-      case 'pt':
-        if (portugueseVoiceMap.containsKey(voiceName)) {
-          return portugueseVoiceMap[voiceName]!;
-        }
-        break;
-      case 'ja':
-        if (japaneseVoiceMap.containsKey(voiceName)) {
-          return japaneseVoiceMap[voiceName]!;
-        }
-        break;
-      case 'fr':
-        if (frenchVoiceMap.containsKey(voiceName)) {
-          return frenchVoiceMap[voiceName]!;
-        }
-        break;
-      case 'zh':
-        if (chineseVoiceMap.containsKey(voiceName)) {
-          return chineseVoiceMap[voiceName]!;
-        }
-        break;
-    }
-    // Si es fallback, extrae la bandera del locale
+    final metadata = VoiceDataRegistry.getVoiceMetadata(voiceName, language);
+    if (metadata != null) return metadata.emoji;
     return _getCountryFlag(locale);
   }
 
@@ -216,79 +102,42 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     List<Map<String, String>> premiumVoices = [];
     List<Map<String, String>> fallbackVoices = [];
 
-    // Seleccionar mapa premium según idioma
-    Map<String, String>? premiumMap;
-    switch (widget.language) {
-      case 'es':
-        premiumMap = spanishVoiceMap;
-        break;
-      case 'en':
-        premiumMap = englishVoiceMap;
-        break;
-      case 'pt':
-        premiumMap = portugueseVoiceMap;
-        break;
-      case 'ja':
-        premiumMap = japaneseVoiceMap;
-        break;
-      case 'fr':
-        premiumMap = frenchVoiceMap;
-        break;
-      case 'zh':
-        premiumMap = chineseVoiceMap;
-        break;
-      default:
-        debugPrint(
-            '[VoiceSelector] ℹ️ No premium map for ${widget.language}, will use all available voices');
-    }
+    // Get premium voice map from registry
+    final premiumMap = VoiceDataRegistry.getVoiceMap(widget.language);
 
     if (premiumMap != null) {
-      // Filtrar voces premium
+      // Filter premium voices
       premiumVoices = voices
-          .where((voice) => premiumMap!.containsKey(voice['name']))
+          .where((voice) => premiumMap.containsKey(voice['name']))
           .toList();
 
-      // Ordenar según el orden del mapa
+      // Sort by registry order
+      final keyOrder = premiumMap.keys.toList();
       premiumVoices.sort(
-        (a, b) =>
-            premiumMap!.keys.toList().indexOf(a['name']!) -
-            premiumMap.keys.toList().indexOf(b['name']!),
+        (a, b) => keyOrder.indexOf(a['name']!) - keyOrder.indexOf(b['name']!),
       );
 
-      // Si no hay suficientes voces premium (menos de 2), agregar fallback
+      // If not enough premium voices, add fallback
       if (premiumVoices.length < 2 || _shouldForceFallback) {
         debugPrint(
           '[VoiceSelector] 🔄 Activating fallback for ${widget.language}: '
           'premium=${premiumVoices.length}, forced=$_shouldForceFallback',
         );
 
-        // Definir locales prioritarios por idioma (los más comunes)
-        final priorityLocales = <String, List<String>>{
-          'es': ['es-ES', 'es-MX', 'es-US', 'es-AR'],
-          'en': ['en-US', 'en-GB', 'en-AU', 'en-CA'],
-          'pt': ['pt-BR', 'pt-PT'],
-          'fr': ['fr-FR', 'fr-CA'],
-          'ja': ['ja-JP'],
-          'zh': ['zh-CN', 'zh-TW'],
-          'hi': ['hi-IN'], // Add Hindi priority locales
-        };
+        final priorities =
+            VoiceDataRegistry.getPriorityLocales(widget.language);
 
-        final priorities = priorityLocales[widget.language] ?? [];
-
-        // Agrupar voces por locale y limitar a 2 por locale
+        // Group voices by locale, limit to 2 per locale
         final voicesByLocale = <String, List<Map<String, String>>>{};
 
         for (final voice in voices) {
           final name = voice['name'] ?? '';
           final locale = voice['locale'] ?? '';
 
-          // No incluir voces que ya están en premium
           if (premiumMap.containsKey(name)) continue;
 
-          // Normalizar locale a formato xx-XX
           final normalizedLocale = _normalizeLocale(locale);
 
-          // Solo incluir si el locale normalizado está en la lista prioritaria
           final matchingPriority = priorities.firstWhere(
             (priority) =>
                 normalizedLocale.toLowerCase() == priority.toLowerCase(),
@@ -297,14 +146,12 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
 
           if (matchingPriority.isNotEmpty) {
             voicesByLocale.putIfAbsent(matchingPriority, () => []);
-            // Limitar a 2 voces por locale
             if (voicesByLocale[matchingPriority]!.length < 2) {
               voicesByLocale[matchingPriority]!.add(voice);
             }
           }
         }
 
-        // Aplanar el mapa manteniendo el orden de prioridad
         for (final priority in priorities) {
           if (voicesByLocale.containsKey(priority)) {
             fallbackVoices.addAll(voicesByLocale[priority]!);
@@ -312,12 +159,12 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         }
 
         debugPrint(
-          '[VoiceSelector] ✅ Fallback encontró \${fallbackVoices.length} voces '
-          'distribuidas en \${voicesByLocale.length} locales (máx 2 por locale)',
+          '[VoiceSelector] ✅ Fallback found ${fallbackVoices.length} voices '
+          'across ${voicesByLocale.length} locales (max 2 per locale)',
         );
       }
     } else {
-      // CRITICAL FIX: NO PREMIUM MAP (e.g., Hindi) - SHOW ALL AVAILABLE VOICES
+      // NO PREMIUM MAP - show all available voices
       debugPrint(
           '[VoiceSelector] 🌐 No premium map - showing ALL ${voices.length} available voices');
       fallbackVoices = voices;
@@ -332,7 +179,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       _initialVoiceLocale = null;
 
       debugPrint(
-        '[VoiceSelector] 📋 Total voces cargadas: ${_voices.length} '
+        '[VoiceSelector] 📋 Total voices loaded: ${_voices.length} '
         '(premium: ${premiumVoices.length}, fallback: ${fallbackVoices.length})',
       );
 
@@ -401,112 +248,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     String language,
     ColorScheme colorScheme,
   ) {
-    final isPremium = _isPremiumVoice(voiceName, language);
-
-    if (!isPremium) {
-      return Icon(Icons.person, color: colorScheme.primary, size: 38);
-    }
-
-    // Lógica para voces premium con género conocido
-    switch (language) {
-      case 'es':
-        if (voiceName == 'es-us-x-esd-local' ||
-            voiceName == 'es-es-x-eed-local') {
-          return Icon(
-            Icons.man_3_outlined,
-            color: colorScheme.primary,
-            size: 38,
-          );
-        } else {
-          return Icon(
-            Icons.woman_outlined,
-            color: colorScheme.primary,
-            size: 38,
-          );
-        }
-      case 'en':
-        if (voiceName == 'en-us-x-tpd-network' ||
-            voiceName == 'en-gb-x-gbb-local') {
-          return Icon(
-            Icons.man_3_outlined,
-            color: colorScheme.primary,
-            size: 38,
-          );
-        } else {
-          return Icon(
-            Icons.woman_outlined,
-            color: colorScheme.primary,
-            size: 38,
-          );
-        }
-      case 'pt':
-        if (voiceName == 'pt-br-x-ptd-network' ||
-            voiceName == 'pt-pt-x-pmj-local') {
-          return Icon(
-            Icons.man_3_outlined,
-            color: colorScheme.primary,
-            size: 38,
-          );
-        } else {
-          return Icon(
-            Icons.woman_outlined,
-            color: colorScheme.primary,
-            size: 38,
-          );
-        }
-      case 'ja':
-        if (voiceName == 'ja-jp-x-jac-local' ||
-            voiceName == 'ja-jp-x-jad-local') {
-          return Icon(
-            Icons.man_3_outlined,
-            color: colorScheme.primary,
-            size: 38,
-          );
-        } else {
-          return Icon(
-            Icons.woman_outlined,
-            color: colorScheme.primary,
-            size: 38,
-          );
-        }
-      case 'fr':
-        if (voiceName == 'fr-fr-x-frd-network' ||
-            voiceName == 'fr-ca-x-cab-network') {
-          return Icon(
-            Icons.man_3_outlined,
-            color: colorScheme.primary,
-            size: 38,
-          );
-        } else {
-          return Icon(
-            Icons.woman_outlined,
-            color: colorScheme.primary,
-            size: 38,
-          );
-        }
-      case 'zh':
-        if (voiceName == 'cmn-cn-x-cce-local' ||
-            voiceName == 'cmn-tw-x-cte-network') {
-          return Icon(
-            Icons.man_3_outlined,
-            color: colorScheme.primary,
-            size: 38,
-          );
-        }
-        if (voiceName == 'cmn-cn-x-ccc-local' ||
-            voiceName == 'cmn-tw-x-ctc-network') {
-          return Icon(
-            Icons.woman_outlined,
-            color: colorScheme.primary,
-            size: 38,
-          );
-        }
-        break;
-      default:
-        return Icon(Icons.person, color: colorScheme.primary, size: 38);
-    }
-    // Always return a Widget
-    return Icon(Icons.person, color: colorScheme.primary, size: 38);
+    final metadata = VoiceDataRegistry.getVoiceMetadata(voiceName, language);
+    final icon = metadata?.genderIcon ?? Icons.person;
+    return Icon(icon, color: colorScheme.primary, size: 38);
   }
 
   String _getVoiceDescription(
@@ -514,92 +258,10 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     String locale,
     String language,
   ) {
-    final isPremium = _isPremiumVoice(voiceName, language);
-
-    if (!isPremium) {
-      // Para fallback: mostrar solo el locale normalizado (xx-XX)
-      return _normalizeLocale(locale);
-    }
-
-    // Descripciones para voces premium
-    switch (language) {
-      case 'es':
-        switch (voiceName) {
-          case 'es-us-x-esd-local':
-            return 'Hombre Latinoamérica';
-          case 'es-US-language':
-            return 'Mujer Latinoamérica';
-          case 'es-es-x-eed-local':
-            return 'Hombre España';
-          case 'es-ES-language':
-            return 'Mujer España';
-        }
-        break;
-      case 'en':
-        switch (voiceName) {
-          case 'en-us-x-tpd-network':
-            return 'Male United States';
-          case 'en-us-x-tpf-local':
-          case 'en-us-x-iob-local':
-          case 'en-US-language':
-            return 'Female United States';
-          case 'en-gb-x-gbb-local':
-            return 'Male United Kingdom';
-          case 'en-GB-language':
-            return 'Female United Kingdom';
-        }
-        break;
-      case 'pt':
-        switch (voiceName) {
-          case 'pt-br-x-ptd-network':
-            return 'Homem Brasil';
-          case 'pt-br-x-afs-network':
-            return 'Mulher Brasil';
-          case 'pt-pt-x-pmj-local':
-            return 'Homem Portugal';
-          case 'pt-PT-language':
-            return 'Mulher Portugal';
-        }
-        break;
-      case 'ja':
-        switch (voiceName) {
-          case 'ja-jp-x-jac-local':
-            return '男性 声 1';
-          case 'ja-jp-x-jad-local':
-            return '男性 声 2';
-          case 'ja-jp-x-jab-local':
-            return '女性 声 1';
-          case 'ja-jp-x-htm-local':
-            return '女性 声 2';
-        }
-        break;
-      case 'fr':
-        switch (voiceName) {
-          case 'fr-fr-x-frd-network':
-            return 'Homme France';
-          case 'fr-FR-language':
-            return 'Femme France';
-          case 'fr-ca-x-cab-network':
-            return 'Homme Canada';
-          case 'fr-CA-language':
-            return 'Femme Canada';
-        }
-        break;
-      case 'zh':
-        switch (voiceName) {
-          case 'cmn-cn-x-cce-local':
-            return '男性 声 1'; // Hombre China
-          case 'cmn-cn-x-ccc-local':
-            return '女性 声 1'; // Mujer China
-          case 'cmn-tw-x-cte-network':
-            return '男性 声 2'; // Hombre 2 Taiwán
-          case 'cmn-tw-x-ctc-network':
-            return '女性 声 2'; // Mujer 2 Taiwán
-        }
-        break;
-    }
-
-    return locale; // Fallback genérico
+    final metadata = VoiceDataRegistry.getVoiceMetadata(voiceName, language);
+    if (metadata != null) return metadata.description;
+    // For non-premium voices: show normalized locale (xx-XX)
+    return _normalizeLocale(locale);
   }
 
   @override

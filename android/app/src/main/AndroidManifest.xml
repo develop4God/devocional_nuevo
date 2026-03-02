@@ -65,6 +65,16 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
+            <!-- Deep link intent filter for Firebase In-App Messaging -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- Deep link scheme for the app -->
+                <data android:scheme="devocional" />
+            </intent-filter>
+
             <!-- INICIO: Filtro para bucle de juego de Firebase Test Lab -->
             <intent-filter>
                 <action android:name="com.google.intent.action.TEST_LOOP" />

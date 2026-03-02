@@ -11,10 +11,13 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics // ¡Añade esta impo
 
 class MainActivity : FlutterActivity() {
 
-    // Cambiamos el nombre del canal para que sea específico de Crashlytics
-    // y coincida con el que usaremos en Flutter.
+    // Method channels
     private val CRASHLYTICS_CHANNEL = "com.develop4god.devocional_nuevo/crashlytics"
-    private val GENERAL_CHANNEL = "com.devocional_nuevo.test_channel" // Tu canal existente
+    private val GENERAL_CHANNEL = "com.devocional_nuevo.test_channel"
+    private val DEEP_LINK_CHANNEL = "com.develop4god.devocional/deeplink"
+
+    // Store initial deep link
+    private var initialLink: String? = null
 
     // --- INICIO: Soporte para Firebase Test Lab Game Loop y Edge-to-Edge ---
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,6 +31,9 @@ class MainActivity : FlutterActivity() {
         // Importante: inicializa Flutter después de configurar edge-to-edge
         super.onCreate(savedInstanceState)
 
+        // Check if app was launched with a deep link
+        handleIntent(intent)
+
         // Si la app fue lanzada por un intent de Test Lab Game Loop, aplicar un pequeño retraso
         if (intent.action != null && intent.action == "com.google.intent.action.TEST_LOOP") {
             try {
@@ -40,6 +46,16 @@ class MainActivity : FlutterActivity() {
         }
     }
     // --- FIN: Soporte para Firebase Test Lab Game Loop y Edge-to-Edge ---
+
+    private fun handleIntent(intent: Intent?) {
+        val action = intent?.action
+        val data = intent?.data
+
+        if ((action == Intent.ACTION_VIEW || action == Intent.ACTION_MAIN) && data != null) {
+            initialLink = data.toString()
+            println("Deep link received: $initialLink")
+        }
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -68,10 +84,22 @@ class MainActivity : FlutterActivity() {
                 result.notImplemented()
             }
         }
+
+        // Deep link channel
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DEEP_LINK_CHANNEL).setMethodCallHandler {
+                call, result ->
+            if (call.method == "getInitialLink") {
+                result.success(initialLink)
+                initialLink = null // Clear after reading
+            } else {
+                result.notImplemented()
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        handleIntent(intent)
     }
 }

@@ -32,6 +32,7 @@ import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
@@ -131,6 +132,16 @@ void main() async {
   } catch (e) {
     // Remote config is non-critical, app continues without it
     developer.log('Remote config initialization failed: $e',
+        name: 'main', error: e);
+  }
+
+  // Initialize deep link handler
+  try {
+    final deepLinkHandler = getService<DeepLinkHandler>();
+    await deepLinkHandler.initialize();
+  } catch (e) {
+    // Deep link handler is non-critical, app continues without it
+    developer.log('Deep link handler initialization failed: $e',
         name: 'main', error: e);
   }
 
