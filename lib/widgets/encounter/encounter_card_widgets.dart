@@ -108,7 +108,8 @@ class _ModernScrollable extends StatelessWidget {
     return Theme(
       data: Theme.of(context).copyWith(
         scrollbarTheme: ScrollbarThemeData(
-          thumbColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.3)),
+          thumbColor:
+              WidgetStateProperty.all(Colors.white.withValues(alpha: 0.3)),
           thickness: WidgetStateProperty.all(4),
           radius: const Radius.circular(10),
           minThumbLength: 40,
@@ -217,11 +218,13 @@ class ScriptureMomentCard extends StatelessWidget {
             children: [
               if (card.verseReference != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.amber.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
+                    border:
+                        Border.all(color: Colors.amber.withValues(alpha: 0.5)),
                   ),
                   child: Text(
                     card.verseReference!.toUpperCase(),
@@ -313,7 +316,8 @@ class _ModernContentScroll extends StatelessWidget {
   final EncounterCard card;
   final bool showConnections;
 
-  const _ModernContentScroll({required this.card, this.showConnections = false});
+  const _ModernContentScroll(
+      {required this.card, this.showConnections = false});
 
   @override
   Widget build(BuildContext context) {
@@ -496,7 +500,8 @@ class _ConnectionTile extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               sc.text,
-              style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+              style: const TextStyle(
+                  color: Colors.white70, fontSize: 13, height: 1.5),
             ),
           ],
         ),
@@ -576,7 +581,8 @@ class _QuestionTile extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               q.question,
-              style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+              style: const TextStyle(
+                  color: Colors.white, fontSize: 16, height: 1.5),
             ),
           ],
         ),
@@ -603,7 +609,8 @@ class _ModernPrayerBox extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.volunteer_activism, color: Colors.purpleAccent, size: 24),
+              const Icon(Icons.volunteer_activism,
+                  color: Colors.purpleAccent, size: 24),
               const SizedBox(width: 12),
               Text(
                 (prayer.title ?? 'PRAYER').toUpperCase(),
@@ -636,7 +643,8 @@ class CompletionCard extends StatelessWidget {
   final EncounterCard card;
   final VoidCallback? onBackToEncounters;
 
-  const CompletionCard({required this.card, this.onBackToEncounters, super.key});
+  const CompletionCard(
+      {required this.card, this.onBackToEncounters, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -648,7 +656,8 @@ class CompletionCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.check_circle_outline, size: 80, color: Colors.greenAccent),
+            const Icon(Icons.check_circle_outline,
+                size: 80, color: Colors.greenAccent),
             const SizedBox(height: 32),
             const Text(
               'ENCOUNTER COMPLETE',
@@ -664,7 +673,10 @@ class CompletionCard extends StatelessWidget {
               const SizedBox(height: 24),
               Text(
                 '"${card.completionVerse!.text}"',
-                style: const TextStyle(color: Colors.white70, fontSize: 16, fontStyle: FontStyle.italic),
+                style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -678,9 +690,12 @@ class CompletionCard extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
                   ),
-                  child: const Text('FINISH', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2.0)),
+                  child: const Text('FINISH',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w900, letterSpacing: 2.0)),
                 ),
               ),
           ],
@@ -709,14 +724,19 @@ class InteractiveMomentCard extends StatelessWidget {
               if (card.title != null)
                 Text(
                   card.title!,
-                  style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: -1.0),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1.0),
                   textAlign: TextAlign.center,
                 ),
               if (card.reflectionPrompt != null) ...[
                 const SizedBox(height: 24),
                 Text(
                   card.reflectionPrompt!,
-                  style: const TextStyle(color: Colors.white70, fontSize: 18, height: 1.5),
+                  style: const TextStyle(
+                      color: Colors.white70, fontSize: 18, height: 1.5),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -738,15 +758,24 @@ class UnknownCard extends StatelessWidget {
 // Factory
 // ---------------------------------------------------------------------------
 
-Widget buildEncounterCardWidget(EncounterCard card, {VoidCallback? onBackToEncounters}) {
+Widget buildEncounterCardWidget(EncounterCard card,
+    {VoidCallback? onBackToEncounters}) {
   switch (card.type) {
-    case 'cinematic_scene': return CinematicSceneCard(card: card);
-    case 'scripture_moment': return ScriptureMomentCard(card: card);
-    case 'character_moment': return CharacterMomentCard(card: card);
-    case 'theological_depth': return TheologicalDepthCard(card: card);
-    case 'discovery_activation': return DiscoveryActivationCard(card: card);
-    case 'completion': return CompletionCard(card: card, onBackToEncounters: onBackToEncounters);
-    case 'interactive_moment': return InteractiveMomentCard(card: card);
-    default: return const UnknownCard();
+    case 'cinematic_scene':
+      return CinematicSceneCard(card: card);
+    case 'scripture_moment':
+      return ScriptureMomentCard(card: card);
+    case 'character_moment':
+      return CharacterMomentCard(card: card);
+    case 'theological_depth':
+      return TheologicalDepthCard(card: card);
+    case 'discovery_activation':
+      return DiscoveryActivationCard(card: card);
+    case 'completion':
+      return CompletionCard(card: card, onBackToEncounters: onBackToEncounters);
+    case 'interactive_moment':
+      return InteractiveMomentCard(card: card);
+    default:
+      return const UnknownCard();
   }
 }

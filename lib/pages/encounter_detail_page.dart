@@ -46,7 +46,9 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
 
           final study = state.getStudy(widget.entry.id);
           if (study == null) {
-            return const Center(child: Text('Study not found', style: TextStyle(color: Colors.white)));
+            return const Center(
+                child: Text('Study not found',
+                    style: TextStyle(color: Colors.white)));
           }
 
           final cards = study.cards;
@@ -97,7 +99,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       icon: Icons.chevron_left,
                       onPressed: () => _swiperController.previous(),
                     ),
-                    
+
                     // indicator placeholder
                     const Text(
                       'SWIPE TO EXPLORE',
