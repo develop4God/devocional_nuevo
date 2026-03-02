@@ -1,7 +1,7 @@
 // lib/pages/encounter_detail_page.dart
 //
-// Full-screen card reader for Encounters.
-// Uses a modern swiper to navigate through cards.
+// Modern card reader for an encounter study.
+// Uses a modern swiper to navigate through cards with staggered transitions.
 
 import 'package:card_swiper/card_swiper.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
@@ -27,6 +27,7 @@ class EncounterDetailPage extends StatefulWidget {
 
 class _EncounterDetailPageState extends State<EncounterDetailPage> {
   final SwiperController _swiperController = SwiperController();
+  int _currentIndex = 0;
 
   @override
   void dispose() {
@@ -46,26 +47,34 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
 
           final study = state.getStudy(widget.entry.id);
           if (study == null) {
-            return const Center(
-                child: Text('Study not found',
-                    style: TextStyle(color: Colors.white)));
+            return Center(
+              child: Text(
+                'Study not found',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+              ),
+            );
           }
 
           final cards = study.cards;
+          if (cards.isEmpty) {
+            return const Center(
+              child: Text('No cards available.', style: TextStyle(color: Colors.white)),
+            );
+          }
 
           return Stack(
             children: [
-              // Swiper
+              // Swiper Reader
               Swiper(
                 controller: _swiperController,
                 itemCount: cards.length,
                 loop: false,
-                index: 0,
-                // Add a modern transition effect
-                layout: SwiperLayout.DEFAULT,
+                onIndexChanged: (index) {
+                  setState(() => _currentIndex = index);
+                },
                 itemBuilder: (context, index) {
                   return Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 60, 16, 100),
+                    padding: const EdgeInsets.fromLTRB(16, 100, 16, 120),
                     child: buildEncounterCardWidget(
                       cards[index],
                       onBackToEncounters: () => Navigator.of(context).pop(),
@@ -74,46 +83,68 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                 },
               ),
 
-              // Progress Bar at the top
+              // Progress Indicator (Lines to swipe)
               Positioned(
-                top: 50,
+                top: 85,
                 left: 24,
                 right: 24,
-                child: _ProgressBar(
-                  total: cards.length,
-                  current: 0, // Swiper state needed for real-time update
-                  controller: _swiperController,
+                child: Row(
+                  children: List.generate(cards.length, (index) {
+                    return Expanded(
+                      child: Container(
+                        height: 4,
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(
+                          color: index <= _currentIndex
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    );
+                  }),
                 ),
               ),
 
-              // Navigation Buttons at bottom
+              // Close Button (Top Right, above the lines)
               Positioned(
-                bottom: 30,
+                top: 40,
+                right: 16,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+
+              // Navigation Controls
+              Positioned(
+                bottom: 40,
                 left: 24,
                 right: 24,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Back button (hidden on first card)
+                    // Prev Button
                     _NavButton(
                       icon: Icons.chevron_left,
+                      visible: _currentIndex > 0,
                       onPressed: () => _swiperController.previous(),
                     ),
-
-                    // indicator placeholder
-                    const Text(
-                      'SWIPE TO EXPLORE',
-                      style: TextStyle(
+                    
+                    Text(
+                      '${_currentIndex + 1} / ${cards.length}',
+                      style: const TextStyle(
                         color: Colors.white38,
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 2.0,
+                        letterSpacing: 1.5,
                       ),
                     ),
 
-                    // Next button
+                    // Next Button
                     _NavButton(
                       icon: Icons.chevron_right,
+                      visible: _currentIndex < cards.length - 1,
                       onPressed: () => _swiperController.next(),
                     ),
                   ],
@@ -127,70 +158,32 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
   }
 }
 
-class _ProgressBar extends StatefulWidget {
-  final int total;
-  final int current;
-  final SwiperController controller;
-
-  const _ProgressBar({
-    required this.total,
-    required this.current,
-    required this.controller,
-  });
-
-  @override
-  State<_ProgressBar> createState() => _ProgressBarState();
-}
-
-class _ProgressBarState extends State<_ProgressBar> {
-  int _currentIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentIndex = widget.current;
-    // Note: In a production app, listen to Swiper index changes via a listener
-    // or by lifting state. For now, this placeholder handles the visual.
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: List.generate(widget.total, (index) {
-        return Expanded(
-          child: Container(
-            height: 4,
-            margin: const EdgeInsets.symmetric(horizontal: 2),
-            decoration: BoxDecoration(
-              color: index <= _currentIndex
-                  ? Colors.white
-                  : Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        );
-      }),
-    );
-  }
-}
-
 class _NavButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
+  final bool visible;
 
-  const _NavButton({required this.icon, required this.onPressed});
+  const _NavButton({
+    required this.icon,
+    required this.onPressed,
+    this.visible = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: visible ? 1.0 : 0.0,
+      child: GestureDetector(
+        onTap: visible ? onPressed : null,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: Colors.white, size: 28),
         ),
-        child: Icon(icon, color: Colors.white, size: 28),
       ),
     );
   }
