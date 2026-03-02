@@ -121,7 +121,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
         _parseColor(entry.accentColor) ?? const Color(0xFF1e3a5f);
 
     // Dynamic intro image from JSON schema
-    final imageUrl = entry.introImage != null
+    final String? imageUrl = entry.introImage != null
         ? Constants.getEncounterImageUrl(entry.introImage!)
         : null;
 
