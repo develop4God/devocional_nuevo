@@ -16,6 +16,7 @@
       "order": 1,
       "type": "cinematic_scene",
       "mood": "storm",
+      "image_url": "peter_storm_boat.png",
       "title": "The Fourth Watch",
       "narrative": "Hours before dawn, the disciples were alone on the Sea of Galilee, fighting wind and waves. Jesus had gone to pray on the mountain. Now, in the darkest hour, something impossible appeared on the water.",
       "verse_overlay": {
@@ -27,6 +28,7 @@
       "order": 2,
       "type": "character_moment",
       "icon": "😱",
+      "image_url": "waves_night.png",
       "title": "It is a Ghost!",
       "content": "The disciples saw the figure on the water and cried out in fear. After hours of battling waves, exhausted and terrified, they could not comprehend what they were seeing. Fear is often our first response when Jesus shows up in ways we do not expect.",
       "revelation_key": "Jesus often comes to us in the storms we least expect Him to enter."
@@ -34,6 +36,7 @@
     {
       "order": 3,
       "type": "scripture_moment",
+      "image_url": "jesus_light_water.png",
       "verse_reference": "Matthew 14:27-28",
       "verse_text": "But Jesus immediately said to them: Take courage! It is I. Do not be afraid. Lord, if it is you, Peter replied, tell me to come to you on the water.",
       "reflection": "Peter did not just ask to be rescued. He asked to come to Jesus — toward the storm, not away from it. This reveals a faith that seeks presence over comfort. Peter wanted to be where Jesus was, even if that meant standing on impossible ground."
@@ -42,6 +45,7 @@
       "order": 4,
       "type": "cinematic_scene",
       "mood": "awe",
+      "image_url": "peter_walking_water.png",
       "title": "One Step at a Time",
       "narrative": "Peter swung his legs over the side of the boat. The water held. Each step confirmed the impossible: faith was making solid ground of open sea. For one glorious moment, a human being stood on water because Jesus said Come.",
       "verse_overlay": {
@@ -52,6 +56,7 @@
     {
       "order": 5,
       "type": "scripture_moment",
+      "image_url": "peter_hand_saved.png",
       "verse_reference": "Matthew 14:30-31",
       "verse_text": "But when he saw the wind, he was afraid and, beginning to sink, cried out, Lord, save me! Immediately Jesus reached out his hand and caught him. You of little faith, he said, why did you doubt?",
       "reflection": "Peter sank not when he stepped out, but when he shifted his gaze from Jesus to the storm. The sinking began in his eyes before it began in his feet. And the rescue came immediately — the same word used when Jesus healed diseases. Eutheos. At once. Without delay."
@@ -60,6 +65,7 @@
       "order": 6,
       "type": "theological_depth",
       "icon": "✝️",
+      "image_url": "jesus_light_water.png",
       "title": "Eutheos — Immediately",
       "content": "The Greek word eutheos appears over 40 times in the Gospel of Mark and several times in Matthew. It means at once, without delay, instantly. Jesus did not wait for Peter to fully gather his faith before rescuing him. The outstretched hand came the moment Peter cried out. This is the character of Christ: He rescues at the speed of a desperate prayer.",
       "revelation_key": "The distance between a desperate cry and a divine rescue is zero.",
@@ -78,6 +84,7 @@
       "order": 7,
       "type": "character_moment",
       "icon": "🙏",
+      "image_url": "peter_thumb.png",
       "title": "From Sinking to Worshiping",
       "content": "What did Peter do after Jesus pulled him into the boat? He worshiped. The disciples who had been paralyzed with fear were now on their knees saying Truly you are the Son of God. The storm had not disappeared — but their perception of who was in their boat had changed everything.",
       "revelation_key": "Encountering Jesus in a storm produces deeper worship than calm ever could."
@@ -85,6 +92,7 @@
     {
       "order": 8,
       "type": "interactive_moment",
+      "image_url": "waves_night.png",
       "title": "Name Your Wave",
       "subtitle": "What is the storm that is keeping your eyes off Jesus?",
       "reflection_prompt": "Take a moment to name the wind and waves in your life right now. What would it look like to step out of the boat toward Jesus in that situation?"
@@ -92,6 +100,7 @@
     {
       "order": 9,
       "type": "discovery_activation",
+      "image_url": "peter_thumb.png",
       "title": "Living It Out",
       "discovery_questions": [
         {
@@ -115,6 +124,7 @@
     {
       "order": 10,
       "type": "completion",
+      "image_url": "peter_hand_saved.png",
       "title": "You Walked the Water",
       "reflection_prompt": "You have encountered the storm-walker. How has this encounter changed how you see the impossible situations in your own life?",
       "completion_verse": {

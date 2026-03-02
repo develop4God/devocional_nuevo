@@ -1,5 +1,7 @@
 // lib/models/encounter_card_model.dart
 
+import 'package:devocional_nuevo/utils/constants.dart';
+
 /// Union-type model for all encounter card types.
 ///
 /// Supported types:
@@ -55,6 +57,16 @@ class EncounterCard {
     this.scriptureConnections,
   });
 
+  /// Resolves an image_url value from JSON:
+  /// - Returns null if the value is null or empty.
+  /// - Returns the value as-is if it already starts with 'http'.
+  /// - Otherwise treats it as a bare filename and builds the full raw GitHub URL.
+  static String? _resolveImageUrl(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    if (raw.startsWith('http')) return raw;
+    return Constants.getEncounterImageUrl(raw);
+  }
+
   factory EncounterCard.fromJson(Map<String, dynamic> json) {
     // Unknown type handling — never crash
     final String rawType = json['type'] as String? ?? 'unknown';
@@ -73,7 +85,7 @@ class EncounterCard {
       order: json['order'] as int? ?? 0,
       type: type,
       mood: json['mood'] as String?,
-      imageUrl: json['image_url'] as String?,
+      imageUrl: _resolveImageUrl(json['image_url'] as String?),
       title: json['title'] as String?,
       narrative: json['narrative'] as String?,
       verseOverlay: json['verse_overlay'] != null
@@ -102,8 +114,8 @@ class EncounterCard {
           : null,
       reflectionPrompt: json['reflection_prompt'] as String?,
       scriptureConnections: (json['scripture_connections'] as List<dynamic>?)
-          ?.map((e) => EncounterScriptureConnection.fromJson(
-              e as Map<String, dynamic>))
+          ?.map((e) =>
+              EncounterScriptureConnection.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
   }
@@ -199,8 +211,7 @@ class EncounterDiscoveryQuestion {
         question: json['question'] as String? ?? '',
       );
 
-  Map<String, dynamic> toJson() =>
-      {'category': category, 'question': question};
+  Map<String, dynamic> toJson() => {'category': category, 'question': question};
 }
 
 class EncounterScriptureConnection {

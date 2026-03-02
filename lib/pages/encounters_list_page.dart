@@ -29,8 +29,7 @@ class _EncountersListPageState extends State<EncountersListPage> {
     super.initState();
     final lang = context.read<DevocionalProvider>().selectedLanguage;
     context.read<EncounterBloc>().add(LoadEncounterIndex(languageCode: lang));
-    getService<AnalyticsService>()
-        .logEncounterAction(action: 'index_loaded');
+    getService<AnalyticsService>().logEncounterAction(action: 'index_loaded');
   }
 
   @override
@@ -77,9 +76,7 @@ class _EncountersListPageState extends State<EncountersListPage> {
           entry: entry,
           lang: lang,
           isCompleted: state.isCompleted(entry.id),
-          onTap: entry.isPublished
-              ? () => _openEncounter(entry, lang)
-              : null,
+          onTap: entry.isPublished ? () => _openEncounter(entry, lang) : null,
         );
       },
     );
@@ -124,8 +121,7 @@ class _EncountersListPageState extends State<EncountersListPage> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              final lang =
-                  context.read<DevocionalProvider>().selectedLanguage;
+              final lang = context.read<DevocionalProvider>().selectedLanguage;
               context
                   .read<EncounterBloc>()
                   .add(LoadEncounterIndex(languageCode: lang));
@@ -159,8 +155,8 @@ class _EncounterTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isPublished = entry.isPublished;
-    final accentColor = _parseColor(entry.accentColor) ??
-        theme.colorScheme.primaryContainer;
+    final accentColor =
+        _parseColor(entry.accentColor) ?? theme.colorScheme.primaryContainer;
 
     return Opacity(
       opacity: isPublished ? 1.0 : 0.45,
@@ -252,8 +248,8 @@ class _EncounterTile extends StatelessWidget {
                   top: 10,
                   right: 10,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: Colors.black54,
                       borderRadius: BorderRadius.circular(8),
@@ -278,8 +274,8 @@ class _EncounterTile extends StatelessWidget {
                       color: Colors.green,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.check,
-                        color: Colors.white, size: 12),
+                    child:
+                        const Icon(Icons.check, color: Colors.white, size: 12),
                   ),
                 ),
             ],

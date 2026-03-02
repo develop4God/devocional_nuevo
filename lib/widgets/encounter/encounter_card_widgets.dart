@@ -35,6 +35,50 @@ Color moodColor(String? mood) {
 }
 
 // ---------------------------------------------------------------------------
+// Shared: card with optional full-bleed background image + dark scrim overlay
+// ---------------------------------------------------------------------------
+
+/// Wraps [child] in a card that shows [imageUrl] as a full-bleed background
+/// when provided, with a dark scrim so text stays readable.
+/// Falls back to [fallbackColor] (or a dark blue) when no image is available.
+class _CardWithImageBackground extends StatelessWidget {
+  final String? imageUrl;
+  final Widget child;
+
+  const _CardWithImageBackground({
+    required this.child,
+    this.imageUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const base = Color(0xFF0a0e1a);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Background image or solid colour
+          if (imageUrl != null && imageUrl!.isNotEmpty)
+            CachedNetworkImage(
+              imageUrl: imageUrl!,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => Container(color: base),
+              errorWidget: (_, __, ___) => Container(color: base),
+            )
+          else
+            Container(color: base),
+          // Dark scrim so text is readable over any image
+          Container(color: Colors.black.withValues(alpha: 0.55)),
+          // Actual card content
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // CinematicSceneCard
 // ---------------------------------------------------------------------------
 
@@ -71,7 +115,9 @@ class CinematicSceneCard extends StatelessWidget {
             ),
           // Gradient overlay bottom
           Positioned(
-            left: 0, right: 0, bottom: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             child: Container(
               height: 280,
               decoration: BoxDecoration(
@@ -85,7 +131,9 @@ class CinematicSceneCard extends StatelessWidget {
           ),
           // Content
           Positioned(
-            left: 20, right: 20, bottom: 24,
+            left: 20,
+            right: 20,
+            bottom: 24,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -113,8 +161,8 @@ class CinematicSceneCard extends StatelessWidget {
                 if (card.verseOverlay != null) ...[
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
@@ -147,13 +195,13 @@ class CinematicSceneCard extends StatelessWidget {
                 if (card.revelationKey != null) ...[
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.amber.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(6),
-                      border:
-                          Border.all(color: Colors.amber.withValues(alpha: 0.5)),
+                      border: Border.all(
+                          color: Colors.amber.withValues(alpha: 0.5)),
                     ),
                     child: Row(
                       children: [
@@ -194,50 +242,56 @@ class ScriptureMomentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        color: theme.cardColor,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (card.verseReference != null)
-                Text(
-                  card.verseReference!,
-                  style: TextStyle(
-                    color: theme.colorScheme.primary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.2,
-                  ),
-                  textAlign: TextAlign.center,
+    final hasImage = card.imageUrl != null && card.imageUrl!.isNotEmpty;
+    final textColor = hasImage ? Colors.white : null;
+    final subTextColor = hasImage ? Colors.white.withValues(alpha: 0.75) : null;
+
+    return _CardWithImageBackground(
+      imageUrl: card.imageUrl,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (card.verseReference != null)
+              Text(
+                card.verseReference!,
+                style: TextStyle(
+                  color: hasImage ? Colors.amber : theme.colorScheme.primary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
                 ),
-              if (card.verseText != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  '"${card.verseText!}"',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontStyle: FontStyle.italic,
-                    height: 1.6,
-                    fontSize: 20,
-                  ),
-                  textAlign: TextAlign.center,
+                textAlign: TextAlign.center,
+              ),
+            if (card.verseText != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                '"${card.verseText!}"',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontStyle: FontStyle.italic,
+                  height: 1.6,
+                  fontSize: 20,
+                  color: textColor,
                 ),
-              ],
-              if (card.reflection != null) ...[
-                const SizedBox(height: 24),
-                Divider(color: theme.dividerColor),
-                const SizedBox(height: 16),
-                Text(
-                  card.reflection!,
-                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.7),
-                  textAlign: TextAlign.left,
-                ),
-              ],
+                textAlign: TextAlign.center,
+              ),
             ],
-          ),
+            if (card.reflection != null) ...[
+              const SizedBox(height: 24),
+              Divider(
+                  color: hasImage
+                      ? Colors.white.withValues(alpha: 0.3)
+                      : theme.dividerColor),
+              const SizedBox(height: 16),
+              Text(
+                card.reflection!,
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(height: 1.7, color: subTextColor),
+                textAlign: TextAlign.left,
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -256,43 +310,46 @@ class CharacterMomentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        color: theme.cardColor,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  if (card.icon != null)
-                    Text(card.icon!, style: const TextStyle(fontSize: 36)),
-                  if (card.icon != null) const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      card.title ?? '',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+    final hasImage = card.imageUrl != null && card.imageUrl!.isNotEmpty;
+    final textColor = hasImage ? Colors.white : null;
+    final subTextColor = hasImage ? Colors.white.withValues(alpha: 0.85) : null;
+
+    return _CardWithImageBackground(
+      imageUrl: card.imageUrl,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                if (card.icon != null)
+                  Text(card.icon!, style: const TextStyle(fontSize: 36)),
+                if (card.icon != null) const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    card.title ?? '',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
                     ),
                   ),
-                ],
-              ),
-              if (card.content != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  card.content!,
-                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.7),
                 ),
               ],
-              if (card.revelationKey != null) ...[
-                const SizedBox(height: 20),
-                _RevelationKeyBox(text: card.revelationKey!),
-              ],
+            ),
+            if (card.content != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                card.content!,
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(height: 1.7, color: subTextColor),
+              ),
             ],
-          ),
+            if (card.revelationKey != null) ...[
+              const SizedBox(height: 20),
+              _RevelationKeyBox(text: card.revelationKey!),
+            ],
+          ],
         ),
       ),
     );
@@ -311,84 +368,92 @@ class TheologicalDepthCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        color: theme.cardColor,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  if (card.icon != null)
-                    Text(card.icon!, style: const TextStyle(fontSize: 36)),
-                  if (card.icon != null) const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      card.title ?? '',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+    final hasImage = card.imageUrl != null && card.imageUrl!.isNotEmpty;
+    final textColor = hasImage ? Colors.white : null;
+    final subTextColor = hasImage ? Colors.white.withValues(alpha: 0.85) : null;
+
+    return _CardWithImageBackground(
+      imageUrl: card.imageUrl,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                if (card.icon != null)
+                  Text(card.icon!, style: const TextStyle(fontSize: 36)),
+                if (card.icon != null) const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    card.title ?? '',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
                     ),
                   ),
-                ],
+                ),
+              ],
+            ),
+            if (card.content != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                card.content!,
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(height: 1.7, color: subTextColor),
               ),
-              if (card.content != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  card.content!,
-                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.7),
+            ],
+            if (card.scriptureConnections != null &&
+                card.scriptureConnections!.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Text(
+                'Scripture Connections',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                  color: textColor,
                 ),
-              ],
-              if (card.scriptureConnections != null &&
-                  card.scriptureConnections!.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                Text(
-                  'Scripture Connections',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ...card.scriptureConnections!.map(
-                  (sc) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            sc.reference,
-                            style: TextStyle(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
+              ),
+              const SizedBox(height: 8),
+              ...card.scriptureConnections!.map(
+                (sc) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: hasImage
+                          ? Colors.white.withValues(alpha: 0.12)
+                          : theme.colorScheme.primary.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          sc.reference,
+                          style: TextStyle(
+                            color: hasImage
+                                ? Colors.amber
+                                : theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
                           ),
-                          const SizedBox(height: 4),
-                          Text(sc.text,
-                              style: theme.textTheme.bodySmall
-                                  ?.copyWith(height: 1.5)),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(sc.text,
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(height: 1.5, color: subTextColor)),
+                      ],
                     ),
                   ),
                 ),
-              ],
-              if (card.revelationKey != null) ...[
-                const SizedBox(height: 16),
-                _RevelationKeyBox(text: card.revelationKey!),
-              ],
+              ),
             ],
-          ),
+            if (card.revelationKey != null) ...[
+              const SizedBox(height: 16),
+              _RevelationKeyBox(text: card.revelationKey!),
+            ],
+          ],
         ),
       ),
     );
@@ -407,100 +472,110 @@ class DiscoveryActivationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        color: theme.cardColor,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (card.title != null)
-                Text(
-                  card.title!,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+    final hasImage = card.imageUrl != null && card.imageUrl!.isNotEmpty;
+    final textColor = hasImage ? Colors.white : null;
+    final subTextColor = hasImage ? Colors.white.withValues(alpha: 0.85) : null;
+
+    return _CardWithImageBackground(
+      imageUrl: card.imageUrl,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (card.title != null)
+              Text(
+                card.title!,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
                 ),
-              if (card.discoveryQuestions != null &&
-                  card.discoveryQuestions!.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                ...card.discoveryQuestions!.map(
-                  (q) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color:
-                            theme.colorScheme.primary.withValues(alpha: 0.07),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (q.category.isNotEmpty)
-                            Text(
-                              q.category.toUpperCase(),
-                              style: TextStyle(
-                                color: theme.colorScheme.primary,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.0,
-                              ),
+              ),
+            if (card.discoveryQuestions != null &&
+                card.discoveryQuestions!.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              ...card.discoveryQuestions!.map(
+                (q) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: hasImage
+                          ? Colors.white.withValues(alpha: 0.12)
+                          : theme.colorScheme.primary.withValues(alpha: 0.07),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (q.category.isNotEmpty)
+                          Text(
+                            q.category.toUpperCase(),
+                            style: TextStyle(
+                              color: hasImage
+                                  ? Colors.amber
+                                  : theme.colorScheme.primary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.0,
                             ),
-                          const SizedBox(height: 4),
-                          Text(q.question,
-                              style: theme.textTheme.bodyMedium
-                                  ?.copyWith(height: 1.5)),
-                        ],
-                      ),
+                          ),
+                        const SizedBox(height: 4),
+                        Text(q.question,
+                            style: theme.textTheme.bodyMedium
+                                ?.copyWith(height: 1.5, color: subTextColor)),
+                      ],
                     ),
                   ),
                 ),
-              ],
-              if (card.prayer != null) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color:
-                        theme.colorScheme.secondary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: theme.colorScheme.secondary
-                            .withValues(alpha: 0.25)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.volunteer_activism,
-                              size: 18, color: Colors.purple),
-                          const SizedBox(width: 8),
-                          Text(
-                            card.prayer!.title ?? 'Prayer',
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        card.prayer!.content,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontStyle: FontStyle.italic,
-                          height: 1.6,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ],
-          ),
+            if (card.prayer != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: hasImage
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : theme.colorScheme.secondary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: hasImage
+                          ? Colors.white.withValues(alpha: 0.25)
+                          : theme.colorScheme.secondary
+                              .withValues(alpha: 0.25)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.volunteer_activism,
+                            size: 18, color: Colors.purple),
+                        const SizedBox(width: 8),
+                        Text(
+                          card.prayer!.title ?? 'Prayer',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      card.prayer!.content,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        height: 1.6,
+                        color: subTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -551,107 +626,114 @@ class _CompletionCardState extends State<CompletionCard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        color: theme.cardColor,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              AnimatedBuilder(
-                animation: _glowAnimation,
-                builder: (context, child) => Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.colorScheme.primary
-                            .withValues(alpha: _glowAnimation.value),
-                        blurRadius: 30,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                    color:
-                        theme.colorScheme.primary.withValues(alpha: 0.15),
-                  ),
-                  child: Icon(
-                    Icons.check_circle_outline,
-                    size: 48,
-                    color: theme.colorScheme.primary,
-                  ),
+    final hasImage =
+        widget.card.imageUrl != null && widget.card.imageUrl!.isNotEmpty;
+    final textColor = hasImage ? Colors.white : null;
+    final subTextColor = hasImage ? Colors.white.withValues(alpha: 0.85) : null;
+
+    return _CardWithImageBackground(
+      imageUrl: widget.card.imageUrl,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            AnimatedBuilder(
+              animation: _glowAnimation,
+              builder: (context, child) => Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.colorScheme.primary
+                          .withValues(alpha: _glowAnimation.value),
+                      blurRadius: 30,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                  color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                ),
+                child: Icon(
+                  Icons.check_circle_outline,
+                  size: 48,
+                  color: hasImage ? Colors.white : theme.colorScheme.primary,
                 ),
               ),
-              const SizedBox(height: 24),
-              if (widget.card.title != null)
-                Text(
-                  widget.card.title!,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            if (widget.card.title != null)
+              Text(
+                widget.card.title!,
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
                 ),
-              if (widget.card.completionVerse != null) ...[
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        '"${widget.card.completionVerse!.text}"',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontStyle: FontStyle.italic,
-                          height: 1.6,
-                        ),
-                        textAlign: TextAlign.center,
+                textAlign: TextAlign.center,
+              ),
+            if (widget.card.completionVerse != null) ...[
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: hasImage
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : theme.colorScheme.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '"${widget.card.completionVerse!.text}"',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        height: 1.6,
+                        color: textColor,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '— ${widget.card.completionVerse!.reference}',
-                        style: TextStyle(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              if (widget.card.reflectionPrompt != null) ...[
-                const SizedBox(height: 20),
-                Text(
-                  widget.card.reflectionPrompt!,
-                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.7),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-              if (widget.onBackToEncounters != null) ...[
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    key: const Key('back_to_encounters_button'),
-                    onPressed: widget.onBackToEncounters,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '— ${widget.card.completionVerse!.reference}',
+                      style: TextStyle(
+                        color:
+                            hasImage ? Colors.amber : theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
                       ),
                     ),
-                    child: const Text('Back to Encounters'),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ],
-          ),
+            if (widget.card.reflectionPrompt != null) ...[
+              const SizedBox(height: 20),
+              Text(
+                widget.card.reflectionPrompt!,
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(height: 1.7, color: subTextColor),
+                textAlign: TextAlign.center,
+              ),
+            ],
+            if (widget.onBackToEncounters != null) ...[
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  key: const Key('back_to_encounters_button'),
+                  onPressed: widget.onBackToEncounters,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Back to Encounters'),
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -675,6 +757,7 @@ class UnknownCard extends StatelessWidget {
 
 class _RevelationKeyBox extends StatelessWidget {
   final String text;
+
   const _RevelationKeyBox({required this.text});
 
   @override
@@ -727,8 +810,7 @@ Widget buildEncounterCardWidget(
     case 'discovery_activation':
       return DiscoveryActivationCard(card: card);
     case 'completion':
-      return CompletionCard(
-          card: card, onBackToEncounters: onBackToEncounters);
+      return CompletionCard(card: card, onBackToEncounters: onBackToEncounters);
     case 'interactive_moment':
       // v1: model only, no UI — render as empty
       return const UnknownCard();
