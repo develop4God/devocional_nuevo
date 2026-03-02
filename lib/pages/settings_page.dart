@@ -199,7 +199,6 @@ class _SettingsViewState extends State<_SettingsView> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
-   
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themeState.systemUiOverlayStyle,

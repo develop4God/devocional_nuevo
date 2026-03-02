@@ -1,0 +1,187 @@
+{
+  "id": "peter_water_001",
+  "type": "encounter",
+  "schema_version": "encounters_v1",
+  "language": "es",
+  "bible_version": "RVR1960",
+  "version": "1.0",
+  "estimated_reading_minutes": 8,
+  "meta": {
+    "character": "Pedro",
+    "testament": "new",
+    "scripture_reference": "Mateo 14:22-33",
+    "mood_primary": "storm",
+    "accent_color": "#1e3a5f",
+    "emoji": "🌊",
+    "tags": [
+      "fe",
+      "miedo",
+      "milagros",
+      "tormentas",
+      "gracia",
+      "pedro",
+      "jesus"
+    ]
+  },
+  "key_verse": {
+    "reference": "Mateo 14:31",
+    "text": "Al momento Jesús, extendiendo la mano, asió de él, y le dijo: ¡Hombre de poca fe! ¿Por qué dudaste?",
+    "bible_version": "RVR1960"
+  },
+  "cards": [
+    {
+      "order": 1,
+      "type": "cinematic_scene",
+      "mood": "storm",
+      "image_url": "peter_intro.jpg",
+      "title": "3am. Tormenta. Sin Jesús.",
+      "narrative": "Los discípulos llevaban horas remando contra un viento violento. Jesús los había enviado adelante — solos. El mar estaba vivo de furia. Y estaban perdiendo.",
+      "ambient_sound": "storm_waves",
+      "haptic": "storm_rumble",
+      "revelation_key": "A veces Dios nos envía a las tormentas a propósito."
+    },
+    {
+      "order": 2,
+      "type": "scripture_moment",
+      "mood": "tense",
+      "image_url": "waves_night.png",
+      "verse_reference": "Mateo 14:24",
+      "verse_text": "Y ya la barca estaba en medio del mar, azotada por las olas; porque el viento era contrario.",
+      "reflection": "Observa lo que este versículo NO dice.\n\nNo dice que Dios los abandonó. No dice que estaban siendo castigados. Dice que el viento era contrario.\n\nAlgunas tormentas no son castigo. Algunas tormentas no son errores. Algunas tormentas son el camino que Dios eligió para ti — por lo que te espera al otro lado.",
+      "revelation_key": "Un viento contrario no significa una dirección equivocada."
+    },
+    {
+      "order": 3,
+      "type": "character_moment",
+      "mood": "intense",
+      "image_url": "peter_storm_boat.png",
+      "title": "La Oración más Atrevida de la Biblia",
+      "subtitle": "Mateo 14:28",
+      "content": "La respuesta de Pedro es extraordinaria. No 'Señor sálvanos a todos' — todo el barco orando junto.\n\nSolo Pedro. Un hombre. Una petición audaz:\n\n'Señor, si eres Tú, manda que yo vaya a Ti sobre las aguas.'\n\nPiensa en lo que realmente está pidiendo. No ser rescatado. No que la tormenta pare. Salir del barco y caminar hacia la tormenta él mismo.\n\n⚡ LOS ONCE DISCÍPULOS RESTANTES:\n\nNinguno hizo esta petición. Se quedaron en el barco. Seguros. Secos. Razonables.\n\nTampoco caminaron sobre el agua.\n\nLa fe de Pedro era impulsiva. Probablemente vergonzosa para los demás.\n\nY fue la única fe que lo movió hacia lo imposible.",
+      "revelation_key": "Pedro no le pidió a Jesús que viniera a él. Le pidió ir a Jesús. Eso lo cambia todo."
+    },
+    {
+      "order": 4,
+      "type": "cinematic_scene",
+      "mood": "mysterious",
+      "image_url": "jesus_light_water.png",
+      "title": "Algo caminaba hacia ellos",
+      "narrative": "Entonces lo vieron. Una figura. Moviéndose a través de la tormenta como si no existiera. Caminando sobre el agua. Hacia ellos.\n\nEstaban aterrorizados. Pensaron que era un fantasma.",
+      "ambient_sound": "storm_fading",
+      "verse_overlay": {
+        "reference": "Mateo 14:27",
+        "text": "Pero en seguida Jesús les habló, diciendo: ¡Tened ánimo; yo soy, no temáis!"
+      },
+      "revelation_key": "Jesús viene a nosotros en medio de nuestras peores tormentas. No después."
+    },
+    {
+      "order": 5,
+      "type": "cinematic_scene",
+      "mood": "awe",
+      "image_url": "peter_walking_water.png",
+      "title": "Y caminó sobre el agua",
+      "narrative": "Una sola palabra de Jesús. 'Ven.'\n\nY Pedro bajó de la barca. A la tormenta. Sobre el agua.\n\nPor un momento imposible, glorioso, aterrador — caminó.",
+      "ambient_sound": "wind_gentle",
+      "haptic": "gentle_pulse",
+      "verse_overlay": {
+        "reference": "Mateo 14:29",
+        "text": "Y descendiendo Pedro de la barca, andaba sobre las aguas para ir a Jesús."
+      },
+      "revelation_key": "Pedro es el único ser humano en la historia además de Jesús que caminó sobre el agua. Porque fue el único que lo pidió."
+    },
+    {
+      "order": 6,
+      "type": "theological_depth",
+      "mood": "storm",
+      "image_url": "waves_night.png",
+      "title": "El Momento en que Todo Cambió",
+      "subtitle": "Tres palabras que explican todo fracaso de fe",
+      "content": "Mateo nos da la secuencia exacta:\n\n1️⃣ 'Vio el viento' — su atención cambió\n2️⃣ 'Tuvo miedo' — el miedo siguió a su enfoque\n3️⃣ 'Comenzó a hundirse' — su cuerpo siguió a su corazón\n\n🔑 LA PALABRA CLAVE: 'Comenzó'\n\nNo se hundió instantáneamente. Hubo un momento entre la duda y el ahogamiento. Una ventana. Un grito.\n\n'¡Señor, sálvame!'\n\nTres palabras. La oración más corta de la Escritura. Y la más honesta.\n\nSin teología. Sin explicaciones. Sin negociaciones. Solo la verdad cruda de un hombre que intentó, falló, y sabía exactamente a quién llamar.\n\n⚠️ LO QUE JESÚS NO DIJO:\n\nNo dijo: 'Debiste haberte quedado en el barco.'\nNo dijo: 'Te lo dije.'\nNo lo dejó hundir para enseñarle una lección.\n\nLa palabra griega eutheos — al momento — aparece en el instante en que Pedro clama. De inmediato. Sin demora. Esta es la velocidad de la gracia.\n\nAl momento. Extendió la mano.",
+      "revelation_key": "La oración más corta es a veces la más poderosa. 'Señor, sálvame' es suficiente.",
+      "scripture_connections": [
+        {
+          "reference": "Isaías 41:13",
+          "text": "Porque yo soy el Señor tu Dios, que te sostiene de tu mano derecha, y te dice: No temas, yo te ayudaré."
+        },
+        {
+          "reference": "Salmo 18:16",
+          "text": "Envió desde lo alto; me tomó, me sacó de las muchas aguas."
+        }
+      ]
+    },
+    {
+      "order": 7,
+      "type": "cinematic_scene",
+      "mood": "grace",
+      "image_url": "peter_hand_saved.png",
+      "title": "Al momento",
+      "narrative": "Esa palabra — al momento — lo es todo.\n\nSin demora. Sin sermón primero. Sin 'déjame pensar si te lo mereces.'\n\nAl momento Jesús extendió la mano y lo sostuvo.\n\nLa gracia se mueve más rápido que el fracaso.",
+      "ambient_sound": "storm_stopping",
+      "haptic": "rescue_pulse",
+      "verse_overlay": {
+        "reference": "Mateo 14:31",
+        "text": "Al momento Jesús, extendiendo la mano, asió de él."
+      },
+      "revelation_key": "Jesús nos atrapa antes de corregirnos. Gracia antes que reprensión. Siempre."
+    },
+    {
+      "order": 8,
+      "type": "character_moment",
+      "mood": "peace",
+      "image_url": "waves_night.png",
+      "title": "¡Hombre de Poca Fe!",
+      "subtitle": "La reprensión que no era realmente una reprensión",
+      "content": "Jesús le hace a Pedro una sola pregunta:\n\n'¡Hombre de poca fe! ¿Por qué dudaste?'\n\nLee esto con cuidado. Jesús llama esto POCA fe — no NINGUNA fe.\n\nPedro tenía más fe que los once en el barco. Salió. Caminó. Llamó a la persona correcta cuando se hundía.\n\nEso no es falta de fe. Esa es fe en proceso.\n\n🚣 LA RESPUESTA DE LA BARCA:\n\nCuando Jesús y Pedro volvieron a la barca, algo sucedió que no había sucedido antes:\n\n'Los que estaban en la barca vinieron y le adoraron, diciendo: Verdaderamente eres Hijo de Dios.'\n\nLos once que se quedaron seguros — que nunca dudaron porque nunca lo intentaron — presenciaron algo a través del fracaso y rescate de Pedro que los llevó a la adoración.\n\nDios usó el hundimiento de Pedro para revelar a Jesús a todos en esa barca.",
+      "revelation_key": "A veces Dios nos deja hundir para que otros puedan verlo sacarnos."
+    },
+    {
+      "order": 9,
+      "type": "interactive_moment",
+      "icon": "🌊",
+      "image_url": "waves_night.png",
+      "title": "Nombra tu Ola",
+      "subtitle": "¿Cuál es la tormenta que está alejando tus ojos de Jesús?",
+      "reflection_prompt": "Tómate un momento para nombrar el viento y las olas en tu vida ahora mismo. ¿Cómo sería salir de la barca hacia Jesús en esa situación?"
+    },
+    {
+      "order": 10,
+      "type": "discovery_activation",
+      "icon": "🙏",
+      "mood": "grace",
+      "image_url": "jesus_light_water.png",
+      "title": "Tu Encuentro",
+      "subtitle": "La historia de Pedro no es solo historia. Es un espejo.",
+      "discovery_questions": [
+        {
+          "category": "Honestidad",
+          "question": "¿Qué tormenta en tu vida estás mirando en este momento en lugar de mirar a Jesús? ¿Cuáles son tus olas?"
+        },
+        {
+          "category": "Valentía",
+          "question": "¿Hay una barca de la que necesitas salir? ¿Algo a lo que Dios te está llamando que se siente imposible — y aún no lo has pedido?"
+        },
+        {
+          "category": "Gracia",
+          "question": "¿Alguna vez has clamado 'Señor, sálvame' y te has sentido sostenido? ¿Qué pasó? Si no — ¿qué te impide clamar ahora mismo?"
+        }
+      ],
+      "prayer": {
+        "title": "Oración del Hombre que se Hunde",
+        "content": "Señor, confieso que he estado mirando las olas.\n\nLa tormenta es real. El viento es contrario. Y tengo miedo.\n\nComo Pedro clamo — Señor, sálvame.\n\nNo porque tenga suficiente fe. No porque merezca el rescate. Sino porque eres el tipo de Dios que extiende la mano al momento.\n\nSostenme. Estoy levantando la mano.\n\nY cuando lo hagas — mantén mis ojos en Ti y no en el agua bajo mis pies.\n\nEn el nombre de Jesús, Amén."
+      }
+    },
+    {
+      "order": 11,
+      "type": "completion",
+      "mood": "awe",
+      "image_url": "peter_walking_water.png",
+      "completion_verse": {
+        "reference": "Mateo 14:33",
+        "text": "Entonces los que estaban en la barca vinieron y le adoraron, diciendo: Verdaderamente eres Hijo de Dios.",
+        "bible_version": "RVR1960"
+      },
+      "reflection_prompt": "¿Cuál es una verdad del encuentro de Pedro que quieres llevar contigo hoy?",
+      "celebration_type": "gentle_light"
+    }
+  ]
+}
