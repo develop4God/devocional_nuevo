@@ -15,9 +15,8 @@ class DiscoveryRepository {
   static const String _cacheKeyPrefix = 'discovery_cache_';
   static const String _indexCacheKey = 'discovery_index_cache';
 
-  /// How long an index cache entry is considered fresh before a background
-  /// revalidation is triggered (same sidecar-date pattern used by devocional cache).
-  static const Duration _indexCacheTtl = Duration(hours: 24);
+  /// Fetched at most once per app session — reset on every cold start.
+  static bool _indexFetchedThisSession = false;
 
   DiscoveryRepository({required this.httpClient});
 
@@ -112,31 +111,17 @@ class DiscoveryRepository {
     final branch = kDebugMode ? Constants.debugBranch : 'main';
     final indexCacheKey = '${_indexCacheKey}_$branch';
 
-    // ── Cache-First: serve from cache when fresh and caller did not force ──
-    if (!forceRefresh) {
+    // ── Cache-First: serve from cache within the same app session ──
+    if (!forceRefresh && _indexFetchedThisSession) {
       final cachedIndex = prefs.getString(indexCacheKey);
-      final cachedDateStr = prefs.getString('${indexCacheKey}_date');
-      final cachedDate =
-          cachedDateStr != null ? DateTime.tryParse(cachedDateStr) : null;
-      final isFresh = cachedDate != null &&
-          DateTime.now().difference(cachedDate) < _indexCacheTtl;
-
-      if (cachedIndex != null && isFresh) {
+      if (cachedIndex != null) {
         debugPrint(
-            '✅ Discovery: Index cache hit [branch: $branch] age: ${DateTime.now().difference(cachedDate).inMinutes}m (skipping network)');
+            '✅ Discovery: Index cache hit [branch: $branch] (same session, skipping network)');
         final index = jsonDecode(cachedIndex) as Map<String, dynamic>;
         final studiesCount = (index['studies'] as List?)?.length ?? 0;
         debugPrint(
             '📚 Discovery: Cached index has $studiesCount studies [branch: $branch]');
         return index;
-      }
-
-      if (cachedIndex != null && !isFresh) {
-        debugPrint(
-            '⏰ Discovery: Index cache stale (age: ${cachedDate == null ? '?' : DateTime.now().difference(cachedDate).inHours}h) — revalidating from network');
-      } else {
-        debugPrint(
-            '⚠️ Discovery: No cache for branch $branch — fetching from network');
       }
     }
 
@@ -176,9 +161,7 @@ class DiscoveryRepository {
 
         // CRITICAL: Guardar en cache con branch incluido en la key
         await prefs.setString(indexCacheKey, response.body);
-        // Store fetch date for TTL check (inline sidecar pattern)
-        await prefs.setString(
-            '${indexCacheKey}_date', DateTime.now().toIso8601String());
+        _indexFetchedThisSession = true;
         debugPrint(
             '💾 Discovery: Index cached successfully for branch: $branch');
         return index;
