@@ -31,7 +31,8 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
     emit(EncounterLoading());
 
     try {
-      final index = await repository.fetchIndex();
+      final index =
+          await repository.fetchIndex(forceRefresh: event.forceRefresh);
       debugPrint('🔵 [EncounterBloc] Index loaded: ${index.length} entries');
       emit(EncounterLoaded(index: index));
     } catch (e) {
@@ -57,7 +58,11 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
     }
 
     try {
-      final study = await repository.fetchStudy(event.id, event.lang);
+      final study = await repository.fetchStudy(
+        event.id,
+        event.lang,
+        filename: event.filename,
+      );
 
       if (_disposed) return;
 
