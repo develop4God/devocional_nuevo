@@ -34,7 +34,10 @@ echo "=== TEST REPORT ==="
 echo "$OUTPUT"
 echo "=== END REPORT ==="
 
-if echo "$OUTPUT" | grep -qiE 'error|failure|failed'; then
+# Match actual test runner failure output, not debug log lines.
+# Flutter test failure lines start with timestamps like "00:03 +N -M:" or
+# contain "Some tests failed" / "FAILED" at the start of a line.
+if echo "$OUTPUT" | grep -qE '^\s*[0-9]+:[0-9]+ \+[0-9]+ -[0-9]+:|Some tests failed|^FAILED'; then
     echo "RESULT=TESTS_FAILED"
     exit 1
 else
