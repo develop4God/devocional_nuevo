@@ -25,7 +25,7 @@
   },
   "key_verse": {
     "reference": "Matthew 14:31",
-    "text": "And immediately Jesus stretched forth his hand, and caught him.",
+    "text": "And immediately Jesus stretched out His hand and caught him, saying to him, 'O you of little faith, why did you doubt?'",
     "bible_version": "KJV"
   },
   "cards": [
@@ -33,7 +33,7 @@
       "order": 1,
       "type": "cinematic_scene",
       "mood": "storm",
-      "image_url": "peter_storm_clouds.png",
+      "image_url": "peter_intro.jpg",
       "title": "3am. Storm. No Jesus.",
       "narrative": "The disciples had been rowing for hours against a violent wind. Jesus had sent them ahead — alone. The sea was alive with fury. And they were losing.",
       "ambient_sound": "storm_waves",
@@ -55,7 +55,6 @@
       "type": "character_moment",
       "mood": "intense",
       "image_url": "peter_storm_boat.png",
-      "icon": "⚡",
       "title": "The Most Reckless Prayer in the Bible",
       "subtitle": "Matthew 14:28",
       "content": "Peter's response is extraordinary. Not 'Lord save us all' — the whole boat praying together.\n\nJust Peter. One man. One wild request:\n\n'Lord, if it is You — command me to COME to You on the water.'\n\nThink about what he is actually asking. Not to be rescued. Not for the storm to stop. To get OUT of the boat and walk toward the storm himself.\n\n⚡ THE ELEVEN OTHER DISCIPLES:\n\nNot one of them made this request. They stayed in the boat. Safe. Dry. Reasonable.\n\nThey also never walked on water.\n\nPeter's faith was reckless. Impulsive. Probably embarrassing to the others.\n\nAnd it was the only faith that moved him onto the impossible.",
@@ -93,7 +92,6 @@
     {
       "order": 6,
       "type": "theological_depth",
-      "icon": "👀",
       "mood": "storm",
       "image_url": "waves_night.png",
       "title": "The Moment Everything Changed",
@@ -130,7 +128,6 @@
       "order": 8,
       "type": "character_moment",
       "mood": "peace",
-      "icon": "🌊",
       "image_url": "waves_night.png",
       "title": "O Thou of Little Faith",
       "subtitle": "The rebuke that wasn't really a rebuke",
