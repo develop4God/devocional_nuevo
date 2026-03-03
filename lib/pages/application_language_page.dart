@@ -86,6 +86,10 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       context,
       listen: false,
     );
+    // Capture BLoC reference synchronously before any await to satisfy
+    // use_build_context_synchronously lint rule.
+    final discoveryBloc =
+        Constants.enableDiscoveryFeature ? context.read<DiscoveryBloc>() : null;
 
     try {
       // Simulate progress updates
@@ -99,19 +103,18 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       }
 
       // Change language in provider (locale + data fetch in one atomic call).
-      // setSelectedLanguage internally calls localizationProvider.changeLanguage
-      // and _fetchAllDevocionalesForLanguage, so we must NOT call them separately
-      // to avoid triple API fetches and redundant cache writes.
+      // We pass null as context to avoid use_build_context_synchronously lint:
+      // the locale update is handled explicitly via the pre-captured reference.
       if (mounted) {
-        // Await the full language switch (locale + default-version update + data fetch).
-        await devocionalProvider.setSelectedLanguage(languageCode, context);
+        // Update locale via pre-captured reference (no direct context access after await).
+        await localizationProvider.changeLanguage(languageCode);
+
+        // Await the full language switch (version update + data fetch).
+        // Pass null for context since locale was already updated above.
+        await devocionalProvider.setSelectedLanguage(languageCode, null);
 
         // Update DiscoveryBloc with new language
-        if (Constants.enableDiscoveryFeature) {
-          context
-              .read<DiscoveryBloc>()
-              .add(RefreshDiscoveryStudies(languageCode: languageCode));
-        }
+        discoveryBloc?.add(RefreshDiscoveryStudies(languageCode: languageCode));
       }
 
       // Resolve the now-active version (setSelectedLanguage already persisted it).
