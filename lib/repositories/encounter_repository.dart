@@ -20,10 +20,19 @@ class EncounterRepository {
 
   static const String _indexCacheKey = 'encounter_index_cache';
   static const String _studyCacheKeyPrefix = 'encounter_cache_';
-  static const String _fallbackAssetEn =
-      'assets/encounters/fallback_peter_en.json';
-  static const String _fallbackAssetEs =
-      'assets/encounters/fallback_peter_es.json';
+
+  /// Bundled fallback assets for peter_water_001, keyed by language code.
+  /// Files live at assets/encounters/peter_water_{lang}_001.json.
+  static const Map<String, String> _fallbackAssets = {
+    'es': 'assets/encounters/peter_water_es_001.json',
+    'en': 'assets/encounters/peter_water_en_001.json',
+    'pt': 'assets/encounters/peter_water_pt_001.json',
+    'fr': 'assets/encounters/peter_water_fr_001.json',
+    'zh': 'assets/encounters/peter_water_zh_001.json',
+    'hi': 'assets/encounters/peter_water_hi_001.json',
+    'ja': 'assets/encounters/peter_water_ja_001.json',
+  };
+
   static const Duration _networkTimeout = Duration(seconds: 10);
 
   EncounterRepository({required this.httpClient});
@@ -107,8 +116,13 @@ class EncounterRepository {
           testament: 'new',
           character: 'Peter',
           files: const {
-            'en': 'peter_water_001_en.json',
-            'es': 'peter_water_001_es.json',
+            'en': 'peter_water_en_001.json',
+            'es': 'peter_water_es_001.json',
+            'pt': 'peter_water_pt_001.json',
+            'fr': 'peter_water_fr_001.json',
+            'zh': 'peter_water_zh_001.json',
+            'hi': 'peter_water_hi_001.json',
+            'ja': 'peter_water_ja_001.json',
           },
           titles: const {
             'en': 'Peter Walks on Water',
@@ -188,9 +202,15 @@ class EncounterRepository {
     if (lang != 'en') {
       debugPrint(
           '⚠️ Encounter: $lang not found for $id, trying English fallback');
-      // For the English fallback derive the en filename from the provided one
-      // or use the same convention: {id}_en.json
-      final enFilename = filename?.replaceAll('_$lang.json', '_en.json');
+      // Derive the English filename by replacing the lang segment.
+      // Handles both peter_water_es_001.json → peter_water_en_001.json
+      // and the legacy {id}_{lang}.json → {id}_en.json patterns.
+      String? enFilename;
+      if (filename != null) {
+        enFilename = filename.contains('_${lang}_')
+            ? filename.replaceFirst('_${lang}_', '_en_')
+            : filename.replaceAll('_$lang.json', '_en.json');
+      }
       final enUrl =
           Constants.getEncounterStudyUrl(id, 'en', filename: enFilename);
       final enResponse =
@@ -233,12 +253,13 @@ class EncounterRepository {
   }
 
   Future<EncounterStudy> _loadFallbackStudy(String lang) async {
-    // Pick language-appropriate fallback; default to EN for unsupported langs
-    final assetPath = lang == 'es' ? _fallbackAssetEs : _fallbackAssetEn;
+    // Pick language-appropriate bundled asset; default to 'en' for unsupported langs.
+    final assetPath = _fallbackAssets[lang] ?? _fallbackAssets['en']!;
     try {
       final raw = await rootBundle.loadString(assetPath);
       final json = jsonDecode(raw) as Map<String, dynamic>;
-      debugPrint('📂 Encounter: Using bundled fallback study ($lang)');
+      debugPrint(
+          '📂 Encounter: Using bundled fallback study ($lang) → $assetPath');
       return EncounterStudy.fromJson(json);
     } catch (e) {
       throw Exception('Failed to load fallback encounter: $e');
