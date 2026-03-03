@@ -107,8 +107,8 @@ class EncounterRepository {
           testament: 'new',
           character: 'Peter',
           files: const {
-            'en': 'peter_water_001.json',
-            'es': 'peter_water_001.json'
+            'en': 'peter_water_001_en.json',
+            'es': 'peter_water_001_es.json',
           },
           titles: const {
             'en': 'Peter Walks on Water',
@@ -138,7 +138,11 @@ class EncounterRepository {
 
   /// Fetches an individual encounter study. Checks cache first, then network.
   /// Falls back to the bundled fallback asset for 'peter_water_001'.
-  Future<EncounterStudy> fetchStudy(String id, String lang) async {
+  ///
+  /// [filename] — the exact filename from the index `files` map
+  ///   (e.g. `peter_water_001_es.json`). Preferred over constructing it from [id].
+  Future<EncounterStudy> fetchStudy(String id, String lang,
+      {String? filename}) async {
     // 1. Check SharedPreferences cache (skipped when fallback is disabled)
     if (Constants.enableEncounterFallback) {
       final cached = await _loadStudyFromCache(id, lang);
@@ -150,7 +154,7 @@ class EncounterRepository {
 
     // 2. Fetch from network (non-recursive — try lang, then 'en' directly)
     try {
-      final study = await _fetchStudyFromNetwork(id, lang);
+      final study = await _fetchStudyFromNetwork(id, lang, filename: filename);
       return study;
     } catch (e) {
       debugPrint('❌ Encounter: Error fetching study $id ($lang): $e');
@@ -163,8 +167,12 @@ class EncounterRepository {
   }
 
   /// Non-recursive network fetch: tries [lang], then 'en' if different.
-  Future<EncounterStudy> _fetchStudyFromNetwork(String id, String lang) async {
-    final url = Constants.getEncounterStudyUrl(id, lang);
+  ///
+  /// [filename] — when provided, used directly; otherwise falls back to
+  ///   the `{id}_{lang}.json` convention.
+  Future<EncounterStudy> _fetchStudyFromNetwork(String id, String lang,
+      {String? filename}) async {
+    final url = Constants.getEncounterStudyUrl(id, lang, filename: filename);
     debugPrint('🌐 Encounter: Fetching study $id ($lang) from $url');
     final response =
         await httpClient.get(Uri.parse(url)).timeout(_networkTimeout);
@@ -180,7 +188,13 @@ class EncounterRepository {
     if (lang != 'en') {
       debugPrint(
           '⚠️ Encounter: $lang not found for $id, trying English fallback');
-      final enUrl = Constants.getEncounterStudyUrl(id, 'en');
+      // For the English fallback derive the en filename from the provided one
+      // or use the same convention: {id}_en.json
+      final enFilename = filename != null
+          ? filename.replaceAll('_$lang.json', '_en.json')
+          : null;
+      final enUrl =
+          Constants.getEncounterStudyUrl(id, 'en', filename: enFilename);
       final enResponse =
           await httpClient.get(Uri.parse(enUrl)).timeout(_networkTimeout);
       if (enResponse.statusCode == 200) {

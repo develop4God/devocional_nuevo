@@ -114,10 +114,14 @@ class Constants {
 
   /// Set to true to use cache + bundled fallback assets when network is unavailable.
   /// Set to false to skip all fallbacks and always require network.
-  static const bool enableEncounterFallback = true;
+  /// Mutable so it can be toggled from the debug page at runtime.
+  static bool enableEncounterFallback = true;
 
   /// Branch para debug Discovery (solo kDebugMode)
   static String debugBranch = 'main';
+
+  /// Branch para debug Encounters (solo kDebugMode)
+  static String debugEncounterBranch = 'main';
 
   /// Branch para debug Devotionals (solo kDebugMode)
   static String debugBranchDevotionals = 'main';
@@ -144,14 +148,20 @@ class Constants {
 
   /// Obtiene la URL del índice de Encounters
   static String getEncounterIndexUrl() {
-    final branch = kDebugMode ? debugBranch : 'main';
+    final branch = kDebugMode ? debugEncounterBranch : 'main';
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/encounters/index.json';
   }
 
-  /// Obtiene la URL de un estudio de Encounter
-  static String getEncounterStudyUrl(String id, String lang) {
-    final branch = kDebugMode ? debugBranch : 'main';
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/encounters/$lang/$id.json';
+  /// Obtiene la URL de un estudio de Encounter.
+  ///
+  /// [filename] — the exact filename from the index `files` map
+  ///   (e.g. `peter_water_001_es.json`). When omitted the convention
+  ///   `{id}_{lang}.json` is used as a fallback.
+  static String getEncounterStudyUrl(String id, String lang,
+      {String? filename}) {
+    final branch = kDebugMode ? debugEncounterBranch : 'main';
+    final file = filename ?? '${id}_$lang.json';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/encounters/$lang/$file';
   }
 
   /// Obtiene la URL de una imagen de Encounter

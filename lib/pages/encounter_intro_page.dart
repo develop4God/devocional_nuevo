@@ -80,9 +80,20 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
     // Pre-load the study
     final id = widget.entry.id;
     final bloc = context.read<EncounterBloc>();
-    if (bloc.state is! EncounterLoaded ||
-        !(bloc.state as EncounterLoaded).isStudyLoaded(id)) {
-      bloc.add(LoadEncounterStudy(id, widget.lang));
+
+    // Only skip if the study is already in the loaded studies map.
+    // If the bloc is in any other state (Initial, Loading, Error) we still
+    // dispatch so the study is fetched once the bloc is ready.
+    final alreadyLoaded = bloc.state is EncounterLoaded &&
+        (bloc.state as EncounterLoaded).isStudyLoaded(id);
+
+    if (!alreadyLoaded) {
+      // Resolve the filename from the index files map (e.g. peter_water_001_es.json).
+      // Fall back to the {id}_{lang}.json convention if the map has no entry.
+      final filename = widget.entry.files[widget.lang] ??
+          widget.entry.files['en'] ??
+          '${id}_${widget.lang}.json';
+      bloc.add(LoadEncounterStudy(id, widget.lang, filename: filename));
     }
   }
 
@@ -295,38 +306,52 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                         return SizedBox(
                           width: double.infinity,
                           height: 72,
-                          child: ElevatedButton(
-                            onPressed: isLoaded
-                                ? () => _beginEncounter(loadedState)
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF0a0e1a),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                            ),
-                            child: isLoaded
-                                ? Text(
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Always-visible button
+                              SizedBox(
+                                width: double.infinity,
+                                height: 72,
+                                child: ElevatedButton(
+                                  onPressed: isLoaded
+                                      ? () => _beginEncounter(loadedState)
+                                      : null,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: const Color(0xFF0a0e1a),
+                                    disabledBackgroundColor:
+                                        Colors.white.withValues(alpha: 0.85),
+                                    disabledForegroundColor:
+                                        const Color(0xFF0a0e1a)
+                                            .withValues(alpha: 0.4),
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(24),
+                                    ),
+                                  ),
+                                  child: Text(
                                     'encounters.enter_experience'.tr(),
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w900,
                                       letterSpacing: 2.0,
                                     ),
-                                  )
-                                : const Center(
-                                    child: SizedBox(
-                                      height: 24,
-                                      width: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 3,
-                                        valueColor: AlwaysStoppedAnimation(
-                                            Color(0xFF0a0e1a)),
-                                      ),
-                                    ),
                                   ),
+                                ),
+                              ),
+                              // Loading spinner overlay — shown while study fetches
+                              if (!isLoaded)
+                                const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation(
+                                        Color(0xFF0a0e1a)),
+                                  ),
+                                ),
+                            ],
                           ),
                         );
                       },

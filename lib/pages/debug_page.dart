@@ -5,6 +5,8 @@ import 'dart:math';
 
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
+import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
+import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
@@ -550,6 +552,146 @@ class _DebugPageState extends State<DebugPage> {
                           onPressed: _fetchBranches,
                           icon: const Icon(Icons.refresh),
                           label: const Text('Refresh Branches'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+
+                // ── Encounters Debug Section ───────────────────────────────
+                if (Constants.enableEncountersFeature) ...[
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.teal.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border:
+                          Border.all(color: Colors.teal.withValues(alpha: 0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.explore_outlined,
+                                size: 32, color: Colors.teal),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Encounters Debug',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        // Branch selector
+                        const Text('Branch:',
+                            style: TextStyle(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        if (_loadingBranches)
+                          const CircularProgressIndicator()
+                        else
+                          DropdownButton<String>(
+                            value: _branches
+                                    .contains(Constants.debugEncounterBranch)
+                                ? Constants.debugEncounterBranch
+                                : _branches.first,
+                            isExpanded: true,
+                            items: _branches
+                                .map((b) =>
+                                    DropdownMenuItem(value: b, child: Text(b)))
+                                .toList(),
+                            onChanged: (newBranch) {
+                              if (newBranch == null) return;
+                              setState(() =>
+                                  Constants.debugEncounterBranch = newBranch);
+                              if (mounted && context.mounted) {
+                                context
+                                    .read<EncounterBloc>()
+                                    .add(LoadEncounterIndex());
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(
+                                          'Encounters branch → $newBranch')),
+                                );
+                              }
+                            },
+                          ),
+                        const SizedBox(height: 16),
+                        // Fallback toggle
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Use Bundled Fallback',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w600)),
+                                  Text(
+                                    Constants.enableEncounterFallback
+                                        ? '✅ ON — 404s use bundled asset'
+                                        : '🚫 OFF — network errors are thrown',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: Constants.enableEncounterFallback
+                                            ? Colors.green.shade700
+                                            : Colors.red.shade700),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: Constants.enableEncounterFallback,
+                              activeThumbColor: Colors.teal,
+                              onChanged: (val) {
+                                setState(() =>
+                                    Constants.enableEncounterFallback = val);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(val
+                                        ? '✅ Fallback ENABLED'
+                                        : '🚫 Fallback DISABLED — real network only'),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        // Force reload
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              context
+                                  .read<EncounterBloc>()
+                                  .add(LoadEncounterIndex(forceRefresh: true));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('🔄 Encounters index reloaded')),
+                              );
+                            },
+                            icon: const Icon(Icons.refresh, color: Colors.teal),
+                            label: const Text('Force Reload Index',
+                                style: TextStyle(color: Colors.teal)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.teal),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Toggle fallback OFF to test real network fetch.\n'
+                          'If URL returns 404, fix path in GitHub repo.\n'
+                          'Toggle back ON to use bundled asset while debugging.',
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.black54,
+                              fontStyle: FontStyle.italic),
                         ),
                       ],
                     ),
