@@ -190,9 +190,7 @@ class EncounterRepository {
           '⚠️ Encounter: $lang not found for $id, trying English fallback');
       // For the English fallback derive the en filename from the provided one
       // or use the same convention: {id}_en.json
-      final enFilename = filename != null
-          ? filename.replaceAll('_$lang.json', '_en.json')
-          : null;
+      final enFilename = filename?.replaceAll('_$lang.json', '_en.json');
       final enUrl =
           Constants.getEncounterStudyUrl(id, 'en', filename: enFilename);
       final enResponse =
