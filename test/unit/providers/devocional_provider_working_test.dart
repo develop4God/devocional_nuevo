@@ -16,7 +16,8 @@ import 'package:devocional_nuevo/services/devocional_index_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class _MockDevocionalIndexService extends Mock implements DevocionalIndexService {
+class _MockDevocionalIndexService extends Mock
+    implements DevocionalIndexService {
   _MockDevocionalIndexService() : super();
 }
 
@@ -36,8 +37,8 @@ class MockPathProviderPlatform extends PathProviderPlatform {
 
 void main() {
   late DevocionalProvider provider;
-  late _MockDevocionalIndexService _mockIndexService;
-  late _MockCacheMetadataService _mockMetadataService;
+  late _MockDevocionalIndexService mockIndexService;
+  late _MockCacheMetadataService mockMetadataService;
 
   // Mock canales plataforma externos (path_provider, flutter_tts)
   const MethodChannel pathProviderChannel = MethodChannel(
@@ -169,14 +170,16 @@ void main() {
     ServiceLocator().reset();
     await setupServiceLocator();
 
-    _mockIndexService = _MockDevocionalIndexService();
-    _mockMetadataService = _MockCacheMetadataService();
-    when(() => _mockIndexService.fetchIndex()).thenAnswer((_) async => null);
-    when(() => _mockMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
-    when(() => _mockMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+    mockIndexService = _MockDevocionalIndexService();
+    mockMetadataService = _MockCacheMetadataService();
+    when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => null);
+    when(() => mockMetadataService.readManifestDate(any()))
+        .thenAnswer((_) async => null);
+    when(() => mockMetadataService.writeMetadata(any(), any()))
+        .thenAnswer((_) async {});
     provider = DevocionalProvider(
-      devocionalIndexService: _mockIndexService,
-      cacheMetadataService: _mockMetadataService,
+      devocionalIndexService: mockIndexService,
+      cacheMetadataService: mockMetadataService,
     );
     await provider.initializeData();
   });
@@ -386,14 +389,16 @@ void main() {
         'selectedVersion': 'bad_version',
       });
 
-      _mockIndexService = _MockDevocionalIndexService();
-      _mockMetadataService = _MockCacheMetadataService();
-      when(() => _mockIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => _mockMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
-      when(() => _mockMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+      mockIndexService = _MockDevocionalIndexService();
+      mockMetadataService = _MockCacheMetadataService();
+      when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => null);
+      when(() => mockMetadataService.readManifestDate(any()))
+          .thenAnswer((_) async => null);
+      when(() => mockMetadataService.writeMetadata(any(), any()))
+          .thenAnswer((_) async {});
       provider = DevocionalProvider(
-        devocionalIndexService: _mockIndexService,
-        cacheMetadataService: _mockMetadataService,
+        devocionalIndexService: mockIndexService,
+        cacheMetadataService: mockMetadataService,
       );
       await provider.initializeData();
 
@@ -452,8 +457,10 @@ void main() {
       final localIndexService = _MockDevocionalIndexService();
       final localMetadataService = _MockCacheMetadataService();
       when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
-      when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+      when(() => localMetadataService.readManifestDate(any()))
+          .thenAnswer((_) async => null);
+      when(() => localMetadataService.writeMetadata(any(), any()))
+          .thenAnswer((_) async {});
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
@@ -495,8 +502,10 @@ void main() {
       final localIndexService = _MockDevocionalIndexService();
       final localMetadataService = _MockCacheMetadataService();
       when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
-      when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+      when(() => localMetadataService.readManifestDate(any()))
+          .thenAnswer((_) async => null);
+      when(() => localMetadataService.writeMetadata(any(), any()))
+          .thenAnswer((_) async {});
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
@@ -530,8 +539,10 @@ void main() {
       final localIndexService = _MockDevocionalIndexService();
       final localMetadataService = _MockCacheMetadataService();
       when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
-      when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+      when(() => localMetadataService.readManifestDate(any()))
+          .thenAnswer((_) async => null);
+      when(() => localMetadataService.writeMetadata(any(), any()))
+          .thenAnswer((_) async {});
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
@@ -557,8 +568,10 @@ void main() {
       final localIndexService = _MockDevocionalIndexService();
       final localMetadataService = _MockCacheMetadataService();
       when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
-      when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+      when(() => localMetadataService.readManifestDate(any()))
+          .thenAnswer((_) async => null);
+      when(() => localMetadataService.writeMetadata(any(), any()))
+          .thenAnswer((_) async {});
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
@@ -584,8 +597,10 @@ void main() {
       final localIndexService = _MockDevocionalIndexService();
       final localMetadataService = _MockCacheMetadataService();
       when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
-      when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+      when(() => localMetadataService.readManifestDate(any()))
+          .thenAnswer((_) async => null);
+      when(() => localMetadataService.writeMetadata(any(), any()))
+          .thenAnswer((_) async {});
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,

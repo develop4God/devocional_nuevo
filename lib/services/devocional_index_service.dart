@@ -39,7 +39,8 @@ class DevocionalIndexService {
       final Map<String, dynamic> parsed =
           json.decode(response.body) as Map<String, dynamic>;
 
-      final int schemaVersion = (parsed['schema_version'] as num?)?.toInt() ?? 0;
+      final int schemaVersion =
+          (parsed['schema_version'] as num?)?.toInt() ?? 0;
       if (schemaVersion > _supportedSchemaVersion) {
         developer.log(
           '⚠️ [INDEX] Unknown schema_version: $schemaVersion — using cache as-is',
