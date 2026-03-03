@@ -126,6 +126,15 @@ class Constants {
   /// Branch para debug Devotionals (solo kDebugMode)
   static String debugBranchDevotionals = 'main';
 
+  /// Obtiene la URL del índice de Devocionales (cache invalidation)
+  static String getDevocionalIndexUrl() {
+    final branch = kDebugMode ? debugBranchDevotionals : 'main';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/index.json';
+  }
+
+  /// Timeout for fetching the devocional index — keep short to avoid blocking load
+  static const Duration indexFetchTimeout = Duration(seconds: 3);
+
   /// Obtiene la URL del índice de Discovery
   static String getDiscoveryIndexUrl() {
     final branch = kDebugMode ? debugBranch : 'main';

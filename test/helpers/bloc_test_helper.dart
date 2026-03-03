@@ -55,7 +55,8 @@ class DiscoveryBlocTestBase {
       return DiscoveryProgress(studyId: studyId, languageCode: languageCode);
     });
 
-    // Default stub for fetchDiscoveryStudy to prevent MissingStubError and type errors
+    // Default stub for fetchDiscoveryStudy to prevent MissingStubError and type errors.
+    // prefetchedIndex is an optional named param — mocktail matches it regardless.
     when(mockRepository.fetchDiscoveryStudy(any, any))
         .thenAnswer((invocation) async {
       final studyId = invocation.positionalArguments[0] as String;

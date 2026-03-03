@@ -11,6 +11,8 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/cache_metadata_service.dart';
+import 'package:devocional_nuevo/services/devocional_index_service.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -57,6 +59,16 @@ class DevocionalProvider with ChangeNotifier {
   bool _isDownloading = false;
   String? _downloadStatus;
   bool _isOfflineMode = false;
+
+  // ========== CACHE INVALIDATION ==========
+  late final DevocionalIndexService _devocionalIndexService;
+  late final CacheMetadataService _cacheMetadataService;
+
+  /// Full index map from last successful fetch — null when unreachable.
+  Map<String, dynamic>? _cachedIndex;
+
+  /// True only when index fetch failed — drives _isOfflineMode.
+  bool _indexUnreachable = false;
 
   // ========== READING TRACKER ==========
   final ReadingTracker _readingTracker = ReadingTracker();
@@ -134,12 +146,20 @@ class DevocionalProvider with ChangeNotifier {
   DevocionalProvider({
     http.Client? httpClient,
     bool enableAudio = true,
+    DevocionalIndexService? devocionalIndexService,
+    CacheMetadataService? cacheMetadataService,
   })  : assert(
           enableAudio || !kReleaseMode,
           'Audio must not be disabled in release builds',
         ),
         httpClient = httpClient ?? http.Client() {
     debugPrint('🏗️ Provider: Constructor iniciado');
+
+    // Inject cache invalidation services
+    _devocionalIndexService =
+        devocionalIndexService ?? getService<DevocionalIndexService>();
+    _cacheMetadataService =
+        cacheMetadataService ?? getService<CacheMetadataService>();
 
     // Initialize audio controller with DI if enabled
     if (enableAudio) {
@@ -451,80 +471,126 @@ class DevocionalProvider with ChangeNotifier {
       // All historical years remain accessible
       final List<int> yearsToLoad = DevocionalYears.availableYears;
       final List<Devocional> allDevocionales = [];
-      final Set<int> loadedLocalYears = {};
-      final Set<int> loadedApiYears = {};
 
-      // Try loading from local storage first for all years
+      // ── Step 1: Fetch the index FIRST — before any cache decisions ──────
+      // This ensures existing users with full cache are still checked for
+      // staleness. If index is unreachable, _indexUnreachable drives offline mode.
+      _cachedIndex = await _devocionalIndexService.fetchIndex();
+      _indexUnreachable = (_cachedIndex == null);
+
+      // ── Step 2: For each year, decide whether to use cache or re-fetch ──
       for (final year in yearsToLoad) {
-        Map<String, dynamic>? localData = await _loadFromLocalStorage(
+        final String filePath = await _getLocalFilePath(
           year,
           _selectedLanguage,
           _selectedVersion,
         );
 
-        if (localData != null) {
-          debugPrint('Loading from local storage for year $year');
-          final List<Devocional> yearDevocionales =
-              await _extractDevocionalesFromData(localData);
-          if (yearDevocionales.isNotEmpty) {
-            loadedLocalYears.add(year);
-            allDevocionales.addAll(yearDevocionales);
-          }
-        }
-      }
+        // Determine index date for this file (null → treat as fresh)
+        final String? indexDate = _indexUnreachable
+            ? null
+            : _devocionalIndexService.getFileDate(
+                _cachedIndex!,
+                _selectedLanguage,
+                _selectedVersion,
+                year.toString(),
+              );
 
-      // If we loaded all years from local storage, use that
-      if (loadedLocalYears.length == yearsToLoad.length) {
-        _isOfflineMode = true;
-        allDevocionales.sort((a, b) => a.date.compareTo(b.date));
-        _allDevocionalesForCurrentLanguage = allDevocionales;
-        _errorMessage = null;
-        _filterDevocionalesByVersion();
-        return;
-      }
+        // Determine sidecar date (null → pre-feature user or no sidecar)
+        final String? sidecarDate =
+            await _cacheMetadataService.readManifestDate(filePath);
 
-      // Otherwise, load missing years from API
-      for (final year in yearsToLoad) {
-        // Skip years already loaded from local storage
-        if (loadedLocalYears.contains(year)) {
-          continue;
+        // Stale when index has a date AND sidecar is missing or different
+        final bool isStale = (indexDate != null) &&
+            (sidecarDate == null || sidecarDate != indexDate);
+
+        if (isStale) {
+          developer.log(
+            '🔄 [CACHE] Stale detected: ${year}_${_selectedLanguage}_$_selectedVersion'
+            ' — index: $indexDate, sidecar: $sidecarDate',
+            name: 'DevocionalCache',
+          );
         }
 
-        try {
-          debugPrint(
-            'Loading from API for year $year, language: $_selectedLanguage, version: $_selectedVersion',
-          );
-          final String url = Constants.getDevocionalesApiUrlMultilingual(
-            year,
-            _selectedLanguage,
-            _selectedVersion,
-          );
-          debugPrint('🔍 Requesting URL: $url');
-          final response = await httpClient.get(Uri.parse(url));
+        // Check if local file exists
+        final bool hasLocal = await File(filePath).exists();
 
-          if (response.statusCode == 200) {
-            final String responseBody = response.body;
-            final Map<String, dynamic> data = json.decode(responseBody);
+        if (!isStale && hasLocal) {
+          // Cache is fresh — load from local storage
+          developer.log(
+            '✅ [CACHE] Fresh: ${year}_${_selectedLanguage}_$_selectedVersion — using local cache',
+            name: 'DevocionalCache',
+          );
+          final Map<String, dynamic>? localData = await _loadFromLocalStorage(
+              year, _selectedLanguage, _selectedVersion);
+          if (localData != null) {
             final List<Devocional> yearDevocionales =
-                await _extractDevocionalesFromData(data);
+                await _extractDevocionalesFromData(localData);
             if (yearDevocionales.isNotEmpty) {
-              loadedApiYears.add(year);
               allDevocionales.addAll(yearDevocionales);
-
-              // AUTO-DOWNLOAD: Save the fetched API data to local storage for offline use
-              _saveToLocalStorage(
-                  year, _selectedLanguage, responseBody, _selectedVersion);
             }
-          } else {
-            debugPrint(
-              '⚠️ Failed to load year $year from API: ${response.statusCode}',
-            );
           }
-        } catch (e) {
-          debugPrint('⚠️ Error loading year $year: $e');
-          // Continue to next year instead of failing completely
+        } else {
+          // Stale or no local file — fetch from API
+          try {
+            debugPrint(
+              'Loading from API for year $year, language: $_selectedLanguage, version: $_selectedVersion',
+            );
+            final String url = Constants.getDevocionalesApiUrlMultilingual(
+              year,
+              _selectedLanguage,
+              _selectedVersion,
+            );
+            debugPrint('🔍 Requesting URL: $url');
+            final response = await httpClient.get(Uri.parse(url));
+
+            if (response.statusCode == 200) {
+              final String responseBody = response.body;
+              final Map<String, dynamic> data = json.decode(responseBody);
+              final List<Devocional> yearDevocionales =
+                  await _extractDevocionalesFromData(data);
+              if (yearDevocionales.isNotEmpty) {
+                allDevocionales.addAll(yearDevocionales);
+
+                // AUTO-DOWNLOAD: Save to local storage — sidecar written atomically
+                await _saveToLocalStorage(
+                    year, _selectedLanguage, responseBody, _selectedVersion);
+              }
+            } else {
+              debugPrint(
+                '⚠️ Failed to load year $year from API: ${response.statusCode}',
+              );
+              // If we have stale cache, fall back to it rather than losing data
+              if (hasLocal) {
+                final Map<String, dynamic>? localData =
+                    await _loadFromLocalStorage(
+                        year, _selectedLanguage, _selectedVersion);
+                if (localData != null) {
+                  final List<Devocional> yearDevocionales =
+                      await _extractDevocionalesFromData(localData);
+                  allDevocionales.addAll(yearDevocionales);
+                }
+              }
+            }
+          } catch (e) {
+            debugPrint('⚠️ Error loading year $year: $e');
+            // Fall back to stale cache on error rather than losing data
+            if (hasLocal) {
+              final Map<String, dynamic>? localData =
+                  await _loadFromLocalStorage(
+                      year, _selectedLanguage, _selectedVersion);
+              if (localData != null) {
+                final List<Devocional> yearDevocionales =
+                    await _extractDevocionalesFromData(localData);
+                allDevocionales.addAll(yearDevocionales);
+              }
+            }
+          }
         }
       }
+
+      // ── Step 3: _isOfflineMode only when index was unreachable ──────────
+      _isOfflineMode = _indexUnreachable;
 
       if (allDevocionales.isEmpty) {
         // CRITICAL FIX: If no devotionals found for selected language, try fallback language
@@ -581,9 +647,8 @@ class DevocionalProvider with ChangeNotifier {
       _filterDevocionalesByVersion();
 
       // Log which years were successfully loaded
-      final loadedYears = {...loadedLocalYears, ...loadedApiYears};
       debugPrint(
-        '✅ Successfully loaded devotionals from years: ${loadedYears.toList()}',
+        '✅ Successfully loaded devotionals from years: ${yearsToLoad.toList()}',
       );
     } catch (e) {
       _errorMessage = 'Error al cargar los devocionales: $e';
@@ -1166,6 +1231,18 @@ class DevocionalProvider with ChangeNotifier {
       final File file = File(filePath);
       await file.writeAsString(content);
       debugPrint('✅ Data saved to local storage: $filePath');
+
+      // Always write sidecar atomically after JSON save.
+      // Use per-file date from cached index if available, today as fallback.
+      final String manifestDate = _devocionalIndexService.getFileDate(
+            _cachedIndex ?? {},
+            language,
+            version ?? '',
+            year.toString(),
+          ) ??
+          DateTime.now().toIso8601String().split('T').first;
+
+      await _cacheMetadataService.writeMetadata(filePath, manifestDate);
     } catch (e) {
       debugPrint('❌ Error saving to local storage: $e');
     }

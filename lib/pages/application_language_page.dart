@@ -86,6 +86,10 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       context,
       listen: false,
     );
+    // Capture BLoC reference synchronously before any await to satisfy
+    // use_build_context_synchronously lint rule.
+    final discoveryBloc =
+        Constants.enableDiscoveryFeature ? context.read<DiscoveryBloc>() : null;
 
     try {
       // Simulate progress updates
@@ -98,67 +102,61 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         }
       }
 
-      // Change language in provider
-      await localizationProvider.changeLanguage(languageCode);
-
-      // Update DevocionalProvider with new language (pass context for UI locale update)
+      // Change language in provider (locale + data fetch in one atomic call).
+      // We pass null as context to avoid use_build_context_synchronously lint:
+      // the locale update is handled explicitly via the pre-captured reference.
       if (mounted) {
-        devocionalProvider.setSelectedLanguage(languageCode, context);
+        // Update locale via pre-captured reference (no direct context access after await).
+        await localizationProvider.changeLanguage(languageCode);
 
-        // Update DiscoveryBloc with new language
-        if (Constants.enableDiscoveryFeature) {
-          context
-              .read<DiscoveryBloc>()
-              .add(RefreshDiscoveryStudies(languageCode: languageCode));
-        }
+        // Await the full language switch (version update + data fetch).
+        // Pass null for context since locale was already updated above.
+        await devocionalProvider.setSelectedLanguage(languageCode, null);
+
+        // forceRefresh:false — the index is language-agnostic; serve from
+        // cache when fresh to avoid an unnecessary 43 KB network round-trip.
+        discoveryBloc?.add(RefreshDiscoveryStudies(
+            languageCode: languageCode, forceRefresh: false));
       }
 
-      // Set default version for the language
-      final defaultVersion = Constants.defaultVersionByLanguage[languageCode];
-      if (defaultVersion != null) {
-        devocionalProvider.setSelectedVersion(defaultVersion);
-      }
+      // Resolve the now-active version (setSelectedLanguage already persisted it).
+      final String defaultVersion = devocionalProvider.selectedVersion;
 
       // Cambiar el contexto de TTS al idioma y versión seleccionados
       devocionalProvider.audioController.ttsService.setLanguageContext(
         languageCode,
-        defaultVersion ?? '',
+        defaultVersion,
       );
       // Usar el metodo getTtsLocale del provider de localización
       await devocionalProvider.audioController.ttsService.setLanguage(
         localizationProvider.getTtsLocale(),
       );
 
-      // Download devotional content (only if not already downloaded or if it's not Spanish)
-      bool downloadSuccess = true;
-      if (!(_downloadStatus[languageCode] == true) || languageCode == 'es') {
-        downloadSuccess =
-            await devocionalProvider.downloadCurrentYearDevocionales();
-      }
+      // setSelectedLanguage already fetched/cached data from the API when stale.
+      // downloadCurrentYearDevocionales() is intentionally skipped here to prevent
+      // a redundant third network request + cache overwrite.
 
-      if (downloadSuccess) {
-        // Auto-assign best voice for the language
-        await _assignBestVoiceForLanguage(languageCode, devocionalProvider);
+      // Auto-assign best voice for the language
+      await _assignBestVoiceForLanguage(languageCode, devocionalProvider);
 
+      if (mounted) {
         setState(() {
           _downloadProgress[languageCode] = 1.0;
           _downloadStatus[languageCode] = true;
           _currentLanguage = languageCode;
         });
+      }
 
-        // Save download status
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('language_downloaded_$languageCode', true);
+      // Save download status
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('language_downloaded_$languageCode', true);
 
-        // Wait a bit to show 100% progress
-        await Future.delayed(const Duration(milliseconds: 500));
+      // Wait a bit to show 100% progress
+      await Future.delayed(const Duration(milliseconds: 500));
 
-        if (mounted) {
-          // Return to settings
-          Navigator.pop(context);
-        }
-      } else {
-        throw Exception('application_language.download_failed'.tr());
+      if (mounted) {
+        // Return to settings
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
