@@ -80,8 +80,8 @@ void main() {
         'updated_at': '2027-01-01',
         'files': {},
       };
-      when(() => mockClient.get(any()))
-          .thenAnswer((_) async => http.Response(json.encode(futureIndex), 200));
+      when(() => mockClient.get(any())).thenAnswer(
+          (_) async => http.Response(json.encode(futureIndex), 200));
 
       final result = await service.fetchIndex();
       expect(result, isNull);
@@ -158,8 +158,7 @@ void main() {
       final path = contentPath('devocional_2026_en_KJV.json');
       await service.writeMetadata(path, '2026-03-10');
 
-      final sidecarPath =
-          '${path.substring(0, path.length - 5)}.meta.json';
+      final sidecarPath = '${path.substring(0, path.length - 5)}.meta.json';
       final content = await File(sidecarPath).readAsString();
       final parsed = json.decode(content) as Map<String, dynamic>;
 
@@ -171,7 +170,8 @@ void main() {
     });
 
     // es/RVR1960 backward compat filename
-    test('sidecar path derived correctly for es backward-compat filename', () async {
+    test('sidecar path derived correctly for es backward-compat filename',
+        () async {
       final path = contentPath('devocional_2025_es.json');
       await service.writeMetadata(path, '2026-03-03');
 
@@ -193,8 +193,7 @@ void main() {
     test('readManifestDate returns null for corrupt sidecar without throwing',
         () async {
       final path = contentPath('devocional_2025_es_NVI.json');
-      final sidecarPath =
-          '${path.substring(0, path.length - 5)}.meta.json';
+      final sidecarPath = '${path.substring(0, path.length - 5)}.meta.json';
       await File(sidecarPath).writeAsString('NOT_VALID_JSON{{{');
 
       final result = await service.readManifestDate(path);
