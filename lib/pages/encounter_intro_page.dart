@@ -302,6 +302,9 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                             state is EncounterLoaded ? state : null;
                         final isLoaded = loadedState != null &&
                             loadedState.isStudyLoaded(entry.id);
+                        // Show error label if study failed to load but we have
+                        // an errorMessage (lets user know something went wrong)
+                        final hasError = loadedState?.errorMessage != null;
 
                         return SizedBox(
                           width: double.infinity,
@@ -309,7 +312,8 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              // Always-visible button
+                              // Always-visible button — white so it shows on
+                              // dark background even in disabled/loading state
                               SizedBox(
                                 width: double.infinity,
                                 height: 72,
@@ -320,18 +324,22 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.white,
                                     foregroundColor: const Color(0xFF0a0e1a),
+                                    // Keep the button clearly visible while
+                                    // disabled so it doesn't disappear
                                     disabledBackgroundColor:
-                                        Colors.white.withValues(alpha: 0.85),
+                                        Colors.white.withValues(alpha: 0.90),
                                     disabledForegroundColor:
                                         const Color(0xFF0a0e1a)
-                                            .withValues(alpha: 0.4),
+                                            .withValues(alpha: 0.5),
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(24),
                                     ),
                                   ),
                                   child: Text(
-                                    'encounters.enter_experience'.tr(),
+                                    hasError
+                                        ? 'encounters.error_load'.tr()
+                                        : 'encounters.enter_experience'.tr(),
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w900,
@@ -340,8 +348,8 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                                   ),
                                 ),
                               ),
-                              // Loading spinner overlay — shown while study fetches
-                              if (!isLoaded)
+                              // Spinner overlay while study is fetching
+                              if (!isLoaded && !hasError)
                                 const SizedBox(
                                   height: 24,
                                   width: 24,
