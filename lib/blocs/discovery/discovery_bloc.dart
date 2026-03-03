@@ -12,7 +12,6 @@ import 'discovery_event.dart';
 import 'discovery_state.dart';
 
 class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
-  static const String _firstDownloadKeyPrefix = 'discovery_first_downloaded_';
   static const String _seenStudiesKey = 'discovery_seen_studies';
 
   final DiscoveryRepository repository;
@@ -186,7 +185,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
       // Background download of first study for offline access
       if (filteredStudyIds.isNotEmpty) {
-        _downloadFirstStudyForOffline(filteredStudyIds.first, locale);
+        // Pass the already-fetched index to avoid a redundant second fetch
+        _downloadFirstStudyForOffline(filteredStudyIds.first, locale, index);
       }
     } catch (e) {
       debugPrint('❌ [BLOC] Error loading Discovery index: $e');
@@ -194,27 +194,35 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     }
   }
 
-  /// Download first study in background for offline access
-  void _downloadFirstStudyForOffline(String studyId, String languageCode) {
+  /// Download first study in background for offline access.
+  /// [prefetchedIndex] is passed from the caller to avoid a redundant network
+  /// fetch — fetchDiscoveryStudy will reuse it instead of calling _fetchIndex again.
+  ///
+  /// No `alreadyDownloaded` gate here: fetchDiscoveryStudy's version-check
+  /// inside _loadFromCache handles cache hits and version bumps transparently.
+  void _downloadFirstStudyForOffline(
+    String studyId,
+    String languageCode,
+    Map<String, dynamic> prefetchedIndex,
+  ) {
     // Run in background without awaiting
     Future.microtask(() async {
       if (_disposed) return;
 
       try {
-        final prefsInstance = await prefs;
-        final downloadKey = '$_firstDownloadKeyPrefix$languageCode';
-
-        // Check if we've already downloaded a study for this language
-        final alreadyDownloaded = prefsInstance.getBool(downloadKey) ?? false;
-
-        if (!alreadyDownloaded) {
-          debugPrint('📥 [BLOC] Downloading first study for offline: $studyId');
-          await repository.fetchDiscoveryStudy(studyId, languageCode);
-          await prefsInstance.setBool(downloadKey, true);
-          debugPrint('✅ [BLOC] First study downloaded for offline access');
-        }
+        debugPrint(
+            '📥 [BLOC] Background offline pre-fetch: $studyId ($languageCode)');
+        // fetchDiscoveryStudy checks version via _loadFromCache:
+        //   • cache hit + version match → returns cached, no network
+        //   • cache miss or version bump  → downloads fresh copy
+        await repository.fetchDiscoveryStudy(
+          studyId,
+          languageCode,
+          prefetchedIndex: prefetchedIndex,
+        );
+        debugPrint('✅ [BLOC] Offline pre-fetch complete: $studyId');
       } catch (e) {
-        debugPrint('⚠️ [BLOC] Failed to download first study for offline: $e');
+        debugPrint('⚠️ [BLOC] Offline pre-fetch failed (non-critical): $e');
       }
     });
   }
@@ -431,8 +439,11 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     RefreshDiscoveryStudies event,
     Emitter<DiscoveryState> emit,
   ) async {
+    // forceRefresh=true  → user-triggered: bypass cache, hit network.
+    // forceRefresh=false → programmatic (e.g. language change): serve cache
+    //                      when fresh, skip the redundant 43 KB round-trip.
     await _fetchAndEmitIndex(emit,
-        forceRefresh: true, languageCode: event.languageCode);
+        forceRefresh: event.forceRefresh, languageCode: event.languageCode);
   }
 
   void _onClearDiscoveryError(
