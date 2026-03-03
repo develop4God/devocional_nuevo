@@ -98,12 +98,13 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         }
       }
 
-      // Change language in provider
-      await localizationProvider.changeLanguage(languageCode);
-
-      // Update DevocionalProvider with new language (pass context for UI locale update)
+      // Change language in provider (locale + data fetch in one atomic call).
+      // setSelectedLanguage internally calls localizationProvider.changeLanguage
+      // and _fetchAllDevocionalesForLanguage, so we must NOT call them separately
+      // to avoid triple API fetches and redundant cache writes.
       if (mounted) {
-        devocionalProvider.setSelectedLanguage(languageCode, context);
+        // Await the full language switch (locale + default-version update + data fetch).
+        await devocionalProvider.setSelectedLanguage(languageCode, context);
 
         // Update DiscoveryBloc with new language
         if (Constants.enableDiscoveryFeature) {
@@ -113,52 +114,44 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         }
       }
 
-      // Set default version for the language
-      final defaultVersion = Constants.defaultVersionByLanguage[languageCode];
-      if (defaultVersion != null) {
-        devocionalProvider.setSelectedVersion(defaultVersion);
-      }
+      // Resolve the now-active version (setSelectedLanguage already persisted it).
+      final String defaultVersion = devocionalProvider.selectedVersion;
 
       // Cambiar el contexto de TTS al idioma y versión seleccionados
       devocionalProvider.audioController.ttsService.setLanguageContext(
         languageCode,
-        defaultVersion ?? '',
+        defaultVersion,
       );
       // Usar el metodo getTtsLocale del provider de localización
       await devocionalProvider.audioController.ttsService.setLanguage(
         localizationProvider.getTtsLocale(),
       );
 
-      // Download devotional content (only if not already downloaded or if it's not Spanish)
-      bool downloadSuccess = true;
-      if (!(_downloadStatus[languageCode] == true) || languageCode == 'es') {
-        downloadSuccess =
-            await devocionalProvider.downloadCurrentYearDevocionales();
-      }
+      // setSelectedLanguage already fetched/cached data from the API when stale.
+      // downloadCurrentYearDevocionales() is intentionally skipped here to prevent
+      // a redundant third network request + cache overwrite.
 
-      if (downloadSuccess) {
-        // Auto-assign best voice for the language
-        await _assignBestVoiceForLanguage(languageCode, devocionalProvider);
+      // Auto-assign best voice for the language
+      await _assignBestVoiceForLanguage(languageCode, devocionalProvider);
 
+      if (mounted) {
         setState(() {
           _downloadProgress[languageCode] = 1.0;
           _downloadStatus[languageCode] = true;
           _currentLanguage = languageCode;
         });
+      }
 
-        // Save download status
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('language_downloaded_$languageCode', true);
+      // Save download status
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('language_downloaded_$languageCode', true);
 
-        // Wait a bit to show 100% progress
-        await Future.delayed(const Duration(milliseconds: 500));
+      // Wait a bit to show 100% progress
+      await Future.delayed(const Duration(milliseconds: 500));
 
-        if (mounted) {
-          // Return to settings
-          Navigator.pop(context);
-        }
-      } else {
-        throw Exception('application_language.download_failed'.tr());
+      if (mounted) {
+        // Return to settings
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
