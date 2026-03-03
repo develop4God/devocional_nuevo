@@ -103,7 +103,8 @@ class FakeTtsService implements ITtsService {
   Future<void> stop() async {}
 }
 
-class _MockDevocionalIndexService extends Mock implements DevocionalIndexService {
+class _MockDevocionalIndexService extends Mock
+    implements DevocionalIndexService {
   _MockDevocionalIndexService() : super();
 }
 
@@ -125,8 +126,10 @@ void main() {
     final localIndexService = _MockDevocionalIndexService();
     final localMetadataService = _MockCacheMetadataService();
     when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-    when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
-    when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+    when(() => localMetadataService.readManifestDate(any()))
+        .thenAnswer((_) async => null);
+    when(() => localMetadataService.writeMetadata(any(), any()))
+        .thenAnswer((_) async {});
     final provider = DevocionalProvider(
       devocionalIndexService: localIndexService,
       cacheMetadataService: localMetadataService,
@@ -171,8 +174,10 @@ void main() {
     final localIndexService = _MockDevocionalIndexService();
     final localMetadataService = _MockCacheMetadataService();
     when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-    when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
-    when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+    when(() => localMetadataService.readManifestDate(any()))
+        .thenAnswer((_) async => null);
+    when(() => localMetadataService.writeMetadata(any(), any()))
+        .thenAnswer((_) async {});
     final provider = DevocionalProvider(
       devocionalIndexService: localIndexService,
       cacheMetadataService: localMetadataService,

@@ -521,8 +521,8 @@ class DevocionalProvider with ChangeNotifier {
             '✅ [CACHE] Fresh: ${year}_${_selectedLanguage}_$_selectedVersion — using local cache',
             name: 'DevocionalCache',
           );
-          final Map<String, dynamic>? localData =
-              await _loadFromLocalStorage(year, _selectedLanguage, _selectedVersion);
+          final Map<String, dynamic>? localData = await _loadFromLocalStorage(
+              year, _selectedLanguage, _selectedVersion);
           if (localData != null) {
             final List<Devocional> yearDevocionales =
                 await _extractDevocionalesFromData(localData);
@@ -563,7 +563,8 @@ class DevocionalProvider with ChangeNotifier {
               // If we have stale cache, fall back to it rather than losing data
               if (hasLocal) {
                 final Map<String, dynamic>? localData =
-                    await _loadFromLocalStorage(year, _selectedLanguage, _selectedVersion);
+                    await _loadFromLocalStorage(
+                        year, _selectedLanguage, _selectedVersion);
                 if (localData != null) {
                   final List<Devocional> yearDevocionales =
                       await _extractDevocionalesFromData(localData);
@@ -576,7 +577,8 @@ class DevocionalProvider with ChangeNotifier {
             // Fall back to stale cache on error rather than losing data
             if (hasLocal) {
               final Map<String, dynamic>? localData =
-                  await _loadFromLocalStorage(year, _selectedLanguage, _selectedVersion);
+                  await _loadFromLocalStorage(
+                      year, _selectedLanguage, _selectedVersion);
               if (localData != null) {
                 final List<Devocional> yearDevocionales =
                     await _extractDevocionalesFromData(localData);
