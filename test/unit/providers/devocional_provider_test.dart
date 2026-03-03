@@ -12,6 +12,9 @@ import 'package:devocional_nuevo/services/tts_service.dart'; // for TtsState
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:devocional_nuevo/services/cache_metadata_service.dart';
+import 'package:devocional_nuevo/services/devocional_index_service.dart';
+import 'package:mocktail/mocktail.dart';
 
 /// Minimal fake implementation of ITtsService to satisfy provider constructor
 
@@ -100,6 +103,12 @@ class FakeTtsService implements ITtsService {
   Future<void> stop() async {}
 }
 
+class _MockDevocionalIndexService extends Mock implements DevocionalIndexService {
+  _MockDevocionalIndexService() : super();
+}
+
+class _MockCacheMetadataService extends Mock implements CacheMetadataService {}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -113,7 +122,15 @@ void main() {
     // Start with empty mock prefs for this test
     SharedPreferences.setMockInitialValues({});
 
-    final provider = DevocionalProvider();
+    final localIndexService = _MockDevocionalIndexService();
+    final localMetadataService = _MockCacheMetadataService();
+    when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
+    when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
+    when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+    final provider = DevocionalProvider(
+      devocionalIndexService: localIndexService,
+      cacheMetadataService: localMetadataService,
+    );
 
     // Use the new helpers to add a favorite and persist without UI
     await provider.addFavoriteId('test-id');
@@ -151,7 +168,15 @@ void main() {
     // Seed SharedPreferences with the legacy key
     SharedPreferences.setMockInitialValues({'favorites': legacyJson});
 
-    final provider = DevocionalProvider();
+    final localIndexService = _MockDevocionalIndexService();
+    final localMetadataService = _MockCacheMetadataService();
+    when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
+    when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
+    when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+    final provider = DevocionalProvider(
+      devocionalIndexService: localIndexService,
+      cacheMetadataService: localMetadataService,
+    );
 
     // Trigger reload/migration
     await provider.reloadFavoritesFromStorage();

@@ -45,7 +45,7 @@ void main() {
 
     // AC1 — index fetched on every init
     test('returns parsed index on HTTP 200', () async {
-      when(() => mockClient.get(any()).timeout(any()))
+      when(() => mockClient.get(any()))
           .thenAnswer((_) async => http.Response(json.encode(validIndex), 200));
 
       final result = await service.fetchIndex();
@@ -57,7 +57,7 @@ void main() {
 
     // AC4 — offline / index unreachable
     test('returns null on HTTP 404', () async {
-      when(() => mockClient.get(any()).timeout(any()))
+      when(() => mockClient.get(any()))
           .thenAnswer((_) async => http.Response('Not Found', 404));
 
       final result = await service.fetchIndex();
@@ -66,7 +66,7 @@ void main() {
 
     // AC4 — network exception
     test('returns null on network exception', () async {
-      when(() => mockClient.get(any()).timeout(any()))
+      when(() => mockClient.get(any()))
           .thenThrow(const SocketException('no internet'));
 
       final result = await service.fetchIndex();
@@ -80,7 +80,7 @@ void main() {
         'updated_at': '2027-01-01',
         'files': {},
       };
-      when(() => mockClient.get(any()).timeout(any()))
+      when(() => mockClient.get(any()))
           .thenAnswer((_) async => http.Response(json.encode(futureIndex), 200));
 
       final result = await service.fetchIndex();
