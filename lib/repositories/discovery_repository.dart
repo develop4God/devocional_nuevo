@@ -15,19 +15,29 @@ class DiscoveryRepository {
   static const String _cacheKeyPrefix = 'discovery_cache_';
   static const String _indexCacheKey = 'discovery_index_cache';
 
+  /// How long an index cache entry is considered fresh before a background
+  /// revalidation is triggered (same sidecar-date pattern used by devocional cache).
+  static const Duration _indexCacheTtl = Duration(hours: 24);
+
   DiscoveryRepository({required this.httpClient});
 
   /// Obtiene un estudio Discovery comparando versiones del índice.
+  ///
+  /// [prefetchedIndex] — pass the already-fetched index map (e.g. from the
+  /// BLoC) to avoid a redundant 43 KB network round-trip.  When null, the
+  /// index is fetched from cache (or network if cache is stale/absent).
   Future<DiscoveryDevotional> fetchDiscoveryStudy(
     String id,
-    String languageCode,
-  ) async {
+    String languageCode, {
+    Map<String, dynamic>? prefetchedIndex,
+  }) async {
     try {
       // Get current branch (debug mode can switch, production always 'main')
       final branch = kDebugMode ? Constants.debugBranch : 'main';
 
-      // 1. Obtener el índice (siempre intenta red primero para saber la versión actual)
-      final index = await _fetchIndex();
+      // 1. Obtener el índice — reutilizar el ya obtenido si está disponible,
+      //    de lo contrario cargar desde cache (o red si la cache está vacía).
+      final index = prefetchedIndex ?? await _fetchIndex(forceRefresh: false);
       final studyInfo = index['studies']?.firstWhere(
         (s) => s['id'] == id,
         orElse: () => null,
@@ -91,11 +101,44 @@ class DiscoveryRepository {
   }
 
   /// Obtiene el índice de estudios.
-  /// Estrategia: Network-First con Fallback a Cache y Cache-Busting.
+  ///
+  /// Estrategia:
+  ///  • forceRefresh=false → Cache-First: devuelve cache si existe, evita red.
+  ///  • forceRefresh=true  → Network-First: ignora cache, hit de red con
+  ///    cache-buster, cae a cache si la red falla.
   Future<Map<String, dynamic>> _fetchIndex({bool forceRefresh = false}) async {
     final prefs = await SharedPreferences.getInstance();
     // Get current branch (debug mode can switch, production always 'main')
     final branch = kDebugMode ? Constants.debugBranch : 'main';
+    final indexCacheKey = '${_indexCacheKey}_$branch';
+
+    // ── Cache-First: serve from cache when fresh and caller did not force ──
+    if (!forceRefresh) {
+      final cachedIndex = prefs.getString(indexCacheKey);
+      final cachedDateStr = prefs.getString('${indexCacheKey}_date');
+      final cachedDate =
+          cachedDateStr != null ? DateTime.tryParse(cachedDateStr) : null;
+      final isFresh = cachedDate != null &&
+          DateTime.now().difference(cachedDate) < _indexCacheTtl;
+
+      if (cachedIndex != null && isFresh) {
+        debugPrint(
+            '✅ Discovery: Index cache hit [branch: $branch] age: ${DateTime.now().difference(cachedDate).inMinutes}m (skipping network)');
+        final index = jsonDecode(cachedIndex) as Map<String, dynamic>;
+        final studiesCount = (index['studies'] as List?)?.length ?? 0;
+        debugPrint(
+            '📚 Discovery: Cached index has $studiesCount studies [branch: $branch]');
+        return index;
+      }
+
+      if (cachedIndex != null && !isFresh) {
+        debugPrint(
+            '⏰ Discovery: Index cache stale (age: ${cachedDate == null ? '?' : DateTime.now().difference(cachedDate).inHours}h) — revalidating from network');
+      } else {
+        debugPrint(
+            '⚠️ Discovery: No cache for branch $branch — fetching from network');
+      }
+    }
 
     try {
       // Agregar cache-buster (timestamp) para ignorar CDNs de GitHub y proxies locales
@@ -132,8 +175,10 @@ class DiscoveryRepository {
         }
 
         // CRITICAL: Guardar en cache con branch incluido en la key
-        final indexCacheKey = '${_indexCacheKey}_$branch';
         await prefs.setString(indexCacheKey, response.body);
+        // Store fetch date for TTL check (inline sidecar pattern)
+        await prefs.setString(
+            '${indexCacheKey}_date', DateTime.now().toIso8601String());
         debugPrint(
             '💾 Discovery: Index cached successfully for branch: $branch');
         return index;
@@ -145,7 +190,6 @@ class DiscoveryRepository {
       debugPrint(
           '⚠️ Discovery: Error de red al buscar índice [branch: $branch], usando cache: $e');
       // CRITICAL: Buscar cache con branch incluido en la key
-      final indexCacheKey = '${_indexCacheKey}_$branch';
       final cachedIndex = prefs.getString(indexCacheKey);
       if (cachedIndex != null) {
         debugPrint(

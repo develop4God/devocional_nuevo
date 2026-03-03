@@ -113,8 +113,10 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         // Pass null for context since locale was already updated above.
         await devocionalProvider.setSelectedLanguage(languageCode, null);
 
-        // Update DiscoveryBloc with new language
-        discoveryBloc?.add(RefreshDiscoveryStudies(languageCode: languageCode));
+        // forceRefresh:false — the index is language-agnostic; serve from
+        // cache when fresh to avoid an unnecessary 43 KB network round-trip.
+        discoveryBloc?.add(RefreshDiscoveryStudies(
+            languageCode: languageCode, forceRefresh: false));
       }
 
       // Resolve the now-active version (setSelectedLanguage already persisted it).
