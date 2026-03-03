@@ -461,6 +461,7 @@ class DevocionalProvider with ChangeNotifier {
 
   // ========== DATA LOADING ==========
   Future<void> _fetchAllDevocionalesForLanguage() async {
+    if (_isLoading) return;
     _isLoading = true;
     _errorMessage = null;
     _isOfflineMode = false;

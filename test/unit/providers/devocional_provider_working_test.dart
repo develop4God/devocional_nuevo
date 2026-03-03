@@ -11,7 +11,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:devocional_nuevo/services/cache_metadata_service.dart';
+import 'package:devocional_nuevo/services/devocional_index_service.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class _MockDevocionalIndexService extends Mock implements DevocionalIndexService {
+  _MockDevocionalIndexService() : super();
+}
+
+class _MockCacheMetadataService extends Mock implements CacheMetadataService {}
 
 class MockPathProviderPlatform extends PathProviderPlatform {
   @override
@@ -27,6 +36,8 @@ class MockPathProviderPlatform extends PathProviderPlatform {
 
 void main() {
   late DevocionalProvider provider;
+  late _MockDevocionalIndexService _mockIndexService;
+  late _MockCacheMetadataService _mockMetadataService;
 
   // Mock canales plataforma externos (path_provider, flutter_tts)
   const MethodChannel pathProviderChannel = MethodChannel(
@@ -35,6 +46,7 @@ void main() {
   const MethodChannel ttsChannel = MethodChannel('flutter_tts');
 
   setUpAll(() async {
+    registerFallbackValue(Uri());
     TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
 
@@ -157,7 +169,15 @@ void main() {
     ServiceLocator().reset();
     await setupServiceLocator();
 
-    provider = DevocionalProvider();
+    _mockIndexService = _MockDevocionalIndexService();
+    _mockMetadataService = _MockCacheMetadataService();
+    when(() => _mockIndexService.fetchIndex()).thenAnswer((_) async => null);
+    when(() => _mockMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
+    when(() => _mockMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+    provider = DevocionalProvider(
+      devocionalIndexService: _mockIndexService,
+      cacheMetadataService: _mockMetadataService,
+    );
     await provider.initializeData();
   });
 
@@ -366,7 +386,15 @@ void main() {
         'selectedVersion': 'bad_version',
       });
 
-      provider = DevocionalProvider();
+      _mockIndexService = _MockDevocionalIndexService();
+      _mockMetadataService = _MockCacheMetadataService();
+      when(() => _mockIndexService.fetchIndex()).thenAnswer((_) async => null);
+      when(() => _mockMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
+      when(() => _mockMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+      provider = DevocionalProvider(
+        devocionalIndexService: _mockIndexService,
+        cacheMetadataService: _mockMetadataService,
+      );
       await provider.initializeData();
 
       expect(provider.errorMessage, isNotNull);
@@ -421,7 +449,15 @@ void main() {
         'favorites': json.encode([testDevocional.toJson()]),
       });
 
-      final newProvider = DevocionalProvider();
+      final localIndexService = _MockDevocionalIndexService();
+      final localMetadataService = _MockCacheMetadataService();
+      when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
+      when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
+      when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+      final newProvider = DevocionalProvider(
+        devocionalIndexService: localIndexService,
+        cacheMetadataService: localMetadataService,
+      );
       await newProvider.initializeData();
 
       // Verify migration happened
@@ -456,7 +492,15 @@ void main() {
       // Create new provider
       ServiceLocator().reset();
       await setupServiceLocator();
-      final newProvider = DevocionalProvider();
+      final localIndexService = _MockDevocionalIndexService();
+      final localMetadataService = _MockCacheMetadataService();
+      when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
+      when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
+      when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+      final newProvider = DevocionalProvider(
+        devocionalIndexService: localIndexService,
+        cacheMetadataService: localMetadataService,
+      );
       await newProvider.initializeData();
 
       // Verify favorite IDs are loaded
@@ -483,7 +527,15 @@ void main() {
       // Create new provider
       ServiceLocator().reset();
       await setupServiceLocator();
-      final newProvider = DevocionalProvider();
+      final localIndexService = _MockDevocionalIndexService();
+      final localMetadataService = _MockCacheMetadataService();
+      when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
+      when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
+      when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+      final newProvider = DevocionalProvider(
+        devocionalIndexService: localIndexService,
+        cacheMetadataService: localMetadataService,
+      );
       await newProvider.initializeData();
 
       // Should handle error and initialize with empty set
@@ -502,7 +554,15 @@ void main() {
       // Create new provider
       ServiceLocator().reset();
       await setupServiceLocator();
-      final newProvider = DevocionalProvider();
+      final localIndexService = _MockDevocionalIndexService();
+      final localMetadataService = _MockCacheMetadataService();
+      when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
+      when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
+      when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+      final newProvider = DevocionalProvider(
+        devocionalIndexService: localIndexService,
+        cacheMetadataService: localMetadataService,
+      );
       await newProvider.initializeData();
 
       // Should handle error and initialize with empty set
@@ -521,7 +581,15 @@ void main() {
       // Create new provider
       ServiceLocator().reset();
       await setupServiceLocator();
-      final newProvider = DevocionalProvider();
+      final localIndexService = _MockDevocionalIndexService();
+      final localMetadataService = _MockCacheMetadataService();
+      when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
+      when(() => localMetadataService.readManifestDate(any())).thenAnswer((_) async => null);
+      when(() => localMetadataService.writeMetadata(any(), any())).thenAnswer((_) async {});
+      final newProvider = DevocionalProvider(
+        devocionalIndexService: localIndexService,
+        cacheMetadataService: localMetadataService,
+      );
 
       // Initialize - this will load IDs first, then devotionals, then sync
       await newProvider.initializeData();
