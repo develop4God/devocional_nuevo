@@ -471,7 +471,6 @@ class DevocionalProvider with ChangeNotifier {
       // All historical years remain accessible
       final List<int> yearsToLoad = DevocionalYears.availableYears;
       final List<Devocional> allDevocionales = [];
-      final Set<int> loadedApiYears = {};
 
       // ── Step 1: Fetch the index FIRST — before any cache decisions ──────
       // This ensures existing users with full cache are still checked for
@@ -551,7 +550,6 @@ class DevocionalProvider with ChangeNotifier {
               final List<Devocional> yearDevocionales =
                   await _extractDevocionalesFromData(data);
               if (yearDevocionales.isNotEmpty) {
-                loadedApiYears.add(year);
                 allDevocionales.addAll(yearDevocionales);
 
                 // AUTO-DOWNLOAD: Save to local storage — sidecar written atomically
