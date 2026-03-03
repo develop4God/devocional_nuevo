@@ -1,0 +1,187 @@
+{
+  "id": "peter_water_001",
+  "type": "encounter",
+  "schema_version": "encounters_v1",
+  "language": "pt",
+  "bible_version": "ARC",
+  "version": "1.0",
+  "estimated_reading_minutes": 8,
+  "meta": {
+    "character": "Pedro",
+    "testament": "new",
+    "scripture_reference": "Mateus 14:22-33",
+    "mood_primary": "storm",
+    "accent_color": "#1e3a5f",
+    "emoji": "🌊",
+    "tags": [
+      "fé",
+      "medo",
+      "milagres",
+      "tempestades",
+      "graça",
+      "pedro",
+      "jesus"
+    ]
+  },
+  "key_verse": {
+    "reference": "Mateus 14:31",
+    "text": "E logo Jesus estendeu a mão, e o tomou, dizendo: Homem de pouca fé, por que duvidaste?",
+    "bible_version": "ARC"
+  },
+  "cards": [
+    {
+      "order": 1,
+      "type": "cinematic_scene",
+      "mood": "storm",
+      "image_url": "peter_intro.jpg",
+      "title": "3da manhã. Tempestade. Sem Jesus.",
+      "narrative": "Os discípulos remavam há horas contra um vento violento. Jesus os havia enviado à frente — sozinhos. O mar estava vivo de fúria. E eles estavam perdendo.",
+      "ambient_sound": "storm_waves",
+      "haptic": "storm_rumble",
+      "revelation_key": "Às vezes Deus nos envia às tempestades de propósito."
+    },
+    {
+      "order": 2,
+      "type": "scripture_moment",
+      "mood": "tense",
+      "image_url": "waves_night.png",
+      "verse_reference": "Mateus 14:24",
+      "verse_text": "E o barco estava já no meio do mar, açoitado pelas ondas; porque o vento era contrário.",
+      "reflection": "Repara no que este versículo NÃO diz.\n\nNão diz que Deus os abandonou. Não diz que estavam sendo castigados. Diz que o vento era contrário.\n\nAlgumas tempestades não são castigo. Algumas tempestades não são erros. Algumas tempestades são o caminho que Deus escolheu para você — por causa do que espera do outro lado.",
+      "revelation_key": "Um vento contrário não significa uma direção errada."
+    },
+    {
+      "order": 3,
+      "type": "character_moment",
+      "mood": "intense",
+      "image_url": "peter_storm_boat.png",
+      "title": "A Oração Mais Ousada da Bíblia",
+      "subtitle": "Mateus 14:28",
+      "content": "A resposta de Pedro é extraordinária. Não 'Senhor salva-nos a todos' — todo o barco orando junto.\n\nSó Pedro. Um homem. Um pedido ousado:\n\n'Senhor, se és Tu, manda que eu vá ter contigo sobre as águas.'\n\nPense no que ele está realmente pedindo. Não ser resgatado. Não que a tempestade pare. Sair do barco e caminhar em direção à tempestade ele mesmo.\n\n⚡ OS OUTROS ONZE DISCÍPULOS:\n\nNenhum deles fez esse pedido. Ficaram no barco. Seguros. Secos. Racionais.\n\nTambém nunca andaram sobre as águas.\n\nA fé de Pedro era impulsiva. Provavelmente constrangedora para os outros.\n\nE foi a única fé que o moveu para o impossível.",
+      "revelation_key": "Pedro não pediu que Jesus viesse até ele. Pediu para ir até Jesus. Isso muda tudo."
+    },
+    {
+      "order": 4,
+      "type": "cinematic_scene",
+      "mood": "mysterious",
+      "image_url": "jesus_light_water.png",
+      "title": "Algo caminhava em direção a eles",
+      "narrative": "Então viram. Uma figura. Movendo-se pela tempestade como se ela não existisse. Andando sobre as águas. Em direção a eles.\n\nFicaram aterrorizados. Pensaram que era um fantasma.",
+      "ambient_sound": "storm_fading",
+      "verse_overlay": {
+        "reference": "Mateus 14:27",
+        "text": "Mas logo Jesus lhes falou, dizendo: Tende bom ânimo, sou eu; não temais."
+      },
+      "revelation_key": "Jesus vem até nós no meio das nossas piores tempestades. Não depois."
+    },
+    {
+      "order": 5,
+      "type": "cinematic_scene",
+      "mood": "awe",
+      "image_url": "peter_walking_water.png",
+      "title": "E ele andou sobre as águas",
+      "narrative": "Uma palavra de Jesus. 'Vem.'\n\nE Pedro desceu do barco. Para dentro da tempestade. Sobre as águas.\n\nPor um momento impossível, glorioso, aterrorizante — ele andou.",
+      "ambient_sound": "wind_gentle",
+      "haptic": "gentle_pulse",
+      "verse_overlay": {
+        "reference": "Mateus 14:29",
+        "text": "E descendo Pedro do barco, andou sobre as águas para ir ter com Jesus."
+      },
+      "revelation_key": "Pedro é o único ser humano na história, além de Jesus, que andou sobre as águas. Porque foi o único que pediu."
+    },
+    {
+      "order": 6,
+      "type": "theological_depth",
+      "mood": "storm",
+      "image_url": "waves_night.png",
+      "title": "O Momento em que Tudo Mudou",
+      "subtitle": "Três palavras que explicam todo fracasso de fé",
+      "content": "Mateus nos dá a sequência exata:\n\n1️⃣ 'Viu o vento' — sua atenção mudou\n2️⃣ 'Teve medo' — o medo seguiu o seu foco\n3️⃣ 'Começou a afundar' — seu corpo seguiu seu coração\n\n🔑 A PALAVRA-CHAVE: 'Começou'\n\nEle não afundou instantaneamente. Houve um momento entre a dúvida e o afogamento. Uma janela. Um grito.\n\n'Senhor, salva-me!'\n\nTrês palavras. A oração mais curta das Escrituras. E a mais honesta.\n\nSem teologia. Sem explicação. Sem barganha. Apenas a verdade crua de um homem que tentou, falhou, e sabia exatamente a quem chamar.\n\n⚠️ O QUE JESUS NÃO DISSE:\n\nNão disse: 'Devia ter ficado no barco.'\nNão disse: 'Eu te avisei.'\nNão o deixou afundar para lhe dar uma lição.\n\nA palavra grega eutheos — imediatamente — aparece no momento em que Pedro clama. De imediato. Sem demora. Esta é a velocidade da graça.\n\nImediatamente. Ele estendeu a mão.",
+      "revelation_key": "A oração mais curta é às vezes a mais poderosa. 'Senhor, salva-me' é suficiente.",
+      "scripture_connections": [
+        {
+          "reference": "Isaías 41:13",
+          "text": "Porque eu sou o Senhor teu Deus, que te seguro pela tua mão direita; e te digo: Não temas, eu te ajudo."
+        },
+        {
+          "reference": "Salmo 18:16",
+          "text": "Estendeu a mão desde o alto, tomou-me, tirou-me das muitas águas."
+        }
+      ]
+    },
+    {
+      "order": 7,
+      "type": "cinematic_scene",
+      "mood": "grace",
+      "image_url": "peter_hand_saved.png",
+      "title": "Imediatamente",
+      "narrative": "Essa palavra — imediatamente — é tudo.\n\nSem demora. Sem sermão primeiro. Sem 'deixa eu pensar se você merece isso.'\n\nImediatamente Jesus estendeu a mão e o segurou.\n\nA graça se move mais rápido que o fracasso.",
+      "ambient_sound": "storm_stopping",
+      "haptic": "rescue_pulse",
+      "verse_overlay": {
+        "reference": "Mateus 14:31",
+        "text": "E logo Jesus estendeu a mão, e o tomou."
+      },
+      "revelation_key": "Jesus nos segura antes de nos corrigir. Graça antes da repreensão. Sempre."
+    },
+    {
+      "order": 8,
+      "type": "character_moment",
+      "mood": "peace",
+      "image_url": "waves_night.png",
+      "title": "Homem de Pouca Fé!",
+      "subtitle": "A repreensão que não era realmente uma repreensão",
+      "content": "Jesus faz a Pedro uma única pergunta:\n\n'Homem de pouca fé, por que duvidaste?'\n\nLeia com atenção. Jesus chama isso de POUCA fé — não NENHUMA fé.\n\nPedro tinha mais fé do que os onze no barco. Saiu. Andou. Chamou a pessoa certa quando afundou.\n\nIsso não é falta de fé. Isso é fé em processo.\n\n🚣 A RESPOSTA DO BARCO:\n\nQuando Jesus e Pedro voltaram ao barco, algo aconteceu que não havia acontecido antes:\n\n'Os que estavam no barco vieram e adoraram-no, dizendo: Verdadeiramente és o Filho de Deus.'\n\nOs onze que ficaram seguros — que nunca duvidaram porque nunca tentaram — testemunharam algo através do fracasso e resgate de Pedro que os levou à adoração.\n\nDeus usou o afundamento de Pedro para revelar Jesus a todos no barco.",
+      "revelation_key": "Às vezes Deus nos deixa afundar para que outros possam vê-lo nos tirar."
+    },
+    {
+      "order": 9,
+      "type": "interactive_moment",
+      "icon": "🌊",
+      "image_url": "waves_night.png",
+      "title": "Nomeie Sua Onda",
+      "subtitle": "Qual é a tempestade que está desviando seus olhos de Jesus?",
+      "reflection_prompt": "Reserve um momento para nomear o vento e as ondas na sua vida agora mesmo. Como seria sair do barco em direção a Jesus nessa situação?"
+    },
+    {
+      "order": 10,
+      "type": "discovery_activation",
+      "icon": "🙏",
+      "mood": "grace",
+      "image_url": "jesus_light_water.png",
+      "title": "Seu Encontro",
+      "subtitle": "A história de Pedro não é apenas história. É um espelho.",
+      "discovery_questions": [
+        {
+          "category": "Honestidade",
+          "question": "Que tempestade na sua vida você está olhando agora em vez de olhar para Jesus? Quais são as suas ondas?"
+        },
+        {
+          "category": "Coragem",
+          "question": "Há um barco do qual você precisa sair? Algo para o qual Deus está chamando você que parece impossível — e você ainda não pediu?"
+        },
+        {
+          "category": "Graça",
+          "question": "Você já clamou 'Senhor, salva-me' e se sentiu segurado? O que aconteceu? Se não — o que está impedindo você de clamar agora mesmo?"
+        }
+      ],
+      "prayer": {
+        "title": "Oração do Homem que Afunda",
+        "content": "Senhor, confesso que tenho olhado para as ondas.\n\nA tempestade é real. O vento é contrário. E estou com medo.\n\nComo Pedro, clamo — Senhor, salva-me.\n\nNão porque tenha fé suficiente. Não porque mereça o resgate. Mas porque és o tipo de Deus que estende a mão imediatamente.\n\nSegura-me. Estou erguendo a mão.\n\nE quando o fizeres — mantém meus olhos em Ti e não nas águas sob meus pés.\n\nEm nome de Jesus, Amém."
+      }
+    },
+    {
+      "order": 11,
+      "type": "completion",
+      "mood": "awe",
+      "image_url": "peter_walking_water.png",
+      "completion_verse": {
+        "reference": "Mateus 14:33",
+        "text": "E os que estavam no barco vieram e adoraram-no, dizendo: Verdadeiramente és o Filho de Deus.",
+        "bible_version": "ARC"
+      },
+      "reflection_prompt": "Qual é uma verdade do encontro de Pedro que você quer levar consigo hoje?",
+      "celebration_type": "gentle_light"
+    }
+  ]
+}
