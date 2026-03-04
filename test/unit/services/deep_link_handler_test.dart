@@ -115,6 +115,23 @@ void main() {
         expect(result, isTrue);
       });
 
+      testWidgets('should handle prayer_wall deep link',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            navigatorKey: navigatorKey,
+            home: const Scaffold(body: Text('Home')),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final uri = Uri.parse('devocional://prayer_wall');
+        final result = await deepLinkHandler.handleDeepLink(uri);
+        await tester.pumpAndSettle();
+
+        expect(result, isTrue);
+      });
+
       testWidgets('should handle testimonies deep link',
           (WidgetTester tester) async {
         await tester.pumpWidget(
