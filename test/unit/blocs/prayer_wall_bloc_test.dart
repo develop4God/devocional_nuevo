@@ -58,12 +58,11 @@ void main() {
         final en2 = _makeEntry(id: 'en2', language: 'en');
         final es1 = _makeEntry(id: 'es1', language: 'es');
 
-        final streamController = StreamController<List<PrayerWallEntry>>();
-        when(() => repo.watchApprovedPrayers(userLanguage: 'en'))
-            .thenAnswer((_) => streamController.stream);
+        when(() => repo.fetchApprovedPrayers(
+              userLanguage: 'en',
+              limit: any(named: 'limit'),
+            )).thenAnswer((_) async => [en1, en2, es1]);
 
-        // Emit after bloc is built
-        Future.microtask(() => streamController.add([en1, en2, es1]));
         return PrayerWallBloc(repository: repo);
       },
       act: (bloc) => bloc.add(LoadPrayerWall(userLanguage: 'en')),
@@ -79,8 +78,6 @@ void main() {
     blocTest<PrayerWallBloc, PrayerWallState>(
       'SubmitPrayer emits PrayerSubmitting then PrayerSubmitted',
       build: () {
-        when(() => repo.watchApprovedPrayers(userLanguage: any(named: 'userLanguage')))
-            .thenAnswer((_) => const Stream.empty());
         when(() => repo.submitPrayer(
               originalText: any(named: 'originalText'),
               language: any(named: 'language'),
@@ -112,8 +109,6 @@ void main() {
     blocTest<PrayerWallBloc, PrayerWallState>(
       'SubmitPrayer ignores empty text',
       build: () {
-        when(() => repo.watchApprovedPrayers(userLanguage: any(named: 'userLanguage')))
-            .thenAnswer((_) => const Stream.empty());
         return PrayerWallBloc(repository: repo);
       },
       seed: () => PrayerWallLoaded(
@@ -195,8 +190,6 @@ void main() {
     blocTest<PrayerWallBloc, PrayerWallState>(
       'SubmitPrayer emits PrayerWallError on repository failure',
       build: () {
-        when(() => repo.watchApprovedPrayers(userLanguage: any(named: 'userLanguage')))
-            .thenAnswer((_) => const Stream.empty());
         when(() => repo.submitPrayer(
               originalText: any(named: 'originalText'),
               language: any(named: 'language'),
@@ -225,8 +218,6 @@ void main() {
     blocTest<PrayerWallBloc, PrayerWallState>(
       'PrayerWallPendingUpdated with pastoral status emits PastoralResponseTriggered',
       build: () {
-        when(() => repo.watchApprovedPrayers(userLanguage: any(named: 'userLanguage')))
-            .thenAnswer((_) => const Stream.empty());
         return PrayerWallBloc(repository: repo);
       },
       seed: () => PrayerWallLoaded(
@@ -247,8 +238,6 @@ void main() {
     blocTest<PrayerWallBloc, PrayerWallState>(
       'PrayerWallPendingUpdated with null entry clears pending',
       build: () {
-        when(() => repo.watchApprovedPrayers(userLanguage: any(named: 'userLanguage')))
-            .thenAnswer((_) => const Stream.empty());
         return PrayerWallBloc(repository: repo);
       },
       seed: () => PrayerWallLoaded(
@@ -267,8 +256,6 @@ void main() {
     blocTest<PrayerWallBloc, PrayerWallState>(
       'PrayerWallPendingUpdated with approved status updates myPendingPrayer',
       build: () {
-        when(() => repo.watchApprovedPrayers(userLanguage: any(named: 'userLanguage')))
-            .thenAnswer((_) => const Stream.empty());
         return PrayerWallBloc(repository: repo);
       },
       seed: () => PrayerWallLoaded(

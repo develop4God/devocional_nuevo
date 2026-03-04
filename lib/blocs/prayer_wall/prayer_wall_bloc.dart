@@ -16,7 +16,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
   final IPrayerWallRepository _repository;
 
-  StreamSubscription<List<PrayerWallEntry>>? _wallSubscription;
   StreamSubscription<PrayerWallEntry?>? _pendingSubscription;
   String _userLanguage = 'en';
 
@@ -24,7 +23,6 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
       : _repository = repository,
         super(PrayerWallInitial()) {
     on<LoadPrayerWall>(_onLoadPrayerWall);
-    on<PrayerWallStreamUpdated>(_onPrayerWallUpdated);
     on<PrayerWallPendingUpdated>(_onPendingPrayerUpdated);
     on<SubmitPrayer>(_onSubmitPrayer);
     on<TapPrayerHand>(_onTapPrayerHand);
@@ -40,28 +38,39 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
 
     emit(PrayerWallLoading());
 
-    await _wallSubscription?.cancel();
-    _wallSubscription = _repository
-        .watchApprovedPrayers(userLanguage: _userLanguage)
-        .listen(
-          (prayers) => add(PrayerWallStreamUpdated(prayers)),
-          onError: (Object e) {
-            debugPrint('❌ [PrayerWallBloc] Wall stream error: $e');
-          },
-        );
+    try {
+      // Fetch prayers once (not a stream)
+      final prayers = await _repository.fetchApprovedPrayers(
+        userLanguage: _userLanguage,
+        limit: 20,
+      );
 
-    // Subscribe to the author's own pending prayer so the BLoC reflects
-    // server-side status changes (e.g. approved, pastoral) in real time.
-    if (event.authorHash != null) {
-      await _pendingSubscription?.cancel();
-      _pendingSubscription = _repository
-          .watchMyPendingPrayer(authorHash: event.authorHash!)
-          .listen(
-            (pending) => add(PrayerWallPendingUpdated(pending)),
-            onError: (Object e) {
-              debugPrint('❌ [PrayerWallBloc] Pending stream error: $e');
-            },
-          );
+      final sameLanguage =
+          prayers.where((p) => p.language == _userLanguage).toList();
+      final otherLanguage =
+          prayers.where((p) => p.language != _userLanguage).toList();
+
+      emit(PrayerWallLoaded(
+        sameLanguagePrayers: sameLanguage,
+        otherLanguagePrayers: otherLanguage,
+      ));
+
+      // Subscribe to the author's own pending prayer so the BLoC reflects
+      // server-side status changes (e.g. approved, pastoral) in real time.
+      if (event.authorHash != null) {
+        await _pendingSubscription?.cancel();
+        _pendingSubscription = _repository
+            .watchMyPendingPrayer(authorHash: event.authorHash!)
+            .listen(
+              (pending) => add(PrayerWallPendingUpdated(pending)),
+              onError: (Object e) {
+                debugPrint('❌ [PrayerWallBloc] Pending stream error: $e');
+              },
+            );
+      }
+    } catch (e) {
+      debugPrint('❌ [PrayerWallBloc] Load error: $e');
+      emit(PrayerWallError('Failed to load prayers. Please try again.'));
     }
   }
 
@@ -71,6 +80,13 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
   ) {
     final current = state;
     if (current is PrayerWallLoaded) {
+      // Cancel the stream when status changes to approved or pastoral
+      if (event.entry?.status == PrayerWallStatus.approved ||
+          event.entry?.status == PrayerWallStatus.pastoral) {
+        _pendingSubscription?.cancel();
+        _pendingSubscription = null;
+      }
+
       if (event.entry?.status == PrayerWallStatus.pastoral) {
         emit(PastoralResponseTriggered());
         // Reload wall after pastoral sheet is dismissed
@@ -80,30 +96,6 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
       emit(current.copyWith(
         myPendingPrayer: event.entry,
         clearPending: event.entry == null,
-      ));
-    }
-  }
-
-  void _onPrayerWallUpdated(
-    PrayerWallStreamUpdated event,
-    Emitter<PrayerWallState> emit,
-  ) {
-    final prayers = event.prayers.cast<PrayerWallEntry>();
-    final sameLanguage =
-        prayers.where((p) => p.language == _userLanguage).toList();
-    final otherLanguage =
-        prayers.where((p) => p.language != _userLanguage).toList();
-
-    final current = state;
-    if (current is PrayerWallLoaded) {
-      emit(current.copyWith(
-        sameLanguagePrayers: sameLanguage,
-        otherLanguagePrayers: otherLanguage,
-      ));
-    } else {
-      emit(PrayerWallLoaded(
-        sameLanguagePrayers: sameLanguage,
-        otherLanguagePrayers: otherLanguage,
       ));
     }
   }
@@ -219,7 +211,6 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
 
   @override
   Future<void> close() {
-    _wallSubscription?.cancel();
     _pendingSubscription?.cancel();
     return super.close();
   }
