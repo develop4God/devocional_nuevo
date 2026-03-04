@@ -1,5 +1,6 @@
 // lib/blocs/encounter/encounter_bloc.dart
 
+import 'package:collection/collection.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
@@ -58,10 +59,22 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
     }
 
     try {
+      // Entry is already in state — pass it for version-aware cache.
+      // No extra network call: index was fetched when state became EncounterLoaded.
+      final entry = currentState is EncounterLoaded
+          ? currentState.index.firstWhereOrNull((e) => e.id == event.id)
+          : null;
+
+      debugPrint(
+        '🔵 [EncounterBloc] Fetching study ${event.id} (${event.lang}) '
+        'entry v${entry?.version ?? "unknown — entry not in state"}',
+      );
+
       final study = await repository.fetchStudy(
         event.id,
         event.lang,
-        filename: event.filename,
+        filename: event.filename ?? entry?.fileFor(event.lang),
+        entry: entry, // NEW — version signal, no extra network call
       );
 
       if (_disposed) return;

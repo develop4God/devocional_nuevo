@@ -1,2 +1,5 @@
 Analyzing devocional_nuevo...
-No issues found!
+
+   info - lib/blocs/encounter/encounter_bloc.dart:3:8 - The imported package 'collection' isn't a dependency of the importing package. Try adding a dependency for 'collection' in the 'pubspec.yaml' file. - depend_on_referenced_packages
+
+1 issue found.

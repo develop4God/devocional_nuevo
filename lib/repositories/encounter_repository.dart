@@ -20,6 +20,10 @@ class EncounterRepository {
 
   static const String _indexCacheKey = 'encounter_index_cache';
   static const String _studyCacheKeyPrefix = 'encounter_cache_';
+  static const String _studyVersionSuffix = '_version'; // NEW
+
+  /// Fetched at most once per app session — reset on every cold start.
+  static bool _indexFetchedThisSession = false; // NEW
 
   /// Bundled fallback assets for peter_water_001, keyed by language code.
   /// Files live at assets/encounters/peter_water_{lang}_001.json.
@@ -41,26 +45,47 @@ class EncounterRepository {
   // Index
   // ---------------------------------------------------------------------------
 
-  /// Fetches the encounter index. Network-first → cache → fallback asset.
+  /// Fetches the encounter index. Cache-first within session → network → fallback asset.
   Future<List<EncounterIndexEntry>> fetchIndex({
     bool forceRefresh = false,
   }) async {
     final prefs = await SharedPreferences.getInstance();
+
+    // ── Cache-First: serve from cache within the same app session ──
+    if (!forceRefresh && _indexFetchedThisSession) {
+      final cachedIndex = prefs.getString(_indexCacheKey);
+      if (cachedIndex != null) {
+        final entries =
+            _parseIndex(jsonDecode(cachedIndex) as Map<String, dynamic>);
+        debugPrint(
+            '✅ Encounter: Index cache hit (same session, skipping network)');
+        debugPrint('📚 Encounter: Cached index has ${entries.length} entries');
+        return entries;
+      }
+    }
 
     try {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final url = Constants.getEncounterIndexUrl();
       final cacheBusterUrl = '$url?cb=$timestamp';
 
-      debugPrint('🌐 Encounter: Fetching index from $cacheBusterUrl');
+      debugPrint(
+          '🌐 Encounter: Fetching index — session flag was ${_indexFetchedThisSession ? "true but no cache" : "false"}');
+      debugPrint('📍 Encounter: URL = $cacheBusterUrl');
       final response = await httpClient
           .get(Uri.parse(cacheBusterUrl))
           .timeout(_networkTimeout);
 
+      debugPrint(
+          '📡 Encounter: Index response status = ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
+        final entries = _parseIndex(json);
         await prefs.setString(_indexCacheKey, response.body);
-        return _parseIndex(json);
+        _indexFetchedThisSession = true; // NEW
+        debugPrint('💾 Encounter: Index cached — ${entries.length} entries');
+        return entries;
       } else {
         throw Exception('Server error: ${response.statusCode}');
       }
@@ -76,11 +101,14 @@ class EncounterRepository {
       final cached = prefs.getString(_indexCacheKey);
       if (cached != null) {
         try {
-          final json = jsonDecode(cached) as Map<String, dynamic>;
-          debugPrint('📦 Encounter: Using cached index');
-          return _parseIndex(json);
+          final entries =
+              _parseIndex(jsonDecode(cached) as Map<String, dynamic>);
+          debugPrint(
+              '📦 Encounter: Using cached index after network failure — ${entries.length} entries');
+          return entries;
         } catch (_) {
-          // Cache is corrupt — fall through to asset
+          debugPrint(
+              '💥 Encounter: Cached index corrupt — falling back to asset');
         }
       }
 
@@ -155,20 +183,29 @@ class EncounterRepository {
   ///
   /// [filename] — the exact filename from the index `files` map
   ///   (e.g. `peter_water_001_es.json`). Preferred over constructing it from [id].
-  Future<EncounterStudy> fetchStudy(String id, String lang,
-      {String? filename}) async {
+  /// [entry] — index entry carrying the expected version.
+  /// Callers that have the index in state should always pass this.
+  /// When null, cache is served without version validation (legacy safe path).
+  Future<EncounterStudy> fetchStudy(
+    String id,
+    String lang, {
+    String? filename,
+    EncounterIndexEntry? entry, // NEW — version signal
+  }) async {
     // 1. Check SharedPreferences cache (skipped when fallback is disabled)
     if (Constants.enableEncounterFallback) {
-      final cached = await _loadStudyFromCache(id, lang);
-      if (cached != null) {
-        debugPrint('✅ Encounter: Cache hit for $id ($lang)');
-        return cached;
-      }
+      final cached = await _loadStudyFromCache(id, lang, entry?.version);
+      if (cached != null) return cached;
     }
 
     // 2. Fetch from network (non-recursive — try lang, then 'en' directly)
     try {
-      final study = await _fetchStudyFromNetwork(id, lang, filename: filename);
+      final study = await _fetchStudyFromNetwork(
+        id,
+        lang,
+        filename: filename,
+        version: entry?.version, // NEW — passed to save
+      );
       return study;
     } catch (e) {
       debugPrint('❌ Encounter: Error fetching study $id ($lang): $e');
@@ -184,8 +221,13 @@ class EncounterRepository {
   ///
   /// [filename] — when provided, used directly; otherwise falls back to
   ///   the `{id}_{lang}.json` convention.
-  Future<EncounterStudy> _fetchStudyFromNetwork(String id, String lang,
-      {String? filename}) async {
+  /// [version] — passed from fetchStudy via entry, saved to cache.
+  Future<EncounterStudy> _fetchStudyFromNetwork(
+    String id,
+    String lang, {
+    String? filename,
+    String? version, // NEW — passed from fetchStudy
+  }) async {
     final url = Constants.getEncounterStudyUrl(id, lang, filename: filename);
     debugPrint('🌐 Encounter: Fetching study $id ($lang) from $url');
     final response =
@@ -194,7 +236,7 @@ class EncounterRepository {
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final study = EncounterStudy.fromJson(json);
-      await _saveStudyToCache(id, lang, response.body);
+      await _saveStudyToCache(id, lang, response.body, version); // NEW
       return study;
     }
 
@@ -218,7 +260,7 @@ class EncounterRepository {
       if (enResponse.statusCode == 200) {
         final json = jsonDecode(enResponse.body) as Map<String, dynamic>;
         final study = EncounterStudy.fromJson(json);
-        await _saveStudyToCache(id, 'en', enResponse.body);
+        await _saveStudyToCache(id, 'en', enResponse.body, version); // NEW
         return study;
       }
     }
@@ -227,14 +269,38 @@ class EncounterRepository {
         'Failed to load encounter study $id: ${response.statusCode}');
   }
 
-  Future<EncounterStudy?> _loadStudyFromCache(String id, String lang) async {
+  Future<EncounterStudy?> _loadStudyFromCache(
+    String id,
+    String lang, [
+    String? expectedVersion,
+  ]) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final cached = prefs.getString('$_studyCacheKeyPrefix${id}_$lang');
-      if (cached != null) {
-        return EncounterStudy.fromJson(
-            jsonDecode(cached) as Map<String, dynamic>);
+      final contentKey = '$_studyCacheKeyPrefix${id}_$lang';
+      final cached = prefs.getString(contentKey);
+
+      if (cached == null) {
+        debugPrint(
+            '📭 Encounter: No cache for $id ($lang) — first install or cleared');
+        return null;
       }
+
+      // Version check — only when expectedVersion is provided
+      if (expectedVersion != null) {
+        final cachedVersion =
+            prefs.getString('$contentKey$_studyVersionSuffix');
+        if (cachedVersion != expectedVersion) {
+          debugPrint(
+            '🔄 Encounter: Stale cache for $id ($lang) '
+            '— cached: $cachedVersion, expected: $expectedVersion',
+          );
+          return null; // stale → trigger network re-fetch
+        }
+      }
+
+      debugPrint('✅ Encounter: Cache hit $id ($lang) v$expectedVersion');
+      return EncounterStudy.fromJson(
+          jsonDecode(cached) as Map<String, dynamic>);
     } catch (e) {
       developer.log('Failed to load encounter study from cache: $e',
           name: 'EncounterRepository._loadStudyFromCache');
@@ -242,10 +308,20 @@ class EncounterRepository {
     return null;
   }
 
-  Future<void> _saveStudyToCache(String id, String lang, String body) async {
+  Future<void> _saveStudyToCache(
+    String id,
+    String lang,
+    String body, [
+    String? version,
+  ]) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('$_studyCacheKeyPrefix${id}_$lang', body);
+      final contentKey = '$_studyCacheKeyPrefix${id}_$lang';
+      await prefs.setString(contentKey, body);
+      if (version != null) {
+        await prefs.setString('$contentKey$_studyVersionSuffix', version);
+      }
+      debugPrint('💾 Encounter: Saved $id ($lang) v$version to cache');
     } catch (e) {
       developer.log('Failed to save encounter study to cache: $e',
           name: 'EncounterRepository._saveStudyToCache');
