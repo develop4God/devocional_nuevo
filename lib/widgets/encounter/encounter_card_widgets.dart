@@ -687,6 +687,32 @@ class CompletionCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
+                const SizedBox(height: 8),
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 550),
+                  child: Text(
+                    '— ${card.completionVerse!.reference}',
+                    style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                if (card.completionVerse!.bibleVersion != null) ...[
+                  const SizedBox(height: 4),
+                  _DelayedEntry(
+                    delay: const Duration(milliseconds: 600),
+                    child: Text(
+                      card.completionVerse!.bibleVersion!,
+                      style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.4),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
               ],
               const SizedBox(height: 48),
               if (onBackToEncounters != null)

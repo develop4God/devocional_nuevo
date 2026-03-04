@@ -644,7 +644,13 @@ class _DebugPageState extends State<DebugPage> {
                             ),
                             Switch(
                               value: Constants.enableEncounterFallback,
-                              activeThumbColor: Colors.teal,
+                              thumbColor:
+                                  WidgetStateProperty.resolveWith((states) {
+                                if (states.contains(WidgetState.selected)) {
+                                  return Colors.teal;
+                                }
+                                return null;
+                              }),
                               onChanged: (val) {
                                 setState(() =>
                                     Constants.enableEncounterFallback = val);
