@@ -17,6 +17,7 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
   final IPrayerWallRepository _repository;
 
   StreamSubscription<List<PrayerWallEntry>>? _wallSubscription;
+  StreamSubscription<PrayerWallEntry?>? _pendingSubscription;
   String _userLanguage = 'en';
 
   PrayerWallBloc({required IPrayerWallRepository repository})
@@ -24,6 +25,7 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
         super(PrayerWallInitial()) {
     on<LoadPrayerWall>(_onLoadPrayerWall);
     on<PrayerWallStreamUpdated>(_onPrayerWallUpdated);
+    on<PrayerWallPendingUpdated>(_onPendingPrayerUpdated);
     on<SubmitPrayer>(_onSubmitPrayer);
     on<TapPrayerHand>(_onTapPrayerHand);
     on<ReportPrayer>(_onReportPrayer);
@@ -44,9 +46,42 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
         .listen(
           (prayers) => add(PrayerWallStreamUpdated(prayers)),
           onError: (Object e) {
-            debugPrint('❌ [PrayerWallBloc] Stream error: $e');
+            debugPrint('❌ [PrayerWallBloc] Wall stream error: $e');
           },
         );
+
+    // Subscribe to the author's own pending prayer so the BLoC reflects
+    // server-side status changes (e.g. approved, pastoral) in real time.
+    if (event.authorHash != null) {
+      await _pendingSubscription?.cancel();
+      _pendingSubscription = _repository
+          .watchMyPendingPrayer(authorHash: event.authorHash!)
+          .listen(
+            (pending) => add(PrayerWallPendingUpdated(pending)),
+            onError: (Object e) {
+              debugPrint('❌ [PrayerWallBloc] Pending stream error: $e');
+            },
+          );
+    }
+  }
+
+  void _onPendingPrayerUpdated(
+    PrayerWallPendingUpdated event,
+    Emitter<PrayerWallState> emit,
+  ) {
+    final current = state;
+    if (current is PrayerWallLoaded) {
+      if (event.entry?.status == PrayerWallStatus.pastoral) {
+        emit(PastoralResponseTriggered());
+        // Reload wall after pastoral sheet is dismissed
+        emit(current.copyWith(clearPending: true));
+        return;
+      }
+      emit(current.copyWith(
+        myPendingPrayer: event.entry,
+        clearPending: event.entry == null,
+      ));
+    }
   }
 
   void _onPrayerWallUpdated(
@@ -185,6 +220,7 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
   @override
   Future<void> close() {
     _wallSubscription?.cancel();
+    _pendingSubscription?.cancel();
     return super.close();
   }
 }

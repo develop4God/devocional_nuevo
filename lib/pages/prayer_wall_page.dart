@@ -46,7 +46,7 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context
           .read<PrayerWallBloc>()
-          .add(LoadPrayerWall(userLanguage: _userLanguage));
+          .add(LoadPrayerWall(userLanguage: _userLanguage, authorHash: _authorHash));
 
       getService<AnalyticsService>().logCustomEvent(
           eventName: 'prayer_wall_viewed',

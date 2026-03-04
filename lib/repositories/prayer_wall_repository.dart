@@ -95,8 +95,20 @@ class PrayerWallRepository implements IPrayerWallRepository {
     );
 
     final docRef = await _firestore.collection(_collection).add({
-      'originalText': originalText, // stored server-side, never sent to client
-      'maskedText': '', // will be filled by Cloud Function after PII masking
+      // originalText is stored temporarily so the Cloud Function can perform
+      // PII masking. The Cloud Function DELETES this field from the document
+      // (FieldValue.delete()) immediately after masking, so approved prayers
+      // never expose raw user text to authenticated clients (AC-002, EC-010).
+      //
+      // KNOWN LIMITATION — encryption at rest (AC-002):
+      // originalText is written as plain text until the Cloud Function processes
+      // it. Full field-level encryption requires a Firebase Encryption Extension
+      // or a server-side KMS key and is deferred as a follow-up task. The risk
+      // window is the seconds between client write and Cloud Function execution.
+      // Firestore security rules deny client reads of pending prayers so no
+      // other client can read originalText during this window.
+      'originalText': originalText,
+      'maskedText': '', // filled by Cloud Function after PII masking
       'language': language,
       'status': 'pending',
       'isAnonymous': isAnonymous,

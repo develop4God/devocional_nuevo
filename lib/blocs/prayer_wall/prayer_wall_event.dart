@@ -1,11 +1,19 @@
 // lib/blocs/prayer_wall/prayer_wall_event.dart
 
+import 'package:devocional_nuevo/models/prayer_wall_entry.dart';
+
 abstract class PrayerWallEvent {}
 
 /// Load the approved prayers for the wall.
 class LoadPrayerWall extends PrayerWallEvent {
   final String userLanguage;
-  LoadPrayerWall({required this.userLanguage});
+
+  /// Optional: author hash used to subscribe to the author's own pending prayer.
+  /// When provided, [PrayerWallBloc] calls [IPrayerWallRepository.watchMyPendingPrayer]
+  /// so status changes (approved, pastoral) are reflected in real time.
+  final String? authorHash;
+
+  LoadPrayerWall({required this.userLanguage, this.authorHash});
 }
 
 /// Submit a new prayer request.
@@ -46,4 +54,10 @@ class DeletePrayer extends PrayerWallEvent {
 class PrayerWallStreamUpdated extends PrayerWallEvent {
   final List<dynamic> prayers;
   PrayerWallStreamUpdated(this.prayers);
+}
+
+/// Internal event: author's pending prayer changed on the server.
+class PrayerWallPendingUpdated extends PrayerWallEvent {
+  final PrayerWallEntry? entry;
+  PrayerWallPendingUpdated(this.entry);
 }
