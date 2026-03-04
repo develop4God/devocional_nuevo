@@ -47,7 +47,7 @@ const onPrayerSubmitted = onDocumentCreated(
     }
 
     // Resolve all services via DI factory — no direct instantiation here.
-    const {piiService, moderationHandler} = createPrayerWallServices({
+    const {piiService, moderationService} = createPrayerWallServices({
       apiKey: geminiApiKey,
       db,
       logger,
@@ -57,18 +57,10 @@ const onPrayerSubmitted = onDocumentCreated(
     const language = prayer.language || "en";
 
     // Step 1: PII Masking (synchronous — must complete before prayer is ever shown)
+    let piiResult;
     try {
-      const piiResult = await piiService.mask(maskedText, language);
+      piiResult = await piiService.mask(maskedText, language);
       maskedText = piiResult.maskedText;
-
-      // Store maskedText and CLEAR originalText so approved documents never
-      // expose raw user text to authenticated clients (AC-002, EC-010).
-      await db.collection("prayers").doc(prayerId).update({
-        maskedText,
-        originalText: admin.firestore.FieldValue.delete(), // remove from doc
-        piiMasked: true,
-        piiWasModified: piiResult.wasModified,
-      });
 
       logger.info(
         `[onPrayerSubmitted] PII masking complete for ${prayerId} ` +
@@ -79,17 +71,61 @@ const onPrayerSubmitted = onDocumentCreated(
         `[onPrayerSubmitted] PII masking failed for ${prayerId}: ${err.message}`,
       );
       // Continue to moderation — prayer stays pending until manually resolved.
+      piiResult = {maskedText, wasModified: false};
     }
 
-    // Step 2: Moderation via injected handler
+    // Step 2: Moderation
+    let moderationResult;
     try {
-      await moderationHandler.handle(prayerId);
-    } catch (err) {
-      // RATE_LIMIT or other transient error: prayer stays "pending".
-      // A Cloud Tasks retry would pick this up in a queue-based setup.
-      logger.warn(
-        `[onPrayerSubmitted] Moderation deferred for ${prayerId}: ${err.message}`,
+      // Get moderation result without writing to Firestore yet
+      const ref = db.collection("prayers").doc(prayerId);
+      const snapshot = await ref.get();
+
+      if (!snapshot.exists) {
+        logger.warn(`[onPrayerSubmitted] Prayer ${prayerId} not found — skipped`);
+        return;
+      }
+
+      const text = maskedText;
+      moderationResult = await moderationService.moderate(text, language);
+
+      // Determine status from moderation result
+      const status = moderationResult.isPastoral ? "pastoral" :
+                     moderationResult.approved ? "approved" :
+                     moderationResult.confidence < 0.75 ? "needs_review" :
+                     "rejected";
+
+      // Single merged write with all fields from both PII masking and moderation
+      await ref.update({
+        maskedText,
+        originalText: admin.firestore.FieldValue.delete(), // remove from doc
+        piiMasked: true,
+        piiWasModified: piiResult.wasModified,
+        status,
+        moderationScore: moderationResult.confidence,
+        moderationFlag: moderationResult.flag,
+        moderationReason: moderationResult.reason,
+        moderatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      logger.info(
+        `[onPrayerSubmitted] Prayer ${prayerId} processed ` +
+        `(piiModified: ${piiResult.wasModified}, status: ${status}, ` +
+        `flag: ${moderationResult.flag}, confidence: ${moderationResult.confidence})`,
       );
+    } catch (err) {
+      // RATE_LIMIT or other transient error: write PII masking results only
+      logger.warn(
+        `[onPrayerSubmitted] Moderation failed for ${prayerId}: ${err.message}`,
+      );
+
+      // Fallback: write only PII masking results if moderation fails
+      await db.collection("prayers").doc(prayerId).update({
+        maskedText,
+        originalText: admin.firestore.FieldValue.delete(),
+        piiMasked: true,
+        piiWasModified: piiResult.wasModified,
+      });
     }
   },
 );

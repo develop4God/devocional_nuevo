@@ -24,6 +24,7 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
       : _repository = repository,
         super(PrayerWallInitial()) {
     on<LoadPrayerWall>(_onLoadPrayerWall);
+    on<RefreshPrayerWall>(_onRefreshPrayerWall);
     on<PrayerWallPendingUpdated>(_onPendingPrayerUpdated);
     on<SubmitPrayer>(_onSubmitPrayer);
     on<TapPrayerHand>(_onTapPrayerHand);
@@ -72,6 +73,42 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
     } catch (e) {
       debugPrint('❌ [PrayerWallBloc] Load error: $e');
       emit(PrayerWallError('Failed to load prayers. Please try again.'));
+    }
+  }
+
+  Future<void> _onRefreshPrayerWall(
+    RefreshPrayerWall event,
+    Emitter<PrayerWallState> emit,
+  ) async {
+    _userLanguage = event.userLanguage;
+
+    try {
+      // Fetch prayers once (not a stream)
+      final prayers = await _repository.fetchApprovedPrayers(
+        userLanguage: _userLanguage,
+        limit: Constants.prayerWallPageSize,
+      );
+
+      final sameLanguage =
+          prayers.where((p) => p.language == _userLanguage).toList();
+      final otherLanguage =
+          prayers.where((p) => p.language != _userLanguage).toList();
+
+      final current = state;
+      if (current is PrayerWallLoaded) {
+        emit(current.copyWith(
+          sameLanguagePrayers: sameLanguage,
+          otherLanguagePrayers: otherLanguage,
+        ));
+      } else {
+        emit(PrayerWallLoaded(
+          sameLanguagePrayers: sameLanguage,
+          otherLanguagePrayers: otherLanguage,
+        ));
+      }
+    } catch (e) {
+      debugPrint('❌ [PrayerWallBloc] Refresh error: $e');
+      // Don't emit error state on refresh failure; keep current state
     }
   }
 
