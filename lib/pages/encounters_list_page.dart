@@ -241,9 +241,29 @@ class _EncounterCard extends StatelessWidget {
                 CachedNetworkImage(
                   imageUrl: imageUrl,
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(color: accentColor),
-                  errorWidget: (context, url, error) =>
-                      Container(color: accentColor),
+                  placeholder: (context, url) {
+                    debugPrint(
+                        '🖼️ Encounter: Showing bundled asset as placeholder — ${entry.introImage}');
+                    return Image.asset(
+                      'assets/encounters/${entry.introImage}',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stack) =>
+                          Container(color: accentColor),
+                    );
+                  },
+                  errorWidget: (context, url, error) {
+                    debugPrint(
+                        '⚠️ Encounter: CDN image failed — using bundled asset ${entry.introImage}');
+                    return Image.asset(
+                      'assets/encounters/${entry.introImage}',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stack) {
+                        debugPrint(
+                            '❌ Encounter: Bundled asset also failed — ${entry.introImage}');
+                        return const SizedBox.shrink();
+                      },
+                    );
+                  },
                 )
               else
                 Container(color: accentColor),

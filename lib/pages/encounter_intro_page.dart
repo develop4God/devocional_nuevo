@@ -149,6 +149,29 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                 imageUrl: imageUrl,
                 fit: BoxFit.cover,
                 alignment: Alignment.center,
+                placeholder: (context, url) {
+                  debugPrint(
+                      '🖼️ Encounter: Showing bundled asset as placeholder — ${widget.entry.introImage}');
+                  return Image.asset(
+                    'assets/encounters/${widget.entry.introImage}',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stack) =>
+                        Container(color: const Color(0xFF0a0e1a)),
+                  );
+                },
+                errorWidget: (context, url, error) {
+                  debugPrint(
+                      '⚠️ Encounter: CDN image failed — using bundled asset ${widget.entry.introImage}');
+                  return Image.asset(
+                    'assets/encounters/${widget.entry.introImage}',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stack) {
+                      debugPrint(
+                          '❌ Encounter: Bundled asset also failed — ${widget.entry.introImage}');
+                      return Container(color: const Color(0xFF0a0e1a));
+                    },
+                  );
+                },
               ),
             ),
 
