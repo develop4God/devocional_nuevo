@@ -21,41 +21,42 @@ class PrayerWallRepository implements IPrayerWallRepository {
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
   @override
-  Stream<List<PrayerWallEntry>> watchApprovedPrayers({
+  Future<List<PrayerWallEntry>> fetchApprovedPrayers({
     required String userLanguage,
-  }) {
-    return _firestore
+    int limit = 20,
+  }) async {
+    final snapshot = await _firestore
         .collection(_collection)
         .where('status', isEqualTo: 'approved')
         .where('expiresAt', isGreaterThan: Timestamp.now())
         .orderBy('expiresAt')
         .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      final entries = snapshot.docs
-          .map((doc) {
-            try {
-              final data = Map<String, dynamic>.from(doc.data());
-              data['prayerId'] = doc.id;
-              return PrayerWallEntry.fromJson(data);
-            } catch (e) {
-              debugPrint('❌ [PrayerWallRepository] Parse error for ${doc.id}: $e');
-              return null;
-            }
-          })
-          .whereType<PrayerWallEntry>()
-          .toList();
+        .limit(limit)
+        .get();
 
-      // Sort: same-language prayers first, then by creation date (newest first)
-      entries.sort((a, b) {
-        final aIsMyLang = a.language == userLanguage ? 0 : 1;
-        final bIsMyLang = b.language == userLanguage ? 0 : 1;
-        if (aIsMyLang != bIsMyLang) return aIsMyLang - bIsMyLang;
-        return b.createdAt.compareTo(a.createdAt);
-      });
+    final entries = snapshot.docs
+        .map((doc) {
+          try {
+            final data = Map<String, dynamic>.from(doc.data());
+            data['prayerId'] = doc.id;
+            return PrayerWallEntry.fromJson(data);
+          } catch (e) {
+            debugPrint('❌ [PrayerWallRepository] Parse error for ${doc.id}: $e');
+            return null;
+          }
+        })
+        .whereType<PrayerWallEntry>()
+        .toList();
 
-      return entries;
+    // Sort: same-language prayers first, then by creation date (newest first)
+    entries.sort((a, b) {
+      final aIsMyLang = a.language == userLanguage ? 0 : 1;
+      final bIsMyLang = b.language == userLanguage ? 0 : 1;
+      if (aIsMyLang != bIsMyLang) return aIsMyLang - bIsMyLang;
+      return b.createdAt.compareTo(a.createdAt);
     });
+
+    return entries;
   }
 
   @override

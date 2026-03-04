@@ -50,12 +50,6 @@ class DeletePrayer extends PrayerWallEvent {
   DeletePrayer({required this.prayerId, required this.authorHash});
 }
 
-/// Internal event: update the prayer list from a Firestore stream snapshot.
-class PrayerWallStreamUpdated extends PrayerWallEvent {
-  final List<dynamic> prayers;
-  PrayerWallStreamUpdated(this.prayers);
-}
-
 /// Internal event: author's pending prayer changed on the server.
 class PrayerWallPendingUpdated extends PrayerWallEvent {
   final PrayerWallEntry? entry;

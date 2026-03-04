@@ -7,10 +7,12 @@ import 'package:devocional_nuevo/models/prayer_wall_entry.dart';
 /// Follows Interface Segregation and Dependency Inversion principles:
 /// BLoC depends on this abstraction, never on the concrete Firestore implementation.
 abstract class IPrayerWallRepository {
-  /// Returns a stream of approved prayer entries ordered by language affinity.
+  /// Fetches approved prayer entries (one-time read) with a limit.
   /// [userLanguage] is used to sort same-language prayers first.
-  Stream<List<PrayerWallEntry>> watchApprovedPrayers({
+  /// [limit] caps the number of prayers returned (default: 20).
+  Future<List<PrayerWallEntry>> fetchApprovedPrayers({
     required String userLanguage,
+    int limit = 20,
   });
 
   /// Returns a stream for the current user's own pending prayer (if any).
