@@ -206,50 +206,59 @@ class _LoadedWall extends StatelessWidget {
       return _EmptyState(userLanguage: userLanguage);
     }
 
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 80),
-      children: [
-        // My pending prayer (shown only to the author)
-        if (hasPending) ...[
-          _SectionHeader(label: 'prayer_wall.my_pending'.tr()),
-          PrayerWallCard(
-            key: ValueKey('pending_${state.myPendingPrayer!.id}'),
-            prayer: state.myPendingPrayer!,
-          ),
-        ],
-
-        // Section 1: Same-language prayers
-        if (hasSameLang) ...[
-          _SectionHeader(
-            label: 'prayer_wall.section_mine'.tr(),
-          ),
-          ...state.sameLanguagePrayers.map(
-            (p) => PrayerWallCard(
-              key: ValueKey(p.id),
-              prayer: p,
-              onPrayTap: () => onPrayTap(p.id),
-              onReport: () => onReport(p.id),
+    return RefreshIndicator(
+      onRefresh: () async {
+        context
+            .read<PrayerWallBloc>()
+            .add(RefreshPrayerWall(userLanguage: userLanguage));
+        // Wait for the refresh to complete
+        await Future.delayed(const Duration(milliseconds: 500));
+      },
+      child: ListView(
+        padding: const EdgeInsets.only(bottom: 80),
+        children: [
+          // My pending prayer (shown only to the author)
+          if (hasPending) ...[
+            _SectionHeader(label: 'prayer_wall.my_pending'.tr()),
+            PrayerWallCard(
+              key: ValueKey('pending_${state.myPendingPrayer!.id}'),
+              prayer: state.myPendingPrayer!,
             ),
-          ),
-        ],
+          ],
 
-        // Section 2: Cross-language prayers
-        if (hasOtherLang) ...[
-          _SectionHeader(
-            label: 'prayer_wall.section_others'.tr(),
-          ),
-          ...state.otherLanguagePrayers.map(
-            (p) => PrayerWallCard(
-              key: ValueKey(p.id),
-              prayer: p,
-              showLanguageBadge: true,
-              isCompact: true,
-              onPrayTap: () => onPrayTap(p.id),
-              onReport: () => onReport(p.id),
+          // Section 1: Same-language prayers
+          if (hasSameLang) ...[
+            _SectionHeader(
+              label: 'prayer_wall.section_mine'.tr(),
             ),
-          ),
+            ...state.sameLanguagePrayers.map(
+              (p) => PrayerWallCard(
+                key: ValueKey(p.id),
+                prayer: p,
+                onPrayTap: () => onPrayTap(p.id),
+                onReport: () => onReport(p.id),
+              ),
+            ),
+          ],
+
+          // Section 2: Cross-language prayers
+          if (hasOtherLang) ...[
+            _SectionHeader(
+              label: 'prayer_wall.section_others'.tr(),
+            ),
+            ...state.otherLanguagePrayers.map(
+              (p) => PrayerWallCard(
+                key: ValueKey(p.id),
+                prayer: p,
+                showLanguageBadge: true,
+                isCompact: true,
+                onPrayTap: () => onPrayTap(p.id),
+                onReport: () => onReport(p.id),
+              ),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

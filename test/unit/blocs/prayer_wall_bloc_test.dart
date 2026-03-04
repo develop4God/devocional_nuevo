@@ -3,8 +3,6 @@ library;
 
 // test/unit/blocs/prayer_wall_bloc_test.dart
 
-import 'dart:async';
-
 import 'package:bloc_test/bloc_test.dart';
 import 'package:devocional_nuevo/blocs/prayer_wall/prayer_wall_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_wall/prayer_wall_event.dart';
@@ -72,6 +70,32 @@ void main() {
         isA<PrayerWallLoaded>()
             .having((s) => s.sameLanguagePrayers.length, 'same count', 2)
             .having((s) => s.otherLanguagePrayers.length, 'other count', 1),
+      ],
+    );
+
+    blocTest<PrayerWallBloc, PrayerWallState>(
+      'RefreshPrayerWall re-fetches prayers and updates loaded state',
+      build: () {
+        final en1 = _makeEntry(id: 'en1', language: 'en');
+        final en2 = _makeEntry(id: 'en2', language: 'en');
+
+        when(() => repo.fetchApprovedPrayers(
+              userLanguage: 'en',
+              limit: any(named: 'limit'),
+            )).thenAnswer((_) async => [en1, en2]);
+
+        return PrayerWallBloc(repository: repo);
+      },
+      seed: () => PrayerWallLoaded(
+        sameLanguagePrayers: [_makeEntry(id: 'old1', language: 'en')],
+        otherLanguagePrayers: const [],
+      ),
+      act: (bloc) => bloc.add(RefreshPrayerWall(userLanguage: 'en')),
+      wait: const Duration(milliseconds: 100),
+      expect: () => [
+        isA<PrayerWallLoaded>()
+            .having((s) => s.sameLanguagePrayers.length, 'refreshed count', 2)
+            .having((s) => s.sameLanguagePrayers.first.id, 'first id', 'en1'),
       ],
     );
 

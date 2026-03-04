@@ -16,6 +16,13 @@ class LoadPrayerWall extends PrayerWallEvent {
   LoadPrayerWall({required this.userLanguage, this.authorHash});
 }
 
+/// Refresh the prayer wall (triggered by pull-to-refresh).
+class RefreshPrayerWall extends PrayerWallEvent {
+  final String userLanguage;
+
+  RefreshPrayerWall({required this.userLanguage});
+}
+
 /// Submit a new prayer request.
 class SubmitPrayer extends PrayerWallEvent {
   final String text;

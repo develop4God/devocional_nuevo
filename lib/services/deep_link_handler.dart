@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/main.dart';
+import 'package:devocional_nuevo/pages/prayer_wall_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -231,15 +232,21 @@ class DeepLinkHandler {
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
+
+      // Push PrayerWallPage
+      final route = MaterialPageRoute(
+        builder: (_) => const PrayerWallPage(),
+      );
+      await Navigator.of(context).push(route);
     } catch (e) {
       developer.log(
         'Navigation error: $e',
         name: 'DeepLinkHandler',
         error: e,
       );
+      return false;
     }
 
-    // Navigate to prayer wall page
     developer.log(
       'Navigated to prayer wall page',
       name: 'DeepLinkHandler',
