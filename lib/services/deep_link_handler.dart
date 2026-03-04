@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 /// - devocional://devotional/{date} - Navigate to specific devotional
 /// - devocional://progress - Navigate to progress page
 /// - devocional://prayers - Navigate to prayers page
+/// - devocional://prayer_wall - Navigate to prayer wall page
 /// - devocional://testimonies - Navigate to testimonies page
 /// - devocional://supporter - Navigate to supporter page
 class DeepLinkHandler {
@@ -121,6 +122,8 @@ class DeepLinkHandler {
           return await _handleProgressDeepLink(context);
         case 'prayers':
           return await _handlePrayersDeepLink(context);
+        case 'prayer_wall':
+          return await _handlePrayerWallDeepLink(context);
         case 'testimonies':
           return await _handleTestimoniesDeepLink(context);
         case 'supporter':
@@ -215,6 +218,30 @@ class DeepLinkHandler {
     // Navigate to prayers tab (index 2 in bottom navigation)
     developer.log(
       'Navigated to prayers page',
+      name: 'DeepLinkHandler',
+    );
+
+    return true;
+  }
+
+  /// Handle prayer wall deep link
+  /// Format: devocional://prayer_wall
+  Future<bool> _handlePrayerWallDeepLink(BuildContext context) async {
+    try {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    } catch (e) {
+      developer.log(
+        'Navigation error: $e',
+        name: 'DeepLinkHandler',
+        error: e,
+      );
+    }
+
+    // Navigate to prayer wall page
+    developer.log(
+      'Navigated to prayer wall page',
       name: 'DeepLinkHandler',
     );
 
