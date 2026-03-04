@@ -221,6 +221,71 @@ void main() {
         isA<PrayerWallError>(),
       ],
     );
+
+    blocTest<PrayerWallBloc, PrayerWallState>(
+      'PrayerWallPendingUpdated with pastoral status emits PastoralResponseTriggered',
+      build: () {
+        when(() => repo.watchApprovedPrayers(userLanguage: any(named: 'userLanguage')))
+            .thenAnswer((_) => const Stream.empty());
+        return PrayerWallBloc(repository: repo);
+      },
+      seed: () => PrayerWallLoaded(
+        sameLanguagePrayers: const [],
+        otherLanguagePrayers: const [],
+      ),
+      act: (bloc) => bloc.add(PrayerWallPendingUpdated(
+        _makeEntry(status: PrayerWallStatus.pastoral),
+      )),
+      wait: const Duration(milliseconds: 100),
+      expect: () => [
+        isA<PastoralResponseTriggered>(),
+        isA<PrayerWallLoaded>()
+            .having((s) => s.myPendingPrayer, 'cleared pending', isNull),
+      ],
+    );
+
+    blocTest<PrayerWallBloc, PrayerWallState>(
+      'PrayerWallPendingUpdated with null entry clears pending',
+      build: () {
+        when(() => repo.watchApprovedPrayers(userLanguage: any(named: 'userLanguage')))
+            .thenAnswer((_) => const Stream.empty());
+        return PrayerWallBloc(repository: repo);
+      },
+      seed: () => PrayerWallLoaded(
+        sameLanguagePrayers: const [],
+        otherLanguagePrayers: const [],
+        myPendingPrayer: _makeEntry(status: PrayerWallStatus.pending),
+      ),
+      act: (bloc) => bloc.add(PrayerWallPendingUpdated(null)),
+      wait: const Duration(milliseconds: 100),
+      expect: () => [
+        isA<PrayerWallLoaded>()
+            .having((s) => s.myPendingPrayer, 'cleared', isNull),
+      ],
+    );
+
+    blocTest<PrayerWallBloc, PrayerWallState>(
+      'PrayerWallPendingUpdated with approved status updates myPendingPrayer',
+      build: () {
+        when(() => repo.watchApprovedPrayers(userLanguage: any(named: 'userLanguage')))
+            .thenAnswer((_) => const Stream.empty());
+        return PrayerWallBloc(repository: repo);
+      },
+      seed: () => PrayerWallLoaded(
+        sameLanguagePrayers: const [],
+        otherLanguagePrayers: const [],
+      ),
+      act: (bloc) => bloc.add(PrayerWallPendingUpdated(
+        _makeEntry(id: 'approved1', status: PrayerWallStatus.approved),
+      )),
+      wait: const Duration(milliseconds: 100),
+      expect: () => [
+        isA<PrayerWallLoaded>()
+            .having((s) => s.myPendingPrayer, 'updated', isNotNull)
+            .having((s) => s.myPendingPrayer?.id, 'correct id', 'approved1')
+            .having((s) => s.myPendingPrayer?.status, 'status', PrayerWallStatus.approved),
+      ],
+    );
   });
 
   group('PrayerWallEntry model', () {

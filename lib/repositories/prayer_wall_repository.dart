@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:devocional_nuevo/models/prayer_wall_entry.dart';
 import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
 /// Firestore implementation of [IPrayerWallRepository].
@@ -113,6 +114,7 @@ class PrayerWallRepository implements IPrayerWallRepository {
       'status': 'pending',
       'isAnonymous': isAnonymous,
       'authorId': authorHash,
+      'ownerUid': FirebaseAuth.instance.currentUser?.uid,
       'prayCount': 0,
       'reportCount': 0,
       'moderationScore': 0.0,
