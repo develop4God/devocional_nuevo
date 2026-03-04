@@ -904,5 +904,26 @@
     "profile_name_saved": "✅ Name saved successfully!",
     "profile_name_hint": "Your name (max 15 characters)",
     "profile_name_helper": "Will appear in your daily devotional. Will not be shared."
+  },
+  "prayer_wall": {
+    "title": "Prayer Wall",
+    "submit": "Share a prayer request",
+    "submit_title": "Share a prayer request",
+    "submit_placeholder": "Lord, I ask for...",
+    "pending": "Being reviewed 🙏",
+    "rejected_message": "Your prayer could not be shared at this time.",
+    "pastoral_title": "You are not alone 💙",
+    "pastoral_message": "We received your prayer and care deeply about you. If you are going through a difficult time, please know that help is available. God loves you unconditionally, and so do we.",
+    "pastoral_resources": "Support Resources:",
+    "pray_count": "{count} praying",
+    "anonymous": "Post anonymously",
+    "report": "Report",
+    "report_confirm": "Are you sure you want to report this prayer as inappropriate?",
+    "report_thanks": "Thank you for keeping our community safe 🙏",
+    "section_mine": "Prayers in your language",
+    "section_others": "Prayers from around the world 🌍",
+    "my_pending": "Your prayer is being reviewed",
+    "empty_title": "The wall is quiet right now",
+    "empty_description": "Be the first to share a prayer request. The community is here for you."
   }
 }

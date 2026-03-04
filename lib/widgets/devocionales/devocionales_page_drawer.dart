@@ -6,6 +6,10 @@ import 'package:devocional_nuevo/pages/discovery_list_page.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/notification_config_page.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
+import 'package:devocional_nuevo/pages/prayer_wall_page.dart';
+import 'package:devocional_nuevo/blocs/prayer_wall/prayer_wall_bloc.dart';
+import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
@@ -514,6 +518,34 @@ class DevocionalesDrawer extends StatelessWidget {
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (_) => const PrayersPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        // --- Prayer Wall ---
+                        drawerRow(
+                          key: const Key('drawer_prayer_wall'),
+                          icon: Icons.people_outline,
+                          iconColor: colorScheme.primary,
+                          label: Text(
+                            'prayer_wall.title'.tr(),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 16,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => BlocProvider(
+                                  create: (_) => PrayerWallBloc(
+                                    repository:
+                                        getService<IPrayerWallRepository>(),
+                                  ),
+                                  child: const PrayerWallPage(),
+                                ),
                               ),
                             );
                           },
