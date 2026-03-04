@@ -45,7 +45,10 @@ class _EncountersListPageState extends State<EncountersListPage> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0a0e1a) : Colors.grey[50],
-      appBar: CustomAppBar(titleText: 'encounters.section_title'.tr()),
+      appBar: CustomAppBar(
+        titleText: 'encounters.section_title'.tr(),
+        leading: const SizedBox.shrink(),
+      ),
       body: BlocBuilder<EncounterBloc, EncounterState>(
         builder: (context, state) {
           if (state is EncounterLoading || state is EncounterInitial) {

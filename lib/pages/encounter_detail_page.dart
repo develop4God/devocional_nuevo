@@ -5,6 +5,7 @@
 
 import 'package:card_swiper/card_swiper.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
+import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
@@ -48,10 +49,50 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
 
           final study = state.getStudy(widget.entry.id);
           if (study == null) {
-            return Center(
-              child: Text(
-                'encounters.study_not_found'.tr(),
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+            return SafeArea(
+              child: Column(
+                children: [
+                  // Close button
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: IconButton(
+                      icon: const Icon(Icons.close,
+                          color: Colors.white70, size: 28),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                  const Spacer(),
+                  // Error UI
+                  const Icon(Icons.error_outline,
+                      size: 64, color: Colors.redAccent),
+                  const SizedBox(height: 24),
+                  Text(
+                    'encounters.study_not_found'.tr(),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<EncounterBloc>().add(
+                            LoadEncounterStudy(widget.entry.id, widget.lang),
+                          );
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: Text('encounters.retry'.tr()),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 16),
+                    ),
+                  ),
+                  const Spacer(flex: 2),
+                ],
               ),
             );
           }
