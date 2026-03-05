@@ -30,6 +30,7 @@ The app supports the following deep link patterns using the `devocional://` sche
 | `devocional://devotional` | Navigate to devotional page | Home/Devotional |
 | `devocional://progress` | Navigate to progress page | Progress/Stats |
 | `devocional://prayers` | Navigate to prayers page | Prayers List |
+| `devocional://prayer_wall` | Navigate to Prayer Wall | Prayer Wall |
 | `devocional://testimonies` | Navigate to testimonies page | Testimonies List |
 | `devocional://supporter` | Navigate to supporter page | Supporter IAP |
 
@@ -231,6 +232,12 @@ To create a deep link campaign in Firebase Console:
 - **Deep Link**: `devocional://supporter`
 - **Targeting**: Active users who aren't supporters yet
 
+#### Announce Prayer Wall Feature
+- **Message**: "Pray with believers worldwide — the Prayer Wall is here! 🌐🙏"
+- **Button**: "Open Prayer Wall"
+- **Deep Link**: `devocional://prayer_wall`
+- **Targeting**: All active users
+
 ## Testing
 
 ### Unit Tests
@@ -249,6 +256,7 @@ flutter test test/unit/services/deep_link_handler_test.dart
 - ✅ Valid devotional deep link
 - ✅ Valid progress deep link
 - ✅ Valid prayers deep link
+- ✅ Valid prayer_wall deep link
 - ✅ Valid testimonies deep link
 - ✅ Valid supporter deep link
 - ✅ Null navigator context handling
@@ -283,6 +291,11 @@ adb shell am start -W -a android.intent.action.VIEW \
 adb shell am start -W -a android.intent.action.VIEW \
   -d "devocional://prayers" \
   com.develop4god.devocional_nuevo
+
+# Test prayer wall deep link
+adb shell am start -W -a android.intent.action.VIEW \
+  -d "devocional://prayer_wall" \
+  com.develop4god.devocional_nuevo
 ```
 
 #### iOS
@@ -298,6 +311,9 @@ xcrun simctl openurl booted "devocional://progress"
 
 # Test prayers deep link
 xcrun simctl openurl booted "devocional://prayers"
+
+# Test prayer wall deep link
+xcrun simctl openurl booted "devocional://prayer_wall"
 ```
 
 ## Analytics & Monitoring
