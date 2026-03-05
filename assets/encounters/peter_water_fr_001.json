@@ -1,0 +1,187 @@
+{
+  "id": "peter_water_001",
+  "type": "encounter",
+  "schema_version": "encounters_v1",
+  "language": "fr",
+  "bible_version": "LSG1910",
+  "version": "1.0",
+  "estimated_reading_minutes": 8,
+  "meta": {
+    "character": "Pierre",
+    "testament": "new",
+    "scripture_reference": "Matthieu 14:22-33",
+    "mood_primary": "storm",
+    "accent_color": "#1e3a5f",
+    "emoji": "🌊",
+    "tags": [
+      "foi",
+      "peur",
+      "miracles",
+      "tempêtes",
+      "grâce",
+      "pierre",
+      "jesus"
+    ]
+  },
+  "key_verse": {
+    "reference": "Matthieu 14:31",
+    "text": "Aussitôt Jésus étendit la main, le saisit, et lui dit : Homme de peu de foi, pourquoi as-tu douté ?",
+    "bible_version": "LSG1910"
+  },
+  "cards": [
+    {
+      "order": 1,
+      "type": "cinematic_scene",
+      "mood": "storm",
+      "image_url": "peter_intro.jpg",
+      "title": "3h du matin. Tempête. Sans Jésus.",
+      "narrative": "Les disciples ramaient depuis des heures contre un vent violent. Jésus les avait envoyés en avant — seuls. La mer était déchaînée. Et ils perdaient la bataille.",
+      "ambient_sound": "storm_waves",
+      "haptic": "storm_rumble",
+      "revelation_key": "Dieu nous envoie parfois dans les tempêtes exprès."
+    },
+    {
+      "order": 2,
+      "type": "scripture_moment",
+      "mood": "tense",
+      "image_url": "waves_night.png",
+      "verse_reference": "Matthieu 14:24",
+      "verse_text": "La barque était déjà au milieu de la mer, battue par les vagues, car le vent était contraire.",
+      "reflection": "Remarque ce que ce verset ne dit PAS.\n\nIl ne dit pas que Dieu les a abandonnés. Il ne dit pas qu'ils étaient punis. Il dit que le vent était contraire.\n\nCertaines tempêtes ne sont pas une punition. Certaines tempêtes ne sont pas des erreurs. Certaines tempêtes sont le chemin que Dieu a choisi pour toi — à cause de ce qui t'attend de l'autre côté.",
+      "revelation_key": "Un vent contraire ne signifie pas une mauvaise direction."
+    },
+    {
+      "order": 3,
+      "type": "character_moment",
+      "mood": "intense",
+      "image_url": "peter_storm_boat.png",
+      "title": "La Prière la Plus Audacieuse de la Bible",
+      "subtitle": "Matthieu 14:28",
+      "content": "La réaction de Pierre est extraordinaire. Pas 'Seigneur sauve-nous tous' — toute la barque priant ensemble.\n\nJuste Pierre. Un homme. Une demande folle :\n\n'Seigneur, si c'est toi, ordonne que j'aille vers toi sur les eaux.'\n\nPense à ce qu'il demande vraiment. Pas d'être secouru. Pas que la tempête s'arrête. Sortir de la barque et marcher vers la tempête lui-même.\n\n⚡ LES ONZE AUTRES DISCIPLES :\n\nAucun d'eux n'a fait cette demande. Ils sont restés dans la barque. En sécurité. Au sec. Raisonnables.\n\nIls n'ont jamais non plus marché sur l'eau.\n\nLa foi de Pierre était impulsive. Probablement embarrassante pour les autres.\n\nEt c'était la seule foi qui l'a conduit vers l'impossible.",
+      "revelation_key": "Pierre n'a pas demandé à Jésus de venir à lui. Il a demandé à aller vers Jésus. Cela change tout."
+    },
+    {
+      "order": 4,
+      "type": "cinematic_scene",
+      "mood": "mysterious",
+      "image_url": "jesus_light_water.png",
+      "title": "Quelque chose marchait vers eux",
+      "narrative": "Alors ils virent. Une silhouette. Se déplaçant à travers la tempête comme si elle n'existait pas. Marchant sur l'eau. Vers eux.\n\nIls étaient terrifiés. Ils pensèrent que c'était un fantôme.",
+      "ambient_sound": "storm_fading",
+      "verse_overlay": {
+        "reference": "Matthieu 14:27",
+        "text": "Mais aussitôt Jésus leur parla, en disant : Rassurez-vous, c'est moi ; n'ayez pas peur !"
+      },
+      "revelation_key": "Jésus vient à nous au milieu de nos pires tempêtes. Pas après."
+    },
+    {
+      "order": 5,
+      "type": "cinematic_scene",
+      "mood": "awe",
+      "image_url": "peter_walking_water.png",
+      "title": "Et il marcha sur l'eau",
+      "narrative": "Un seul mot de Jésus. 'Viens.'\n\nEt Pierre sortit de la barque. Dans la tempête. Sur l'eau.\n\nPendant un moment impossible, glorieux, terrifiant — il marcha.",
+      "ambient_sound": "wind_gentle",
+      "haptic": "gentle_pulse",
+      "verse_overlay": {
+        "reference": "Matthieu 14:29",
+        "text": "Et Pierre, étant descendu de la barque, marcha sur les eaux, et s'avança vers Jésus."
+      },
+      "revelation_key": "Pierre est le seul être humain de l'histoire, hormis Jésus, à avoir marché sur l'eau. Parce qu'il était le seul à l'avoir demandé."
+    },
+    {
+      "order": 6,
+      "type": "theological_depth",
+      "mood": "storm",
+      "image_url": "waves_night.png",
+      "title": "Le Moment où Tout Changea",
+      "subtitle": "Trois mots qui expliquent tout échec de foi",
+      "content": "Matthieu nous donne la séquence exacte :\n\n1️⃣ 'Il vit le vent' — son attention se déplaça\n2️⃣ 'Il eut peur' — la peur suivit son regard\n3️⃣ 'Il commença à s'enfoncer' — son corps suivit son cœur\n\n🔑 LE MOT CLÉ : 'Commença'\n\nIl ne s'enfonça pas instantanément. Il y eut un moment entre le doute et la noyade. Une fenêtre. Un cri.\n\n'Seigneur, sauve-moi !'\n\nTrois mots. La prière la plus courte des Écritures. Et la plus honnête.\n\nSans théologie. Sans explication. Sans négociation. Juste la vérité brute d'un homme qui a essayé, échoué, et savait exactement qui appeler.\n\n⚠️ CE QUE JÉSUS N'A PAS DIT :\n\nIl n'a pas dit : 'Tu aurais dû rester dans la barque.'\nIl n'a pas dit : 'Je te l'avais dit.'\nIl ne l'a pas laissé couler pour lui donner une leçon.\n\nLe mot grec eutheos — aussitôt — apparaît au moment où Pierre crie. Immédiatement. Sans délai. C'est la vitesse de la grâce.\n\nAussitôt. Il étendit la main.",
+      "revelation_key": "La prière la plus courte est parfois la plus puissante. 'Seigneur, sauve-moi' suffit.",
+      "scripture_connections": [
+        {
+          "reference": "Ésaïe 41:13",
+          "text": "Car je suis l'Éternel, ton Dieu, qui te soutiens par ta main droite, et qui te dis : Ne crains point, je viens à ton secours."
+        },
+        {
+          "reference": "Psaume 18:16",
+          "text": "Il étendit la main d'en haut, il me saisit, il me retira des grandes eaux."
+        }
+      ]
+    },
+    {
+      "order": 7,
+      "type": "cinematic_scene",
+      "mood": "grace",
+      "image_url": "peter_hand_saved.png",
+      "title": "Aussitôt",
+      "narrative": "Ce mot — aussitôt — est tout.\n\nSans délai. Sans sermon d'abord. Sans 'laisse-moi réfléchir si tu le mérites.'\n\nAussitôt Jésus étendit la main et le saisit.\n\nLa grâce va plus vite que l'échec.",
+      "ambient_sound": "storm_stopping",
+      "haptic": "rescue_pulse",
+      "verse_overlay": {
+        "reference": "Matthieu 14:31",
+        "text": "Aussitôt Jésus étendit la main, et le saisit."
+      },
+      "revelation_key": "Jésus nous attrape avant de nous corriger. La grâce avant la réprimande. Toujours."
+    },
+    {
+      "order": 8,
+      "type": "character_moment",
+      "mood": "peace",
+      "image_url": "waves_night.png",
+      "title": "Homme de Peu de Foi !",
+      "subtitle": "La réprimande qui n'en était pas vraiment une",
+      "content": "Jésus pose à Pierre une seule question :\n\n'Homme de peu de foi, pourquoi as-tu douté ?'\n\nLis ceci attentivement. Jésus appelle ça une PEU de foi — pas AUCUNE foi.\n\nPierre avait plus de foi que les onze dans la barque. Il est sorti. Il a marché. Il a appelé la bonne personne quand il s'enfonçait.\n\nCe n'est pas l'absence de foi. C'est la foi en processus.\n\n🚣 LA RÉACTION DE LA BARQUE :\n\nQuand Jésus et Pierre remontèrent dans la barque, quelque chose se passa qui ne s'était jamais produit auparavant :\n\n'Ceux qui étaient dans la barque vinrent se prosterner devant lui, en disant : Tu es vraiment le Fils de Dieu.'\n\nLes onze qui étaient restés en sécurité — qui n'avaient jamais douté parce qu'ils n'avaient jamais essayé — ont vu quelque chose à travers l'échec et le sauvetage de Pierre qui les a conduits à l'adoration.\n\nDieu a utilisé le naufrage de Pierre pour révéler Jésus à tous dans cette barque.",
+      "revelation_key": "Parfois Dieu nous laisse couler pour que les autres puissent le voir nous sortir de l'eau."
+    },
+    {
+      "order": 9,
+      "type": "interactive_moment",
+      "icon": "🌊",
+      "image_url": "waves_night.png",
+      "title": "Nomme Ta Vague",
+      "subtitle": "Quelle est la tempête qui détourne ton regard de Jésus ?",
+      "reflection_prompt": "Prends un moment pour nommer le vent et les vagues dans ta vie en ce moment. À quoi ressemblerait le fait de sortir de la barque vers Jésus dans cette situation ?"
+    },
+    {
+      "order": 10,
+      "type": "discovery_activation",
+      "icon": "🙏",
+      "mood": "grace",
+      "image_url": "jesus_light_water.png",
+      "title": "Ta Rencontre",
+      "subtitle": "L'histoire de Pierre n'est pas seulement de l'histoire. C'est un miroir.",
+      "discovery_questions": [
+        {
+          "category": "Honnêteté",
+          "question": "Quelle tempête dans ta vie fixes-tu en ce moment au lieu de regarder Jésus ? Quelles sont tes vagues ?"
+        },
+        {
+          "category": "Courage",
+          "question": "Y a-t-il une barque dont tu dois sortir ? Quelque chose vers lequel Dieu t'appelle qui semble impossible — et que tu n'as pas encore demandé ?"
+        },
+        {
+          "category": "Grâce",
+          "question": "As-tu déjà crié 'Seigneur, sauve-moi' et te senti saisi ? Que s'est-il passé ? Sinon — qu'est-ce qui t'empêche de crier en ce moment ?"
+        }
+      ],
+      "prayer": {
+        "title": "Prière de l'Homme qui Coule",
+        "content": "Seigneur, je confesse que j'ai regardé les vagues.\n\nLa tempête est réelle. Le vent est contraire. Et j'ai peur.\n\nComme Pierre je crie — Seigneur, sauve-moi.\n\nNon parce que j'ai assez de foi. Non parce que je mérite d'être secouru. Mais parce que tu es le genre de Dieu qui agit aussitôt.\n\nSaisis-moi. Je tends la main vers toi.\n\nEt quand tu le feras — garde mes yeux sur toi et non sur l'eau sous mes pieds.\n\nAu nom de Jésus, Amen."
+      }
+    },
+    {
+      "order": 11,
+      "type": "completion",
+      "mood": "awe",
+      "image_url": "peter_walking_water.png",
+      "completion_verse": {
+        "reference": "Matthieu 14:33",
+        "text": "Ceux qui étaient dans la barque vinrent se prosterner devant lui, et dirent : Tu es vraiment le Fils de Dieu.",
+        "bible_version": "LSG1910"
+      },
+      "reflection_prompt": "Quelle est la vérité de la rencontre de Pierre que tu veux emporter avec toi aujourd'hui ?",
+      "celebration_type": "gentle_light"
+    }
+  ]
+}

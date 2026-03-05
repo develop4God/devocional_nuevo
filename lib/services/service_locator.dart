@@ -3,10 +3,14 @@
 library;
 
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
+import 'package:devocional_nuevo/repositories/encounter_repository.dart';
+import 'package:devocional_nuevo/services/cache_metadata_service.dart';
+import 'package:devocional_nuevo/services/devocional_index_service.dart';
 import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
 import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/connectivity_service.dart';
+import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart'; // NEW
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
@@ -102,6 +106,10 @@ Future<void> setupServiceLocator() async {
     () => DiscoveryRepository(httpClient: locator.get<http.Client>()),
   );
 
+  locator.registerLazySingleton<EncounterRepository>(
+    () => EncounterRepository(httpClient: locator.get<http.Client>()),
+  );
+
   locator.registerLazySingleton<DiscoveryProgressTracker>(
       () => DiscoveryProgressTracker());
 
@@ -139,6 +147,17 @@ Future<void> setupServiceLocator() async {
 
   locator.registerLazySingleton<SupporterPetService>(
       () => SupporterPetService(locator.get<SharedPreferences>()));
+
+  // ✅ REGISTER DEEP LINK HANDLER
+  locator.registerLazySingleton<DeepLinkHandler>(() => DeepLinkHandler());
+
+  // ✅ REGISTER DEVOCIONAL INDEX SERVICE (factory — new instance each time)
+  locator.registerFactory<DevocionalIndexService>(
+    () => DevocionalIndexService(locator.get<http.Client>()),
+  );
+
+  // ✅ REGISTER CACHE METADATA SERVICE (factory — new instance each time)
+  locator.registerFactory<CacheMetadataService>(() => CacheMetadataService());
 }
 
 ServiceLocator get serviceLocator => ServiceLocator._instance;

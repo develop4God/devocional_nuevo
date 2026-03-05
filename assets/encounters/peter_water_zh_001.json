@@ -1,0 +1,187 @@
+{
+  "id": "peter_water_001",
+  "type": "encounter",
+  "schema_version": "encounters_v1",
+  "language": "zh",
+  "bible_version": "和合本1919",
+  "version": "1.0",
+  "estimated_reading_minutes": 8,
+  "meta": {
+    "character": "彼得",
+    "testament": "new",
+    "scripture_reference": "马太福音 14:22-33",
+    "mood_primary": "storm",
+    "accent_color": "#1e3a5f",
+    "emoji": "🌊",
+    "tags": [
+      "信心",
+      "恐惧",
+      "神迹",
+      "风浪",
+      "恩典",
+      "彼得",
+      "耶稣"
+    ]
+  },
+  "key_verse": {
+    "reference": "马太福音 14:31",
+    "text": "耶稣赶紧伸手拉住他，说：你这小信的人哪，为什么疑惑呢？",
+    "bible_version": "和合本1919"
+  },
+  "cards": [
+    {
+      "order": 1,
+      "type": "cinematic_scene",
+      "mood": "storm",
+      "image_url": "peter_intro.jpg",
+      "title": "凌晨三点。风暴。没有耶稣。",
+      "narrative": "门徒们已经在狂风中划行了数小时。耶稣打发他们先走——独自一人。海浪汹涌，怒不可遏。他们正节节败退。",
+      "ambient_sound": "storm_waves",
+      "haptic": "storm_rumble",
+      "revelation_key": "神有时故意把我们送入风暴之中。"
+    },
+    {
+      "order": 2,
+      "type": "scripture_moment",
+      "mood": "tense",
+      "image_url": "waves_night.png",
+      "verse_reference": "马太福音 14:24",
+      "verse_text": "那时，船在海中，因风不顺，被浪摇撼。",
+      "reflection": "注意这节经文没有说什么。\n\n它没有说神抛弃了他们。它没有说他们受到了惩罚。它说风不顺。\n\n有些风暴不是惩罚。有些风暴不是错误。有些风暴正是神为你选择的道路——因为前方等待着你的是更大的祝福。",
+      "revelation_key": "逆风不代表方向错了。"
+    },
+    {
+      "order": 3,
+      "type": "character_moment",
+      "mood": "intense",
+      "image_url": "peter_storm_boat.png",
+      "title": "圣经中最大胆的祷告",
+      "subtitle": "马太福音 14:28",
+      "content": "彼得的反应非同寻常。不是「主啊，救我们所有人」——不是整船人一起祷告。\n\n只有彼得。一个人。一个大胆的请求：\n\n「主，如果是你，请叫我从水面上走到你那里去。」\n\n想想他真正在求什么。不是要被拯救。不是要风暴停止。而是要自己离开船，走进风暴，向耶稣走去。\n\n⚡ 其余十一个门徒：\n\n他们一个都没提出这个请求。他们留在船上。安全、干燥、理智。\n\n他们也从未在水面上行走。\n\n彼得的信心是冲动的。大概令其他人感到尴尬。\n\n但正是这份信心，把他带到了那不可能的地方。",
+      "revelation_key": "彼得不是求耶稣来到他面前，而是求去到耶稣那里。这改变了一切。"
+    },
+    {
+      "order": 4,
+      "type": "cinematic_scene",
+      "mood": "mysterious",
+      "image_url": "jesus_light_water.png",
+      "title": "有什么东西向他们走来",
+      "narrative": "然后他们看见了。一个身影。穿越风暴，如履平地。在水面上行走。向他们走来。\n\n他们吓坏了，以为是鬼魂。",
+      "ambient_sound": "storm_fading",
+      "verse_overlay": {
+        "reference": "马太福音 14:27",
+        "text": "耶稣连忙对他们说：你们放心，是我，不要怕！"
+      },
+      "revelation_key": "耶稣在我们最猛烈的风暴中来到我们身边，不是风暴之后。"
+    },
+    {
+      "order": 5,
+      "type": "cinematic_scene",
+      "mood": "awe",
+      "image_url": "peter_walking_water.png",
+      "title": "他就在水面上走",
+      "narrative": "耶稣只说了一个字：「来。」\n\n彼得便从船上下去，走进了风暴，踏上了水面。\n\n在那不可能、荣耀而又令人战栗的一刻——他走起来了。",
+      "ambient_sound": "wind_gentle",
+      "haptic": "gentle_pulse",
+      "verse_overlay": {
+        "reference": "马太福音 14:29",
+        "text": "彼得就从船上下去，在水面上走，要到耶稣那里去。"
+      },
+      "revelation_key": "彼得是历史上除耶稣之外唯一在水面上行走的人，因为他是唯一开口求的人。"
+    },
+    {
+      "order": 6,
+      "type": "theological_depth",
+      "mood": "storm",
+      "image_url": "waves_night.png",
+      "title": "一切改变的那一刻",
+      "subtitle": "解释所有信心失败的三个字",
+      "content": "马太给了我们精确的顺序：\n\n1️⃣「见风甚大」——他的注意力转移了\n2️⃣「就害怕」——恐惧跟随了他的目光\n3️⃣「将要沉下去」——他的身体跟随了他的心\n\n🔑 关键词：「将要」\n\n他不是立刻沉下去的。在怀疑与沉没之间有一段时间。一个窗口。一声呼喊。\n\n「主啊，救我！」\n\n三个字。圣经中最短的祷告。也是最诚实的。\n\n没有神学。没有解释。没有讨价还价。只有一个尝试过、失败了、却知道该呼求谁的人的真实心声。\n\n⚠️ 耶稣没有说的：\n\n没有说：「你早该留在船上。」\n没有说：「我早就告诉你了。」\n没有让他沉下去以示教训。\n\n希腊文 eutheos——立刻——出现在彼得呼喊的那一刻。即时。毫不迟延。这就是恩典的速度。\n\n立刻。祂伸出了手。",
+      "revelation_key": "最短的祷告有时是最有力的。「主啊，救我」已经足够。",
+      "scripture_connections": [
+        {
+          "reference": "以赛亚书 41:13",
+          "text": "因为我耶和华你的神，必搀扶你的右手，对你说：不要害怕，我必帮助你。"
+        },
+        {
+          "reference": "诗篇 18:16",
+          "text": "他从高天伸手抓住我，把我从大水中拉上来。"
+        }
+      ]
+    },
+    {
+      "order": 7,
+      "type": "cinematic_scene",
+      "mood": "grace",
+      "image_url": "peter_hand_saved.png",
+      "title": "立刻",
+      "narrative": "这个词——立刻——就是一切。\n\n没有迟延。没有先发一顿讲道。没有「让我想想你是否值得」。\n\n耶稣立刻伸手拉住了他。\n\n恩典比失败更快。",
+      "ambient_sound": "storm_stopping",
+      "haptic": "rescue_pulse",
+      "verse_overlay": {
+        "reference": "马太福音 14:31",
+        "text": "耶稣赶紧伸手拉住他。"
+      },
+      "revelation_key": "耶稣在纠正我们之前先拉住我们。恩典先于责备。永远如此。"
+    },
+    {
+      "order": 8,
+      "type": "character_moment",
+      "mood": "peace",
+      "image_url": "waves_night.png",
+      "title": "你这小信的人！",
+      "subtitle": "那不真是责备的责备",
+      "content": "耶稣只问了彼得一个问题：\n\n「你这小信的人哪，为什么疑惑呢？」\n\n仔细读这句话。耶稣称之为「小」信——不是「没有」信。\n\n彼得比船上那十一个人有更多的信心。他出去了。他走了。他沉下去时呼求了对的那位。\n\n那不是没有信心，那是信心在成长的过程中。\n\n🚣 船上的回应：\n\n当耶稣和彼得上了船，发生了一件从未有过的事：\n\n「在船上的人都拜他，说：你真是神的儿子了。」\n\n那十一个留在安全处的人——因为从未尝试所以从未怀疑——透过彼得的失败与被救，目睹了一件引他们俯拜的事。\n\n神借着彼得的沉没，向船上所有人显明了耶稣。",
+      "revelation_key": "有时神让我们沉下去，是为了让别人看见祂将我们拉起来。"
+    },
+    {
+      "order": 9,
+      "type": "interactive_moment",
+      "icon": "🌊",
+      "image_url": "waves_night.png",
+      "title": "说出你的浪",
+      "subtitle": "是什么风浪让你的眼睛离开了耶稣？",
+      "reflection_prompt": "花一点时间，说出此刻你生命中的风和浪。如果你在那个处境中从船上走向耶稣，会是什么样子？"
+    },
+    {
+      "order": 10,
+      "type": "discovery_activation",
+      "icon": "🙏",
+      "mood": "grace",
+      "image_url": "jesus_light_water.png",
+      "title": "你的相遇",
+      "subtitle": "彼得的故事不只是历史，它是一面镜子。",
+      "discovery_questions": [
+        {
+          "category": "诚实",
+          "question": "此刻你生命中有什么风浪，让你的眼睛离开了耶稣？你的浪是什么？"
+        },
+        {
+          "category": "勇气",
+          "question": "有没有一艘船你需要走出去？神呼召你去做的某件事感觉不可能——而你还没有开口求？"
+        },
+        {
+          "category": "恩典",
+          "question": "你曾呼求「主啊，救我」而感到被祂拉住吗？发生了什么？如果没有——是什么阻止你现在就呼求？"
+        }
+      ],
+      "prayer": {
+        "title": "沉没之人的祷告",
+        "content": "主啊，我承认我一直在看浪。\n\n风暴是真实的。风是逆的。我很害怕。\n\n像彼得一样，我呼求——主啊，救我！\n\n不是因为我有足够的信心。不是因为我值得被拯救。而是因为祢是那种会立刻伸手的神。\n\n拉住我吧。我正在向上伸手。\n\n当祢这样做的时候——让我的眼睛定睛在祢身上，而不是在我脚下的水面上。\n\n奉耶稣的名，阿们。"
+      }
+    },
+    {
+      "order": 11,
+      "type": "completion",
+      "mood": "awe",
+      "image_url": "peter_walking_water.png",
+      "completion_verse": {
+        "reference": "马太福音 14:33",
+        "text": "在船上的人都拜他，说：你真是神的儿子了。",
+        "bible_version": "和合本1919"
+      },
+      "reflection_prompt": "彼得相遇中有哪一个真理是你今天想带走的？",
+      "celebration_type": "gentle_light"
+    }
+  ]
+}

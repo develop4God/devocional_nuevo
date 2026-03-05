@@ -1,29 +1,33 @@
 - **copilot allways validate and confirm reading this file on each copilot coding agent session:**
+- **copilot also read `docs/COPILOT_WORKSPACE_IDENTITY.md` on each session — it contains the
+  workspace fingerprint and the terminal contingency workaround.**
 
 # Copilot Instructions for this Flutter/Dart Repository
 
 ## Code Standards
 
 - **Always validate code after changes:**
-  - Run `flutter run` or another fast validation command to ensure the project compiles without errors before committing.
-  - Fix any compile errors immediately.
+    - Run `flutter run` or another fast validation command to ensure the project compiles without
+      errors before committing.
+    - Fix any compile errors immediately.
 
 - **Test-driven development:**
-  - Always run `flutter test` before starting any task and regularly during development.
-  - Fix or refactor any failing tests so all tests pass before submitting changes.
+    - Always run `flutter test` before starting any task and regularly during development.
+    - Fix or refactor any failing tests so all tests pass before submitting changes.
 
 - **Keep code clean and formatted:**
-  - Use `dart format .` frequently to enforce consistent code style.
-  - Use `dart analyze` to keep the codebase clean and resolve warnings/errors.
+    - Use `dart format .` frequently to enforce consistent code style.
+    - Use `dart analyze` to keep the codebase clean and resolve warnings/errors.
 
 - **Production code must remain functional:**
-  - Do not modify production code unless absolutely necessary for the requested feature or fix.
-  - Any modification should be justified in the commit message and, when substantial, documented.
+    - Do not modify production code unless absolutely necessary for the requested feature or fix.
+    - Any modification should be justified in the commit message and, when substantial, documented.
 
 - **BLoC architecture guidelines:**
-  - Prefer the BLoC pattern for state and business logic management.
-  - For each logical group of BLoCs, create a dedicated folder (e.g., `lib/blocs/auth/`, `lib/blocs/devotional/`).
-  - Keep business logic out of UI components; organize by feature and responsibility.
+    - Prefer the BLoC pattern for state and business logic management.
+    - For each logical group of BLoCs, create a dedicated folder (e.g., `lib/blocs/auth/`,
+      `lib/blocs/devotional/`).
+    - Keep business logic out of UI components; organize by feature and responsibility.
 
 ## Development Workflow
 
@@ -32,6 +36,29 @@
 - Run tests: `flutter test`
 - Format code: `dart format .`
 - Analyze code: `dart analyze`
+
+## ⚠️ Terminal Contingency (CRITICAL)
+
+The JetBrains AI terminal **silently drops output** when `isBackground=false`.
+
+**Always use this pattern for every command:**
+
+```
+Step 1 → run_in_terminal(cmd, isBackground=TRUE)
+Step 2 → get_terminal_output(id)
+```
+
+For analysis/tests, use the project scripts with this pattern:
+
+```bash
+# Analyze:
+bash errors.sh 2>&1; echo EXIT=$?
+
+# Test ONE file (never run full suite — reporter crashes):
+bash tests.sh test/unit/providers/devocional_provider_test.dart 2>&1; echo EXIT=$?
+```
+
+See `docs/COPILOT_WORKSPACE_IDENTITY.md` for full details.
 
 ## Guidelines
 

@@ -16,7 +16,8 @@ import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/discovery_share_helper.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
-import 'package:devocional_nuevo/widgets/devotional_card_premium.dart';
+import 'package:devocional_nuevo/widgets/discovery_actions_bar.dart';
+import 'package:devocional_nuevo/widgets/discovery_card_premium.dart';
 import 'package:devocional_nuevo/widgets/discovery_grid_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -204,7 +205,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                           Expanded(
                             child: _buildCarousel(context, state, sortedIds),
                           ),
-                          _buildActionBar(context, state, sortedIds),
+                          _buildBottomActionBar(state),
                           const SizedBox(height: 20),
                         ],
                       ),
@@ -394,206 +395,45 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     );
   }
 
-  Widget _buildActionBar(
-      BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
-    if (studyIds.isEmpty || _currentIndex >= studyIds.length) {
+  Widget _buildBottomActionBar(DiscoveryLoaded state) {
+    if (state.availableStudyIds.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    final colorScheme = Theme.of(context).colorScheme;
-    final currentStudyId = studyIds[_currentIndex];
+    final currentStudyId = state.availableStudyIds[_currentIndex];
     final currentTitle =
         state.studyTitles[currentStudyId] ?? _formatStudyTitle(currentStudyId);
 
     final isDownloaded = state.isStudyLoaded(currentStudyId);
     final isDownloading = state.isStudyDownloading(currentStudyId);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(26),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
+    return DiscoveryActionsBar(
+      isDownloaded: isDownloaded,
+      isDownloading: isDownloading,
+      downloadLabel: (isDownloaded
+              ? 'devotionals.offline_mode'.tr()
+              : 'discovery.download_study'.tr())
+          .replaceFirst(' ', '\n'),
+      shareLabel: 'discovery.share'.tr(),
+      favoritesLabel: 'navigation.favorites'.tr(),
+      readLabel: 'discovery.read'.tr(),
+      nextLabel: 'discovery.next'.tr(),
+      onDownload: () => _handleDownloadStudy(currentStudyId, currentTitle),
+      onShare: () => _handleShareStudy(state, currentStudyId),
+      onOpenFavorites: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const FavoritesPage(initialIndex: 1),
           ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            // Calculate the max width for each button
-            final buttonCount = 5;
-            // Subtract total padding (8px left + 8px right = 16px per button)
-            final maxButtonWidth =
-                (constraints.maxWidth - (16 * buttonCount)) / buttonCount;
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildActionButton(
-                  icon: isDownloaded
-                      ? Icons.file_download_done_rounded
-                      : isDownloading
-                          ? Icons.sync_rounded
-                          : Icons.file_download_outlined,
-                  label: (isDownloaded
-                          ? 'devotionals.offline_mode'.tr()
-                          : 'discovery.download_study'.tr())
-                      .replaceFirst(' ', '\n'),
-                  // Force wrap for first button
-                  onTap: () =>
-                      _handleDownloadStudy(currentStudyId, currentTitle),
-                  colorScheme: colorScheme,
-                  isDownloading: isDownloading,
-                  maxWidth: maxButtonWidth,
-                ),
-                _buildActionButton(
-                  icon: Icons.share_rounded,
-                  label: 'discovery.share'.tr(),
-                  onTap: () => _handleShareStudy(state, currentStudyId),
-                  colorScheme: colorScheme,
-                  maxWidth: maxButtonWidth,
-                ),
-                _buildActionButton(
-                  icon: Icons.star_rounded,
-                  label: 'navigation.favorites'.tr(),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const FavoritesPage(initialIndex: 1),
-                      ),
-                    );
-                  },
-                  colorScheme: colorScheme,
-                  maxWidth: maxButtonWidth,
-                ),
-                _buildActionButton(
-                  icon: Icons.auto_stories_rounded,
-                  label: 'discovery.read'.tr(),
-                  onTap: () => _navigateToDetail(context, currentStudyId),
-                  colorScheme: colorScheme,
-                  isPrimary: true,
-                  maxWidth: maxButtonWidth,
-                ),
-                _buildActionButton(
-                  icon: Icons.arrow_forward_rounded,
-                  label: 'discovery.next'.tr(),
-                  onTap: () {
-                    if (_currentIndex < studyIds.length - 1) {
-                      _swiperController.next();
-                    }
-                  },
-                  colorScheme: colorScheme,
-                  maxWidth: maxButtonWidth,
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    required ColorScheme colorScheme,
-    bool isPrimary = false,
-    bool isDownloading = false,
-    double? maxWidth,
-  }) {
-    final bool isBorderedIcon = [
-      Icons.share_rounded,
-      Icons.star_rounded,
-      Icons.auto_stories_rounded,
-      Icons.arrow_forward_rounded,
-      Icons.file_download_outlined,
-      Icons.file_download_done_rounded,
-      Icons.sync_rounded,
-    ].contains(icon);
-
-    return InkWell(
-      onTap: isDownloading ? null : onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: SizedBox(
-          width: maxWidth,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              isBorderedIcon
-                  ? Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isPrimary
-                              ? colorScheme.primary
-                              : colorScheme.primary.withAlpha(180),
-                          width: 2,
-                        ),
-                        color: isPrimary
-                            ? colorScheme.primary.withAlpha(26)
-                            : Colors.transparent,
-                      ),
-                      child: Center(
-                        child: isDownloading
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: colorScheme.primary,
-                                ),
-                              )
-                            : Icon(
-                                icon,
-                                color: colorScheme.primary,
-                                size: 22,
-                              ),
-                      ),
-                    )
-                  : Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isPrimary
-                            ? colorScheme.primary
-                            : colorScheme.primary.withAlpha(26),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(icon,
-                          color: isPrimary ? Colors.white : colorScheme.primary,
-                          size: 24),
-                    ),
-              const SizedBox(height: 4),
-              SizedBox(
-                height: 30, // Fixed height for 2 lines to keep buttons aligned
-                child: Center(
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: colorScheme.onSurface,
-                      height: 1.1,
-                      fontWeight:
-                          isPrimary ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+        );
+      },
+      onRead: () => _navigateToDetail(context, currentStudyId),
+      onNext: () {
+        if (_currentIndex < state.availableStudyIds.length - 1) {
+          _swiperController.next();
+        }
+      },
     );
   }
 

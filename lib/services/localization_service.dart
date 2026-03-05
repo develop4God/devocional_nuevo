@@ -32,6 +32,7 @@ class LocalizationService {
     Locale('fr', ''), // French
     Locale('ja', ''), // Japanese
     Locale('zh', ''), // Chinese
+    Locale('hi', ''), // Hindi
   ];
 
   // Default locale
@@ -214,6 +215,8 @@ class LocalizationService {
         return 'ja-JP';
       case 'zh':
         return 'zh-CN';
+      case 'hi':
+        return 'hi-IN';
       default:
         return 'es-ES';
     }
@@ -234,6 +237,8 @@ class LocalizationService {
         return '日本語';
       case 'zh':
         return '中文';
+      case 'hi':
+        return 'हिन्दी';
       default:
         return languageCode;
     }
@@ -264,6 +269,8 @@ class LocalizationService {
         return DateFormat('y年M月d日 EEEE', 'ja');
       case 'zh':
         return DateFormat('y年M月d日 EEEE', 'zh');
+      case 'hi':
+        return DateFormat('EEEE, d MMMM', 'hi');
       default:
         return DateFormat('EEEE, MMMM d', 'en');
     }

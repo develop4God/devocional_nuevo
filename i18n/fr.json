@@ -1,4 +1,10 @@
 {
+  "common": {
+    "home": "Accueil",
+    "bible": "Bible",
+    "prayers": "Prières",
+    "settings": "Paramètres"
+  },
   "app": {
     "title": "Méditations Chrétiennes",
     "loading": "Chargement...",
@@ -30,7 +36,7 @@
     "app_title": "Méditations Quotidiennes",
     "my_intimate_space_with_god": "Mon espace intime avec Dieu",
     "devotional_of_the_day": "Méditation du jour",
-    "no_devotionals_available": "Aucune méditation disponible pour la langue/version sélectionnée.",
+    "no_devocionales_available": "Aucune méditation disponible pour la langue/version sélectionnée.",
     "verse": "Verset :",
     "reflection": "Réflexion :",
     "to_meditate": "Pour Méditer :",
@@ -48,6 +54,9 @@
     "loading": "Chargement des méditations...",
     "no_devocionales": "Aucune méditation disponible",
     "error_loading": "Erreur lors du chargement des méditations",
+    "error_no_content": "Impossible de charger le contenu de la méditation. Vérifiez votre connexion Internet ou essayez de modifier la langue/version dans les paramètres.",
+    "content_not_available_in_language": "Contenu non disponible dans la langue sélectionnée. Affichage dans la langue par défaut.",
+    "go_to_settings": "Aller aux Paramètres",
     "generic_error": "Une erreur s'est produite lors du chargement des méditations. Veuillez réessayer.",
     "retry": "Réessayer",
     "share_devotional": "Partager la méditation",
@@ -80,8 +89,7 @@
     "share_footer_and_more": "Et bien plus encore...",
     "share_footer_download": "Télécharger: Méditations Chrétiennes",
     "share_footer_benefits": "100% gratuit | Sans publicité | Utilisation hors ligne",
-    "share_footer_developer": "Develop4God",
-    "no_devocionales_available": "Aucune méditation disponible pour la langue/version sélectionnée."
+    "share_footer_developer": "Develop4God"
   },
   "prayer": {
     "invitation_title": "Invitation à la Prière",
@@ -173,11 +181,11 @@
     "paypal_launch_error": "Impossible d'ouvrir PayPal. Le système n'a pas pu lancer l'URL.",
     "paypal_error": "Erreur lors de l'ouverture de PayPal : {error}",
     "paypal_no_app_error": "Impossible d'ouvrir PayPal. Assurez-vous d'avoir un navigateur web ou l'application PayPal installée.",
+    "cannot_open_url": "Impossible d'ouvrir le lien de support",
+    "url_error": "Erreur lors de l'ouverture du lien",
     "backup_option": "Sauvegarde",
     "backup_subtitle": "Sauvegardez et restaurez vos données en toute sécurité",
-    "voice_sample_text": "Appuyez pour écouter un échantillon audio. Ensuite, enregistrez votre préférence.",
-    "cannot_open_url": "Impossible d'ouvrir le lien de support",
-    "url_error": "Erreur lors de l'ouverture du lien"
+    "voice_sample_text": "Appuyez pour écouter un échantillon audio. Ensuite, enregistrez votre préférence."
   },
   "notifications_config_page": {
     "notifications_config": "Configuration des Notifications",
@@ -238,7 +246,7 @@
     "download_success": "Méditations téléchargées avec succès",
     "download_error": "Erreur de téléchargement. Vérifiez votre connexion et réessayez.",
     "offline_access_ready": "Vous pouvez maintenant accéder à votre contenu sans internet",
-    "share_message": "Si vous cherchez un moment de paix quotidienne dans votre vie, je vous recommande Méditations Chrétiennes.\n\nLa Parole de Dieu pour the croissance spirituelle et totalement gratuit. Vous pouvez le télécharger ici :\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo",
+    "share_message": "📖 *Méditations Chrétiennes*\n\nSi vous cherchez un moment de paix quotidienne dans votre vie, je vous recommande cette application. 🙏\n\nLa Parole de Dieu pour la croissance spirituelle et totalement gratuite. ✨\n\n⬇️ *Téléchargez-la ici :*\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo\n\n🔥 _100% Gratuit | Sans Publicité | Utilisation Hors Ligne_",
     "switching_version": "Changement de version biblique..."
   },
   "progress": {
@@ -327,9 +335,9 @@
     "share_as_image": "Partager comme image",
     "progress": "Progrès",
     "settings": "Paramètres",
+    "support": "Soutenir le Ministère",
     "bible": "Bible",
-    "add_prayer_or_thanksgiving": "Ajouter une prière ou action de grâce",
-    "support": "Soutenir le Ministère"
+    "add_prayer_or_thanksgiving": "Ajouter une prière ou action de grâce"
   },
   "share": {
     "share_text": "Partager le texte",
@@ -556,7 +564,7 @@
     "select_amount_and_badge": "Veuillez sélectionner un montant et un badge",
     "badge_selected": "Sélectionné",
     "select_badge": "Sélectionner",
-    "badge_gratitude_message": "✨ Les badges sont notre façon de vous remercier pour votre générosité et votre soutien au ministère. Chacun représente une vertu spirituelle pour votre collection.",
+    "badge_gratitude_message": "✨ Les badges are our façon de vous remercier pour votre générosité et votre soutien au ministère. Chacun représente une vertu spirituelle pour votre collection.",
     "custom_amount_label": "Montant personnalisé"
   },
   "badges": {
@@ -585,6 +593,7 @@
     "onboarding_configure_later": "Configurer plus tard",
     "onboarding_welcome_title": "Bienvenue sur Méditations Chrétiennes",
     "onboarding_welcome_subtitle": "Votre espace intime avec Dieu chaque jour. Commençons par configurer votre expérience personnalisée.",
+    "onboarding_touch_screen": "Appuyez pour continuer",
     "onboarding_theme_title": "Choisissez Votre Environnement",
     "onboarding_theme_subtitle": "Sélectionnez le thème qui vous inspire le plus pour votre temps de méditation.",
     "onboarding_connecting_backup": "Connexion à Google Drive...",
@@ -597,7 +606,7 @@
     "onboarding_complete_subtitle": "Votre espace de méditation est configuré. Il est temps de commencer votre voyage spirituel quotidien.",
     "onboarding_your_setup": "Votre Configuration",
     "onboarding_start_app": "Commencer mon espace avec Dieu",
-    "onboarding_setup_theme_configured": "Thème personnalisé sélectionné",
+    "onboarding_theme_configured": "Thème personnalisé sélectionné",
     "onboarding_setup_backup_configured": "Sauvegarde automatique configurée",
     "onboarding_setup_protection_active": "Protection des données activée",
     "onboarding_setup_backup_skipped": "Sauvegarde ignorée pour l'instant",
@@ -605,9 +614,7 @@
     "onboarding_error_title": "Erreur de Configuration",
     "onboarding_error_loading": "Erreur lors du chargement de the configuration initiale",
     "onboarding_completed": "Onboarding terminé !",
-    "onboarding_retry": "Réessayer",
-    "onboarding_touch_screen": "Appuyez pour continuer",
-    "onboarding_theme_configured": "Thème personnalisé sélectionné"
+    "onboarding_retry": "Réessayer"
   },
   "bible": {
     "title": "Bible",
@@ -742,6 +749,8 @@
     "no_favorites_description": "Vous n'avez pas encore ajouté d'études bibliques à vos favoris.",
     "favorite_studies": "Études favorites",
     "download_study": "Télécharger l'étude",
+    "scripture_connections": "Connexions Bibliques",
+    "greek_words": "Mots Grecs",
     "previous": "Précédent",
     "next": "Suivant",
     "exit": "Quitter",
@@ -753,9 +762,33 @@
     "share_footer_activation_questions": "Questions d'activation personnelle",
     "share_footer_download": "Télécharger: Méditations Chrétiennes",
     "share_footer_benefits": "100% gratuit | Sans publicité | Utilisation hors ligne",
-    "share_footer_developer": "Develop4God",
-    "scripture_connections": "Connexions Bibliques",
-    "greek_words": "Mots Grecs"
+    "share_footer_developer": "Develop4God"
+  },
+  "encounters": {
+    "section_title": "Rencontres",
+    "page_title": "Plongez dans l'Histoire",
+    "page_subtitle": "Vivez la Bible comme jamais auparavant.",
+    "empty_title": "Aucune rencontre disponible pour l'instant.",
+    "empty_subtitle": "Revenez bientôt pour de nouvelles expériences immersives.",
+    "error_load": "Impossible de charger les rencontres. Veuillez réessayer.",
+    "retry": "Réessayer",
+    "coming_soon": "BIENTÔT DISPONIBLE",
+    "badge_completed": "Terminé",
+    "badge_today": "Aujourd'hui",
+    "badge_new": "Nouveau",
+    "min_immersive_journey": "MIN DE VOYAGE IMMERSIF",
+    "testament_experience": "EXPÉRIENCE DU TESTAMENT",
+    "enter_experience": "ENTRER DANS L'EXPÉRIENCE",
+    "study_not_found": "Étude introuvable.",
+    "no_cards_available": "Aucune carte disponible.",
+    "deeper_connections": "CONNEXIONS PROFONDES",
+    "encounter_complete": "RENCONTRE TERMINÉE",
+    "finish": "TERMINER",
+    "prayer_label": "PRIÈRE",
+    "scroll_for_more": "Lire",
+    "index_loaded": "Rencontres chargées",
+    "encounter_opened": "Rencontre ouverte",
+    "encounter_started": "Rencontre démarrée"
   },
   "tags": {
     "love": "Amour",
@@ -835,18 +868,18 @@
     "billing_unavailable_body": "La facturation n'est pas disponible sur cet appareil. Veuillez vérifier votre connexion à Google Play.",
     "disclaimer": "Les paiements sont traités par Google Play. Chaque niveau est un achat unique qui vous accorde un badge numérique en guise de remerciement pour votre soutien au ministère.",
     "thanks_section_title": "Merci à nos Partenaires du Ministère",
-    "no_new_restores": "Aucun nouvel achat trouvé à restaurer.",
     "gold_name_hint": "Comment souhaitez-vous apparaître dans la section Merci?",
-    "gold_confirmation_title": "🐾 Mascotte et 👤 nom débloqués",
     "gold_name_helper": "Votre nom apparaîtra sur la page principale. Ne sera pas partagé.",
     "gold_edit_name_button": "Modifier mon nom",
     "gold_set_name_button": "Définir mon nom",
     "gold_edit_name_title": "Modifier le nom en tant que Partenaire du Ministère",
+    "no_new_restores": "Aucun nouvel achat trouvé à restaurer.",
     "status_title": "Badges de Soutien",
     "status_thanks": "Merci de faire partie de ce ministère avec votre cœur généreux.",
+    "go_to_progress": "Voir mes médailles dans Progrès 🏅",
+    "gold_confirmation_title": "🐾 Mascotte et 👤 nom débloqués",
     "go_to_settings": "Aller aux Paramètres (animal et nom) ⚙️",
     "go_to_devotionals": "Aller aux Dévotionnels 📖",
-    "go_to_progress": "Voir mes médailles dans Progrès 🏅",
     "medal_unlocked_body": "Votre nouvelle médaille d'honneur est maintenant disponible dans votre profil de Progrès Spirituel.",
     "medal_unlocked_title": "Médaille d'Honneur Débloquée !",
     "badge_unlock": "🏅 Insigne Débloquée !",
