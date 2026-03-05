@@ -1,4 +1,10 @@
 {
+  "common": {
+    "home": "Inicio",
+    "bible": "Biblia",
+    "prayers": "Oraciones",
+    "settings": "Configuración"
+  },
   "app": {
     "title": "Devocionales Cristianos",
     "loading": "Cargando...",
@@ -48,6 +54,9 @@
     "loading": "Cargando devocionales...",
     "no_devocionales": "No hay devocionales disponibles",
     "error_loading": "Error al cargar devocionales",
+    "error_no_content": "No se pudo cargar el contenido devocional. Por favor verifica tu conexión a internet o intenta cambiar el idioma/versión en configuración.",
+    "content_not_available_in_language": "Contenido no disponible en el idioma seleccionado. Mostrando idioma predeterminado en su lugar.",
+    "go_to_settings": "Ir a Configuración",
     "generic_error": "Ocurrió un error al cargar los devocionales. Por favor, intenta nuevamente.",
     "retry": "Reintentar",
     "share_devotional": "Compartir devocional",
@@ -237,7 +246,7 @@
     "download_success": "Devocionales descargados exitosamente",
     "download_error": "Error en la descarga. Verifica tu conexión y reintenta.",
     "offline_access_ready": "Ya puedes acceder a tu contenido sin internet",
-    "share_message": "Si buscas un momento de paz diaria en tu vida, te recomiendo Devocionales Cristianos.\n\nPalabra de Dios para el crecimiento espiritual y totalmente gratis. Puedes descargarla acá:\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo",
+    "share_message": "📖 *Devocionales Cristianos*\n\nSi buscas un momento de paz diaria en tu vida, te recomiendo esta aplicación. 🙏\n\nPalabra de Dios para el crecimiento espiritual y totalmente gratis. ✨\n\n⬇️ *Descárgala aquí:*\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo\n\n🔥 _100% Gratis | Sin Anuncios | Uso Offline_",
     "switching_version": "Cambiando versión bíblica..."
   },
   "progress": {
@@ -360,11 +369,6 @@
     "support_badges_progress": "insignias desbloqueadas",
     "support_badge_unlock": "¡Insignia Desbloqueada!",
     "support_badge_share": "Compartir Insignia",
-    "exclusive_gift": "¡Regalo exclusivo!",
-    "pet_preview_description": "Desbloquea una mascota para tu devocional diario.",
-    "final_celebration_title": "¡A EMPEZAR!",
-    "final_celebration_message": "{petName} ahora aparecerá en tu página de devocionales.",
-    "final_celebration_button": "¡A EMPEZAR! 🚀",
     "profile_name": "Nombre de perfil",
     "profile_name_save": "Guardar nombre"
   },
@@ -602,7 +606,7 @@
     "onboarding_complete_subtitle": "Tu espacio devocional está configurado. Es hora de comenzar tu jornada espiritual diaria.",
     "onboarding_your_setup": "Tu Configuración",
     "onboarding_start_app": "Comenzar mi espacio con Dios",
-    "onboarding_setup_theme_configured": "Tema personalizado seleccionado",
+    "onboarding_theme_configured": "Tema personalizado seleccionado",
     "onboarding_setup_backup_configured": "Respaldo automático configurado",
     "onboarding_setup_protection_active": "Protección de datos activada",
     "onboarding_setup_backup_skipped": "Respaldo omitido por ahora",
@@ -610,8 +614,7 @@
     "onboarding_error_title": "Error de configuración",
     "onboarding_error_loading": "Error al cargar la configuración inicial",
     "onboarding_completed": "¡Onboarding completado!",
-    "onboarding_retry": "Reintentar",
-    "onboarding_theme_configured": "Tema personalizado seleccionado"
+    "onboarding_retry": "Reintentar"
   },
   "bible": {
     "title": "Biblia",
@@ -761,6 +764,32 @@
     "share_footer_benefits": "100% gratis | Sin anuncios | Uso offline",
     "share_footer_developer": "Develop4God"
   },
+  "encounters": {
+    "section_title": "Encuentros",
+    "page_title": "Sumérgete en la Historia",
+    "page_subtitle": "Experimenta la Biblia como nunca antes.",
+    "empty_title": "Aún no hay encuentros disponibles.",
+    "empty_subtitle": "Vuelve pronto para nuevas experiencias inmersivas.",
+    "error_load": "No se pudieron cargar los encuentros. Por favor, inténtalo de nuevo.",
+    "retry": "Reintentar",
+    "coming_soon": "MUY PRONTO",
+    "badge_completed": "Completado",
+    "badge_today": "Hoy",
+    "badge_new": "Nuevo",
+    "min_immersive_journey": "MIN DE EXPERIENCIA INMERSIVA",
+    "testament_experience": "EXPERIENCIA DEL TESTAMENTO",
+    "enter_experience": "ENTRAR A LA EXPERIENCIA",
+    "study_not_found": "Estudio no encontrado.",
+    "no_cards_available": "No hay tarjetas disponibles.",
+    "deeper_connections": "CONEXIONES PROFUNDAS",
+    "encounter_complete": "ENCUENTRO COMPLETADO",
+    "finish": "FINALIZAR",
+    "prayer_label": "ORACIÓN",
+    "scroll_for_more": "Leer",
+    "index_loaded": "Encuentros cargados",
+    "encounter_opened": "Encuentro abierto",
+    "encounter_started": "Encuentro iniciado"
+  },
   "tags": {
     "love": "Amor",
     "hope": "Esperanza",
@@ -839,18 +868,18 @@
     "billing_unavailable_body": "La facturación no está disponible en este dispositivo. Por favor verifica tu conexión a Google Play.",
     "disclaimer": "Los pagos son procesados por Google Play. Cada nivel es una compra única que te otorga una insignia digital como señal de agradecimiento por tu apoyo al ministerio.",
     "thanks_section_title": "Gracias a nuestros Socios del Ministerio",
-    "no_new_restores": "No se encontraron compras nuevas para restaurar.",
     "gold_name_hint": "✏️ Tu nombre",
-    "gold_confirmation_title": "🐾Mascota y 👤nombre desbloqueado",
     "gold_name_helper": "Tu nombre estara en la pagina principal, no será compartido",
     "gold_edit_name_button": "Editar mi nombre",
     "gold_set_name_button": "Establecer mi nombre",
     "gold_edit_name_title": "Editar nombre como Socio",
+    "no_new_restores": "No se encontraron compras nuevas para restaurar.",
     "status_title": "Insignias de Apoyo",
     "status_thanks": "Gracias por ser parte de este ministerio con tu corazón generoso.",
+    "go_to_progress": "Ver mis insignias en Progreso 🏅",
+    "gold_confirmation_title": "🐾Mascota y 👤nombre desbloqueado",
     "go_to_settings": "Ir a configuracion de mascota y nombre",
     "go_to_devotionals": "Ir a Devocionales, pagina principal",
-    "go_to_progress": "Ver mis insignias en Progreso 🏅",
     "medal_unlocked_body": "Tu nueva insignia de apoyo ahora está disponible en tu perfil de Progreso Espiritual.",
     "medal_unlocked_title": "¡Insignia de Apoyo Desbloqueada!",
     "badge_unlock": "¡Insignia Desbloqueada!",
@@ -875,5 +904,26 @@
     "profile_name_saved": "✅ ¡Nombre guardado correctamente!",
     "profile_name_hint": "Tu nombre (máx. 15 caracteres)",
     "profile_name_helper": "Aparecerá en tu devocional diario. No será compartido."
+  },
+  "prayer_wall": {
+    "title": "Muro de Oración",
+    "submit": "Compartir una petición",
+    "submit_title": "Compartir una petición de oración",
+    "submit_placeholder": "Señor, te pido...",
+    "pending": "En revisión 🙏",
+    "rejected_message": "Tu oración no pudo ser compartida en este momento.",
+    "pastoral_title": "No estás solo/a 💙",
+    "pastoral_message": "Recibimos tu oración y nos importas profundamente. Si estás pasando por un momento difícil, sabe que hay ayuda disponible. Dios te ama incondicionalmente, y nosotros también.",
+    "pastoral_resources": "Recursos de apoyo:",
+    "pray_count": "{count} orando",
+    "anonymous": "Publicar de forma anónima",
+    "report": "Reportar",
+    "report_confirm": "¿Estás seguro/a de que quieres reportar esta oración como inapropiada?",
+    "report_thanks": "Gracias por mantener nuestra comunidad segura 🙏",
+    "section_mine": "Oraciones en tu idioma",
+    "section_others": "Oraciones de todo el mundo 🌍",
+    "my_pending": "Tu oración está siendo revisada",
+    "empty_title": "El muro está tranquilo ahora",
+    "empty_description": "Sé el primero en compartir una petición. La comunidad está aquí para ti."
   }
 }

@@ -1,11 +1,12 @@
 @Tags(['unit', 'services'])
 library;
 
-import 'package:flutter_test/flutter_test.dart';
+import 'dart:ui';
+
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:ui';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -144,10 +145,10 @@ void main() {
     });
 
     test('should support all required locales', () {
-      expect(LocalizationService.supportedLocales.length, equals(6));
+      expect(LocalizationService.supportedLocales.length, equals(7));
       expect(
         LocalizationService.supportedLocales.map((l) => l.languageCode),
-        containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh']),
+        containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi']),
       );
     });
 

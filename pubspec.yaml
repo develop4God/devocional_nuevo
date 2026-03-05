@@ -78,6 +78,8 @@ dependencies:
 
   flutter_cache_manager: ^3.4.1
   in_app_purchase: ^3.2.0
+  crypto: ^3.0.3
+  collection: ^1.19.1
 
 dev_dependencies:
   flutter_test:
@@ -102,6 +104,7 @@ dev_dependencies:
   # integration_test package pins test_api to 0.7.4, causing version resolution failure
   test_api: ^0.7.4
   firebase_remote_config_platform_interface: any
+
 flutter:
   uses-material-design: true
   assets:
@@ -112,6 +115,7 @@ flutter:
     - assets/lottie/
     - assets/lottie/pets/
     - assets/biblia/
+    - assets/encounters/
     - assets/fonts/DancingScript-Bold.ttf
     # Add Poppins font files here when available
   fonts:

@@ -55,11 +55,16 @@ class ResetDiscoveryStudy extends DiscoveryEvent {
   ResetDiscoveryStudy(this.studyId);
 }
 
-/// Event to refresh Discovery studies
+/// Event to refresh Discovery studies.
+///
+/// [forceRefresh] — true for explicit user-triggered refresh (bypasses index
+/// cache), false for programmatic triggers like language change (serves cache
+/// when fresh, avoiding a redundant 43 KB network round-trip).
 class RefreshDiscoveryStudies extends DiscoveryEvent {
   final String? languageCode;
+  final bool forceRefresh;
 
-  RefreshDiscoveryStudies({this.languageCode});
+  RefreshDiscoveryStudies({this.languageCode, this.forceRefresh = true});
 }
 
 /// Event to clear error messages

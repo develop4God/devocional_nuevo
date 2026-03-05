@@ -3,6 +3,7 @@ import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/discovery_list_page.dart';
+import 'package:devocional_nuevo/pages/encounters_list_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/pages/supporter_page.dart';
@@ -272,7 +273,29 @@ class DevocionalesBottomBar extends StatelessWidget {
                     size: 32,
                   ),
                 ),
-              // 4. Spiritual Stats/Progress
+              // 4. Encounters (NEW)
+              if (Constants.enableEncountersFeature)
+                IconButton(
+                  key: const Key('bottom_appbar_encounters_icon'),
+                  tooltip: 'Encounters',
+                  onPressed: () {
+                    getService<AnalyticsService>().logBottomBarAction(
+                      action: 'encounters',
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const EncountersListPage(),
+                      ),
+                    );
+                  },
+                  icon: Icon(
+                    Icons.explore_outlined,
+                    color: colorScheme.onPrimary,
+                    size: 32,
+                  ),
+                ),
+              // 5. Spiritual Stats/Progress
               IconButton(
                 key: const Key('bottom_appbar_progress_icon'),
                 tooltip: 'tooltips.progress'.tr(),
@@ -299,10 +322,10 @@ class DevocionalesBottomBar extends StatelessWidget {
                 icon: Icon(
                   Icons.emoji_events_outlined,
                   color: colorScheme.onPrimary,
-                  size: 30,
+                  size: 32,
                 ),
               ),
-              // 5. Settings
+              // 6. Settings
               IconButton(
                 key: const Key('bottom_appbar_settings_icon'),
                 tooltip: 'tooltips.settings'.tr(),
@@ -340,7 +363,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                   size: 35,
                 ),
               ),
-              // 6. Support/Donate (Conditional - Remote Config)
+              // 7. Support/Donate (Conditional - Remote Config)
               if (getService<RemoteConfigService>().featureSupporter)
                 FutureBuilder<bool>(
                   future: BubbleUtils.shouldShowBubble(

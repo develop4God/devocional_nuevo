@@ -1,4 +1,10 @@
 {
+  "common": {
+    "home": "Home",
+    "bible": "Bible",
+    "prayers": "Prayers",
+    "settings": "Settings"
+  },
   "app": {
     "title": "Christian Devotionals",
     "loading": "Loading...",
@@ -48,6 +54,9 @@
     "loading": "Loading devotionals...",
     "no_devocionales": "No devotionals available",
     "error_loading": "Error loading devotionals",
+    "error_no_content": "Unable to load devotional content. Please check your internet connection or try changing the language/version in settings.",
+    "content_not_available_in_language": "Content not available in selected language. Showing default language instead.",
+    "go_to_settings": "Go to Settings",
     "generic_error": "An error occurred while loading devotionals. Please try again.",
     "retry": "Retry",
     "share_devotional": "Share devotional",
@@ -237,7 +246,7 @@
     "download_success": "Devotionals downloaded successfully",
     "download_error": "Download error. Check your connection and retry.",
     "offline_access_ready": "You can now access your content without internet",
-    "share_message": "If you are looking for a moment of daily peace in your life, I recommend Christian Devotionals.\n\nGod's word for spiritual growth and totally free. You can download it here:\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo",
+    "share_message": "📖 *Christian Devotionals*\n\nIf you are looking for a moment of daily peace in your life, I recommend this app. 🙏\n\nGod's Word for spiritual growth and completely free. ✨\n\n⬇️ *Download it here:*\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo\n\n🔥 _100% Free | No Ads | Offline Use_",
     "switching_version": "Switching Bible version..."
   },
   "progress": {
@@ -755,6 +764,32 @@
     "share_footer_benefits": "100% free | No ads | Offline use",
     "share_footer_developer": "Develop4God"
   },
+  "encounters": {
+    "section_title": "Encounters",
+    "page_title": "Dive into the Story",
+    "page_subtitle": "Experience the Bible like never before.",
+    "empty_title": "No encounters available yet.",
+    "empty_subtitle": "Check back soon for new immersive experiences.",
+    "error_load": "Could not load encounters. Please try again.",
+    "retry": "Retry",
+    "coming_soon": "COMING SOON",
+    "badge_completed": "Completed",
+    "badge_today": "Today",
+    "badge_new": "New",
+    "min_immersive_journey": "MIN IMMERSIVE JOURNEY",
+    "testament_experience": "TESTAMENT EXPERIENCE",
+    "enter_experience": "ENTER THE EXPERIENCE",
+    "study_not_found": "Study not found.",
+    "no_cards_available": "No cards available.",
+    "deeper_connections": "DEEPER CONNECTIONS",
+    "encounter_complete": "ENCOUNTER COMPLETE",
+    "finish": "FINISH",
+    "prayer_label": "PRAYER",
+    "scroll_for_more": "Read",
+    "index_loaded": "Encounters loaded",
+    "encounter_opened": "Encounter opened",
+    "encounter_started": "Encounter started"
+  },
   "tags": {
     "love": "Love",
     "hope": "Hope",
@@ -869,5 +904,26 @@
     "profile_name_saved": "✅ Name saved successfully!",
     "profile_name_hint": "Your name (max 15 characters)",
     "profile_name_helper": "Will appear in your daily devotional. Will not be shared."
+  },
+  "prayer_wall": {
+    "title": "Prayer Wall",
+    "submit": "Share a prayer request",
+    "submit_title": "Share a prayer request",
+    "submit_placeholder": "Lord, I ask for...",
+    "pending": "Being reviewed 🙏",
+    "rejected_message": "Your prayer could not be shared at this time.",
+    "pastoral_title": "You are not alone 💙",
+    "pastoral_message": "We received your prayer and care deeply about you. If you are going through a difficult time, please know that help is available. God loves you unconditionally, and so do we.",
+    "pastoral_resources": "Support Resources:",
+    "pray_count": "{count} praying",
+    "anonymous": "Post anonymously",
+    "report": "Report",
+    "report_confirm": "Are you sure you want to report this prayer as inappropriate?",
+    "report_thanks": "Thank you for keeping our community safe 🙏",
+    "section_mine": "Prayers in your language",
+    "section_others": "Prayers from around the world 🌍",
+    "my_pending": "Your prayer is being reviewed",
+    "empty_title": "The wall is quiet right now",
+    "empty_description": "Be the first to share a prayer request. The community is here for you."
   }
 }
