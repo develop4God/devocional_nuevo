@@ -904,26 +904,5 @@
     "profile_name_saved": "✅ 名前が正常に保存されました！",
     "profile_name_hint": "あなたの名前（最大15文字）",
     "profile_name_helper": "毎日のデボーションに表示されます。共有されません。"
-  },
-  "prayer_wall": {
-    "title": "祈りの壁",
-    "submit": "祈りのリクエストを共有する",
-    "submit_title": "祈りのリクエストを共有する",
-    "submit_placeholder": "主よ、お願いします...",
-    "pending": "審査中 🙏",
-    "rejected_message": "現在、あなたの祈りを共有できませんでした。",
-    "pastoral_title": "あなたは一人ではありません 💙",
-    "pastoral_message": "あなたの祈りを受け取り、深くあなたのことを気にかけています。困難な時期を過ごしているなら、助けが利用できることを知ってください。神はあなたを無条件に愛しており、私たちも同様です。",
-    "pastoral_resources": "サポートリソース：",
-    "pray_count": "{count}人が祈っています",
-    "anonymous": "匿名で投稿する",
-    "report": "報告する",
-    "report_confirm": "この祈りを不適切として報告してもよろしいですか？",
-    "report_thanks": "コミュニティを安全に保ってくださりありがとうございます 🙏",
-    "section_mine": "あなたの言語での祈り",
-    "section_others": "世界中からの祈り 🌍",
-    "my_pending": "あなたの祈りは審査中です",
-    "empty_title": "壁は今静かです",
-    "empty_description": "最初にリクエストを共有してください。コミュニティがあなたのためにここにいます。"
   }
 }

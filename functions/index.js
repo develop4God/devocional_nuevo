@@ -342,7 +342,3 @@ exports.cleanupInvalidFCMTokens = onSchedule({
 
   return null;
 });
-
-// ── Prayer Wall ──────────────────────────────────────────────────────────────
-const {onPrayerSubmitted} = require("./triggers/on_prayer_submitted");
-exports.onPrayerSubmitted = onPrayerSubmitted;

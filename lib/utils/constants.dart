@@ -177,13 +177,6 @@ class Constants {
   static String getEncounterImageUrl(String filename) {
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/$filename';
   }
-
-  // ---------------------------------------------------------------------------
-  // Prayer Wall
-  // ---------------------------------------------------------------------------
-
-  /// Number of prayers to fetch per page in the Prayer Wall
-  static const int prayerWallPageSize = 20;
 }
 
 /// Schema versioning and migration constants for favorites storage

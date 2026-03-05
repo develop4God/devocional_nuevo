@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/main.dart';
-import 'package:devocional_nuevo/pages/prayer_wall_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -12,7 +11,6 @@ import 'package:flutter/services.dart';
 /// - devocional://devotional/{date} - Navigate to specific devotional
 /// - devocional://progress - Navigate to progress page
 /// - devocional://prayers - Navigate to prayers page
-/// - devocional://prayer_wall - Navigate to prayer wall page
 /// - devocional://testimonies - Navigate to testimonies page
 /// - devocional://supporter - Navigate to supporter page
 class DeepLinkHandler {
@@ -123,8 +121,6 @@ class DeepLinkHandler {
           return await _handleProgressDeepLink(context);
         case 'prayers':
           return await _handlePrayersDeepLink(context);
-        case 'prayer_wall':
-          return await _handlePrayerWallDeepLink(context);
         case 'testimonies':
           return await _handleTestimoniesDeepLink(context);
         case 'supporter':
@@ -219,36 +215,6 @@ class DeepLinkHandler {
     // Navigate to prayers tab (index 2 in bottom navigation)
     developer.log(
       'Navigated to prayers page',
-      name: 'DeepLinkHandler',
-    );
-
-    return true;
-  }
-
-  /// Handle prayer wall deep link
-  /// Format: devocional://prayer_wall
-  Future<bool> _handlePrayerWallDeepLink(BuildContext context) async {
-    try {
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      }
-
-      // Push PrayerWallPage
-      final route = MaterialPageRoute(
-        builder: (_) => const PrayerWallPage(),
-      );
-      await Navigator.of(context).push(route);
-    } catch (e) {
-      developer.log(
-        'Navigation error: $e',
-        name: 'DeepLinkHandler',
-        error: e,
-      );
-      return false;
-    }
-
-    developer.log(
-      'Navigated to prayer wall page',
       name: 'DeepLinkHandler',
     );
 

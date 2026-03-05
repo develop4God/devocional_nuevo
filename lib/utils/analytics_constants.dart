@@ -7,14 +7,6 @@ class AnalyticsConstants {
   // Private constructor to prevent instantiation
   AnalyticsConstants._();
 
-  // ── Prayer Wall ──────────────────────────────────────────────────────────
-  static const String prayerWallViewed = 'prayer_wall_viewed';
-  static const String prayerSubmitted = 'prayer_submitted';
-  static const String prayerHandTapped = 'prayer_hand_tapped';
-  static const String prayerReported = 'prayer_reported';
-  static const String pastoralSheetShown = 'pastoral_sheet_shown';
-  // ─────────────────────────────────────────────────────────────────────────
-
   /// Default campaign tag for devotional completion events
   /// Used for: Donation campaign audience targeting
   ///

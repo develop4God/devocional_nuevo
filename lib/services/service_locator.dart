@@ -4,8 +4,6 @@ library;
 
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
-import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
-import 'package:devocional_nuevo/repositories/prayer_wall_repository.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
 import 'package:devocional_nuevo/services/devocional_index_service.dart';
 import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
@@ -160,11 +158,6 @@ Future<void> setupServiceLocator() async {
 
   // ✅ REGISTER CACHE METADATA SERVICE (factory — new instance each time)
   locator.registerFactory<CacheMetadataService>(() => CacheMetadataService());
-
-  // ✅ REGISTER PRAYER WALL REPOSITORY (via interface — DIP)
-  locator.registerLazySingleton<IPrayerWallRepository>(
-    () => PrayerWallRepository(),
-  );
 }
 
 ServiceLocator get serviceLocator => ServiceLocator._instance;

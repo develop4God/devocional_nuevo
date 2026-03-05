@@ -904,26 +904,5 @@
     "profile_name_saved": "✅ Nom enregistré avec succès !",
     "profile_name_hint": "Votre nom (max 15 caractères)",
     "profile_name_helper": "Apparaîtra dans votre dévotion quotidienne. Ne sera pas partagé."
-  },
-  "prayer_wall": {
-    "title": "Mur de Prière",
-    "submit": "Partager une demande",
-    "submit_title": "Partager une demande de prière",
-    "submit_placeholder": "Seigneur, je te demande...",
-    "pending": "En cours de révision 🙏",
-    "rejected_message": "Votre prière n'a pas pu être partagée pour le moment.",
-    "pastoral_title": "Vous n'êtes pas seul(e) 💙",
-    "pastoral_message": "Nous avons reçu votre prière et nous tenons profondément à vous. Si vous traversez une période difficile, sachez qu'une aide est disponible. Dieu vous aime inconditionnellement, et nous aussi.",
-    "pastoral_resources": "Ressources de soutien :",
-    "pray_count": "{count} qui prient",
-    "anonymous": "Publier anonymement",
-    "report": "Signaler",
-    "report_confirm": "Êtes-vous sûr(e) de vouloir signaler cette prière comme inappropriée ?",
-    "report_thanks": "Merci de garder notre communauté en sécurité 🙏",
-    "section_mine": "Prières dans votre langue",
-    "section_others": "Prières du monde entier 🌍",
-    "my_pending": "Votre prière est en cours de révision",
-    "empty_title": "Le mur est calme pour l'instant",
-    "empty_description": "Soyez le premier à partager une demande. La communauté est là pour vous."
   }
 }

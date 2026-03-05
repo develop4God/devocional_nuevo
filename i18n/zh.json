@@ -904,26 +904,5 @@
     "profile_name_saved": "✅ 名称保存成功！",
     "profile_name_hint": "您的名字（最多15个字符）",
     "profile_name_helper": "将出现在您的每日灵修中。不会被分享。"
-  },
-  "prayer_wall": {
-    "title": "祷告墙",
-    "submit": "分享祷告请求",
-    "submit_title": "分享祷告请求",
-    "submit_placeholder": "主啊，我祈求...",
-    "pending": "审核中 🙏",
-    "rejected_message": "您的祷告目前无法分享。",
-    "pastoral_title": "您并不孤单 💙",
-    "pastoral_message": "我们收到了您的祷告，并深切关心您。如果您正在经历困难时期，请知道有帮助可以获得。上帝无条件地爱您，我们也是如此。",
-    "pastoral_resources": "支持资源：",
-    "pray_count": "{count}人在祷告",
-    "anonymous": "匿名发布",
-    "report": "举报",
-    "report_confirm": "您确定要将这个祷告举报为不当内容吗？",
-    "report_thanks": "感谢您维护我们社区的安全 🙏",
-    "section_mine": "您语言中的祷告",
-    "section_others": "来自世界各地的祷告 🌍",
-    "my_pending": "您的祷告正在审核中",
-    "empty_title": "祷告墙现在很安静",
-    "empty_description": "成为第一个分享祷告请求的人。社区在这里支持您。"
   }
 }

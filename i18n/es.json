@@ -904,26 +904,5 @@
     "profile_name_saved": "✅ ¡Nombre guardado correctamente!",
     "profile_name_hint": "Tu nombre (máx. 15 caracteres)",
     "profile_name_helper": "Aparecerá en tu devocional diario. No será compartido."
-  },
-  "prayer_wall": {
-    "title": "Muro de Oración",
-    "submit": "Compartir una petición",
-    "submit_title": "Compartir una petición de oración",
-    "submit_placeholder": "Señor, te pido...",
-    "pending": "En revisión 🙏",
-    "rejected_message": "Tu oración no pudo ser compartida en este momento.",
-    "pastoral_title": "No estás solo/a 💙",
-    "pastoral_message": "Recibimos tu oración y nos importas profundamente. Si estás pasando por un momento difícil, sabe que hay ayuda disponible. Dios te ama incondicionalmente, y nosotros también.",
-    "pastoral_resources": "Recursos de apoyo:",
-    "pray_count": "{count} orando",
-    "anonymous": "Publicar de forma anónima",
-    "report": "Reportar",
-    "report_confirm": "¿Estás seguro/a de que quieres reportar esta oración como inapropiada?",
-    "report_thanks": "Gracias por mantener nuestra comunidad segura 🙏",
-    "section_mine": "Oraciones en tu idioma",
-    "section_others": "Oraciones de todo el mundo 🌍",
-    "my_pending": "Tu oración está siendo revisada",
-    "empty_title": "El muro está tranquilo ahora",
-    "empty_description": "Sé el primero en compartir una petición. La comunidad está aquí para ti."
   }
 }
