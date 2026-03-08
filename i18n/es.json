@@ -788,7 +788,13 @@
     "scroll_for_more": "Leer",
     "index_loaded": "Encuentros cargados",
     "encounter_opened": "Encuentro abierto",
-    "encounter_started": "Encuentro iniciado"
+    "encounter_started": "Encuentro iniciado",
+    "all": "Todo",
+    "pending": "Pendiente",
+    "all_encounters": "Todos los Encuentros",
+    "no_encounters_found": "No se encontraron encuentros",
+    "current": "Actual",
+    "complete": "COMPLETAR"
   },
   "tags": {
     "love": "Amor",
