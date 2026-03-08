@@ -788,7 +788,13 @@
     "scroll_for_more": "Lire",
     "index_loaded": "Rencontres chargées",
     "encounter_opened": "Rencontre ouverte",
-    "encounter_started": "Rencontre démarrée"
+    "encounter_started": "Rencontre démarrée",
+    "all": "Tous",
+    "pending": "En attente",
+    "all_encounters": "Toutes les Rencontres",
+    "no_encounters_found": "Aucune rencontre trouvée",
+    "current": "Actuel",
+    "complete": "TERMINER"
   },
   "tags": {
     "love": "Amour",

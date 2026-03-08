@@ -788,7 +788,13 @@
     "scroll_for_more": "読む",
     "index_loaded": "体験を読み込みました",
     "encounter_opened": "体験を開きました",
-    "encounter_started": "体験を開始しました"
+    "encounter_started": "体験を開始しました",
+    "all": "すべて",
+    "pending": "保留中",
+    "all_encounters": "すべての出会い",
+    "no_encounters_found": "出会いが見つかりません",
+    "current": "現在",
+    "complete": "完了"
   },
   "tags": {
     "love": "愛",

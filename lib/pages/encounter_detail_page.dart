@@ -11,7 +11,9 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_card_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 
 class EncounterDetailPage extends StatefulWidget {
   final EncounterIndexEntry entry;
@@ -30,11 +32,32 @@ class EncounterDetailPage extends StatefulWidget {
 class _EncounterDetailPageState extends State<EncounterDetailPage> {
   final SwiperController _swiperController = SwiperController();
   int _currentIndex = 0;
+  bool _isCelebrating = false;
+  bool _hasTriggeredCompletion = false;
 
   @override
   void dispose() {
     _swiperController.dispose();
     super.dispose();
+  }
+
+  void _onCompleteEncounter() {
+    if (_hasTriggeredCompletion) return;
+
+    setState(() {
+      _isCelebrating = true;
+      _hasTriggeredCompletion = true;
+    });
+
+    context.read<EncounterBloc>().add(CompleteEncounter(widget.entry.id));
+    HapticFeedback.heavyImpact();
+
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() => _isCelebrating = false);
+        Navigator.of(context).pop();
+      }
+    });
   }
 
   @override
@@ -52,12 +75,12 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
             return SafeArea(
               child: Column(
                 children: [
-                  // Close button
+                  // Back button
                   Align(
                     alignment: Alignment.topLeft,
                     child: IconButton(
-                      icon: const Icon(Icons.close,
-                          color: Colors.white70, size: 28),
+                      icon: const Icon(Icons.arrow_back_ios_rounded,
+                          color: Colors.white70, size: 24),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ),
@@ -107,6 +130,10 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
             );
           }
 
+          final isLast = _currentIndex == cards.length - 1;
+          final isAlreadyCompleted =
+              state.isCompleted(widget.entry.id) || _hasTriggeredCompletion;
+
           return Stack(
             children: [
               // Swiper Reader
@@ -122,13 +149,15 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                     padding: const EdgeInsets.fromLTRB(16, 100, 16, 120),
                     child: buildEncounterCardWidget(
                       cards[index],
-                      onBackToEncounters: () => Navigator.of(context).pop(),
+                      onBackToEncounters: _onCompleteEncounter,
+                      bibleVersion: study.bibleVersion,
+                      language: study.language,
                     ),
                   );
                 },
               ),
 
-              // Progress Indicator (Lines to swipe)
+              // Progress Indicator (Lines)
               Positioned(
                 top: 85,
                 left: 24,
@@ -151,13 +180,32 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                 ),
               ),
 
-              // Close Button (Top Right, above the lines)
+              // Back Button (Top Left)
               Positioned(
-                top: 40,
-                right: 16,
+                top: 44,
+                left: 8,
                 child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
+                  icon: const Icon(Icons.arrow_back_ios_rounded,
+                      color: Colors.white70, size: 24),
                   onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+
+              // Card counter (Top Center)
+              Positioned(
+                top: 50,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Text(
+                    '${_currentIndex + 1} / ${cards.length}',
+                    style: const TextStyle(
+                      color: Colors.white38,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
                 ),
               ),
 
@@ -175,31 +223,79 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       visible: _currentIndex > 0,
                       onPressed: () => _swiperController.previous(),
                     ),
-                    Text(
-                      '${_currentIndex + 1} / ${cards.length}',
-                      style: const TextStyle(
-                        color: Colors.white38,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
+                    // Complete button on last card
+                    if (isLast)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 300),
+                            opacity: isAlreadyCompleted ? 0.6 : 1.0,
+                            child: SizedBox(
+                              height: 48,
+                              child: TextButton.icon(
+                                onPressed: isAlreadyCompleted
+                                    ? null
+                                    : _onCompleteEncounter,
+                                icon: Icon(
+                                  isAlreadyCompleted
+                                      ? Icons.verified_rounded
+                                      : Icons.check_circle_outline_rounded,
+                                  size: 18,
+                                  color: isAlreadyCompleted
+                                      ? Colors.greenAccent
+                                      : Colors.white,
+                                ),
+                                label: Text(
+                                  isAlreadyCompleted
+                                      ? 'encounters.badge_completed'.tr()
+                                      : 'encounters.complete'.tr(),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.5,
+                                    color: isAlreadyCompleted
+                                        ? Colors.greenAccent
+                                        : Colors.white,
+                                  ),
+                                ),
+                                style: TextButton.styleFrom(
+                                  backgroundColor: isAlreadyCompleted
+                                      ? Colors.greenAccent
+                                          .withValues(alpha: 0.1)
+                                      : Colors.white.withValues(alpha: 0.15),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      const Expanded(child: SizedBox.shrink()),
+                    // Next Button (hidden on last card)
                     _NavButton(
                       icon: Icons.chevron_right,
-                      visible: _currentIndex < cards.length - 1,
+                      visible: !isLast,
                       onPressed: () => _swiperController.next(),
                     ),
                   ],
                 ),
               ),
-              Positioned(
-                top: 50,
-                left: 16,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white70),
-                  onPressed: () => Navigator.of(context).pop(),
+
+              // Lottie Celebration Overlay
+              if (_isCelebrating)
+                IgnorePointer(
+                  child: Center(
+                    child: Lottie.asset(
+                      'assets/lottie/kudos_birdie.json',
+                      repeat: false,
+                      height: 350,
+                    ),
+                  ),
                 ),
-              ),
             ],
           );
         },
