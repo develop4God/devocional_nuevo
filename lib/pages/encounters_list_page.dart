@@ -128,8 +128,7 @@ class _EncountersListPageState extends State<EncountersListPage>
                 isCompleted: state.isCompleted(entry.id),
                 onTap: entry.isPublished
                     ? () {
-                        setState(
-                            () => _currentIndex = state.index.indexOf(entry));
+                        setState(() => _currentIndex = i - 1);
                         _openEncounter(entry, lang);
                       }
                     : null,
