@@ -798,29 +798,31 @@ void main() {
       duration: const Duration(milliseconds: 300),
     );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: EncounterGridOverlay(
-            state: state,
-            entries: [entry],
-            currentIndex: 0,
-            lang: 'en',
-            onEncounterSelected: (_, __) {},
-            onClose: () {},
-            animation: controller,
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: EncounterGridOverlay(
+              state: state,
+              entries: [entry],
+              currentIndex: 0,
+              lang: 'en',
+              onEncounterSelected: (_, __) {},
+              onClose: () {},
+              animation: controller,
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.pump();
+      await tester.pump();
 
-    // Filter overlay should be present with 3 filter buttons rendered
-    expect(find.byType(EncounterGridOverlay), findsOneWidget);
-    // Grid overlay renders a grid of encounter cards
-    expect(find.byType(GridView), findsOneWidget);
-
-    controller.dispose();
+      // Filter overlay should be present with 3 filter buttons rendered
+      expect(find.byType(EncounterGridOverlay), findsOneWidget);
+      // Grid overlay renders a grid of encounter cards
+      expect(find.byType(GridView), findsOneWidget);
+    } finally {
+      controller.dispose();
+    }
   });
 }
