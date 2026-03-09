@@ -81,16 +81,21 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
             Positioned.fill(
               child: GestureDetector(
                 onTap: widget.onClose,
-                child: Container(color: colorScheme.surface),
+                child: Container(
+                  color: colorScheme.surface.withValues(alpha: opacity),
+                ),
               ),
             ),
             SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(colorScheme),
-                  _buildFilterBar(colorScheme),
-                  Expanded(child: _buildGrid(colorScheme)),
-                ],
+              child: Opacity(
+                opacity: opacity,
+                child: Column(
+                  children: [
+                    _buildHeader(colorScheme),
+                    _buildFilterBar(colorScheme),
+                    Expanded(child: _buildGrid(colorScheme)),
+                  ],
+                ),
               ),
             ),
           ],
@@ -209,7 +214,7 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
       padding: const EdgeInsets.all(20),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.85,
+        childAspectRatio: 0.82,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
@@ -326,22 +331,29 @@ class _EncounterGridCard extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.black.withValues(alpha: 0.0),
-                    Colors.black.withValues(alpha: 0.7),
+                    Colors.black.withValues(alpha: 0.4),
+                    Colors.black.withValues(alpha: 0.9),
                   ],
+                  stops: const [0.0, 0.5, 1.0],
                 ),
               ),
             ),
             // Content
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Emoji top center
-                  Center(
+                  // Emoji top left with soft background
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
                     child: Text(
                       entry.emoji ?? '✨',
-                      style: const TextStyle(fontSize: 36),
+                      style: const TextStyle(fontSize: 20),
                     ),
                   ),
                   const Spacer(),
@@ -350,14 +362,15 @@ class _EncounterGridCard extends StatelessWidget {
                     entry.titleFor(lang),
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.w900,
-                      height: 1.2,
+                      height: 1.1,
+                      letterSpacing: -0.2,
                     ),
-                    maxLines: 2,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   if (isCompleted)
                     Row(
                       children: [
@@ -391,7 +404,7 @@ class _EncounterGridCard extends StatelessWidget {
                 ],
               ),
             ),
-            // Completion badge
+            // Completion badge (top right)
             if (isCompleted)
               Positioned(
                 top: 8,
