@@ -12,8 +12,7 @@ import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockPrayerWallRepository extends Mock
-    implements IPrayerWallRepository {}
+class MockPrayerWallRepository extends Mock implements IPrayerWallRepository {}
 
 PrayerWallEntry _makeEntry({
   String id = 'prayer1',
@@ -203,7 +202,8 @@ void main() {
         otherLanguagePrayers: const [],
         myPendingPrayer: _makeEntry(status: PrayerWallStatus.pending),
       ),
-      act: (bloc) => bloc.add(DeletePrayer(prayerId: 'prayer1', authorHash: 'h')),
+      act: (bloc) =>
+          bloc.add(DeletePrayer(prayerId: 'prayer1', authorHash: 'h')),
       wait: const Duration(milliseconds: 100),
       expect: () => [
         isA<PrayerWallLoaded>()
@@ -294,7 +294,8 @@ void main() {
         isA<PrayerWallLoaded>()
             .having((s) => s.myPendingPrayer, 'updated', isNotNull)
             .having((s) => s.myPendingPrayer?.id, 'correct id', 'approved1')
-            .having((s) => s.myPendingPrayer?.status, 'status', PrayerWallStatus.approved),
+            .having((s) => s.myPendingPrayer?.status, 'status',
+                PrayerWallStatus.approved),
       ],
     );
   });
