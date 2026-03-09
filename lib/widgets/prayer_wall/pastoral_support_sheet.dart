@@ -136,7 +136,5 @@ class _CrisisResource {
   final String description;
   final String urlScheme;
   const _CrisisResource(
-      {required this.name,
-      required this.description,
-      required this.urlScheme});
+      {required this.name, required this.description, required this.urlScheme});
 }

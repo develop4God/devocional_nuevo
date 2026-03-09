@@ -64,11 +64,11 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
         _pendingSubscription = _repository
             .watchMyPendingPrayer(authorHash: event.authorHash!)
             .listen(
-              (pending) => add(PrayerWallPendingUpdated(pending)),
-              onError: (Object e) {
-                debugPrint('❌ [PrayerWallBloc] Pending stream error: $e');
-              },
-            );
+          (pending) => add(PrayerWallPendingUpdated(pending)),
+          onError: (Object e) {
+            debugPrint('❌ [PrayerWallBloc] Pending stream error: $e');
+          },
+        );
       }
     } catch (e) {
       debugPrint('❌ [PrayerWallBloc] Load error: $e');
@@ -192,10 +192,10 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
     // Optimistic update
     final current = state;
     if (current is PrayerWallLoaded) {
-      final updatedSame = _incrementPrayCount(
-          current.sameLanguagePrayers, event.prayerId);
-      final updatedOther = _incrementPrayCount(
-          current.otherLanguagePrayers, event.prayerId);
+      final updatedSame =
+          _incrementPrayCount(current.sameLanguagePrayers, event.prayerId);
+      final updatedOther =
+          _incrementPrayCount(current.otherLanguagePrayers, event.prayerId);
       emit(current.copyWith(
         sameLanguagePrayers: updatedSame,
         otherLanguagePrayers: updatedOther,
@@ -241,9 +241,8 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
   List<PrayerWallEntry> _incrementPrayCount(
       List<PrayerWallEntry> prayers, String prayerId) {
     return prayers
-        .map((p) => p.id == prayerId
-            ? p.copyWith(prayCount: p.prayCount + 1)
-            : p)
+        .map((p) =>
+            p.id == prayerId ? p.copyWith(prayCount: p.prayCount + 1) : p)
         .toList();
   }
 
