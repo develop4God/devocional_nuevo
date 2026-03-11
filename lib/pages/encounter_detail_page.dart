@@ -379,11 +379,11 @@ class _NavButton extends StatelessWidget {
                   )
                 : LinearGradient(
                     colors: [
-                      const Color(0xFFB8860B).withValues(alpha: 0.3),
-                      const Color(0xFFFFD700).withValues(alpha: 0.3),
-                      const Color(0xFFFFFFE0).withValues(alpha: 0.3),
-                      const Color(0xFFFFD700).withValues(alpha: 0.3),
-                      const Color(0xFFB8860B).withValues(alpha: 0.3),
+                      const Color(0xFFB8860B).withValues(alpha: 0.6),
+                      const Color(0xFFFFD700).withValues(alpha: 0.7),
+                      const Color(0xFFFFFFE0).withValues(alpha: 0.6),
+                      const Color(0xFFFFD700).withValues(alpha: 0.7),
+                      const Color(0xFFB8860B).withValues(alpha: 0.6),
                     ],
                     stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
                     begin: Alignment.centerLeft,
@@ -397,7 +397,13 @@ class _NavButton extends StatelessWidget {
                       spreadRadius: 1,
                     ),
                   ]
-                : null,
+                : [
+                    BoxShadow(
+                      color: const Color(0xFFFFD700).withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ],
           ),
           child: Icon(
             icon,
