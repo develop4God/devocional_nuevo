@@ -104,8 +104,12 @@ void main() {
       build: () {
         when(() => mockRepository.fetchIndex())
             .thenAnswer((_) async => [_fakeEntry()]);
-        when(() => mockRepository.fetchStudy('test_001', 'en'))
-            .thenAnswer((_) async => _fakeStudy());
+        when(() => mockRepository.fetchStudy(
+              'test_001',
+              'en',
+              filename: any(named: 'filename'),
+              entry: any(named: 'entry'),
+            )).thenAnswer((_) async => _fakeStudy());
         return EncounterBloc(repository: mockRepository);
       },
       seed: () => EncounterLoaded(index: [_fakeEntry()]),
@@ -122,8 +126,12 @@ void main() {
     blocTest<EncounterBloc, EncounterState>(
       'LoadEncounterStudy twice → single network call (cache hit)',
       build: () {
-        when(() => mockRepository.fetchStudy('test_001', 'en'))
-            .thenAnswer((_) async => _fakeStudy());
+        when(() => mockRepository.fetchStudy(
+              'test_001',
+              'en',
+              filename: any(named: 'filename'),
+              entry: any(named: 'entry'),
+            )).thenAnswer((_) async => _fakeStudy());
         return EncounterBloc(repository: mockRepository);
       },
       seed: () => EncounterLoaded(
@@ -138,7 +146,12 @@ void main() {
       // Should emit nothing because study is already cached
       expect: () => [],
       verify: (_) => verifyNever(
-        () => mockRepository.fetchStudy('test_001', 'en'),
+        () => mockRepository.fetchStudy(
+          'test_001',
+          'en',
+          filename: any(named: 'filename'),
+          entry: any(named: 'entry'),
+        ),
       ),
     );
 

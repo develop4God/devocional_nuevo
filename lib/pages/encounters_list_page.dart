@@ -16,6 +16,7 @@ import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/encounter/encounter_grid_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -26,10 +27,19 @@ class EncountersListPage extends StatefulWidget {
   State<EncountersListPage> createState() => _EncountersListPageState();
 }
 
-class _EncountersListPageState extends State<EncountersListPage> {
+class _EncountersListPageState extends State<EncountersListPage>
+    with SingleTickerProviderStateMixin {
+  bool _showGridOverlay = false;
+  late AnimationController _gridAnimationController;
+  int _currentIndex = 0;
+
   @override
   void initState() {
     super.initState();
+    _gridAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
     final bloc = context.read<EncounterBloc>();
     if (bloc.state is! EncounterLoaded) {
       final lang = context.read<DevocionalProvider>().selectedLanguage;
@@ -39,32 +49,61 @@ class _EncountersListPageState extends State<EncountersListPage> {
   }
 
   @override
+  void dispose() {
+    _gridAnimationController.dispose();
+    super.dispose();
+  }
+
+  void _toggleGridOverlay() {
+    getService<AnalyticsService>().logEncounterAction(
+      action: _showGridOverlay ? 'toggle_list_view' : 'toggle_grid_view',
+    );
+    setState(() {
+      _showGridOverlay = !_showGridOverlay;
+      if (_showGridOverlay) {
+        _gridAnimationController.forward();
+      } else {
+        _gridAnimationController.reverse();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0a0e1a) : Colors.grey[50],
-      appBar: CustomAppBar(titleText: 'encounters.section_title'.tr()),
-      body: BlocBuilder<EncounterBloc, EncounterState>(
-        builder: (context, state) {
-          if (state is EncounterLoading || state is EncounterInitial) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state is EncounterError) {
-            return _buildError(state.message);
-          }
-
-          if (state is EncounterLoaded) {
-            if (state.index.isEmpty) {
-              return _buildEmpty();
+    return PopScope(
+      canPop: !_showGridOverlay,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_showGridOverlay) _toggleGridOverlay();
+      },
+      child: Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0a0e1a) : Colors.grey[50],
+        appBar: CustomAppBar(
+          titleText: 'encounters.section_title'.tr(),
+        ),
+        body: BlocBuilder<EncounterBloc, EncounterState>(
+          builder: (context, state) {
+            if (state is EncounterLoading || state is EncounterInitial) {
+              return const Center(child: CircularProgressIndicator());
             }
-            return _buildContent(state);
-          }
 
-          return const SizedBox.shrink();
-        },
+            if (state is EncounterError) {
+              return _buildError(state.message);
+            }
+
+            if (state is EncounterLoaded) {
+              if (state.index.isEmpty) {
+                return _buildEmpty();
+              }
+              return _buildContent(state);
+            }
+
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
   }
@@ -72,23 +111,70 @@ class _EncountersListPageState extends State<EncountersListPage> {
   Widget _buildContent(EncounterLoaded state) {
     final lang = context.read<DevocionalProvider>().selectedLanguage;
 
-    return ListView.builder(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      itemCount: state.index.length + 1, // +1 for header
-      itemBuilder: (context, i) {
-        if (i == 0) return _buildHeader();
-        final entry = state.index[i - 1];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 24),
-          child: _EncounterCard(
-            entry: entry,
-            lang: lang,
-            isCompleted: state.isCompleted(entry.id),
-            onTap: entry.isPublished ? () => _openEncounter(entry, lang) : null,
+    return Stack(
+      children: [
+        ListView.builder(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          itemCount: state.index.length + 1, // +1 for header
+          itemBuilder: (context, i) {
+            if (i == 0) return _buildHeader();
+            final entry = state.index[i - 1];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: _EncounterCard(
+                entry: entry,
+                lang: lang,
+                isCompleted: state.isCompleted(entry.id),
+                onTap: entry.isPublished
+                    ? () {
+                        setState(() => _currentIndex = i - 1);
+                        _openEncounter(entry, lang);
+                      }
+                    : null,
+              ),
+            );
+          },
+        ),
+        // Grid view toggle button (top right)
+        Positioned(
+          top: 8,
+          right: 16,
+          child: Material(
+            elevation: 4,
+            borderRadius: BorderRadius.circular(12),
+            color: Theme.of(context).colorScheme.primaryContainer,
+            child: InkWell(
+              onTap: _toggleGridOverlay,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                child: Icon(
+                  _showGridOverlay
+                      ? Icons.view_list_rounded
+                      : Icons.grid_view_rounded,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  size: 24,
+                ),
+              ),
+            ),
           ),
-        );
-      },
+        ),
+        // Grid overlay
+        EncounterGridOverlay(
+          state: state,
+          entries: state.index,
+          currentIndex: _currentIndex,
+          lang: lang,
+          onEncounterSelected: (entry, originalIndex) {
+            setState(() => _currentIndex = originalIndex);
+            _toggleGridOverlay();
+            if (entry.isPublished) _openEncounter(entry, lang);
+          },
+          onClose: _toggleGridOverlay,
+          animation: _gridAnimationController,
+        ),
+      ],
     );
   }
 
