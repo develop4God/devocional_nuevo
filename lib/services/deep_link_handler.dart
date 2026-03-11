@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/main.dart';
+import 'package:devocional_nuevo/pages/encounters_list_page.dart';
 import 'package:devocional_nuevo/pages/prayer_wall_page.dart';
+import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -15,6 +17,9 @@ import 'package:flutter/services.dart';
 /// - devocional://prayer_wall - Navigate to prayer wall page
 /// - devocional://testimonies - Navigate to testimonies page
 /// - devocional://supporter - Navigate to supporter page
+/// - devocional://encounters - Navigate to encounters list page
+/// - devocional://encounter/{id} - Navigate to specific encounter
+/// - devocional://encounter_detail/{id} - Navigate to specific encounter
 class DeepLinkHandler {
   static const String scheme = 'devocional';
   static const MethodChannel _channel =
@@ -129,6 +134,12 @@ class DeepLinkHandler {
           return await _handleTestimoniesDeepLink(context);
         case 'supporter':
           return await _handleSupporterDeepLink(context);
+        case 'encounters':
+          return await _handleEncountersDeepLink(context);
+        case 'encounter':
+        case 'encounter_detail':
+          return await _handleEncounterDetailDeepLink(
+              context, uri.pathSegments);
         default:
           developer.log(
             'Unknown route: $route',
@@ -286,20 +297,104 @@ class DeepLinkHandler {
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
+
+      // Push SupporterPage to navigator
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const SupporterPage()),
+      );
+
+      developer.log(
+        'Navigated to supporter page',
+        name: 'DeepLinkHandler',
+      );
+
+      return true;
     } catch (e) {
       developer.log(
         'Navigation error: $e',
         name: 'DeepLinkHandler',
         error: e,
       );
+      return false;
     }
+  }
 
-    // Navigate to supporter page
-    developer.log(
-      'Navigated to supporter page',
-      name: 'DeepLinkHandler',
-    );
+  /// Handle encounters list deep link
+  /// Format: devocional://encounters
+  Future<bool> _handleEncountersDeepLink(BuildContext context) async {
+    try {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
 
-    return true;
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const EncountersListPage()),
+      );
+
+      developer.log(
+        'Navigated to encounters page',
+        name: 'DeepLinkHandler',
+      );
+
+      return true;
+    } catch (e) {
+      developer.log(
+        'Navigation error: $e',
+        name: 'DeepLinkHandler',
+        error: e,
+      );
+      return false;
+    }
+  }
+
+  /// Handle encounter detail deep link
+  /// Format: devocional://encounter/{id} or devocional://encounter_detail/{id}
+  Future<bool> _handleEncounterDetailDeepLink(
+    BuildContext context,
+    List<String> pathSegments,
+  ) async {
+    try {
+      // Extract encounter ID from path segments
+      // pathSegments[0] = 'encounter' or 'encounter_detail'
+      // pathSegments[1] = encounter ID
+      if (pathSegments.length < 2) {
+        developer.log(
+          'Missing encounter ID in path: ${pathSegments.join("/")}',
+          name: 'DeepLinkHandler',
+        );
+        return false;
+      }
+
+      final encounterId = pathSegments[1];
+
+      developer.log(
+        'Deep link encounter ID: $encounterId',
+        name: 'DeepLinkHandler',
+      );
+
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+
+      // Navigate to encounters list first
+      // In the future, could navigate directly to encounter detail
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const EncountersListPage()),
+      );
+
+      developer.log(
+        'Navigated to encounter: $encounterId',
+        name: 'DeepLinkHandler',
+      );
+
+      return true;
+    } catch (e) {
+      developer.log(
+        'Navigation error: $e',
+        name: 'DeepLinkHandler',
+        error: e,
+      );
+      return false;
+    }
   }
 }
