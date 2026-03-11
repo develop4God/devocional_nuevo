@@ -300,7 +300,9 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                                   _FeatureRow(
                                     icon: Icons.explore_rounded,
                                     label:
-                                        '${entry.testament!.toUpperCase()} ${'encounters.testament_experience'.tr()}',
+                                        entry.testament!.toLowerCase() == 'new'
+                                            ? 'encounters.new_testament'.tr()
+                                            : 'encounters.old_testament'.tr(),
                                   ),
                                 ],
                               ],
