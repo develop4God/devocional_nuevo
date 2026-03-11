@@ -1008,19 +1008,12 @@ class _ModernPrayerBox extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.volunteer_activism,
-                  color: Colors.purpleAccent, size: 24),
-              const SizedBox(width: 12),
-              Text(
-                (prayer.title ?? 'encounters.prayer_label'.tr()).toUpperCase(),
-                style: const TextStyle(
-                    color: Colors.purpleAccent,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14),
-              ),
-            ],
+          Text(
+            (prayer.title ?? 'encounters.prayer_label'.tr()).toUpperCase(),
+            style: const TextStyle(
+                color: Colors.yellow,
+                fontWeight: FontWeight.w900,
+                fontSize: 14),
           ),
           const SizedBox(height: 16),
           Text(prayer.content,
