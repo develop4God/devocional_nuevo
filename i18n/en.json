@@ -795,7 +795,8 @@
     "all_encounters": "All Encounters",
     "no_encounters_found": "No encounters found",
     "current": "Current",
-    "complete": "COMPLETE"
+    "complete": "COMPLETE",
+    "exit": "EXIT"
   },
   "tags": {
     "love": "Love",

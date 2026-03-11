@@ -795,7 +795,8 @@
     "all_encounters": "Todos los Encuentros",
     "no_encounters_found": "No se encontraron encuentros",
     "current": "Actual",
-    "complete": "COMPLETAR"
+    "complete": "COMPLETAR",
+    "exit": "SALIR"
   },
   "tags": {
     "love": "Amor",
