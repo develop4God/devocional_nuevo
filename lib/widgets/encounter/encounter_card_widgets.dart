@@ -274,16 +274,43 @@ class _ScrollIndicatorState extends State<_ScrollIndicator>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'encounters.scroll_for_more'.tr().toUpperCase(),
-                  style: const TextStyle(
-                      color: Colors.white54,
-                      fontSize: 8,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.0),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFFB8860B),
+                        Color(0xFFFFD700),
+                        Color(0xFFFFFFE0),
+                        Color(0xFFFFD700),
+                        Color(0xFFB8860B),
+                      ],
+                      stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        spreadRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    'encounters.scroll_for_more'.tr().toUpperCase(),
+                    style: const TextStyle(
+                        color: Color(0xFF0a0e1a),
+                        fontSize: 8,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0),
+                  ),
                 ),
+                const SizedBox(height: 4),
                 const Icon(Icons.keyboard_arrow_down,
-                    color: Colors.white54, size: 16),
+                    color: Color(0xFFFFD700), size: 16),
               ],
             ),
           ),

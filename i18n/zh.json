@@ -795,7 +795,8 @@
     "all_encounters": "全部相遇",
     "no_encounters_found": "未找到相遇",
     "current": "当前",
-    "complete": "完成"
+    "complete": "完成",
+    "exit": "退出"
   },
   "tags": {
     "love": "爱",

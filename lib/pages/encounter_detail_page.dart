@@ -131,8 +131,6 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
           }
 
           final isLast = _currentIndex == cards.length - 1;
-          final isAlreadyCompleted =
-              state.isCompleted(widget.entry.id) || _hasTriggeredCompletion;
 
           return Stack(
             children: [
@@ -157,9 +155,9 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                 },
               ),
 
-              // Progress Indicator (Lines)
+              // Progress Indicator (Lines) - Moved lower for better spacing
               Positioned(
-                top: 85,
+                top: 110,
                 left: 24,
                 right: 24,
                 child: Row(
@@ -170,8 +168,8 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                         margin: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(
                           color: index <= _currentIndex
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: 0.15),
+                              ? const Color(0xFFFFD700)
+                              : const Color(0xFFFFD700).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -180,30 +178,56 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                 ),
               ),
 
-              // Back Button (Top Left)
+              // Back Button (Top Left) - Gold arrow only
               Positioned(
                 top: 44,
                 left: 8,
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back_ios_rounded,
-                      color: Colors.white70, size: 24),
+                      color: Color(0xFFFFD700), size: 24),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ),
 
-              // Card counter (Top Center)
+              // Card counter (Top Center) - Gold styling
               Positioned(
                 top: 50,
                 left: 0,
                 right: 0,
                 child: Center(
-                  child: Text(
-                    '${_currentIndex + 1} / ${cards.length}',
-                    style: const TextStyle(
-                      color: Colors.white38,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFFB8860B),
+                          Color(0xFFFFD700),
+                          Color(0xFFFFFFE0),
+                          Color(0xFFFFD700),
+                          Color(0xFFB8860B),
+                        ],
+                        stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      '${_currentIndex + 1} / ${cards.length}',
+                      style: const TextStyle(
+                        color: Color(0xFF0a0e1a),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                      ),
                     ),
                   ),
                 ),
@@ -223,49 +247,63 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       visible: _currentIndex > 0,
                       onPressed: () => _swiperController.previous(),
                     ),
-                    // Complete button on last card
+                    // Completar/Salir button on last card
                     if (isLast)
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: AnimatedOpacity(
-                            duration: const Duration(milliseconds: 300),
-                            opacity: isAlreadyCompleted ? 0.6 : 1.0,
-                            child: SizedBox(
-                              height: 48,
-                              child: TextButton.icon(
-                                onPressed: isAlreadyCompleted
-                                    ? null
-                                    : _onCompleteEncounter,
-                                icon: Icon(
-                                  isAlreadyCompleted
-                                      ? Icons.verified_rounded
-                                      : Icons.check_circle_outline_rounded,
-                                  size: 18,
-                                  color: isAlreadyCompleted
-                                      ? Colors.greenAccent
-                                      : Colors.white,
+                          child: SizedBox(
+                            height: 48,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFB8860B),
+                                    Color(0xFFFFD700),
+                                    Color(0xFFFFFFE0),
+                                    Color(0xFFFFD700),
+                                    Color(0xFFB8860B),
+                                  ],
+                                  stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
                                 ),
-                                label: Text(
-                                  isAlreadyCompleted
-                                      ? 'encounters.badge_completed'.tr()
-                                      : 'encounters.complete'.tr(),
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.5,
-                                    color: isAlreadyCompleted
-                                        ? Colors.greenAccent
-                                        : Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFFFFD700)
+                                        .withValues(alpha: 0.4),
+                                    blurRadius: 12,
+                                    spreadRadius: 1,
                                   ),
-                                ),
-                                style: TextButton.styleFrom(
-                                  backgroundColor: isAlreadyCompleted
-                                      ? Colors.greenAccent
-                                          .withValues(alpha: 0.1)
-                                      : Colors.white.withValues(alpha: 0.15),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(24),
+                                ],
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: _onCompleteEncounter,
+                                  borderRadius: BorderRadius.circular(24),
+                                  splashColor:
+                                      Colors.white.withValues(alpha: 0.2),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.check_circle_outline_rounded,
+                                        size: 18,
+                                        color: Color(0xFF0a0e1a),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'encounters.exit'.tr(),
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 1.5,
+                                          color: Color(0xFF0a0e1a),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -325,10 +363,47 @@ class _NavButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
             shape: BoxShape.circle,
+            gradient: visible
+                ? const LinearGradient(
+                    colors: [
+                      Color(0xFFB8860B),
+                      Color(0xFFFFD700),
+                      Color(0xFFFFFFE0),
+                      Color(0xFFFFD700),
+                      Color(0xFFB8860B),
+                    ],
+                    stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  )
+                : LinearGradient(
+                    colors: [
+                      const Color(0xFFB8860B).withValues(alpha: 0.3),
+                      const Color(0xFFFFD700).withValues(alpha: 0.3),
+                      const Color(0xFFFFFFE0).withValues(alpha: 0.3),
+                      const Color(0xFFFFD700).withValues(alpha: 0.3),
+                      const Color(0xFFB8860B).withValues(alpha: 0.3),
+                    ],
+                    stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+            boxShadow: visible
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFFFFD700).withValues(alpha: 0.4),
+                      blurRadius: 12,
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : null,
           ),
-          child: Icon(icon, color: Colors.white, size: 28),
+          child: Icon(
+            icon,
+            color: visible ? const Color(0xFF0a0e1a) : Colors.white30,
+            size: 28,
+          ),
         ),
       ),
     );

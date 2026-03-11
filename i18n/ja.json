@@ -795,7 +795,8 @@
     "all_encounters": "すべての出会い",
     "no_encounters_found": "出会いが見つかりません",
     "current": "現在",
-    "complete": "完了"
+    "complete": "完了",
+    "exit": "終了"
   },
   "tags": {
     "love": "愛",
