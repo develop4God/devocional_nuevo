@@ -41,7 +41,8 @@ class PrayerWallRepository implements IPrayerWallRepository {
             data['prayerId'] = doc.id;
             return PrayerWallEntry.fromJson(data);
           } catch (e) {
-            debugPrint('❌ [PrayerWallRepository] Parse error for ${doc.id}: $e');
+            debugPrint(
+                '❌ [PrayerWallRepository] Parse error for ${doc.id}: $e');
             return null;
           }
         })
@@ -144,7 +145,8 @@ class PrayerWallRepository implements IPrayerWallRepository {
 
       if (!snapshot.exists) return;
 
-      final reportCount = (snapshot.data()?['reportCount'] as num?)?.toInt() ?? 0;
+      final reportCount =
+          (snapshot.data()?['reportCount'] as num?)?.toInt() ?? 0;
       final newReportCount = reportCount + 1;
 
       final updates = <String, dynamic>{

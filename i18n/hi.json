@@ -788,7 +788,13 @@
     "scroll_for_more": "पढ़ें",
     "index_loaded": "मुलाकातें लोड हुईं",
     "encounter_opened": "मुलाकात खुली",
-    "encounter_started": "मुलाकात शुरू हुई"
+    "encounter_started": "मुलाकात शुरू हुई",
+    "all": "सभी",
+    "pending": "लंबित",
+    "all_encounters": "सभी मुलाकातें",
+    "no_encounters_found": "कोई मुलाकात नहीं मिली",
+    "current": "वर्तमान",
+    "complete": "पूर्ण करें"
   },
   "tags": {
     "love": "प्रेम",
