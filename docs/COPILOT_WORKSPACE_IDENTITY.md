@@ -24,37 +24,58 @@
 
 ---
 
-## ⚠️ Known Terminal Contingency: Silent Output Bug
+## ⚠️ Known Terminal Contingency: Subprocess Output Loss
 
 ### Problem
 
-When using `run_in_terminal` with **`isBackground: false`** (foreground mode), the tool
-**always returns empty output** in this environment. This makes it appear commands ran
-successfully or produced nothing, which is misleading.
+When using `run_in_terminal` with **Flutter subprocess commands** (e.g., `flutter test`, 
+`flutter build`), `get_terminal_output(id)` returns `null` even with `isBackground=true`. 
+This is because Flutter spawns a subprocess that writes asynchronously, and the JetBrains 
+terminal integration doesn't capture that async stream.
 
 ### Root Cause
 
-The JetBrains AI terminal integration captures stdout/stderr only for background processes
-with explicit polling via `get_terminal_output`. Foreground calls discard the stream.
+The JetBrains AI terminal integration can capture direct shell output but not async 
+subprocess streams (Flutter test reporter runs in a subprocess with buffered I/O).
 
-### ✅ Workaround — Always Use This Pattern
+### ✅ Workaround — Redirect to File + Read
 
+For Flutter commands (tests, builds), **redirect output to a temporary file** and read 
+the file afterward:
+
+```bash
+Step 1: run_in_terminal("flutter test <file> > /tmp/test_output.txt 2>&1", isBackground=true)
+Step 2: get_terminal_output(id)  # Returns null (expected)
+Step 3: Wait a moment for file I/O
+Step 4: run_in_terminal("cat /tmp/test_output.txt", isBackground=true)
+Step 5: get_terminal_output(id)  # Returns actual test output
 ```
-Step 1: run_in_terminal  →  isBackground: TRUE
-Step 2: get_terminal_output(id)  →  read real output
+
+### Example — Correct Pattern for Flutter Tests
+
+```bash
+# RUN the test, redirect to file:
+id = run_in_terminal(
+  "cd /home/develop4god/projects/devocional_nuevo && " +
+  "/home/develop4god/development/flutter/bin/flutter test test/unit/utils/copyright_utils_test.dart " +
+  "--reporter compact > /tmp/test_output.txt 2>&1",
+  isBackground=true
+)
+get_terminal_output(id)  # Returns null (this is OK)
+
+# WAIT a moment for subprocess to complete:
+# (Let background process finish naturally, or add explicit wait)
+
+# READ the output file:
+id = run_in_terminal("cat /tmp/test_output.txt", isBackground=true)
+get_terminal_output(id)  # Returns: "00:02 +5: All tests passed!"
 ```
 
-**Never use `isBackground: false`** for any command that needs its output read.
+### Verified Test Results
 
-### Example
-
+✅ Test output successfully captured:
 ```
-# WRONG — always returns empty:
-run_in_terminal("dart analyze .", isBackground=false)
-
-# CORRECT — returns real output:
-id = run_in_terminal("dart analyze . 2>&1; echo EXIT=$?", isBackground=true)
-get_terminal_output(id)   # → "No issues found!  EXIT=0"
+00:02 +5: All tests passed!
 ```
 
 ---

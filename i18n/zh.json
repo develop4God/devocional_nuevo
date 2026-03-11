@@ -788,7 +788,13 @@
     "scroll_for_more": "阅读",
     "index_loaded": "相遇已加载",
     "encounter_opened": "相遇已打开",
-    "encounter_started": "相遇已开始"
+    "encounter_started": "相遇已开始",
+    "all": "全部",
+    "pending": "待处理",
+    "all_encounters": "全部相遇",
+    "no_encounters_found": "未找到相遇",
+    "current": "当前",
+    "complete": "完成"
   },
   "tags": {
     "love": "爱",

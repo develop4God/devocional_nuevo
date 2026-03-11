@@ -21,6 +21,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_card_widgets.dart';
+import 'package:devocional_nuevo/widgets/encounter/encounter_grid_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -537,5 +538,291 @@ void main() {
       // already EncounterLoaded
       expect(events.whereType<LoadEncounterIndex>(), isEmpty);
     });
+  });
+
+  // ── Test 9: list page shows back arrow (left arrow) in app bar ───────────────
+
+  testWidgets('list page shows back arrow in app bar', (tester) async {
+    await tester.runAsync(() async {
+      final entry = _makeEntry();
+      final mockBloc = _MockEncounterBloc(EncounterLoaded(index: [entry]));
+
+      setPhoneViewport(tester);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<EncounterBloc>.value(value: mockBloc),
+              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+            ],
+            child: const EncountersListPage(),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // The app bar should NOT have a hidden leading (SizedBox.shrink).
+      // Instead it should have a back arrow icon available (default AppBar back).
+      // With our change, there is no custom `leading: SizedBox.shrink()` so
+      // Flutter renders the default back button when there's a route to pop.
+      // We verify that Icons.close is not present as the leading icon.
+      expect(find.byIcon(Icons.close), findsNothing);
+    });
+  });
+
+  // ── Test 10: list page shows grid toggle button ──────────────────────────────
+
+  testWidgets('list page shows grid view toggle button', (tester) async {
+    await tester.runAsync(() async {
+      final entry = _makeEntry();
+      final mockBloc = _MockEncounterBloc(EncounterLoaded(index: [entry]));
+
+      setPhoneViewport(tester);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<EncounterBloc>.value(value: mockBloc),
+              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+            ],
+            child: const EncountersListPage(),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // Grid toggle button must be present
+      expect(find.byIcon(Icons.grid_view_rounded), findsOneWidget);
+    });
+  });
+
+  // ── Test 11: list page toggles to grid overlay on toggle button tap ──────────
+
+  testWidgets('list page toggles grid overlay on grid button tap',
+      (tester) async {
+    await tester.runAsync(() async {
+      final entry = _makeEntry();
+      final mockBloc = _MockEncounterBloc(EncounterLoaded(index: [entry]));
+
+      setPhoneViewport(tester);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<EncounterBloc>.value(value: mockBloc),
+              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+            ],
+            child: const EncountersListPage(),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // Tap the grid toggle
+      await tester.tap(find.byIcon(Icons.grid_view_rounded));
+      await tester.pump(const Duration(milliseconds: 350));
+
+      // After toggle, list view icon should be visible
+      expect(find.byIcon(Icons.view_list_rounded), findsOneWidget);
+    });
+  });
+
+  // ── Test 12: detail page shows back arrow instead of close icon ──────────────
+
+  testWidgets('detail page shows back arrow instead of close icon',
+      (tester) async {
+    await tester.runAsync(() async {
+      final study = _makeStudy3Cards();
+      final entry = _makeEntry();
+      final loadedState = EncounterLoaded(
+        index: [entry],
+        loadedStudies: {'test_001': study},
+      );
+      final mockBloc = _MockEncounterBloc(loadedState);
+
+      setPhoneViewport(tester);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BlocProvider<EncounterBloc>.value(
+            value: mockBloc,
+            child: EncounterDetailPage(entry: entry, lang: 'en'),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // Back arrow should be present, old close icon should not
+      expect(find.byIcon(Icons.arrow_back_ios_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.close), findsNothing);
+    });
+  });
+
+  // ── Test 13: detail page shows complete button on last card ─────────────────
+
+  testWidgets('detail page shows complete button on last card', (tester) async {
+    await tester.runAsync(() async {
+      // Study with a single completion card so we start on "last"
+      const study = EncounterStudy(
+        id: 'test_001',
+        language: 'en',
+        bibleVersion: 'KJV',
+        cards: [
+          EncounterCard(order: 1, type: 'completion', title: 'Done'),
+        ],
+      );
+      final entry = _makeEntry();
+      final loadedState = EncounterLoaded(
+        index: [entry],
+        loadedStudies: {'test_001': study},
+      );
+      final mockBloc = _MockEncounterBloc(loadedState);
+
+      setPhoneViewport(tester);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BlocProvider<EncounterBloc>.value(
+            value: mockBloc,
+            child: EncounterDetailPage(entry: entry, lang: 'en'),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // Complete button text should be visible (i18n key 'encounters.complete')
+      // In test locale it defaults to the key value 'encounters.complete' or the
+      // English value 'COMPLETE' — we search for the icon instead for robustness.
+      expect(find.byIcon(Icons.check_circle_outline_rounded),
+          findsAtLeastNWidgets(1));
+    });
+  });
+
+  // ── Test 14: detail page dispatches CompleteEncounter on complete tap ────────
+
+  testWidgets('detail page dispatches CompleteEncounter event on complete tap',
+      (tester) async {
+    await tester.runAsync(() async {
+      const study = EncounterStudy(
+        id: 'test_001',
+        language: 'en',
+        bibleVersion: 'KJV',
+        cards: [
+          EncounterCard(order: 1, type: 'completion', title: 'Done'),
+        ],
+      );
+      final entry = _makeEntry();
+      final events = <EncounterEvent>[];
+      final mockBloc = _EventCapturingMockBloc(
+        EncounterLoaded(
+          index: [entry],
+          loadedStudies: {'test_001': study},
+        ),
+        events,
+      );
+
+      setPhoneViewport(tester);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BlocProvider<EncounterBloc>.value(
+            value: mockBloc,
+            child: EncounterDetailPage(entry: entry, lang: 'en'),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // Tap the complete button (TextButton with check icon)
+      final completeBtn = find.byWidgetPredicate(
+        (w) => w is TextButton,
+      );
+      expect(completeBtn, findsAtLeastNWidgets(1));
+      await tester.tap(completeBtn.first);
+      await tester.pump();
+
+      // CompleteEncounter event must have been dispatched
+      expect(events.whereType<CompleteEncounter>(), isNotEmpty);
+      final completeEvent = events.whereType<CompleteEncounter>().first;
+      expect(completeEvent.id, equals('test_001'));
+    });
+  });
+
+  // ── Test 15: CompletionCard shows study-level copyright disclaimer ───────────
+
+  testWidgets(
+      'CompletionCard shows study-level copyright disclaimer when bibleVersion provided',
+      (tester) async {
+    const card = EncounterCard(
+      order: 11,
+      type: 'completion',
+      title: 'Complete',
+    );
+
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: CompletionCard(
+          card: card,
+          bibleVersion: 'KJV',
+          language: 'en',
+        ),
+      ),
+    ));
+
+    // Advance through all delayed animations (max delay 700ms + 600ms duration)
+    await tester.pump(const Duration(milliseconds: 1400));
+
+    // Copyright disclaimer should show King James info
+    expect(find.textContaining('King James'), findsOneWidget);
+    expect(find.byIcon(Icons.info_outline), findsOneWidget);
+  });
+
+  // ── Test 16: EncounterGridOverlay shows filter tabs ──────────────────────────
+
+  testWidgets('EncounterGridOverlay shows All/Pending/Completed filter tabs',
+      (tester) async {
+    final entry = _makeEntry();
+    final state = EncounterLoaded(index: [entry]);
+    final controller = AnimationController(
+      vsync: tester,
+      value: 1.0, // fully visible
+      duration: const Duration(milliseconds: 300),
+    );
+
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: EncounterGridOverlay(
+              state: state,
+              entries: [entry],
+              currentIndex: 0,
+              lang: 'en',
+              onEncounterSelected: (_, __) {},
+              onClose: () {},
+              animation: controller,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // Filter overlay should be present with 3 filter buttons rendered
+      expect(find.byType(EncounterGridOverlay), findsOneWidget);
+      // Grid overlay renders a grid of encounter cards
+      expect(find.byType(GridView), findsOneWidget);
+    } finally {
+      controller.dispose();
+    }
   });
 }

@@ -52,8 +52,10 @@ class _SubmitPrayerModalState extends State<SubmitPrayerModal> {
     final textTheme = Theme.of(context).textTheme;
     final characterCount = _textController.text.characters.length;
     final isOverLimit = characterCount > _maxLength;
-    final canSubmit =
-        characterCount > 0 && !isOverLimit && !_submitted && !widget.isSubmitting;
+    final canSubmit = characterCount > 0 &&
+        !isOverLimit &&
+        !_submitted &&
+        !widget.isSubmitting;
 
     return Padding(
       padding: EdgeInsets.only(

@@ -44,9 +44,8 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
     _authorHash = PrayerWallRepository.hashUserId(uid);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context
-          .read<PrayerWallBloc>()
-          .add(LoadPrayerWall(userLanguage: _userLanguage, authorHash: _authorHash));
+      context.read<PrayerWallBloc>().add(
+          LoadPrayerWall(userLanguage: _userLanguage, authorHash: _authorHash));
 
       getService<AnalyticsService>().logCustomEvent(
           eventName: 'prayer_wall_viewed',
@@ -107,10 +106,9 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
                   duration: const Duration(seconds: 3),
                 ),
               );
-              getService<AnalyticsService>()
-                .logCustomEvent(
-                    eventName: 'prayer_reported',
-                    parameters: {'prayerId': prayerId});
+              getService<AnalyticsService>().logCustomEvent(
+                  eventName: 'prayer_reported',
+                  parameters: {'prayerId': prayerId});
             },
             child: Text('prayer_wall.report'.tr()),
           ),
@@ -299,7 +297,8 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'prayer_wall.empty_title'.tr(),
-              style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style:
+                  textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),

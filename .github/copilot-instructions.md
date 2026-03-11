@@ -39,13 +39,32 @@
 
 ## ⚠️ Terminal Contingency (CRITICAL)
 
-The JetBrains AI terminal **silently drops output** when `isBackground=false`.
+**Flutter subprocess commands** (e.g., `flutter test`, `flutter build`) return `null` from 
+`get_terminal_output(id)` because they spawn async subprocesses that the JetBrains terminal 
+can't capture.
 
-**Always use this pattern for every command:**
+**For Flutter commands: redirect output to file, then read the file:**
 
+```bash
+# Step 1: Run command with output redirected to file
+id = run_in_terminal(
+  "cd /home/develop4god/projects/devocional_nuevo && " +
+  "/home/develop4god/development/flutter/bin/flutter test <file> " +
+  "--reporter compact > /tmp/test_output.txt 2>&1",
+  isBackground=true
+)
+get_terminal_output(id)  # Returns null (expected for subprocesses)
+
+# Step 2: Read the output file after subprocess completes
+id = run_in_terminal("cat /tmp/test_output.txt", isBackground=true)
+get_terminal_output(id)  # Returns actual test output
 ```
-Step 1 → run_in_terminal(cmd, isBackground=TRUE)
-Step 2 → get_terminal_output(id)
+
+**For direct shell commands** (echo, ls, cat, etc.), output is captured normally:
+
+```bash
+id = run_in_terminal("echo 'test' && pwd", isBackground=true)
+get_terminal_output(id)  # Returns output immediately
 ```
 
 For analysis/tests, use the project scripts with this pattern:

@@ -41,9 +41,8 @@ class PrayerWallLoaded extends PrayerWallState {
     return PrayerWallLoaded(
       sameLanguagePrayers: sameLanguagePrayers ?? this.sameLanguagePrayers,
       otherLanguagePrayers: otherLanguagePrayers ?? this.otherLanguagePrayers,
-      myPendingPrayer: clearPending
-          ? null
-          : (myPendingPrayer ?? this.myPendingPrayer),
+      myPendingPrayer:
+          clearPending ? null : (myPendingPrayer ?? this.myPendingPrayer),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
