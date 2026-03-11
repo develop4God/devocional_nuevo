@@ -180,7 +180,7 @@ class _EncountersListPageState extends State<EncountersListPage>
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: 24, right: 56),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
