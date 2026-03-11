@@ -32,7 +32,7 @@ class DeepLinkHandler {
       name: 'DeepLinkHandler',
     );
 
-    // Set up method call handler for iOS
+    // Set up method call handler for iOS and for receiving deep links while app is running
     _channel.setMethodCallHandler(_handleMethodCall);
 
     // Check if app was launched from a deep link (Android)
@@ -54,11 +54,21 @@ class DeepLinkHandler {
     }
   }
 
-  /// Handle method calls from iOS
+  /// Handle method calls from iOS and Android (for deep links while app is running)
   Future<dynamic> _handleMethodCall(MethodCall call) async {
     if (call.method == 'handleDeepLink') {
       final String? link = call.arguments as String?;
       if (link != null) {
+        await _processDeepLink(link);
+      }
+    } else if (call.method == 'onDeepLinkReceived') {
+      // Handle deep link received while app is already running (Android)
+      final String? link = call.arguments as String?;
+      if (link != null) {
+        developer.log(
+          'Deep link received while app running: $link',
+          name: 'DeepLinkHandler',
+        );
         await _processDeepLink(link);
       }
     }
