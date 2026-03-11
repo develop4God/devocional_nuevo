@@ -18,6 +18,9 @@ class MainActivity : FlutterActivity() {
 
     // Store initial deep link
     private var initialLink: String? = null
+    
+    // Store FlutterEngine reference for sending deep links while app is running
+    private var deepLinkChannel: MethodChannel? = null
 
     // --- INICIO: Soporte para Firebase Test Lab Game Loop y Edge-to-Edge ---
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,7 +89,8 @@ class MainActivity : FlutterActivity() {
         }
 
         // Deep link channel
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DEEP_LINK_CHANNEL).setMethodCallHandler {
+        deepLinkChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DEEP_LINK_CHANNEL)
+        deepLinkChannel?.setMethodCallHandler {
                 call, result ->
             if (call.method == "getInitialLink") {
                 result.success(initialLink)
@@ -101,5 +105,11 @@ class MainActivity : FlutterActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleIntent(intent)
+        
+        // Send deep link to Dart side immediately if app is already running
+        if (initialLink != null && deepLinkChannel != null) {
+            deepLinkChannel?.invokeMethod("onDeepLinkReceived", initialLink)
+            initialLink = null
+        }
     }
 }
