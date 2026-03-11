@@ -337,38 +337,100 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              // Always-visible button — white so it shows on
-                              // dark background even in disabled/loading state
-                              SizedBox(
+                              // Modern Gold Gradient Button
+                              Container(
                                 width: double.infinity,
                                 height: 72,
-                                child: ElevatedButton(
-                                  onPressed: isLoaded
-                                      ? () => _beginEncounter(loadedState)
-                                      : null,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: const Color(0xFF0a0e1a),
-                                    // Keep the button clearly visible while
-                                    // disabled so it doesn't disappear
-                                    disabledBackgroundColor:
-                                        Colors.white.withValues(alpha: 0.90),
-                                    disabledForegroundColor:
-                                        const Color(0xFF0a0e1a)
-                                            .withValues(alpha: 0.5),
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(24),
+                                decoration: BoxDecoration(
+                                  gradient: isLoaded
+                                      ? const LinearGradient(
+                                          colors: [
+                                            Color(0xFFB8860B), // darker gold
+                                            Color(0xFFFFD700), // bright gold
+                                            Color(0xFFFFFFE0), // light gold
+                                            Color(0xFFFFD700), // bright gold
+                                            Color(0xFFB8860B), // darker gold
+                                          ],
+                                          stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                        )
+                                      : LinearGradient(
+                                          colors: [
+                                            const Color(0xFFB8860B)
+                                                .withValues(alpha: 0.6),
+                                            const Color(0xFFFFD700)
+                                                .withValues(alpha: 0.6),
+                                            const Color(0xFFFFFFE0)
+                                                .withValues(alpha: 0.6),
+                                            const Color(0xFFFFD700)
+                                                .withValues(alpha: 0.6),
+                                            const Color(0xFFB8860B)
+                                                .withValues(alpha: 0.6),
+                                          ],
+                                          stops: const [
+                                            0.0,
+                                            0.25,
+                                            0.5,
+                                            0.75,
+                                            1.0
+                                          ],
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                        ),
+                                  borderRadius: BorderRadius.circular(24),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFFFD700).withValues(
+                                          alpha: isLoaded ? 0.6 : 0.3),
+                                      blurRadius: isLoaded ? 24 : 12,
+                                      spreadRadius: isLoaded ? 2 : 1,
+                                      offset: const Offset(0, 8),
                                     ),
-                                  ),
-                                  child: Text(
-                                    hasError
-                                        ? 'encounters.error_load'.tr()
-                                        : 'encounters.enter_experience'.tr(),
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 2.0,
+                                    if (isLoaded)
+                                      BoxShadow(
+                                        color: const Color(0xFFFFD700)
+                                            .withValues(alpha: 0.3),
+                                        blurRadius: 12,
+                                        spreadRadius: 4,
+                                        offset: const Offset(0, 0),
+                                      ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: isLoaded
+                                        ? () => _beginEncounter(loadedState)
+                                        : null,
+                                    borderRadius: BorderRadius.circular(24),
+                                    splashColor:
+                                        Colors.white.withValues(alpha: 0.3),
+                                    highlightColor:
+                                        Colors.white.withValues(alpha: 0.1),
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 24, vertical: 8),
+                                        child: AutoSizeText(
+                                          hasError
+                                              ? 'encounters.error_load'.tr()
+                                              : 'encounters.enter_experience'
+                                                  .tr(),
+                                          maxLines: 2,
+                                          textAlign: TextAlign.center,
+                                          minFontSize: 12,
+                                          maxFontSize: 18,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 1.5,
+                                            color: isLoaded
+                                                ? const Color(0xFF0a0e1a)
+                                                : const Color(0xFF0a0e1a)
+                                                    .withValues(alpha: 0.6),
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -381,7 +443,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                                   child: CircularProgressIndicator(
                                     strokeWidth: 3,
                                     valueColor: AlwaysStoppedAnimation(
-                                        Color(0xFF0a0e1a)),
+                                        Color(0xFFFFD700)),
                                   ),
                                 ),
                             ],
