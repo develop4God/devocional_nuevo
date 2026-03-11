@@ -788,7 +788,13 @@
     "scroll_for_more": "Ler",
     "index_loaded": "Encontros carregados",
     "encounter_opened": "Encontro aberto",
-    "encounter_started": "Encontro iniciado"
+    "encounter_started": "Encontro iniciado",
+    "all": "Todos",
+    "pending": "Pendente",
+    "all_encounters": "Todos os Encontros",
+    "no_encounters_found": "Nenhum encontro encontrado",
+    "current": "Atual",
+    "complete": "COMPLETAR"
   },
   "tags": {
     "love": "Amor",
@@ -904,5 +910,26 @@
     "profile_name_saved": "✅ Nome salvo com sucesso!",
     "profile_name_hint": "Seu nome (máx. 15 caracteres)",
     "profile_name_helper": "Aparecerá no seu devocional diário. Não será compartilhado."
+  },
+  "prayer_wall": {
+    "title": "Mural de Oração",
+    "submit": "Compartilhar um pedido",
+    "submit_title": "Compartilhar um pedido de oração",
+    "submit_placeholder": "Senhor, eu peço...",
+    "pending": "Em revisão 🙏",
+    "rejected_message": "Sua oração não pôde ser compartilhada no momento.",
+    "pastoral_title": "Você não está sozinho/a 💙",
+    "pastoral_message": "Recebemos sua oração e nos importamos profundamente com você. Se você está passando por um momento difícil, saiba que há ajuda disponível. Deus te ama incondicionalmente, e nós também.",
+    "pastoral_resources": "Recursos de apoio:",
+    "pray_count": "{count} orando",
+    "anonymous": "Publicar anonimamente",
+    "report": "Denunciar",
+    "report_confirm": "Tem certeza que deseja denunciar esta oração como inapropriada?",
+    "report_thanks": "Obrigado por manter nossa comunidade segura 🙏",
+    "section_mine": "Orações no seu idioma",
+    "section_others": "Orações de todo o mundo 🌍",
+    "my_pending": "Sua oração está sendo revisada",
+    "empty_title": "O mural está tranquilo agora",
+    "empty_description": "Seja o primeiro a compartilhar um pedido. A comunidade está aqui por você."
   }
 }

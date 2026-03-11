@@ -6,6 +6,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
+import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:flutter/material.dart';
 
 // ---------------------------------------------------------------------------
@@ -644,9 +645,16 @@ class DiscoveryActivationCard extends StatelessWidget {
 class CompletionCard extends StatelessWidget {
   final EncounterCard card;
   final VoidCallback? onBackToEncounters;
+  final String? bibleVersion;
+  final String? language;
 
-  const CompletionCard(
-      {required this.card, this.onBackToEncounters, super.key});
+  const CompletionCard({
+    required this.card,
+    this.onBackToEncounters,
+    this.bibleVersion,
+    this.language,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -687,6 +695,32 @@ class CompletionCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
+                const SizedBox(height: 8),
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 550),
+                  child: Text(
+                    '— ${card.completionVerse!.reference}',
+                    style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                if (card.completionVerse!.bibleVersion != null) ...[
+                  const SizedBox(height: 4),
+                  _DelayedEntry(
+                    delay: const Duration(milliseconds: 600),
+                    child: Text(
+                      card.completionVerse!.bibleVersion!,
+                      style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.4),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
               ],
               const SizedBox(height: 48),
               if (onBackToEncounters != null)
@@ -711,6 +745,17 @@ class CompletionCard extends StatelessWidget {
                     ),
                   ),
                 ),
+              // Bible version copyright disclaimer
+              if (bibleVersion != null) ...[
+                const SizedBox(height: 32),
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 700),
+                  child: _CopyrightDisclaimer(
+                    bibleVersion: bibleVersion!,
+                    language: language ?? 'en',
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -963,8 +1008,61 @@ class _ModernPrayerBox extends StatelessWidget {
   }
 }
 
-Widget buildEncounterCardWidget(EncounterCard card,
-    {VoidCallback? onBackToEncounters}) {
+// ---------------------------------------------------------------------------
+// CopyrightDisclaimer
+// ---------------------------------------------------------------------------
+
+class _CopyrightDisclaimer extends StatelessWidget {
+  final String bibleVersion;
+  final String language;
+
+  const _CopyrightDisclaimer({
+    required this.bibleVersion,
+    required this.language,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final copyrightText =
+        CopyrightUtils.getCopyrightText(language, bibleVersion);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 16,
+            color: Colors.white.withValues(alpha: 0.5),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              copyrightText,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.5),
+                fontSize: 11,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Widget buildEncounterCardWidget(
+  EncounterCard card, {
+  VoidCallback? onBackToEncounters,
+  String? bibleVersion,
+  String? language,
+}) {
   switch (card.type) {
     case 'cinematic_scene':
       return CinematicSceneCard(card: card);
@@ -977,7 +1075,12 @@ Widget buildEncounterCardWidget(EncounterCard card,
     case 'discovery_activation':
       return DiscoveryActivationCard(card: card);
     case 'completion':
-      return CompletionCard(card: card, onBackToEncounters: onBackToEncounters);
+      return CompletionCard(
+        card: card,
+        onBackToEncounters: onBackToEncounters,
+        bibleVersion: bibleVersion,
+        language: language,
+      );
     case 'interactive_moment':
       return InteractiveMomentCard(card: card);
     default:

@@ -1,4 +1,5 @@
 import 'package:devocional_nuevo/main.dart';
+import 'package:devocional_nuevo/pages/prayer_wall_page.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -113,6 +114,24 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(result, isTrue);
+      });
+
+      testWidgets('should handle prayer_wall deep link',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            navigatorKey: navigatorKey,
+            home: const Scaffold(body: Text('Home')),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final uri = Uri.parse('devocional://prayer_wall');
+        final result = await deepLinkHandler.handleDeepLink(uri);
+        await tester.pumpAndSettle();
+
+        expect(result, isTrue);
+        expect(find.byType(PrayerWallPage), findsOneWidget);
       });
 
       testWidgets('should handle testimonies deep link',
