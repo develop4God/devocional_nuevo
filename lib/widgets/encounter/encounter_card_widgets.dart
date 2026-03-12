@@ -676,12 +676,14 @@ class CompletionCard extends StatefulWidget {
   final VoidCallback? onBackToEncounters;
   final String? bibleVersion;
   final String? language;
+  final bool showCompletionMessage;
 
   const CompletionCard({
     required this.card,
     this.onBackToEncounters,
     this.bibleVersion,
     this.language,
+    this.showCompletionMessage = false,
     super.key,
   });
 
@@ -692,7 +694,22 @@ class CompletionCard extends StatefulWidget {
 class _CompletionCardState extends State<CompletionCard> {
   bool _showCompletionMessage = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _showCompletionMessage = widget.showCompletionMessage;
+    debugPrint(
+      '🔵 [CompletionCard] Initialized — already completed: $_showCompletionMessage',
+    );
+  }
+
   void _onCompleteButtonTapped() {
+    if (_showCompletionMessage) {
+      debugPrint(
+          '⚠️ [CompletionCard] Tap ignored — encounter already completed');
+      return;
+    }
+    debugPrint('✅ [CompletionCard] Complete button tapped — marking as done');
     setState(() {
       _showCompletionMessage = true;
     });
@@ -787,10 +804,15 @@ class _CompletionCardState extends State<CompletionCard> {
                   width: double.infinity,
                   height: 60,
                   child: ElevatedButton(
-                    onPressed: _onCompleteButtonTapped,
+                    onPressed:
+                        _showCompletionMessage ? null : _onCompleteButtonTapped,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
+                      backgroundColor: _showCompletionMessage
+                          ? Colors.white24
+                          : Colors.white,
+                      foregroundColor: _showCompletionMessage
+                          ? Colors.white54
+                          : Colors.black,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20)),
                     ),
@@ -1112,6 +1134,7 @@ Widget buildEncounterCardWidget(
   VoidCallback? onBackToEncounters,
   String? bibleVersion,
   String? language,
+  bool showCompletionMessage = false,
 }) {
   switch (card.type) {
     case 'cinematic_scene':
@@ -1130,6 +1153,7 @@ Widget buildEncounterCardWidget(
         onBackToEncounters: onBackToEncounters,
         bibleVersion: bibleVersion,
         language: language,
+        showCompletionMessage: showCompletionMessage,
       );
     case 'interactive_moment':
       return InteractiveMomentCard(card: card);

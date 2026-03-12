@@ -194,6 +194,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       onBackToEncounters: _onCompleteEncounter,
                       bibleVersion: study.bibleVersion,
                       language: study.language,
+                      showCompletionMessage: state.isCompleted(widget.entry.id),
                     ),
                   );
                 },

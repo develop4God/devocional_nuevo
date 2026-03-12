@@ -15,9 +15,11 @@ import 'package:devocional_nuevo/services/connectivity_service.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart'; // NEW
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
+import 'package:devocional_nuevo/services/encounter_progress_service.dart';
 import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
 import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/i_connectivity_service.dart';
+import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:devocional_nuevo/services/i_google_drive_auth_service.dart';
 import 'package:devocional_nuevo/services/i_google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
@@ -110,6 +112,10 @@ Future<void> setupServiceLocator() async {
 
   locator.registerLazySingleton<EncounterRepository>(
     () => EncounterRepository(httpClient: locator.get<http.Client>()),
+  );
+
+  locator.registerLazySingleton<IEncounterProgressService>(
+    () => EncounterProgressService(),
   );
 
   locator.registerLazySingleton<DiscoveryProgressTracker>(

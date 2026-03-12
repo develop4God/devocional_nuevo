@@ -3,14 +3,16 @@
 // Persists completed encounter IDs to SharedPreferences,
 // mirroring the pattern used by DiscoveryProgressTracker.
 
+import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service to persist completed encounter study IDs.
-class EncounterProgressService {
+class EncounterProgressService implements IEncounterProgressService {
   static const String _completedKey = 'encounter_completed_ids';
 
   /// Returns the full set of completed encounter IDs.
+  @override
   Future<Set<String>> loadCompletedIds() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -25,6 +27,7 @@ class EncounterProgressService {
   }
 
   /// Marks an encounter as completed and persists the updated set.
+  @override
   Future<void> markCompleted(String encounterId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -40,12 +43,14 @@ class EncounterProgressService {
   }
 
   /// Returns true if the given encounter ID is completed.
+  @override
   Future<bool> isCompleted(String encounterId) async {
     final ids = await loadCompletedIds();
     return ids.contains(encounterId);
   }
 
   /// Resets progress for a specific encounter (removes from persisted set).
+  @override
   Future<void> resetProgress(String encounterId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -60,6 +65,7 @@ class EncounterProgressService {
   }
 
   /// Clears all persisted completion data (useful for testing/reset).
+  @override
   Future<void> clearAll() async {
     try {
       final prefs = await SharedPreferences.getInstance();
