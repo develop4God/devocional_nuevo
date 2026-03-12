@@ -67,7 +67,8 @@ class EncounterCard {
     return Constants.getEncounterImageUrl(raw, encounterId: encounterId);
   }
 
-  factory EncounterCard.fromJson(Map<String, dynamic> json, {required String encounterId}) {
+  factory EncounterCard.fromJson(Map<String, dynamic> json,
+      {required String encounterId}) {
     // Unknown type handling — never crash
     final String rawType = json['type'] as String? ?? 'unknown';
     const knownTypes = {
@@ -85,7 +86,8 @@ class EncounterCard {
       order: json['order'] as int? ?? 0,
       type: type,
       mood: json['mood'] as String?,
-      imageUrl: _resolveImageUrl(json['image_url'] as String?, encounterId: encounterId),
+      imageUrl: _resolveImageUrl(json['image_url'] as String?,
+          encounterId: encounterId),
       title: json['title'] as String?,
       narrative: json['narrative'] as String?,
       verseOverlay: json['verse_overlay'] != null

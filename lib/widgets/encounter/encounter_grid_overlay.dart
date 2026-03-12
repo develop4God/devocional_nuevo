@@ -269,7 +269,8 @@ class _EncounterGridCard extends StatelessWidget {
     final accentColor = _parseColor(entry.accentColor) ?? colorScheme.primary;
 
     final imageUrl = entry.introImage != null
-        ? Constants.getEncounterImageUrl(entry.introImage!, encounterId: entry.id)
+        ? Constants.getEncounterImageUrl(entry.introImage!,
+            encounterId: entry.id)
         : null;
 
     return Card(
