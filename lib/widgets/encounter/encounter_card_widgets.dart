@@ -803,23 +803,38 @@ class _CompletionCardState extends State<CompletionCard> {
                 child: SizedBox(
                   width: double.infinity,
                   height: 60,
-                  child: ElevatedButton(
+                  child: ElevatedButton.icon(
                     onPressed:
                         _showCompletionMessage ? null : _onCompleteButtonTapped,
+                    icon: _showCompletionMessage
+                        ? const Icon(Icons.verified_rounded,
+                            color: Colors.greenAccent, size: 20)
+                        : const SizedBox.shrink(),
+                    label: Text(
+                      _showCompletionMessage
+                          ? 'encounters.encounter_complete'.tr()
+                          : 'encounters.complete'.tr(),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2.0,
+                        color: _showCompletionMessage
+                            ? const Color(0xFFFFD700)
+                            : Colors.black,
+                      ),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _showCompletionMessage
-                          ? Colors.white24
+                          ? Colors.transparent
                           : Colors.white,
-                      foregroundColor: _showCompletionMessage
-                          ? Colors.white54
-                          : Colors.black,
+                      disabledBackgroundColor: Colors.transparent,
+                      disabledForegroundColor: const Color(0xFFFFD700),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                    ),
-                    child: Text(
-                      'encounters.complete'.tr(),
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w900, letterSpacing: 2.0),
+                        borderRadius: BorderRadius.circular(20),
+                        side: _showCompletionMessage
+                            ? const BorderSide(
+                                color: Color(0xFFFFD700), width: 1.5)
+                            : BorderSide.none,
+                      ),
                     ),
                   ),
                 ),
