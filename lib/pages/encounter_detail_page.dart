@@ -60,6 +60,50 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
     });
   }
 
+  void _exitWithTransition() {
+    HapticFeedback.mediumImpact();
+    final currentContext = context;
+
+    // Create fade and scale transition before exiting
+    showDialog(
+      context: currentContext,
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
+      builder: (BuildContext dialogContext) {
+        return AnimatedBuilder(
+          animation: AlwaysStoppedAnimation(0.0),
+          builder: (context, child) {
+            return TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInCubic,
+              onEnd: () {
+                Navigator.of(dialogContext).pop(); // Close dialog
+                Future.microtask(() {
+                  if (mounted && currentContext.mounted) {
+                    // ignore: use_build_context_synchronously
+                    Navigator.of(currentContext).pop(); // Exit page
+                  }
+                });
+              },
+              builder: (context, value, child) {
+                return FadeTransition(
+                  opacity: AlwaysStoppedAnimation(1.0 - value),
+                  child: ScaleTransition(
+                    scale: AlwaysStoppedAnimation(1.0 - (value * 0.05)),
+                    child: Container(
+                      color: Colors.transparent,
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -254,7 +298,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       Padding(
                         padding: const EdgeInsets.only(left: 12),
                         child: _ExitButton(
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: _exitWithTransition,
                         ),
                       )
                     else
