@@ -127,7 +127,7 @@ void main() {
         'verse_overlay': {'reference': 'Matt 14:24', 'text': 'buffeted'},
         'revelation_key': 'Faith first.',
       };
-      final card = EncounterCard.fromJson(json);
+      final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
       expect(card.order, 1);
       expect(card.type, 'cinematic_scene');
       expect(card.mood, 'tense');
@@ -147,7 +147,7 @@ void main() {
         ],
         'prayer': {'title': 'Prayer', 'content': 'Lord, help me...'},
       };
-      final card = EncounterCard.fromJson(json);
+      final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
       expect(card.type, 'discovery_activation');
       expect(card.discoveryQuestions?.length, 2);
       expect(card.prayer?.content, 'Lord, help me...');
@@ -161,7 +161,7 @@ void main() {
         'reflection_prompt': 'How did this change you?',
         'completion_verse': {'reference': 'Matt 14:33', 'text': 'Son of God'},
       };
-      final card = EncounterCard.fromJson(json);
+      final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
       expect(card.type, 'completion');
       expect(card.completionVerse?.reference, 'Matt 14:33');
       expect(card.reflectionPrompt, 'How did this change you?');
@@ -173,14 +173,14 @@ void main() {
         'type': 'some_future_unknown_type',
         'title': 'Future card',
       };
-      final card = EncounterCard.fromJson(json);
+      final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
       expect(card.type, equals('unknown'));
     });
 
     test('all optional fields are nullable — does not crash with nulls', () {
       final json = {'order': 1, 'type': 'cinematic_scene'};
-      expect(() => EncounterCard.fromJson(json), returnsNormally);
-      final card = EncounterCard.fromJson(json);
+      expect(() => EncounterCard.fromJson(json, encounterId: 'peter_water_001'), returnsNormally);
+      final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
       expect(card.mood, isNull);
       expect(card.imageUrl, isNull);
       expect(card.verseOverlay, isNull);
@@ -200,7 +200,7 @@ void main() {
       ];
       for (final type in types) {
         final json = {'order': 1, 'type': type};
-        expect(() => EncounterCard.fromJson(json), returnsNormally,
+        expect(() => EncounterCard.fromJson(json, encounterId: 'peter_water_001'), returnsNormally,
             reason: 'Type $type should not throw');
       }
     });

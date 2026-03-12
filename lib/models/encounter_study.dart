@@ -31,8 +31,9 @@ class EncounterStudy {
   int get cardCount => cards.length;
 
   factory EncounterStudy.fromJson(Map<String, dynamic> json) {
+    final encounterId = json['id'] as String? ?? '';
     return EncounterStudy(
-      id: json['id'] as String? ?? '',
+      id: encounterId,
       type: json['type'] as String?,
       schemaVersion: json['schema_version'] as String?,
       language: json['language'] as String?,
@@ -45,7 +46,7 @@ class EncounterStudy {
               json['key_verse'] as Map<String, dynamic>)
           : null,
       cards: (json['cards'] as List<dynamic>?)
-              ?.map((e) => EncounterCard.fromJson(e as Map<String, dynamic>))
+              ?.map((e) => EncounterCard.fromJson(e as Map<String, dynamic>, encounterId: encounterId))
               .toList() ??
           [],
     );

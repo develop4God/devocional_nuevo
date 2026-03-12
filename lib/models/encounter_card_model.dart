@@ -60,14 +60,14 @@ class EncounterCard {
   /// Resolves an image_url value from JSON:
   /// - Returns null if the value is null or empty.
   /// - Returns the value as-is if it already starts with 'http'.
-  /// - Otherwise treats it as a bare filename and builds the full raw GitHub URL.
-  static String? _resolveImageUrl(String? raw) {
+  /// - Otherwise resolves it using the encounter ID to build the GitHub URL.
+  static String? _resolveImageUrl(String? raw, {required String encounterId}) {
     if (raw == null || raw.isEmpty) return null;
     if (raw.startsWith('http')) return raw;
-    return Constants.getEncounterImageUrl(raw);
+    return Constants.getEncounterImageUrl(raw, encounterId: encounterId);
   }
 
-  factory EncounterCard.fromJson(Map<String, dynamic> json) {
+  factory EncounterCard.fromJson(Map<String, dynamic> json, {required String encounterId}) {
     // Unknown type handling — never crash
     final String rawType = json['type'] as String? ?? 'unknown';
     const knownTypes = {
@@ -85,7 +85,7 @@ class EncounterCard {
       order: json['order'] as int? ?? 0,
       type: type,
       mood: json['mood'] as String?,
-      imageUrl: _resolveImageUrl(json['image_url'] as String?),
+      imageUrl: _resolveImageUrl(json['image_url'] as String?, encounterId: encounterId),
       title: json['title'] as String?,
       narrative: json['narrative'] as String?,
       verseOverlay: json['verse_overlay'] != null

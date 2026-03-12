@@ -173,9 +173,26 @@ class Constants {
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/encounters/$lang/$file';
   }
 
-  /// Obtiene la URL de una imagen de Encounter
-  static String getEncounterImageUrl(String filename) {
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/$filename';
+  /// Obtiene la URL de una imagen de Encounter.
+  /// Las imágenes se organizan por encounter ID.
+  ///
+  /// Formato: /encounters/{encounterId}/{filename}
+  ///
+  /// Ejemplo:
+  ///   Constants.getEncounterImageUrl("peter_intro.jpg", encounterId: "peter_water_001")
+  ///   → /encounters/peter_water_001/peter_intro.jpg
+  static String getEncounterImageUrl(String filename, {required String encounterId}) {
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/$encounterId/$filename';
+  }
+
+  /// Genera la URL base para un directorio de encuentro específico.
+  /// Útil para precarga de múltiples imágenes de un encuentro.
+  ///
+  /// Ejemplo:
+  ///   Constants.getEncounterImageBaseUrl("peter_water_001")
+  ///   → /encounters/peter_water_001/
+  static String getEncounterImageBaseUrl(String encounterId) {
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/$encounterId/';
   }
 
   // ---------------------------------------------------------------------------
