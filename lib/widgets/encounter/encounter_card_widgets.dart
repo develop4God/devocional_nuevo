@@ -135,12 +135,14 @@ class _CardShell extends StatefulWidget {
   final String? mood;
   final String? icon;
   final List<Widget> children;
+  final bool showScrollIndicator;
 
   const _CardShell({
     this.imageUrl,
     this.mood,
     this.icon,
     required this.children,
+    this.showScrollIndicator = true,
   });
 
   @override
@@ -220,7 +222,7 @@ class _CardShellState extends State<_CardShell> {
             ),
 
             // Modern "Scroll for more" indicator
-            if (_canScroll && _isAtTop)
+            if (widget.showScrollIndicator && _canScroll && _isAtTop)
               Positioned(
                 bottom: 12,
                 left: 0,
@@ -708,6 +710,7 @@ class _CompletionCardState extends State<CompletionCard> {
     return _CardShell(
       imageUrl: widget.card.imageUrl,
       mood: widget.card.mood,
+      showScrollIndicator: false,
       children: [
         Center(
           child: Column(
@@ -716,7 +719,7 @@ class _CompletionCardState extends State<CompletionCard> {
               if (_showCompletionMessage)
                 const _DelayedEntry(
                   delay: Duration(milliseconds: 300),
-                  child: Icon(Icons.check_circle_outline,
+                  child: Icon(Icons.verified_rounded,
                       size: 80, color: Colors.greenAccent),
                 )
               else
