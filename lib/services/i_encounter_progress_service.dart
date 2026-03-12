@@ -5,5 +5,4 @@ abstract class IEncounterProgressService {
   Future<void> markCompleted(String encounterId);
   Future<bool> isCompleted(String encounterId);
   Future<void> resetProgress(String encounterId);
-  Future<void> clearAll();
 }

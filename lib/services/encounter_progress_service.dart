@@ -64,8 +64,8 @@ class EncounterProgressService implements IEncounterProgressService {
     }
   }
 
-  /// Clears all persisted completion data (useful for testing/reset).
-  @override
+  /// Clears all persisted completion data. Reserved for user-initiated
+  /// progress reset — not part of the public service contract.
   Future<void> clearAll() async {
     try {
       final prefs = await SharedPreferences.getInstance();
