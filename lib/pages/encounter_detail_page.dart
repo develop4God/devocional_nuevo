@@ -254,7 +254,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       Padding(
                         padding: const EdgeInsets.only(left: 12),
                         child: _ExitButton(
-                          onPressed: _onCompleteEncounter,
+                          onPressed: () => Navigator.of(context).pop(),
                         ),
                       )
                     else
