@@ -669,7 +669,7 @@ class DiscoveryActivationCard extends StatelessWidget {
   }
 }
 
-class CompletionCard extends StatelessWidget {
+class CompletionCard extends StatefulWidget {
   final EncounterCard card;
   final VoidCallback? onBackToEncounters;
   final String? bibleVersion;
@@ -684,37 +684,65 @@ class CompletionCard extends StatelessWidget {
   });
 
   @override
+  State<CompletionCard> createState() => _CompletionCardState();
+}
+
+class _CompletionCardState extends State<CompletionCard> {
+  bool _showCompletionMessage = false;
+
+  void _onCompleteButtonTapped() {
+    setState(() {
+      _showCompletionMessage = true;
+    });
+
+    // Call the callback after showing the message
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (widget.onBackToEncounters != null) {
+        widget.onBackToEncounters!();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return _CardShell(
-      imageUrl: card.imageUrl,
-      mood: card.mood,
+      imageUrl: widget.card.imageUrl,
+      mood: widget.card.mood,
       children: [
         Center(
           child: Column(
             children: [
-              const _DelayedEntry(
-                delay: Duration(milliseconds: 300),
-                child: Icon(Icons.check_circle_outline,
-                    size: 80, color: Colors.greenAccent),
-              ),
+              // Check icon - only show if _showCompletionMessage is true
+              if (_showCompletionMessage)
+                const _DelayedEntry(
+                  delay: Duration(milliseconds: 300),
+                  child: Icon(Icons.check_circle_outline,
+                      size: 80, color: Colors.greenAccent),
+                )
+              else
+                const SizedBox(height: 80), // Placeholder space when hidden
               const SizedBox(height: 24),
-              _DelayedEntry(
-                delay: const Duration(milliseconds: 400),
-                child: Text(
-                  'encounters.encounter_complete'.tr(),
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              if (card.completionVerse != null) ...[
+              // Completion text - only show if _showCompletionMessage is true
+              if (_showCompletionMessage)
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 400),
+                  child: Text(
+                    'encounters.encounter_complete'.tr(),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              else
+                const SizedBox(height: 0),
+              if (widget.card.completionVerse != null) ...[
                 const SizedBox(height: 24),
                 _DelayedEntry(
                   delay: const Duration(milliseconds: 500),
                   child: Text(
-                    '"${card.completionVerse!.text}"',
+                    '"${widget.card.completionVerse!.text}"',
                     style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 16,
@@ -726,7 +754,7 @@ class CompletionCard extends StatelessWidget {
                 _DelayedEntry(
                   delay: const Duration(milliseconds: 550),
                   child: Text(
-                    '— ${card.completionVerse!.reference}',
+                    '— ${widget.card.completionVerse!.reference}',
                     style: const TextStyle(
                         color: Colors.white60,
                         fontSize: 13,
@@ -734,12 +762,12 @@ class CompletionCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                if (card.completionVerse!.bibleVersion != null) ...[
+                if (widget.card.completionVerse!.bibleVersion != null) ...[
                   const SizedBox(height: 4),
                   _DelayedEntry(
                     delay: const Duration(milliseconds: 600),
                     child: Text(
-                      card.completionVerse!.bibleVersion!,
+                      widget.card.completionVerse!.bibleVersion!,
                       style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.4),
                           fontSize: 11,
@@ -750,36 +778,35 @@ class CompletionCard extends StatelessWidget {
                 ],
               ],
               const SizedBox(height: 48),
-              if (onBackToEncounters != null)
-                _DelayedEntry(
-                  delay: const Duration(milliseconds: 600),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 60,
-                    child: ElevatedButton(
-                      onPressed: onBackToEncounters,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20)),
-                      ),
-                      child: Text(
-                        'encounters.finish'.tr(),
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w900, letterSpacing: 2.0),
-                      ),
+              _DelayedEntry(
+                delay: const Duration(milliseconds: 600),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton(
+                    onPressed: _onCompleteButtonTapped,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
+                    ),
+                    child: Text(
+                      'encounters.complete'.tr(),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w900, letterSpacing: 2.0),
                     ),
                   ),
                 ),
+              ),
               // Bible version copyright disclaimer
-              if (bibleVersion != null) ...[
+              if (widget.bibleVersion != null) ...[
                 const SizedBox(height: 32),
                 _DelayedEntry(
                   delay: const Duration(milliseconds: 700),
                   child: _CopyrightDisclaimer(
-                    bibleVersion: bibleVersion!,
-                    language: language ?? 'en',
+                    bibleVersion: widget.bibleVersion!,
+                    language: widget.language ?? 'en',
                   ),
                 ),
               ],
