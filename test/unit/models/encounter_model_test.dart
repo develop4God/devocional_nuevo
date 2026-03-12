@@ -188,14 +188,22 @@ void main() {
     });
 
     test('imageUrl resolves bare filename using encounterId path', () {
-      final json = {'order': 1, 'type': 'cinematic_scene', 'image_url': 'peter_intro.jpg'};
+      final json = {
+        'order': 1,
+        'type': 'cinematic_scene',
+        'image_url': 'peter_intro.jpg'
+      };
       final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
       expect(card.imageUrl,
-        'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/peter_water_001/peter_intro.jpg');
+          'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/peter_water_001/peter_intro.jpg');
     });
 
     test('imageUrl passes through absolute URL unchanged', () {
-      final json = {'order': 1, 'type': 'cinematic_scene', 'image_url': 'https://example.com/img.jpg'};
+      final json = {
+        'order': 1,
+        'type': 'cinematic_scene',
+        'image_url': 'https://example.com/img.jpg'
+      };
       final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
       expect(card.imageUrl, 'https://example.com/img.jpg');
     });

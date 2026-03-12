@@ -186,7 +186,6 @@ class Constants {
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/$encounterId/$filename';
   }
 
-
   // ---------------------------------------------------------------------------
   // Prayer Wall
   // ---------------------------------------------------------------------------
