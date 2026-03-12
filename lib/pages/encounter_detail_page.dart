@@ -247,78 +247,23 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       visible: _currentIndex > 0,
                       onPressed: () => _swiperController.previous(),
                     ),
-                    // Completar/Salir button on last card
+                    // Spacer between prev and exit/next
+                    const Expanded(child: SizedBox.shrink()),
+                    // Exit/Next Button on right side with responsive sizing
                     if (isLast)
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: SizedBox(
-                            height: 48,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFFB8860B),
-                                    Color(0xFFFFD700),
-                                    Color(0xFFFFFFE0),
-                                    Color(0xFFFFD700),
-                                    Color(0xFFB8860B),
-                                  ],
-                                  stops: [0.0, 0.25, 0.5, 0.75, 1.0],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                ),
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFFFFD700)
-                                        .withValues(alpha: 0.4),
-                                    blurRadius: 12,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: _onCompleteEncounter,
-                                  borderRadius: BorderRadius.circular(24),
-                                  splashColor:
-                                      Colors.white.withValues(alpha: 0.2),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.check_circle_outline_rounded,
-                                        size: 18,
-                                        color: Color(0xFF0a0e1a),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'encounters.exit'.tr(),
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: 1.5,
-                                          color: Color(0xFF0a0e1a),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 12),
+                        child: _ExitButton(
+                          onPressed: _onCompleteEncounter,
                         ),
                       )
                     else
-                      const Expanded(child: SizedBox.shrink()),
-                    // Next Button (hidden on last card)
-                    _NavButton(
-                      icon: Icons.chevron_right,
-                      visible: !isLast,
-                      onPressed: () => _swiperController.next(),
-                    ),
+                      // Next Button (hidden on last card)
+                      _NavButton(
+                        icon: Icons.chevron_right,
+                        visible: !isLast,
+                        onPressed: () => _swiperController.next(),
+                      ),
                   ],
                 ),
               ),
@@ -409,6 +354,105 @@ class _NavButton extends StatelessWidget {
             icon,
             color: visible ? const Color(0xFF0a0e1a) : Colors.white30,
             size: 28,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ExitButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _ExitButton({
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Responsive sizing based on screen width
+    // Small devices (width < 600): compact size
+    // Medium devices (600-900): medium size
+    // Large devices (900+): larger size
+    final isSmallDevice = screenWidth < 600;
+    final isMediumDevice = screenWidth >= 600 && screenWidth < 900;
+
+    final buttonHeight = isSmallDevice
+        ? 42.0
+        : isMediumDevice
+            ? 46.0
+            : 50.0;
+    final iconSize = isSmallDevice
+        ? 16.0
+        : isMediumDevice
+            ? 18.0
+            : 20.0;
+    final fontSize = isSmallDevice
+        ? 11.0
+        : isMediumDevice
+            ? 12.0
+            : 13.0;
+    final horizontalPadding = isSmallDevice
+        ? 10.0
+        : isMediumDevice
+            ? 12.0
+            : 14.0;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFFB8860B),
+            Color(0xFFFFD700),
+            Color(0xFFFFFFE0),
+            Color(0xFFFFD700),
+            Color(0xFFB8860B),
+          ],
+          stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFFD700).withValues(alpha: 0.4),
+            blurRadius: 12,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(24),
+          splashColor: Colors.white.withValues(alpha: 0.2),
+          child: Container(
+            height: buttonHeight,
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.check_circle_outline_rounded,
+                  size: iconSize,
+                  color: const Color(0xFF0a0e1a),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'encounters.exit'.tr(),
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                    color: const Color(0xFF0a0e1a),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
