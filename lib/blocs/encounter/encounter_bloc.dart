@@ -5,13 +5,13 @@ import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
-import 'package:devocional_nuevo/services/encounter_progress_service.dart';
+import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
   final EncounterRepository repository;
-  final EncounterProgressService progressService;
+  final IEncounterProgressService progressService;
 
   bool _disposed = false;
 
