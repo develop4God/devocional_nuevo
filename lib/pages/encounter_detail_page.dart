@@ -202,7 +202,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
 
               // Progress Indicator (Lines) - Moved lower for better spacing
               Positioned(
-                top: 110,
+                top: 90,
                 left: 24,
                 right: 24,
                 child: Row(
