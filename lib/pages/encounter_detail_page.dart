@@ -259,7 +259,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                          color: const Color(0xFFFFD700).withValues(alpha: 0.7),
                           blurRadius: 8,
                           spreadRadius: 0,
                         ),
