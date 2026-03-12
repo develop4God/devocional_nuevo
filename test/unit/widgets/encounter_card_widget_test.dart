@@ -340,17 +340,22 @@ void main() {
         ),
       ),
     ));
-    // Multiple pumps to advance through staggered animations
-    for (var i = 0; i < 10; i++) {
+    // Wait for animations: button has 600ms delay + 600ms animation
+    for (var i = 0; i < 12; i++) {
       await tester.pump(const Duration(milliseconds: 200));
     }
 
-    // Find button by type since it doesn't have a key
-    final buttonFinder = find.byType(ElevatedButton);
+    // Find button - now it's ElevatedButton.icon, but we can find by predicate
+    final buttonFinder = find.byWidgetPredicate(
+      (widget) => widget is ElevatedButton,
+    );
     expect(buttonFinder, findsOneWidget);
 
     await tester.tap(buttonFinder);
     await tester.pump();
+
+    // Wait for the delayed callback (500ms)
+    await tester.pump(const Duration(milliseconds: 600));
 
     expect(called, isTrue);
   });
@@ -742,12 +747,21 @@ void main() {
 
       await tester.pump();
 
-      // Tap the complete button (TextButton with check icon)
+      // Wait for animations to complete (CompletionCard button has 600ms delay)
+      for (var i = 0; i < 12; i++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
+
+      // Tap the complete button (now it's ElevatedButton from CompletionCard)
       final completeBtn = find.byWidgetPredicate(
-        (w) => w is TextButton,
+        (w) => w is ElevatedButton,
       );
       expect(completeBtn, findsAtLeastNWidgets(1));
       await tester.tap(completeBtn.first);
+      await tester.pump();
+
+      // Wait for the CompletionCard's delayed callback (500ms) using real time
+      await Future.delayed(const Duration(milliseconds: 600));
       await tester.pump();
 
       // CompleteEncounter event must have been dispatched
