@@ -133,7 +133,8 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
 
     // Dynamic intro image from JSON schema
     final String? imageUrl = entry.introImage != null
-        ? Constants.getEncounterImageUrl(entry.introImage!, encounterId: entry.id)
+        ? Constants.getEncounterImageUrl(entry.introImage!,
+            encounterId: entry.id)
         : null;
 
     return Scaffold(

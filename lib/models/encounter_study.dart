@@ -46,7 +46,8 @@ class EncounterStudy {
               json['key_verse'] as Map<String, dynamic>)
           : null,
       cards: (json['cards'] as List<dynamic>?)
-              ?.map((e) => EncounterCard.fromJson(e as Map<String, dynamic>, encounterId: encounterId))
+              ?.map((e) => EncounterCard.fromJson(e as Map<String, dynamic>,
+                  encounterId: encounterId))
               .toList() ??
           [],
     );

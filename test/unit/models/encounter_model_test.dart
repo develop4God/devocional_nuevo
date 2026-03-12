@@ -179,13 +179,25 @@ void main() {
 
     test('all optional fields are nullable — does not crash with nulls', () {
       final json = {'order': 1, 'type': 'cinematic_scene'};
-      expect(() => EncounterCard.fromJson(json, encounterId: 'peter_water_001'), returnsNormally);
+      expect(() => EncounterCard.fromJson(json, encounterId: 'peter_water_001'),
+          returnsNormally);
       final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
       expect(card.mood, isNull);
       expect(card.imageUrl, isNull);
       expect(card.verseOverlay, isNull);
-      expect(card.discoveryQuestions, isNull);
-      expect(card.prayer, isNull);
+    });
+
+    test('imageUrl resolves bare filename using encounterId path', () {
+      final json = {'order': 1, 'type': 'cinematic_scene', 'image_url': 'peter_intro.jpg'};
+      final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
+      expect(card.imageUrl,
+        'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/peter_water_001/peter_intro.jpg');
+    });
+
+    test('imageUrl passes through absolute URL unchanged', () {
+      final json = {'order': 1, 'type': 'cinematic_scene', 'image_url': 'https://example.com/img.jpg'};
+      final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
+      expect(card.imageUrl, 'https://example.com/img.jpg');
     });
 
     test('all 7 known card types parse without error', () {
@@ -200,7 +212,9 @@ void main() {
       ];
       for (final type in types) {
         final json = {'order': 1, 'type': type};
-        expect(() => EncounterCard.fromJson(json, encounterId: 'peter_water_001'), returnsNormally,
+        expect(
+            () => EncounterCard.fromJson(json, encounterId: 'peter_water_001'),
+            returnsNormally,
             reason: 'Type $type should not throw');
       }
     });

@@ -297,7 +297,8 @@ class _EncounterCard extends StatelessWidget {
     final bool isNew = !isCompleted && !isToday;
 
     final imageUrl = entry.introImage != null
-        ? Constants.getEncounterImageUrl(entry.introImage!, encounterId: entry.id)
+        ? Constants.getEncounterImageUrl(entry.introImage!,
+            encounterId: entry.id)
         : null;
 
     return GestureDetector(

@@ -181,19 +181,11 @@ class Constants {
   /// Ejemplo:
   ///   Constants.getEncounterImageUrl("peter_intro.jpg", encounterId: "peter_water_001")
   ///   → /encounters/peter_water_001/peter_intro.jpg
-  static String getEncounterImageUrl(String filename, {required String encounterId}) {
+  static String getEncounterImageUrl(String filename,
+      {required String encounterId}) {
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/$encounterId/$filename';
   }
 
-  /// Genera la URL base para un directorio de encuentro específico.
-  /// Útil para precarga de múltiples imágenes de un encuentro.
-  ///
-  /// Ejemplo:
-  ///   Constants.getEncounterImageBaseUrl("peter_water_001")
-  ///   → /encounters/peter_water_001/
-  static String getEncounterImageBaseUrl(String encounterId) {
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/$encounterId/';
-  }
 
   // ---------------------------------------------------------------------------
   // Prayer Wall
