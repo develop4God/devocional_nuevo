@@ -152,8 +152,8 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                     icon: const Icon(Icons.refresh),
                     label: Text('encounters.retry'.tr()),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
+                      backgroundColor: Colors.white.withValues(alpha: 0.18),
+                      foregroundColor: Colors.black.withValues(alpha: 0.7),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 32, vertical: 16),
                     ),
@@ -355,13 +355,13 @@ class _NavButton extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: visible
-                ? const LinearGradient(
+                ? LinearGradient(
                     colors: [
-                      Color(0xFFB8860B),
-                      Color(0xFFFFD700),
-                      Color(0xFFFFFFE0),
-                      Color(0xFFFFD700),
-                      Color(0xFFB8860B),
+                      Color(0xFFB8860B).withValues(alpha: 0.35),
+                      Color(0xFFFFD700).withValues(alpha: 0.35),
+                      Color(0xFFFFFFE0).withValues(alpha: 0.25),
+                      Color(0xFFFFD700).withValues(alpha: 0.35),
+                      Color(0xFFB8860B).withValues(alpha: 0.35),
                     ],
                     stops: [0.0, 0.25, 0.5, 0.75, 1.0],
                     begin: Alignment.centerLeft,
@@ -369,27 +369,27 @@ class _NavButton extends StatelessWidget {
                   )
                 : LinearGradient(
                     colors: [
-                      const Color(0xFFB8860B).withValues(alpha: 0.6),
-                      const Color(0xFFFFD700).withValues(alpha: 0.7),
-                      const Color(0xFFFFFFE0).withValues(alpha: 0.6),
-                      const Color(0xFFFFD700).withValues(alpha: 0.7),
-                      const Color(0xFFB8860B).withValues(alpha: 0.6),
+                      Color(0xFFB8860B).withValues(alpha: 0.18),
+                      Color(0xFFFFD700).withValues(alpha: 0.18),
+                      Color(0xFFFFFFE0).withValues(alpha: 0.12),
+                      Color(0xFFFFD700).withValues(alpha: 0.18),
+                      Color(0xFFB8860B).withValues(alpha: 0.18),
                     ],
-                    stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
+                    stops: [0.0, 0.25, 0.5, 0.75, 1.0],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
             boxShadow: visible
                 ? [
                     BoxShadow(
-                      color: const Color(0xFFFFD700).withValues(alpha: 0.4),
+                      color: const Color(0xFFFFD700).withValues(alpha: 0.18),
                       blurRadius: 12,
                       spreadRadius: 1,
                     ),
                   ]
                 : [
                     BoxShadow(
-                      color: const Color(0xFFFFD700).withValues(alpha: 0.2),
+                      color: const Color(0xFFFFD700).withValues(alpha: 0.08),
                       blurRadius: 8,
                       spreadRadius: 1,
                     ),
@@ -397,7 +397,9 @@ class _NavButton extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            color: visible ? const Color(0xFF0a0e1a) : Colors.white30,
+            color: visible
+                ? const Color(0xFF0a0e1a).withValues(alpha: 0.7)
+                : Colors.white24,
             size: 28,
           ),
         ),
@@ -447,13 +449,13 @@ class _ExitButton extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: [
-            Color(0xFFB8860B),
-            Color(0xFFFFD700),
-            Color(0xFFFFFFE0),
-            Color(0xFFFFD700),
-            Color(0xFFB8860B),
+            Color(0xFFB8860B).withValues(alpha: 0.35),
+            Color(0xFFFFD700).withValues(alpha: 0.35),
+            Color(0xFFFFFFE0).withValues(alpha: 0.25),
+            Color(0xFFFFD700).withValues(alpha: 0.35),
+            Color(0xFFB8860B).withValues(alpha: 0.35),
           ],
           stops: [0.0, 0.25, 0.5, 0.75, 1.0],
           begin: Alignment.centerLeft,
@@ -462,7 +464,7 @@ class _ExitButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFFD700).withValues(alpha: 0.4),
+            color: const Color(0xFFFFD700).withValues(alpha: 0.18),
             blurRadius: 12,
             spreadRadius: 1,
           ),
@@ -473,7 +475,7 @@ class _ExitButton extends StatelessWidget {
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(24),
-          splashColor: Colors.white.withValues(alpha: 0.2),
+          splashColor: Colors.white.withValues(alpha: 0.12),
           child: Container(
             height: buttonHeight,
             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -484,7 +486,7 @@ class _ExitButton extends StatelessWidget {
                 Icon(
                   Icons.check_circle_outline_rounded,
                   size: iconSize,
-                  color: const Color(0xFF0a0e1a),
+                  color: const Color(0xFF0a0e1a).withValues(alpha: 0.7),
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -493,7 +495,7 @@ class _ExitButton extends StatelessWidget {
                     fontSize: fontSize,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.2,
-                    color: const Color(0xFF0a0e1a),
+                    color: const Color(0xFF0a0e1a).withValues(alpha: 0.7),
                   ),
                 ),
               ],
