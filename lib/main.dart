@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
+import 'package:devocional_nuevo/services/encounter_progress_service.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_event.dart';
@@ -167,8 +168,10 @@ void main() async {
           ),
         if (Constants.enableEncountersFeature)
           BlocProvider(
-            create: (context) =>
-                EncounterBloc(repository: getService<EncounterRepository>()),
+            create: (context) => EncounterBloc(
+              repository: getService<EncounterRepository>(),
+              progressService: EncounterProgressService(),
+            ),
           ),
         BlocProvider(
           create: (context) {

@@ -5,15 +5,20 @@ import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
+import 'package:devocional_nuevo/services/encounter_progress_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
   final EncounterRepository repository;
+  final EncounterProgressService progressService;
 
   bool _disposed = false;
 
-  EncounterBloc({required this.repository}) : super(EncounterInitial()) {
+  EncounterBloc({
+    required this.repository,
+    required this.progressService,
+  }) : super(EncounterInitial()) {
     on<LoadEncounterIndex>(_onLoadEncounterIndex);
     on<LoadEncounterStudy>(_onLoadEncounterStudy);
     on<CompleteEncounter>(_onCompleteEncounter);
@@ -35,7 +40,13 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
       final index =
           await repository.fetchIndex(forceRefresh: event.forceRefresh);
       debugPrint('🔵 [EncounterBloc] Index loaded: ${index.length} entries');
-      emit(EncounterLoaded(index: index));
+
+      // Load persisted completed IDs from SharedPreferences
+      final completedIds = await progressService.loadCompletedIds();
+      debugPrint(
+          '✅ [EncounterBloc] Restored ${completedIds.length} completed encounter(s) from storage');
+
+      emit(EncounterLoaded(index: index, completedIds: completedIds));
     } catch (e) {
       debugPrint('❌ [EncounterBloc] Error loading index: $e');
       emit(EncounterError('Error loading encounters: $e'));
@@ -74,7 +85,7 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
         event.id,
         event.lang,
         filename: event.filename ?? entry?.fileFor(event.lang),
-        entry: entry, // NEW — version signal, no extra network call
+        entry: entry, // version signal, no extra network call
       );
 
       if (_disposed) return;
@@ -106,16 +117,20 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
     }
   }
 
-  void _onCompleteEncounter(
+  Future<void> _onCompleteEncounter(
     CompleteEncounter event,
     Emitter<EncounterState> emit,
-  ) {
+  ) async {
     final currentState = state;
     if (currentState is EncounterLoaded) {
+      // Persist to SharedPreferences first
+      await progressService.markCompleted(event.id);
+
       final updated = Set<String>.from(currentState.completedIds);
       updated.add(event.id);
       emit(currentState.copyWith(completedIds: updated));
-      debugPrint('✅ [EncounterBloc] Encounter completed: ${event.id}');
+      debugPrint(
+          '✅ [EncounterBloc] Encounter completed and saved: ${event.id}');
     }
   }
 }
