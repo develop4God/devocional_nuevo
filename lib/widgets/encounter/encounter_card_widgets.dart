@@ -280,13 +280,13 @@ class _ScrollIndicatorState extends State<_ScrollIndicator>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       colors: [
-                        Color(0xFFB8860B),
-                        Color(0xFFFFD700),
-                        Color(0xFFFFFFE0),
-                        Color(0xFFFFD700),
-                        Color(0xFFB8860B),
+                        Color(0xFFB8860B).withValues(alpha: 0.18),
+                        Color(0xFFFFD700).withValues(alpha: 0.18),
+                        Color(0xFFFFFFE0).withValues(alpha: 0.12),
+                        Color(0xFFFFD700).withValues(alpha: 0.18),
+                        Color(0xFFB8860B).withValues(alpha: 0.18),
                       ],
                       stops: [0.0, 0.25, 0.5, 0.75, 1.0],
                       begin: Alignment.centerLeft,
@@ -295,7 +295,7 @@ class _ScrollIndicatorState extends State<_ScrollIndicator>
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                        color: const Color(0xFFFFD700).withValues(alpha: 0.08),
                         blurRadius: 8,
                         spreadRadius: 0,
                       ),
@@ -303,16 +303,20 @@ class _ScrollIndicatorState extends State<_ScrollIndicator>
                   ),
                   child: Text(
                     'encounters.scroll_for_more'.tr().toUpperCase(),
-                    style: const TextStyle(
-                        color: Color(0xFF0a0e1a),
-                        fontSize: 8,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.0),
+                    style: TextStyle(
+                      color: Color(0xFF0a0e1a).withValues(alpha: 0.7),
+                      fontSize: 8,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Icon(Icons.keyboard_arrow_down,
-                    color: Color(0xFFFFD700), size: 16),
+                Icon(
+                  Icons.keyboard_arrow_down,
+                  color: Color(0xFFFFD700).withValues(alpha: 0.7),
+                  size: 16,
+                ),
               ],
             ),
           ),
