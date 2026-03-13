@@ -1,6 +1,7 @@
 @Tags(['unit', 'models'])
 library;
 
+import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
@@ -279,6 +280,84 @@ void main() {
       final kv = EncounterKeyVerse.fromJson({});
       expect(kv.reference, isEmpty);
       expect(kv.text, isEmpty);
+    });
+  });
+
+  // ── EncounterLoaded.isUnlocked ─────────────────────────────────────────────
+
+  group('EncounterLoaded.isUnlocked', () {
+    /// Helper to build an EncounterIndexEntry stub.
+    EncounterIndexEntry makeEntry(String id, {String status = 'published'}) =>
+        EncounterIndexEntry(
+          id: id,
+          version: '1.0',
+          status: status,
+          files: {},
+          titles: {'en': id},
+          subtitles: {},
+          scriptureReference: {},
+          estimatedReadingMinutes: {},
+        );
+
+    test('position 0 (first published) is always unlocked', () {
+      final state = EncounterLoaded(
+        index: [makeEntry('enc_01'), makeEntry('enc_02')],
+        completedIds: const {},
+      );
+      expect(state.isUnlocked('enc_01'), isTrue);
+    });
+
+    test('position 1 returns false when position 0 is not completed', () {
+      final state = EncounterLoaded(
+        index: [makeEntry('enc_01'), makeEntry('enc_02')],
+        completedIds: const {}, // enc_01 not completed
+      );
+      expect(state.isUnlocked('enc_02'), isFalse);
+    });
+
+    test('position 1 returns true when position 0 is completed', () {
+      final state = EncounterLoaded(
+        index: [makeEntry('enc_01'), makeEntry('enc_02')],
+        completedIds: const {'enc_01'}, // enc_01 completed
+      );
+      expect(state.isUnlocked('enc_02'), isTrue);
+    });
+
+    test('coming_soon entry (not in published list) returns true', () {
+      final state = EncounterLoaded(
+        index: [
+          makeEntry('enc_01'),
+          makeEntry('coming_01', status: 'coming_soon'),
+        ],
+        completedIds: const {},
+      );
+      // coming_soon is not in the published list → position == -1 → unlocked
+      expect(state.isUnlocked('coming_01'), isTrue);
+    });
+
+    test('third entry locked when second not completed', () {
+      final state = EncounterLoaded(
+        index: [
+          makeEntry('enc_01'),
+          makeEntry('enc_02'),
+          makeEntry('enc_03'),
+        ],
+        completedIds: const {'enc_01'}, // enc_02 not yet completed
+      );
+      expect(state.isUnlocked('enc_02'), isTrue);
+      expect(state.isUnlocked('enc_03'), isFalse);
+    });
+
+    test('third entry unlocked when second is completed', () {
+      final state = EncounterLoaded(
+        index: [
+          makeEntry('enc_01'),
+          makeEntry('enc_02'),
+          makeEntry('enc_03'),
+        ],
+        completedIds: const {'enc_01', 'enc_02'},
+      );
+      expect(state.isUnlocked('enc_03'), isTrue);
     });
   });
 }

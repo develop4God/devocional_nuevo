@@ -480,6 +480,30 @@ class _DebugPageState extends State<DebugPage> {
     }
   }
 
+  Future<void> _resetEncounterWelcome() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('encounter_welcome_seen', false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('✅ Encounter welcome reset — will show on next visit'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      debugPrint('🔄 Encounter welcome reset: encounter_welcome_seen = false');
+    } catch (e) {
+      debugPrint('Error resetting encounter welcome: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!kDebugMode) {
@@ -694,6 +718,29 @@ class _DebugPageState extends State<DebugPage> {
                           'Toggle fallback OFF to test real network fetch.\n'
                           'If URL returns 404, fix path in GitHub repo.\n'
                           'Toggle back ON to use bundled asset while debugging.',
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.black54,
+                              fontStyle: FontStyle.italic),
+                        ),
+                        const SizedBox(height: 16),
+                        // Reset Encounter Welcome
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _resetEncounterWelcome,
+                            icon: const Icon(Icons.refresh, color: Colors.teal),
+                            label: const Text('Reset Welcome Screen',
+                                style: TextStyle(color: Colors.teal)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.teal),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Reset the encounter welcome dialog so it displays again\n'
+                          'on the next visit to the Encounters tab.',
                           style: TextStyle(
                               fontSize: 11,
                               color: Colors.black54,

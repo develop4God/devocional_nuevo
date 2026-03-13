@@ -8,20 +8,22 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_intro_page.dart';
+import 'package:devocional_nuevo/pages/encounters/encounter_welcome_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
-import 'package:flutter/services.dart';
-import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_grid_overlay.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EncountersListPage extends StatefulWidget {
   const EncountersListPage({super.key});
@@ -49,6 +51,18 @@ class _EncountersListPageState extends State<EncountersListPage>
       bloc.add(LoadEncounterIndex(languageCode: lang));
     }
     getService<AnalyticsService>().logEncounterAction(action: 'index_loaded');
+    _checkWelcomeSeen();
+  }
+
+  Future<void> _checkWelcomeSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    final seen = prefs.getBool('encounter_welcome_seen') ?? false;
+    if (!seen && mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const EncounterWelcomePage()),
+      );
+    }
   }
 
   @override
@@ -126,19 +140,74 @@ class _EncountersListPageState extends State<EncountersListPage>
           itemBuilder: (context, i) {
             if (i == 0) return _buildHeader();
             final entry = state.index[i - 1];
+            final isUnlocked = state.isUnlocked(entry.id);
+            final isCompleted = state.isCompleted(entry.id);
+
+            final card = _EncounterCard(
+              entry: entry,
+              lang: lang,
+              isCompleted: isCompleted,
+              onTap: (entry.isPublished && isUnlocked)
+                  ? () {
+                      setState(() => _currentIndex = i - 1);
+                      _openEncounter(entry, lang);
+                    }
+                  : null,
+            );
+
+            Widget cardWidget;
+            if (entry.isPublished && !isUnlocked) {
+              // Locked: dim + dark overlay with lock icon
+              cardWidget = Stack(
+                children: [
+                  Opacity(opacity: 0.4, child: card),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.55),
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.lock_rounded,
+                          color: Colors.white70,
+                          size: 36,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            } else if (isCompleted) {
+              // Completed: gold checkmark badge top-right
+              cardWidget = Stack(
+                children: [
+                  card,
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF0a0e1a),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check_circle_rounded,
+                        color: Color(0xFFFFD700),
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              cardWidget = card;
+            }
+
             return Padding(
               padding: const EdgeInsets.only(bottom: 24),
-              child: _EncounterCard(
-                entry: entry,
-                lang: lang,
-                isCompleted: state.isCompleted(entry.id),
-                onTap: entry.isPublished
-                    ? () {
-                        setState(() => _currentIndex = i - 1);
-                        _openEncounter(entry, lang);
-                      }
-                    : null,
-              ),
+              child: cardWidget,
             );
           },
         ),
@@ -396,8 +465,8 @@ class _EncounterCard extends StatelessWidget {
                         else if (isToday)
                           _StatusBadge(
                             label: 'encounters.badge_today'.tr().toUpperCase(),
-                            icon: Icons.stars_outlined,
-                            color: const Color(0xFFFF8F00),
+                            icon: Icons.auto_awesome_rounded,
+                            color: Colors.yellowAccent,
                           )
                         else if (isNew)
                           _StatusBadge(
