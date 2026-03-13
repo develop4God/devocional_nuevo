@@ -421,44 +421,58 @@ class _EncounterCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const Spacer(),
-                    // Title
-                    Text(
-                      entry.titleFor(lang),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 30,
-                        fontWeight: FontWeight.w900,
-                        height: 1.0,
-                        letterSpacing: -1.0,
+                    // Main content area wrapped in Expanded to prevent overflow
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          // Title
+                          Text(
+                            entry.titleFor(lang),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.w900,
+                              height: 1.0,
+                              letterSpacing: -1.0,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          // Subtitle
+                          Text(
+                            entry.subtitleFor(lang),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.95),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              height: 1.3,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          // Meta row
+                          Row(
+                            children: [
+                              Flexible(
+                                child: _MetaInfo(
+                                  icon: Icons.timer,
+                                  text:
+                                      '${entry.readingMinutesFor(lang)} ${'discovery.minutes_suffix'.tr()}',
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              Flexible(
+                                child: _MetaInfo(
+                                  icon: Icons.auto_stories_outlined,
+                                  text: entry.scriptureFor(lang).toUpperCase(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Subtitle
-                    Text(
-                      entry.subtitleFor(lang),
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.95),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        height: 1.3,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Meta row
-                    Row(
-                      children: [
-                        _MetaInfo(
-                          icon: Icons.timer,
-                          text:
-                              '${entry.readingMinutesFor(lang)} ${'discovery.minutes_suffix'.tr()}',
-                        ),
-                        const SizedBox(width: 24),
-                        _MetaInfo(
-                          icon: Icons.auto_stories_outlined,
-                          text: entry.scriptureFor(lang).toUpperCase(),
-                        ),
-                      ],
                     ),
                   ],
                 ),
@@ -555,16 +569,21 @@ class _MetaInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, color: Colors.white70, size: 14),
         const SizedBox(width: 6),
-        Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
+        Flexible(
+          child: Text(
+            text,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
           ),
         ),
       ],
