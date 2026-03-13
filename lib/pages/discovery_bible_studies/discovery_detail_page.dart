@@ -18,8 +18,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 
-import '../blocs/theme/theme_bloc.dart';
-import '../blocs/theme/theme_state.dart';
+import '../../blocs/theme/theme_bloc.dart';
+import '../../blocs/theme/theme_state.dart';
 
 /// Detail page for viewing a specific Discovery study
 class DiscoveryDetailPage extends StatefulWidget {

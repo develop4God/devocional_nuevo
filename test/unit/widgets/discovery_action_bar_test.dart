@@ -12,7 +12,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
-import 'package:devocional_nuevo/pages/discovery_detail_page.dart';
+import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
