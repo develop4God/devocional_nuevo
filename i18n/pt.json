@@ -795,8 +795,13 @@
     "all_encounters": "Todos os Encontros",
     "no_encounters_found": "Nenhum encontro encontrado",
     "current": "Atual",
-    "complete": "COMPLETAR",
-    "exit": "SAIR"
+    "complete": "CONCLUIR",
+    "exit": "SAIR",
+    "welcome_title_line1": "Eles encontraram.",
+    "welcome_title_line2": "Foram transformados para sempre.",
+    "welcome_title_line3": "O mesmo Jesus. Aqui. Agora.",
+    "welcome_subtitle": "Histórias reais. O verdadeiro Jesus.",
+    "welcome_button": "Começar"
   },
   "tags": {
     "love": "Amor",
