@@ -540,6 +540,32 @@ class _EncounterCard extends StatelessWidget {
                               ),
                             ],
                           ),
+                          // Release date for coming_soon cards
+                          if (!isPublished &&
+                              entry.releaseDateFor(lang) != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.calendar_month_outlined,
+                                    color: Color(0xFFFFD700),
+                                    size: 13,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    entry.releaseDateFor(lang)!,
+                                    style: const TextStyle(
+                                      color: Color(0xFFFFD700),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                         ],
                       ),
                     ),

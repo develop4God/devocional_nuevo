@@ -34,6 +34,13 @@ class EncounterIndexEntry {
 
   /// Filename for the cinematic intro background image (bare filename, resolved via CDN).
   final String? introImage;
+
+  /// Optional multilingual release hints shown on coming_soon cards.
+  /// Maps language codes to human-readable release dates or labels
+  /// (e.g., {"es": "Próxima semana", "en": "Next week"}).
+  /// Empty map means no date is shown.
+  final Map<String, String> releaseDate;
+
   final Map<String, String> files;
   final Map<String, String> titles;
   final Map<String, String> subtitles;
@@ -51,6 +58,7 @@ class EncounterIndexEntry {
     this.testament,
     this.character,
     this.introImage,
+    this.releaseDate = const {},
     required this.files,
     required this.titles,
     required this.subtitles,
@@ -79,6 +87,15 @@ class EncounterIndexEntry {
       5;
 
   String? fileFor(String lang) => files[lang] ?? files['en'];
+
+  /// Returns the release hint for [lang], falling back to 'en',
+  /// then any available value. Returns null if map is empty.
+  String? releaseDateFor(String lang) {
+    if (releaseDate.isEmpty) return null;
+    return releaseDate[lang] ??
+        releaseDate['en'] ??
+        releaseDate.values.firstOrNull;
+  }
 
   factory EncounterIndexEntry.fromJson(Map<String, dynamic> json) {
     Map<String, String> toStringMap(dynamic raw) {
@@ -117,6 +134,7 @@ class EncounterIndexEntry {
       testament: json['testament'] as String?,
       character: json['character'] as String?,
       introImage: json['intro_image'] as String?,
+      releaseDate: toStringMap(json['release_date']),
       files: toStringMap(json['files']),
       titles: toStringMap(json['titles']),
       subtitles: toStringMap(json['subtitles']),
@@ -136,6 +154,7 @@ class EncounterIndexEntry {
         'testament': testament,
         'character': character,
         'intro_image': introImage,
+        'release_date': releaseDate.isEmpty ? null : releaseDate,
         'files': files,
         'titles': titles,
         'subtitles': subtitles,
