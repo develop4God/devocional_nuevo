@@ -39,7 +39,6 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
   late Animation<double> _imageOpacity;
   late Animation<double> _contentFade;
   late Animation<Offset> _contentSlide;
-  late Animation<double> _emojiScale;
 
   @override
   void initState() {
@@ -55,13 +54,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
       curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
     );
 
-    // 2. Hero Emoji pops up slightly after
-    _emojiScale = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.2, 0.7, curve: Curves.easeOutBack),
-    );
-
-    // 3. Content area slides and fades in last
+    // 2. Content area slides and fades in
     _contentFade = CurvedAnimation(
       parent: _controller,
       curve: const Interval(0.5, 0.9, curve: Curves.easeIn),
