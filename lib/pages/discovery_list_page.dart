@@ -9,7 +9,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
-import 'package:devocional_nuevo/pages/discovery_detail_page.dart';
+import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_detail_page.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
