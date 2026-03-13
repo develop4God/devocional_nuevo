@@ -254,11 +254,18 @@ class DeepLinkHandler {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
 
-      // Push PrayerWallPage
+      // Push PrayerWallPage (don't await - allows function to return immediately)
       final route = MaterialPageRoute(
         builder: (_) => const PrayerWallPage(),
       );
-      await Navigator.of(context).push(route);
+      Navigator.of(context).push(route);
+
+      developer.log(
+        'Navigated to prayer wall page',
+        name: 'DeepLinkHandler',
+      );
+
+      return true;
     } catch (e) {
       developer.log(
         'Navigation error: $e',
@@ -267,13 +274,6 @@ class DeepLinkHandler {
       );
       return false;
     }
-
-    developer.log(
-      'Navigated to prayer wall page',
-      name: 'DeepLinkHandler',
-    );
-
-    return true;
   }
 
   /// Handle testimonies deep link
