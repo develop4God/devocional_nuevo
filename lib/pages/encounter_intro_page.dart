@@ -224,34 +224,6 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                       children: [
                         const Spacer(),
 
-                        // Hero Emoji Badge
-                        ScaleTransition(
-                          scale: _emojiScale,
-                          child: Hero(
-                            tag: 'encounter_emoji_${entry.id}',
-                            child: Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.1)),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: accentColor.withValues(alpha: 0.3),
-                                    blurRadius: 40,
-                                    spreadRadius: 5,
-                                  ),
-                                ],
-                              ),
-                              child: Text(
-                                entry.emoji ?? '✨',
-                                style: const TextStyle(fontSize: 64),
-                              ),
-                            ),
-                          ),
-                        ),
-
                         const SizedBox(height: 40),
 
                         // Text Reveal Section
