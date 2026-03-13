@@ -8,6 +8,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_intro_page.dart';
@@ -16,6 +17,8 @@ import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:flutter/services.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_grid_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -70,39 +73,42 @@ class _EncountersListPageState extends State<EncountersListPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
-    return PopScope(
-      canPop: !_showGridOverlay,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        if (_showGridOverlay) _toggleGridOverlay();
-      },
-      child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0a0e1a) : Colors.grey[50],
-        appBar: CustomAppBar(
-          titleText: 'encounters.section_title'.tr(),
-        ),
-        body: BlocBuilder<EncounterBloc, EncounterState>(
-          builder: (context, state) {
-            if (state is EncounterLoading || state is EncounterInitial) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (state is EncounterError) {
-              return _buildError(state.message);
-            }
-
-            if (state is EncounterLoaded) {
-              if (state.index.isEmpty) {
-                return _buildEmpty();
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: themeState.systemUiOverlayStyle,
+      child: PopScope(
+        canPop: !_showGridOverlay,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          if (_showGridOverlay) _toggleGridOverlay();
+        },
+        child: Scaffold(
+          appBar: CustomAppBar(titleText: 'encounters.section_title'.tr()),
+          backgroundColor: colorScheme.brightness == Brightness.dark
+              ? const Color(0xFF0a0e1a)
+              : Colors.grey[50],
+          body: BlocBuilder<EncounterBloc, EncounterState>(
+            builder: (context, state) {
+              if (state is EncounterLoading || state is EncounterInitial) {
+                return const Center(child: CircularProgressIndicator());
               }
-              return _buildContent(state);
-            }
 
-            return const SizedBox.shrink();
-          },
+              if (state is EncounterError) {
+                return _buildError(state.message);
+              }
+
+              if (state is EncounterLoaded) {
+                if (state.index.isEmpty) {
+                  return _buildEmpty();
+                }
+                return _buildContent(state);
+              }
+
+              return const SizedBox.shrink();
+            },
+          ),
         ),
       ),
     );
