@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/main.dart';
-import 'package:devocional_nuevo/pages/encounters_list_page.dart';
+import 'package:devocional_nuevo/pages/encounters/encounters_list_page.dart';
 import 'package:devocional_nuevo/pages/prayer_wall_page.dart';
 import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:flutter/material.dart';
