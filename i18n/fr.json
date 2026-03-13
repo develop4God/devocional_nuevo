@@ -796,7 +796,12 @@
     "no_encounters_found": "Aucune rencontre trouvée",
     "current": "Actuel",
     "complete": "TERMINER",
-    "exit": "QUITTER"
+    "exit": "QUITTER",
+    "welcome_title_line1": "Ils l'ont trouvé.",
+    "welcome_title_line2": "Transformés pour toujours.",
+    "welcome_title_line3": "Le même Jésus. Ici. Maintenant.",
+    "welcome_subtitle": "Des histoires vraies. Le vrai Jésus.",
+    "welcome_button": "Commencer"
   },
   "tags": {
     "love": "Amour",

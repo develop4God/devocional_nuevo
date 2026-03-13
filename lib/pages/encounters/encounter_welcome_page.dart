@@ -7,6 +7,7 @@
 // After tapping "Comenzar", SharedPreferences key 'encounter_welcome_seen'
 // is set to true and this page is never shown again.
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/encounters/encounters_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -143,9 +144,9 @@ class _EncounterWelcomePageState extends State<EncounterWelcomePage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Line 1
-                          const Text(
-                            'Ellos lo encontraron.',
-                            style: TextStyle(
+                          Text(
+                            'encounters.welcome_title_line1'.tr(),
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 38,
                               fontWeight: FontWeight.w900,
@@ -157,9 +158,9 @@ class _EncounterWelcomePageState extends State<EncounterWelcomePage>
                           const SizedBox(height: 8),
 
                           // Line 2
-                          const Text(
-                            'Cambiaron para siempre.',
-                            style: TextStyle(
+                          Text(
+                            'encounters.welcome_title_line2'.tr(),
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 38,
                               fontWeight: FontWeight.w900,
@@ -171,9 +172,9 @@ class _EncounterWelcomePageState extends State<EncounterWelcomePage>
                           const SizedBox(height: 8),
 
                           // Line 3 — gold accent
-                          const Text(
-                            'El mismo Jesús. Aquí. Ahora.',
-                            style: TextStyle(
+                          Text(
+                            'encounters.welcome_title_line3'.tr(),
+                            style: const TextStyle(
                               color: Color(0xFFFFD700),
                               fontSize: 38,
                               fontWeight: FontWeight.w900,
@@ -186,7 +187,7 @@ class _EncounterWelcomePageState extends State<EncounterWelcomePage>
 
                           // Subtitle
                           Text(
-                            'Historias reales. El Jesús real.',
+                            'encounters.welcome_subtitle'.tr(),
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.6),
                               fontSize: 16,
@@ -248,10 +249,10 @@ class _EncounterWelcomePageState extends State<EncounterWelcomePage>
                             borderRadius: BorderRadius.circular(24),
                             splashColor: Colors.white.withValues(alpha: 0.3),
                             highlightColor: Colors.white.withValues(alpha: 0.1),
-                            child: const Center(
+                            child: Center(
                               child: Text(
-                                'COMENZAR',
-                                style: TextStyle(
+                                'encounters.welcome_button'.tr(),
+                                style: const TextStyle(
                                   color: Color(0xFF0a0e1a),
                                   fontWeight: FontWeight.w900,
                                   fontSize: 16,

@@ -796,7 +796,12 @@
     "no_encounters_found": "出会いが見つかりません",
     "current": "現在",
     "complete": "完了",
-    "exit": "終了"
+    "exit": "終了",
+    "welcome_title_line1": "彼らは彼を見つけました。",
+    "welcome_title_line2": "永遠に変わりました。",
+    "welcome_title_line3": "同じイエス。ここに。今。",
+    "welcome_subtitle": "実話。本物のイエス。",
+    "welcome_button": "始める"
   },
   "tags": {
     "love": "愛",

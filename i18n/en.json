@@ -796,7 +796,12 @@
     "no_encounters_found": "No encounters found",
     "current": "Current",
     "complete": "COMPLETE",
-    "exit": "EXIT"
+    "exit": "EXIT",
+    "welcome_title_line1": "They found Him.",
+    "welcome_title_line2": "Changed forever.",
+    "welcome_title_line3": "The same Jesus. Here. Now.",
+    "welcome_subtitle": "Real stories. The real Jesus.",
+    "welcome_button": "Begin"
   },
   "tags": {
     "love": "Love",

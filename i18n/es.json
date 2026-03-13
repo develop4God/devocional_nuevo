@@ -796,7 +796,12 @@
     "no_encounters_found": "No se encontraron encuentros",
     "current": "Actual",
     "complete": "COMPLETAR",
-    "exit": "SALIR"
+    "exit": "SALIR",
+    "welcome_title_line1": "Ellos lo encontraron.",
+    "welcome_title_line2": "Cambiaron para siempre.",
+    "welcome_title_line3": "El mismo Jesús. Aquí. Ahora.",
+    "welcome_subtitle": "Historias reales. El Jesús real.",
+    "welcome_button": "Comenzar"
   },
   "tags": {
     "love": "Amor",

@@ -792,11 +792,16 @@
     "encounter_started": "相遇已开始",
     "all": "全部",
     "pending": "待处理",
-    "all_encounters": "全部相遇",
-    "no_encounters_found": "未找到相遇",
+    "all_encounters": "所有邂逅",
+    "no_encounters_found": "未找到邂逅",
     "current": "当前",
     "complete": "完成",
-    "exit": "退出"
+    "exit": "退出",
+    "welcome_title_line1": "他们找到了他。",
+    "welcome_title_line2": "永远改变了。",
+    "welcome_title_line3": "同样的耶稣。这里。现在。",
+    "welcome_subtitle": "真实的故事。真实的耶稣。",
+    "welcome_button": "开始"
   },
   "tags": {
     "love": "爱",
@@ -915,8 +920,8 @@
   },
   "prayer_wall": {
     "title": "祷告墙",
-    "submit": "分享祷告请求",
-    "submit_title": "分享祷告请求",
+    "submit": "分享一个祷告请求",
+    "submit_title": "分享一个祷告请求",
     "submit_placeholder": "主啊，我祈求...",
     "pending": "审核中 🙏",
     "rejected_message": "您的祷告目前无法分享。",
