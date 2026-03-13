@@ -10,7 +10,7 @@ import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
-import 'package:devocional_nuevo/pages/encounter_intro_page.dart';
+import 'package:devocional_nuevo/pages/encounters/encounter_intro_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';

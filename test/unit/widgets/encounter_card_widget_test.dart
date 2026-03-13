@@ -15,8 +15,8 @@ import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
-import 'package:devocional_nuevo/pages/encounter_detail_page.dart';
-import 'package:devocional_nuevo/pages/encounters_list_page.dart';
+import 'package:devocional_nuevo/pages/encounters/encounter_detail_page.dart';
+import 'package:devocional_nuevo/pages/encounters/encounters_list_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -131,6 +131,7 @@ void _setupFirebaseMocks() {
 
 class _MockEncounterBloc extends Fake implements EncounterBloc {
   final EncounterState _s;
+
   _MockEncounterBloc(this._s);
 
   @override
