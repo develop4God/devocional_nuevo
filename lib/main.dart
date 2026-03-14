@@ -18,6 +18,7 @@ import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/pages/encounters/encounters_list_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
@@ -171,6 +172,7 @@ void main() async {
             create: (context) => EncounterBloc(
               repository: getService<EncounterRepository>(),
               progressService: getService<IEncounterProgressService>(),
+              cacheManager: getService<BaseCacheManager>(),
             ),
           ),
         BlocProvider(

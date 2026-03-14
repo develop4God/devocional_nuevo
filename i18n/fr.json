@@ -771,6 +771,7 @@
     "empty_title": "Aucune rencontre disponible pour l'instant.",
     "empty_subtitle": "Revenez bientôt pour de nouvelles expériences immersives.",
     "error_load": "Impossible de charger les rencontres. Veuillez réessayer.",
+    "complete_to_unlock": "Complétez pour accéder : {title}",
     "retry": "Réessayer",
     "coming_soon": "BIENTÔT DISPONIBLE",
     "badge_completed": "Terminé",

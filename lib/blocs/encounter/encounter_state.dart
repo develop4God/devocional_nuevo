@@ -48,6 +48,14 @@ class EncounterLoaded extends EncounterState with EquatableMixin {
     return completedIds.contains(previous.id);
   }
 
+  /// Returns the encounter that must be completed to unlock [encounterId].
+  EncounterIndexEntry? getPrerequisite(String encounterId) {
+    final published = index.where((e) => e.status == 'published').toList();
+    final position = published.indexWhere((e) => e.id == encounterId);
+    if (position <= 0) return null;
+    return published[position - 1];
+  }
+
   EncounterLoaded copyWith({
     List<EncounterIndexEntry>? index,
     Map<String, EncounterStudy>? loadedStudies,

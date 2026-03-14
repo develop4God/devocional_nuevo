@@ -9,14 +9,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service to persist completed encounter study IDs.
 class EncounterProgressService implements IEncounterProgressService {
-  static const String _completedKey = 'encounter_completed_ids';
-
   /// Returns the full set of completed encounter IDs.
   @override
   Future<Set<String>> loadCompletedIds() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final list = prefs.getStringList(_completedKey) ?? [];
+      final list =
+          prefs.getStringList(IEncounterProgressService.completedIdsKey) ?? [];
       debugPrint(
           '✅ [EncounterProgress] Loaded ${list.length} completed encounter(s)');
       return list.toSet();
@@ -31,10 +30,13 @@ class EncounterProgressService implements IEncounterProgressService {
   Future<void> markCompleted(String encounterId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final existing = (prefs.getStringList(_completedKey) ?? []).toSet();
+      final existing =
+          (prefs.getStringList(IEncounterProgressService.completedIdsKey) ?? [])
+              .toSet();
       if (existing.contains(encounterId)) return; // already saved
       existing.add(encounterId);
-      await prefs.setStringList(_completedKey, existing.toList());
+      await prefs.setStringList(
+          IEncounterProgressService.completedIdsKey, existing.toList());
       debugPrint(
           '✅ [EncounterProgress] Encounter marked as completed: $encounterId');
     } catch (e) {
@@ -54,9 +56,12 @@ class EncounterProgressService implements IEncounterProgressService {
   Future<void> resetProgress(String encounterId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final existing = (prefs.getStringList(_completedKey) ?? []).toSet();
+      final existing =
+          (prefs.getStringList(IEncounterProgressService.completedIdsKey) ?? [])
+              .toSet();
       existing.remove(encounterId);
-      await prefs.setStringList(_completedKey, existing.toList());
+      await prefs.setStringList(
+          IEncounterProgressService.completedIdsKey, existing.toList());
       debugPrint(
           '♻️ [EncounterProgress] Progress reset for encounter: $encounterId');
     } catch (e) {
@@ -69,7 +74,7 @@ class EncounterProgressService implements IEncounterProgressService {
   Future<void> clearAll() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_completedKey);
+      await prefs.remove(IEncounterProgressService.completedIdsKey);
       debugPrint('♻️ [EncounterProgress] All encounter progress cleared');
     } catch (e) {
       debugPrint('❌ [EncounterProgress] Error clearing all progress: $e');

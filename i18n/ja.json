@@ -771,6 +771,7 @@
     "empty_title": "まだ利用できる体験はありません。",
     "empty_subtitle": "新しいイマーシブ体験が近日公開予定です。",
     "error_load": "体験を読み込めませんでした。もう一度お試しください。",
+    "complete_to_unlock": "アクセスするには完了してください：{title}",
     "retry": "再試行",
     "coming_soon": "近日公開",
     "badge_completed": "完了",
