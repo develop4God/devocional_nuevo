@@ -298,6 +298,84 @@ void main() {
       );
     });
 
+    // ── BaseCacheManager DI registration ────────────────────────────────
+
+    test('BaseCacheManager is registered as lazy singleton in ServiceLocator',
+        () async {
+      final file = File('lib/services/service_locator.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'ServiceLocator source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('registerLazySingleton<BaseCacheManager>'),
+        isTrue,
+        reason:
+            'BaseCacheManager should be registered as lazy singleton in ServiceLocator',
+      );
+
+      expect(
+        content.contains('DefaultCacheManager()'),
+        isTrue,
+        reason:
+            'BaseCacheManager should be instantiated as DefaultCacheManager in ServiceLocator',
+      );
+    });
+
+    test('BaseCacheManager is injected into EncounterBloc constructor',
+        () async {
+      final file = File('lib/blocs/encounter/encounter_bloc.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'EncounterBloc source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('final BaseCacheManager cacheManager'),
+        isTrue,
+        reason: 'EncounterBloc should have BaseCacheManager field',
+      );
+
+      expect(
+        content.contains('required this.cacheManager'),
+        isTrue,
+        reason:
+            'EncounterBloc constructor should require cacheManager parameter',
+      );
+    });
+
+    test('EncounterBloc does not create DefaultCacheManager instances directly',
+        () async {
+      final file = File('lib/blocs/encounter/encounter_bloc.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'EncounterBloc source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('DefaultCacheManager()'),
+        isFalse,
+        reason:
+            'EncounterBloc should not create DefaultCacheManager instances directly',
+      );
+
+      expect(
+        content.contains('cacheManager.downloadFile'),
+        isTrue,
+        reason: 'EncounterBloc should use injected cacheManager for downloads',
+      );
+    });
+
     test('EncounterProgressService does not use static singleton antipattern',
         () async {
       final file = File('lib/services/encounter_progress_service.dart');

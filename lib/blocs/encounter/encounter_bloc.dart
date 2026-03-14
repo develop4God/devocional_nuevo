@@ -3,21 +3,25 @@
 import 'package:collection/collection.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
+import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
   final EncounterRepository repository;
   final IEncounterProgressService progressService;
+  final BaseCacheManager cacheManager;
 
   bool _disposed = false;
 
   EncounterBloc({
     required this.repository,
     required this.progressService,
+    required this.cacheManager,
   }) : super(EncounterInitial()) {
     on<LoadEncounterIndex>(_onLoadEncounterIndex);
     on<LoadEncounterStudy>(_onLoadEncounterStudy);
@@ -47,10 +51,78 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
           '✅ [EncounterBloc] Restored ${completedIds.length} completed encounter(s) from storage');
 
       emit(EncounterLoaded(index: index, completedIds: completedIds));
+
+      // Background: warm image cache for first published encounter
+      // so images are ready when the user opens the reader.
+      _preloadFirstEncounterImages(index, event.languageCode ?? 'es');
     } catch (e) {
       debugPrint('❌ [EncounterBloc] Error loading index: $e');
       emit(EncounterError('Error loading encounters: $e'));
     }
+  }
+
+  /// Downloads card images for the first published encounter into the
+  /// disk cache ([DefaultCacheManager]) so they are served instantly from
+  /// cache when [CachedNetworkImage] first renders them.
+  ///
+  /// Runs entirely in the background — never emits a state.
+  void _preloadFirstEncounterImages(
+    List<EncounterIndexEntry> index,
+    String lang,
+  ) {
+    if (index.isEmpty) return;
+
+    Future.microtask(() async {
+      if (_disposed) return;
+      try {
+        final first = index.firstWhere(
+          (e) => e.status == 'published',
+          orElse: () => index.first,
+        );
+
+        debugPrint(
+            '🖼️ [EncounterBloc] BG: preloading images for ${first.id} [$lang]…');
+
+        final filename =
+            first.files[lang] ?? first.files['en'] ?? '${first.id}_$lang.json';
+
+        // Fetch study (also warms the SharedPrefs JSON cache as a side-effect)
+        final EncounterStudy study = await repository.fetchStudy(
+          first.id,
+          lang,
+          filename: filename,
+          entry: first,
+        );
+
+        if (_disposed) return;
+
+        final imageUrls = study.cards
+            .map((c) => c.imageUrl)
+            .whereType<String>()
+            .where((url) => url.isNotEmpty)
+            .toSet();
+
+        debugPrint(
+            '🖼️ [EncounterBloc] BG: warming disk cache for ${imageUrls.length} images…');
+
+        int cached = 0;
+        for (final url in imageUrls) {
+          if (_disposed) return;
+          try {
+            await cacheManager.downloadFile(url);
+            cached++;
+          } catch (_) {
+            // Individual image failure is non-fatal
+          }
+        }
+
+        debugPrint(
+            '✅ [EncounterBloc] BG: pre-cached $cached/${imageUrls.length} images for ${first.id}');
+      } catch (e) {
+        // Background preload is non-critical — log and swallow
+        debugPrint('⚠️ [EncounterBloc] BG image preload failed: $e');
+      }
+    });
   }
 
   Future<void> _onLoadEncounterStudy(

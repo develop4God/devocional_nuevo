@@ -1,4 +1,4 @@
-// lib/pages/encounters_list_page.dart
+// lib/pages/encounters/encounters_list_page.dart
 //
 // Grid of encounter tiles.
 // published  → full opacity, tappable → navigates to EncounterIntroPage
@@ -99,7 +99,21 @@ class _EncountersListPageState extends State<EncountersListPage>
           if (_showGridOverlay) _toggleGridOverlay();
         },
         child: Scaffold(
-          appBar: CustomAppBar(titleText: 'encounters.section_title'.tr()),
+          appBar: CustomAppBar(
+            titleText: 'encounters.section_title'.tr(),
+            actions: [
+              IconButton(
+                onPressed: _toggleGridOverlay,
+                icon: Icon(
+                  _showGridOverlay
+                      ? Icons.view_list_rounded
+                      : Icons.grid_view_rounded,
+                ),
+                tooltip: _showGridOverlay ? 'List View' : 'Grid View',
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
           backgroundColor: colorScheme.brightness == Brightness.dark
               ? const Color(0xFF0a0e1a)
               : Colors.grey[50],
@@ -157,22 +171,41 @@ class _EncountersListPageState extends State<EncountersListPage>
 
             Widget cardWidget;
             if (entry.isPublished && !isUnlocked) {
-              // Locked: dim + dark overlay with lock icon
+              // Locked: dim + dark overlay with lock icon and prerequisite text
+              final prerequisite = state.getPrerequisite(entry.id);
+              final prerequisiteTitle = prerequisite?.titleFor(lang) ?? '';
+
               cardWidget = Stack(
                 children: [
                   Opacity(opacity: 0.4, child: card),
                   Positioned.fill(
                     child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.55),
+                        color: Colors.black.withValues(alpha: 0.65),
                         borderRadius: BorderRadius.circular(32),
                       ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.lock_rounded,
-                          color: Colors.white70,
-                          size: 36,
-                        ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.lock_rounded,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'encounters.complete_to_unlock'
+                                .tr({'title': prerequisiteTitle}),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -193,7 +226,7 @@ class _EncountersListPageState extends State<EncountersListPage>
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
-                        Icons.check_circle_rounded,
+                        Icons.verified_rounded,
                         color: Color(0xFFFFD700),
                         size: 28,
                       ),
@@ -210,30 +243,6 @@ class _EncountersListPageState extends State<EncountersListPage>
               child: cardWidget,
             );
           },
-        ),
-        // Grid view toggle button (top right)
-        Positioned(
-          top: 8,
-          right: 16,
-          child: Material(
-            elevation: 4,
-            borderRadius: BorderRadius.circular(12),
-            color: Theme.of(context).colorScheme.primaryContainer,
-            child: InkWell(
-              onTap: _toggleGridOverlay,
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                child: Icon(
-                  _showGridOverlay
-                      ? Icons.view_list_rounded
-                      : Icons.grid_view_rounded,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  size: 24,
-                ),
-              ),
-            ),
-          ),
         ),
         // Grid overlay
         EncounterGridOverlay(

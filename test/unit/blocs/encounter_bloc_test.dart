@@ -10,6 +10,7 @@ import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/services/encounter_progress_service.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -17,6 +18,8 @@ class MockEncounterRepository extends Mock implements EncounterRepository {}
 
 class MockEncounterProgressService extends Mock
     implements EncounterProgressService {}
+
+class MockBaseCacheManager extends Mock implements BaseCacheManager {}
 
 // --- Helpers ---
 
@@ -48,10 +51,12 @@ EncounterStudy _fakeStudy({String id = 'test_001'}) => EncounterStudy(
 void main() {
   late MockEncounterRepository mockRepository;
   late MockEncounterProgressService mockProgressService;
+  late MockBaseCacheManager mockCacheManager;
 
   setUp(() {
     mockRepository = MockEncounterRepository();
     mockProgressService = MockEncounterProgressService();
+    mockCacheManager = MockBaseCacheManager();
     when(() => mockProgressService.loadCompletedIds())
         .thenAnswer((_) async => {});
     when(() => mockProgressService.markCompleted(any()))
@@ -69,6 +74,7 @@ void main() {
         return EncounterBloc(
           repository: mockRepository,
           progressService: mockProgressService,
+          cacheManager: mockCacheManager,
         );
       },
       act: (bloc) => bloc.add(LoadEncounterIndex()),
@@ -83,6 +89,7 @@ void main() {
         return EncounterBloc(
           repository: mockRepository,
           progressService: mockProgressService,
+          cacheManager: mockCacheManager,
         );
       },
       act: (bloc) => bloc.add(LoadEncounterIndex()),
@@ -97,6 +104,7 @@ void main() {
         return EncounterBloc(
           repository: mockRepository,
           progressService: mockProgressService,
+          cacheManager: mockCacheManager,
         );
       },
       act: (bloc) => bloc.add(LoadEncounterIndex()),
@@ -116,6 +124,7 @@ void main() {
         return EncounterBloc(
           repository: mockRepository,
           progressService: mockProgressService,
+          cacheManager: mockCacheManager,
         );
       },
       act: (bloc) => bloc.add(LoadEncounterIndex()),
@@ -142,6 +151,7 @@ void main() {
         return EncounterBloc(
           repository: mockRepository,
           progressService: mockProgressService,
+          cacheManager: mockCacheManager,
         );
       },
       seed: () => EncounterLoaded(index: [_fakeEntry()]),
@@ -164,6 +174,7 @@ void main() {
         return EncounterBloc(
           repository: mockRepository,
           progressService: mockProgressService,
+          cacheManager: mockCacheManager,
         );
       },
       seed: () => EncounterLoaded(
@@ -193,6 +204,7 @@ void main() {
       build: () => EncounterBloc(
         repository: mockRepository,
         progressService: mockProgressService,
+        cacheManager: mockCacheManager,
       ),
       seed: () => EncounterLoaded(index: [_fakeEntry()]),
       act: (bloc) => bloc.add(CompleteEncounter('test_001')),
@@ -209,6 +221,7 @@ void main() {
       build: () => EncounterBloc(
         repository: mockRepository,
         progressService: mockProgressService,
+        cacheManager: mockCacheManager,
       ),
       seed: () => EncounterLoaded(index: [_fakeEntry()]),
       act: (bloc) async {
@@ -219,6 +232,107 @@ void main() {
       expect: () => [
         isA<EncounterLoaded>()
             .having((s) => s.completedIds.length, 'completed count', 1),
+      ],
+    );
+
+    // --- EncounterLoaded.getPrerequisite() ---
+
+    test('getPrerequisite returns null for first published encounter', () {
+      final index = [_fakeEntry(id: 'first_001', status: 'published')];
+      final state = EncounterLoaded(index: index);
+
+      final result = state.getPrerequisite('first_001');
+
+      expect(result, isNull, reason: 'First encounter has no prerequisite');
+    });
+
+    test('getPrerequisite returns previous published encounter', () {
+      final index = [
+        _fakeEntry(id: 'first_001', status: 'published'),
+        _fakeEntry(id: 'second_002', status: 'published'),
+      ];
+      final state = EncounterLoaded(index: index);
+
+      final result = state.getPrerequisite('second_002');
+
+      expect(result, isNotNull);
+      expect(result!.id, equals('first_001'));
+    });
+
+    test('getPrerequisite returns null if encounter not in published list', () {
+      final index = [
+        _fakeEntry(id: 'first_001', status: 'published'),
+        _fakeEntry(id: 'coming_001', status: 'coming_soon'),
+      ];
+      final state = EncounterLoaded(index: index);
+
+      final result = state.getPrerequisite('coming_001');
+
+      expect(result, isNull,
+          reason: 'Non-published encounter has no prerequisite');
+    });
+
+    test('getPrerequisite returns null for non-existent encounter', () {
+      final index = [_fakeEntry(id: 'first_001', status: 'published')];
+      final state = EncounterLoaded(index: index);
+
+      final result = state.getPrerequisite('nonexistent_999');
+
+      expect(result, isNull);
+    });
+
+    test('getPrerequisite handles empty index gracefully', () {
+      final state = EncounterLoaded(index: []);
+
+      final result = state.getPrerequisite('any_id');
+
+      expect(result, isNull);
+    });
+
+    // --- EncounterBloc._preloadFirstEncounterImages() ---
+
+    blocTest<EncounterBloc, EncounterState>(
+      'LoadEncounterIndex with empty index does not trigger preload',
+      build: () {
+        when(() => mockRepository.fetchIndex()).thenAnswer((_) async => []);
+        return EncounterBloc(
+          repository: mockRepository,
+          progressService: mockProgressService,
+          cacheManager: mockCacheManager,
+        );
+      },
+      act: (bloc) => bloc.add(LoadEncounterIndex()),
+      expect: () => [
+        isA<EncounterLoading>(),
+        isA<EncounterLoaded>(),
+      ],
+      verify: (bloc) {
+        // Verify state emitted but no state changes from preload
+        verifyNever(() => mockRepository.fetchStudy(
+              any(),
+              any(),
+              filename: any(named: 'filename'),
+              entry: any(named: 'entry'),
+            ));
+      },
+    );
+
+    blocTest<EncounterBloc, EncounterState>(
+      'LoadEncounterIndex emits no additional states during background preload',
+      build: () {
+        when(() => mockRepository.fetchIndex())
+            .thenAnswer((_) async => [_fakeEntry()]);
+        return EncounterBloc(
+          repository: mockRepository,
+          progressService: mockProgressService,
+          cacheManager: mockCacheManager,
+        );
+      },
+      act: (bloc) => bloc.add(LoadEncounterIndex()),
+      // Should emit exactly 2 states (Loading, Loaded) — no extra states from preload
+      expect: () => [
+        isA<EncounterLoading>(),
+        isA<EncounterLoaded>(),
       ],
     );
   });

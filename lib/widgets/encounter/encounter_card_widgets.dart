@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 // ---------------------------------------------------------------------------
 // Mood -> Color mapping
@@ -91,7 +92,21 @@ class _VisualHeader extends StatelessWidget {
             CachedNetworkImage(
               imageUrl: imageUrl!,
               fit: BoxFit.cover,
-              placeholder: (_, __) => Container(color: base),
+              // Zero fade means cached images appear the instant the card
+              // mounts — no dark void before the image appears.
+              fadeInDuration: Duration.zero,
+              fadeOutDuration: Duration.zero,
+              placeholder: (_, __) => Shimmer.fromColors(
+                baseColor: base,
+                // Slightly lighter highlight for a subtle cinematic shimmer
+                highlightColor:
+                    Color.lerp(base, const Color(0xFF4a6080), 0.35) ?? base,
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: Colors.white,
+                ),
+              ),
               errorWidget: (_, __, ___) => Container(color: base),
             ),
           Container(

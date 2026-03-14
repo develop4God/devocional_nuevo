@@ -33,6 +33,7 @@ import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -105,6 +106,10 @@ Future<void> setupServiceLocator() async {
   locator
       .registerLazySingleton<RemoteConfigService>(RemoteConfigService.create);
   locator.registerLazySingleton<http.Client>(() => http.Client());
+
+  locator.registerLazySingleton<BaseCacheManager>(
+    () => DefaultCacheManager(),
+  );
 
   locator.registerLazySingleton<DiscoveryRepository>(
     () => DiscoveryRepository(httpClient: locator.get<http.Client>()),

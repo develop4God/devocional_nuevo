@@ -21,6 +21,7 @@ import 'package:devocional_nuevo/models/supporter_tier.dart';
 import 'package:devocional_nuevo/models/testimony_model.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/pages/backup_settings_page.dart';
+import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:devocional_nuevo/services/iap/iap_prefs_keys.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
@@ -504,6 +505,46 @@ class _DebugPageState extends State<DebugPage> {
     }
   }
 
+  /// [DEBUG ONLY] Restores all completed encounters by clearing their progress
+  /// from SharedPreferences. Guarded by kDebugMode.
+  Future<void> _restoreEncounters() async {
+    if (!kDebugMode) {
+      debugPrint('⚠️ _restoreEncounters called outside kDebugMode — ignoring');
+      return;
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // Use the constant from IEncounterProgressService to avoid coupling
+      await prefs.remove(IEncounterProgressService.completedIdsKey);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ All encounters restored to incomplete'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+
+      // Notify the EncounterBloc to refresh its state
+      if (mounted) {
+        context
+            .read<EncounterBloc>()
+            .add(LoadEncounterIndex(forceRefresh: true));
+      }
+
+      debugPrint('🔄 All encounters restored to incomplete');
+    } catch (e) {
+      debugPrint('❌ Error restoring encounters: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!kDebugMode) {
@@ -741,6 +782,31 @@ class _DebugPageState extends State<DebugPage> {
                         const Text(
                           'Reset the encounter welcome dialog so it displays again\n'
                           'on the next visit to the Encounters tab.',
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.black54,
+                              fontStyle: FontStyle.italic),
+                        ),
+                        const SizedBox(height: 16),
+                        // Restore Completed Encounters
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _restoreEncounters,
+                            icon:
+                                const Icon(Icons.restore, color: Colors.amber),
+                            label: const Text('Restore All Encounters',
+                                style: TextStyle(color: Colors.amber)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.amber),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Clear all completed encounters progress.\n'
+                          'All encounters will be marked incomplete &\n'
+                          'available to replay. [DEBUG ONLY]',
                           style: TextStyle(
                               fontSize: 11,
                               color: Colors.black54,

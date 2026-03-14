@@ -771,6 +771,7 @@
     "empty_title": "暂无可用的相遇体验。",
     "empty_subtitle": "请稍后回来查看新的沉浸式体验。",
     "error_load": "无法加载相遇体验。请重试。",
+    "complete_to_unlock": "完成以访问：{title}",
     "retry": "重试",
     "coming_soon": "即将推出",
     "badge_completed": "已完成",

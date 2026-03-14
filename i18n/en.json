@@ -771,6 +771,7 @@
     "empty_title": "No encounters available yet.",
     "empty_subtitle": "Check back soon for new immersive experiences.",
     "error_load": "Could not load encounters. Please try again.",
+    "complete_to_unlock": "Complete to access: {title}",
     "retry": "Retry",
     "coming_soon": "COMING SOON",
     "badge_completed": "Completed",

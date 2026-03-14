@@ -771,6 +771,7 @@
     "empty_title": "Ainda não há encontros disponíveis.",
     "empty_subtitle": "Volte em breve para novas experiências imersivas.",
     "error_load": "Não foi possível carregar os encontros. Por favor, tente novamente.",
+    "complete_to_unlock": "Complete para acessar: {title}",
     "retry": "Tentar novamente",
     "coming_soon": "EM BREVE",
     "badge_completed": "Concluído",
