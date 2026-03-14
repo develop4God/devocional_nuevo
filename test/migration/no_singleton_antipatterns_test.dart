@@ -275,6 +275,81 @@ void main() {
         reason: 'SupporterPetService should not have static instance getter',
       );
     });
+
+    // ── EncounterProgressService DI registration ───────────────────────────
+
+    test(
+        'IEncounterProgressService is registered as lazy singleton in ServiceLocator',
+        () async {
+      final file = File('lib/services/service_locator.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'ServiceLocator source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('registerLazySingleton<IEncounterProgressService>'),
+        isTrue,
+        reason:
+            'IEncounterProgressService should be registered as lazy singleton in ServiceLocator',
+      );
+    });
+
+    test('EncounterProgressService does not use static singleton antipattern',
+        () async {
+      final file = File('lib/services/encounter_progress_service.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'EncounterProgressService source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('static EncounterProgressService? _instance'),
+        isFalse,
+        reason:
+            'EncounterProgressService should not have static _instance field',
+      );
+
+      expect(
+        content.contains('static EncounterProgressService get instance'),
+        isFalse,
+        reason:
+            'EncounterProgressService should not have static instance getter',
+      );
+    });
+
+    test(
+        'EncounterBloc depends on IEncounterProgressService interface, not concrete',
+        () async {
+      final file = File('lib/blocs/encounter/encounter_bloc.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'EncounterBloc source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('IEncounterProgressService'),
+        isTrue,
+        reason:
+            'EncounterBloc should depend on IEncounterProgressService interface',
+      );
+
+      expect(
+        content.contains('final EncounterProgressService'),
+        isFalse,
+        reason:
+            'EncounterBloc should not depend on concrete EncounterProgressService',
+      );
+    });
   });
 }
 

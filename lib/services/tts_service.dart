@@ -236,6 +236,10 @@ class TtsService implements ITtsService {
         return 'fr-FR';
       case 'ja':
         return 'ja-JP';
+      case 'zh':
+        return 'zh-CN';
+      case 'hi':
+        return 'hi-IN';
       default:
         return 'es-ES';
     }
@@ -598,6 +602,12 @@ class TtsService implements ITtsService {
         break;
       case 'ja':
         ttsLocale = 'ja-JP';
+        break;
+      case 'zh':
+        ttsLocale = 'zh-CN';
+        break;
+      case 'hi':
+        ttsLocale = 'hi-IN';
         break;
       default:
         ttsLocale = 'es-ES';

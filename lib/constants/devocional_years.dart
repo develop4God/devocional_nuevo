@@ -13,6 +13,7 @@ class DevocionalYears {
   ///
   /// This list should be updated when new years are added.
   /// All historical years remain accessible - no progressive data loss.
+  // TODO: derive available years from index.json — see separate issue
   static const List<int> availableYears = [2025, 2026];
 
   /// Private constructor to prevent instantiation

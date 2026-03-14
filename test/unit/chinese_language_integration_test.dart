@@ -6,9 +6,18 @@ library;
 import 'dart:convert';
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/cache_metadata_service.dart';
+import 'package:devocional_nuevo/services/devocional_index_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:mockito/mockito.dart';
+
+// Mock implementations
+class MockDevocionalIndexService extends Mock
+    implements DevocionalIndexService {}
+
+class MockCacheMetadataService extends Mock implements CacheMetadataService {}
 
 void main() {
   test(
@@ -36,8 +45,16 @@ void main() {
           200);
     });
 
-    final provider =
-        DevocionalProvider(httpClient: mockHttp, enableAudio: false);
+    // Create mock services to bypass service locator dependency
+    final mockIndexService = MockDevocionalIndexService();
+    final mockCacheService = MockCacheMetadataService();
+
+    final provider = DevocionalProvider(
+      httpClient: mockHttp,
+      enableAudio: false,
+      devocionalIndexService: mockIndexService,
+      cacheMetadataService: mockCacheService,
+    );
 
     expect(provider.supportedLanguages, contains('zh'));
   });

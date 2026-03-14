@@ -14,6 +14,7 @@ class BibleVersionRegistry {
     'fr': 'Français',
     'ja': '日本語',
     'zh': '中文', // Add Chinese
+    'hi': 'हिन्दी', // Add Hindi
   };
 
   static const Map<String, List<Map<String, String>>> _versionsByLanguage = {
@@ -43,6 +44,10 @@ class BibleVersionRegistry {
       // Asset filename uses CNVS_zh.SQLite3.gz (note the extra 'S'), match the asset
       {'name': '新译本', 'dbFile': 'CNVS_zh.SQLite3'},
     ], // Add Chinese
+    'hi': [
+      {'name': 'पवित्र बाइबिल (ओ.वी.)', 'dbFile': 'HIOV_hi.SQLite3'},
+      {'name': 'पवित्र बाइबिल', 'dbFile': 'ERV_hi.SQLite3'},
+    ], // Add Hindi
   };
 
   /// Get all Bible versions for a specific language

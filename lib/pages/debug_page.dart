@@ -5,6 +5,8 @@ import 'dart:math';
 
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
+import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
+import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
@@ -478,6 +480,30 @@ class _DebugPageState extends State<DebugPage> {
     }
   }
 
+  Future<void> _resetEncounterWelcome() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('encounter_welcome_seen', false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('✅ Encounter welcome reset — will show on next visit'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      debugPrint('🔄 Encounter welcome reset: encounter_welcome_seen = false');
+    } catch (e) {
+      debugPrint('Error resetting encounter welcome: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!kDebugMode) {
@@ -557,13 +583,244 @@ class _DebugPageState extends State<DebugPage> {
                   const SizedBox(height: 32),
                 ],
 
+                // ── Encounters Debug Section ───────────────────────────────
+                if (Constants.enableEncountersFeature) ...[
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.teal.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border:
+                          Border.all(color: Colors.teal.withValues(alpha: 0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.explore_outlined,
+                                size: 32, color: Colors.teal),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Encounters Debug',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        // Branch selector
+                        const Text('Branch:',
+                            style: TextStyle(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        if (_loadingBranches)
+                          const CircularProgressIndicator()
+                        else
+                          DropdownButton<String>(
+                            value: _branches
+                                    .contains(Constants.debugEncounterBranch)
+                                ? Constants.debugEncounterBranch
+                                : _branches.first,
+                            isExpanded: true,
+                            items: _branches
+                                .map((b) =>
+                                    DropdownMenuItem(value: b, child: Text(b)))
+                                .toList(),
+                            onChanged: (newBranch) {
+                              if (newBranch == null) return;
+                              setState(() =>
+                                  Constants.debugEncounterBranch = newBranch);
+                              if (mounted && context.mounted) {
+                                context
+                                    .read<EncounterBloc>()
+                                    .add(LoadEncounterIndex());
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(
+                                          'Encounters branch → $newBranch')),
+                                );
+                              }
+                            },
+                          ),
+                        const SizedBox(height: 16),
+                        // Fallback toggle
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Use Bundled Fallback',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w600)),
+                                  Text(
+                                    Constants.enableEncounterFallback
+                                        ? '✅ ON — 404s use bundled asset'
+                                        : '🚫 OFF — network errors are thrown',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: Constants.enableEncounterFallback
+                                            ? Colors.green.shade700
+                                            : Colors.red.shade700),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: Constants.enableEncounterFallback,
+                              thumbColor:
+                                  WidgetStateProperty.resolveWith((states) {
+                                if (states.contains(WidgetState.selected)) {
+                                  return Colors.teal;
+                                }
+                                return null;
+                              }),
+                              onChanged: (val) {
+                                setState(() =>
+                                    Constants.enableEncounterFallback = val);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(val
+                                        ? '✅ Fallback ENABLED'
+                                        : '🚫 Fallback DISABLED — real network only'),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        // Force reload
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              context
+                                  .read<EncounterBloc>()
+                                  .add(LoadEncounterIndex(forceRefresh: true));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('🔄 Encounters index reloaded')),
+                              );
+                            },
+                            icon: const Icon(Icons.refresh, color: Colors.teal),
+                            label: const Text('Force Reload Index',
+                                style: TextStyle(color: Colors.teal)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.teal),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Toggle fallback OFF to test real network fetch.\n'
+                          'If URL returns 404, fix path in GitHub repo.\n'
+                          'Toggle back ON to use bundled asset while debugging.',
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.black54,
+                              fontStyle: FontStyle.italic),
+                        ),
+                        const SizedBox(height: 16),
+                        // Reset Encounter Welcome
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _resetEncounterWelcome,
+                            icon: const Icon(Icons.refresh, color: Colors.teal),
+                            label: const Text('Reset Welcome Screen',
+                                style: TextStyle(color: Colors.teal)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.teal),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Reset the encounter welcome dialog so it displays again\n'
+                          'on the next visit to the Encounters tab.',
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.black54,
+                              fontStyle: FontStyle.italic),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+
                 // Crashlytics test
                 const Text(
                   'Presiona el botón para forzar un fallo de Crashlytics:',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 32),
+
+                // Devotionals Branch Selector
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border:
+                        Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.menu_book, size: 48, color: Colors.blue),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Devotionals Branch',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      if (_loadingBranches)
+                        const CircularProgressIndicator()
+                      else
+                        DropdownButton<String>(
+                          // CRITICAL: Prevent crash if debugBranchDevotionals not in fetched list
+                          value: _branches
+                                  .contains(Constants.debugBranchDevotionals)
+                              ? Constants.debugBranchDevotionals
+                              : _branches.first,
+                          isExpanded: true,
+                          items: _branches
+                              .map((branch) => DropdownMenuItem(
+                                  value: branch, child: Text(branch)))
+                              .toList(),
+                          onChanged: (newBranch) {
+                            setState(() =>
+                                Constants.debugBranchDevotionals = newBranch!);
+                            // Show confirmation
+                            if (mounted && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        'Devotionals branch cambiado a: $newBranch\nReload app to fetch from new branch')),
+                              );
+                            }
+                          },
+                        ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Note: Reload app to fetch devotionals from selected branch',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: () => _forceCrash(context),
                   style: ElevatedButton.styleFrom(
