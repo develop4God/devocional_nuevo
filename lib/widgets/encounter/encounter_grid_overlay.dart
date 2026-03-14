@@ -345,18 +345,6 @@ class _EncounterGridCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Emoji top left with soft background
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      entry.emoji ?? '✨',
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                  ),
                   const Spacer(),
                   // Title
                   Text(
@@ -403,6 +391,22 @@ class _EncounterGridCard extends StatelessWidget {
                       ],
                     ),
                 ],
+              ),
+            ),
+            // Emoji top-right floating
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  entry.emoji ?? '✨',
+                  style: const TextStyle(fontSize: 20),
+                ),
               ),
             ),
             // Completion badge (top right)

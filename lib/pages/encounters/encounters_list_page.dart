@@ -101,41 +101,58 @@ class _EncountersListPageState extends State<EncountersListPage>
         child: Scaffold(
           appBar: CustomAppBar(
             titleText: 'encounters.section_title'.tr(),
-            actions: [
-              IconButton(
-                onPressed: _toggleGridOverlay,
-                icon: Icon(
-                  _showGridOverlay
-                      ? Icons.view_list_rounded
-                      : Icons.grid_view_rounded,
-                ),
-                tooltip: _showGridOverlay ? 'List View' : 'Grid View',
-              ),
-              const SizedBox(width: 8),
-            ],
+            // Removed toggle button from app bar
           ),
           backgroundColor: colorScheme.brightness == Brightness.dark
               ? const Color(0xFF0a0e1a)
               : Colors.grey[50],
-          body: BlocBuilder<EncounterBloc, EncounterState>(
-            builder: (context, state) {
-              if (state is EncounterLoading || state is EncounterInitial) {
-                return const Center(child: CircularProgressIndicator());
-              }
+          body: Stack(
+            children: [
+              BlocBuilder<EncounterBloc, EncounterState>(
+                builder: (context, state) {
+                  if (state is EncounterLoading || state is EncounterInitial) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-              if (state is EncounterError) {
-                return _buildError(state.message);
-              }
+                  if (state is EncounterError) {
+                    return _buildError(state.message);
+                  }
 
-              if (state is EncounterLoaded) {
-                if (state.index.isEmpty) {
-                  return _buildEmpty();
-                }
-                return _buildContent(state);
-              }
+                  if (state is EncounterLoaded) {
+                    if (state.index.isEmpty) {
+                      return _buildEmpty();
+                    }
+                    return _buildContent(state);
+                  }
 
-              return const SizedBox.shrink();
-            },
+                  return const SizedBox.shrink();
+                },
+              ),
+              // Floating grid/list toggle button (now top right)
+              Positioned(
+                top: 24,
+                right: 24,
+                child: Material(
+                  elevation: 6,
+                  borderRadius: BorderRadius.circular(16),
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: InkWell(
+                    onTap: _toggleGridOverlay,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      child: Icon(
+                        _showGridOverlay
+                            ? Icons.view_list_rounded
+                            : Icons.grid_view_rounded,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
