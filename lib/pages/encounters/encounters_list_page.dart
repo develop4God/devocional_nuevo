@@ -212,28 +212,8 @@ class _EncountersListPageState extends State<EncountersListPage>
                 ],
               );
             } else if (isCompleted) {
-              // Completed: gold checkmark badge top-right
-              cardWidget = Stack(
-                children: [
-                  card,
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF0a0e1a),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.verified_rounded,
-                        color: Color(0xFFFFD700),
-                        size: 28,
-                      ),
-                    ),
-                  ),
-                ],
-              );
+              // Completed: no extra badge needed, already shown in card
+              cardWidget = card;
             } else {
               cardWidget = card;
             }
