@@ -280,6 +280,33 @@ class VoiceDataRegistry {
     return priorityLocales[language] ?? [];
   }
 
+  // ─── Friendly Locale Names ────────────────────────────────────────────
+
+  static const Map<String, String> _friendlyLocaleNames = {
+    'es-ES': 'Español (España)',
+    'es-MX': 'Español (México)',
+    'es-US': 'Español (EE.UU.)',
+    'es-AR': 'Español (Argentina)',
+    'en-US': 'English (US)',
+    'en-GB': 'English (UK)',
+    'en-AU': 'English (Australia)',
+    'en-CA': 'English (Canada)',
+    'pt-BR': 'Português (Brasil)',
+    'pt-PT': 'Português (Portugal)',
+    'fr-FR': 'Français (France)',
+    'fr-CA': 'Français (Canada)',
+    'ja-JP': '日本語',
+    'zh-CN': '中文 (中国)',
+    'zh-TW': '中文 (台灣)',
+    'hi-IN': 'हिन्दी (भारत)',
+  };
+
+  static String getFriendlyLocaleName(String locale) {
+    final normalized = locale.length >= 5 ? locale.substring(0, 5) : locale;
+    final key = normalized.substring(0, 3) + normalized.substring(3).toUpperCase();
+    return _friendlyLocaleNames[key] ?? normalized;
+  }
+
   // ─── Supported Languages ──────────────────────────────────────────────
 
   /// All languages with premium voice support.

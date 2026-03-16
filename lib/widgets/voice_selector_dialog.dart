@@ -37,8 +37,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   String? _initialVoiceLocale;
 
   // Flag para forzar fallback en testing (SOLO activo en debug mode)
-  static const bool _forceFallbackForTesting =
-      false; // ← Cambiado a false para desactivar fallback en pruebas
+  static const bool _forceFallbackForTesting = true;
+
 
   // Getter seguro: solo funciona en debug mode
   bool get _shouldForceFallback => kDebugMode && _forceFallbackForTesting;
@@ -260,8 +260,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   ) {
     final metadata = VoiceDataRegistry.getVoiceMetadata(voiceName, language);
     if (metadata != null) return metadata.description;
-    // For non-premium voices: show normalized locale (xx-XX)
-    return _normalizeLocale(locale);
+    // For non-premium voices: show friendly locale name
+    return VoiceDataRegistry.getFriendlyLocaleName(locale);
   }
 
   @override
@@ -545,7 +545,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                                   .only(top: 4),
                                                           child: Text(
                                                             // Show technical name and locale for debug
-                                                            ' 0${voice['name']} (${voice['locale']})',
+                                                            '[${VoiceDataRegistry.isPremiumVoice(voice["name"]!, widget.language) ? "P" : "F"}] ${voice["name"]} (${voice["locale"]})',
                                                             style: TextStyle(
                                                               fontSize: 10,
                                                               color: colorScheme
