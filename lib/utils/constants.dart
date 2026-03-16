@@ -44,8 +44,8 @@ class Constants {
   // Banderas emoji para cada idioma
   static const Map<String, String> languageFlags = {
     'es': '🇪🇸',
-    'en': '🇺🇸🇬🇧',
-    'pt': '🇧🇷🇵🇹',
+    'en': '🇬🇧',
+    'pt': '🇵🇹',
     'fr': '🇫🇷',
     'ja': '🇯🇵',
     'zh': '🇨🇳',
