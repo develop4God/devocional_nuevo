@@ -1,9 +1,9 @@
 // lib/pages/encounter_detail_page.dart
 //
 // Modern card reader for an encounter study.
-// Uses a modern swiper to navigate through cards with staggered transitions.
+// Uses PageView with intuitive viewport peeking (0.88) to show next card preview.
+// Matches Discovery Bible Studies carousel for consistent UX across features.
 
-import 'package:card_swiper/card_swiper.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
@@ -30,14 +30,15 @@ class EncounterDetailPage extends StatefulWidget {
 }
 
 class _EncounterDetailPageState extends State<EncounterDetailPage> {
-  final SwiperController _swiperController = SwiperController();
+  late final PageController _pageController =
+      PageController(viewportFraction: 0.88);
   int _currentIndex = 0;
   bool _isCelebrating = false;
   bool _hasTriggeredCompletion = false;
 
   @override
   void dispose() {
-    _swiperController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -178,23 +179,43 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
 
           return Stack(
             children: [
-              // Swiper Reader
-              Swiper(
-                controller: _swiperController,
-                itemCount: cards.length,
-                loop: false,
-                onIndexChanged: (index) {
+              // PageView Reader with viewport peeking (0.88 shows next card preview)
+              PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
                   setState(() => _currentIndex = index);
                 },
+                physics: const BouncingScrollPhysics(),
+                itemCount: cards.length,
                 itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 100, 16, 120),
-                    child: buildEncounterCardWidget(
-                      cards[index],
-                      onBackToEncounters: _onCompleteEncounter,
-                      bibleVersion: study.bibleVersion,
-                      language: study.language,
-                      showCompletionMessage: state.isCompleted(widget.entry.id),
+                  return AnimatedBuilder(
+                    animation: _pageController,
+                    builder: (context, child) {
+                      double value = 1.0;
+                      if (_pageController.position.haveDimensions) {
+                        value = _pageController.page! - index;
+                        // Subtle scale and fade for cards as they move away from center
+                        value = (1 - (value.abs() * 0.12)).clamp(0.0, 1.0);
+                      }
+                      return Transform.scale(
+                        scale: value,
+                        child: Opacity(
+                          opacity: value.clamp(
+                              0.5, 1.0), // Keep peeked cards visible
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 100, 16, 120),
+                      child: buildEncounterCardWidget(
+                        cards[index],
+                        onBackToEncounters: _onCompleteEncounter,
+                        bibleVersion: study.bibleVersion,
+                        language: study.language,
+                        showCompletionMessage:
+                            state.isCompleted(widget.entry.id),
+                      ),
                     ),
                   );
                 },
@@ -290,7 +311,12 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                     _NavButton(
                       icon: Icons.chevron_left,
                       visible: _currentIndex > 0,
-                      onPressed: () => _swiperController.previous(),
+                      onPressed: () {
+                        _pageController.previousPage(
+                          duration: const Duration(milliseconds: 350),
+                          curve: Curves.easeInOut,
+                        );
+                      },
                     ),
                     // Spacer between prev and exit/next
                     const Expanded(child: SizedBox.shrink()),
@@ -307,7 +333,12 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       _NavButton(
                         icon: Icons.chevron_right,
                         visible: !isLast,
-                        onPressed: () => _swiperController.next(),
+                        onPressed: () {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 350),
+                            curve: Curves.easeInOut,
+                          );
+                        },
                       ),
                   ],
                 ),
