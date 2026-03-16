@@ -65,7 +65,7 @@ class Constants {
     'fr': ['LSG1910', 'TOB'],
     'ja': ['新改訳2003', 'リビングバイブル'], // Japanese versions
     'zh': ['和合本1919', '新译本'], // Chinese versions (fix: 新译本)
-    'hi': ['पवित्र बाइबिल (ओ.वी.)', 'पवित्र बाइबिल'], // Hindi versions
+    'hi': ['HIOV', 'HERV'], // Hindi versions
   };
 
   // Versión de Biblia por defecto por idioma
@@ -76,7 +76,7 @@ class Constants {
     'fr': 'LSG1910',
     'ja': '新改訳2003', // Default Japanese version
     'zh': '和合本1919', // Default Chinese version
-    'hi': 'पवित्र बाइबिल (ओ.वी.)', // Default Hindi version (MASTER_VERSION)
+    'hi': 'HIOV', // Default Hindi version
   };
 
   // Nombres japoneses para versiones de la Biblia (deprecated - versions now use Japanese names directly)

@@ -1314,6 +1314,8 @@ class DevocionalProvider with ChangeNotifier {
       if (!await file.exists()) return null;
 
       final String content = await file.readAsString();
+      final firstDevanagari = content.codeUnits.where((c) => c >= 0x0900 && c <= 0x097F).take(3).toList();
+      debugPrint('[ENCODING_CHECK] codeUnits: ' + firstDevanagari.toString());
       return json.decode(content) as Map<String, dynamic>;
     } catch (e) {
       debugPrint('Error loading from local storage: $e');
