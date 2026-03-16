@@ -202,7 +202,7 @@ class VoiceDataRegistry {
       description: 'महिला भारत',
       genderIcon: Icons.woman_outlined,
     ),
-    'hi-in-x-hic-local': VoiceMetadata(
+    'hi-in-x-hie-network': VoiceMetadata(
       emoji: '🇮🇳',
       description: 'पुरुष भारत 2',
       genderIcon: Icons.man_3_outlined,
