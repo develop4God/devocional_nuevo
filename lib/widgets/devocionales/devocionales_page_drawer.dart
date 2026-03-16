@@ -463,7 +463,9 @@ class DevocionalesDrawer extends StatelessWidget {
                                   return DropdownMenuItem<String>(
                                     value: itemValue,
                                     child: Text(
-                                      itemValue,
+                                      Constants
+                                              .versionDisplayNames[itemValue] ??
+                                          itemValue,
                                       style: TextStyle(
                                         color: colorScheme.onSurface,
                                       ),
