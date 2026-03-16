@@ -303,7 +303,8 @@ class VoiceDataRegistry {
 
   static String getFriendlyLocaleName(String locale) {
     final normalized = locale.length >= 5 ? locale.substring(0, 5) : locale;
-    final key = normalized.substring(0, 3) + normalized.substring(3).toUpperCase();
+    final key =
+        normalized.substring(0, 3) + normalized.substring(3).toUpperCase();
     return _friendlyLocaleNames[key] ?? normalized;
   }
 
