@@ -853,18 +853,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             bloc: _navigationBloc!,
             builder: (context, state) {
               if (state is NavigationError) {
-                final TextTheme textTheme = Theme.of(context).textTheme;
-                return Scaffold(
-                  appBar: AppBar(title: Text('devotionals.error'.tr())),
-                  body: Center(
-                    child: Text(
-                      state.message,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.error,
-                      ),
-                    ),
-                  ),
-                );
+                return const Center(child: CircularProgressIndicator());
               }
 
               Devocional currentDevocional;
