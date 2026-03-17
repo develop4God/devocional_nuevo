@@ -545,7 +545,7 @@ class DevocionalProvider with ChangeNotifier {
             final response = await httpClient.get(Uri.parse(url));
 
             if (response.statusCode == 200) {
-              final String responseBody = response.body;
+              final String responseBody = utf8.decode(response.bodyBytes);
               final Map<String, dynamic> data = json.decode(responseBody);
               final List<Devocional> yearDevocionales =
                   await _extractDevocionalesFromData(data);
@@ -612,7 +612,7 @@ class DevocionalProvider with ChangeNotifier {
               final response = await httpClient.get(Uri.parse(url));
 
               if (response.statusCode == 200) {
-                final String responseBody = response.body;
+                final String responseBody = utf8.decode(response.bodyBytes);
                 final Map<String, dynamic> data = json.decode(responseBody);
                 final List<Devocional> yearDevocionales =
                     await _extractDevocionalesFromData(data);
@@ -1285,14 +1285,14 @@ class DevocionalProvider with ChangeNotifier {
         );
       }
 
-      final Map<String, dynamic> jsonData = json.decode(response.body);
+      final Map<String, dynamic> jsonData = json.decode(utf8.decode(response.bodyBytes));
 
       if (jsonData['data'] == null) {
         throw Exception('Invalid JSON structure: missing "data" field');
       }
 
       await _saveToLocalStorage(
-          year, _selectedLanguage, response.body, _selectedVersion);
+          year, _selectedLanguage, utf8.decode(response.bodyBytes), _selectedVersion);
 
       _downloadStatus = 'Devocionales del año $year descargados exitosamente';
       return true;
