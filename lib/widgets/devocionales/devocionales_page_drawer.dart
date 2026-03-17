@@ -446,11 +446,15 @@ class DevocionalesDrawer extends StatelessWidget {
                                       .map<Widget>((String itemValue) {
                                     return Row(
                                       children: [
-                                        Text(
-                                          itemValue,
-                                          style: TextStyle(
-                                            color: colorScheme.onSurface,
-                                            fontSize: 16,
+                                        Flexible(
+                                          child: Text(
+                                            Constants.versionDisplayNames[itemValue] ?? itemValue,
+                                            style: TextStyle(
+                                              color: colorScheme.onSurface,
+                                              fontSize: 16,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
                                           ),
                                         ),
                                       ],
