@@ -448,7 +448,9 @@ class DevocionalesDrawer extends StatelessWidget {
                                       children: [
                                         Flexible(
                                           child: Text(
-                                            Constants.versionDisplayNames[itemValue] ?? itemValue,
+                                            Constants.versionDisplayNames[
+                                                    itemValue] ??
+                                                itemValue,
                                             style: TextStyle(
                                               color: colorScheme.onSurface,
                                               fontSize: 16,
