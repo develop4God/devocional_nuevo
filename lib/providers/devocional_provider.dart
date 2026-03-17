@@ -721,6 +721,10 @@ class DevocionalProvider with ChangeNotifier {
         _allDevocionalesForCurrentLanguage.isNotEmpty) {
       _errorMessage =
           'No se encontraron devocionales para la versión $_selectedVersion.';
+      debugPrint(
+        '🚨 [FILTER] Version mismatch — selected: $_selectedVersion, '
+        'available versions: ${_allDevocionalesForCurrentLanguage.map((d) => d.version).toSet().toList()}',
+      );
     } else if (_allDevocionalesForCurrentLanguage.isEmpty) {
       _errorMessage = 'No hay devocionales disponibles.';
     } else {
