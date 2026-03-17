@@ -46,9 +46,11 @@ void main() {
 
     test('Hindi version display names should be available', () {
       expect(Constants.versionDisplayNames.containsKey('HIOV'), isTrue);
-      expect(Constants.versionDisplayNames['HIOV'], equals('पवित्र बाइबिल (ओ.वी.)'));
+      expect(Constants.versionDisplayNames['HIOV'],
+          equals('पवित्र बाइबिल (ओ.वी.)'));
       expect(Constants.versionDisplayNames.containsKey('HERV'), isTrue);
-      expect(Constants.versionDisplayNames['HERV'], equals('पवित्र बाइबल (HERV)'));
+      expect(
+          Constants.versionDisplayNames['HERV'], equals('पवित्र बाइबल (HERV)'));
     });
   });
 }
