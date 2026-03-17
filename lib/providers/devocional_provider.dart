@@ -1285,14 +1285,15 @@ class DevocionalProvider with ChangeNotifier {
         );
       }
 
-      final Map<String, dynamic> jsonData = json.decode(utf8.decode(response.bodyBytes));
+      final Map<String, dynamic> jsonData =
+          json.decode(utf8.decode(response.bodyBytes));
 
       if (jsonData['data'] == null) {
         throw Exception('Invalid JSON structure: missing "data" field');
       }
 
-      await _saveToLocalStorage(
-          year, _selectedLanguage, utf8.decode(response.bodyBytes), _selectedVersion);
+      await _saveToLocalStorage(year, _selectedLanguage,
+          utf8.decode(response.bodyBytes), _selectedVersion);
 
       _downloadStatus = 'Devocionales del año $year descargados exitosamente';
       return true;
