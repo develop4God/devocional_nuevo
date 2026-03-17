@@ -781,7 +781,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             devocionalProvider.devocionales.isNotEmpty) {
           final currentState = _navigationBloc!.state;
 
-          if (currentState is NavigationReady) {
+          if (currentState is NavigationReady ||
+              currentState is NavigationInitial) {
             final newList = devocionalProvider.devocionales;
 
             // Use reference equality check instead of unreliable hashCode
