@@ -393,6 +393,20 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     return 'V.';
   }
 
+  /// Composes the full display label for a BibleVersion.
+  /// SRP: single place owns version label composition for this UI surface.
+  String _versionLabel(BibleVersion version) {
+    final String abbr = Constants.versionAbbreviation(version);
+    if (abbr.isEmpty) return version.name;
+    return '${version.name} ($abbr)';
+  }
+
+  String _versionPickerLabel(BibleVersion version) {
+    final String abbr = Constants.versionAbbreviation(version);
+    if (abbr.isEmpty) return version.name;
+    return '${version.name} · $abbr';
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
@@ -440,7 +454,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                         ),
                         if (!state.isLoading && state.selectedVersion != null)
                           Text(
-                            '${state.selectedVersion!.name} (${Constants.versionAbbreviation(state.selectedVersion!)})',
+                            _versionLabel(state.selectedVersion!),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -538,7 +552,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   else
                                     const SizedBox(width: 20),
                                   const SizedBox(width: 8),
-                                  Text('${version.name} · ${Constants.versionAbbreviation(version)}'),
+                                  Text(_versionPickerLabel(version)),
                                 ],
                               ),
                             );
