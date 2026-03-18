@@ -155,15 +155,21 @@ class KeyVerseCard extends StatelessWidget {
                             color: colorScheme.primary,
                           ),
                           textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                       if (version != null && version!.isNotEmpty) ...[
                         const SizedBox(width: 8),
-                        Text(
-                          version!,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w500,
-                            color: colorScheme.onSurface.withValues(alpha: 0.4),
+                        Flexible(
+                          child: Text(
+                            version!,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: colorScheme.onSurface.withValues(alpha: 0.4),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],

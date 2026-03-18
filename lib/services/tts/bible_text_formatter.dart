@@ -155,10 +155,28 @@ class BibleTextFormatter {
     return reference.trim();
   }
 
-  /// Formato para libros bíblicos en hindi (sin ordinales, solo limpieza básica)
+  /// Formato para libros bíblicos en hindi (con ordinales para 1, 2, 3)
   static String _formatBibleBookHindi(String reference) {
-    // En hindi, los libros bíblicos no usan ordinales, solo se devuelve el texto tal cual
-    return reference.trim();
+    // Hindi uses ordinales for numbered books (1 Juan -> पहला यूहन्ना)
+    // Pattern to match numbered books in Hindi text
+    final exp = RegExp(
+      r'(?:^|\s)([123])\s+([\u0900-\u097F]+)',
+      caseSensitive: false,
+    );
+    final ordinals = {
+      '1': 'पहला', // First (pahlā)
+      '2': 'दूसरा', // Second (dūsrā)
+      '3': 'तीसरा', // Third (tīsrā)
+    };
+
+    return reference.replaceAllMapped(exp, (match) {
+      final matchText = match.group(0)!;
+      final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
+      final number = match.group(1)!;
+      final bookName = match.group(2)!;
+      final ordinal = ordinals[number] ?? number;
+      return '$prefix$ordinal $bookName';
+    });
   }
 
   /// Get Bible version expansions based on language
@@ -188,8 +206,13 @@ class BibleTextFormatter {
         return {'和合本1919': '和合本一九一九', '新译本': '新译本'};
       case 'hi':
         return {
-          'पवित्र बाइबिल (ओ.वी.)': 'पवित्र बाइबिल ओ वी',
-          'पवित्र बाइबिल': 'पवित्र बाइबिल',
+          // Full Devanagari names (from database)
+          'पवित्र बाइबिल (ओ.वी.)': 'पवित्र बाइबिल पुराना संस्करण',
+          'पवित्र बाइबिल': 'पवित्र बाइबिल हिंदी आसान पठन संस्करण',
+          // Abbreviations (for constants usage)
+          'HIOV': 'पवित्र बाइबिल पुराना संस्करण',
+          'HERV': 'पवित्र बाइबिल हिंदी आसान पठन संस्करण',
+          'OV': 'पुराना संस्करण',
         };
       default:
         return {'RVR1960': 'Reina Valera mil novecientos sesenta'};
