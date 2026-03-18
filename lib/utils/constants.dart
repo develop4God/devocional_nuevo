@@ -209,7 +209,7 @@ class Constants {
       final abbr = parts[0];
       if (version.languageCode == 'hi') {
         if (abbr == 'ERV') return 'HERV';
-        if (abbr == 'OV') return 'ओ.वी.';
+        if (abbr == 'HIOV') return 'ओ.वी.';
       }
       return abbr;
     }

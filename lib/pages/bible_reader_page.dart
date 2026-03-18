@@ -526,8 +526,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                               value: version,
                               child: Row(
                                 children: [
-                                  if (version.name ==
-                                      state.selectedVersion?.name)
+                                  if (version.dbFileName ==
+                                      state.selectedVersion?.dbFileName)
                                     Icon(
                                       Icons.check,
                                       color: Theme.of(
@@ -538,7 +538,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   else
                                     const SizedBox(width: 20),
                                   const SizedBox(width: 8),
-                                  Text(version.name),
+                                  Text('${version.name} · ${Constants.versionAbbreviation(version)}'),
                                 ],
                               ),
                             );
