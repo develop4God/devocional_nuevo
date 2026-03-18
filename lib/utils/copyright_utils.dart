@@ -47,7 +47,11 @@ class CopyrightUtils {
         'पवित्र बाइबिल (ओ.वी.)':
             'पवित्र बाइबिल हिन्दी ओ.वी. संस्करण (HIOV) © Bible Society of India. सभी अधिकार सुरक्षित।',
         'पवित्र बाइबिल':
-            'पवित्र बाइबिल आसान हिंदी संस्करण (ERV) © 2010 World Bible Translation Center. सभी अधिकार सुरक्षित।',
+            'पवित्र बाइबिल आसान हिंदी संस्करण (HERV) © 1995, 2010 Bible League International. सभी अधिकार सुरक्षित।',
+        'HIOV':
+            'पवित्र बाइबिल हिन्दी ओ.वी. संस्करण (HIOV) © Bible Society of India. सभी अधिकार सुरक्षित।',
+        'HERV':
+            'पवित्र बाइबिल आसान हिंदी संस्करण (HERV) © 1995, 2010 Bible League International. सभी अधिकार सुरक्षित।',
         'default':
             'पवित्र बाइबिल हिन्दी ओ.वी. संस्करण (HIOV) © Bible Society of India. सभी अधिकार सुरक्षित।',
       },

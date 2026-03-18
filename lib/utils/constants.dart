@@ -83,7 +83,7 @@ class Constants {
   /// Maps version codes to user-facing strings.
   static const Map<String, String> versionDisplayNames = {
     'HIOV': 'पवित्र बाइबिल (ओ.वी.)',
-    'HERV': 'पवित्र बाइबल (HERV)',
+    'HERV': 'पवित्र बाइबिल',
   };
 
   // Nombres japoneses para versiones de la Biblia (deprecated - versions now use Japanese names directly)
