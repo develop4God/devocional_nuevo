@@ -78,6 +78,24 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   // UI helper methods
+  /// Extract version abbreviation from database file name
+  /// e.g., "HIOV_hi.SQLite3" -> "HIOV", "ERV_hi.SQLite3" -> "HERV"
+  String _getVersionAbbreviation(BibleVersion version) {
+    // Extract the abbreviation from the database filename
+    final dbName = version.dbFileName;
+    // Format is like "HIOV_hi.SQLite3" or "ERV_hi.SQLite3"
+    final parts = dbName.split('_');
+    if (parts.isNotEmpty) {
+      var abbr = parts[0];
+      // Special handling: ERV should be displayed as HERV for Hindi
+      if (abbr == 'ERV' && version.languageCode == 'hi') {
+        return 'HERV';
+      }
+      return abbr;
+    }
+    return version.languageCode.toUpperCase();
+  }
+
   void _scrollToVerse(int verseNumber) async {
     final verses = _controller.state.verses;
     if (verses.isEmpty) return;
@@ -438,7 +456,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                         ),
                         if (!state.isLoading && state.selectedVersion != null)
                           Text(
-                            '${state.selectedVersion!.name} (${state.selectedVersion!.language})',
+                            '${state.selectedVersion!.name} (${_getVersionAbbreviation(state.selectedVersion!)})',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
