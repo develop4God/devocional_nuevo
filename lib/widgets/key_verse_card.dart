@@ -166,7 +166,8 @@ class KeyVerseCard extends StatelessWidget {
                             version!,
                             style: theme.textTheme.labelSmall?.copyWith(
                               fontWeight: FontWeight.w500,
-                              color: colorScheme.onSurface.withValues(alpha: 0.4),
+                              color:
+                                  colorScheme.onSurface.withValues(alpha: 0.4),
                             ),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,

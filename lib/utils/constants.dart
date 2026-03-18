@@ -1,3 +1,4 @@
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -199,6 +200,21 @@ class Constants {
 
   /// Number of prayers to fetch per page in the Prayer Wall
   static const int prayerWallPageSize = 20;
+
+  /// Extracts display abbreviation from a BibleVersion's database filename.
+  /// e.g., "HIOV_hi.SQLite3" → "HIOV", "ERV_hi.SQLite3" → "HERV" (Hindi special case)
+  static String versionAbbreviation(BibleVersion version) {
+    final parts = version.dbFileName.split('_');
+    if (parts.isNotEmpty) {
+      final abbr = parts[0];
+      if (version.languageCode == 'hi') {
+        if (abbr == 'ERV') return 'HERV';
+        if (abbr == 'OV') return 'ओ.वी.';
+      }
+      return abbr;
+    }
+    return version.languageCode.toUpperCase();
+  }
 }
 
 /// Schema versioning and migration constants for favorites storage

@@ -162,7 +162,7 @@ void main() {
         'पढ़ें 2 पतरस आज',
         'hi',
       );
-      expect(result, contains('दूसरा पतरस'));
+      expect(result, equals('पढ़ें दूसरा पतरस आज'));
     });
 
     test('leaves non-numbered Hindi books unchanged', () {
@@ -206,8 +206,10 @@ void main() {
     test('Hindi versions expand correctly for TTS', () {
       final expansions = BibleTextFormatter.getBibleVersionExpansions('hi');
       // Full Devanagari names from database
-      expect(expansions['पवित्र बाइबिल (ओ.वी.)'], 'पवित्र बाइबिल पुराना संस्करण');
-      expect(expansions['पवित्र बाइबिल'], 'पवित्र बाइबिल हिंदी आसान पठन संस्करण');
+      expect(
+          expansions['पवित्र बाइबिल (ओ.वी.)'], 'पवित्र बाइबिल पुराना संस्करण');
+      expect(
+          expansions['पवित्र बाइबिल'], 'पवित्र बाइबिल हिंदी आसान पठन संस्करण');
       // Abbreviations for constants usage
       expect(expansions['HIOV'], 'पवित्र बाइबिल पुराना संस्करण');
       expect(expansions['HERV'], 'पवित्र बाइबिल हिंदी आसान पठन संस्करण');

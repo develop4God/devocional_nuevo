@@ -160,7 +160,7 @@ class BibleTextFormatter {
     // Hindi uses ordinales for numbered books (1 Juan -> पहला यूहन्ना)
     // Pattern to match numbered books in Hindi text
     final exp = RegExp(
-      r'(?:^|\s)([123])\s+([\u0900-\u097F]+)',
+      r'(^|\s)([123])\s+([\u0900-\u097F]+)',
       caseSensitive: false,
     );
     final ordinals = {
@@ -170,12 +170,11 @@ class BibleTextFormatter {
     };
 
     return reference.replaceAllMapped(exp, (match) {
-      final matchText = match.group(0)!;
-      final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
-      final number = match.group(1)!;
-      final bookName = match.group(2)!;
+      final separator = match.group(1)!;
+      final number = match.group(2)!;
+      final bookName = match.group(3)!;
       final ordinal = ordinals[number] ?? number;
-      return '$prefix$ordinal $bookName';
+      return '$separator$ordinal $bookName';
     });
   }
 
