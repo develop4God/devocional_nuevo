@@ -202,18 +202,21 @@ class Constants {
   static const int prayerWallPageSize = 20;
 
   /// Extracts display abbreviation from a BibleVersion's database filename.
-  /// e.g., "HIOV_hi.SQLite3" → "HIOV", "ERV_hi.SQLite3" → "HERV" (Hindi special case)
+  /// Returns display abbreviation derived from dbFileName.
+  /// Returns '' for languages where name is self-describing (ja, zh).
+  /// SRP: single source of truth for all abbreviation logic.
   static String versionAbbreviation(BibleVersion version) {
+    if (version.languageCode == 'ja' || version.languageCode == 'zh') return '';
     final parts = version.dbFileName.split('_');
     if (parts.isNotEmpty) {
       final abbr = parts[0];
       if (version.languageCode == 'hi') {
-        if (abbr == 'ERV') return 'HERV';
+        if (abbr == 'ERV' || abbr == 'HERV') return 'HERV';
         if (abbr == 'HIOV') return 'ओ.वी.';
       }
       return abbr;
     }
-    return version.languageCode.toUpperCase();
+    return '';
   }
 }
 
