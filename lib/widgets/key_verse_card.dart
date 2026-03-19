@@ -137,49 +137,47 @@ class KeyVerseCard extends StatelessWidget {
                   const SizedBox(height: 28),
 
                   // Reference and Version
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Column(
                     children: [
-                      Container(
-                        height: 1,
-                        width: 24,
-                        color: colorScheme.primary.withValues(alpha: 0.2),
-                      ),
-                      const SizedBox(width: 16),
-                      Flexible(
-                        child: Text(
-                          keyVerse.reference.toUpperCase(),
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.0,
-                            color: colorScheme.primary,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            height: 1,
+                            width: 24,
+                            color: colorScheme.primary.withValues(alpha: 0.2),
                           ),
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
+                          const SizedBox(width: 16),
+                          Flexible(
+                            child: Text(
+                              keyVerse.reference.toUpperCase(),
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.0,
+                                color: colorScheme.primary,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Container(
+                            height: 1,
+                            width: 24,
+                            color: colorScheme.primary.withValues(alpha: 0.2),
+                          ),
+                        ],
                       ),
                       if (version != null && version!.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            version!,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w500,
-                              color:
-                                  colorScheme.onSurface.withValues(alpha: 0.4),
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
+                        const SizedBox(height: 6),
+                        Text(
+                          version!,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.onSurface.withValues(alpha: 0.4),
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
-                      const SizedBox(width: 16),
-                      Container(
-                        height: 1,
-                        width: 24,
-                        color: colorScheme.primary.withValues(alpha: 0.2),
-                      ),
                     ],
                   ),
                 ],
