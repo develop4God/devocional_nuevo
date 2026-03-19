@@ -26,8 +26,8 @@ void main() {
     });
 
     test('returns Hindi HERV disclaimer and display name (fixed from ERV)', () {
-      // Test with full Devanagari name
-      final text = CopyrightUtils.getCopyrightText('hi', 'पवित्र बाइबिल');
+      // Test with database file name
+      final text = CopyrightUtils.getCopyrightText('hi', 'HERV_hi.SQLite3');
       expect(text, contains('आसान हिंदी संस्करण'));
       expect(text, contains('HERV')); // Fixed: now shows HERV instead of ERV
       expect(text, contains('Bible League International'));
