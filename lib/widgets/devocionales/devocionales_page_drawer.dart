@@ -650,7 +650,8 @@ class DevocionalesDrawer extends StatelessWidget {
                               color: colorScheme.onSurface,
                             ),
                           ),
-                          onTap: () => InAppReviewService.requestInAppReview(context),
+                          onTap: () =>
+                              InAppReviewService.requestInAppReview(context),
                         ),
                         const SizedBox(height: 5),
                         // --- Descargar devocionales ---
