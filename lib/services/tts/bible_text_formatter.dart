@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:devocional_nuevo/services/tts/hindi_tts_normalizer.dart';
 
 /// Bible text formatting utilities for TTS
 /// Handles ordinal formatting and Bible version expansions across multiple languages
@@ -227,6 +228,10 @@ class BibleTextFormatter {
     // Sanitize early to remove any malformed or invisible characters that
     // could break subsequent regex-based formatting.
     String normalized = _sanitizeInput(text);
+    // 0. Hindi-specific pre-processing (SRP: delegated to HindiTtsNormalizer)
+    if (language == 'hi') {
+      normalized = HindiTtsNormalizer.preProcess(normalized);
+    }
     // 1. Formatear libros bíblicos PRIMERO (con RegExp corregido)
     normalized = formatBibleBook(normalized, language);
     // 2. Expandir versiones bíblicas
