@@ -278,7 +278,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                 FutureBuilder<bool>(
                   future: BubbleUtils.shouldShowBubble(
                     BubbleUtils.getIconBubbleId(
-                      Icons.explore_outlined,
+                      Icons.location_history_outlined,
                       'new',
                       semanticLabel: 'encounters_bottom_bar',
                     ),
