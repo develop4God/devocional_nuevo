@@ -264,15 +264,21 @@ class BibleTextFormatter {
     // Different regex pattern for CJK languages (Chinese, Japanese, Korean)
     // to avoid word boundary issues with non-ASCII characters
     final isCJK = language == 'zh' || language == 'ja';
+    final isDevanagari = language == 'hi';
     final pattern = isCJK
         ? RegExp(
             r'((?:\d+\s+)?[一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
             caseSensitive: false,
           )
-        : RegExp(
-            r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?',
-            caseSensitive: false,
-          );
+        : isDevanagari
+            ? RegExp(
+                r'((?:पहला|दूसरा|तीसरा)?\s*[\u0900-\u097F]+)\s+(\d+):(\d+)(?:-(\d+))?',
+                caseSensitive: false,
+              )
+            : RegExp(
+                r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?',
+                caseSensitive: false,
+              );
 
     return text.replaceAllMapped(pattern, (match) {
       final book = match.group(1)!;
@@ -292,7 +298,9 @@ class BibleTextFormatter {
                         ? '～'
                         : language == 'zh'
                             ? '至'
-                            : 'al';
+                            : language == 'hi'
+                                ? 'से'
+                                : 'al';
         result += ' $toWord $verseEnd';
       }
       return result;
