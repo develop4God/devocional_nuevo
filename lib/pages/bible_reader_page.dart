@@ -385,11 +385,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   // Helper para prefijos de capítulo y versículo según idioma
   String getChapterPrefix(String? lang) {
     if (lang == 'ja' || lang == 'zh') return '章'; // japonés o chino
+    if (lang == 'hi') return 'अ.';
     return 'C.';
   }
 
   String getVersePrefix(String? lang) {
     if (lang == 'ja' || lang == 'zh') return '节'; // japonés o chino
+    if (lang == 'hi') return 'प.';
     return 'V.';
   }
 
