@@ -136,6 +136,41 @@ void main() {
     });
   });
 
+  group('BibleTextFormatter - Hindi Ordinals', () {
+    test('formats 1 यूहन्ना as पहला यूहन्ना', () {
+      final result = BibleTextFormatter.formatBibleBook('1 यूहन्ना', 'hi');
+      expect(result, 'पहला यूहन्ना');
+    });
+
+    test('formats 2 पतरस as दूसरा पतरस', () {
+      final result = BibleTextFormatter.formatBibleBook('2 पतरस', 'hi');
+      expect(result, 'दूसरा पतरस');
+    });
+
+    test('formats 3 यूहन्ना as तीसरा यूहन्ना', () {
+      final result = BibleTextFormatter.formatBibleBook('3 यूहन्ना', 'hi');
+      expect(result, 'तीसरा यूहन्ना');
+    });
+
+    test('handles Hindi text with Devanagari characters', () {
+      final result = BibleTextFormatter.formatBibleBook('1 कुरिन्थियों', 'hi');
+      expect(result, 'पहला कुरिन्थियों');
+    });
+
+    test('handles book in middle of Hindi text', () {
+      final result = BibleTextFormatter.formatBibleBook(
+        'पढ़ें 2 पतरस आज',
+        'hi',
+      );
+      expect(result, equals('पढ़ें दूसरा पतरस आज'));
+    });
+
+    test('leaves non-numbered Hindi books unchanged', () {
+      final result = BibleTextFormatter.formatBibleBook('उत्पत्ति', 'hi');
+      expect(result, 'उत्पत्ति');
+    });
+  });
+
   group('BibleTextFormatter - Bible Version Expansions', () {
     test('Spanish versions expand correctly', () {
       final expansions = BibleTextFormatter.getBibleVersionExpansions('es');
@@ -166,6 +201,19 @@ void main() {
       expect(expansions['和合本1919'], '和合本一九一九');
       // The second Chinese version should be 新译本 (not 新标点和合本)
       expect(expansions['新译本'], '新译本');
+    });
+
+    test('Hindi versions expand correctly for TTS', () {
+      final expansions = BibleTextFormatter.getBibleVersionExpansions('hi');
+      // Full Devanagari names from database
+      expect(
+          expansions['पवित्र बाइबिल (ओ.वी.)'], 'पवित्र बाइबिल पुराना संस्करण');
+      expect(
+          expansions['पवित्र बाइबिल'], 'पवित्र बाइबिल हिंदी आसान पठन संस्करण');
+      // Abbreviations for constants usage
+      expect(expansions['HIOV'], 'पवित्र बाइबिल पुराना संस्करण');
+      expect(expansions['HERV'], 'पवित्र बाइबिल हिंदी आसान पठन संस्करण');
+      expect(expansions['OV'], 'पुराना संस्करण');
     });
 
     test('unknown language falls back to Spanish', () {

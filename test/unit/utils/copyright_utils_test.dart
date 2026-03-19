@@ -25,14 +25,28 @@ void main() {
       expect(displayName, equals('हिन्दी ओ.वी. संस्करण'));
     });
 
-    test('returns Hindi ERV disclaimer and display name', () {
+    test('returns Hindi HERV disclaimer and display name (fixed from ERV)', () {
+      // Test with full Devanagari name
       final text = CopyrightUtils.getCopyrightText('hi', 'पवित्र बाइबिल');
       expect(text, contains('आसान हिंदी संस्करण'));
-      expect(text, contains('ERV'));
+      expect(text, contains('HERV')); // Fixed: now shows HERV instead of ERV
+      expect(text, contains('Bible League International'));
+      expect(text, contains('1995, 2010'));
+
+      // Test with abbreviation code
+      final textAbbr = CopyrightUtils.getCopyrightText('hi', 'HERV');
+      expect(textAbbr, contains('HERV'));
+      expect(textAbbr, contains('Bible League International'));
 
       final displayName =
           CopyrightUtils.getBibleVersionDisplayName('hi', 'पवित्र बाइबिल');
       expect(displayName, equals('आसान हिंदी संस्करण'));
+    });
+
+    test('Hindi HIOV abbreviation also works', () {
+      final text = CopyrightUtils.getCopyrightText('hi', 'HIOV');
+      expect(text, contains('HIOV'));
+      expect(text, contains('Bible Society of India'));
     });
 
     test('falls back to default when version missing', () {

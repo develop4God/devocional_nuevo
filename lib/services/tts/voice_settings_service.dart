@@ -133,6 +133,12 @@ class VoiceSettingsService {
           'yue-hk-x-jar-local',
           'yue-hk-x-jar-network',
         ],
+        'hi': [
+          'hi-in-x-hid-local', // Voz masculina India por defecto (पुरुष भारत)
+          'hi-in-x-hia-local', // Voz femenina India alternativa
+          'hi-in-x-hie-network',
+          'hi-IN-language',
+        ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];
       Map? selectedVoice;

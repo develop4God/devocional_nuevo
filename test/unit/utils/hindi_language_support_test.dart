@@ -49,8 +49,8 @@ void main() {
       expect(Constants.versionDisplayNames['HIOV'],
           equals('पवित्र बाइबिल (ओ.वी.)'));
       expect(Constants.versionDisplayNames.containsKey('HERV'), isTrue);
-      expect(
-          Constants.versionDisplayNames['HERV'], equals('पवित्र बाइबल (HERV)'));
+      // Fixed: HERV now shows without abbreviation in parentheses
+      expect(Constants.versionDisplayNames['HERV'], equals('पवित्र बाइबिल'));
     });
   });
 }
