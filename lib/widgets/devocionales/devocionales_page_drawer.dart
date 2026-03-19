@@ -20,8 +20,11 @@ import 'package:share_plus/share_plus.dart';
 class DevocionalesDrawer extends StatelessWidget {
   const DevocionalesDrawer({super.key});
 
-  void _shareApp(BuildContext context) {
+  void _shareApp(BuildContext context) async {
     final message = 'drawer.share_message'.tr();
+
+    await BubbleUtils.markAsShown('drawer_share_bubble');
+    if (!context.mounted) return;
 
     SharePlus.instance.share(ShareParams(text: message));
     Navigator.of(context).pop(); // Cerrar drawer tras compartir
@@ -639,51 +642,27 @@ class DevocionalesDrawer extends StatelessWidget {
                         ),
                         const SizedBox(height: 5),
                         // --- Calificar app ---
-                        FutureBuilder<bool>(
-                          future: BubbleUtils.shouldShowBubble(
-                            'drawer_rate_bubble',
-                          ),
-                          builder: (context, snapshot) {
-                            final showBubble = snapshot.data ?? false;
-                            return drawerRow(
-                              key: const Key('drawer_rate_app'),
-                              icon: Icons.thumb_up_alt_outlined,
-                              iconColor: colorScheme.primary,
-                              label: Text(
+                        drawerRow(
+                          key: const Key('drawer_rate_app'),
+                          icon: Icons.thumb_up_alt_outlined,
+                          iconColor: colorScheme.primary,
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
                                 'drawer.rate_app'.tr(),
                                 style: textTheme.bodyMedium?.copyWith(
                                   fontSize: 16,
                                   color: colorScheme.onSurface,
                                 ),
-                              ),
-                              trailing: showBubble
-                                  ? Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: BubbleConstants.newFeatureColor,
-                                        borderRadius: BorderRadius.circular(
-                                          BubbleConstants.iconBadgeRadius,
-                                        ),
-                                        boxShadow: BubbleConstants.bubbleShadow,
-                                      ),
-                                      child: Text(
-                                        'bubble_constants.new_feature'.tr(),
-                                        style:
-                                            BubbleConstants.iconBadgeTextStyle,
-                                      ),
-                                    )
-                                  : null,
-                              onTap: () async {
-                                await BubbleUtils.markAsShown(
-                                  'drawer_rate_bubble',
-                                );
-                                if (!context.mounted) return;
-                                InAppReviewService.requestInAppReview(context);
-                              },
-                            );
+                              ).newBubbleWithId('drawer_rate_bubble'),
+                            ],
+                          ),
+                          onTap: () async {
+                            await BubbleUtils.markAsShown('drawer_rate_bubble');
+                            if (!context.mounted) return;
+                            Navigator.of(context).pop(); // Closes the drawer
+                            InAppReviewService.requestInAppReview(context);
                           },
                         ),
                         const SizedBox(height: 5),
