@@ -275,25 +275,72 @@ class DevocionalesBottomBar extends StatelessWidget {
                 ),
               // 4. Encounters (NEW)
               if (Constants.enableEncountersFeature)
-                IconButton(
-                  key: const Key('bottom_appbar_encounters_icon'),
-                  tooltip: 'Encounters',
-                  onPressed: () {
-                    getService<AnalyticsService>().logBottomBarAction(
-                      action: 'encounters',
-                    );
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const EncountersListPage(),
-                      ),
+                FutureBuilder<bool>(
+                  future: BubbleUtils.shouldShowBubble(
+                    BubbleUtils.getIconBubbleId(
+                      Icons.explore_outlined,
+                      'new',
+                      semanticLabel: 'encounters_bottom_bar',
+                    ),
+                  ),
+                  builder: (context, snapshot) {
+                    final showBubble = snapshot.data ?? false;
+                    return Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        IconButton(
+                          key: const Key('bottom_appbar_encounters_icon'),
+                          tooltip: 'Encounters',
+                          onPressed: () async {
+                            getService<AnalyticsService>().logBottomBarAction(
+                              action: 'encounters',
+                            );
+                            await BubbleUtils.markAsShown(
+                              BubbleUtils.getIconBubbleId(
+                                Icons.explore_outlined,
+                                'new',
+                                semanticLabel: 'encounters_bottom_bar',
+                              ),
+                            );
+                            if (!context.mounted) return;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const EncountersListPage(),
+                              ),
+                            );
+                          },
+                          icon: Icon(
+                            Icons.explore_outlined,
+                            color: colorScheme.onPrimary,
+                            size: 32,
+                          ),
+                        ),
+                        if (showBubble)
+                          Positioned(
+                            top: BubbleConstants.iconBadgeTop,
+                            right: BubbleConstants.iconBadgeRight,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: BubbleConstants.newFeatureColor,
+                                borderRadius: BorderRadius.circular(
+                                  BubbleConstants.iconBadgeRadius,
+                                ),
+                                boxShadow: BubbleConstants.bubbleShadow,
+                              ),
+                              child: Text(
+                                'bubble_constants.new_feature'.tr(),
+                                style: BubbleConstants.iconBadgeTextStyle,
+                              ),
+                            ),
+                          ),
+                      ],
                     );
                   },
-                  icon: Icon(
-                    Icons.explore_outlined,
-                    color: colorScheme.onPrimary,
-                    size: 32,
-                  ),
                 ),
               // 5. Spiritual Stats/Progress
               IconButton(
