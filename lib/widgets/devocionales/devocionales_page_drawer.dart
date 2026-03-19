@@ -613,14 +613,26 @@ class DevocionalesDrawer extends StatelessWidget {
                         // --- Compartir app ---
                         drawerRow(
                           key: const Key('drawer_share_app'),
-                          icon: Icons.share,
+                          icon: Icons.share_outlined,
                           iconColor: colorScheme.primary,
-                          label: Text(
-                            'drawer.share_app'.tr(),
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontSize: 16,
-                              color: colorScheme.onSurface,
-                            ),
+                          label: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'drawer.share_app'.tr(),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 16,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'bible.share'.tr(),
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurface.withAlpha(150),
+                                ),
+                              ).newBubbleWithId('drawer_share_bubble'),
+                            ],
                           ),
                           onTap: () => _shareApp(context),
                         ),
