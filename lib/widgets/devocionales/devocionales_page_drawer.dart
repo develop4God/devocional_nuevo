@@ -1,4 +1,3 @@
-import 'package:devocional_nuevo/services/in_app_review_service.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
@@ -8,6 +7,7 @@ import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/notification_config_page.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/in_app_review_service.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_gradient_dialog.dart';
@@ -641,7 +641,7 @@ class DevocionalesDrawer extends StatelessWidget {
                         // --- Calificar app ---
                         drawerRow(
                           key: const Key('drawer_rate_app'),
-                          icon: Icons.star_outline,
+                          icon: Icons.thumb_up_alt_outlined,
                           iconColor: colorScheme.primary,
                           label: Text(
                             'drawer.rate_app'.tr(),
