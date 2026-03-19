@@ -6,6 +6,7 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_book_selector_dialog.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_chapter_grid_selector.dart';
@@ -78,6 +79,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   // UI helper methods
+
   void _scrollToVerse(int verseNumber) async {
     final verses = _controller.state.verses;
     if (verses.isEmpty) return;
@@ -383,12 +385,28 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   // Helper para prefijos de capítulo y versículo según idioma
   String getChapterPrefix(String? lang) {
     if (lang == 'ja' || lang == 'zh') return '章'; // japonés o chino
+    if (lang == 'hi') return 'अ.';
     return 'C.';
   }
 
   String getVersePrefix(String? lang) {
     if (lang == 'ja' || lang == 'zh') return '节'; // japonés o chino
+    if (lang == 'hi') return 'प.';
     return 'V.';
+  }
+
+  /// Composes the full display label for a BibleVersion.
+  /// SRP: single place owns version label composition for this UI surface.
+  String _versionLabel(BibleVersion version) {
+    final String abbr = Constants.versionAbbreviation(version);
+    if (abbr.isEmpty) return version.name;
+    return '${version.name} ($abbr)';
+  }
+
+  String _versionPickerLabel(BibleVersion version) {
+    final String abbr = Constants.versionAbbreviation(version);
+    if (abbr.isEmpty) return version.name;
+    return '${version.name} · $abbr';
   }
 
   @override
@@ -438,7 +456,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                         ),
                         if (!state.isLoading && state.selectedVersion != null)
                           Text(
-                            '${state.selectedVersion!.name} (${state.selectedVersion!.language})',
+                            _versionLabel(state.selectedVersion!),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -524,8 +542,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                               value: version,
                               child: Row(
                                 children: [
-                                  if (version.name ==
-                                      state.selectedVersion?.name)
+                                  if (version.dbFileName ==
+                                      state.selectedVersion?.dbFileName)
                                     Icon(
                                       Icons.check,
                                       color: Theme.of(
@@ -536,7 +554,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   else
                                     const SizedBox(width: 20),
                                   const SizedBox(width: 8),
-                                  Text(version.name),
+                                  Text(_versionPickerLabel(version)),
                                 ],
                               ),
                             );
@@ -731,7 +749,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                       child: Text(
                                         CopyrightUtils.getCopyrightText(
                                           state.selectedVersion!.languageCode,
-                                          state.selectedVersion!.name,
+                                          state.selectedVersion!.dbFileName,
                                         ),
                                         style: Theme.of(context)
                                             .textTheme

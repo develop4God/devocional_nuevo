@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:devocional_nuevo/services/tts/hindi_tts_normalizer.dart';
 
 /// Bible text formatting utilities for TTS
 /// Handles ordinal formatting and Bible version expansions across multiple languages
@@ -155,10 +156,27 @@ class BibleTextFormatter {
     return reference.trim();
   }
 
-  /// Formato para libros bíblicos en hindi (sin ordinales, solo limpieza básica)
+  /// Formato para libros bíblicos en hindi (con ordinales para 1, 2, 3)
   static String _formatBibleBookHindi(String reference) {
-    // En hindi, los libros bíblicos no usan ordinales, solo se devuelve el texto tal cual
-    return reference.trim();
+    // Hindi uses ordinales for numbered books (1 Juan -> पहला यूहन्ना)
+    // Pattern to match numbered books in Hindi text
+    final exp = RegExp(
+      r'(^|\s)([123])\s+([\u0900-\u097F]+)',
+      caseSensitive: false,
+    );
+    final ordinals = {
+      '1': 'पहला', // First (pahlā)
+      '2': 'दूसरा', // Second (dūsrā)
+      '3': 'तीसरा', // Third (tīsrā)
+    };
+
+    return reference.replaceAllMapped(exp, (match) {
+      final separator = match.group(1)!;
+      final number = match.group(2)!;
+      final bookName = match.group(3)!;
+      final ordinal = ordinals[number] ?? number;
+      return '$separator$ordinal $bookName';
+    });
   }
 
   /// Get Bible version expansions based on language
@@ -188,8 +206,13 @@ class BibleTextFormatter {
         return {'和合本1919': '和合本一九一九', '新译本': '新译本'};
       case 'hi':
         return {
-          'पवित्र बाइबिल (ओ.वी.)': 'पवित्र बाइबिल ओ वी',
-          'पवित्र बाइबिल': 'पवित्र बाइबिल',
+          // Full Devanagari names (from database)
+          'पवित्र बाइबिल (ओ.वी.)': 'पवित्र बाइबिल पुराना संस्करण',
+          'पवित्र बाइबिल': 'पवित्र बाइबिल हिंदी आसान पठन संस्करण',
+          // Abbreviations (for constants usage)
+          'HIOV': 'पवित्र बाइबिल पुराना संस्करण',
+          'HERV': 'पवित्र बाइबिल हिंदी आसान पठन संस्करण',
+          'OV': 'पुराना संस्करण',
         };
       default:
         return {'RVR1960': 'Reina Valera mil novecientos sesenta'};
@@ -205,6 +228,10 @@ class BibleTextFormatter {
     // Sanitize early to remove any malformed or invisible characters that
     // could break subsequent regex-based formatting.
     String normalized = _sanitizeInput(text);
+    // 0. Hindi-specific pre-processing (SRP: delegated to HindiTtsNormalizer)
+    if (language == 'hi') {
+      normalized = HindiTtsNormalizer.preProcess(normalized);
+    }
     // 1. Formatear libros bíblicos PRIMERO (con RegExp corregido)
     normalized = formatBibleBook(normalized, language);
     // 2. Expandir versiones bíblicas
@@ -242,15 +269,21 @@ class BibleTextFormatter {
     // Different regex pattern for CJK languages (Chinese, Japanese, Korean)
     // to avoid word boundary issues with non-ASCII characters
     final isCJK = language == 'zh' || language == 'ja';
+    final isDevanagari = language == 'hi';
     final pattern = isCJK
         ? RegExp(
             r'((?:\d+\s+)?[一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
             caseSensitive: false,
           )
-        : RegExp(
-            r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?',
-            caseSensitive: false,
-          );
+        : isDevanagari
+            ? RegExp(
+                r'((?:पहला|दूसरा|तीसरा)?\s*[\u0900-\u097F]+)\s+(\d+):(\d+)(?:-(\d+))?',
+                caseSensitive: false,
+              )
+            : RegExp(
+                r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?',
+                caseSensitive: false,
+              );
 
     return text.replaceAllMapped(pattern, (match) {
       final book = match.group(1)!;
@@ -270,7 +303,9 @@ class BibleTextFormatter {
                         ? '～'
                         : language == 'zh'
                             ? '至'
-                            : 'al';
+                            : language == 'hi'
+                                ? 'से'
+                                : 'al';
         result += ' $toWord $verseEnd';
       }
       return result;

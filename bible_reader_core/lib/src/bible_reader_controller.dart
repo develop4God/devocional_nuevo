@@ -103,7 +103,7 @@ class BibleReaderController {
   ) {
     return availableVersions.any(
       (v) =>
-          v.name == lastPosition['version'] &&
+          v.dbFileName == lastPosition['version'] &&
           v.languageCode == lastPosition['languageCode'],
     );
   }
@@ -115,7 +115,7 @@ class BibleReaderController {
     // Find and switch to saved version
     final savedVersion = availableVersions.firstWhere(
       (v) =>
-          v.name == lastPosition['version'] &&
+          v.dbFileName == lastPosition['version'] &&
           v.languageCode == lastPosition['languageCode'],
     );
 
@@ -210,7 +210,7 @@ class BibleReaderController {
         bookName: _state.selectedBookName!,
         bookNumber: _state.selectedBookNumber!,
         chapter: _state.selectedChapter!,
-        version: _state.selectedVersion!.name,
+        version: _state.selectedVersion!.dbFileName,
         languageCode: _state.selectedVersion!.languageCode,
       );
     }
@@ -218,7 +218,7 @@ class BibleReaderController {
 
   /// Switch to a different Bible version
   Future<void> switchVersion(BibleVersion newVersion) async {
-    if (newVersion.name == _state.selectedVersion?.name) return;
+    if (newVersion.dbFileName == _state.selectedVersion?.dbFileName) return;
 
     _emit(_state.copyWith(isLoading: true));
 

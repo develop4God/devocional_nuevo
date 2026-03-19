@@ -448,9 +448,7 @@ class DevocionalesDrawer extends StatelessWidget {
                                       children: [
                                         Flexible(
                                           child: Text(
-                                            Constants.versionDisplayNames[
-                                                    itemValue] ??
-                                                itemValue,
+                                            _versionLabel(itemValue),
                                             style: TextStyle(
                                               color: colorScheme.onSurface,
                                               fontSize: 16,
@@ -469,9 +467,7 @@ class DevocionalesDrawer extends StatelessWidget {
                                   return DropdownMenuItem<String>(
                                     value: itemValue,
                                     child: Text(
-                                      Constants
-                                              .versionDisplayNames[itemValue] ??
-                                          itemValue,
+                                      _versionLabel(itemValue),
                                       style: TextStyle(
                                         color: colorScheme.onSurface,
                                       ),
@@ -617,14 +613,26 @@ class DevocionalesDrawer extends StatelessWidget {
                         // --- Compartir app ---
                         drawerRow(
                           key: const Key('drawer_share_app'),
-                          icon: Icons.share,
+                          icon: Icons.share_outlined,
                           iconColor: colorScheme.primary,
-                          label: Text(
-                            'drawer.share_app'.tr(),
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontSize: 16,
-                              color: colorScheme.onSurface,
-                            ),
+                          label: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'drawer.share_app'.tr(),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 16,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'bible.share'.tr(),
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurface.withAlpha(150),
+                                ),
+                              ).newBubbleWithId('drawer_share_bubble'),
+                            ],
                           ),
                           onTap: () => _shareApp(context),
                         ),
@@ -753,5 +761,11 @@ class DevocionalesDrawer extends StatelessWidget {
         );
       },
     );
+  }
+
+  static String _versionLabel(String versionId) {
+    final name = Constants.versionDisplayNames[versionId] ?? versionId;
+    if (versionId == 'HERV') return '$name (HERV)';
+    return name;
   }
 }

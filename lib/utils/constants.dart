@@ -1,3 +1,4 @@
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -83,7 +84,7 @@ class Constants {
   /// Maps version codes to user-facing strings.
   static const Map<String, String> versionDisplayNames = {
     'HIOV': 'पवित्र बाइबिल (ओ.वी.)',
-    'HERV': 'पवित्र बाइबल (HERV)',
+    'HERV': 'पवित्र बाइबिल',
   };
 
   // Nombres japoneses para versiones de la Biblia (deprecated - versions now use Japanese names directly)
@@ -199,6 +200,24 @@ class Constants {
 
   /// Number of prayers to fetch per page in the Prayer Wall
   static const int prayerWallPageSize = 20;
+
+  /// Extracts display abbreviation from a BibleVersion's database filename.
+  /// Returns display abbreviation derived from dbFileName.
+  /// Returns '' for languages where name is self-describing (ja, zh).
+  /// SRP: single source of truth for all abbreviation logic.
+  static String versionAbbreviation(BibleVersion version) {
+    if (version.languageCode == 'ja' || version.languageCode == 'zh') return '';
+    final parts = version.dbFileName.split('_');
+    if (parts.isNotEmpty) {
+      final abbr = parts[0];
+      if (version.languageCode == 'hi') {
+        if (abbr == 'ERV' || abbr == 'HERV') return 'HERV';
+        if (abbr == 'HIOV') return 'ओ.वी.';
+      }
+      return abbr;
+    }
+    return '';
+  }
 }
 
 /// Schema versioning and migration constants for favorites storage
