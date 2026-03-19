@@ -1,3 +1,4 @@
+import 'package:devocional_nuevo/services/in_app_review_service.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
@@ -635,6 +636,21 @@ class DevocionalesDrawer extends StatelessWidget {
                             ],
                           ),
                           onTap: () => _shareApp(context),
+                        ),
+                        const SizedBox(height: 5),
+                        // --- Calificar app ---
+                        drawerRow(
+                          key: const Key('drawer_rate_app'),
+                          icon: Icons.star_outline,
+                          iconColor: colorScheme.primary,
+                          label: Text(
+                            'drawer.rate_app'.tr(),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 16,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          onTap: () => InAppReviewService.requestInAppReview(context),
                         ),
                         const SizedBox(height: 5),
                         // --- Descargar devocionales ---
