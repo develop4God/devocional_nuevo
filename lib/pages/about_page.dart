@@ -118,9 +118,11 @@ class _AboutPageState extends State<AboutPage> {
             appBar: CustomAppBar(titleText: 'about.title'.tr()),
             body: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
                   GestureDetector(
                     onTap: _onIconTapped,
                     child: Stack(
@@ -198,18 +200,20 @@ class _AboutPageState extends State<AboutPage> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 6),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      _FeatureItem(text: 'about.feature_daily'.tr()),
-                      _FeatureItem(text: 'about.feature_multiversion'.tr()),
-                      _FeatureItem(text: 'about.feature_favorites'.tr()),
-                      _FeatureItem(text: 'about.feature_sharing'.tr()),
-                      _FeatureItem(text: 'about.feature_language'.tr()),
-                      _FeatureItem(text: 'about.feature_themes'.tr()),
-                      _FeatureItem(text: 'about.feature_dark_light'.tr()),
-                      _FeatureItem(text: 'about.feature_notifications'.tr()),
-                    ],
+                  IntrinsicWidth(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        _FeatureItem(text: 'about.feature_daily'.tr()),
+                        _FeatureItem(text: 'about.feature_multiversion'.tr()),
+                        _FeatureItem(text: 'about.feature_favorites'.tr()),
+                        _FeatureItem(text: 'about.feature_sharing'.tr()),
+                        _FeatureItem(text: 'about.feature_language'.tr()),
+                        _FeatureItem(text: 'about.feature_themes'.tr()),
+                        _FeatureItem(text: 'about.feature_dark_light'.tr()),
+                        _FeatureItem(text: 'about.feature_notifications'.tr()),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
                   if (isGold) ...[
@@ -279,6 +283,7 @@ class _AboutPageState extends State<AboutPage> {
                   const SizedBox(height: 16),
                 ],
               ),
+            ),
             ),
           );
         },
