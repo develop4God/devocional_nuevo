@@ -448,9 +448,7 @@ class DevocionalesDrawer extends StatelessWidget {
                                       children: [
                                         Flexible(
                                           child: Text(
-                                            Constants.versionDisplayNames[
-                                                    itemValue] ??
-                                                itemValue,
+                                            _versionLabel(itemValue),
                                             style: TextStyle(
                                               color: colorScheme.onSurface,
                                               fontSize: 16,
@@ -469,9 +467,7 @@ class DevocionalesDrawer extends StatelessWidget {
                                   return DropdownMenuItem<String>(
                                     value: itemValue,
                                     child: Text(
-                                      Constants
-                                              .versionDisplayNames[itemValue] ??
-                                          itemValue,
+                                      _versionLabel(itemValue),
                                       style: TextStyle(
                                         color: colorScheme.onSurface,
                                       ),
@@ -753,5 +749,11 @@ class DevocionalesDrawer extends StatelessWidget {
         );
       },
     );
+  }
+
+  static String _versionLabel(String versionId) {
+    final name = Constants.versionDisplayNames[versionId] ?? versionId;
+    if (versionId == 'HERV') return '$name (HERV)';
+    return name;
   }
 }
