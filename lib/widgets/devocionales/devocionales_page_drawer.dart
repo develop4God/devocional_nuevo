@@ -1,3 +1,4 @@
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
@@ -17,8 +18,30 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-class DevocionalesDrawer extends StatelessWidget {
+class DevocionalesDrawer extends StatefulWidget {
   const DevocionalesDrawer({super.key});
+
+  @override
+  State<DevocionalesDrawer> createState() => _DevocionalesDrawerState();
+}
+
+class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
+  List<BibleVersion> _loadedVersions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersionsForCurrentLanguage();
+  }
+
+  Future<void> _loadVersionsForCurrentLanguage() async {
+    final versions = await BibleVersionRegistry.getAllVersions();
+    if (mounted) {
+      setState(() {
+        _loadedVersions = versions;
+      });
+    }
+  }
 
   void _shareApp(BuildContext context) async {
     final message = 'drawer.share_message'.tr();
@@ -792,18 +815,13 @@ class DevocionalesDrawer extends StatelessWidget {
     );
   }
 
-  static String _versionLabel(String versionId) {
-    const displayNames = {
-      'RVR1960': 'Reina Valera 1960 (RVR1960)',
-      'NVI':     'Nueva Versión Internacional (NVI)',
-      'KJV':     'King James Version (KJV)',
-      'NIV':     'New International Version (NIV)',
-      'ARC':     'Almeida Revista e Corrigida (ARC)',
-      'LSG1910': 'Louis Segond 1910 (LSG1910)',
-      'BDS':     'Bible du Semeur (BDS)',
-      'HIOV':    'पवित्र बाइबिल (ओ.वी.)',
-      'HERV':    'पवित्र बाइबिल (HERV)',
-    };
-    return displayNames[versionId] ?? versionId;
+  String _versionLabel(String versionId) {
+    try {
+      return _loadedVersions
+          .firstWhere((v) => v.dbFileName.startsWith(versionId))
+          .name;
+    } catch (_) {
+      return versionId;
+    }
   }
 }
