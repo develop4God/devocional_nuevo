@@ -80,13 +80,6 @@ class Constants {
     'hi': 'HIOV', // Default Hindi version
   };
 
-  /// Display names for Bible versions shown in the UI.
-  /// Maps version codes to user-facing strings.
-  static const Map<String, String> versionDisplayNames = {
-    'HIOV': 'पवित्र बाइबिल (ओ.वी.)',
-    'HERV': 'पवित्र बाइबिल',
-  };
-
   // Nombres japoneses para versiones de la Biblia (deprecated - versions now use Japanese names directly)
   static const Map<String, String> bibleJapaneseNames = {
     '新改訳2003': '新改訳2003', // Shinkaiyaku 2003

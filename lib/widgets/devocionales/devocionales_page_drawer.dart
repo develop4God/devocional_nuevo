@@ -793,8 +793,9 @@ class DevocionalesDrawer extends StatelessWidget {
   }
 
   static String _versionLabel(String versionId) {
-    final name = Constants.versionDisplayNames[versionId] ?? versionId;
-    if (versionId == 'HERV') return '$name (HERV)';
-    return name;
+    // Version display names are now handled by BibleVersionRegistry
+    // This function temporarily returns the version ID as-is
+    // TODO: Refactor to use BibleVersionRegistry for proper display names
+    return versionId;
   }
 }
