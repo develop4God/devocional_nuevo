@@ -793,9 +793,17 @@ class DevocionalesDrawer extends StatelessWidget {
   }
 
   static String _versionLabel(String versionId) {
-    // Version display names are now handled by BibleVersionRegistry
-    // This function temporarily returns the version ID as-is
-    // TODO: Refactor to use BibleVersionRegistry for proper display names
-    return versionId;
+    const displayNames = {
+      'RVR1960': 'Reina Valera 1960 (RVR1960)',
+      'NVI':     'Nueva Versión Internacional (NVI)',
+      'KJV':     'King James Version (KJV)',
+      'NIV':     'New International Version (NIV)',
+      'ARC':     'Almeida Revista e Corrigida (ARC)',
+      'LSG1910': 'Louis Segond 1910 (LSG1910)',
+      'BDS':     'Bible du Semeur (BDS)',
+      'HIOV':    'पवित्र बाइबिल (ओ.वी.)',
+      'HERV':    'पवित्र बाइबिल (HERV)',
+    };
+    return displayNames[versionId] ?? versionId;
   }
 }
