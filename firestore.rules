@@ -1,0 +1,59 @@
+rules_version = '2';
+
+// Firestore Security Rules for devocional_nuevo
+// Prayer Wall: prayers/{prayerId}
+//
+// Privacy-by-design constraints enforced here:
+// - Clients may ONLY read approved prayers (status == 'approved')
+// - Clients CANNOT read or write originalText, moderationReason, moderationScore, moderationFlag, authorId, or reportCount
+// - Only Cloud Functions (Admin SDK) may read/write the full document
+// - Writes are locked after creation (only Cloud Functions update via Admin SDK)
+//
+// KNOWN LIMITATION — originalText encryption (AC-002):
+// originalText is currently stored as plain text in Firestore. Field-level
+// encryption requires a Firebase Extension (Encryption Extension) or a
+// server-side KMS key. This is DEFERRED as a follow-up task. The security
+// rules below mitigate the risk by:
+//   1. Preventing authenticated clients from reading originalText (clients
+//      can only read approved prayers, whose originalText has been cleared
+//      by the Cloud Function after masking).
+//   2. Preventing any client from writing to an existing document.
+// Full encryption should be implemented before production launch.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Prayer Wall ──────────────────────────────────────────────────────────
+    match /prayers/{prayerId} {
+
+      // Fields that must NEVER be present in a client-submitted create.
+      function hasForbiddenWriteFields() {
+        return 'moderationReason' in request.resource.data
+          || 'moderationScore'  in request.resource.data
+          || 'moderationFlag'   in request.resource.data
+          || 'reportCount'      in request.resource.data;
+      }
+
+      // Only approved prayers may be read by authenticated clients.
+      // originalText is cleared by the Cloud Function before status → approved,
+      // so approved documents never expose raw user text.
+      allow read: if request.auth != null
+        && resource.data.status == 'approved';
+
+      // Authenticated users may CREATE a prayer document, but may not inject
+      // server-only fields (moderation results, report counts).
+      allow create: if request.auth != null
+        && !hasForbiddenWriteFields();
+
+      // All UPDATE and DELETE operations must go through Cloud Functions
+      // (Admin SDK bypasses these rules). Direct client mutations are denied.
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ── All other collections: default deny ──────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

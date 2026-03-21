@@ -353,4 +353,32 @@ class AnalyticsService {
       _logAnalyticsError('discovery_action', e);
     }
   }
+
+  /// Log Encounter page actions
+  ///
+  /// Event name: `encounter_action`
+  /// Parameters:
+  /// - `action`: The action performed (e.g., 'index_loaded', 'encounter_opened', 'card_viewed', 'encounter_completed')
+  /// - `encounter_id`: ID of the encounter (optional)
+  /// - `card_order`: Card order number (optional)
+  Future<void> logEncounterAction({
+    required String action,
+    String? encounterId,
+    int? cardOrder,
+  }) async {
+    try {
+      debugPrint('🔥 [Encounter] Action: $action');
+      final parameters = <String, Object>{'action': action};
+      if (encounterId != null) parameters['encounter_id'] = encounterId;
+      if (cardOrder != null) parameters['card_order'] = cardOrder;
+      await analytics.logEvent(
+        name: 'encounter_action',
+        parameters: parameters,
+      );
+      debugPrint('📊 Analytics: encounter_action event logged ($action)');
+    } catch (e) {
+      _logAnalyticsError('encounter_action', e);
+      // Fail silently - analytics errors should not affect app functionality
+    }
+  }
 }

@@ -14,6 +14,7 @@ void main() {
       expect(languages, contains('en'));
       expect(languages, contains('pt'));
       expect(languages, contains('fr'));
+      expect(languages, contains('hi'));
     });
 
     test('should get language name', () {
@@ -21,14 +22,17 @@ void main() {
       expect(BibleVersionRegistry.getLanguageName('en'), equals('English'));
       expect(BibleVersionRegistry.getLanguageName('pt'), equals('Português'));
       expect(BibleVersionRegistry.getLanguageName('fr'), equals('Français'));
+      expect(BibleVersionRegistry.getLanguageName('hi'), equals('हिन्दी'));
     });
 
     test('should get versions for Spanish language', () async {
       final versions = await BibleVersionRegistry.getVersionsForLanguage('es');
 
       expect(versions, isNotEmpty);
-      expect(versions.any((v) => v.name == 'RVR1960'), isTrue);
-      expect(versions.any((v) => v.name == 'NVI'), isTrue);
+      expect(
+          versions.any((v) => v.name == 'Reina Valera 1960 (RVR1960)'), isTrue);
+      expect(versions.any((v) => v.name == 'Nueva Versión Internacional (NVI)'),
+          isTrue);
       expect(versions.every((v) => v.languageCode == 'es'), isTrue);
       expect(versions.every((v) => v.language == 'Español'), isTrue);
     });
@@ -37,8 +41,9 @@ void main() {
       final versions = await BibleVersionRegistry.getVersionsForLanguage('en');
 
       expect(versions, isNotEmpty);
-      expect(versions.any((v) => v.name == 'KJV'), isTrue);
-      expect(versions.any((v) => v.name == 'NIV'), isTrue);
+      expect(versions.any((v) => v.name == 'King James Version (KJV)'), isTrue);
+      expect(versions.any((v) => v.name == 'New International Version (NIV)'),
+          isTrue);
       expect(versions.every((v) => v.languageCode == 'en'), isTrue);
       expect(versions.every((v) => v.language == 'English'), isTrue);
     });
@@ -47,7 +52,8 @@ void main() {
       final versions = await BibleVersionRegistry.getVersionsForLanguage('pt');
 
       expect(versions, isNotEmpty);
-      expect(versions.any((v) => v.name == 'ARC'), isTrue);
+      expect(versions.any((v) => v.name == 'Almeida Revista e Corrigida (ARC)'),
+          isTrue);
       expect(versions.every((v) => v.languageCode == 'pt'), isTrue);
       expect(versions.every((v) => v.language == 'Português'), isTrue);
     });
@@ -56,9 +62,27 @@ void main() {
       final versions = await BibleVersionRegistry.getVersionsForLanguage('fr');
 
       expect(versions, isNotEmpty);
-      expect(versions.any((v) => v.name == 'LSG1910'), isTrue);
+      expect(
+          versions.any((v) => v.name == 'Louis Segond 1910 (LSG1910)'), isTrue);
       expect(versions.every((v) => v.languageCode == 'fr'), isTrue);
       expect(versions.every((v) => v.language == 'Français'), isTrue);
+    });
+
+    test('should get versions for Hindi language', () async {
+      final versions = await BibleVersionRegistry.getVersionsForLanguage('hi');
+
+      expect(versions, isNotEmpty);
+      expect(versions.length, equals(2));
+      expect(
+        versions.any((v) => v.name == 'पवित्र बाइबिल (ओ.वी.)'),
+        isTrue,
+      );
+      expect(
+        versions.any((v) => v.name == 'पवित्र बाइबिल (HERV)'),
+        isTrue,
+      );
+      expect(versions.every((v) => v.languageCode == 'hi'), isTrue);
+      expect(versions.every((v) => v.language == 'हिन्दी'), isTrue);
     });
 
     test('should return empty list for unsupported language', () async {
@@ -71,12 +95,17 @@ void main() {
       final versions = await BibleVersionRegistry.getAllVersions();
 
       expect(versions, isNotEmpty);
-      expect(versions.length, greaterThanOrEqualTo(12)); // At least 12 versions
-      expect(versions.any((v) => v.name == 'RVR1960'), isTrue);
-      expect(versions.any((v) => v.name == 'KJV'), isTrue);
-      expect(versions.any((v) => v.name == 'ARC'), isTrue);
-      expect(versions.any((v) => v.name == 'LSG1910'), isTrue);
-      expect(versions.any((v) => v.name == 'BDS'), isTrue);
+      expect(versions.length,
+          greaterThanOrEqualTo(14)); // At least 14 versions (including Hindi)
+      expect(
+          versions.any((v) => v.name == 'Reina Valera 1960 (RVR1960)'), isTrue);
+      expect(versions.any((v) => v.name == 'King James Version (KJV)'), isTrue);
+      expect(versions.any((v) => v.name == 'Almeida Revista e Corrigida (ARC)'),
+          isTrue);
+      expect(
+          versions.any((v) => v.name == 'Louis Segond 1910 (LSG1910)'), isTrue);
+      expect(versions.any((v) => v.name == 'Bible du Semeur (BDS)'), isTrue);
+      expect(versions.any((v) => v.name == 'पवित्र बाइबिल (ओ.वी.)'), isTrue);
     });
 
     test('all versions should have proper metadata', () async {

@@ -1,9 +1,18 @@
 @Tags(['unit', 'widgets'])
 library;
 
+// DiscoveryActionBar widget has been removed from production code.
+// These tests are updated to exercise the real discovery detail page
+// and to avoid importing the removed widget directly.
+
+import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
+import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
-import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/widgets/discovery_action_bar.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
+import 'package:devocional_nuevo/models/discovery_card_model.dart';
+import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
+import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,262 +26,166 @@ void main() {
     PathProviderPlatform.instance = MockPathProviderPlatform();
   });
 
-  group('DiscoveryActionBar Widget Tests', () {
+  group('DiscoveryActionBar Widget Tests (via DiscoveryDetailPage)', () {
     late PrayerBloc prayerBloc;
-    late Devocional testDevocional;
 
     setUp(() {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
       registerTestServices();
+
       prayerBloc = PrayerBloc();
+    });
 
-      testDevocional = Devocional(
-        id: 'test-devocional-1',
+    tearDown(() async {
+      await prayerBloc.close();
+    });
+
+    /// Creates a test DiscoveryDevotional with mock cards
+    DiscoveryDevotional createTestStudy() {
+      final now = DateTime.now();
+      return DiscoveryDevotional(
+        id: 'dummy-study-id',
         versiculo: 'John 3:16',
-        reflexion: 'For God so loved the world...',
+        reflexion: 'Test Study Title',
         paraMeditar: [],
-        oracion: 'Thank you Lord',
-        date: DateTime.now(),
-      );
-    });
-
-    tearDown(() {
-      prayerBloc.close();
-    });
-
-    Widget createWidgetUnderTest({
-      Devocional? devocional,
-      VoidCallback? onMarkComplete,
-      bool isComplete = false,
-      VoidCallback? onPlayPause,
-      bool isPlaying = false,
-      VoidCallback? onNext,
-      VoidCallback? onPrevious,
-    }) {
-      return MaterialApp(
-        home: Scaffold(
-          body: BlocProvider<PrayerBloc>.value(
-            value: prayerBloc,
-            child: DiscoveryActionBar(
-              devocional: devocional ?? testDevocional,
-              onMarkComplete: onMarkComplete,
-              isComplete: isComplete,
-              onPlayPause: onPlayPause,
-              isPlaying: isPlaying,
-              onNext: onNext,
-              onPrevious: onPrevious,
-            ),
+        oracion: 'Test Prayer',
+        date: now,
+        emoji: '✨',
+        subtitle: 'Test Subtitle',
+        estimatedReadingMinutes: 10,
+        cards: [
+          DiscoveryCard(
+            order: 1,
+            type: 'natural_revelation',
+            title: 'Natural Revelation',
+            content: 'Test content for natural revelation',
+            icon: '🌿',
           ),
+          DiscoveryCard(
+            order: 2,
+            type: 'historical_thread',
+            title: 'Historical Thread',
+            content: 'Test content for historical thread',
+            icon: '📜',
+          ),
+        ],
+      );
+    }
+
+    Widget createDiscoveryDetailPageUnderTest() {
+      // NOTE: We now provide complete BLoC setup with mocked states
+      // that include the actual study data needed for the page to render.
+      final testStudy = createTestStudy();
+      final discoveryBloc = MockDiscoveryBlocWithLoadedStudy(testStudy);
+      final themeBloc = MockThemeBlocForTesting();
+
+      return MaterialApp(
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+            BlocProvider<ThemeBloc>.value(value: themeBloc),
+            BlocProvider<PrayerBloc>.value(value: prayerBloc),
+          ],
+          child: const DiscoveryDetailPage(studyId: 'dummy-study-id'),
         ),
       );
     }
 
-    testWidgets('renders without errors', (WidgetTester tester) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
+    testWidgets(
+      'renders discovery detail page without errors',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
 
-      expect(find.byType(DiscoveryActionBar), findsOneWidget);
-    });
+        await tester.pumpWidget(createDiscoveryDetailPageUnderTest());
+        await tester.pumpAndSettle();
 
-    testWidgets('displays required action buttons',
+        expect(find.byType(DiscoveryDetailPage), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+        'displays discovery action controls in real discovery detail page',
         (WidgetTester tester) async {
-      await tester.pumpWidget(createWidgetUnderTest());
+      tester.view.physicalSize = const Size(1080, 1920);
+      tester.view.devicePixelRatio = 1.0;
+
+      await tester.pumpWidget(createDiscoveryDetailPageUnderTest());
       await tester.pumpAndSettle();
 
-      // Check for share button
-      expect(find.byIcon(Icons.share), findsOneWidget);
+      // The DiscoveryDetailPage displays navigation and completion controls.
+      // Check for check_circle_outline_rounded which is the mark-complete button
+      expect(find.byIcon(Icons.check_circle_outline_rounded), findsWidgets);
 
-      // Check for play button
-      expect(find.byIcon(Icons.play_arrow), findsOneWidget);
-
-      // Check for add to prayers button
-      expect(find.byIcon(Icons.favorite_border), findsOneWidget);
-
-      // Check for mark complete button
-      expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
-    });
-
-    testWidgets('shows play icon when not playing',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        createWidgetUnderTest(isPlaying: false),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.play_arrow), findsOneWidget);
-      expect(find.byIcon(Icons.pause), findsNothing);
-    });
-
-    testWidgets('shows pause icon when playing', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        createWidgetUnderTest(isPlaying: true),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.pause), findsOneWidget);
-      expect(find.byIcon(Icons.play_arrow), findsNothing);
-    });
-
-    testWidgets('shows check_circle when complete',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        createWidgetUnderTest(isComplete: true),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.check_circle), findsOneWidget);
-      expect(find.byIcon(Icons.check_circle_outline), findsNothing);
-    });
-
-    testWidgets('shows check_circle_outline when not complete',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        createWidgetUnderTest(isComplete: false),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
-      expect(find.byIcon(Icons.check_circle), findsNothing);
-    });
-
-    testWidgets('shows navigation buttons when provided',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        createWidgetUnderTest(
-          onNext: () {},
-          onPrevious: () {},
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.arrow_back_ios), findsOneWidget);
-      expect(find.byIcon(Icons.arrow_forward_ios), findsOneWidget);
-    });
-
-    testWidgets('hides navigation buttons when not provided',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.arrow_back_ios), findsNothing);
-      expect(find.byIcon(Icons.arrow_forward_ios), findsNothing);
-    });
-
-    testWidgets('invokes onMarkComplete callback when tapped',
-        (WidgetTester tester) async {
-      bool callbackInvoked = false;
-
-      await tester.pumpWidget(
-        createWidgetUnderTest(
-          onMarkComplete: () {
-            callbackInvoked = true;
-          },
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Tap the mark complete button
-      await tester.tap(find.byIcon(Icons.check_circle_outline));
-      await tester.pumpAndSettle();
-
-      expect(callbackInvoked, isTrue);
-    });
-
-    testWidgets('invokes onPlayPause callback when tapped',
-        (WidgetTester tester) async {
-      bool callbackInvoked = false;
-
-      await tester.pumpWidget(
-        createWidgetUnderTest(
-          onPlayPause: () {
-            callbackInvoked = true;
-          },
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Tap the play button
-      await tester.tap(find.byIcon(Icons.play_arrow));
-      await tester.pumpAndSettle();
-
-      expect(callbackInvoked, isTrue);
-    });
-
-    testWidgets('invokes onNext callback when tapped',
-        (WidgetTester tester) async {
-      bool callbackInvoked = false;
-
-      await tester.pumpWidget(
-        createWidgetUnderTest(
-          onNext: () {
-            callbackInvoked = true;
-          },
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Tap the next button
-      await tester.tap(find.byIcon(Icons.arrow_forward_ios));
-      await tester.pumpAndSettle();
-
-      expect(callbackInvoked, isTrue);
-    });
-
-    testWidgets('invokes onPrevious callback when tapped',
-        (WidgetTester tester) async {
-      bool callbackInvoked = false;
-
-      await tester.pumpWidget(
-        createWidgetUnderTest(
-          onPrevious: () {
-            callbackInvoked = true;
-          },
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Tap the previous button
-      await tester.tap(find.byIcon(Icons.arrow_back_ios));
-      await tester.pumpAndSettle();
-
-      expect(callbackInvoked, isTrue);
-    });
-
-    testWidgets('handles action buttons when callbacks are null',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        createWidgetUnderTest(
-          onMarkComplete: null,
-          onPlayPause: null,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Should still render without errors
-      expect(find.byType(DiscoveryActionBar), findsOneWidget);
-    });
-
-    testWidgets('all buttons are tappable', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        createWidgetUnderTest(
-          onMarkComplete: () {},
-          onPlayPause: () {},
-          onNext: () {},
-          onPrevious: () {},
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Find all ElevatedButton widgets
-      final buttons = find.byType(ElevatedButton);
-      expect(buttons, findsWidgets);
-
-      // Verify buttons are enabled (can tap them without errors)
-      for (var i = 0; i < tester.widgetList(buttons).length; i++) {
-        final button = tester.widget<ElevatedButton>(buttons.at(i));
-        expect(button.onPressed, isNotNull);
-      }
+      // Check for arrow_forward_ios_rounded for next navigation
+      expect(find.byIcon(Icons.arrow_forward_ios_rounded), findsWidgets);
     });
   });
+}
+
+/// Mock DiscoveryBloc that provides a loaded study with complete data
+class MockDiscoveryBlocWithLoadedStudy extends Fake implements DiscoveryBloc {
+  final DiscoveryDevotional study;
+
+  MockDiscoveryBlocWithLoadedStudy(this.study);
+
+  @override
+  Stream<DiscoveryState> get stream => Stream.value(
+        DiscoveryLoaded(
+          availableStudyIds: [study.id],
+          studyTitles: {study.id: study.reflexion},
+          studySubtitles: {study.id: study.subtitle ?? ''},
+          studyEmojis: {study.id: study.emoji ?? '✨'},
+          studyReadingMinutes: {study.id: study.estimatedReadingMinutes ?? 0},
+          completedStudies: {study.id: false},
+          favoriteStudyIds: {},
+          loadedStudies: {study.id: study},
+          languageCode: 'en',
+        ),
+      );
+
+  @override
+  DiscoveryState get state => DiscoveryLoaded(
+        availableStudyIds: [study.id],
+        studyTitles: {study.id: study.reflexion},
+        studySubtitles: {study.id: study.subtitle ?? ''},
+        studyEmojis: {study.id: study.emoji ?? '✨'},
+        studyReadingMinutes: {study.id: study.estimatedReadingMinutes ?? 0},
+        completedStudies: {study.id: false},
+        favoriteStudyIds: {},
+        loadedStudies: {study.id: study},
+        languageCode: 'en',
+      );
+
+  @override
+  void add(event) {}
+
+  @override
+  Future<void> close() async {}
+}
+
+/// Mock ThemeBloc for testing with proper theme data
+class MockThemeBlocForTesting extends Fake implements ThemeBloc {
+  @override
+  Stream<ThemeState> get stream => Stream.value(
+        ThemeLoaded(
+          themeFamily: 'Deep Purple',
+          themeData: ThemeData.light(),
+          brightness: Brightness.light,
+        ),
+      );
+
+  @override
+  ThemeState get state => ThemeLoaded(
+        themeFamily: 'Deep Purple',
+        themeData: ThemeData.light(),
+        brightness: Brightness.light,
+      );
+
+  @override
+  void add(event) {}
+
+  @override
+  Future<void> close() async {}
 }

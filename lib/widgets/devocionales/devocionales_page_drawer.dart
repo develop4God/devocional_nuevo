@@ -1,12 +1,14 @@
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/pages/discovery_list_page.dart';
+import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_list_page.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/notification_config_page.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/in_app_review_service.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_gradient_dialog.dart';
@@ -16,11 +18,36 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-class DevocionalesDrawer extends StatelessWidget {
+class DevocionalesDrawer extends StatefulWidget {
   const DevocionalesDrawer({super.key});
 
-  void _shareApp(BuildContext context) {
+  @override
+  State<DevocionalesDrawer> createState() => _DevocionalesDrawerState();
+}
+
+class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
+  List<BibleVersion> _loadedVersions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersionsForCurrentLanguage();
+  }
+
+  Future<void> _loadVersionsForCurrentLanguage() async {
+    final versions = await BibleVersionRegistry.getAllVersions();
+    if (mounted) {
+      setState(() {
+        _loadedVersions = versions;
+      });
+    }
+  }
+
+  void _shareApp(BuildContext context) async {
     final message = 'drawer.share_message'.tr();
+
+    await BubbleUtils.markAsShown('drawer_share_bubble');
+    if (!context.mounted) return;
 
     SharePlus.instance.share(ShareParams(text: message));
     Navigator.of(context).pop(); // Cerrar drawer tras compartir
@@ -446,11 +473,15 @@ class DevocionalesDrawer extends StatelessWidget {
                                       .map<Widget>((String itemValue) {
                                     return Row(
                                       children: [
-                                        Text(
-                                          itemValue,
-                                          style: TextStyle(
-                                            color: colorScheme.onSurface,
-                                            fontSize: 16,
+                                        Flexible(
+                                          child: Text(
+                                            _versionLabel(itemValue),
+                                            style: TextStyle(
+                                              color: colorScheme.onSurface,
+                                              fontSize: 16,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
                                           ),
                                         ),
                                       ],
@@ -463,7 +494,7 @@ class DevocionalesDrawer extends StatelessWidget {
                                   return DropdownMenuItem<String>(
                                     value: itemValue,
                                     child: Text(
-                                      itemValue,
+                                      _versionLabel(itemValue),
                                       style: TextStyle(
                                         color: colorScheme.onSurface,
                                       ),
@@ -609,16 +640,53 @@ class DevocionalesDrawer extends StatelessWidget {
                         // --- Compartir app ---
                         drawerRow(
                           key: const Key('drawer_share_app'),
-                          icon: Icons.share,
+                          icon: Icons.share_outlined,
                           iconColor: colorScheme.primary,
-                          label: Text(
-                            'drawer.share_app'.tr(),
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontSize: 16,
-                              color: colorScheme.onSurface,
-                            ),
+                          label: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'drawer.share_app'.tr(),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 16,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'bible.share'.tr(),
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurface.withAlpha(150),
+                                ),
+                              ).newBubbleWithId('drawer_share_bubble'),
+                            ],
                           ),
                           onTap: () => _shareApp(context),
+                        ),
+                        const SizedBox(height: 5),
+                        // --- Calificar app ---
+                        drawerRow(
+                          key: const Key('drawer_rate_app'),
+                          icon: Icons.thumb_up_alt_outlined,
+                          iconColor: colorScheme.primary,
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'drawer.rate_app'.tr(),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 16,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ).newBubbleWithId('drawer_rate_bubble'),
+                            ],
+                          ),
+                          onTap: () async {
+                            await BubbleUtils.markAsShown('drawer_rate_bubble');
+                            if (!context.mounted) return;
+                            Navigator.of(context).pop(); // Closes the drawer
+                            InAppReviewService.requestInAppReview(context);
+                          },
                         ),
                         const SizedBox(height: 5),
                         // --- Descargar devocionales ---
@@ -745,5 +813,36 @@ class DevocionalesDrawer extends StatelessWidget {
         );
       },
     );
+  }
+
+  String _versionLabel(String versionId) {
+    try {
+      final version =
+          _loadedVersions.firstWhere((v) => v.dbFileName.startsWith(versionId));
+
+      // Use display name directly from registry
+      return _getDisplayName(version.name, version.languageCode);
+    } catch (_) {
+      return versionId;
+    }
+  }
+
+  /// Extract display name from version name
+  /// - For Latin-script languages (es, en, pt, fr): removes "Display Name (CODE)"
+  /// - For native-script languages (ja, zh, hi): returns the name as-is with full abbreviation info
+  String _getDisplayName(String name, String languageCode) {
+    // For languages with Latin version codes, remove the (CODE) part
+    if (languageCode == 'es' ||
+        languageCode == 'en' ||
+        languageCode == 'pt' ||
+        languageCode == 'fr') {
+      final regex = RegExp(r'^(.+?)\s*\([A-Z0-9]+\)$');
+      final match = regex.firstMatch(name);
+      if (match != null) {
+        return match.group(1)!.trim();
+      }
+    }
+    // For native-script languages (ja, zh, hi), use name as-is
+    return name;
   }
 }

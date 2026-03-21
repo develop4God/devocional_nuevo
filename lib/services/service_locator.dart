@@ -3,15 +3,23 @@
 library;
 
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
+import 'package:devocional_nuevo/repositories/encounter_repository.dart';
+import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
+import 'package:devocional_nuevo/repositories/prayer_wall_repository.dart';
+import 'package:devocional_nuevo/services/cache_metadata_service.dart';
+import 'package:devocional_nuevo/services/devocional_index_service.dart';
 import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
 import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/connectivity_service.dart';
+import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart'; // NEW
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
+import 'package:devocional_nuevo/services/encounter_progress_service.dart';
 import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
 import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/i_connectivity_service.dart';
+import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:devocional_nuevo/services/i_google_drive_auth_service.dart';
 import 'package:devocional_nuevo/services/i_google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
@@ -25,6 +33,7 @@ import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -98,8 +107,20 @@ Future<void> setupServiceLocator() async {
       .registerLazySingleton<RemoteConfigService>(RemoteConfigService.create);
   locator.registerLazySingleton<http.Client>(() => http.Client());
 
+  locator.registerLazySingleton<BaseCacheManager>(
+    () => DefaultCacheManager(),
+  );
+
   locator.registerLazySingleton<DiscoveryRepository>(
     () => DiscoveryRepository(httpClient: locator.get<http.Client>()),
+  );
+
+  locator.registerLazySingleton<EncounterRepository>(
+    () => EncounterRepository(httpClient: locator.get<http.Client>()),
+  );
+
+  locator.registerLazySingleton<IEncounterProgressService>(
+    () => EncounterProgressService(),
   );
 
   locator.registerLazySingleton<DiscoveryProgressTracker>(
@@ -139,6 +160,22 @@ Future<void> setupServiceLocator() async {
 
   locator.registerLazySingleton<SupporterPetService>(
       () => SupporterPetService(locator.get<SharedPreferences>()));
+
+  // ✅ REGISTER DEEP LINK HANDLER
+  locator.registerLazySingleton<DeepLinkHandler>(() => DeepLinkHandler());
+
+  // ✅ REGISTER DEVOCIONAL INDEX SERVICE (factory — new instance each time)
+  locator.registerFactory<DevocionalIndexService>(
+    () => DevocionalIndexService(locator.get<http.Client>()),
+  );
+
+  // ✅ REGISTER CACHE METADATA SERVICE (factory — new instance each time)
+  locator.registerFactory<CacheMetadataService>(() => CacheMetadataService());
+
+  // ✅ REGISTER PRAYER WALL REPOSITORY (via interface — DIP)
+  locator.registerLazySingleton<IPrayerWallRepository>(
+    () => PrayerWallRepository(),
+  );
 }
 
 ServiceLocator get serviceLocator => ServiceLocator._instance;
