@@ -526,7 +526,7 @@ class _EncounterCard extends StatelessWidget {
                               height: 1.3,
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 12),
                           // Meta row
                           Row(
                             children: [
