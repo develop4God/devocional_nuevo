@@ -111,8 +111,9 @@ class MockDiscoveryRepository extends _i1.Mock
   @override
   _i8.Future<_i3.DiscoveryDevotional> fetchDiscoveryStudy(
     String? id,
-    String? languageCode,
-  ) =>
+    String? languageCode, {
+    Map<String, dynamic>? prefetchedIndex,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #fetchDiscoveryStudy,
@@ -120,6 +121,7 @@ class MockDiscoveryRepository extends _i1.Mock
             id,
             languageCode,
           ],
+          {#prefetchedIndex: prefetchedIndex},
         ),
         returnValue: _i8.Future<_i3.DiscoveryDevotional>.value(
             _FakeDiscoveryDevotional_1(
@@ -130,6 +132,7 @@ class MockDiscoveryRepository extends _i1.Mock
               id,
               languageCode,
             ],
+            {#prefetchedIndex: prefetchedIndex},
           ),
         )),
       ) as _i8.Future<_i3.DiscoveryDevotional>);

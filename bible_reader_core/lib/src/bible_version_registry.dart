@@ -14,25 +14,26 @@ class BibleVersionRegistry {
     'fr': 'Français',
     'ja': '日本語',
     'zh': '中文', // Add Chinese
+    'hi': 'हिन्दी', // Add Hindi
   };
 
   static const Map<String, List<Map<String, String>>> _versionsByLanguage = {
     'es': [
-      {'name': 'RVR1960', 'dbFile': 'RVR1960_es.SQLite3'},
-      {'name': 'NVI', 'dbFile': 'NVI_es.SQLite3'},
+      {'name': 'Reina Valera 1960 (RVR1960)', 'dbFile': 'RVR1960_es.SQLite3'},
+      {'name': 'Nueva Versión Internacional (NVI)', 'dbFile': 'NVI_es.SQLite3'},
     ],
     'en': [
-      {'name': 'KJV', 'dbFile': 'KJV_en.SQLite3'},
-      {'name': 'NIV', 'dbFile': 'NIV_en.SQLite3'},
+      {'name': 'King James Version (KJV)', 'dbFile': 'KJV_en.SQLite3'},
+      {'name': 'New International Version (NIV)', 'dbFile': 'NIV_en.SQLite3'},
     ],
     'pt': [
-      {'name': 'ARC', 'dbFile': 'ARC_pt.SQLite3'},
-      {'name': 'NVI', 'dbFile': 'NVI_pt.SQLite3'},
+      {'name': 'Almeida Revista e Corrigida (ARC)', 'dbFile': 'ARC_pt.SQLite3'},
+      {'name': 'Nova Versão Internacional (NVI)', 'dbFile': 'NVI_pt.SQLite3'},
     ],
     'fr': [
-      {'name': 'LSG1910', 'dbFile': 'LSG1910_fr.SQLite3'},
+      {'name': 'Louis Segond 1910 (LSG1910)', 'dbFile': 'LSG1910_fr.SQLite3'},
       // Use _fr suffix to identify French database asset
-      {'name': 'BDS', 'dbFile': 'BDS_fr.SQLite3'},
+      {'name': 'Bible du Semeur (BDS)', 'dbFile': 'BDS_fr.SQLite3'},
     ],
     'ja': [
       {'name': '新改訳2003', 'dbFile': 'SK2003_ja.SQLite3'},
@@ -43,6 +44,10 @@ class BibleVersionRegistry {
       // Asset filename uses CNVS_zh.SQLite3.gz (note the extra 'S'), match the asset
       {'name': '新译本', 'dbFile': 'CNVS_zh.SQLite3'},
     ], // Add Chinese
+    'hi': [
+      {'name': 'पवित्र बाइबिल (ओ.वी.)', 'dbFile': 'HIOV_hi.SQLite3'},
+      {'name': 'पवित्र बाइबिल (HERV)', 'dbFile': 'HERV_hi.SQLite3'},
+    ], // Add Hindi
   };
 
   /// Get all Bible versions for a specific language

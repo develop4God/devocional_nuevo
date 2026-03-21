@@ -275,6 +275,159 @@ void main() {
         reason: 'SupporterPetService should not have static instance getter',
       );
     });
+
+    // ── EncounterProgressService DI registration ───────────────────────────
+
+    test(
+        'IEncounterProgressService is registered as lazy singleton in ServiceLocator',
+        () async {
+      final file = File('lib/services/service_locator.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'ServiceLocator source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('registerLazySingleton<IEncounterProgressService>'),
+        isTrue,
+        reason:
+            'IEncounterProgressService should be registered as lazy singleton in ServiceLocator',
+      );
+    });
+
+    // ── BaseCacheManager DI registration ────────────────────────────────
+
+    test('BaseCacheManager is registered as lazy singleton in ServiceLocator',
+        () async {
+      final file = File('lib/services/service_locator.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'ServiceLocator source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('registerLazySingleton<BaseCacheManager>'),
+        isTrue,
+        reason:
+            'BaseCacheManager should be registered as lazy singleton in ServiceLocator',
+      );
+
+      expect(
+        content.contains('DefaultCacheManager()'),
+        isTrue,
+        reason:
+            'BaseCacheManager should be instantiated as DefaultCacheManager in ServiceLocator',
+      );
+    });
+
+    test('BaseCacheManager is injected into EncounterBloc constructor',
+        () async {
+      final file = File('lib/blocs/encounter/encounter_bloc.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'EncounterBloc source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('final BaseCacheManager cacheManager'),
+        isTrue,
+        reason: 'EncounterBloc should have BaseCacheManager field',
+      );
+
+      expect(
+        content.contains('required this.cacheManager'),
+        isTrue,
+        reason:
+            'EncounterBloc constructor should require cacheManager parameter',
+      );
+    });
+
+    test('EncounterBloc does not create DefaultCacheManager instances directly',
+        () async {
+      final file = File('lib/blocs/encounter/encounter_bloc.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'EncounterBloc source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('DefaultCacheManager()'),
+        isFalse,
+        reason:
+            'EncounterBloc should not create DefaultCacheManager instances directly',
+      );
+
+      expect(
+        content.contains('cacheManager.downloadFile'),
+        isTrue,
+        reason: 'EncounterBloc should use injected cacheManager for downloads',
+      );
+    });
+
+    test('EncounterProgressService does not use static singleton antipattern',
+        () async {
+      final file = File('lib/services/encounter_progress_service.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'EncounterProgressService source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('static EncounterProgressService? _instance'),
+        isFalse,
+        reason:
+            'EncounterProgressService should not have static _instance field',
+      );
+
+      expect(
+        content.contains('static EncounterProgressService get instance'),
+        isFalse,
+        reason:
+            'EncounterProgressService should not have static instance getter',
+      );
+    });
+
+    test(
+        'EncounterBloc depends on IEncounterProgressService interface, not concrete',
+        () async {
+      final file = File('lib/blocs/encounter/encounter_bloc.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'EncounterBloc source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('IEncounterProgressService'),
+        isTrue,
+        reason:
+            'EncounterBloc should depend on IEncounterProgressService interface',
+      );
+
+      expect(
+        content.contains('final EncounterProgressService'),
+        isFalse,
+        reason:
+            'EncounterBloc should not depend on concrete EncounterProgressService',
+      );
+    });
   });
 }
 

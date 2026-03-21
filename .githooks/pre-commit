@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Pre-commit git hook — fast checks only (format + analyze)
+# Runs on every commit. Keeps feedback loop tight.
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -z "$REPO_ROOT" ]]; then
+  REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+fi
+
+echo "[pre-commit] Running fast checks (format + analyze)..."
+
+# 1. Check formatting
+if ! dart format --output=none --set-exit-if-changed "$REPO_ROOT/lib" "$REPO_ROOT/test" 2>/dev/null; then
+  echo "[pre-commit] ❌ Formatting issues found. Run: dart format lib test" >&2
+  echo "[pre-commit] Or stage the formatted files and commit again." >&2
+  exit 1
+fi
+
+# 2. Run dart analyze (no fixes — fast pass)
+if ! dart analyze --no-fatal-infos "$REPO_ROOT"; then
+  echo "[pre-commit] ❌ dart analyze failed. Fix issues above before committing." >&2
+  exit 1
+fi
+
+echo "[pre-commit] ✅ Fast checks passed — commit allowed."
+exit 0

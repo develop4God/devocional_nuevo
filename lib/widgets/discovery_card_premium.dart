@@ -1,4 +1,4 @@
-// lib/pages/devotional_discovery/widgets/devotional_card_premium.dart
+// lib/pages/discovery_bible_studies/widgets/discovery_card_premium.dart
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';

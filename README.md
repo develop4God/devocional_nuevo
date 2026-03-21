@@ -24,7 +24,7 @@ favorites, spiritual tracking, and intelligent review system.
 - **📖 Daily Devotionals**: Updated spiritual content
 - **🔍 Discovery Studies**: Interactive learning studies with progress tracking (NEW!)
 - **📖 Integrated Bible**: Complete offline Bible access with search and share functionality
-- **🌍 Multilingual Support**: Spanish, English, Portuguese, French with complete localization
+- **🌍 Multilingual Support**: Spanish, English, Portuguese, French, Japanese, Chinese, Hindi with complete localization
 - **🔊 Audio TTS**: Text-to-speech reading of devotionals
 - **⭐ Favorites**: Save your favorite devotionals
 - **📊 Spiritual Tracking**: Reading statistics and progress
@@ -55,7 +55,7 @@ favorites, spiritual tracking, and intelligent review system.
 | Test Files          | 142 test files               |
 | Total Tests         | 1,318 tests (100% passing ✅) |
 | Test Coverage       | 44.06% (3,455/7,841 lines)   |
-| Supported Languages | 6 (es, en, pt, fr, ja, zh)   |
+| Supported Languages | 7 (es, en, pt, fr, ja, zh, hi) |
 | Static Analysis     | ✅ All checks passing         |
 
 ### 🏗️ Architecture
@@ -472,6 +472,69 @@ Toda la documentación está organizada en la carpeta [docs/](./docs/):
 - [Documentación de Testing](./docs/testing/) - Reportes de cobertura de tests
 - [Guías](./docs/guides/) - Guías de desarrollo y pruebas
 - [Seguridad](./docs/security/) - Políticas de seguridad
+
+---
+
+## 🌍 Multi-Language Support / Soporte Multi-idioma
+
+### Supported Languages / Idiomas Soportados
+
+The application currently supports **7 languages** with complete localization:
+
+| Language | Code | Bible Versions | Status |
+|----------|------|----------------|--------|
+| Español | `es` | RVR1960, NVI | ✅ Complete |
+| English | `en` | KJV, NIV | ✅ Complete |
+| Português | `pt` | ARC, NVI | ✅ Complete |
+| Français | `fr` | LSG1910, BDS | ✅ Complete |
+| 日本語 | `ja` | 新改訳2003, リビングバイブル | ✅ Complete |
+| 中文 | `zh` | 和合本1919, 新译本 | ✅ Complete |
+| हिन्दी | `hi` | पवित्र बाइबिल (ओ.वी.), पवित्र बाइबिल | 🆕 **NEW!** |
+
+### 🆕 Hindi Language Support (NEW!)
+
+Hindi language support has been added with:
+
+- **Master Language (MASTER_LANG)**: `hi` (Hindi)
+- **Master Version (MASTER_VERSION)**: `पवित्र बाइबिल (ओ.वी.)` (Easy-to-Read Version - ERV)
+- **Secondary Version**: `पवित्र बाइबिल` (Bible Society version - BDS)
+- **TTS Locale**: `hi-IN` (Hindi - India)
+- **Translation File**: `i18n/hi.json`
+
+**Features:**
+- ✅ Complete UI localization support
+- ✅ Text-to-Speech (TTS) in Hindi
+- ✅ Bible version switching
+- ✅ Devotionals support (requires JSON files in separate repository)
+- ✅ Offline mode support
+- ✅ Copyright information for Bible versions
+
+**Note**: Bible database files (`ERV_hi.SQLite3.gz` and `BDS_hi.SQLite3.gz`) need to be added manually. See [docs/ADDING_HINDI_BIBLE_FILES.md](./docs/ADDING_HINDI_BIBLE_FILES.md) for detailed instructions.
+
+### Adding a New Language / Agregar un Nuevo Idioma
+
+Want to add support for another language? We've created a comprehensive guide!
+
+📚 **See**: [docs/ADDING_NEW_LANGUAGE_GUIDE.md](./docs/ADDING_NEW_LANGUAGE_GUIDE.md)
+
+This guide includes:
+- ✅ Complete step-by-step instructions
+- ✅ Configuration checklist
+- ✅ Bible database preparation
+- ✅ Localization setup
+- ✅ TTS configuration
+- ✅ Copyright information requirements
+- ✅ Testing procedures
+- ✅ Example implementations
+
+**Quick Overview**:
+1. Add language to `Constants` and `BibleVersionRegistry`
+2. Create translation file in `i18n/{lang}.json`
+3. Prepare and add Bible database files
+4. Configure TTS locale
+5. Add copyright information
+6. Create devotional JSON files
+7. Test thoroughly
 
 ---
 

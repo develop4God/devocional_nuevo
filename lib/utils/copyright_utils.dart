@@ -2,6 +2,19 @@
 class CopyrightUtils {
   /// Get the appropriate copyright text for a given language and version
   static String getCopyrightText(String language, String version) {
+    // Extract version code from "Display Name (CODE)" format for Latin-script languages
+    String versionKey = version;
+    if (language == 'es' ||
+        language == 'en' ||
+        language == 'pt' ||
+        language == 'fr') {
+      final regex = RegExp(r'\(([A-Z0-9]+)\)$');
+      final match = regex.firstMatch(version);
+      if (match != null) {
+        versionKey = match.group(1)!;
+      }
+    }
+
     const Map<String, Map<String, String>> copyrightMap = {
       'es': {
         'RVR1960':
@@ -43,38 +56,25 @@ class CopyrightUtils {
         '新译本': '圣经《新译本》版权属于环球圣经公会，蒙允准使用。版权所有，不得翻印。',
         'default': '圣经和合本版权属于公有领域。',
       },
+      'hi': {
+        'HIOV_hi.SQLite3':
+            'पवित्र बाइबिल हिन्दी ओ.वी. संस्करण (HIOV) © Bible Society of India. सभी अधिकार सुरक्षित।',
+        'HERV_hi.SQLite3':
+            'पवित्र बाइबिल आसान हिंदी संस्करण (HERV) © 1995, 2010 Bible League International. सभी अधिकार सुरक्षित।',
+        'HIOV':
+            'पवित्र बाइबिल हिन्दी ओ.वी. संस्करण (HIOV) © Bible Society of India. सभी अधिकार सुरक्षित।',
+        'HERV':
+            'पवित्र बाइबिल आसान हिंदी संस्करण (HERV) © 1995, 2010 Bible League International. सभी अधिकार सुरक्षित।',
+        'पवित्र बाइबिल (ओ.वी.)':
+            'पवित्र बाइबिल हिन्दी ओ.वी. संस्करण (HIOV) © Bible Society of India. सभी अधिकार सुरक्षित।',
+        'पवित्र बाइबिल':
+            'पवित्र बाइबिल आसान हिंदी संस्करण (HERV) © 1995, 2010 Bible League International. सभी अधिकार सुरक्षित।',
+        'default':
+            'पवित्र बाइबिल हिन्दी ओ.वी. संस्करण (HIOV) © Bible Society of India. सभी अधिकार सुरक्षित।',
+      },
     };
 
     final langMap = copyrightMap[language] ?? copyrightMap['en']!;
-    return langMap[version] ?? langMap['default']!;
-  }
-
-  /// Get Bible version display name for TTS
-  static String getBibleVersionDisplayName(String language, String version) {
-    final Map<String, Map<String, String>> versionNames = {
-      'es': {
-        'RVR1960': 'Reina Valera 1960',
-        'NVI': 'Nueva Versión Internacional',
-      },
-      'en': {'KJV': 'King James Version', 'NIV': 'New International Version'},
-      'pt': {
-        'ARC': 'Almeida Revista e Corrigida',
-        'NVI': 'Nova Versão Internacional',
-      },
-      'fr': {
-        'LSG1910': 'Louis Segond 1910',
-        'TOB': 'Traduction Oecuménique de la Bible',
-        // BDS display name
-        'BDS': 'Bible du Semeur',
-      },
-      'ja': {
-        '新改訳2003': '新改訳2003聖書',
-        'リビングバイブル': 'リビングバイブル',
-        'KJV': 'キング・ジェームズ版',
-        'NIV': '新国際版',
-      },
-    };
-
-    return versionNames[language]?[version] ?? version;
+    return langMap[versionKey] ?? langMap['default']!;
   }
 }

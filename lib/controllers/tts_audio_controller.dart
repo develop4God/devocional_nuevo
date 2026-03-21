@@ -412,7 +412,9 @@ class TtsAudioController {
         debugPrint('⏱️ [TTS Controller] Llegó al final - deteniendo timer');
         currentPosition.value = totalDuration.value;
         stopProgressTimer();
-        // Let completion handler manage state
+        // CRITICAL FIX: Set state to completed to trigger "heard" stats
+        debugPrint('✅ [TTS Controller] Setting state to COMPLETED');
+        state.value = TtsPlayerState.completed;
       } else {
         currentPosition.value = elapsed;
       }

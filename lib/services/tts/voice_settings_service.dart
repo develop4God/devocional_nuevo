@@ -63,7 +63,8 @@ class VoiceSettingsService {
       'pt': ['pt-BR', 'pt-PT'],
       'fr': ['fr-FR', 'fr-CA'],
       'ja': ['ja-JP'],
-      'zh': ['zh-CN', 'zh-TW', 'yue-HK'], // Add zh with fallback order
+      'zh': ['zh-CN', 'zh-TW', 'yue-HK'],
+      'hi': ['hi-IN'], // Hindi
     };
     final locales = preferredLocales[language] ?? [language];
 
@@ -131,6 +132,12 @@ class VoiceSettingsService {
           'yue-hk-x-yuf-network',
           'yue-hk-x-jar-local',
           'yue-hk-x-jar-network',
+        ],
+        'hi': [
+          'hi-in-x-hid-local', // Voz masculina India por defecto (पुरुष भारत)
+          'hi-in-x-hia-local', // Voz femenina India alternativa
+          'hi-in-x-hie-network',
+          'hi-IN-language',
         ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];
