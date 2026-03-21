@@ -155,20 +155,6 @@ void main() {
       expect(copyrightOld2, contains('聖書本文')); // Should use default Japanese
     });
 
-    test('Bible version display names are correct for Japanese', () {
-      final displayName1 = CopyrightUtils.getBibleVersionDisplayName(
-        'ja',
-        '新改訳2003',
-      );
-      expect(displayName1, equals('新改訳2003聖書'));
-
-      final displayName2 = CopyrightUtils.getBibleVersionDisplayName(
-        'ja',
-        'リビングバイブル',
-      );
-      expect(displayName2, equals('リビングバイブル'));
-    });
-
     test('Provider loads Japanese versions correctly', () async {
       await provider.initializeData();
 

@@ -1,3 +1,4 @@
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -44,13 +45,18 @@ void main() {
       expect(hindiVersions[1], equals('HERV'));
     });
 
-    test('Hindi version display names should be available', () {
-      expect(Constants.versionDisplayNames.containsKey('HIOV'), isTrue);
-      expect(Constants.versionDisplayNames['HIOV'],
-          equals('पवित्र बाइबिल (ओ.वी.)'));
-      expect(Constants.versionDisplayNames.containsKey('HERV'), isTrue);
-      // Fixed: HERV now shows without abbreviation in parentheses
-      expect(Constants.versionDisplayNames['HERV'], equals('पवित्र बाइबिल'));
+    test('Hindi version display names should be available', () async {
+      // Version display names now come from BibleVersionRegistry
+      final versions = await BibleVersionRegistry.getVersionsForLanguage('hi');
+      expect(versions.length, equals(2));
+
+      final hiovVersion =
+          versions.firstWhere((v) => v.dbFileName.startsWith('HIOV'));
+      expect(hiovVersion.name, equals('पवित्र बाइबिल (ओ.वी.)'));
+
+      final hervVersion =
+          versions.firstWhere((v) => v.dbFileName.startsWith('HERV'));
+      expect(hervVersion.name, equals('पवित्र बाइबिल (HERV)'));
     });
   });
 }

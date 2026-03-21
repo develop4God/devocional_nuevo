@@ -278,7 +278,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                 FutureBuilder<bool>(
                   future: BubbleUtils.shouldShowBubble(
                     BubbleUtils.getIconBubbleId(
-                      Icons.explore_outlined,
+                      Icons.location_history_outlined,
                       'new',
                       semanticLabel: 'encounters_bottom_bar',
                     ),
@@ -297,7 +297,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                             );
                             await BubbleUtils.markAsShown(
                               BubbleUtils.getIconBubbleId(
-                                Icons.explore_outlined,
+                                Icons.location_history_outlined,
                                 'new',
                                 semanticLabel: 'encounters_bottom_bar',
                               ),
@@ -311,7 +311,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                             );
                           },
                           icon: Icon(
-                            Icons.explore_outlined,
+                            Icons.location_history_outlined,
                             color: colorScheme.onPrimary,
                             size: 32,
                           ),

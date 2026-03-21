@@ -3,31 +3,21 @@ import 'package:test/test.dart';
 
 void main() {
   group('CopyrightUtils', () {
-    test('returns French BDS disclaimer and display name', () {
+    test('returns French BDS copyright disclaimer', () {
       final text = CopyrightUtils.getCopyrightText('fr', 'BDS');
       expect(text, contains('Bible du Semeur'));
-
-      final displayName =
-          CopyrightUtils.getBibleVersionDisplayName('fr', 'BDS');
-      expect(displayName, equals('Bible du Semeur'));
     });
 
-    test('returns Hindi HIOV disclaimer and display name', () {
+    test('returns Hindi HIOV copyright disclaimer', () {
       final text =
           CopyrightUtils.getCopyrightText('hi', 'पवित्र बाइबिल (ओ.वी.)');
       expect(text, contains('हिन्दी ओ.वी. संस्करण'));
       expect(text, contains('HIOV'));
-
-      final displayName = CopyrightUtils.getBibleVersionDisplayName(
-        'hi',
-        'पवित्र बाइबिल (ओ.वी.)',
-      );
-      expect(displayName, equals('हिन्दी ओ.वी. संस्करण'));
     });
 
-    test('returns Hindi HERV disclaimer and display name (fixed from ERV)', () {
-      // Test with full Devanagari name
-      final text = CopyrightUtils.getCopyrightText('hi', 'पवित्र बाइबिल');
+    test('returns Hindi HERV copyright disclaimer (fixed from ERV)', () {
+      // Test with database file name
+      final text = CopyrightUtils.getCopyrightText('hi', 'HERV_hi.SQLite3');
       expect(text, contains('आसान हिंदी संस्करण'));
       expect(text, contains('HERV')); // Fixed: now shows HERV instead of ERV
       expect(text, contains('Bible League International'));
@@ -37,10 +27,6 @@ void main() {
       final textAbbr = CopyrightUtils.getCopyrightText('hi', 'HERV');
       expect(textAbbr, contains('HERV'));
       expect(textAbbr, contains('Bible League International'));
-
-      final displayName =
-          CopyrightUtils.getBibleVersionDisplayName('hi', 'पवित्र बाइबिल');
-      expect(displayName, equals('आसान हिंदी संस्करण'));
     });
 
     test('Hindi HIOV abbreviation also works', () {
