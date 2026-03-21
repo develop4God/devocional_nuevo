@@ -768,7 +768,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                       child: Text(
                                         CopyrightUtils.getCopyrightText(
                                           state.selectedVersion!.languageCode,
-                                          state.selectedVersion!.dbFileName,
+                                          state.selectedVersion!.name,
                                         ),
                                         style: Theme.of(context)
                                             .textTheme

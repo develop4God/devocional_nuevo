@@ -2,6 +2,16 @@
 class CopyrightUtils {
   /// Get the appropriate copyright text for a given language and version
   static String getCopyrightText(String language, String version) {
+    // Extract version code from "Display Name (CODE)" format for Latin-script languages
+    String versionKey = version;
+    if (language == 'es' || language == 'en' || language == 'pt' || language == 'fr') {
+      final regex = RegExp(r'\(([A-Z0-9]+)\)$');
+      final match = regex.firstMatch(version);
+      if (match != null) {
+        versionKey = match.group(1)!;
+      }
+    }
+
     const Map<String, Map<String, String>> copyrightMap = {
       'es': {
         'RVR1960':
@@ -62,6 +72,6 @@ class CopyrightUtils {
     };
 
     final langMap = copyrightMap[language] ?? copyrightMap['en']!;
-    return langMap[version] ?? langMap['default']!;
+    return langMap[versionKey] ?? langMap['default']!;
   }
 }
