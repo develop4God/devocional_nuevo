@@ -4,7 +4,10 @@ class CopyrightUtils {
   static String getCopyrightText(String language, String version) {
     // Extract version code from "Display Name (CODE)" format for Latin-script languages
     String versionKey = version;
-    if (language == 'es' || language == 'en' || language == 'pt' || language == 'fr') {
+    if (language == 'es' ||
+        language == 'en' ||
+        language == 'pt' ||
+        language == 'fr') {
       final regex = RegExp(r'\(([A-Z0-9]+)\)$');
       final match = regex.firstMatch(version);
       if (match != null) {
