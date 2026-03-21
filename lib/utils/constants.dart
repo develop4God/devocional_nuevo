@@ -80,13 +80,6 @@ class Constants {
     'hi': 'HIOV', // Default Hindi version
   };
 
-  /// Display names for Bible versions shown in the UI.
-  /// Maps version codes to user-facing strings.
-  static const Map<String, String> versionDisplayNames = {
-    'HIOV': 'पवित्र बाइबिल (ओ.वी.)',
-    'HERV': 'पवित्र बाइबिल',
-  };
-
   // Nombres japoneses para versiones de la Biblia (deprecated - versions now use Japanese names directly)
   static const Map<String, String> bibleJapaneseNames = {
     '新改訳2003': '新改訳2003', // Shinkaiyaku 2003
@@ -206,14 +199,14 @@ class Constants {
   /// Returns '' for languages where name is self-describing (ja, zh).
   /// SRP: single source of truth for all abbreviation logic.
   static String versionAbbreviation(BibleVersion version) {
-    if (version.languageCode == 'ja' || version.languageCode == 'zh') return '';
+    if (version.languageCode == 'ja' ||
+        version.languageCode == 'zh' ||
+        version.languageCode == 'hi') {
+      return '';
+    }
     final parts = version.dbFileName.split('_');
     if (parts.isNotEmpty) {
       final abbr = parts[0];
-      if (version.languageCode == 'hi') {
-        if (abbr == 'ERV' || abbr == 'HERV') return 'HERV';
-        if (abbr == 'HIOV') return 'ओ.वी.';
-      }
       return abbr;
     }
     return '';

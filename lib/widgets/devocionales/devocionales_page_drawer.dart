@@ -1,3 +1,4 @@
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
@@ -17,8 +18,30 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-class DevocionalesDrawer extends StatelessWidget {
+class DevocionalesDrawer extends StatefulWidget {
   const DevocionalesDrawer({super.key});
+
+  @override
+  State<DevocionalesDrawer> createState() => _DevocionalesDrawerState();
+}
+
+class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
+  List<BibleVersion> _loadedVersions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersionsForCurrentLanguage();
+  }
+
+  Future<void> _loadVersionsForCurrentLanguage() async {
+    final versions = await BibleVersionRegistry.getAllVersions();
+    if (mounted) {
+      setState(() {
+        _loadedVersions = versions;
+      });
+    }
+  }
 
   void _shareApp(BuildContext context) async {
     final message = 'drawer.share_message'.tr();
@@ -792,9 +815,34 @@ class DevocionalesDrawer extends StatelessWidget {
     );
   }
 
-  static String _versionLabel(String versionId) {
-    final name = Constants.versionDisplayNames[versionId] ?? versionId;
-    if (versionId == 'HERV') return '$name (HERV)';
+  String _versionLabel(String versionId) {
+    try {
+      final version =
+          _loadedVersions.firstWhere((v) => v.dbFileName.startsWith(versionId));
+
+      // Use display name directly from registry
+      return _getDisplayName(version.name, version.languageCode);
+    } catch (_) {
+      return versionId;
+    }
+  }
+
+  /// Extract display name from version name
+  /// - For Latin-script languages (es, en, pt, fr): removes "Display Name (CODE)"
+  /// - For native-script languages (ja, zh, hi): returns the name as-is with full abbreviation info
+  String _getDisplayName(String name, String languageCode) {
+    // For languages with Latin version codes, remove the (CODE) part
+    if (languageCode == 'es' ||
+        languageCode == 'en' ||
+        languageCode == 'pt' ||
+        languageCode == 'fr') {
+      final regex = RegExp(r'^(.+?)\s*\([A-Z0-9]+\)$');
+      final match = regex.firstMatch(name);
+      if (match != null) {
+        return match.group(1)!.trim();
+      }
+    }
+    // For native-script languages (ja, zh, hi), use name as-is
     return name;
   }
 }
