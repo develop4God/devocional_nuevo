@@ -20,6 +20,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
+import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
@@ -116,6 +117,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   @override
   void initState() {
     super.initState();
+    // Flush any deep link that arrived before the navigator was ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      getService<DeepLinkHandler>().flushPendingLink();
+    });
     _ttsAudioController = TtsAudioController(flutterTts: _flutterTts);
     _ttsMiniplayerPresenter = DevocionalTtsMiniplayerPresenter(
         ttsAudioController: _ttsAudioController);
