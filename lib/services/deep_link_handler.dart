@@ -25,6 +25,10 @@ class DeepLinkHandler {
   static const MethodChannel _channel =
       MethodChannel('com.develop4god.devocional/deeplink');
 
+  /// Holds a deep link that arrived before the navigator was ready.
+  /// Flushed by [flushPendingLink] once the app is fully loaded.
+  Uri? _pendingLink;
+
   /// Initialize deep link handling
   Future<void> initialize() async {
     developer.log(
@@ -106,9 +110,10 @@ class DeepLinkHandler {
     final BuildContext? context = navigatorKey.currentContext;
     if (context == null) {
       developer.log(
-        'Navigator context is null, cannot navigate',
+        'Navigator context is null — buffering link: ${uri.toString()}',
         name: 'DeepLinkHandler',
       );
+      _pendingLink = uri;
       return false;
     }
 
@@ -165,6 +170,20 @@ class DeepLinkHandler {
         stackTrace: stackTrace,
       );
       return false;
+    }
+  }
+
+  /// Call this once the app is fully loaded (e.g. from DevocionalesPage.initState).
+  /// If a deep link arrived before the navigator was ready, it will be processed now.
+  Future<void> flushPendingLink() async {
+    if (_pendingLink != null) {
+      developer.log(
+        'Flushing pending deep link: ${_pendingLink.toString()}',
+        name: 'DeepLinkHandler',
+      );
+      final uri = _pendingLink!;
+      _pendingLink = null;
+      await handleDeepLink(uri);
     }
   }
 
