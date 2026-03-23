@@ -4,6 +4,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:devocional_nuevo/constants/devocional_years.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
@@ -80,6 +81,7 @@ void main() {
     when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => null);
     when(() => mockIndexService.getFileDate(any(), any(), any(), any()))
         .thenReturn(null);
+    when(() => mockIndexService.extractAvailableYears(any())).thenReturn([]);
     when(() => mockMetadataService.readManifestDate(any()))
         .thenAnswer((_) async => null);
     when(() => mockMetadataService.writeMetadata(any(), any()))
@@ -397,6 +399,87 @@ void main() {
         repository.findFirstUnreadDevocionalIndex(devocionales, readIds),
         0,
       );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getAvailableYears
+  // ---------------------------------------------------------------------------
+
+  group('getAvailableYears', () {
+    test('returns years extracted from index when online', () async {
+      final index = {
+        'schema_version': 1,
+        'files': {
+          'es': {
+            'RVR1960': {'2025': '2026-01-01', '2026': '2026-01-01'},
+          },
+          'en': {
+            'KJV': {'2025': '2026-01-01', '2027': '2026-01-01'},
+          },
+        },
+      };
+
+      when(() => mockIndexService.fetchIndex())
+          .thenAnswer((_) async => index);
+      when(() => mockIndexService.extractAvailableYears(any()))
+          .thenReturn([2025, 2026, 2027]);
+
+      // Reset cache so the new stub is used
+      repository.resetIndexCache();
+      final result = await repository.getAvailableYears();
+
+      expect(result, [2025, 2026, 2027]);
+    });
+
+    test('falls back to DevocionalYears.availableYears when index is null',
+        () async {
+      when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => null);
+      when(() => mockIndexService.extractAvailableYears(any()))
+          .thenReturn([]);
+
+      repository.resetIndexCache();
+      final result = await repository.getAvailableYears();
+
+      expect(result, DevocionalYears.availableYears);
+    });
+
+    test('falls back when index returns empty year list', () async {
+      final index = {'schema_version': 1, 'files': <String, dynamic>{}};
+
+      when(() => mockIndexService.fetchIndex())
+          .thenAnswer((_) async => index);
+      when(() => mockIndexService.extractAvailableYears(any()))
+          .thenReturn([]);
+
+      repository.resetIndexCache();
+      final result = await repository.getAvailableYears();
+
+      expect(result, DevocionalYears.availableYears);
+    });
+
+    test('result is sorted ascending', () async {
+      final index = {
+        'schema_version': 1,
+        'files': {
+          'es': {
+            'RVR1960': {'2026': '2026-01-01', '2025': '2026-01-01'},
+          },
+        },
+      };
+
+      when(() => mockIndexService.fetchIndex())
+          .thenAnswer((_) async => index);
+      when(() => mockIndexService.extractAvailableYears(any()))
+          .thenReturn([2025, 2026]);
+
+      repository.resetIndexCache();
+      final result = await repository.getAvailableYears();
+
+      expect(result, [2025, 2026]);
+      for (int i = 0; i < result.length - 1; i++) {
+        expect(result[i] < result[i + 1], isTrue);
+      }
     });
   });
 

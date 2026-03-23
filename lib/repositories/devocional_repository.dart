@@ -53,8 +53,6 @@ abstract class DevocionalRepository {
   /// True when the last index fetch failed (offline or server unreachable).
   bool get wasLastFetchOffline;
 
-  /// Clears internal index cache so the next [fetchAll] re-fetches from network.
-  void resetIndexCache();
 
   // ── DOWNLOAD ORCHESTRATION ────────────────────────────────────────────────
 
@@ -70,6 +68,13 @@ abstract class DevocionalRepository {
   /// Returns true when a local cache file exists for the current year.
   Future<bool> hasCurrentYearLocalData(String language, String version);
 
-  /// Returns true when local cache files exist for both 2025 and 2026.
+  /// Returns true when local cache files exist for all available years.
   Future<bool> hasTargetYearsLocalData(String language, String version);
+
+  /// Returns all years for which devotionals are available.
+  ///
+  /// Derived from the remote index when online; falls back to the static
+  /// [DevocionalYears.availableYears] constant when the index is unreachable
+  /// or returns no years.  Always returns at least one year.
+  Future<List<int>> getAvailableYears();
 }

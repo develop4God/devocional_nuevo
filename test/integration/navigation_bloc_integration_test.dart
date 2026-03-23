@@ -52,8 +52,6 @@ class _FakeDevocionalRepository extends Fake implements DevocionalRepository {
   @override
   bool get wasLastFetchOffline => false;
 
-  @override
-  void resetIndexCache() {}
 
   @override
   Future<bool> downloadCurrentYearDevocionales(
@@ -69,6 +67,9 @@ class _FakeDevocionalRepository extends Fake implements DevocionalRepository {
   Future<bool> hasTargetYearsLocalData(
           String language, String version) async =>
       false;
+
+  @override
+  Future<List<int>> getAvailableYears() async => [2025, 2026];
 }
 
 // Helper function to create test devotionals
