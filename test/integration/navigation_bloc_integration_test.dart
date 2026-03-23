@@ -11,7 +11,6 @@ import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 // Integration tests for Navigation BLoC with feature flag parity verification
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 
 class _FakeDevocionalRepository extends Fake implements DevocionalRepository {
   @override
@@ -52,20 +51,17 @@ class _FakeDevocionalRepository extends Fake implements DevocionalRepository {
   @override
   bool get wasLastFetchOffline => false;
 
-
   @override
   Future<bool> downloadCurrentYearDevocionales(
           String language, String version) async =>
       false;
 
   @override
-  Future<bool> hasCurrentYearLocalData(
-          String language, String version) async =>
+  Future<bool> hasCurrentYearLocalData(String language, String version) async =>
       false;
 
   @override
-  Future<bool> hasTargetYearsLocalData(
-          String language, String version) async =>
+  Future<bool> hasTargetYearsLocalData(String language, String version) async =>
       false;
 
   @override
