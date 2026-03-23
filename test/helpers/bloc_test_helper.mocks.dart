@@ -890,7 +890,6 @@ class MockDevocionalProvider extends _i1.Mock
         returnValue: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 
-  @override
   _i8.Future<void> forceRefreshFromAPI() => (super.noSuchMethod(
         Invocation.method(
           #forceRefreshFromAPI,
