@@ -64,6 +64,39 @@ class DevocionalIndexService {
     }
   }
 
+  /// Extracts all unique years present in [index], sorted ascending.
+  ///
+  /// Iterates every `language → version → year` entry in `index['files']`
+  /// and collects all year keys found.  Returns an empty list when [index]
+  /// is null or contains no `files` map — callers should fall back to
+  /// [DevocionalYears.availableYears] in that case.
+  List<int> extractAvailableYears(Map<String, dynamic>? index) {
+    if (index == null) return [];
+
+    final files = index['files'] as Map<String, dynamic>?;
+    if (files == null) return [];
+
+    final Set<int> years = {};
+
+    for (final langValue in files.values) {
+      if (langValue is! Map<String, dynamic>) continue;
+      for (final versionValue in langValue.values) {
+        if (versionValue is! Map<String, dynamic>) continue;
+        for (final yearKey in versionValue.keys) {
+          final year = int.tryParse(yearKey);
+          if (year != null) years.add(year);
+        }
+      }
+    }
+
+    final sorted = years.toList()..sort();
+    developer.log(
+      '📅 [INDEX] Available years extracted: $sorted',
+      name: 'DevocionalIndex',
+    );
+    return sorted;
+  }
+
   /// Returns the date string for [language][version][year] from a parsed index.
   ///
   /// Returns null if any key is not found — caller treats null as fresh

@@ -387,7 +387,7 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
     String language,
     String version,
   ) async {
-    final List<int> yearsToDownload = DevocionalYears.availableYears;
+    final List<int> yearsToDownload = await getAvailableYears();
     bool allSuccess = true;
 
     for (final year in yearsToDownload) {
@@ -417,9 +417,35 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
 
   @override
   Future<bool> hasTargetYearsLocalData(String language, String version) async {
-    final bool has2025 = await hasLocalData(2025, language, version);
-    final bool has2026 = await hasLocalData(2026, language, version);
-    return has2025 && has2026;
+    final List<int> years = await getAvailableYears();
+    for (final year in years) {
+      if (!await hasLocalData(year, language, version)) return false;
+    }
+    return years.isNotEmpty;
+  }
+
+  // ── AVAILABLE YEARS ───────────────────────────────────────────────────────
+
+  @override
+  Future<List<int>> getAvailableYears() async {
+    await _ensureIndexFetched();
+
+    if (!_indexUnreachable && _cachedIndex != null) {
+      final years =
+          _devocionalIndexService.extractAvailableYears(_cachedIndex);
+      if (years.isNotEmpty) return years;
+      developer.log(
+        '⚠️ [DevocionalRepository] Index has no years — using fallback',
+        name: 'DevocionalCache',
+      );
+    } else {
+      developer.log(
+        '⚠️ [DevocionalRepository] Offline — using fallback years: ${DevocionalYears.availableYears}',
+        name: 'DevocionalCache',
+      );
+    }
+
+    return DevocionalYears.availableYears;
   }
 
   // ── VERSION FALLBACK ──────────────────────────────────────────────────────
