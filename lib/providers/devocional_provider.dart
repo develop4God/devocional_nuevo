@@ -10,7 +10,6 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
-import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
 import 'package:devocional_nuevo/services/devocional_index_service.dart';
@@ -155,21 +154,9 @@ class DevocionalProvider with ChangeNotifier {
     debugPrint('🏗️ Provider: Constructor iniciado');
 
     // Inject devocional repository.
-    // When devocionalRepository is not provided, construct DevocionalRepositoryImpl
-    // using the injected http client and optional cache services (for testability).
-    if (devocionalRepository != null) {
-      _devocionalRepository = devocionalRepository;
-    } else {
-      final resolvedIndexService =
-          devocionalIndexService ?? getService<DevocionalIndexService>();
-      final resolvedMetadataService =
-          cacheMetadataService ?? getService<CacheMetadataService>();
-      _devocionalRepository = DevocionalRepositoryImpl(
-        httpClient: this.httpClient,
-        devocionalIndexService: resolvedIndexService,
-        cacheMetadataService: resolvedMetadataService,
-      );
-    }
+    // When devocionalRepository is not provided, resolve from service locator.
+    _devocionalRepository =
+        devocionalRepository ?? getService<DevocionalRepository>();
 
     // Initialize audio controller with DI if enabled
     if (enableAudio) {
