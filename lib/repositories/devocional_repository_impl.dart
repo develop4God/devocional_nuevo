@@ -64,7 +64,6 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
   @override
   bool get wasLastFetchOffline => _indexUnreachable;
 
-  @override
   void resetIndexCache() {
     _cachedIndex = null;
     _indexUnreachable = false;
@@ -431,8 +430,7 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
     await _ensureIndexFetched();
 
     if (!_indexUnreachable && _cachedIndex != null) {
-      final years =
-          _devocionalIndexService.extractAvailableYears(_cachedIndex);
+      final years = _devocionalIndexService.extractAvailableYears(_cachedIndex);
       if (years.isNotEmpty) return years;
       developer.log(
         '⚠️ [DevocionalRepository] Index has no years — using fallback',
@@ -463,8 +461,7 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
       '🔄 Trying version fallback for $language $currentVersion',
     );
 
-    final availableVersions =
-        Constants.bibleVersionsByLanguage[language] ?? [];
+    final availableVersions = Constants.bibleVersionsByLanguage[language] ?? [];
     debugPrint(
       '🔄 Available versions for $language: $availableVersions',
     );

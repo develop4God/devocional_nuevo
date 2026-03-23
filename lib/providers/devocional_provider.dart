@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/controllers/audio_controller.dart'; // NEW
-import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
@@ -1074,11 +1073,9 @@ class DevocionalProvider with ChangeNotifier {
         _selectedVersion,
       );
       if (result) {
-        _downloadStatus =
-            'Devocionales del año $year descargados exitosamente';
+        _downloadStatus = 'Devocionales del año $year descargados exitosamente';
       } else {
-        _downloadStatus =
-            'Error al descargar devocionales del año $year';
+        _downloadStatus = 'Error al descargar devocionales del año $year';
       }
       return result;
     } catch (e) {
@@ -1170,18 +1167,6 @@ class DevocionalProvider with ChangeNotifier {
       _selectedLanguage,
       _selectedVersion,
     );
-  }
-
-  Future<void> forceRefreshFromAPI() async {
-    _isOfflineMode = false;
-    // resetIndexCache() is not on the abstract interface (ISP: it's a cache
-    // lifecycle detail, not a data-access contract).  Call it on the concrete
-    // impl when available; test doubles that don't carry cache state are
-    // silently unaffected.
-    if (_devocionalRepository is DevocionalRepositoryImpl) {
-      (_devocionalRepository as DevocionalRepositoryImpl).resetIndexCache();
-    }
-    await _fetchAllDevocionalesForLanguage();
   }
 
   void clearDownloadStatus() {

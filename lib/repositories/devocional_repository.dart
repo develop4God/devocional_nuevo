@@ -53,7 +53,6 @@ abstract class DevocionalRepository {
   /// True when the last index fetch failed (offline or server unreachable).
   bool get wasLastFetchOffline;
 
-
   // ── DOWNLOAD ORCHESTRATION ────────────────────────────────────────────────
 
   /// Downloads devotionals for all available years in [language]/[version].
