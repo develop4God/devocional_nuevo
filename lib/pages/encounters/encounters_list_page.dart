@@ -11,6 +11,7 @@ import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/main.dart' show routeObserver;
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_intro_page.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_welcome_page.dart';
@@ -23,6 +24,7 @@ import 'package:devocional_nuevo/widgets/encounter/encounter_grid_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class EncountersListPage extends StatefulWidget {
@@ -33,10 +35,15 @@ class EncountersListPage extends StatefulWidget {
 }
 
 class _EncountersListPageState extends State<EncountersListPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, RouteAware {
   bool _showGridOverlay = false;
   late AnimationController _gridAnimationController;
   int _currentIndex = 0;
+
+  // Unlock animation state
+  Set<String> _previousCompletedIds = {};
+  bool _showUnlockAnimation = false;
+  bool _routeSubscribed = false;
 
   @override
   void initState() {
@@ -46,12 +53,63 @@ class _EncountersListPageState extends State<EncountersListPage>
       duration: const Duration(milliseconds: 300),
     );
     final bloc = context.read<EncounterBloc>();
+    // Snapshot completed IDs so we can detect new ones on return
+    if (bloc.state is EncounterLoaded) {
+      _previousCompletedIds =
+          Set.from((bloc.state as EncounterLoaded).completedIds);
+    }
     if (bloc.state is! EncounterLoaded) {
       final lang = context.read<DevocionalProvider>().selectedLanguage;
       bloc.add(LoadEncounterIndex(languageCode: lang));
     }
     getService<AnalyticsService>().logEncounterAction(action: 'index_loaded');
     _checkWelcomeSeen();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_routeSubscribed) {
+      final route = ModalRoute.of(context);
+      if (route is PageRoute) {
+        routeObserver.subscribe(this, route);
+        _routeSubscribed = true;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    _gridAnimationController.dispose();
+    super.dispose();
+  }
+
+  /// Called when user pops back to this page (e.g. after completing an encounter).
+  @override
+  void didPopNext() {
+    final state = context.read<EncounterBloc>().state;
+    if (state is! EncounterLoaded) return;
+
+    final newlyCompleted = state.completedIds.difference(_previousCompletedIds);
+    _previousCompletedIds = Set.from(state.completedIds);
+
+    if (newlyCompleted.isEmpty) return;
+
+    // Check if any new completion unlocked the next encounter
+    final published =
+        state.index.where((e) => e.status == 'published').toList();
+    for (final completedId in newlyCompleted) {
+      final idx = published.indexWhere((e) => e.id == completedId);
+      if (idx >= 0 && idx < published.length - 1) {
+        // There is a newly-unlocked encounter — play the animation
+        setState(() => _showUnlockAnimation = true);
+        Future.delayed(const Duration(seconds: 3), () {
+          if (mounted) setState(() => _showUnlockAnimation = false);
+        });
+        break;
+      }
+    }
   }
 
   Future<void> _checkWelcomeSeen() async {
@@ -63,12 +121,6 @@ class _EncountersListPageState extends State<EncountersListPage>
         MaterialPageRoute(builder: (_) => const EncounterWelcomePage()),
       );
     }
-  }
-
-  @override
-  void dispose() {
-    _gridAnimationController.dispose();
-    super.dispose();
   }
 
   void _toggleGridOverlay() {
@@ -101,7 +153,6 @@ class _EncountersListPageState extends State<EncountersListPage>
         child: Scaffold(
           appBar: CustomAppBar(
             titleText: 'encounters.section_title'.tr(),
-            // Removed toggle button from app bar
           ),
           backgroundColor: colorScheme.brightness == Brightness.dark
               ? const Color(0xFF0a0e1a)
@@ -113,22 +164,17 @@ class _EncountersListPageState extends State<EncountersListPage>
                   if (state is EncounterLoading || state is EncounterInitial) {
                     return const Center(child: CircularProgressIndicator());
                   }
-
                   if (state is EncounterError) {
                     return _buildError(state.message);
                   }
-
                   if (state is EncounterLoaded) {
-                    if (state.index.isEmpty) {
-                      return _buildEmpty();
-                    }
+                    if (state.index.isEmpty) return _buildEmpty();
                     return _buildContent(state);
                   }
-
                   return const SizedBox.shrink();
                 },
               ),
-              // Floating grid/list toggle button (now top right)
+              // Floating grid/list toggle button
               Positioned(
                 top: 24,
                 right: 24,
@@ -152,6 +198,21 @@ class _EncountersListPageState extends State<EncountersListPage>
                   ),
                 ),
               ),
+              // ── Unlock celebration overlay (bottom-right) ───────────────
+              if (_showUnlockAnimation)
+                Positioned(
+                  bottom: 80,
+                  right: 20,
+                  child: IgnorePointer(
+                    child: Lottie.asset(
+                      'assets/lottie/unlocked.json',
+                      repeat: false,
+                      width: 200,
+                      height: 200,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
