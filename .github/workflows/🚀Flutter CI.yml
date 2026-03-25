@@ -56,7 +56,7 @@ jobs:
       - name: 🔒 Assert minimum Dart SDK floor
         run: |
           DART_VERSION=$(dart --version 2>&1 | grep -oP '\d+\.\d+\.\d+' | head -1)
-          REQUIRED="3.8.1"
+          REQUIRED="3.41.4"
           if [ "$(printf '%s\n' "$REQUIRED" "$DART_VERSION" | sort -V | head -1)" != "$REQUIRED" ]; then
             echo "❌ Dart SDK $DART_VERSION is below required minimum $REQUIRED"
             exit 1
@@ -161,7 +161,7 @@ jobs:
       - name: 🔒 Assert minimum Dart SDK floor
         run: |
           DART_VERSION=$(dart --version 2>&1 | grep -oP '\d+\.\d+\.\d+' | head -1)
-          REQUIRED="3.8.1"
+          REQUIRED="3.41.4"
           if [ "$(printf '%s\n' "$REQUIRED" "$DART_VERSION" | sort -V | head -1)" != "$REQUIRED" ]; then
             echo "❌ Dart SDK $DART_VERSION is below required minimum $REQUIRED"
             exit 1
