@@ -4,10 +4,12 @@
 // Uses PageView with intuitive viewport peeking (0.88) to show next card preview.
 // Matches Discovery Bible Studies carousel for consistent UX across features.
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_card_widgets.dart';
 import 'package:flutter/material.dart';
@@ -36,10 +38,80 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
   bool _isCelebrating = false;
   bool _hasTriggeredCompletion = false;
 
+  /// Tracks image URLs already submitted to [precacheImage] so we never
+  /// fire duplicate network requests for the same asset.
+  final Set<String> _precachedUrls = {};
+
+  /// Guards the one-time study-ready debug log inside the BlocBuilder.
+  bool _studyLoggedOnce = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Guarantee card[1] preload on first frame, before user can swipe.
+    // This is safer than relying on _studyLoggedOnce inside BlocBuilder,
+    // which rebuilds after state changes and may miss the window on fast devices.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = context.read<EncounterBloc>().state;
+      if (state is EncounterLoaded) {
+        final study = state.getStudy(widget.entry.id);
+        if (study != null && study.cards.length > 1) {
+          _preloadCardImage(study.cards, 1);
+          debugPrint(
+              '🔐 [Detail/${widget.entry.id}] Safety preload card[1] triggered from initState');
+        }
+      }
+    });
+  }
+
+
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Just-in-time image preloading
+  // ---------------------------------------------------------------------------
+
+  /// Preloads the image for card at [targetIndex] into Flutter's in-memory
+  /// image cache — always fire-and-forget, never awaited.
+  ///
+  /// Accepts [cards] directly so this method has no hidden dependency on
+  /// [context.read] — callers own the state lookup, keeping contracts explicit.
+  /// [_precachedUrls] prevents duplicate work: each URL is submitted at most
+  /// once per page-view session. On individual failure the URL is removed so
+  /// the next swipe can retry if the network recovers.
+  void _preloadCardImage(List<EncounterCard> cards, int targetIndex) {
+    if (targetIndex < 0 || targetIndex >= cards.length) return;
+
+    final url = cards[targetIndex].imageUrl;
+    if (url == null || url.isEmpty) {
+      debugPrint(
+          '🖼️ [Detail/${widget.entry.id}] card[$targetIndex] — no imageUrl, skip');
+      return;
+    }
+
+    if (_precachedUrls.contains(url)) {
+      debugPrint(
+          '⚡ [Detail/${widget.entry.id}] card[$targetIndex] cache HIT — already preloaded');
+      return;
+    }
+
+    _precachedUrls.add(url);
+    debugPrint(
+        '🖼️ [Detail/${widget.entry.id}] JIT: preloading card[$targetIndex] → $url');
+
+    precacheImage(CachedNetworkImageProvider(url), context)
+        .then((_) => debugPrint(
+            '✅ [Detail/${widget.entry.id}] card[$targetIndex] preload DONE'))
+        .catchError((Object e) {
+      debugPrint(
+          '⚠️ [Detail/${widget.entry.id}] card[$targetIndex] preload FAILED — $e');
+      _precachedUrls.remove(url); // Allow retry on next swipe
+    });
   }
 
   void _onCompleteEncounter() {
@@ -175,6 +247,15 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
             );
           }
 
+          // One-time log — fires on first successful render, not on every rebuild.
+          if (!_studyLoggedOnce) {
+            _studyLoggedOnce = true;
+            debugPrint(
+                '📚 [Detail/${widget.entry.id}] Study ready — ${cards.length} cards'
+                ' | bible: ${study.bibleVersion ?? 'n/a'}'
+                ' | lang: ${study.language ?? 'n/a'}');
+          }
+
           final isLast = _currentIndex == cards.length - 1;
 
           return Stack(
@@ -182,8 +263,12 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
               // PageView Reader with viewport peeking (0.88 shows next card preview)
               PageView.builder(
                 controller: _pageController,
-                onPageChanged: (index) {
+              onPageChanged: (index) {
+                  debugPrint(
+                      '📖 [Detail/${widget.entry.id}] swiped → card[$index] / ${cards.length}');
                   setState(() => _currentIndex = index);
+                  // JIT: cards already in scope — no extra context.read needed.
+                  _preloadCardImage(cards, index + 1);
                 },
                 physics: const BouncingScrollPhysics(),
                 itemCount: cards.length,

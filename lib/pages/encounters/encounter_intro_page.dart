@@ -3,7 +3,6 @@
 // Modern, high-impact intro page for Encounters.
 // Designed for a younger audience with cinematic visuals and bold typography.
 
-import 'dart:async';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -18,6 +17,8 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+const Duration _kFirstCardPrecacheTimeout = Duration(milliseconds: 500);
 
 class EncounterIntroPage extends StatefulWidget {
   final EncounterIndexEntry entry;
@@ -42,8 +43,6 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
   late Animation<double> _contentFade;
   late Animation<Offset> _contentSlide;
 
-  /// Guard: precache fires at most once per page instance.
-  bool _imagePrecachingStarted = false;
 
   @override
   void initState() {
@@ -92,11 +91,6 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
           widget.entry.files['en'] ??
           '${id}_${widget.lang}.json';
       bloc.add(LoadEncounterStudy(id, widget.lang, filename: filename));
-    } else {
-      // Study already in state → warm Flutter image cache after first frame.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _precacheCardImages(bloc.state as EncounterLoaded);
-      });
     }
   }
 
@@ -106,41 +100,73 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
     super.dispose();
   }
 
-  /// Warms Flutter's in-memory image cache with all card images from [state].
-  ///
-  /// Called as soon as the study JSON is available so images are decoded and
-  /// ready by the time the user taps "Begin" and the card reader opens.
-  /// The guard [_imagePrecachingStarted] ensures this runs at most once.
-  void _precacheCardImages(EncounterLoaded state) {
-    if (_imagePrecachingStarted) return;
-    _imagePrecachingStarted = true;
-
+  /// Warms the image cache for card[0] only.
+  /// Always called with explicit `await` from [_beginEncounter].
+  /// No fire-and-forget variant — [_beginEncounter] owns the precache lifecycle.
+  Future<void> _precacheFirstCardImage(EncounterLoaded state) async {
     final study = state.getStudy(widget.entry.id);
-    if (study == null) return;
+    if (study == null || study.cards.isEmpty) return;
 
-    final imageUrls = study.cards
-        .map((c) => c.imageUrl)
-        .whereType<String>()
-        .where((url) => url.isNotEmpty)
-        .toSet();
+    final url = study.cards.first.imageUrl;
+    if (url == null || url.isEmpty) {
+      debugPrint(
+          '🖼️ [Intro/${widget.entry.id}] card[0] — no imageUrl, skipping precache');
+      return;
+    }
 
-    debugPrint(
-        '🖼️ Encounter: Precaching ${imageUrls.length} card images into memory…');
+    final sw = Stopwatch()..start();
+    debugPrint('🖼️ [Intro/${widget.entry.id}] card[0] precache START → $url');
 
-    for (final url in imageUrls) {
-      // Fire-and-forget: network drops during precache are silently ignored.
-      // Each card has its own errorWidget as the real fallback.
-      unawaited(
-        precacheImage(CachedNetworkImageProvider(url), context)
-            .catchError((Object _) => false),
-      );
+    try {
+      await precacheImage(CachedNetworkImageProvider(url), context)
+          .timeout(_kFirstCardPrecacheTimeout);
+      sw.stop();
+      debugPrint(
+          '✅ [Intro/${widget.entry.id}] card[0] precache DONE in ${sw.elapsedMilliseconds}ms');
+    } catch (e) {
+      sw.stop();
+      debugPrint(
+          '⚠️ [Intro/${widget.entry.id}] card[0] precache FAILED/TIMEOUT after ${sw.elapsedMilliseconds}ms — $e');
+      // Non-fatal — card widget has its own errorWidget fallback.
     }
   }
 
-  void _beginEncounter(EncounterLoaded? state) {
+  Future<void> _beginEncounter(EncounterLoaded? state) async {
     if (state == null) return;
     final study = state.getStudy(widget.entry.id);
     if (study == null) return;
+
+    debugPrint(
+        '🚀 [Intro/${widget.entry.id}] BEGIN tapped — ${study.cards.length} cards');
+
+    // Await first card image — already in cache in most cases (instant).
+    // Capped at 500ms so a slow connection never blocks the user.
+    await _precacheFirstCardImage(state);
+
+    // Fire-and-forget card[1] so the first swipe is instant.
+    // Runs during the 600ms fade transition — free time we'd otherwise waste.
+    if (mounted && study.cards.length > 1) {
+      final url = study.cards[1].imageUrl;
+      if (url != null && url.isNotEmpty) {
+        debugPrint(
+            '🖼️ [Intro/${widget.entry.id}] card[1] fire-and-forget START → $url');
+        precacheImage(CachedNetworkImageProvider(url), context)
+            .then((_) => debugPrint(
+                '✅ [Intro/${widget.entry.id}] card[1] fire-and-forget DONE'))
+            .catchError((Object e) {
+          debugPrint(
+              '⚠️ [Intro/${widget.entry.id}] card[1] fire-and-forget FAILED — $e');
+        });
+      } else {
+        debugPrint(
+            '🖼️ [Intro/${widget.entry.id}] card[1] — no imageUrl, skip');
+      }
+    }
+
+    if (!mounted) return;
+
+    debugPrint(
+        '🎬 [Intro/${widget.entry.id}] → navigating to EncounterDetailPage (600ms fade)');
 
     getService<AnalyticsService>().logEncounterAction(
       action: 'encounter_started',
@@ -173,10 +199,18 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
 
     return BlocListener<EncounterBloc, EncounterState>(
         listener: (context, state) {
-          // As soon as the study JSON is available, warm the image memory cache
-          // so card images render instantly when the reader opens.
-          if (state is EncounterLoaded && state.isStudyLoaded(entry.id)) {
-            _precacheCardImages(state);
+          if (state is EncounterLoaded && state.isStudyLoaded(widget.entry.id)) {
+            final study = state.getStudy(widget.entry.id);
+            if (study == null) return;
+            // Fire-and-forget preload cards 0 and 1 into memory cache
+            // so they render instantly when the user opens the detail page.
+            for (int i = 0; i < study.cards.length && i < 2; i++) {
+              final url = study.cards[i].imageUrl;
+              if (url != null && url.isNotEmpty) {
+                precacheImage(CachedNetworkImageProvider(url), context)
+                    .catchError((Object _) => false);
+              }
+            }
           }
         },
         child: Scaffold(

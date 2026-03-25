@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
+const Duration _kPrefetchDelay = Duration(seconds: 3);
+
 class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
   final EncounterRepository repository;
   final IEncounterProgressService progressService;
@@ -203,6 +205,95 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
       emit(currentState.copyWith(completedIds: updated));
       debugPrint(
           '✅ [EncounterBloc] Encounter completed and saved: ${event.id}');
+
+      // Background: prefetch next encounter in the user's language.
+      // Fail fast if language is unknown — don't silently default to 'es'.
+      final completedStudy = currentState.loadedStudies[event.id];
+      final lang = completedStudy?.language;
+      if (lang == null) {
+        debugPrint(
+            '⚠️ [EncounterBloc] BG: No language found for ${event.id} — skipping prefetch');
+        return;
+      }
+      _prefetchNextEncounterImages(currentState.index, currentState.completedIds, lang);
     }
+  }
+
+  /// Finds the next available encounter (respects sequential unlock chain)
+  /// and fires off background fetch + image preload in the user's [lang].
+  /// Never emits state — entirely background work.
+  void _prefetchNextEncounterImages(
+    List<EncounterIndexEntry> index,
+    Set<String> completedIds,
+    String lang,
+  ) {
+    if (index.isEmpty) return;
+
+    Future.delayed(_kPrefetchDelay, () async {
+      if (_disposed) return;
+      try {
+        // Find next published encounter that user hasn't completed yet
+        final nextEntry = index.firstWhereOrNull((e) {
+          if (e.status != 'published') return false;
+          // Only prefetch if not already completed
+          if (completedIds.contains(e.id)) return false;
+          // Check if previous encounter is completed (sequential unlock chain)
+          final entryIndex = index.indexOf(e);
+          if (entryIndex > 0) {
+            final previousEntry = index[entryIndex - 1];
+            if (previousEntry.status == 'published' &&
+                !completedIds.contains(previousEntry.id)) {
+              return false; // Previous not done yet, this is locked
+            }
+          }
+          return true;
+        });
+
+        if (nextEntry == null) {
+          debugPrint(
+              '📭 [EncounterBloc] BG: No next encounter to prefetch (all completed or locked)');
+          return;
+        }
+
+        debugPrint(
+            '🎯 [EncounterBloc] BG: Prefetching next encounter ${nextEntry.id}…');
+
+        // Fetch the study JSON (also cached to disk via repository)
+        final study = await repository.fetchStudy(
+          nextEntry.id,
+          lang,
+          filename: nextEntry.files[lang] ??
+              nextEntry.files['en'] ??
+              '${nextEntry.id}_$lang.json',
+          entry: nextEntry,
+        );
+
+        if (_disposed) return;
+
+        // Now warm the disk cache with all card images
+        final imageUrls = study.cards
+            .map((c) => c.imageUrl)
+            .whereType<String>()
+            .where((url) => url.isNotEmpty)
+            .toSet();
+
+        int cached = 0;
+        for (final url in imageUrls) {
+          if (_disposed) return;
+          try {
+            await cacheManager.downloadFile(url);
+            cached++;
+          } catch (_) {
+            // Individual image failure is non-fatal
+          }
+        }
+
+        debugPrint(
+            '✅ [EncounterBloc] BG: Prefetched ${nextEntry.id} — cached $cached/${imageUrls.length} images');
+      } catch (e) {
+        // Background prefetch is non-critical — log and swallow
+        debugPrint('⚠️ [EncounterBloc] BG: Prefetch failed — $e');
+      }
+    });
   }
 }
