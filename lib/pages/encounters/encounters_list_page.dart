@@ -437,7 +437,7 @@ class _EncounterCard extends StatelessWidget {
 
               // 3. Content Area
               Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.max,
@@ -497,7 +497,7 @@ class _EncounterCard extends StatelessWidget {
                               letterSpacing: -1.0,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           // Subtitle
                           Text(
                             entry.subtitleFor(lang),
@@ -510,7 +510,7 @@ class _EncounterCard extends StatelessWidget {
                               height: 1.3,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           // Meta row
                           Row(
                             children: [
