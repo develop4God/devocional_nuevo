@@ -65,7 +65,6 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
     });
   }
 
-
   @override
   void dispose() {
     _pageController.dispose();
@@ -263,7 +262,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
               // PageView Reader with viewport peeking (0.88 shows next card preview)
               PageView.builder(
                 controller: _pageController,
-              onPageChanged: (index) {
+                onPageChanged: (index) {
                   debugPrint(
                       '📖 [Detail/${widget.entry.id}] swiped → card[$index] / ${cards.length}');
                   setState(() => _currentIndex = index);
