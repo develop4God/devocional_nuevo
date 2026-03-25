@@ -104,7 +104,7 @@ class _EncountersListPageState extends State<EncountersListPage>
       if (idx >= 0 && idx < published.length - 1) {
         // There is a newly-unlocked encounter — play the animation
         setState(() => _showUnlockAnimation = true);
-        Future.delayed(const Duration(seconds: 3), () {
+        Future.delayed(const Duration(seconds: 4), () {
           if (mounted) setState(() => _showUnlockAnimation = false);
         });
         break;
