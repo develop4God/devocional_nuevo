@@ -222,15 +222,22 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
       itemBuilder: (context, index) {
         final entry = filtered[index];
         final isCompleted = widget.state.isCompleted(entry.id);
+        final isUnlocked = widget.state.isUnlocked(entry.id);
         final originalIndex = widget.entries.indexOf(entry);
         final isActive = originalIndex == widget.currentIndex;
+        final prerequisite = widget.state.getPrerequisite(entry.id);
+        final prerequisiteTitle = prerequisite?.titleFor(widget.lang) ?? '';
 
         return _EncounterGridCard(
           entry: entry,
           lang: widget.lang,
           isCompleted: isCompleted,
+          isUnlocked: isUnlocked,
+          prerequisiteTitle: prerequisiteTitle,
           isActive: isActive,
-          onTap: () => widget.onEncounterSelected(entry, originalIndex),
+          onTap: (entry.isPublished && isUnlocked)
+              ? () => widget.onEncounterSelected(entry, originalIndex)
+              : null,
         );
       },
     );
@@ -241,13 +248,17 @@ class _EncounterGridCard extends StatelessWidget {
   final EncounterIndexEntry entry;
   final String lang;
   final bool isCompleted;
+  final bool isUnlocked;
+  final String prerequisiteTitle;
   final bool isActive;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _EncounterGridCard({
     required this.entry,
     required this.lang,
     required this.isCompleted,
+    required this.isUnlocked,
+    required this.prerequisiteTitle,
     required this.isActive,
     required this.onTap,
   });
@@ -286,7 +297,7 @@ class _EncounterGridCard extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: entry.isPublished ? onTap : null,
+        onTap: onTap,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -438,6 +449,36 @@ class _EncounterGridCard extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
+                ),
+              ),
+            // Locked overlay (published but previous encounter not completed)
+            if (entry.isPublished && !isUnlocked)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.65),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.lock_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'encounters.complete_to_unlock'
+                          .tr({'title': prerequisiteTitle}),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
                 ),
               ),
           ],

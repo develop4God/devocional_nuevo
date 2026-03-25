@@ -248,9 +248,10 @@ class _EncountersListPageState extends State<EncountersListPage>
           currentIndex: _currentIndex,
           lang: lang,
           onEncounterSelected: (entry, originalIndex) {
+            final isUnlocked = state.isUnlocked(entry.id);
             setState(() => _currentIndex = originalIndex);
             _toggleGridOverlay();
-            if (entry.isPublished) _openEncounter(entry, lang);
+            if (entry.isPublished && isUnlocked) _openEncounter(entry, lang);
           },
           onClose: _toggleGridOverlay,
           animation: _gridAnimationController,
