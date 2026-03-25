@@ -411,7 +411,8 @@ class _EncounterCard extends StatelessWidget {
                   fit: BoxFit.cover,
                   placeholder: (context, url) => Container(color: accentColor),
                   errorWidget: (context, url, error) {
-                    debugPrint('⚠️ Encounter: CDN image failed — ${entry.introImage}');
+                    debugPrint(
+                        '⚠️ Encounter: CDN image failed — ${entry.introImage}');
                     return Container(color: accentColor);
                   },
                 )

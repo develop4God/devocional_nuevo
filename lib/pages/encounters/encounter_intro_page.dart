@@ -192,9 +192,11 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                     imageUrl: imageUrl,
                     fit: BoxFit.cover,
                     alignment: Alignment.center,
-                    placeholder: (context, url) => Container(color: const Color(0xFF0a0e1a)),
+                    placeholder: (context, url) =>
+                        Container(color: const Color(0xFF0a0e1a)),
                     errorWidget: (context, url, error) {
-                      debugPrint('⚠️ Encounter: CDN image failed — ${widget.entry.introImage}');
+                      debugPrint(
+                          '⚠️ Encounter: CDN image failed — ${widget.entry.introImage}');
                       return Container(color: const Color(0xFF0a0e1a));
                     },
                   ),
