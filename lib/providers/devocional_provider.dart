@@ -3,13 +3,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
-import 'dart:io';
 
-import 'package:devocional_nuevo/constants/devocional_years.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart'; // NEW
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
 import 'package:devocional_nuevo/services/devocional_index_service.dart';
@@ -23,7 +22,6 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart' show Provider;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:synchronized/synchronized.dart';
@@ -61,14 +59,12 @@ class DevocionalProvider with ChangeNotifier {
   bool _isOfflineMode = false;
 
   // ========== CACHE INVALIDATION ==========
-  late final DevocionalIndexService _devocionalIndexService;
-  late final CacheMetadataService _cacheMetadataService;
+  // Note: DevocionalIndexService and CacheMetadataService are injected into
+  // DevocionalRepositoryImpl when constructing the default repository.
+  // The provider no longer accesses them directly.
 
-  /// Full index map from last successful fetch — null when unreachable.
-  Map<String, dynamic>? _cachedIndex;
-
-  /// True only when index fetch failed — drives _isOfflineMode.
-  bool _indexUnreachable = false;
+  // ========== REPOSITORY ==========
+  late final DevocionalRepository _devocionalRepository;
 
   // ========== READING TRACKER ==========
   final ReadingTracker _readingTracker = ReadingTracker();
@@ -148,6 +144,7 @@ class DevocionalProvider with ChangeNotifier {
     bool enableAudio = true,
     DevocionalIndexService? devocionalIndexService,
     CacheMetadataService? cacheMetadataService,
+    DevocionalRepository? devocionalRepository,
   })  : assert(
           enableAudio || !kReleaseMode,
           'Audio must not be disabled in release builds',
@@ -155,11 +152,10 @@ class DevocionalProvider with ChangeNotifier {
         httpClient = httpClient ?? http.Client() {
     debugPrint('🏗️ Provider: Constructor iniciado');
 
-    // Inject cache invalidation services
-    _devocionalIndexService =
-        devocionalIndexService ?? getService<DevocionalIndexService>();
-    _cacheMetadataService =
-        cacheMetadataService ?? getService<CacheMetadataService>();
+    // Inject devocional repository.
+    // When devocionalRepository is not provided, resolve from service locator.
+    _devocionalRepository =
+        devocionalRepository ?? getService<DevocionalRepository>();
 
     // Initialize audio controller with DI if enabled
     if (enableAudio) {
@@ -467,130 +463,22 @@ class DevocionalProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Load devotionals from all available years to ensure no data loss
-      // All historical years remain accessible
-      final List<int> yearsToLoad = DevocionalYears.availableYears;
+      final List<int> yearsToLoad =
+          await _devocionalRepository.getAvailableYears();
       final List<Devocional> allDevocionales = [];
 
-      // ── Step 1: Fetch the index FIRST — before any cache decisions ──────
-      // This ensures existing users with full cache are still checked for
-      // staleness. If index is unreachable, _indexUnreachable drives offline mode.
-      _cachedIndex = await _devocionalIndexService.fetchIndex();
-      _indexUnreachable = (_cachedIndex == null);
-
-      // ── Step 2: For each year, decide whether to use cache or re-fetch ──
       for (final year in yearsToLoad) {
-        final String filePath = await _getLocalFilePath(
+        final List<Devocional> yearDevocionales =
+            await _devocionalRepository.fetchAll(
           year,
           _selectedLanguage,
           _selectedVersion,
         );
-
-        // Determine index date for this file (null → treat as fresh)
-        final String? indexDate = _indexUnreachable
-            ? null
-            : _devocionalIndexService.getFileDate(
-                _cachedIndex!,
-                _selectedLanguage,
-                _selectedVersion,
-                year.toString(),
-              );
-
-        // Determine sidecar date (null → pre-feature user or no sidecar)
-        final String? sidecarDate =
-            await _cacheMetadataService.readManifestDate(filePath);
-
-        // Stale when index has a date AND sidecar is missing or different
-        final bool isStale = (indexDate != null) &&
-            (sidecarDate == null || sidecarDate != indexDate);
-
-        if (isStale) {
-          developer.log(
-            '🔄 [CACHE] Stale detected: ${year}_${_selectedLanguage}_$_selectedVersion'
-            ' — index: $indexDate, sidecar: $sidecarDate',
-            name: 'DevocionalCache',
-          );
-        }
-
-        // Check if local file exists
-        final bool hasLocal = await File(filePath).exists();
-
-        if (!isStale && hasLocal) {
-          // Cache is fresh — load from local storage
-          developer.log(
-            '✅ [CACHE] Fresh: ${year}_${_selectedLanguage}_$_selectedVersion — using local cache',
-            name: 'DevocionalCache',
-          );
-          final Map<String, dynamic>? localData = await _loadFromLocalStorage(
-              year, _selectedLanguage, _selectedVersion);
-          if (localData != null) {
-            final List<Devocional> yearDevocionales =
-                await _extractDevocionalesFromData(localData);
-            if (yearDevocionales.isNotEmpty) {
-              allDevocionales.addAll(yearDevocionales);
-            }
-          }
-        } else {
-          // Stale or no local file — fetch from API
-          try {
-            debugPrint(
-              'Loading from API for year $year, language: $_selectedLanguage, version: $_selectedVersion',
-            );
-            final String url = Constants.getDevocionalesApiUrlMultilingual(
-              year,
-              _selectedLanguage,
-              _selectedVersion,
-            );
-            debugPrint('🔍 Requesting URL: $url');
-            final response = await httpClient.get(Uri.parse(url));
-
-            if (response.statusCode == 200) {
-              final String responseBody = utf8.decode(response.bodyBytes);
-              final Map<String, dynamic> data = json.decode(responseBody);
-              final List<Devocional> yearDevocionales =
-                  await _extractDevocionalesFromData(data);
-              if (yearDevocionales.isNotEmpty) {
-                allDevocionales.addAll(yearDevocionales);
-
-                // AUTO-DOWNLOAD: Save to local storage — sidecar written atomically
-                await _saveToLocalStorage(
-                    year, _selectedLanguage, responseBody, _selectedVersion);
-              }
-            } else {
-              debugPrint(
-                '⚠️ Failed to load year $year from API: ${response.statusCode}',
-              );
-              // If we have stale cache, fall back to it rather than losing data
-              if (hasLocal) {
-                final Map<String, dynamic>? localData =
-                    await _loadFromLocalStorage(
-                        year, _selectedLanguage, _selectedVersion);
-                if (localData != null) {
-                  final List<Devocional> yearDevocionales =
-                      await _extractDevocionalesFromData(localData);
-                  allDevocionales.addAll(yearDevocionales);
-                }
-              }
-            }
-          } catch (e) {
-            debugPrint('⚠️ Error loading year $year: $e');
-            // Fall back to stale cache on error rather than losing data
-            if (hasLocal) {
-              final Map<String, dynamic>? localData =
-                  await _loadFromLocalStorage(
-                      year, _selectedLanguage, _selectedVersion);
-              if (localData != null) {
-                final List<Devocional> yearDevocionales =
-                    await _extractDevocionalesFromData(localData);
-                allDevocionales.addAll(yearDevocionales);
-              }
-            }
-          }
-        }
+        allDevocionales.addAll(yearDevocionales);
       }
 
-      // ── Step 3: _isOfflineMode only when index was unreachable ──────────
-      _isOfflineMode = _indexUnreachable;
+      // ── Offline mode: driven by whether index was reachable ──────────────
+      _isOfflineMode = _devocionalRepository.wasLastFetchOffline;
 
       if (allDevocionales.isEmpty) {
         // CRITICAL FIX: If no devotionals found for selected language, try fallback language
@@ -599,7 +487,6 @@ class DevocionalProvider with ChangeNotifier {
             '⚠️ No devotionals available for language "$_selectedLanguage", trying fallback to "$_fallbackLanguage"',
           );
 
-          // Try loading from fallback language
           for (final year in yearsToLoad) {
             try {
               final String url = Constants.getDevocionalesApiUrlMultilingual(
@@ -614,12 +501,19 @@ class DevocionalProvider with ChangeNotifier {
               if (response.statusCode == 200) {
                 final String responseBody = utf8.decode(response.bodyBytes);
                 final Map<String, dynamic> data = json.decode(responseBody);
-                final List<Devocional> yearDevocionales =
-                    await _extractDevocionalesFromData(data);
-                if (yearDevocionales.isNotEmpty) {
-                  allDevocionales.addAll(yearDevocionales);
-                  debugPrint(
-                      '✅ Loaded ${yearDevocionales.length} devotionals from fallback language for year $year');
+                final Map<String, dynamic>? languageRoot =
+                    data['data'] as Map<String, dynamic>?;
+                final Map<String, dynamic>? languageData =
+                    languageRoot?[_fallbackLanguage] as Map<String, dynamic>?;
+                if (languageData != null) {
+                  final List<Devocional> yearDevocionales =
+                      _parseFallbackLanguageData(languageData);
+                  if (yearDevocionales.isNotEmpty) {
+                    allDevocionales.addAll(yearDevocionales);
+                    debugPrint(
+                      '✅ Loaded ${yearDevocionales.length} devotionals from fallback language for year $year',
+                    );
+                  }
                 }
               }
             } catch (e) {
@@ -634,19 +528,16 @@ class DevocionalProvider with ChangeNotifier {
           }
         }
 
-        // If still no devotionals after fallback, throw error
         if (allDevocionales.isEmpty) {
           throw Exception('No devotionals loaded from any year');
         }
       }
 
-      // Sort all devotionals by date
       allDevocionales.sort((a, b) => a.date.compareTo(b.date));
       _allDevocionalesForCurrentLanguage = allDevocionales;
       _errorMessage = null;
       _filterDevocionalesByVersion();
 
-      // Log which years were successfully loaded
       debugPrint(
         '✅ Successfully loaded devotionals from years: ${yearsToLoad.toList()}',
       );
@@ -661,61 +552,31 @@ class DevocionalProvider with ChangeNotifier {
     }
   }
 
-  /// Extract devotionals list from JSON data structure
-  Future<List<Devocional>> _extractDevocionalesFromData(
-    Map<String, dynamic> data,
-  ) async {
-    final Map<String, dynamic>? languageRoot =
-        data['data'] as Map<String, dynamic>?;
-    final Map<String, dynamic>? languageData =
-        languageRoot?[_selectedLanguage] as Map<String, dynamic>?;
-
-    if (languageData == null) {
-      if (_selectedLanguage != _fallbackLanguage) {
-        final Map<String, dynamic>? fallbackData =
-            languageRoot?[_fallbackLanguage] as Map<String, dynamic>?;
-        if (fallbackData != null) {
-          _selectedLanguage = _fallbackLanguage;
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('selectedLanguage', _fallbackLanguage);
-          return await _parseLanguageData(fallbackData);
-        }
-      }
-
-      debugPrint('No data found for any supported language');
-      return [];
-    }
-
-    return await _parseLanguageData(languageData);
-  }
-
-  /// Parse language data and return list of devotionals
-  Future<List<Devocional>> _parseLanguageData(
-    Map<String, dynamic> languageData,
-  ) async {
-    final List<Devocional> loadedDevocionales = [];
-
+  /// Parses fallback language data — used when primary language has no content.
+  List<Devocional> _parseFallbackLanguageData(
+      Map<String, dynamic> languageData) {
+    final List<Devocional> loaded = [];
     languageData.forEach((dateKey, dateValue) {
       if (dateValue is List) {
         for (var devocionalJson in dateValue) {
           try {
-            loadedDevocionales.add(
+            loaded.add(
               Devocional.fromJson(devocionalJson as Map<String, dynamic>),
             );
           } catch (e) {
-            debugPrint('Error parsing devotional for $dateKey: $e');
+            debugPrint('Error parsing fallback devotional for $dateKey: $e');
           }
         }
       }
     });
-
-    return loadedDevocionales;
+    return loaded;
   }
 
   void _filterDevocionalesByVersion() {
-    _filteredDevocionales = _allDevocionalesForCurrentLanguage
-        .where((devocional) => devocional.version == _selectedVersion)
-        .toList();
+    _filteredDevocionales = _devocionalRepository.filterByVersion(
+      _allDevocionalesForCurrentLanguage,
+      _selectedVersion,
+    );
 
     if (_filteredDevocionales.isEmpty &&
         _allDevocionalesForCurrentLanguage.isNotEmpty) {
@@ -1185,71 +1046,16 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // ========== OFFLINE FUNCTIONALITY ==========
-  Future<Directory> _getLocalStorageDirectory() async {
-    final Directory appDocumentsDir = await getApplicationDocumentsDirectory();
-    final Directory devocionalesDir = Directory(
-      '${appDocumentsDir.path}/devocionales',
-    );
-
-    if (!await devocionalesDir.exists()) {
-      await devocionalesDir.create(recursive: true);
-    }
-    return devocionalesDir;
-  }
-
-  Future<String> _getLocalFilePath(
-    int year,
-    String language, [
-    String? version,
-  ]) async {
-    final Directory storageDir = await _getLocalStorageDirectory();
-    // Include version in filename for new languages, maintain backward compatibility for Spanish
-    if (language == 'es' && version == 'RVR1960') {
-      return '${storageDir.path}/devocional_${year}_$language.json';
-    } else {
-      final versionSuffix = version != null ? '_$version' : '';
-      return '${storageDir.path}/devocional_${year}_$language$versionSuffix.json';
-    }
-  }
-
   Future<bool> hasLocalFile(
     int year,
     String language, [
     String? version,
   ]) async {
-    try {
-      final String filePath = await _getLocalFilePath(year, language, version);
-      final File file = File(filePath);
-      return await file.exists();
-    } catch (e) {
-      debugPrint('Error checking local file: $e');
-      return false;
-    }
-  }
-
-  /// Internal helper to save content to local storage
-  Future<void> _saveToLocalStorage(int year, String language, String content,
-      [String? version]) async {
-    try {
-      final String filePath = await _getLocalFilePath(year, language, version);
-      final File file = File(filePath);
-      await file.writeAsString(content);
-      debugPrint('✅ Data saved to local storage: $filePath');
-
-      // Always write sidecar atomically after JSON save.
-      // Use per-file date from cached index if available, today as fallback.
-      final String manifestDate = _devocionalIndexService.getFileDate(
-            _cachedIndex ?? {},
-            language,
-            version ?? '',
-            year.toString(),
-          ) ??
-          DateTime.now().toIso8601String().split('T').first;
-
-      await _cacheMetadataService.writeMetadata(filePath, manifestDate);
-    } catch (e) {
-      debugPrint('❌ Error saving to local storage: $e');
-    }
+    return _devocionalRepository.hasLocalData(
+      year,
+      language,
+      version ?? _selectedVersion,
+    );
   }
 
   Future<bool> downloadAndStoreDevocionales(int year) async {
@@ -1260,43 +1066,18 @@ class DevocionalProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final String url = Constants.getDevocionalesApiUrlMultilingual(
+      final bool result =
+          await _devocionalRepository.downloadAndStoreDevocionales(
         year,
         _selectedLanguage,
         _selectedVersion,
       );
-      debugPrint('🔍 Requesting URL: $url');
-      debugPrint('🔍 Language: $_selectedLanguage, Version: $_selectedVersion');
-      final response = await httpClient.get(Uri.parse(url));
-
-      if (response.statusCode == 404) {
-        debugPrint(
-          '❌ File not found (404): $_selectedLanguage $_selectedVersion year $year',
-        );
-        throw Exception(
-          'File not available for $_selectedLanguage $_selectedVersion year $year',
-        );
-      } else if (response.statusCode != 200) {
-        debugPrint(
-          '❌ HTTP Error ${response.statusCode}: ${response.reasonPhrase}',
-        );
-        throw Exception(
-          'HTTP Error ${response.statusCode}: ${response.reasonPhrase}',
-        );
+      if (result) {
+        _downloadStatus = 'Devocionales del año $year descargados exitosamente';
+      } else {
+        _downloadStatus = 'Error al descargar devocionales del año $year';
       }
-
-      final Map<String, dynamic> jsonData =
-          json.decode(utf8.decode(response.bodyBytes));
-
-      if (jsonData['data'] == null) {
-        throw Exception('Invalid JSON structure: missing "data" field');
-      }
-
-      await _saveToLocalStorage(year, _selectedLanguage,
-          utf8.decode(response.bodyBytes), _selectedVersion);
-
-      _downloadStatus = 'Devocionales del año $year descargados exitosamente';
-      return true;
+      return result;
     } catch (e) {
       _downloadStatus = 'Error al descargar devocionales: $e';
       debugPrint('❌ Error in downloadAndStoreDevocionales: $e');
@@ -1307,42 +1088,9 @@ class DevocionalProvider with ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>?> _loadFromLocalStorage(
-    int year,
-    String language, [
-    String? version,
-  ]) async {
-    try {
-      final String filePath = await _getLocalFilePath(year, language, version);
-      final File file = File(filePath);
-
-      if (!await file.exists()) return null;
-
-      final String content = await file.readAsString();
-      final firstDevanagari = content.codeUnits
-          .where((c) => c >= 0x0900 && c <= 0x097F)
-          .take(3)
-          .toList();
-      debugPrint('[ENCODING_CHECK] codeUnits: $firstDevanagari');
-      return json.decode(content) as Map<String, dynamic>;
-    } catch (e) {
-      debugPrint('Error loading from local storage: $e');
-      return null;
-    }
-  }
-
   Future<void> clearOldLocalFiles() async {
     try {
-      final Directory storageDir = await _getLocalStorageDirectory();
-      final List<FileSystemEntity> files = await storageDir.list().toList();
-
-      for (final FileSystemEntity file in files) {
-        if (file is File) {
-          await file.delete();
-          debugPrint('File deleted: ${file.path}');
-        }
-      }
-
+      await _devocionalRepository.clearOldFiles();
       _downloadStatus = 'Archivos locales eliminados';
       notifyListeners();
     } catch (e) {
@@ -1358,84 +1106,10 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   Future<bool> downloadCurrentYearDevocionales() async {
-    // Download all available years to ensure no data loss
-    // All historical years remain accessible
-    final List<int> yearsToDownload = DevocionalYears.availableYears;
-    bool allSuccess = true;
-
-    for (final year in yearsToDownload) {
-      bool success = await downloadAndStoreDevocionales(year);
-
-      // If download fails, try fallback logic for missing versions
-      if (!success) {
-        success = await _tryVersionFallback(year);
-      }
-
-      if (!success) {
-        allSuccess = false;
-        debugPrint('⚠️ Failed to download devotionals for year $year');
-      }
-    }
-
-    return allSuccess;
-  }
-
-  Future<bool> _tryVersionFallback(int year) async {
-    debugPrint(
-      '🔄 Trying version fallback for $_selectedLanguage $_selectedVersion',
+    return _devocionalRepository.downloadCurrentYearDevocionales(
+      _selectedLanguage,
+      _selectedVersion,
     );
-
-    // Get available versions for the language
-    final availableVersions =
-        Constants.bibleVersionsByLanguage[_selectedLanguage] ?? [];
-    debugPrint(
-      '🔄 Available versions for $_selectedLanguage: $availableVersions',
-    );
-
-    // Try other versions for the same language, prioritizing the default version first
-    final defaultVersion =
-        Constants.defaultVersionByLanguage[_selectedLanguage];
-    final versionsToTry = <String>[];
-
-    // Add default version first if it's different from current
-    if (defaultVersion != null && defaultVersion != _selectedVersion) {
-      versionsToTry.add(defaultVersion);
-    }
-
-    // Add other versions
-    for (final version in availableVersions) {
-      if (version != _selectedVersion && version != defaultVersion) {
-        versionsToTry.add(version);
-      }
-    }
-
-    debugPrint('🔄 Versions to try in order: $versionsToTry');
-
-    for (final version in versionsToTry) {
-      debugPrint('🔄 Trying fallback version: $version');
-      final originalVersion = _selectedVersion;
-      _selectedVersion = version;
-
-      final success = await downloadAndStoreDevocionales(year);
-      if (success) {
-        debugPrint('✅ Fallback successful with version: $version');
-        // Update stored version preference
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('selected_version_$_selectedLanguage', version);
-        await prefs.setString(
-          'selectedVersion',
-          version,
-        ); // Also update global preference
-        notifyListeners();
-        return true;
-      }
-
-      // Restore original version if fallback failed
-      _selectedVersion = originalVersion;
-    }
-
-    debugPrint('❌ All version fallbacks failed for $_selectedLanguage');
-    return false;
   }
 
   Future<bool> downloadDevocionalesForYear(int year) async {
@@ -1482,27 +1156,17 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   Future<bool> hasCurrentYearLocalData() async {
-    final int currentYear = DateTime.now().year;
-    return await hasLocalFile(currentYear, _selectedLanguage, _selectedVersion);
+    return _devocionalRepository.hasCurrentYearLocalData(
+      _selectedLanguage,
+      _selectedVersion,
+    );
   }
 
   Future<bool> hasTargetYearsLocalData() async {
-    final bool has2025 = await hasLocalFile(
-      2025,
+    return _devocionalRepository.hasTargetYearsLocalData(
       _selectedLanguage,
       _selectedVersion,
     );
-    final bool has2026 = await hasLocalFile(
-      2026,
-      _selectedLanguage,
-      _selectedVersion,
-    );
-    return has2025 && has2026;
-  }
-
-  Future<void> forceRefreshFromAPI() async {
-    _isOfflineMode = false;
-    await _fetchAllDevocionalesForLanguage();
   }
 
   void clearDownloadStatus() {

@@ -3,14 +3,17 @@ import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_even
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
 import 'package:devocional_nuevo/helpers/devocional_navigation_helper.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/flutter_tts_mock.dart';
 import '../../helpers/test_helpers.dart';
+
+class _MockDevocionalRepository extends Mock implements DevocionalRepository {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -40,7 +43,7 @@ void main() {
       scrollController = ScrollController();
       bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _MockDevocionalRepository(),
       );
       helper = DevocionalNavigationHelper(
         getBloc: () => bloc,

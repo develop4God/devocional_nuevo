@@ -5,12 +5,68 @@ import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 // test/integration/navigation_bloc_integration_test.dart
 // Integration tests for Navigation BLoC with feature flag parity verification
 
 import 'package:flutter_test/flutter_test.dart';
+
+class _FakeDevocionalRepository extends Fake implements DevocionalRepository {
+  @override
+  int findFirstUnreadDevocionalIndex(
+    List<Devocional> devocionales,
+    List<String> readDevocionalIds,
+  ) {
+    if (devocionales.isEmpty) return 0;
+    final unreadSet = readDevocionalIds.toSet();
+    for (int i = 0; i < devocionales.length; i++) {
+      if (!unreadSet.contains(devocionales[i].id)) return i;
+    }
+    return 0;
+  }
+
+  @override
+  Future<List<Devocional>> fetchAll(
+          int year, String language, String version) async =>
+      [];
+
+  @override
+  List<Devocional> filterByVersion(
+          List<Devocional> devocionales, String version) =>
+      devocionales;
+
+  @override
+  Future<bool> hasLocalData(int year, String language, String version) async =>
+      false;
+
+  @override
+  Future<bool> downloadAndStoreDevocionales(
+          int year, String language, String version) async =>
+      false;
+
+  @override
+  Future<void> clearOldFiles() async {}
+
+  @override
+  bool get wasLastFetchOffline => false;
+
+  @override
+  Future<bool> downloadCurrentYearDevocionales(
+          String language, String version) async =>
+      false;
+
+  @override
+  Future<bool> hasCurrentYearLocalData(String language, String version) async =>
+      false;
+
+  @override
+  Future<bool> hasTargetYearsLocalData(String language, String version) async =>
+      false;
+
+  @override
+  Future<List<int>> getAvailableYears() async => [2025, 2026];
+}
 
 // Helper function to create test devotionals
 
@@ -40,7 +96,7 @@ void main() {
         // BLoC system
         final bloc = DevocionalesNavigationBloc(
           navigationRepository: NavigationRepositoryImpl(),
-          devocionalRepository: DevocionalRepositoryImpl(),
+          devocionalRepository: _FakeDevocionalRepository(),
         );
 
         bloc.add(
@@ -69,7 +125,7 @@ void main() {
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       bloc.add(
@@ -96,7 +152,7 @@ void main() {
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       final firstUnreadIndex = bloc.findFirstUnreadDevocionalIndex(
@@ -126,7 +182,7 @@ void main() {
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       bloc.add(
@@ -151,7 +207,7 @@ void main() {
 
         final bloc = DevocionalesNavigationBloc(
           navigationRepository: NavigationRepositoryImpl(),
-          devocionalRepository: DevocionalRepositoryImpl(),
+          devocionalRepository: _FakeDevocionalRepository(),
         );
 
         bloc.add(
@@ -175,7 +231,7 @@ void main() {
     test('State starts as NavigationInitial', () {
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       expect(bloc.state, isA<NavigationInitial>());
@@ -190,7 +246,7 @@ void main() {
 
         final bloc = DevocionalesNavigationBloc(
           navigationRepository: NavigationRepositoryImpl(),
-          devocionalRepository: DevocionalRepositoryImpl(),
+          devocionalRepository: _FakeDevocionalRepository(),
         );
 
         bloc.add(
@@ -213,7 +269,7 @@ void main() {
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       bloc.add(
@@ -236,7 +292,7 @@ void main() {
     test('Empty devotionals list emits NavigationError', () async {
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       bloc.add(const InitializeNavigation(initialIndex: 0, devocionales: []));
@@ -254,7 +310,7 @@ void main() {
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       // Initialize with invalid high index
@@ -276,7 +332,7 @@ void main() {
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       // First-time user: starts at first unread (index 0)
@@ -312,7 +368,7 @@ void main() {
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       // Should start at index 500 (first unread)
@@ -349,7 +405,7 @@ void main() {
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       // When all read, should return to index 0
@@ -380,7 +436,7 @@ void main() {
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       bloc.add(
@@ -402,7 +458,7 @@ void main() {
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       bloc.add(
@@ -428,7 +484,7 @@ void main() {
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       bloc.add(
@@ -457,7 +513,7 @@ void main() {
 
         final bloc = DevocionalesNavigationBloc(
           navigationRepository: NavigationRepositoryImpl(),
-          devocionalRepository: DevocionalRepositoryImpl(),
+          devocionalRepository: _FakeDevocionalRepository(),
         );
 
         final stopwatch = Stopwatch()..start();
@@ -483,7 +539,7 @@ void main() {
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       bloc.add(
@@ -512,7 +568,7 @@ void main() {
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
+        devocionalRepository: _FakeDevocionalRepository(),
       );
 
       bloc.add(

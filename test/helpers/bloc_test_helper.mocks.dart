@@ -891,16 +891,6 @@ class MockDevocionalProvider extends _i1.Mock
       ) as _i8.Future<bool>);
 
   @override
-  _i8.Future<void> forceRefreshFromAPI() => (super.noSuchMethod(
-        Invocation.method(
-          #forceRefreshFromAPI,
-          [],
-        ),
-        returnValue: _i8.Future<void>.value(),
-        returnValueForMissingStub: _i8.Future<void>.value(),
-      ) as _i8.Future<void>);
-
-  @override
   void clearDownloadStatus() => super.noSuchMethod(
         Invocation.method(
           #clearDownloadStatus,

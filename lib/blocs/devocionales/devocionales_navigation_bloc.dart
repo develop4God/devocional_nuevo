@@ -2,9 +2,9 @@
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
-import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,7 +23,7 @@ class DevocionalesNavigationBloc
   })  : _navigationRepository =
             navigationRepository ?? NavigationRepositoryImpl(),
         _devocionalRepository =
-            devocionalRepository ?? DevocionalRepositoryImpl(),
+            devocionalRepository ?? getService<DevocionalRepository>(),
         super(const NavigationInitial()) {
     // Register event handlers
     on<InitializeNavigation>(_onInitializeNavigation);
