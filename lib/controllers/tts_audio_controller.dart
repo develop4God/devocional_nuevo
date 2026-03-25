@@ -17,6 +17,7 @@ class TtsAudioController {
   String? _currentText;
   String? _fullText;
   Duration _fullDuration = Duration.zero;
+  bool _disposed = false;
 
   /// Flag to prevent state changes from voice sample playback
   /// Set to true when playing voice samples in VoiceSelector dialog
@@ -44,6 +45,20 @@ class TtsAudioController {
   /// Set sample playback mode
   void setPlayingSample(bool value) {
     _isPlayingSample = value;
+  }
+
+  /// Safely update state if controller is not disposed
+  void _setStateIfNotDisposed(TtsPlayerState newState) {
+    if (_disposed) {
+      debugPrint(
+          '⚠️ [TTS Controller] Attempted to set state after dispose: $newState');
+      return;
+    }
+    try {
+      state.value = newState;
+    } catch (e) {
+      debugPrint('⚠️ [TTS Controller] Error setting state: $e');
+    }
   }
 
   TtsAudioController({required this.flutterTts}) {
@@ -92,7 +107,7 @@ class TtsAudioController {
       }
 
       debugPrint('🎬 [TTS Controller] Cambiando a PLAYING');
-      state.value = TtsPlayerState.playing;
+      _setStateIfNotDisposed(TtsPlayerState.playing);
       debugPrint('🎬 [TTS Controller] Iniciando timer de progreso...');
       _startProgressTimer();
       debugPrint('🎬 [TTS Controller] Timer iniciado correctamente');
@@ -103,7 +118,7 @@ class TtsAudioController {
       );
       stopProgressTimer();
       currentPosition.value = totalDuration.value;
-      state.value = TtsPlayerState.completed;
+      _setStateIfNotDisposed(TtsPlayerState.completed);
       // CRITICAL FIX: Reset accumulated position to allow replay from beginning
       accumulatedPosition = Duration.zero;
       debugPrint(
@@ -120,7 +135,7 @@ class TtsAudioController {
         return;
       }
       stopProgressTimer();
-      state.value = TtsPlayerState.idle;
+      _setStateIfNotDisposed(TtsPlayerState.idle);
     });
   }
 
@@ -172,12 +187,12 @@ class TtsAudioController {
     // Check _fullText (not _currentText) because we need the full text to calculate resume positions
     if (_fullText == null || _fullText!.isEmpty) {
       debugPrint('❌ [TTS Controller] ERROR: No hay texto para reproducir');
-      state.value = TtsPlayerState.error;
+      _setStateIfNotDisposed(TtsPlayerState.error);
       return;
     }
 
     debugPrint('⏳ [TTS Controller] Cambiando estado a LOADING');
-    state.value = TtsPlayerState.loading;
+    _setStateIfNotDisposed(TtsPlayerState.loading);
     await Future.delayed(const Duration(milliseconds: 400));
 
     // Obtener y aplicar la velocidad guardada usando VoiceSettingsService
@@ -600,6 +615,7 @@ class TtsAudioController {
   }
 
   void dispose() {
+    _disposed = true;
     state.dispose();
     currentPosition.dispose();
     totalDuration.dispose();

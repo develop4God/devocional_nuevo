@@ -76,8 +76,12 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     context.read<DiscoveryBloc>().add(CompleteDiscoveryStudy(widget.studyId));
     HapticFeedback.heavyImpact();
 
+    // Show celebration, then pop back to list (same as encounters)
     Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) setState(() => _isCelebrating = false);
+      if (mounted) {
+        setState(() => _isCelebrating = false);
+        Navigator.of(context).pop();
+      }
     });
   }
 
