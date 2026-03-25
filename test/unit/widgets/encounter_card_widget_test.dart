@@ -270,6 +270,7 @@ class _FakeThemeBloc extends Fake implements ThemeBloc {
 EncounterIndexEntry _makeEntry({
   String id = 'test_001',
   String status = 'published',
+  String title = 'Test Encounter',
 }) =>
     EncounterIndexEntry(
       id: id,
@@ -277,7 +278,7 @@ EncounterIndexEntry _makeEntry({
       emoji: '🌊',
       status: status,
       files: {'en': '$id.json'},
-      titles: {'en': 'Test Encounter'},
+      titles: {'en': title},
       subtitles: {'en': 'Test Subtitle'},
       scriptureReference: {'en': 'John 1:1'},
       estimatedReadingMinutes: {'en': 5},
@@ -872,5 +873,231 @@ void main() {
     } finally {
       controller.dispose();
     }
+  });
+
+  // ── Test 17: grid overlay shows lock icon for locked published encounter ──────
+
+  testWidgets('grid overlay shows lock icon for locked published encounter',
+      (tester) async {
+    // Two published entries: peter (first, always unlocked) and bart (second,
+    // locked because peter is not yet completed).
+    final peter = _makeEntry(id: 'peter_001', title: 'Peter');
+    final bart = _makeEntry(id: 'bart_001', title: 'Bartimaeus');
+    final state = EncounterLoaded(
+      index: [peter, bart],
+      completedIds: const {},
+    );
+    final controller = AnimationController(
+      vsync: tester,
+      value: 1.0,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: EncounterGridOverlay(
+              state: state,
+              entries: [peter, bart],
+              currentIndex: 0,
+              lang: 'en',
+              onEncounterSelected: (_, __) {},
+              onClose: () {},
+              animation: controller,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // The lock icon must appear for the locked second encounter.
+      expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
+    } finally {
+      controller.dispose();
+    }
+  });
+
+  // ── Test 18: grid overlay locked encounter does NOT call onEncounterSelected ──
+
+  testWidgets(
+      'grid overlay locked encounter does not trigger onEncounterSelected',
+      (tester) async {
+    final peter = _makeEntry(id: 'peter_001', title: 'Peter');
+    final bart = _makeEntry(id: 'bart_001', title: 'Bartimaeus');
+    final state = EncounterLoaded(
+      index: [peter, bart],
+      completedIds: const {},
+    );
+    var tappedId = '';
+    final controller = AnimationController(
+      vsync: tester,
+      value: 1.0,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: EncounterGridOverlay(
+              state: state,
+              entries: [peter, bart],
+              currentIndex: 0,
+              lang: 'en',
+              onEncounterSelected: (entry, _) => tappedId = entry.id,
+              onClose: () {},
+              animation: controller,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // Tap on the locked encounter's title area.
+      await tester.tap(find.text('Bartimaeus'), warnIfMissed: false);
+      await tester.pump();
+
+      // onEncounterSelected must NOT have been called for the locked entry.
+      expect(tappedId, isNot(equals('bart_001')));
+    } finally {
+      controller.dispose();
+    }
+  });
+
+  // ── Test 19: grid overlay first (unlocked) encounter calls onEncounterSelected
+
+  testWidgets(
+      'grid overlay unlocked first encounter calls onEncounterSelected on tap',
+      (tester) async {
+    final peter = _makeEntry(id: 'peter_001', title: 'Peter');
+    final state = EncounterLoaded(
+      index: [peter],
+      completedIds: const {},
+    );
+    var tappedId = '';
+    final controller = AnimationController(
+      vsync: tester,
+      value: 1.0,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: EncounterGridOverlay(
+              state: state,
+              entries: [peter],
+              currentIndex: 0,
+              lang: 'en',
+              onEncounterSelected: (entry, _) => tappedId = entry.id,
+              onClose: () {},
+              animation: controller,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // The first encounter is always unlocked — tap its title.
+      await tester.tap(find.text('Peter'), warnIfMissed: false);
+      await tester.pump();
+
+      expect(tappedId, equals('peter_001'));
+    } finally {
+      controller.dispose();
+    }
+  });
+
+  // ── Test 20: list page shows lock icon for locked published encounter ─────────
+
+  testWidgets('list page shows lock icon for locked published encounter',
+      (tester) async {
+    // Set welcome seen so the list page is not replaced by the welcome page.
+    SharedPreferences.setMockInitialValues({'encounter_welcome_seen': true});
+
+    await tester.runAsync(() async {
+      final peter = _makeEntry(id: 'peter_001', title: 'Peter');
+      final bart = _makeEntry(id: 'bart_001', title: 'Bartimaeus');
+      // Neither completed → bart (second) is locked.
+      final mockBloc = _MockEncounterBloc(
+        EncounterLoaded(
+          index: [peter, bart],
+          completedIds: const {},
+        ),
+      );
+
+      setPhoneViewport(tester);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<EncounterBloc>.value(value: mockBloc),
+              BlocProvider<ThemeBloc>.value(value: _FakeThemeBloc()),
+              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+            ],
+            child: const EncountersListPage(),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // The lock icon must be visible for the locked second encounter.
+      expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
+    });
+  });
+
+  // ── Test 21: list page locked encounter does not navigate on tap ──────────────
+
+  testWidgets('list page locked encounter does not navigate when tapped',
+      (tester) async {
+    // Set welcome seen so the list page is not replaced by the welcome page.
+    SharedPreferences.setMockInitialValues({'encounter_welcome_seen': true});
+
+    await tester.runAsync(() async {
+      final peter = _makeEntry(id: 'peter_001', title: 'Peter');
+      final bart = _makeEntry(id: 'bart_001', title: 'Bartimaeus');
+      final mockBloc = _MockEncounterBloc(
+        EncounterLoaded(
+          index: [peter, bart],
+          completedIds: const {},
+        ),
+      );
+      final navObserver = _NavObserver();
+
+      setPhoneViewport(tester);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorObservers: [navObserver],
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<EncounterBloc>.value(value: mockBloc),
+              BlocProvider<ThemeBloc>.value(value: _FakeThemeBloc()),
+              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+            ],
+            child: const EncountersListPage(),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // Record baseline route count after initial render.
+      final pushCountBefore = navObserver.pushes.length;
+
+      // Tap on the locked encounter title — it is visible but behind the lock
+      // overlay, so no navigation should occur.
+      await tester.tap(find.text('Bartimaeus'), warnIfMissed: false);
+      await tester.pump();
+
+      expect(navObserver.pushes.length, equals(pushCountBefore));
+    });
   });
 }
