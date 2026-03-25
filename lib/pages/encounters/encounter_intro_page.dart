@@ -3,7 +3,6 @@
 // Modern, high-impact intro page for Encounters.
 // Designed for a younger audience with cinematic visuals and bold typography.
 
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
@@ -42,7 +41,6 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
   late Animation<double> _imageOpacity;
   late Animation<double> _contentFade;
   late Animation<Offset> _contentSlide;
-
 
   @override
   void initState() {
@@ -199,7 +197,8 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
 
     return BlocListener<EncounterBloc, EncounterState>(
         listener: (context, state) {
-          if (state is EncounterLoaded && state.isStudyLoaded(widget.entry.id)) {
+          if (state is EncounterLoaded &&
+              state.isStudyLoaded(widget.entry.id)) {
             final study = state.getStudy(widget.entry.id);
             if (study == null) return;
             // Fire-and-forget preload cards 0 and 1 into memory cache

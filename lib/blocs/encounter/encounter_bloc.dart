@@ -215,7 +215,8 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
             '⚠️ [EncounterBloc] BG: No language found for ${event.id} — skipping prefetch');
         return;
       }
-      _prefetchNextEncounterImages(currentState.index, currentState.completedIds, lang);
+      _prefetchNextEncounterImages(
+          currentState.index, currentState.completedIds, lang);
     }
   }
 
