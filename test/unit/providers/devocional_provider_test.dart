@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart'; // for TtsState
@@ -110,6 +111,8 @@ class _MockDevocionalIndexService extends Mock
 
 class _MockCacheMetadataService extends Mock implements CacheMetadataService {}
 
+class _MockDevocionalRepository extends Mock implements DevocionalRepository {}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -125,6 +128,7 @@ void main() {
 
     final localIndexService = _MockDevocionalIndexService();
     final localMetadataService = _MockCacheMetadataService();
+    final localRepository = _MockDevocionalRepository();
     when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
     when(() => localMetadataService.readManifestDate(any()))
         .thenAnswer((_) async => null);
@@ -133,6 +137,7 @@ void main() {
     final provider = DevocionalProvider(
       devocionalIndexService: localIndexService,
       cacheMetadataService: localMetadataService,
+      devocionalRepository: localRepository,
     );
 
     // Use the new helpers to add a favorite and persist without UI
@@ -173,6 +178,7 @@ void main() {
 
     final localIndexService = _MockDevocionalIndexService();
     final localMetadataService = _MockCacheMetadataService();
+    final localRepository = _MockDevocionalRepository();
     when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
     when(() => localMetadataService.readManifestDate(any()))
         .thenAnswer((_) async => null);
@@ -181,6 +187,7 @@ void main() {
     final provider = DevocionalProvider(
       devocionalIndexService: localIndexService,
       cacheMetadataService: localMetadataService,
+      devocionalRepository: localRepository,
     );
 
     // Trigger reload/migration

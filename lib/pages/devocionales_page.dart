@@ -17,9 +17,10 @@ import 'package:devocional_nuevo/pages/bible_reader_page.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
+import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
@@ -106,8 +107,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   // Repository instances - reused to avoid re-instantiation
   late final NavigationRepositoryImpl _navigationRepository =
       NavigationRepositoryImpl();
-  late final DevocionalRepositoryImpl _devocionalRepository =
-      DevocionalRepositoryImpl();
+  late final DevocionalRepository _devocionalRepository =
+      getService<DevocionalRepository>();
 
   // Pet service resolved once (not inside build) to comply with DI rules.
   late final SupporterPetService _petService =
@@ -116,6 +117,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   @override
   void initState() {
     super.initState();
+    // Flush any deep link that arrived before the navigator was ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      getService<DeepLinkHandler>().flushPendingLink();
+    });
     _ttsAudioController = TtsAudioController(flutterTts: _flutterTts);
     _ttsMiniplayerPresenter = DevocionalTtsMiniplayerPresenter(
         ttsAudioController: _ttsAudioController);

@@ -1,19 +1,23 @@
-/// Constants for available devotional years
+/// Offline fallback for available devotional years.
 ///
-/// This class maintains the list of all years for which devotionals are available.
-/// When new years are added, simply append to this list to make them accessible.
+/// **This constant is NOT the primary source of truth.**
+/// At runtime, [DevocionalRepositoryImpl.getAvailableYears()] derives the year
+/// list from `index.json` (the remote index).  This list is used **only** when
+/// the index is unreachable (network offline, server error, parse failure).
 ///
-/// Example:
+/// When new years are added to the remote index, they are automatically
+/// discovered.  Only update this list when you also need the app to load that
+/// year while fully offline (e.g., before the first successful index fetch).
+///
+/// Example — adding 2027 offline support:
 /// ```dart
-/// // When 2027 devotionals are ready, update to:
 /// static const availableYears = [2025, 2026, 2027];
 /// ```
 class DevocionalYears {
-  /// List of all years for which devotionals are available
+  /// Offline-fallback list of years for which devotionals are available.
   ///
-  /// This list should be updated when new years are added.
-  /// All historical years remain accessible - no progressive data loss.
-  // TODO: derive available years from index.json — see separate issue
+  /// Keep this list in sync with the remote index so offline installs
+  /// can still load all years.  Must remain sorted ascending.
   static const List<int> availableYears = [2025, 2026];
 
   /// Private constructor to prevent instantiation

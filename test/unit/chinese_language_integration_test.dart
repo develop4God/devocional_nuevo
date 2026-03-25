@@ -6,6 +6,7 @@ library;
 import 'dart:convert';
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
 import 'package:devocional_nuevo/services/devocional_index_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +19,8 @@ class MockDevocionalIndexService extends Mock
     implements DevocionalIndexService {}
 
 class MockCacheMetadataService extends Mock implements CacheMetadataService {}
+
+class MockDevocionalRepository extends Mock implements DevocionalRepository {}
 
 void main() {
   test(
@@ -48,12 +51,14 @@ void main() {
     // Create mock services to bypass service locator dependency
     final mockIndexService = MockDevocionalIndexService();
     final mockCacheService = MockCacheMetadataService();
+    final mockRepository = MockDevocionalRepository();
 
     final provider = DevocionalProvider(
       httpClient: mockHttp,
       enableAudio: false,
       devocionalIndexService: mockIndexService,
       cacheMetadataService: mockCacheService,
+      devocionalRepository: mockRepository,
     );
 
     expect(provider.supportedLanguages, contains('zh'));

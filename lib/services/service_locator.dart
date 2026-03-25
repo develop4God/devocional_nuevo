@@ -2,6 +2,8 @@
 /// Service Locator for Dependency Injection
 library;
 
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
@@ -175,6 +177,13 @@ Future<void> setupServiceLocator() async {
   // ✅ REGISTER PRAYER WALL REPOSITORY (via interface — DIP)
   locator.registerLazySingleton<IPrayerWallRepository>(
     () => PrayerWallRepository(),
+  );
+
+  // ✅ REGISTER DEVOCIONAL REPOSITORY (via interface — DIP)
+  locator.registerLazySingleton<DevocionalRepository>(
+    () => DevocionalRepositoryImpl(
+      httpClient: locator.get<http.Client>(),
+    ),
   );
 }
 

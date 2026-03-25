@@ -428,6 +428,69 @@ void main() {
             'EncounterBloc should not depend on concrete EncounterProgressService',
       );
     });
+
+    // ── DevocionalRepository DI registration ──────────────────────────────────
+
+    test(
+      'DevocionalRepository is registered as lazy singleton in ServiceLocator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('registerLazySingleton<DevocionalRepository>'),
+          isTrue,
+          reason: 'DevocionalRepository should be registered as lazy singleton',
+        );
+      },
+    );
+
+    test(
+      'DevocionalRepositoryImpl does not use static singleton antipattern',
+      () async {
+        final file = File('lib/repositories/devocional_repository_impl.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('static DevocionalRepositoryImpl? _instance'),
+          isFalse,
+          reason:
+              'DevocionalRepositoryImpl should not have static _instance field',
+        );
+
+        expect(
+          content.contains('static DevocionalRepositoryImpl get instance'),
+          isFalse,
+          reason:
+              'DevocionalRepositoryImpl should not have static instance getter',
+        );
+      },
+    );
+
+    test(
+      'DevocionalProvider depends on DevocionalRepository interface, not concrete',
+      () async {
+        final file = File('lib/providers/devocional_provider.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('DevocionalRepository'),
+          isTrue,
+          reason:
+              'DevocionalProvider should reference DevocionalRepository interface',
+        );
+
+        expect(
+          content.contains('DevocionalRepositoryImpl()'),
+          isFalse,
+          reason:
+              'DevocionalProvider should not directly instantiate DevocionalRepositoryImpl',
+        );
+      },
+    );
   });
 }
 
