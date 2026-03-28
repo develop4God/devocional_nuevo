@@ -78,6 +78,7 @@ class _AboutPageState extends State<AboutPage> {
           const SnackBar(
             content: Text('Modo desarrollador activado'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 1),
           ),
         );
       }
