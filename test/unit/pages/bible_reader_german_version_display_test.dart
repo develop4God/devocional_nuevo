@@ -87,8 +87,7 @@ void main() {
       expect(Constants.versionAbbreviation(version), equals('SCH2000'),
           reason: 'versionAbbreviation must return SCH2000 from dbFileName');
 
-      expect(
-          versionPickerLabel(version), equals('Schlachter 2000 · SCH2000'),
+      expect(versionPickerLabel(version), equals('Schlachter 2000 · SCH2000'),
           reason: 'Picker label must NOT contain duplicate abbreviation');
     });
 
@@ -100,8 +99,8 @@ void main() {
         languageCode: 'es',
         dbFileName: 'RVR1960_es.SQLite3',
       );
-      expect(versionPickerLabel(version),
-          equals('Reina Valera 1960 · RVR1960'));
+      expect(
+          versionPickerLabel(version), equals('Reina Valera 1960 · RVR1960'));
     });
 
     test('English KJV picker label remains correct', () {
@@ -139,4 +138,3 @@ void main() {
     });
   });
 }
-

@@ -75,8 +75,7 @@ void main() {
       expect(prefs.getString('selectedVersion'), equals('LU17'));
     });
 
-    test('German language is not silently downgraded to Spanish fallback',
-        () {
+    test('German language is not silently downgraded to Spanish fallback', () {
       final mockHttp = MockClient((request) async {
         return http.Response('{"data": {}}', 200);
       });
@@ -106,12 +105,12 @@ void main() {
       expect(
         provider.supportedLanguages.where((lang) => lang == 'de'),
         isNotEmpty,
-        reason: 'German language code de must be in the supported languages list',
+        reason:
+            'German language code de must be in the supported languages list',
       );
     });
 
-    test(
-        'German default version (LU17) is correctly matched from constants',
+    test('German default version (LU17) is correctly matched from constants',
         () {
       final mockHttp = MockClient((request) async {
         return http.Response('{"data": {}}', 200);
@@ -137,4 +136,3 @@ void main() {
     });
   });
 }
-
