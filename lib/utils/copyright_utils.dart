@@ -7,7 +7,8 @@ class CopyrightUtils {
     if (language == 'es' ||
         language == 'en' ||
         language == 'pt' ||
-        language == 'fr') {
+        language == 'fr' ||
+        language == 'de') {
       final regex = RegExp(r'\(([A-Z0-9]+)\)$');
       final match = regex.firstMatch(version);
       if (match != null) {
@@ -71,6 +72,22 @@ class CopyrightUtils {
             'पवित्र बाइबिल आसान हिंदी संस्करण (HERV) © 1995, 2010 Bible League International. सभी अधिकार सुरक्षित।',
         'default':
             'पवित्र बाइबिल हिन्दी ओ.वी. संस्करण (HIOV) © Bible Society of India. सभी अधिकार सुरक्षित।',
+      },
+      'de': {
+        'LU17':
+            'Lutherbibel, revidiert 2017, © 2016 Deutsche Bibelgesellschaft, Stuttgart.',
+        'SCH2000':
+            'Schlachter 2000 © Genfer Bibelgesellschaft. Alle Rechte vorbehalten.',
+        'LU17_de.SQLite3':
+            'Lutherbibel, revidiert 2017, © 2016 Deutsche Bibelgesellschaft, Stuttgart.',
+        'SCH2000_de.SQLite3':
+            'Schlachter 2000 © Genfer Bibelgesellschaft. Alle Rechte vorbehalten.',
+        'Lutherbibel 2017 (LU17)':
+            'Lutherbibel, revidiert 2017, © 2016 Deutsche Bibelgesellschaft, Stuttgart.',
+        'Schlachter 2000 (SCH2000)':
+            'Schlachter 2000 © Genfer Bibelgesellschaft. Alle Rechte vorbehalten.',
+        'default':
+            'Lutherbibel, revidiert 2017, © 2016 Deutsche Bibelgesellschaft, Stuttgart.',
       },
     };
 

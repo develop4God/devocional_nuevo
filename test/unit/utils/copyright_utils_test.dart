@@ -41,7 +41,7 @@ void main() {
     });
 
     test('fallback to en when language missing', () {
-      final text = CopyrightUtils.getCopyrightText('de', 'KJV');
+      final text = CopyrightUtils.getCopyrightText('xx', 'KJV');
       expect(text, contains('King James'));
     });
   });

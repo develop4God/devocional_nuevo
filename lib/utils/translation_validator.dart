@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 /// Supported languages (en.json is the single source of truth)
-const supportedLanguages = ['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi'];
+const supportedLanguages = ['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de'];
 
 /// Bidirectional translation validator.
 /// - Detects keys MISSING in the target (compared to en.json) → adds as "PENDING"

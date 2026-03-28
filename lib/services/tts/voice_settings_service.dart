@@ -652,6 +652,8 @@ class VoiceSettingsService {
         return 'ja-JP';
       case 'zh':
         return 'zh-CN';
+      case 'de':
+        return 'de-DE';
       default:
         return 'es-ES';
     }
