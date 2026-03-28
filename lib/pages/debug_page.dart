@@ -1349,6 +1349,39 @@ class _DebugPageState extends State<DebugPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // ── TTS Debug Section ─────────────────────────────────────
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      return ListTile(
+                        title: const Text('🎤 TTS Force Fallback (Testing)'),
+                        subtitle: const Text('Test voice fallback selection flow'),
+                        leading: Icon(
+                          Icons.mic,
+                          color: DebugFlags.forceFallbackForTesting
+                              ? Colors.orange
+                              : Colors.grey,
+                        ),
+                        trailing: Switch(
+                          value: DebugFlags.forceFallbackForTesting,
+                          onChanged: (value) {
+                            setState(() {
+                              DebugFlags.forceFallbackForTesting = value;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  DebugFlags.forceFallbackForTesting
+                                      ? '🎤 TTS Fallback enabled - voices will use fallback locales'
+                                      : '🎤 TTS Fallback disabled - voices will use premium only',
+                                ),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
                 ],
 
                 // Floating action button for review
