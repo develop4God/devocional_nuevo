@@ -5,11 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('VoiceDataRegistry', () {
     group('supportedLanguages', () {
-      test('includes all 7 supported languages', () {
+      test('includes all 8 supported languages', () {
         final languages = VoiceDataRegistry.supportedLanguages;
         expect(
-            languages, containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi']));
-        expect(languages.length, 7);
+            languages, containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de']));
+        expect(languages.length, 8);
       });
     });
 
