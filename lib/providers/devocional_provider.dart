@@ -191,12 +191,17 @@ class DevocionalProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       String deviceLanguage = PlatformDispatcher.instance.locale.languageCode;
+      debugPrint('🌍 [INIT] Device language: $deviceLanguage');
 
       String savedLanguage =
           prefs.getString('selectedLanguage') ?? deviceLanguage;
+      debugPrint('🌍 [INIT] Saved language preference: ${prefs.getString('selectedLanguage')} (raw), using: $savedLanguage');
+      
       _selectedLanguage = _getSupportedLanguageWithFallback(savedLanguage);
+      debugPrint('🌍 [INIT] Supported language resolved: $_selectedLanguage (from $savedLanguage)');
 
       if (_selectedLanguage != savedLanguage) {
+        debugPrint('🌍 [INIT] Language not supported, saving fallback: $_selectedLanguage');
         await prefs.setString('selectedLanguage', _selectedLanguage);
       }
 
@@ -204,6 +209,7 @@ class DevocionalProvider with ChangeNotifier {
       String savedVersion = prefs.getString('selectedVersion') ?? '';
       String defaultVersion =
           Constants.defaultVersionByLanguage[_selectedLanguage] ?? 'RVR1960';
+      debugPrint('🌍 [INIT] Selected language: $_selectedLanguage, default version: $defaultVersion');
 
       // CRITICAL FIX: Validate that saved version is valid for current language
       // This prevents language/version mismatches (e.g., Spanish + Hindi version)
@@ -223,6 +229,7 @@ class DevocionalProvider with ChangeNotifier {
 
       await _loadFavorites();
       await _loadInvitationDialogPreference();
+      debugPrint('🌍 [INIT] About to fetch devotionals for language: $_selectedLanguage, version: $_selectedVersion');
       await _fetchAllDevocionalesForLanguage();
     } catch (e) {
       _errorMessage = 'Error al inicializar los datos: $e';
@@ -461,20 +468,24 @@ class DevocionalProvider with ChangeNotifier {
     _isLoading = true;
     _errorMessage = null;
     _isOfflineMode = false;
+    debugPrint('📚 [FETCH] Starting to fetch devotionals for language=$_selectedLanguage, version=$_selectedVersion');
     notifyListeners();
 
     try {
       final List<int> yearsToLoad =
           await _devocionalRepository.getAvailableYears();
+      debugPrint('📚 [FETCH] Years to load: $yearsToLoad');
       final List<Devocional> allDevocionales = [];
 
       for (final year in yearsToLoad) {
+        debugPrint('📚 [FETCH] Fetching year $year for language=$_selectedLanguage, version=$_selectedVersion');
         final List<Devocional> yearDevocionales =
             await _devocionalRepository.fetchAll(
           year,
           _selectedLanguage,
           _selectedVersion,
         );
+        debugPrint('📚 [FETCH] Year $year returned ${yearDevocionales.length} devotionals');
         allDevocionales.addAll(yearDevocionales);
       }
 
