@@ -131,6 +131,7 @@ class Constants {
   /// Branch para debug Devotionals (solo kDebugMode)
   static String debugBranchDevotionals = 'main';
 
+
   /// Obtiene la URL del índice de Devocionales (cache invalidation)
   static String getDevocionalIndexUrl() {
     final branch = kDebugMode ? debugBranchDevotionals : 'main';
