@@ -114,7 +114,7 @@ class DevocionalProvider with ChangeNotifier {
   String? get currentTrackedDevocionalId =>
       _readingTracker.currentTrackedDevocionalId;
 
-  // Supported languages - Updated to include Chinese and Hindi
+  // Supported languages - Updated to include Chinese, Hindi and German
   static const List<String> _supportedLanguages = [
     'es',
     'en',
@@ -123,6 +123,7 @@ class DevocionalProvider with ChangeNotifier {
     'ja',
     'zh', // Add Chinese
     'hi', // Add Hindi
+    'de', // Add German
   ];
   static const String _fallbackLanguage = 'es';
 
