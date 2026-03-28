@@ -44,6 +44,8 @@ class BibleTextFormatter {
         return _formatBibleBookPortuguese(reference);
       case 'fr':
         return _formatBibleBookFrench(reference);
+      case 'de':
+        return _formatBibleBookGerman(reference);
       case 'ja':
         return _formatBibleBookJapanese(reference);
       case 'zh':
@@ -144,6 +146,25 @@ class BibleTextFormatter {
     });
   }
 
+  /// Formats German Bible book ordinals (Erster, Zweiter, Dritter)
+  /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
+  static String _formatBibleBookGerman(String reference) {
+    final exp = RegExp(
+      r'(?:^|\s)([123])\s+([A-Za-zäöüßÄÖÜ]+)',
+      caseSensitive: false,
+    );
+    final ordinals = {'1': 'Erster', '2': 'Zweiter', '3': 'Dritter'};
+
+    return reference.replaceAllMapped(exp, (match) {
+      final matchText = match.group(0)!;
+      final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
+      final number = match.group(1)!;
+      final bookName = match.group(2)!;
+      final ordinal = ordinals[number] ?? number;
+      return '$prefix$ordinal $bookName';
+    });
+  }
+
   /// Formato para libros bíblicos en japonés (sin ordinales, solo limpieza básica)
   static String _formatBibleBookJapanese(String reference) {
     // En japonés, los libros bíblicos no usan ordinales, solo se devuelve el texto tal cual
@@ -202,6 +223,11 @@ class BibleTextFormatter {
           'LSG1910': 'Louis Segond mille neuf cent dix',
           'TOB': 'Traduction Oecuménique de la Bible',
         };
+      case 'de':
+        return {
+          'LU17': 'Lutherbibel zweitausendsiebzehn',
+          'SCH2000': 'Schlachter zweitausend',
+        };
       case 'zh':
         return {'和合本1919': '和合本一九一九', '新译本': '新译本'};
       case 'hi':
@@ -254,6 +280,7 @@ class BibleTextFormatter {
       'en': 'chapter|verse',
       'pt': 'capítulo|versículo',
       'fr': 'chapitre|verset',
+      'de': 'Kapitel|Vers',
       'ja': '章|節',
       // Japonés: capítulo=章, versículo=節
       'zh': '章|节',
@@ -281,7 +308,7 @@ class BibleTextFormatter {
                 caseSensitive: false,
               )
             : RegExp(
-                r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?',
+                r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑäöüßÄÖÜ]+)\s+(\d+):(\d+)(?:-(\d+))?',
                 caseSensitive: false,
               );
 
@@ -299,13 +326,15 @@ class BibleTextFormatter {
                 ? 'ao'
                 : language == 'fr'
                     ? 'au'
-                    : language == 'ja'
-                        ? '～'
-                        : language == 'zh'
-                            ? '至'
-                            : language == 'hi'
-                                ? 'से'
-                                : 'al';
+                    : language == 'de'
+                        ? 'bis'
+                        : language == 'ja'
+                            ? '～'
+                            : language == 'zh'
+                                ? '至'
+                                : language == 'hi'
+                                    ? 'से'
+                                    : 'al';
         result += ' $toWord $verseEnd';
       }
       return result;
