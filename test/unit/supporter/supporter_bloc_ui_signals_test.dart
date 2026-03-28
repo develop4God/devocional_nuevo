@@ -102,8 +102,7 @@ void main() {
     // CRITICAL: justDeliveredTier must be null after SaveGoldSupporterName.
     // If it is still non-null, the BlocListener will open a second dialog.
     expect(state.justDeliveredTier, isNull,
-        reason:
-            'SaveGoldSupporterName must clear justDeliveredTier to prevent '
+        reason: 'SaveGoldSupporterName must clear justDeliveredTier to prevent '
             'BlocListener from re-opening the Gold success dialog');
 
     await bloc.close();

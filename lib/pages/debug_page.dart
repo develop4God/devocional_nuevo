@@ -16,6 +16,7 @@ import 'package:devocional_nuevo/blocs/testimony_bloc.dart';
 import 'package:devocional_nuevo/blocs/testimony_event.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_event.dart';
+import 'package:devocional_nuevo/debug/debug_flags.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
 import 'package:devocional_nuevo/models/testimony_model.dart';
@@ -589,8 +590,8 @@ class _DebugPageState extends State<DebugPage> {
                         else
                           DropdownButton<String>(
                             // CRITICAL: Prevent crash if debugBranch not in fetched list
-                            value: _branches.contains(Constants.debugBranch)
-                                ? Constants.debugBranch
+                            value: _branches.contains(DebugFlags.debugBranch)
+                                ? DebugFlags.debugBranch
                                 : _branches.first,
                             isExpanded: true,
                             items: _branches
@@ -599,7 +600,7 @@ class _DebugPageState extends State<DebugPage> {
                                 .toList(),
                             onChanged: (newBranch) {
                               setState(
-                                  () => Constants.debugBranch = newBranch!);
+                                  () => DebugFlags.debugBranch = newBranch!);
                               // Trigger refresh
                               if (mounted && context.mounted) {
                                 context
@@ -659,8 +660,8 @@ class _DebugPageState extends State<DebugPage> {
                         else
                           DropdownButton<String>(
                             value: _branches
-                                    .contains(Constants.debugEncounterBranch)
-                                ? Constants.debugEncounterBranch
+                                    .contains(DebugFlags.debugEncounterBranch)
+                                ? DebugFlags.debugEncounterBranch
                                 : _branches.first,
                             isExpanded: true,
                             items: _branches
@@ -670,7 +671,7 @@ class _DebugPageState extends State<DebugPage> {
                             onChanged: (newBranch) {
                               if (newBranch == null) return;
                               setState(() =>
-                                  Constants.debugEncounterBranch = newBranch);
+                                  DebugFlags.debugEncounterBranch = newBranch);
                               if (mounted && context.mounted) {
                                 context
                                     .read<EncounterBloc>()
@@ -851,8 +852,8 @@ class _DebugPageState extends State<DebugPage> {
                         DropdownButton<String>(
                           // CRITICAL: Prevent crash if debugBranchDevotionals not in fetched list
                           value: _branches
-                                  .contains(Constants.debugBranchDevotionals)
-                              ? Constants.debugBranchDevotionals
+                                  .contains(DebugFlags.debugBranchDevotionals)
+                              ? DebugFlags.debugBranchDevotionals
                               : _branches.first,
                           isExpanded: true,
                           items: _branches
@@ -861,7 +862,7 @@ class _DebugPageState extends State<DebugPage> {
                               .toList(),
                           onChanged: (newBranch) {
                             setState(() =>
-                                Constants.debugBranchDevotionals = newBranch!);
+                                DebugFlags.debugBranchDevotionals = newBranch!);
                             // Show confirmation
                             if (mounted && context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(

@@ -12,9 +12,20 @@ class DebugFlags {
   /// Force TTS voice fallback selection for testing.
   /// When enabled, VoiceSelectorDialog displays all available voices
   /// including fallback locales (Austria, Switzerland) for QA testing.
-  /// 
+  ///
   /// Default: false (production behavior)
   /// Only active: in debug mode (checked by VoiceSelectorDialog)
   static bool forceFallbackForTesting = false;
-}
 
+  /// Branch used for discovery/encounters content in debug mode.
+  /// Default: 'main'
+  static String debugBranch = 'main';
+
+  /// Branch used for encounter images/content in debug mode.
+  /// Default: 'main'
+  static String debugEncounterBranch = 'main';
+
+  /// Branch used for devotional content index in debug mode.
+  /// Default: 'main'
+  static String debugBranchDevotionals = 'main';
+}

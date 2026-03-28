@@ -59,8 +59,7 @@ void main() {
         expect(result.toLowerCase(), contains('erster johannes'));
       });
 
-      test(
-          'handles ordinals in middle of text (e.g. "The 1 Peter chapter")',
+      test('handles ordinals in middle of text (e.g. "The 1 Peter chapter")',
           () {
         final result = BibleTextFormatter.formatBibleBook(
           'From 1 Petrus to other references',
@@ -87,15 +86,12 @@ void main() {
 
     group('German Bible Version Expansions', () {
       test('expands LU17 to "Lutherbibel zweitausendsiebzehn"', () {
-        final expansions =
-            BibleTextFormatter.getBibleVersionExpansions('de');
-        expect(expansions['LU17'],
-            equals('Lutherbibel zweitausendsiebzehn'));
+        final expansions = BibleTextFormatter.getBibleVersionExpansions('de');
+        expect(expansions['LU17'], equals('Lutherbibel zweitausendsiebzehn'));
       });
 
       test('expands SCH2000 to "Schlachter zweitausend"', () {
-        final expansions =
-            BibleTextFormatter.getBibleVersionExpansions('de');
+        final expansions = BibleTextFormatter.getBibleVersionExpansions('de');
         expect(expansions['SCH2000'], equals('Schlachter zweitausend'));
       });
 
@@ -134,9 +130,7 @@ void main() {
         expect(result, contains('16'));
       });
 
-      test(
-          'expands "Erster Korinther 13:4-7" with "bis" for verse ranges',
-          () {
+      test('expands "Erster Korinther 13:4-7" with "bis" for verse ranges', () {
         final result = BibleTextFormatter.formatBibleReferences(
           'Erster Korinther 13:4-7',
           'de',
@@ -177,8 +171,7 @@ void main() {
     // ──────────────────────────────────────────────────────────────
 
     group('German TTS Full Text Normalization (Integration)', () {
-      test(
-          'normalizes complete devotional reference: "1 Johannes 3:16 LU17"',
+      test('normalizes complete devotional reference: "1 Johannes 3:16 LU17"',
           () {
         final result = BibleTextFormatter.normalizeTtsText(
           '1 Johannes 3:16 LU17',
@@ -191,9 +184,7 @@ void main() {
         expect(result, contains('Lutherbibel zweitausendsiebzehn'));
       });
 
-      test(
-          'normalizes verse range: "2 Korinther 4:7-9 SCH2000"',
-          () {
+      test('normalizes verse range: "2 Korinther 4:7-9 SCH2000"', () {
         final result = BibleTextFormatter.normalizeTtsText(
           '2 Korinther 4:7-9 SCH2000',
           'de',
@@ -282,4 +273,3 @@ void main() {
     });
   });
 }
-

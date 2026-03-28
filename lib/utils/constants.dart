@@ -1,4 +1,5 @@
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/debug/debug_flags.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -8,7 +9,7 @@ class Constants {
 
   // ✅ ORIGINAL METHOD - DO NOT MODIFY (Backward Compatibility)
   static String getDevocionalesApiUrl(int year) {
-    final branch = kDebugMode ? debugBranchDevotionals : 'main';
+    final branch = kDebugMode ? DebugFlags.debugBranchDevotionals : 'main';
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/Devocional_year_$year.json';
   }
 
@@ -18,7 +19,7 @@ class Constants {
     String languageCode,
     String versionCode,
   ) {
-    final branch = kDebugMode ? debugBranchDevotionals : 'main';
+    final branch = kDebugMode ? DebugFlags.debugBranchDevotionals : 'main';
 
     // Backward compatibility for Spanish RVR1960
     if (languageCode == 'es' && versionCode == 'RVR1960') {
@@ -122,19 +123,9 @@ class Constants {
   /// Mutable so it can be toggled from the debug page at runtime.
   static bool enableEncounterFallback = true;
 
-  /// Branch para debug Discovery (solo kDebugMode)
-  static String debugBranch = 'main';
-
-  /// Branch para debug Encounters (solo kDebugMode)
-  static String debugEncounterBranch = 'main';
-
-  /// Branch para debug Devotionals (solo kDebugMode)
-  static String debugBranchDevotionals = 'main';
-
-
   /// Obtiene la URL del índice de Devocionales (cache invalidation)
   static String getDevocionalIndexUrl() {
-    final branch = kDebugMode ? debugBranchDevotionals : 'main';
+    final branch = kDebugMode ? DebugFlags.debugBranchDevotionals : 'main';
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/index.json';
   }
 
@@ -143,13 +134,13 @@ class Constants {
 
   /// Obtiene la URL del índice de Discovery
   static String getDiscoveryIndexUrl() {
-    final branch = kDebugMode ? debugBranch : 'main';
+    final branch = kDebugMode ? DebugFlags.debugBranch : 'main';
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/discovery/index.json';
   }
 
   /// Obtiene la URL de un archivo de estudio
   static String getDiscoveryStudyFileUrl(String fileName, String languageCode) {
-    final branch = kDebugMode ? debugBranch : 'main';
+    final branch = kDebugMode ? DebugFlags.debugBranch : 'main';
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/discovery/$languageCode/$fileName';
   }
 
@@ -163,7 +154,7 @@ class Constants {
 
   /// Obtiene la URL del índice de Encounters
   static String getEncounterIndexUrl() {
-    final branch = kDebugMode ? debugEncounterBranch : 'main';
+    final branch = kDebugMode ? DebugFlags.debugEncounterBranch : 'main';
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/encounters/index.json';
   }
 
@@ -174,7 +165,7 @@ class Constants {
   ///   `{id}_{lang}.json` is used as a fallback.
   static String getEncounterStudyUrl(String id, String lang,
       {String? filename}) {
-    final branch = kDebugMode ? debugEncounterBranch : 'main';
+    final branch = kDebugMode ? DebugFlags.debugEncounterBranch : 'main';
     final file = filename ?? '${id}_$lang.json';
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/encounters/$lang/$file';
   }

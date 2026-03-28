@@ -90,7 +90,8 @@ void main() {
 
     test('getDevocionalesApiUrlMultilingual generates correct German URL', () {
       const year = 2025;
-      final url = Constants.getDevocionalesApiUrlMultilingual(year, 'de', 'LU17');
+      final url =
+          Constants.getDevocionalesApiUrlMultilingual(year, 'de', 'LU17');
       expect(
         url,
         equals(
@@ -101,4 +102,3 @@ void main() {
     });
   });
 }
-

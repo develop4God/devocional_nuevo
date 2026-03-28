@@ -7,8 +7,8 @@ void main() {
     group('supportedLanguages', () {
       test('includes all 8 supported languages', () {
         final languages = VoiceDataRegistry.supportedLanguages;
-        expect(
-            languages, containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de']));
+        expect(languages,
+            containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de']));
         expect(languages.length, 8);
       });
     });
