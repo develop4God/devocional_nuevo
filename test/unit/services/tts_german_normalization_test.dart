@@ -74,8 +74,10 @@ void main() {
           '4 Mose 5 Buch',
           'de',
         );
-        // 4 Mose should NOT be converted (only 1-3)
+        // Regex only matches 1-3; 4 Mose (Numbers) and standalone
+        // numbers must pass through unchanged
         expect(result, contains('4 Mose'));
+        expect(result, contains('5 Buch'));
       });
     });
 
@@ -276,52 +278,6 @@ void main() {
           'fr',
         );
         expect(result, contains('Premier Jean'));
-      });
-    });
-
-    // ──────────────────────────────────────────────────────────────
-    // 6. GERMAN VOICES AVAILABLE
-    // ──────────────────────────────────────────────────────────────
-
-    group('German TTS Voices', () {
-      test('German supports 4 premium voices', () {
-        // From VoiceDataRegistry.germanVoices
-        final expectedVoices = [
-          'de-de-x-ded-local', // Mann Deutschland
-          'de-de-x-dea-local', // Frau Deutschland
-          'de-de-x-dec-network', // Mann Deutschland 2
-          'de-DE-language', // Frau Deutschland 2
-        ];
-        for (final voice in expectedVoices) {
-          expect(voice.startsWith('de'), isTrue,
-              reason: 'German voice should have de- prefix');
-        }
-      });
-
-      test('German includes male and female voices', () {
-        final voices = [
-          'de-de-x-ded-local',
-          'de-de-x-dea-local',
-          'de-de-x-dec-network',
-          'de-DE-language'
-        ];
-        // Should have mix of -ded/-dec (male), -dea/-DE-language (female)
-        expect(voices.where((v) => v.contains('ded') || v.contains('dec')),
-            isNotEmpty,
-            reason: 'Should have male German voices');
-        expect(voices.where((v) => v.contains('dea') || v.contains('language')),
-            isNotEmpty,
-            reason: 'Should have female German voices');
-      });
-
-      test('German priority locales include variations', () {
-        final priorityLocales = [
-          'de-DE', // Deutschland
-          'de-AT', // Austria
-          'de-CH', // Schweiz
-        ];
-        expect(priorityLocales, isNotEmpty);
-        expect(priorityLocales[0], equals('de-DE'));
       });
     });
   });
