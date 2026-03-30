@@ -688,6 +688,15 @@ class DevocionalProvider with ChangeNotifier {
     }
   }
 
+  /// Refresh devotionals from the current branch (used in debug mode).
+  /// Resets the repository cache and re-fetches all devotionals.
+  /// This is called when switching branches in the debug page.
+  Future<void> refreshDevocionals() async {
+    debugPrint('🔄 [Provider] Refreshing devotionals from current branch');
+    _devocionalRepository.resetCache();
+    await _fetchAllDevocionalesForLanguage();
+  }
+
   // ========== FAVORITES MANAGEMENT ==========
   Future<void> _loadFavorites() async {
     await _favoritesLock.synchronized(() async {

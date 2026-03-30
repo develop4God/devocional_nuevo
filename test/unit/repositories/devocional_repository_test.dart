@@ -318,7 +318,7 @@ void main() {
           .thenThrow(Exception('Network error'));
 
       await repository.fetchAll(2099, 'es', 'RVR1960');
-      repository.resetIndexCache();
+      repository.resetCache();
 
       expect(repository.wasLastFetchOffline, isFalse);
     });
@@ -422,7 +422,7 @@ void main() {
           .thenReturn([2025, 2026, 2027]);
 
       // Reset cache so the new stub is used
-      repository.resetIndexCache();
+      repository.resetCache();
       final result = await repository.getAvailableYears();
 
       expect(result, [2025, 2026, 2027]);
@@ -433,7 +433,7 @@ void main() {
       when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => null);
       when(() => mockIndexService.extractAvailableYears(any())).thenReturn([]);
 
-      repository.resetIndexCache();
+      repository.resetCache();
       final result = await repository.getAvailableYears();
 
       expect(result, DevocionalYears.availableYears);
@@ -445,7 +445,7 @@ void main() {
       when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => index);
       when(() => mockIndexService.extractAvailableYears(any())).thenReturn([]);
 
-      repository.resetIndexCache();
+      repository.resetCache();
       final result = await repository.getAvailableYears();
 
       expect(result, DevocionalYears.availableYears);
@@ -465,7 +465,7 @@ void main() {
       when(() => mockIndexService.extractAvailableYears(any()))
           .thenReturn([2025, 2026]);
 
-      repository.resetIndexCache();
+      repository.resetCache();
       final result = await repository.getAvailableYears();
 
       expect(result, [2025, 2026]);
