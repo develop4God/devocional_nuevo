@@ -22,6 +22,7 @@ import 'package:devocional_nuevo/models/supporter_tier.dart';
 import 'package:devocional_nuevo/models/testimony_model.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/pages/backup_settings_page.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:devocional_nuevo/services/iap/iap_prefs_keys.dart';
@@ -860,22 +861,53 @@ class _DebugPageState extends State<DebugPage> {
                               .map((branch) => DropdownMenuItem(
                                   value: branch, child: Text(branch)))
                               .toList(),
-                          onChanged: (newBranch) {
+                          onChanged: (newBranch) async {
                             setState(() =>
                                 DebugFlags.debugBranchDevotionals = newBranch!);
-                            // Show confirmation
+                            // Trigger refresh via provider
                             if (mounted && context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text(
-                                        'Devotionals branch cambiado a: $newBranch\nReload app to fetch from new branch')),
+                                const SnackBar(
+                                  content: Text(
+                                      'Refreshing devotionals from new branch...'),
+                                  duration: Duration(seconds: 2),
+                                ),
                               );
+                              // Refresh devotionals for the new branch
+                              try {
+                                await context
+                                    .read<DevocionalProvider>()
+                                    .refreshDevocionals();
+                                if (mounted && context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          '✅ Successfully loaded devotionals from: $newBranch'),
+                                      duration: const Duration(seconds: 2),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                debugPrint(
+                                    '❌ Error refreshing devotionals: $e');
+                                if (mounted && context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          '❌ Error loading from $newBranch: $e'),
+                                      duration: const Duration(seconds: 3),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              }
                             }
                           },
                         ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Note: Reload app to fetch devotionals from selected branch',
+                        'Note: Devotionals will refresh automatically when branch is changed',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
@@ -1354,7 +1386,8 @@ class _DebugPageState extends State<DebugPage> {
                     builder: (context, setState) {
                       return ListTile(
                         title: const Text('🎤 TTS Force Fallback (Testing)'),
-                        subtitle: const Text('Test voice fallback selection flow'),
+                        subtitle:
+                            const Text('Test voice fallback selection flow'),
                         leading: Icon(
                           Icons.mic,
                           color: DebugFlags.forceFallbackForTesting
