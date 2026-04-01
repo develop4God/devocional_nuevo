@@ -2,7 +2,7 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.32.8-blue.svg)](https://flutter.dev/)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Tests](https://img.shields.io/badge/Tests-1680+-brightgreen.svg)](#-testing--pruebas)
+[![Tests](https://img.shields.io/badge/Tests-1318+-brightgreen.svg)](#-testing--pruebas)
 [![Coverage](https://img.shields.io/badge/Coverage-44.06%25-yellow.svg)](#-testing--pruebas)
 [![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](#)
 
@@ -23,8 +23,9 @@ favorites, spiritual tracking, and intelligent review system.
 
 - **📖 Daily Devotionals**: Updated spiritual content
 - **🔍 Discovery Studies**: Interactive learning studies with progress tracking (NEW!)
+- **🤝 Encounters**: Connect with testimonies and spiritual experiences (NEW!)
 - **📖 Integrated Bible**: Complete offline Bible access with search and share functionality
-- **🌍 Multilingual Support**: Spanish, English, Portuguese, French, Japanese, Chinese, Hindi with complete localization
+- **🌍 Multilingual Support**: Spanish, English, Portuguese, French, Japanese, Chinese, German, Hindi with complete localization
 - **🔊 Audio TTS**: Text-to-speech reading of devotionals
 - **⭐ Favorites**: Save your favorite devotionals
 - **📊 Spiritual Tracking**: Reading statistics and progress
@@ -32,8 +33,6 @@ favorites, spiritual tracking, and intelligent review system.
 - **📴 Offline Mode**: Access without internet connection
 - **🔔 Notifications**: Customizable reminders
 - **📱 Share**: Share inspiring content with optimized format
-- **☁️ Cloud Backup**: Automatic sync with Google Drive
-- **🚀 Smart Onboarding**: Guided initial setup with BLoC architecture
 - **⭐ Smart Review System**: Requests reviews at optimal moments
 - **📱 Android 15 Support**: Compatible with edge-to-edge display and modern APIs
 
@@ -55,7 +54,7 @@ favorites, spiritual tracking, and intelligent review system.
 | Test Files          | 142 test files               |
 | Total Tests         | 1,318 tests (100% passing ✅) |
 | Test Coverage       | 44.06% (3,455/7,841 lines)   |
-| Supported Languages | 7 (es, en, pt, fr, ja, zh, hi) |
+| Supported Languages | 8 (es, en, pt, fr, ja, zh, de, hi) |
 | Static Analysis     | ✅ All checks passing         |
 
 ### 🏗️ Architecture
@@ -94,8 +93,8 @@ structure:
 
 **Test Statistics:**
 
-- **136 test files** (100% passing ✅)
-- **1,680+ tests** with full pass rate
+- **142 test files** (100% passing ✅)
+- **1,318 tests** with full pass rate
 - **44.06% code coverage** (3,455 of 7,841 lines)
 - Multiple test types: Unit, Widget, Integration, Behavioral
 - All tests properly tagged for selective execution
@@ -233,6 +232,7 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 
 - **📖 Devocionales Diarios**: Contenido espiritual actualizado
 - **🔍 Estudios Discovery**: Estudios interactivos con seguimiento de progreso (¡NUEVO!)
+- **🤝 Encuentros**: Conecta con testimonios y experiencias espirituales (¡NUEVO!)
 - **📖 Biblia Integrada**: Acceso completo a la Biblia offline con búsqueda y compartir
 - **🌍 Soporte Multilingüe**: Español, Inglés, Portugués, Francés con localización completa
 - **🔊 Audio TTS**: Lectura de devocionales con síntesis de voz
@@ -265,7 +265,7 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 | Archivos de Test       | 142 archivos                       |
 | Total de Tests         | 1,318 tests (100% aprobados ✅)     |
 | Cobertura de Tests     | 44.06% (3,455/7,841 líneas)        |
-| Idiomas Soportados     | 6 (es, en, pt, fr, ja, zh)         |
+| Idiomas Soportados     | 8 (es, en, pt, fr, ja, zh, de, hi) |
 | Análisis Estático      | ✅ Todas las verificaciones pasando |
 
 ### 🏗️ Arquitectura
@@ -304,8 +304,8 @@ organizada:
 
 **Estadísticas de Pruebas:**
 
-- **136 archivos de prueba** (100% aprobados ✅)
-- **1,680+ tests** con 100% de tasa de aprobación
+- **142 archivos de prueba** (100% aprobados ✅)
+- **1,318 tests** con 100% de tasa de aprobación
 - **44.06% de cobertura** (3,455 de 7,841 líneas)
 - Múltiples tipos de tests: Unitarios, Widgets, Integración, Comportamentales
 - Todos los tests etiquetados para ejecución selectiva
@@ -403,48 +403,6 @@ patrol_test/                 # 🆕 Tests del framework Patrol (automatización 
 - ✅ Capa de servicios completamente probada
 - ✅ Validación de modelos y lógica de negocio
 
-**Estructura de Tests:**
-
-```
-test/
-├── behavioral/              # Tests de comportamiento real de usuario
-├── critical_coverage/       # Tests de cobertura de rutas críticas
-├── integration/             # Tests de integración (clásicos)
-├── widget/                  # Tests de widgets
-├── services/               # Tests de servicios
-└── unit/                    # Tests unitarios organizados por feature
-    ├── controllers/         # Tests de controladores
-    ├── extensions/          # Tests de extensiones
-    ├── models/              # Tests de modelos
-    ├── providers/           # Tests de providers
-    ├── services/            # Tests unitarios de servicios
-    ├── utils/               # Tests de utilidades
-    ├── widgets/             # Tests unitarios de widgets
-    └── features/            # Tests específicos de features
-
-patrol_test/                 # 🆕 Tests con framework Patrol (automatización nativa)
-├── devotional_reading_workflow_test.dart  # ✅ 13 tests
-├── tts_audio_test.dart                    # ⚠️ 6/10 tests
-├── offline_mode_test.dart                 # 🔧 En progreso
-└── README.md                              # Documentación de Patrol
-```
-
-**🆕 Tests de Integración con Patrol:**
-
-- Framework moderno con automatización nativa
-- Soporta permisos, notificaciones, botón atrás
-- Sintaxis más limpia con atajo `$`
-- Ver [`patrol_test/README.md`](./patrol_test/README.md) para detalles
-
-**Aspectos Destacados de Cobertura:**
-
-- ✅ Lógica central de lectura devocional
-- ✅ Funcionalidad TTS (Text-to-Speech)
-- ✅ Modo offline y persistencia de datos
-- ✅ Tracking de usuario y analytics
-- ✅ Soporte multilingüe
-- ✅ Gestión de estado BLoC
-- ✅ Escenarios de comportamiento real de usuario
 
 ### 📱 Requisitos
 
@@ -479,7 +437,7 @@ Toda la documentación está organizada en la carpeta [docs/](./docs/):
 
 ### Supported Languages / Idiomas Soportados
 
-The application currently supports **7 languages** with complete localization:
+The application currently supports **8 languages** with complete localization:
 
 | Language | Code | Bible Versions | Status |
 |----------|------|----------------|--------|
@@ -489,7 +447,26 @@ The application currently supports **7 languages** with complete localization:
 | Français | `fr` | LSG1910, BDS | ✅ Complete |
 | 日本語 | `ja` | 新改訳2003, リビングバイブル | ✅ Complete |
 | 中文 | `zh` | 和合本1919, 新译本 | ✅ Complete |
-| हिन्दी | `hi` | पवित्र बाइबिल (ओ.वी.), पवित्र बाइबिल | 🆕 **NEW!** |
+| Deutsch | `de` | Elberfelder, Schlachter | 🆕 **NEW!** |
+| हिन्दी | `hi` | पवित्र बाइबिल (ओ.वी.), पवित्र बाइबिल | ✅ Complete |
+
+### 🆕 German Language Support (NEW!)
+
+German language support has been added with:
+
+- **Master Language (MASTER_LANG)**: `de` (German)
+- **Master Version (MASTER_VERSION)**: `Elberfelder` (Elberfelder Bible)
+- **Secondary Version**: `Schlachter` (Schlachter Bible)
+- **TTS Locale**: `de-DE` (German - Germany)
+- **Translation File**: `i18n/de.json`
+
+**Features:**
+- ✅ Complete UI localization support
+- ✅ Text-to-Speech (TTS) in German
+- ✅ Bible version switching
+- ✅ Devotionals support (requires JSON files in separate repository)
+- ✅ Offline mode support
+- ✅ Copyright information for Bible versions
 
 ### 🆕 Hindi Language Support (NEW!)
 
@@ -509,7 +486,7 @@ Hindi language support has been added with:
 - ✅ Offline mode support
 - ✅ Copyright information for Bible versions
 
-**Note**: Bible database files (`ERV_hi.SQLite3.gz` and `BDS_hi.SQLite3.gz`) need to be added manually. See [docs/ADDING_HINDI_BIBLE_FILES.md](./docs/ADDING_HINDI_BIBLE_FILES.md) for detailed instructions.
+**Note**: For any language, Bible database files need to be added manually. See [docs/ADDING_NEW_LANGUAGE_GUIDE.md](./docs/ADDING_NEW_LANGUAGE_GUIDE.md) for detailed instructions on preparing and adding Bible database files.
 
 ### Adding a New Language / Agregar un Nuevo Idioma
 
@@ -635,4 +612,4 @@ Para el texto completo de la licencia, ver el archivo [LICENSE](./LICENSE) o vis
 
 ---
 
-© 2024 develop4God
+© 2026 develop4God
