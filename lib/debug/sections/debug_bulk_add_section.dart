@@ -70,7 +70,8 @@ class _DebugBulkAddSectionState extends State<DebugBulkAddSection> {
       }
       await Future.delayed(const Duration(milliseconds: 10));
     }
-    scaffold.showSnackBar(SnackBar(content: Text('Finished adding $count prayers')));
+    scaffold.showSnackBar(
+        SnackBar(content: Text('Finished adding $count prayers')));
     setState(() => _isAddingPrayers = false);
   }
 
@@ -78,9 +79,11 @@ class _DebugBulkAddSectionState extends State<DebugBulkAddSection> {
     if (_isAddingThanksgivings) return;
     setState(() => _isAddingThanksgivings = true);
     final scaffold = ScaffoldMessenger.of(context);
-    scaffold.showSnackBar(SnackBar(content: Text('Adding $count thanksgivings...')));
+    scaffold.showSnackBar(
+        SnackBar(content: Text('Adding $count thanksgivings...')));
     for (int i = 0; i < count; i++) {
-      final text = '${_thanksgivingSamples[i % _thanksgivingSamples.length]} (#${i + 1})';
+      final text =
+          '${_thanksgivingSamples[i % _thanksgivingSamples.length]} (#${i + 1})';
       try {
         context.read<ThanksgivingBloc>().add(AddThanksgiving(text));
       } catch (e) {
@@ -88,7 +91,8 @@ class _DebugBulkAddSectionState extends State<DebugBulkAddSection> {
       }
       await Future.delayed(const Duration(milliseconds: 10));
     }
-    scaffold.showSnackBar(SnackBar(content: Text('Finished adding $count thanksgivings')));
+    scaffold.showSnackBar(
+        SnackBar(content: Text('Finished adding $count thanksgivings')));
     setState(() => _isAddingThanksgivings = false);
   }
 
@@ -96,9 +100,11 @@ class _DebugBulkAddSectionState extends State<DebugBulkAddSection> {
     if (_isAddingTestimonies) return;
     setState(() => _isAddingTestimonies = true);
     final scaffold = ScaffoldMessenger.of(context);
-    scaffold.showSnackBar(SnackBar(content: Text('Adding $count testimonies...')));
+    scaffold
+        .showSnackBar(SnackBar(content: Text('Adding $count testimonies...')));
     for (int i = 0; i < count; i++) {
-      final text = '${_testimonySamples[i % _testimonySamples.length]} (#${i + 1})';
+      final text =
+          '${_testimonySamples[i % _testimonySamples.length]} (#${i + 1})';
       try {
         context.read<TestimonyBloc>().add(AddTestimony(text));
       } catch (e) {
@@ -106,7 +112,8 @@ class _DebugBulkAddSectionState extends State<DebugBulkAddSection> {
       }
       await Future.delayed(const Duration(milliseconds: 10));
     }
-    scaffold.showSnackBar(SnackBar(content: Text('Finished adding $count testimonies')));
+    scaffold.showSnackBar(
+        SnackBar(content: Text('Finished adding $count testimonies')));
     setState(() => _isAddingTestimonies = false);
   }
 
@@ -114,73 +121,99 @@ class _DebugBulkAddSectionState extends State<DebugBulkAddSection> {
 
   Future<void> _fastAddManyPrayers(int count) async {
     final scaffold = ScaffoldMessenger.of(context);
-    scaffold.showSnackBar(SnackBar(content: Text('Fast adding $count prayers...')));
+    scaffold
+        .showSnackBar(SnackBar(content: Text('Fast adding $count prayers...')));
     try {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString('prayers');
-      List<dynamic> decoded = raw != null && raw.isNotEmpty ? json.decode(raw) as List : [];
+      List<dynamic> decoded =
+          raw != null && raw.isNotEmpty ? json.decode(raw) as List : [];
       final rnd = Random();
       final now = DateTime.now();
       for (int i = 0; i < count; i++) {
-        final text = '${_prayerSamples[i % _prayerSamples.length]} (fast #${i + 1})';
+        final text =
+            '${_prayerSamples[i % _prayerSamples.length]} (fast #${i + 1})';
         final id = '${now.millisecondsSinceEpoch}_${rnd.nextInt(100000)}_$i';
-        decoded.add(Prayer(id: id, text: text, createdDate: DateTime.now(), status: PrayerStatus.active).toJson());
+        decoded.add(Prayer(
+                id: id,
+                text: text,
+                createdDate: DateTime.now(),
+                status: PrayerStatus.active)
+            .toJson());
       }
       await prefs.setString('prayers', json.encode(decoded));
       final saved = json.decode(prefs.getString('prayers') ?? '[]') as List;
-      scaffold.showSnackBar(SnackBar(content: Text('Fast add $count prayers — saved: ${saved.length}')));
+      scaffold.showSnackBar(SnackBar(
+          content: Text('Fast add $count prayers — saved: ${saved.length}')));
       if (mounted) context.read<PrayerBloc>().add(RefreshPrayers());
     } catch (e) {
       debugPrint('Error in fastAddManyPrayers: $e');
-      scaffold.showSnackBar(SnackBar(content: Text('Error adding prayers: $e')));
+      scaffold
+          .showSnackBar(SnackBar(content: Text('Error adding prayers: $e')));
     }
   }
 
   Future<void> _fastAddManyThanksgivings(int count) async {
     final scaffold = ScaffoldMessenger.of(context);
-    scaffold.showSnackBar(SnackBar(content: Text('Fast adding $count thanksgivings...')));
+    scaffold.showSnackBar(
+        SnackBar(content: Text('Fast adding $count thanksgivings...')));
     try {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString('thanksgivings');
-      List<dynamic> decoded = raw != null && raw.isNotEmpty ? json.decode(raw) as List : [];
+      List<dynamic> decoded =
+          raw != null && raw.isNotEmpty ? json.decode(raw) as List : [];
       final rnd = Random();
       final now = DateTime.now();
       for (int i = 0; i < count; i++) {
-        final text = '${_thanksgivingSamples[i % _thanksgivingSamples.length]} (fast #${i + 1})';
+        final text =
+            '${_thanksgivingSamples[i % _thanksgivingSamples.length]} (fast #${i + 1})';
         final id = '${now.millisecondsSinceEpoch}_${rnd.nextInt(100000)}_$i';
-        decoded.add(Thanksgiving(id: id, text: text, createdDate: DateTime.now()).toJson());
+        decoded.add(
+            Thanksgiving(id: id, text: text, createdDate: DateTime.now())
+                .toJson());
       }
       await prefs.setString('thanksgivings', json.encode(decoded));
-      final saved = json.decode(prefs.getString('thanksgivings') ?? '[]') as List;
-      scaffold.showSnackBar(SnackBar(content: Text('Fast add $count thanksgivings — saved: ${saved.length}')));
+      final saved =
+          json.decode(prefs.getString('thanksgivings') ?? '[]') as List;
+      scaffold.showSnackBar(SnackBar(
+          content:
+              Text('Fast add $count thanksgivings — saved: ${saved.length}')));
       if (mounted) context.read<ThanksgivingBloc>().add(RefreshThanksgivings());
     } catch (e) {
       debugPrint('Error in fastAddManyThanksgivings: $e');
-      scaffold.showSnackBar(SnackBar(content: Text('Error adding thanksgivings: $e')));
+      scaffold.showSnackBar(
+          SnackBar(content: Text('Error adding thanksgivings: $e')));
     }
   }
 
   Future<void> _fastAddManyTestimonies(int count) async {
     final scaffold = ScaffoldMessenger.of(context);
-    scaffold.showSnackBar(SnackBar(content: Text('Fast adding $count testimonies...')));
+    scaffold.showSnackBar(
+        SnackBar(content: Text('Fast adding $count testimonies...')));
     try {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString('testimonies');
-      List<dynamic> decoded = raw != null && raw.isNotEmpty ? json.decode(raw) as List : [];
+      List<dynamic> decoded =
+          raw != null && raw.isNotEmpty ? json.decode(raw) as List : [];
       final rnd = Random();
       final now = DateTime.now();
       for (int i = 0; i < count; i++) {
-        final text = '${_testimonySamples[i % _testimonySamples.length]} (fast #${i + 1})';
+        final text =
+            '${_testimonySamples[i % _testimonySamples.length]} (fast #${i + 1})';
         final id = '${now.millisecondsSinceEpoch}_${rnd.nextInt(100000)}_$i';
-        decoded.add(Testimony(id: id, text: text, createdDate: DateTime.now()).toJson());
+        decoded.add(Testimony(id: id, text: text, createdDate: DateTime.now())
+            .toJson());
       }
       await prefs.setString('testimonies', json.encode(decoded));
       final saved = json.decode(prefs.getString('testimonies') ?? '[]') as List;
-      scaffold.showSnackBar(SnackBar(content: Text('Fast add $count testimonies — saved: ${saved.length}')));
+      scaffold.showSnackBar(SnackBar(
+          content:
+              Text('Fast add $count testimonies — saved: ${saved.length}')));
       if (mounted) context.read<TestimonyBloc>().add(RefreshTestimonies());
     } catch (e) {
       debugPrint('Error in fastAddManyTestimonies: $e');
-      scaffold.showSnackBar(SnackBar(content: Text('Error adding testimonies: $e')));
+      scaffold.showSnackBar(
+          SnackBar(content: Text('Error adding testimonies: $e')));
     }
   }
 
@@ -208,10 +241,13 @@ class _DebugBulkAddSectionState extends State<DebugBulkAddSection> {
       }).toList();
       await prefs.setString(prefsKey, json.encode(filtered));
       if (mounted) refresh();
-      scaffold.showSnackBar(SnackBar(content: Text('Cleared fast $label — remaining: ${filtered.length}')));
+      scaffold.showSnackBar(SnackBar(
+          content:
+              Text('Cleared fast $label — remaining: ${filtered.length}')));
     } catch (e) {
       debugPrint('Error clearing fast $label: $e');
-      scaffold.showSnackBar(SnackBar(content: Text('Error clearing $label: $e')));
+      scaffold
+          .showSnackBar(SnackBar(content: Text('Error clearing $label: $e')));
     }
   }
 
@@ -244,8 +280,8 @@ class _DebugBulkAddSectionState extends State<DebugBulkAddSection> {
                     child: TextFormField(
                       initialValue: _bulkCount.toString(),
                       keyboardType: TextInputType.number,
-                      onChanged: (v) => setState(
-                          () => _bulkCount = (int.tryParse(v) ?? _bulkCount).clamp(1, 2000)),
+                      onChanged: (v) => setState(() => _bulkCount =
+                          (int.tryParse(v) ?? _bulkCount).clamp(1, 2000)),
                       decoration: const InputDecoration(isDense: true),
                     ),
                   ),
@@ -283,21 +319,24 @@ class _DebugBulkAddSectionState extends State<DebugBulkAddSection> {
                     icon: const Icon(Icons.flash_on),
                     label: Text('Fast Add Prayers ($_bulkCount)'),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green.shade700, foregroundColor: Colors.white),
+                        backgroundColor: Colors.green.shade700,
+                        foregroundColor: Colors.white),
                   ),
                   ElevatedButton.icon(
                     onPressed: () => _fastAddManyThanksgivings(_bulkCount),
                     icon: const Icon(Icons.flash_on),
                     label: Text('Fast Add Thanksgivings ($_bulkCount)'),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal.shade700, foregroundColor: Colors.white),
+                        backgroundColor: Colors.teal.shade700,
+                        foregroundColor: Colors.white),
                   ),
                   ElevatedButton.icon(
                     onPressed: () => _fastAddManyTestimonies(_bulkCount),
                     icon: const Icon(Icons.flash_on),
                     label: Text('Fast Add Testimonies ($_bulkCount)'),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.indigo.shade700, foregroundColor: Colors.white),
+                        backgroundColor: Colors.indigo.shade700,
+                        foregroundColor: Colors.white),
                   ),
                 ],
               ),
@@ -320,18 +359,29 @@ class _DebugBulkAddSectionState extends State<DebugBulkAddSection> {
           alignment: WrapAlignment.center,
           children: [
             OutlinedButton(
-              onPressed: () => _clearFast(context, 'prayers',
-                  () => context.read<PrayerBloc>().add(RefreshPrayers()), 'prayers'),
+              onPressed: () => _clearFast(
+                  context,
+                  'prayers',
+                  () => context.read<PrayerBloc>().add(RefreshPrayers()),
+                  'prayers'),
               child: const Text('Clear Fast Prayers'),
             ),
             OutlinedButton(
-              onPressed: () => _clearFast(context, 'thanksgivings',
-                  () => context.read<ThanksgivingBloc>().add(RefreshThanksgivings()), 'thanksgivings'),
+              onPressed: () => _clearFast(
+                  context,
+                  'thanksgivings',
+                  () => context
+                      .read<ThanksgivingBloc>()
+                      .add(RefreshThanksgivings()),
+                  'thanksgivings'),
               child: const Text('Clear Fast Thanksgivings'),
             ),
             OutlinedButton(
-              onPressed: () => _clearFast(context, 'testimonies',
-                  () => context.read<TestimonyBloc>().add(RefreshTestimonies()), 'testimonies'),
+              onPressed: () => _clearFast(
+                  context,
+                  'testimonies',
+                  () => context.read<TestimonyBloc>().add(RefreshTestimonies()),
+                  'testimonies'),
               child: const Text('Clear Fast Testimonies'),
             ),
           ],
@@ -363,11 +413,13 @@ class _AddButton extends StatelessWidget {
       onPressed: isLoading ? null : onPressed,
       icon: isLoading
           ? const SizedBox(
-              width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2))
           : Icon(icon),
       label: Text(isLoading ? 'Adding...' : label),
-      style: ElevatedButton.styleFrom(backgroundColor: color, foregroundColor: Colors.white),
+      style: ElevatedButton.styleFrom(
+          backgroundColor: color, foregroundColor: Colors.white),
     );
   }
 }
-
