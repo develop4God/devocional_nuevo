@@ -14,6 +14,7 @@ import 'package:devocional_nuevo/pages/encounters/encounter_detail_page.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/image_precache_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -116,8 +117,11 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
     debugPrint('🖼️ [Intro/${widget.entry.id}] card[0] precache START → $url');
 
     try {
-      await precacheImage(CachedNetworkImageProvider(url), context)
-          .timeout(_kFirstCardPrecacheTimeout);
+      await safePrecacheImage(
+        CachedNetworkImageProvider(url),
+        context,
+        debugTag: '[Intro/${widget.entry.id}] card[0]',
+      ).timeout(_kFirstCardPrecacheTimeout);
       sw.stop();
       debugPrint(
           '✅ [Intro/${widget.entry.id}] card[0] precache DONE in ${sw.elapsedMilliseconds}ms');
@@ -148,13 +152,12 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
       if (url != null && url.isNotEmpty) {
         debugPrint(
             '🖼️ [Intro/${widget.entry.id}] card[1] fire-and-forget START → $url');
-        precacheImage(CachedNetworkImageProvider(url), context)
-            .then((_) => debugPrint(
-                '✅ [Intro/${widget.entry.id}] card[1] fire-and-forget DONE'))
-            .catchError((Object e) {
-          debugPrint(
-              '⚠️ [Intro/${widget.entry.id}] card[1] fire-and-forget FAILED — $e');
-        });
+        safePrecacheImage(
+          CachedNetworkImageProvider(url),
+          context,
+          debugTag: '[Intro/${widget.entry.id}] card[1]',
+        ).then((_) => debugPrint(
+            '✅ [Intro/${widget.entry.id}] card[1] fire-and-forget DONE'));
       } else {
         debugPrint(
             '🖼️ [Intro/${widget.entry.id}] card[1] — no imageUrl, skip');
@@ -206,8 +209,12 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
             for (int i = 0; i < study.cards.length && i < 2; i++) {
               final url = study.cards[i].imageUrl;
               if (url != null && url.isNotEmpty) {
-                precacheImage(CachedNetworkImageProvider(url), context)
-                    .catchError((Object _) => false);
+                safePrecacheImage(
+                  CachedNetworkImageProvider(url),
+                  context,
+                  debugTag:
+                      '[Intro/${widget.entry.id}] card[$i] (BlocListener)',
+                );
               }
             }
           }
