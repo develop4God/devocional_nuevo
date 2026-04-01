@@ -34,6 +34,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -54,6 +55,14 @@ class _DebugPageState extends State<DebugPage> {
   bool _isAddingThanksgivings = false;
   bool _isAddingTestimonies = false;
   int _bulkCount = 100; // default bulk count
+
+  // TTS Voice Explorer state
+  String _explorerLang = 'de';
+  List<Map<String, dynamic>> _explorerVoices = [];
+  Map<String, String> _explorerGenders = {};
+  int? _explorerPlayingIndex;
+  bool _explorerLoading = false;
+  final FlutterTts _explorerTts = FlutterTts();
 
   @override
   void initState() {
@@ -1417,6 +1426,303 @@ class _DebugPageState extends State<DebugPage> {
                     },
                   ),
                 ],
+
+                // ── TTS Voice Explorer (Debug Only) ──────────────────────────────────────
+                Builder(
+                  builder: (context) {
+                    Future<void> _loadAllVoices(String lang) async {
+                      setState(() => _explorerLoading = true);
+                      final raw = await _explorerTts.getVoices;
+                      if (raw is List) {
+                        final filtered = raw
+                            .cast<Map>()
+                            .where((v) {
+                              final locale = (v['locale'] as String? ?? '').toLowerCase();
+                              return locale.startsWith(lang.toLowerCase());
+                            })
+                            .map((v) => {
+                                  'name': v['name'] as String? ?? '',
+                                  'locale': v['locale'] as String? ?? '',
+                                })
+                            .toList();
+                        setState(() {
+                          _explorerVoices = filtered;
+                          _explorerLoading = false;
+                        });
+                        debugPrint(
+                          '[VoiceExplorer] Found ${filtered.length} voices for lang=$lang',
+                        );
+                      }
+                    }
+
+                    Future<void> _playSample(String name, String locale, int index) async {
+                      setState(() => _explorerPlayingIndex = index);
+                      await _explorerTts.setVoice({'name': name, 'locale': locale});
+                      await _explorerTts.speak(
+                        'Hallo, das ist eine Teststimme. Guten Tag.',
+                      );
+                      setState(() => _explorerPlayingIndex = null);
+                    }
+
+                    void _tagGender(String voiceName, String gender) {
+                      setState(() => _explorerGenders[voiceName] = gender);
+                      debugPrint('[VoiceExplorer] Tagged: $voiceName → $gender');
+                    }
+
+                    void _exportToLogcat() {
+                      final buffer = StringBuffer();
+                      buffer.writeln(
+                        '[VoiceExplorer] ── EXPORT for $_explorerLang ──',
+                      );
+                      for (final v in _explorerVoices) {
+                        final name = v['name'] as String;
+                        final locale = v['locale'] as String;
+                        final gender = _explorerGenders[name] ?? 'unknown';
+                        final icon = gender == 'male'
+                            ? 'Icons.man_3_outlined'
+                            : gender == 'female'
+                                ? 'Icons.woman_outlined'
+                                : 'Icons.record_voice_over_outlined';
+                        buffer.writeln(
+                          "  '$name': VoiceMetadata(emoji: '🇩🇪', description: '$gender $locale', genderIcon: $icon),",
+                        );
+                      }
+                      debugPrint(buffer.toString());
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('📋 Exported to logcat — copy from Android Studio'),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                    }
+
+                    final languages = ['de', 'es', 'en', 'fr', 'pt', 'ja', 'zh', 'hi'];
+
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // ── Header ──
+                            Row(
+                              children: [
+                                const Icon(Icons.travel_explore, color: Colors.purple),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  '🔬 TTS Voice Explorer',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const Spacer(),
+                                TextButton(
+                                  onPressed: _exportToLogcat,
+                                  child: const Text('📋 Export'),
+                                ),
+                              ],
+                            ),
+                            const Text(
+                              'Discover all system voices — tag gender — export registry patch',
+                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                            const SizedBox(height: 8),
+
+                            // ── Language selector ──
+                            Wrap(
+                              spacing: 6,
+                              children: languages.map((lang) {
+                                final isSelected = _explorerLang == lang;
+                                return ChoiceChip(
+                                  label: Text(lang),
+                                  selected: isSelected,
+                                  onSelected: (_) {
+                                    setState(() {
+                                      _explorerLang = lang;
+                                      _explorerVoices = [];
+                                      _explorerGenders = {};
+                                    });
+                                    _loadAllVoices(lang);
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 8),
+
+                            // ── Load button ──
+                            if (_explorerVoices.isEmpty && !_explorerLoading)
+                              ElevatedButton.icon(
+                                onPressed: () => _loadAllVoices(_explorerLang),
+                                icon: const Icon(Icons.search),
+                                label: Text('Load $_explorerLang voices'),
+                              ),
+
+                            // ── Loading ──
+                            if (_explorerLoading)
+                              const Padding(
+                                padding: EdgeInsets.all(16),
+                                child: CircularProgressIndicator(),
+                              ),
+
+                            // ── Voice list ──
+                            if (_explorerVoices.isNotEmpty)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${_explorerVoices.length} voices found:',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  ...List.generate(_explorerVoices.length, (i) {
+                                    final voice = _explorerVoices[i];
+                                    final name = voice['name'] as String;
+                                    final locale = voice['locale'] as String;
+                                    final gender = _explorerGenders[name];
+                                    final isPlaying = _explorerPlayingIndex == i;
+
+                                    Color cardColor = Colors.transparent;
+                                    if (gender == 'male') cardColor = Colors.blue.shade50;
+                                    if (gender == 'female') cardColor = Colors.pink.shade50;
+
+                                    return Container(
+                                      margin: const EdgeInsets.symmetric(vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: cardColor,
+                                        border: Border.all(color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: ListTile(
+                                        dense: true,
+                                        // Play button
+                                        leading: IconButton(
+                                          icon: isPlaying
+                                              ? const SizedBox(
+                                                  width: 20,
+                                                  height: 20,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                  ),
+                                                )
+                                              : const Icon(Icons.play_circle_outline),
+                                          onPressed: isPlaying
+                                              ? null
+                                              : () => _playSample(name, locale, i),
+                                        ),
+                                        // Voice info
+                                        title: Text(
+                                          name,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontFamily: 'monospace',
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          locale,
+                                          style: const TextStyle(fontSize: 11),
+                                        ),
+                                        // Gender tag buttons
+                                        trailing: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            // Male
+                                            GestureDetector(
+                                              onTap: () => _tagGender(name, 'male'),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 4,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: gender == 'male'
+                                                      ? Colors.blue
+                                                      : Colors.grey.shade200,
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                child: Text(
+                                                  '♂',
+                                                  style: TextStyle(
+                                                    color: gender == 'male'
+                                                        ? Colors.white
+                                                        : Colors.black,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            // Female
+                                            GestureDetector(
+                                              onTap: () => _tagGender(name, 'female'),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 4,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: gender == 'female'
+                                                      ? Colors.pink
+                                                      : Colors.grey.shade200,
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                child: Text(
+                                                  '♀',
+                                                  style: TextStyle(
+                                                    color: gender == 'female'
+                                                        ? Colors.white
+                                                        : Colors.black,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                  const SizedBox(height: 8),
+                                  // Summary
+                                  if (_explorerGenders.isNotEmpty)
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.shade50,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '📊 Tagged: '
+                                            '♂ ${_explorerGenders.values.where((g) => g == 'male').length} male  '
+                                            '♀ ${_explorerGenders.values.where((g) => g == 'female').length} female',
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          ElevatedButton.icon(
+                                            onPressed: _exportToLogcat,
+                                            icon: const Icon(Icons.copy),
+                                            label: const Text('Export VoiceMetadata to logcat'),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.green,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
 
                 // Floating action button for review
                 FloatingActionButton(
