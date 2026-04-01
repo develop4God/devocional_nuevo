@@ -6,6 +6,8 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
+import 'package:devocional_nuevo/utils/image_precache_utils.dart';
+
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -103,14 +105,18 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
     debugPrint(
         '🖼️ [Detail/${widget.entry.id}] JIT: preloading card[$targetIndex] → $url');
 
-    precacheImage(CachedNetworkImageProvider(url), context)
-        .then((_) => debugPrint(
-            '✅ [Detail/${widget.entry.id}] card[$targetIndex] preload DONE'))
-        .catchError((Object e) {
-      debugPrint(
-          '⚠️ [Detail/${widget.entry.id}] card[$targetIndex] preload FAILED — $e');
-      _precachedUrls.remove(url); // Allow retry on next swipe
-    });
+    safePrecacheImage(
+      CachedNetworkImageProvider(url),
+      context,
+      debugTag: '[Detail/${widget.entry.id}] card[$targetIndex]',
+      onNetworkError: (_, __) {
+        // The .catchError() on the old code never fired because precacheImage
+        // always completes the future successfully — even on errors.  The
+        // onError parameter is the only way to intercept image-load failures.
+        _precachedUrls.remove(url); // Allow retry on next swipe
+      },
+    ).then((_) => debugPrint(
+        '✅ [Detail/${widget.entry.id}] card[$targetIndex] preload DONE'));
   }
 
   void _onCompleteEncounter() {
