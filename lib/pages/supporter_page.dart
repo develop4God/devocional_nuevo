@@ -159,13 +159,17 @@ class _SupporterPageState extends State<SupporterPage>
               // This callback: save name to BLoC + clear errors.
               onConfirm: () async {
                 final bloc = context.read<SupporterBloc>();
+                // Clear justDeliveredTier FIRST — before SaveGoldSupporterName
+                // is queued — so that any intermediate state emitted by
+                // _onSaveGoldName cannot re-trigger the BlocListener and
+                // open a second Gold dialog.  This is defense-in-depth on top
+                // of the clearJustDelivered fix in _onSaveGoldName.
+                bloc.add(ClearSupporterError());
                 final name = nameController.text.trim();
                 if (name.isNotEmpty) {
                   bloc.add(SaveGoldSupporterName(name));
                 }
                 await getService<SupporterPetService>().unlockPetFeature();
-                if (!context.mounted) return;
-                bloc.add(ClearSupporterError());
               },
             )
           : SupporterPurchaseDialog(
@@ -245,6 +249,26 @@ class _SupporterPageState extends State<SupporterPage>
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themeState.systemUiOverlayStyle,
       child: BlocListener<SupporterBloc, SupporterState>(
+        // Only re-run the listener when something meaningful to the UI changes.
+        // Specifically, guard justDeliveredTier so the success dialog is shown
+        // ONLY when it transitions null → non-null.  Without this guard,
+        // state emissions produced by SaveGoldSupporterName or other mid-flow
+        // events (while justDeliveredTier is still non-null) would re-invoke
+        // _showSuccessDialog and open a second Gold dialog on top of the first.
+        listenWhen: (previous, current) {
+          // Always listen when the state type changes (e.g. Loaded → Error).
+          if (previous.runtimeType != current.runtimeType) return true;
+          if (current is! SupporterLoaded) return true;
+          final prev = previous is SupporterLoaded ? previous : null;
+          // justDeliveredTier: only react on null → non-null transition.
+          final tierChanged = prev?.justDeliveredTier == null &&
+              current.justDeliveredTier != null;
+          // Always react on error or isEditingGoldName changes.
+          final errorChanged = prev?.errorMessage != current.errorMessage;
+          final editingChanged =
+              prev?.isEditingGoldName != current.isEditingGoldName;
+          return tierChanged || errorChanged || editingChanged;
+        },
         listener: (context, state) {
           // Log key state transitions for easier debugging of spinner/infinite loops
           debugPrint(

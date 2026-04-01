@@ -214,6 +214,34 @@ class VoiceDataRegistry {
     ),
   };
 
+  /// German premium voices
+  static const Map<String, VoiceMetadata> germanVoices = {
+    // ♂ Male premium
+    'de-de-x-deb-network': VoiceMetadata(
+      emoji: '🇩🇪',
+      description: 'Mann Deutschland',
+      genderIcon: Icons.man_3_outlined,
+    ),
+    // ♀ Female premium
+    'de-de-x-nfh-local': VoiceMetadata(
+      emoji: '🇩🇪',
+      description: 'Frau Deutschland',
+      genderIcon: Icons.woman_outlined,
+    ),
+    // ♂ Male premium 2
+    'de-de-x-deg-network': VoiceMetadata(
+      emoji: '🇩🇪',
+      description: 'Mann Deutschland 2',
+      genderIcon: Icons.man_3_outlined,
+    ),
+    // ♀ Female premium 2
+    'de-de-x-dea-local': VoiceMetadata(
+      emoji: '🇩🇪',
+      description: 'Frau Deutschland 2',
+      genderIcon: Icons.woman_outlined,
+    ),
+  };
+
   // ─── Language → Voice Map Lookup ──────────────────────────────────────
 
   /// All premium voice maps indexed by language code.
@@ -225,6 +253,7 @@ class VoiceDataRegistry {
     'fr': frenchVoices,
     'zh': chineseVoices,
     'hi': hindiVoices,
+    'de': germanVoices,
   };
 
   /// Returns the premium voice map for [language], or `null` if none exists.
@@ -255,6 +284,8 @@ class VoiceDataRegistry {
     'zh': '您可以保存此语音或选择其他语音，按您的喜好',
     'hi':
         'आप इस आवाज़ को सहेज सकते हैं या अपनी पसंद के अनुसार दूसरी आवाज़ चुन सकते हैं',
+    'de':
+        'Sie können diese Stimme speichern oder eine andere nach Ihrer Vorliebe auswählen',
   };
 
   /// Returns the localized sample text for [language], defaulting to Spanish.
@@ -273,6 +304,7 @@ class VoiceDataRegistry {
     'ja': ['ja-JP'],
     'zh': ['zh-CN', 'zh-TW'],
     'hi': ['hi-IN'],
+    'de': ['de-DE', 'de-AT', 'de-CH'],
   };
 
   /// Returns the priority locales for [language].
@@ -299,6 +331,9 @@ class VoiceDataRegistry {
     'zh-CN': '中文 (中国)',
     'zh-TW': '中文 (台灣)',
     'hi-IN': 'हिन्दी (भारत)',
+    'de-DE': 'Deutsch (Deutschland)',
+    'de-AT': 'Deutsch (Österreich)',
+    'de-CH': 'Deutsch (Schweiz)',
   };
 
   static String getFriendlyLocaleName(String locale) {

@@ -267,7 +267,15 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     await _profileRepo.saveProfileName(event.name);
     final current = state;
     if (current is SupporterLoaded) {
-      emit(current.copyWith(goldSupporterName: event.name));
+      // clearJustDelivered: true prevents the BlocListener from re-opening
+      // the Gold success dialog when SaveGoldSupporterName is processed during
+      // the post-purchase flow.  Without this, the emitted state still carries
+      // justDeliveredTier != null, causing the listener to call
+      // _showSuccessDialog() a second time before ClearSupporterError fires.
+      emit(current.copyWith(
+        goldSupporterName: event.name,
+        clearJustDelivered: true,
+      ));
     }
   }
 
