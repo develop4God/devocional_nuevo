@@ -92,8 +92,7 @@ void main() {
 
       expect(versions, isNotEmpty);
       expect(versions.length, equals(2));
-      expect(
-          versions.any((v) => v.name == 'Lutherbibel 2017 (LU17)'), isTrue);
+      expect(versions.any((v) => v.name == 'Lutherbibel 2017 (LU17)'), isTrue);
       expect(
           versions.any((v) => v.name == 'Schlachter 2000 (SCH2000)'), isTrue);
       expect(versions.every((v) => v.languageCode == 'de'), isTrue);
@@ -110,8 +109,10 @@ void main() {
       final versions = await BibleVersionRegistry.getAllVersions();
 
       expect(versions, isNotEmpty);
-      expect(versions.length,
-          greaterThanOrEqualTo(16)); // At least 16 versions (including Hindi and German)
+      expect(
+          versions.length,
+          greaterThanOrEqualTo(
+              16)); // At least 16 versions (including Hindi and German)
       expect(
           versions.any((v) => v.name == 'Reina Valera 1960 (RVR1960)'), isTrue);
       expect(versions.any((v) => v.name == 'King James Version (KJV)'), isTrue);
@@ -121,8 +122,7 @@ void main() {
           versions.any((v) => v.name == 'Louis Segond 1910 (LSG1910)'), isTrue);
       expect(versions.any((v) => v.name == 'Bible du Semeur (BDS)'), isTrue);
       expect(versions.any((v) => v.name == 'पवित्र बाइबिल (ओ.वी.)'), isTrue);
-      expect(
-          versions.any((v) => v.name == 'Lutherbibel 2017 (LU17)'), isTrue);
+      expect(versions.any((v) => v.name == 'Lutherbibel 2017 (LU17)'), isTrue);
       expect(
           versions.any((v) => v.name == 'Schlachter 2000 (SCH2000)'), isTrue);
     });
