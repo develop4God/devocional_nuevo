@@ -410,14 +410,18 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   /// Extract display name from version name
-  /// - For Latin-script languages (es, en, pt, fr): removes "Display Name (CODE)"
-  /// - For native-script languages (ja, zh, hi): returns the name as-is with full abbreviation info
+  /// - For Latin-script languages (es, en, pt, fr, de): removes trailing "(CODE)"
+  ///   e.g. "Lutherbibel 2017 (LU17)" → "Lutherbibel 2017"
+  /// - For native-script languages (ja, zh, hi): returns the name as-is
   String _getDisplayName(String name, String languageCode) {
-    // For languages with Latin version codes, remove the (CODE) part
+    // German uses the same "Full Name (CODE)" convention as the other
+    // Latin-script languages — strip the trailing parenthesised code so it
+    // isn't duplicated when the abbreviation is appended by _versionPickerLabel.
     if (languageCode == 'es' ||
         languageCode == 'en' ||
         languageCode == 'pt' ||
-        languageCode == 'fr') {
+        languageCode == 'fr' ||
+        languageCode == 'de') {
       final regex = RegExp(r'^(.+?)\s*\([A-Z0-9]+\)$');
       final match = regex.firstMatch(name);
       if (match != null) {

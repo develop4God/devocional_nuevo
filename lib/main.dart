@@ -38,6 +38,7 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/network_error_utils.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -111,11 +112,49 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  // --- Crashlytics error handlers ----------------------------------------
+  // Transient network errors (SocketException, DNS failure, etc.) are NOT app
+  // bugs.  They are recorded as non-fatal so they appear in Crashlytics' non-
+  // fatal event log without polluting the fatal-crash dashboard.
+  FlutterError.onError = (FlutterErrorDetails details) {
+    if (isTransientNetworkError(details.exception)) {
+      developer.log(
+        'Non-fatal network error (flaky network): ${details.exception}',
+        name: 'FlutterError.onError',
+        error: details.exception,
+        stackTrace: details.stack,
+      );
+      FirebaseCrashlytics.instance.recordError(
+        details.exception,
+        details.stack,
+        fatal: false,
+        reason: 'Transient network error — not an app bug',
+      );
+      return;
+    }
+    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+  };
+
   PlatformDispatcher.instance.onError = (error, stack) {
+    if (isTransientNetworkError(error)) {
+      developer.log(
+        'Non-fatal network error (PlatformDispatcher): $error',
+        name: 'PlatformDispatcher.onError',
+        error: error,
+        stackTrace: stack,
+      );
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stack,
+        fatal: false,
+        reason: 'Transient network error — not an app bug',
+      );
+      return true;
+    }
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
+  // -----------------------------------------------------------------------
 
   Future.microtask(() async {
     final FirebaseInAppMessaging inAppMessaging =

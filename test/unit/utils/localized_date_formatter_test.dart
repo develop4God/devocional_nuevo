@@ -11,6 +11,7 @@ void main() {
     await initializeDateFormatting('pt');
     await initializeDateFormatting('ja');
     await initializeDateFormatting('zh');
+    await initializeDateFormatting('de');
   });
 
   group('LocalizedDateFormatter', () {
@@ -60,6 +61,14 @@ void main() {
       expect(result, contains('15'));
     });
 
+    test('formats German dates correctly', () {
+      final format = LocalizedDateFormatter.getDateFormat('de');
+      final result = format.format(testDate);
+      expect(result, contains('15'));
+      // German month can appear as "März" or abbreviated "Mrz"
+      expect(result.contains('März') || result.contains('Mrz'), isTrue);
+    });
+
     test('defaults to English for unknown locale', () {
       final format = LocalizedDateFormatter.getDateFormat('xx');
       final result = format.format(testDate);
@@ -74,7 +83,7 @@ void main() {
     });
 
     test('all supported locales return valid DateFormat', () {
-      final locales = ['es', 'en', 'fr', 'pt', 'ja', 'zh'];
+      final locales = ['es', 'en', 'fr', 'pt', 'ja', 'zh', 'de'];
       for (final locale in locales) {
         final format = LocalizedDateFormatter.getDateFormat(locale);
         expect(format, isA<DateFormat>(),

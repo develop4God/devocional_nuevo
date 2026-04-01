@@ -72,6 +72,43 @@ void main() {
     await fakeIap.dispose();
   });
 
+  // ── Regression: SaveGoldSupporterName must clear justDeliveredTier ────────
+
+  test(
+      'Regression — SaveGoldSupporterName clears justDeliveredTier '
+      'so BlocListener does not re-open the Gold success dialog', () async {
+    // This test guards against the double-dialog bug where the Gold purchase
+    // flow (name → pet → celebration) would restart from Phase 0 because
+    // SaveGoldSupporterName emitted a state with justDeliveredTier still set,
+    // causing the BlocListener to call _showSuccessDialog() a second time.
+    final fakeIap = FakeIapService();
+    final bloc = await initBloc(fakeIap);
+
+    // Deliver Gold so justDeliveredTier is set.
+    await fakeIap.deliver(SupporterTier.fromLevel(SupporterTierLevel.gold));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    var state = bloc.state as SupporterLoaded;
+    expect(state.justDeliveredTier, isNotNull,
+        reason: 'justDeliveredTier must be set after delivery');
+
+    // Now dispatch SaveGoldSupporterName — this is what happens inside
+    // onConfirm in supporter_page.dart while the Gold dialog is open.
+    bloc.add(SaveGoldSupporterName('Test Supporter'));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    state = bloc.state as SupporterLoaded;
+    expect(state.goldSupporterName, equals('Test Supporter'));
+    // CRITICAL: justDeliveredTier must be null after SaveGoldSupporterName.
+    // If it is still non-null, the BlocListener will open a second dialog.
+    expect(state.justDeliveredTier, isNull,
+        reason: 'SaveGoldSupporterName must clear justDeliveredTier to prevent '
+            'BlocListener from re-opening the Gold success dialog');
+
+    await bloc.close();
+    await fakeIap.dispose();
+  });
+
   // ── Scenario 9: ClearSupporterError ──────────────────────────────────────
 
   test(

@@ -2,6 +2,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_data_registry.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
+import 'package:devocional_nuevo/debug/debug_flags.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -36,11 +37,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   String? _initialVoiceName;
   String? _initialVoiceLocale;
 
-  // Flag para forzar fallback en testing (SOLO activo en debug mode)
-  static const bool _forceFallbackForTesting = false;
-
-  // Getter seguro: solo funciona en debug mode
-  bool get _shouldForceFallback => kDebugMode && _forceFallbackForTesting;
+  // Getter seguro: solo funciona en debug mode, lee de DebugFlags
+  bool get _shouldForceFallback =>
+      kDebugMode && DebugFlags.forceFallbackForTesting;
 
   @override
   void initState() {
