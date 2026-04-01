@@ -111,7 +111,7 @@ void main() {
 
       expect(versions, isNotEmpty);
       expect(versions.length,
-          greaterThanOrEqualTo(16)); // At least 16 versions (including German)
+          greaterThanOrEqualTo(16)); // At least 16 versions (including Hindi and German)
       expect(
           versions.any((v) => v.name == 'Reina Valera 1960 (RVR1960)'), isTrue);
       expect(versions.any((v) => v.name == 'King James Version (KJV)'), isTrue);

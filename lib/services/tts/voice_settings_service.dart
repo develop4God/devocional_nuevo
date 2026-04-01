@@ -141,10 +141,10 @@ class VoiceSettingsService {
           'hi-IN-language',
         ],
         'de': [
-          'de-de-x-ded-local', // Mann Deutschland
-          'de-de-x-dec-network', // Mann Deutschland 2
-          'de-de-x-dea-local', // Frau Deutschland
-          'de-DE-language', // Frau Deutschland 2
+          'de-de-x-ded-local', // Male voice Germany default
+          'de-de-x-dec-network', // Male voice Germany 2
+          'de-de-x-dea-local', // Female voice Germany
+          'de-DE-language', // Female voice Germany 2
         ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];
