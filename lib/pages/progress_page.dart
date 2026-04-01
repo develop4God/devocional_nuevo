@@ -231,12 +231,15 @@ class _ProgressPageState extends State<ProgressPage>
           elevation: 0,
           centerTitle: true,
         ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _stats == null
-                ? _buildErrorWidget()
-                : RefreshIndicator(
-                    onRefresh: _loadStats, child: _buildContent()),
+        body: SafeArea(
+          bottom: true,
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _stats == null
+                  ? _buildErrorWidget()
+                  : RefreshIndicator(
+                      onRefresh: _loadStats, child: _buildContent()),
+        ),
       ),
     );
   }

@@ -76,4 +76,11 @@ abstract class DevocionalRepository {
   /// [DevocionalYears.availableYears] constant when the index is unreachable
   /// or returns no years.  Always returns at least one year.
   Future<List<int>> getAvailableYears();
+
+  /// Resets the index and metadata cache.
+  /// Called when switching between branches in debug mode to ensure fresh data.
+  ///
+  /// Default implementation is a no-op to avoid breaking existing
+  /// `implements DevocionalRepository` classes that don't need cache reset.
+  void resetCache() {}
 }

@@ -240,6 +240,8 @@ class TtsService implements ITtsService {
         return 'zh-CN';
       case 'hi':
         return 'hi-IN';
+      case 'de':
+        return 'de-DE';
       default:
         return 'es-ES';
     }

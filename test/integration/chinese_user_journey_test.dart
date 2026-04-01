@@ -129,14 +129,14 @@ void main() {
       expect(newProvider.currentLocale.languageCode, equals('zh'));
     });
 
-    test('All 7 languages are available and properly ordered', () {
+    test('All 8 languages are available and properly ordered', () {
       // WHEN: Getting available languages
       final languages = provider.getAvailableLanguages();
 
-      // THEN: All 7 languages are present
-      expect(languages.length, equals(7));
+      // THEN: All 8 languages are present
+      expect(languages.length, equals(8));
       expect(languages.keys,
-          containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi']));
+          containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de']));
 
       // AND: Display names are in native language
       expect(languages['zh'], equals('中文'));
