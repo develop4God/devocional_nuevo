@@ -1,5 +1,10 @@
 name: 🚀Flutter CI
 
+env:
+  # Opt into Node.js 24 now to future-proof the workflow
+  # Node.js 20 will be removed on September 16, 2026
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches:
@@ -245,7 +250,8 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           file: coverage/lcov_filtered.info
-          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
       - name: 📊 Generate coverage summary
         if: success()
