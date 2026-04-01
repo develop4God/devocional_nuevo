@@ -64,4 +64,3 @@ class _AlwaysFailImageProvider extends ImageProvider<_AlwaysFailImageProvider> {
     );
   }
 }
-

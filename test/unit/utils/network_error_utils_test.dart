@@ -7,7 +7,8 @@ void main() {
     test('returns true for SocketException', () {
       expect(
         isTransientNetworkError(
-          const SocketException('Failed host lookup: raw.githubusercontent.com'),
+          const SocketException(
+              'Failed host lookup: raw.githubusercontent.com'),
         ),
         isTrue,
       );
@@ -85,4 +86,3 @@ void main() {
     });
   });
 }
-
