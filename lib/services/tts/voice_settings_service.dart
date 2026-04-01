@@ -65,6 +65,7 @@ class VoiceSettingsService {
       'ja': ['ja-JP'],
       'zh': ['zh-CN', 'zh-TW', 'yue-HK'],
       'hi': ['hi-IN'], // Hindi
+      'de': ['de-DE', 'de-AT', 'de-CH'], // German
     };
     final locales = preferredLocales[language] ?? [language];
 
@@ -138,6 +139,12 @@ class VoiceSettingsService {
           'hi-in-x-hia-local', // Voz femenina India alternativa
           'hi-in-x-hie-network',
           'hi-IN-language',
+        ],
+        'de': [
+          'de-de-x-ded-local', // Mann Deutschland
+          'de-de-x-dec-network', // Mann Deutschland 2
+          'de-de-x-dea-local', // Frau Deutschland
+          'de-DE-language', // Frau Deutschland 2
         ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];

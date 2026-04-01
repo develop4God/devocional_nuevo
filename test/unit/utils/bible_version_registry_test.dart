@@ -15,6 +15,7 @@ void main() {
       expect(languages, contains('pt'));
       expect(languages, contains('fr'));
       expect(languages, contains('hi'));
+      expect(languages, contains('de'));
     });
 
     test('should get language name', () {
@@ -23,6 +24,7 @@ void main() {
       expect(BibleVersionRegistry.getLanguageName('pt'), equals('Português'));
       expect(BibleVersionRegistry.getLanguageName('fr'), equals('Français'));
       expect(BibleVersionRegistry.getLanguageName('hi'), equals('हिन्दी'));
+      expect(BibleVersionRegistry.getLanguageName('de'), equals('Deutsch'));
     });
 
     test('should get versions for Spanish language', () async {
@@ -85,8 +87,21 @@ void main() {
       expect(versions.every((v) => v.language == 'हिन्दी'), isTrue);
     });
 
-    test('should return empty list for unsupported language', () async {
+    test('should get versions for German language', () async {
       final versions = await BibleVersionRegistry.getVersionsForLanguage('de');
+
+      expect(versions, isNotEmpty);
+      expect(versions.length, equals(2));
+      expect(
+          versions.any((v) => v.name == 'Lutherbibel 2017 (LU17)'), isTrue);
+      expect(
+          versions.any((v) => v.name == 'Schlachter 2000 (SCH2000)'), isTrue);
+      expect(versions.every((v) => v.languageCode == 'de'), isTrue);
+      expect(versions.every((v) => v.language == 'Deutsch'), isTrue);
+    });
+
+    test('should return empty list for unsupported language', () async {
+      final versions = await BibleVersionRegistry.getVersionsForLanguage('xx');
 
       expect(versions, isEmpty);
     });
@@ -96,7 +111,7 @@ void main() {
 
       expect(versions, isNotEmpty);
       expect(versions.length,
-          greaterThanOrEqualTo(14)); // At least 14 versions (including Hindi)
+          greaterThanOrEqualTo(16)); // At least 16 versions (including German)
       expect(
           versions.any((v) => v.name == 'Reina Valera 1960 (RVR1960)'), isTrue);
       expect(versions.any((v) => v.name == 'King James Version (KJV)'), isTrue);
@@ -106,6 +121,10 @@ void main() {
           versions.any((v) => v.name == 'Louis Segond 1910 (LSG1910)'), isTrue);
       expect(versions.any((v) => v.name == 'Bible du Semeur (BDS)'), isTrue);
       expect(versions.any((v) => v.name == 'पवित्र बाइबिल (ओ.वी.)'), isTrue);
+      expect(
+          versions.any((v) => v.name == 'Lutherbibel 2017 (LU17)'), isTrue);
+      expect(
+          versions.any((v) => v.name == 'Schlachter 2000 (SCH2000)'), isTrue);
     });
 
     test('all versions should have proper metadata', () async {
