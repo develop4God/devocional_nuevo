@@ -1455,7 +1455,7 @@ class _DebugPageState extends State<DebugPage> {
                       }
                     }
 
-                    Future<void> _playSample(String name, String locale, int index) async {
+                    Future<void> playSample(String name, String locale, int index) async {
                       setState(() => _explorerPlayingIndex = index);
                       await _explorerTts.setVoice({'name': name, 'locale': locale});
                       await _explorerTts.speak(
@@ -1464,12 +1464,12 @@ class _DebugPageState extends State<DebugPage> {
                       setState(() => _explorerPlayingIndex = null);
                     }
 
-                    void _tagGender(String voiceName, String gender) {
+                    void tagGender(String voiceName, String gender) {
                       setState(() => _explorerGenders[voiceName] = gender);
                       debugPrint('[VoiceExplorer] Tagged: $voiceName → $gender');
                     }
 
-                    void _exportToLogcat() {
+                    void exportToLogcat() {
                       final buffer = StringBuffer();
                       buffer.writeln(
                         '[VoiceExplorer] ── EXPORT for $_explorerLang ──',
@@ -1519,7 +1519,7 @@ class _DebugPageState extends State<DebugPage> {
                                 ),
                                 const Spacer(),
                                 TextButton(
-                                  onPressed: _exportToLogcat,
+                                  onPressed: exportToLogcat,
                                   child: const Text('📋 Export'),
                                 ),
                               ],
@@ -1612,7 +1612,7 @@ class _DebugPageState extends State<DebugPage> {
                                               : const Icon(Icons.play_circle_outline),
                                           onPressed: isPlaying
                                               ? null
-                                              : () => _playSample(name, locale, i),
+                                              : () => playSample(name, locale, i),
                                         ),
                                         // Voice info
                                         title: Text(
@@ -1632,7 +1632,7 @@ class _DebugPageState extends State<DebugPage> {
                                           children: [
                                             // Male
                                             GestureDetector(
-                                              onTap: () => _tagGender(name, 'male'),
+                                              onTap: () => tagGender(name, 'male'),
                                               child: Container(
                                                 padding: const EdgeInsets.symmetric(
                                                   horizontal: 8,
@@ -1657,7 +1657,7 @@ class _DebugPageState extends State<DebugPage> {
                                             const SizedBox(width: 4),
                                             // Female
                                             GestureDetector(
-                                              onTap: () => _tagGender(name, 'female'),
+                                              onTap: () => tagGender(name, 'female'),
                                               child: Container(
                                                 padding: const EdgeInsets.symmetric(
                                                   horizontal: 8,
@@ -1704,7 +1704,7 @@ class _DebugPageState extends State<DebugPage> {
                                           ),
                                           const SizedBox(height: 4),
                                           ElevatedButton.icon(
-                                            onPressed: _exportToLogcat,
+                                            onPressed: exportToLogcat,
                                             icon: const Icon(Icons.copy),
                                             label: const Text('Export VoiceMetadata to logcat'),
                                             style: ElevatedButton.styleFrom(
