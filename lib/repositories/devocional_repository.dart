@@ -79,5 +79,8 @@ abstract class DevocionalRepository {
 
   /// Resets the index and metadata cache.
   /// Called when switching between branches in debug mode to ensure fresh data.
-  void resetCache();
+  ///
+  /// Default implementation is a no-op to avoid breaking existing
+  /// `implements DevocionalRepository` classes that don't need cache reset.
+  void resetCache() {}
 }

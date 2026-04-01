@@ -40,6 +40,35 @@ void main() {
       expect(text, anyOf(contains('Louis Segond'), contains('Bible')));
     });
 
+    test('returns German LU17 copyright disclaimer', () {
+      final text = CopyrightUtils.getCopyrightText('de', 'LU17');
+      expect(text, contains('Lutherbibel'));
+      expect(text, contains('Deutsche Bibelgesellschaft'));
+    });
+
+    test('returns German SCH2000 copyright disclaimer', () {
+      final text = CopyrightUtils.getCopyrightText('de', 'SCH2000');
+      expect(text, contains('Schlachter 2000'));
+      expect(text, contains('Genfer Bibelgesellschaft'));
+    });
+
+    test('returns German copyright with database filename', () {
+      final text = CopyrightUtils.getCopyrightText('de', 'LU17_de.SQLite3');
+      expect(text, contains('Lutherbibel'));
+      expect(text, contains('2016'));
+    });
+
+    test('returns German copyright with display name', () {
+      final text =
+          CopyrightUtils.getCopyrightText('de', 'Lutherbibel 2017 (LU17)');
+      expect(text, contains('Deutsche Bibelgesellschaft'));
+    });
+
+    test('German falls back to default when version missing', () {
+      final text = CopyrightUtils.getCopyrightText('de', 'UNKNOWN');
+      expect(text, contains('Lutherbibel'));
+    });
+
     test('fallback to en when language missing', () {
       final text = CopyrightUtils.getCopyrightText('xx', 'KJV');
       expect(text, contains('King James'));

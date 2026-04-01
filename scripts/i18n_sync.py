@@ -3,7 +3,7 @@ import os
 
 I18N_PATH = "i18n"
 BASE_LANG = "en"
-LANGS = ["es", "fr", "pt", "ja", "hi", "zh"]  # All supported languages
+LANGS = ["es", "fr", "pt", "ja", "hi", "zh", "de"]  # All supported languages
 
 
 def load_json(lang):
