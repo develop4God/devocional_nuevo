@@ -17,7 +17,9 @@ bool isTransientNetworkError(Object error) {
   // Direct SocketException from dart:io
   if (error is SocketException) return true;
   if (error is PathNotFoundException) return true;
-  if (error is FileSystemException && error.osError?.errorCode == 2) return true;
+  if (error is FileSystemException && error.osError?.errorCode == 2) {
+    return true;
+  }
 
   // String-based checks cover wrapped exceptions
   // (e.g. http.ClientException, Flutter image pipeline errors)
