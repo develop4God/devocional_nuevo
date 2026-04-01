@@ -84,11 +84,11 @@ class DebugDevotionalsSection extends StatelessWidget {
           const Text(
             'Note: Devotionals will refresh automatically when branch is changed',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.grey),
+            style: TextStyle(
+                fontSize: 12, fontStyle: FontStyle.italic, color: Colors.grey),
           ),
         ],
       ),
     );
   }
 }
-

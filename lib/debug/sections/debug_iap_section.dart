@@ -56,15 +56,16 @@ class DebugIapSection extends StatelessWidget {
       if (context.mounted) {
         context.read<SupporterBloc>().add(DebugResetIapState());
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('✨ All purchased items cleared — app will restore fresh on next init'),
+          content: Text(
+              '✨ All purchased items cleared — app will restore fresh on next init'),
           duration: Duration(seconds: 3),
         ));
       }
     } catch (e) {
       debugPrint('❌ Error clearing purchases: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error clearing purchases: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error clearing purchases: $e')));
       }
     }
   }
@@ -114,11 +115,16 @@ class DebugIapSection extends StatelessWidget {
                     ...SupporterTier.tiers.map((tier) {
                       final owned = purchased.contains(tier.level);
                       return ElevatedButton.icon(
-                        onPressed: owned ? null : () => _simulatePurchase(context, tier),
-                        icon: Text(tier.emoji, style: const TextStyle(fontSize: 16)),
-                        label: Text(owned ? '${tier.productId} ✅' : tier.productId),
+                        onPressed: owned
+                            ? null
+                            : () => _simulatePurchase(context, tier),
+                        icon: Text(tier.emoji,
+                            style: const TextStyle(fontSize: 16)),
+                        label: Text(
+                            owned ? '${tier.productId} ✅' : tier.productId),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: owned ? Colors.grey.shade400 : tier.badgeColor,
+                          backgroundColor:
+                              owned ? Colors.grey.shade400 : tier.badgeColor,
                           foregroundColor: Colors.white,
                         ),
                       );
@@ -128,22 +134,28 @@ class DebugIapSection extends StatelessWidget {
                     OutlinedButton.icon(
                       onPressed: () => _resetIapState(context),
                       icon: const Icon(Icons.restart_alt, color: Colors.red),
-                      label: const Text('Reset IAP State', style: TextStyle(color: Colors.red)),
-                      style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red)),
+                      label: const Text('Reset IAP State',
+                          style: TextStyle(color: Colors.red)),
+                      style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.red)),
                     ),
 
                     // Restore
                     OutlinedButton.icon(
                       onPressed: () => _restorePurchases(context),
-                      icon: const Icon(Icons.settings_backup_restore, color: Colors.blue),
-                      label: const Text('Restore Purchases', style: TextStyle(color: Colors.blue)),
-                      style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.blue)),
+                      icon: const Icon(Icons.settings_backup_restore,
+                          color: Colors.blue),
+                      label: const Text('Restore Purchases',
+                          style: TextStyle(color: Colors.blue)),
+                      style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.blue)),
                     ),
 
                     // Clear all
                     OutlinedButton.icon(
                       onPressed: () => _clearAllPurchases(context),
-                      icon: const Icon(Icons.delete_sweep, color: Colors.deepOrange),
+                      icon: const Icon(Icons.delete_sweep,
+                          color: Colors.deepOrange),
                       label: const Text('Clear All Purchases',
                           style: TextStyle(color: Colors.deepOrange)),
                       style: OutlinedButton.styleFrom(
@@ -159,4 +171,3 @@ class DebugIapSection extends StatelessWidget {
     );
   }
 }
-
