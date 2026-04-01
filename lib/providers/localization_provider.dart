@@ -63,6 +63,7 @@ class LocalizationProvider extends ChangeNotifier {
       'ja': getLanguageName('ja'),
       'zh': getLanguageName('zh'),
       'hi': getLanguageName('hi'),
+      'de': getLanguageName('de'),
     };
   }
 }

@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
+import 'package:devocional_nuevo/debug/debug_flags.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/foundation.dart';
@@ -32,7 +33,7 @@ class DiscoveryRepository {
   }) async {
     try {
       // Get current branch (debug mode can switch, production always 'main')
-      final branch = kDebugMode ? Constants.debugBranch : 'main';
+      final branch = kDebugMode ? DebugFlags.debugBranch : 'main';
 
       // 1. Obtener el índice — reutilizar el ya obtenido si está disponible,
       //    de lo contrario cargar desde cache (o red si la cache está vacía).
@@ -108,7 +109,7 @@ class DiscoveryRepository {
   Future<Map<String, dynamic>> _fetchIndex({bool forceRefresh = false}) async {
     final prefs = await SharedPreferences.getInstance();
     // Get current branch (debug mode can switch, production always 'main')
-    final branch = kDebugMode ? Constants.debugBranch : 'main';
+    final branch = kDebugMode ? DebugFlags.debugBranch : 'main';
     final indexCacheKey = '${_indexCacheKey}_$branch';
 
     // ── Cache-First: serve from cache within the same app session ──

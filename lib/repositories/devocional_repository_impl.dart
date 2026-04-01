@@ -64,7 +64,8 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
   @override
   bool get wasLastFetchOffline => _indexUnreachable;
 
-  void resetIndexCache() {
+  @override
+  void resetCache() {
     _cachedIndex = null;
     _indexUnreachable = false;
     _indexFetched = false;

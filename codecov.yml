@@ -1,0 +1,15 @@
+ignore:
+  - "lib/blocs/onboarding"
+  - "lib/pages/onboarding"
+  - "lib/services/backup"
+  - "lib/debug"
+
+coverage:
+  status:
+    patch:
+      default:
+        target: auto
+    project:
+      default:
+        target: auto
+

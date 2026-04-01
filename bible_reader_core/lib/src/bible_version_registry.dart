@@ -15,6 +15,7 @@ class BibleVersionRegistry {
     'ja': '日本語',
     'zh': '中文', // Add Chinese
     'hi': 'हिन्दी', // Add Hindi
+    'de': 'Deutsch', // Add German
   };
 
   static const Map<String, List<Map<String, String>>> _versionsByLanguage = {
@@ -48,6 +49,10 @@ class BibleVersionRegistry {
       {'name': 'पवित्र बाइबिल (ओ.वी.)', 'dbFile': 'HIOV_hi.SQLite3'},
       {'name': 'पवित्र बाइबिल (HERV)', 'dbFile': 'HERV_hi.SQLite3'},
     ], // Add Hindi
+    'de': [
+      {'name': 'Lutherbibel 2017 (LU17)', 'dbFile': 'LU17_de.SQLite3'},
+      {'name': 'Schlachter 2000 (SCH2000)', 'dbFile': 'SCH2000_de.SQLite3'},
+    ], // Add German
   };
 
   /// Get all Bible versions for a specific language

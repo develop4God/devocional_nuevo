@@ -1,6 +1,7 @@
 // lib/debug/debug_settings_section.dart
 // ESTE ARCHIVO SOLO EXISTE EN DEBUG - NUNCA VA A PRODUCCIÓN
 import 'package:devocional_nuevo/debug/test_badges_page.dart';
+import 'package:devocional_nuevo/debug/debug_flags.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -142,6 +143,39 @@ class DebugSettingsSection extends StatelessWidget {
               title: const Text('Refresh from Firebase'),
               leading: const Icon(Icons.cloud_sync),
               onTap: onRefreshFlags,
+            ),
+            const Divider(),
+            StatefulBuilder(
+              builder: (context, setState) {
+                return ListTile(
+                  title: const Text('🎤 TTS Force Fallback (Testing)'),
+                  subtitle: const Text('Test voice fallback selection flow'),
+                  leading: Icon(
+                    Icons.mic,
+                    color: DebugFlags.forceFallbackForTesting
+                        ? Colors.orange
+                        : Colors.grey,
+                  ),
+                  trailing: Switch(
+                    value: DebugFlags.forceFallbackForTesting,
+                    onChanged: (value) {
+                      setState(() {
+                        DebugFlags.forceFallbackForTesting = value;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            DebugFlags.forceFallbackForTesting
+                                ? '🎤 TTS Fallback enabled - voices will use fallback locales'
+                                : '🎤 TTS Fallback disabled - voices will use premium only',
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
             ),
           ],
         ),

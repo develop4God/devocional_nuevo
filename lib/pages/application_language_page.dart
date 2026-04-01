@@ -320,6 +320,8 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         return 'zh-CN';
       case 'hi':
         return 'hi-IN';
+      case 'de':
+        return 'de-DE';
       default:
         return '$languageCode-${languageCode.toUpperCase()}';
     }
