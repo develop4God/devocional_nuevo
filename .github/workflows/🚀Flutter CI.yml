@@ -216,13 +216,6 @@ jobs:
           name: test-output
           path: test_output.txt
 
-      - name: 📊 Upload coverage to Codecov
-        if: success()
-        uses: codecov/codecov-action@v3
-        with:
-          file: coverage/lcov_filtered.info
-          fail_ci_if_error: true
-
       - name: 📈 Generate coverage report
         if: success()
         run: |
@@ -236,6 +229,13 @@ jobs:
             -o coverage/lcov_filtered.info
           genhtml coverage/lcov_filtered.info -o coverage/html
           lcov --summary coverage/lcov_filtered.info
+
+      - name: 📊 Upload coverage to Codecov
+        if: success()
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage/lcov_filtered.info
+          fail_ci_if_error: true
 
       - name: 📊 Generate coverage summary
         if: success()
