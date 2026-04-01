@@ -4,22 +4,45 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-if [[ -z "$REPO_ROOT" ]]; then
-  REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# ── Ensure dart/flutter are on PATH regardless of how git was launched ─────────
+# JetBrains and other IDEs may not inherit the shell PATH.
+FLUTTER_BIN="/home/develop4god/development/flutter/bin"
+DART_BIN="/home/develop4god/development/flutter/bin/cache/dart-sdk/bin"
+export PATH="$FLUTTER_BIN:$DART_BIN:$PATH"
+
+# Verify dart is available
+if ! command -v dart &>/dev/null; then
+  echo "[pre-commit] ❌ 'dart' not found in PATH. Check FLUTTER_BIN in .githooks/pre-commit" >&2
+  exit 1
 fi
 
 echo "[pre-commit] Running fast checks (format + analyze)..."
 
-# 1. Check formatting
-if ! dart format --output=none --set-exit-if-changed "$REPO_ROOT/lib" "$REPO_ROOT/test" 2>/dev/null; then
-  echo "[pre-commit] ❌ Formatting issues found. Run: dart format lib test" >&2
-  echo "[pre-commit] Or stage the formatted files and commit again." >&2
-  exit 1
+# ── 1. Format check — only staged Dart files in lib/ or test/ ─────────────────
+STAGED_DART=$(git diff --cached --name-only --diff-filter=ACMR \
+  | grep '\.dart$' \
+  | grep -E '^(lib|test)/' \
+  | sed "s|^|$REPO_ROOT/|" \
+  || true)
+
+if [[ -z "$STAGED_DART" ]]; then
+  echo "[pre-commit] ℹ️  No staged Dart files — skipping format check."
+else
+  if ! echo "$STAGED_DART" | xargs dart format --output=none --set-exit-if-changed; then
+    echo "" >&2
+    echo "[pre-commit] ❌ Formatting issues found in staged files." >&2
+    echo "[pre-commit]    Fix: dart format lib test" >&2
+    echo "[pre-commit]    Then: git add the reformatted files and commit again." >&2
+    exit 1
+  fi
+  echo "[pre-commit] ✅ Format OK"
 fi
 
-# 2. Run dart analyze (no fixes — fast pass)
-if ! dart analyze --no-fatal-infos "$REPO_ROOT"; then
+# ── 2. Static analysis ─────────────────────────────────────────────────────────
+if ! dart analyze "$REPO_ROOT" 2>&1; then
+  echo "" >&2
   echo "[pre-commit] ❌ dart analyze failed. Fix issues above before committing." >&2
   exit 1
 fi
