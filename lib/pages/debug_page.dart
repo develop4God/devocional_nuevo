@@ -1430,7 +1430,7 @@ class _DebugPageState extends State<DebugPage> {
                 // ── TTS Voice Explorer (Debug Only) ──────────────────────────────────────
                 Builder(
                   builder: (context) {
-                    Future<void> _loadAllVoices(String lang) async {
+                    Future<void> loadAllVoices(String lang) async {
                       setState(() => _explorerLoading = true);
                       final raw = await _explorerTts.getVoices;
                       if (raw is List) {
@@ -1544,7 +1544,7 @@ class _DebugPageState extends State<DebugPage> {
                                       _explorerVoices = [];
                                       _explorerGenders = {};
                                     });
-                                    _loadAllVoices(lang);
+                                    loadAllVoices(lang);
                                   },
                                 );
                               }).toList(),
@@ -1554,7 +1554,7 @@ class _DebugPageState extends State<DebugPage> {
                             // ── Load button ──
                             if (_explorerVoices.isEmpty && !_explorerLoading)
                               ElevatedButton.icon(
-                                onPressed: () => _loadAllVoices(_explorerLang),
+                                onPressed: () => loadAllVoices(_explorerLang),
                                 icon: const Icon(Icons.search),
                                 label: Text('Load $_explorerLang voices'),
                               ),
