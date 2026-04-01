@@ -55,6 +55,15 @@ jobs:
           channel: stable
           cache: true
 
+      - name: 📦 Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
+          restore-keys: pub-${{ runner.os }}-
+
       - name: 📦 Get dependencies
         run: flutter pub get
 
@@ -181,6 +190,15 @@ jobs:
           channel: stable
           cache: true
 
+      - name: 📦 Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
+          restore-keys: pub-${{ runner.os }}-
+
       - name: 📦 Get dependencies
         run: flutter pub get
 
@@ -198,14 +216,6 @@ jobs:
         run: flutter pub run build_runner build --delete-conflicting-outputs || echo "⚠️ build_runner failed (known issue with package versions), but mock files are already committed"
         continue-on-error: true
 
-      - name: 📦 Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            **/pubspec.lock
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
-          restore-keys: ${{ runner.os }}-pub-
 
       - name: 🧪 Run unit tests (expanded)
         run: |
@@ -223,7 +233,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y lcov
-          lcov --remove coverage/lcov.info \
+          lcov --ignore-errors unused --remove coverage/lcov.info \
             '*/blocs/onboarding/*' \
             '*/pages/onboarding/*' \
             '*/services/backup/*' \
