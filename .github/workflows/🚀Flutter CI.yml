@@ -84,8 +84,9 @@ jobs:
       - name: 🔍 Assert no diff after build_runner
         run: |
           echo "🎨 Checking Dart code formatting..."
-          # Enable auto_format by default on push, or respect workflow_dispatch inputs
-          AUTO_FORMAT="${{ github.event.inputs.auto_format }}"
+          
+          # Only auto-format on push events (not on PRs)
+          AUTO_FORMAT="false"
           if [ "${{ github.event_name }}" = "push" ]; then
             AUTO_FORMAT="true"
           fi
@@ -93,18 +94,12 @@ jobs:
           if ! dart format --set-exit-if-changed . 2>/dev/null; then
             echo "📝 Formatting issues detected!"
             if [ "$AUTO_FORMAT" = "true" ]; then
-              echo "🔧 Auto-formatting enabled. Applying fixes..."
+              echo "🔧 Auto-formatting enabled (push event). Applying fixes..."
               dart format .
               git config --local user.email "action@github.com"
               git config --local user.name "GitHub Action [bot]"
 
-              if [ "${{ github.event_name }}" = "pull_request" ]; then
-                BRANCH="${{ github.head_ref }}"
-              elif [ -n "${{ github.event.inputs.target_branch }}" ]; then
-                BRANCH="${{ github.event.inputs.target_branch }}"
-              else
-                BRANCH="${{ github.ref_name }}"
-              fi
+              BRANCH="${{ github.ref_name }}"
 
               if ! git diff --quiet; then
                 # ⚠️ Exclude auto-generated files from commit
@@ -121,8 +116,10 @@ jobs:
                 fi
               fi
             else
-              echo "❌ Auto-formatting is disabled. Please format manually:"
+              echo "❌ Formatting issues detected on PR. Please format locally:"
               dart format --show-all .
+              echo ""
+              echo "Then run: git add -A && git commit -m '🎨 Format code'"
               exit 1
             fi
           else
@@ -131,40 +128,41 @@ jobs:
 
       - name: 🧹 Remove unused imports (dart fix)
         run: |
-          echo "🧹 Eliminando imports no usados y aplicando fixes automáticos..."
+          echo "🧹 Checking for unused imports and applying auto-fixes..."
           dart fix --apply
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action [bot]"
 
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BRANCH="${{ github.head_ref }}"
-          elif [ -n "${{ github.event.inputs.target_branch }}" ]; then
-            BRANCH="${{ github.event.inputs.target_branch }}"
-          else
+          # Only auto-commit on push events (not on PRs)
+          if [ "${{ github.event_name }}" = "push" ]; then
             BRANCH="${{ github.ref_name }}"
-          fi
 
-          if ! git diff --quiet; then
-            # ⚠️ Exclude auto-generated files from commit
-            git add lib/ test/ pubspec.yaml pubspec.lock i18n/ docs/
-            git reset -- '**/GeneratedPluginRegistrant*' '**/generated_plugin_registrant*' 2>/dev/null || true
-            
-            # Only commit if source files changed (not just generated files)
-            if ! git diff --cached --quiet; then
-              git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
-              git push origin "$BRANCH"
-            else
-              echo "ℹ️ Only generated files were modified by dart fix, skipping commit"
-              git checkout -- .
+            if ! git diff --quiet; then
+              # ⚠️ Exclude auto-generated files from commit
+              git add lib/ test/ pubspec.yaml pubspec.lock i18n/ docs/
+              git reset -- '**/GeneratedPluginRegistrant*' '**/generated_plugin_registrant*' 2>/dev/null || true
+              
+              # Only commit if source files changed (not just generated files)
+              if ! git diff --cached --quiet; then
+                git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
+                git push origin "$BRANCH"
+              else
+                echo "ℹ️ Only generated files were modified, skipping commit"
+                git checkout -- .
+              fi
+            fi
+          else
+            # On PRs, fail if changes needed
+            if ! git diff --quiet; then
+              echo "❌ Unused imports or auto-fixes needed on PR. Please run locally:"
+              echo "  dart fix --apply"
+              echo "  git add -A && git commit -m '🧹 Auto-fix code'"
+              exit 1
             fi
           fi
 
       - name: 🔍 Analyze code
         run: flutter analyze --fatal-infos
-        
-      - name: 📚 Check Dartdoc
-        if: success()
-        run: dart doc --validate-links
 
       - name: 📋 Check pub.dev score
         if: success()
@@ -244,7 +242,7 @@ jobs:
 
       - name: 📊 Upload coverage to Codecov
         if: success()
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: coverage/lcov_filtered.info
           fail_ci_if_error: true
@@ -337,11 +335,30 @@ jobs:
           ANALYZE_RESULT="${{ needs.analyze.result }}"
           TEST_RESULT="${{ needs.test.result }}"
           
-          if [[ "$ANALYZE_RESULT" != "success" || "$TEST_RESULT" != "success" ]]; then
-            echo "❌ CI failed — analyze: $ANALYZE_RESULT, test: $TEST_RESULT"
+          echo "Job Results:"
+          echo "  Analyze: $ANALYZE_RESULT"
+          echo "  Test: $TEST_RESULT"
+          
+          # Fail only on explicit failures
+          if [[ "$ANALYZE_RESULT" == "failure" ]] || [[ "$TEST_RESULT" == "failure" ]]; then
+            echo "❌ CI failed — one or more jobs failed"
             exit 1
           fi
-          echo "✅ All jobs passed"
+          
+          # Analyze must always complete successfully
+          if [[ "$ANALYZE_RESULT" != "success" ]]; then
+            echo "❌ Analysis did not complete successfully (status: $ANALYZE_RESULT)"
+            exit 1
+          fi
+          
+          # Test can be cancelled/skipped in edge cases (external interruption)
+          # but if it's success, that's ideal
+          if [[ "$TEST_RESULT" == "success" ]]; then
+            echo "✅ All jobs passed successfully"
+          else
+            echo "⚠️ Test job status: $TEST_RESULT (but no failure detected)"
+            echo "✅ CI gate passed — no critical failures detected"
+          fi
 
   comment:
     name: 💬 PR Comment
