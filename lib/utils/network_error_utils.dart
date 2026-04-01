@@ -16,11 +16,16 @@ import 'dart:io';
 bool isTransientNetworkError(Object error) {
   // Direct SocketException from dart:io
   if (error is SocketException) return true;
+  if (error is PathNotFoundException) return true;
+  if (error is FileSystemException && error.osError?.errorCode == 2) return true;
 
   // String-based checks cover wrapped exceptions
   // (e.g. http.ClientException, Flutter image pipeline errors)
   final msg = error.toString();
   return msg.contains('SocketException') ||
+      msg.contains('PathNotFoundException') ||
+      msg.contains('No such file or directory') ||
+      msg.contains('errno = 2') ||
       msg.contains('Failed host lookup') ||
       msg.contains('No address associated with hostname') ||
       msg.contains('errno = 7') || // ENONET — no route to host
