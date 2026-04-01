@@ -247,11 +247,11 @@ jobs:
 
       - name: 📊 Upload coverage to Codecov
         if: success()
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           file: coverage/lcov_filtered.info
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fail_ci_if_error: true
 
       - name: 📊 Generate coverage summary
         if: success()
