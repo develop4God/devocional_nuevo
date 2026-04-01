@@ -258,7 +258,7 @@ jobs:
           raw = subprocess.run(
             ['lcov', '--ignore-errors', 'unused', '--summary', 'coverage/lcov_filtered.info'],
             capture_output=True, text=True
-          ).stderr
+          ).stdout
 
           cov   = re.search(r'lines\.*: ([\d.]+)%', raw)
           hit   = re.search(r'lines\.*: [\d.]+% \(([\d]+)', raw)
