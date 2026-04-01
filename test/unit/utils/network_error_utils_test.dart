@@ -58,6 +58,31 @@ void main() {
         isFalse,
       );
     });
+
+    test('returns true for PathNotFoundException (cache file deleted)', () {
+      expect(
+        isTransientNetworkError(
+          PathNotFoundException(
+            'Cannot open file',
+            const OSError('No such file or directory', 2),
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('returns true for FileSystemException with errno 2', () {
+      expect(
+        isTransientNetworkError(
+          const FileSystemException(
+            'Cannot open file',
+            '/cache/libCachedImageData/abc.png',
+            OSError('No such file or directory', 2),
+          ),
+        ),
+        isTrue,
+      );
+    });
   });
 }
 
