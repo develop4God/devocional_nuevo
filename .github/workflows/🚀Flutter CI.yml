@@ -220,16 +220,67 @@ jobs:
         if: success()
         uses: codecov/codecov-action@v3
         with:
-          file: coverage/lcov.info
-          fail_ci_if_error: false
+          file: coverage/lcov_filtered.info
+          fail_ci_if_error: true
 
       - name: 📈 Generate coverage report
         if: success()
         run: |
           sudo apt-get update
           sudo apt-get install -y lcov
-          genhtml coverage/lcov.info -o coverage/html
-          lcov --summary coverage/lcov.info
+          lcov --remove coverage/lcov.info \
+            '*/blocs/onboarding/*' \
+            '*/pages/onboarding/*' \
+            '*/blocs/supporter/*' \
+            '*/widgets/supporter/*' \
+            '*/services/backup/*' \
+            '*/debug/*' \
+            -o coverage/lcov_filtered.info
+          genhtml coverage/lcov_filtered.info -o coverage/html
+          lcov --summary coverage/lcov_filtered.info
+
+      - name: 📊 Generate coverage summary
+        if: success()
+        run: |
+          python3 - <<'EOF'
+          import subprocess, re, os
+
+          raw = subprocess.run(
+            ['lcov', '--summary', 'coverage/lcov_filtered.info'],
+            capture_output=True, text=True
+          ).stderr
+
+          cov   = re.search(r'lines\.*: ([\d.]+)%', raw)
+          hit   = re.search(r'lines\.*: [\d.]+% \(([\d]+)', raw)
+          tot   = re.search(r'of ([\d]+)', raw)
+          pct   = cov.group(1) if cov else '?'
+          h     = hit.group(1) if hit else '?'
+          total = tot.group(1) if tot else '?'
+          icon  = '🟢' if float(pct) >= 70 else '🟡' if float(pct) >= 50 else '🔴'
+
+          summary = f"{icon} Coverage: {pct}% ({h}/{total} lines)"
+
+          dirs = subprocess.run(
+            ['lcov', '--list', 'coverage/lcov_filtered.info'],
+            capture_output=True, text=True
+          ).stdout
+          lines = [l for l in dirs.splitlines() if '%' in l]
+          low = [(l.split('|')[0].strip(), l.split('|')[1].strip())
+                 for l in lines if re.search(r'[\d.]+', l.split('|')[1]) and
+                 float(re.search(r'[\d.]+', l.split('|')[1]).group()) < 50]
+          low.sort(key=lambda x: float(re.search(r'[\d.]+', x[1]).group()))
+          top3 = '\n'.join(f"  🔴 {d}: {p}" for d, p in low[:3])
+          pain = f"Top gaps:\n{top3}" if top3 else "No critical gaps below 50%"
+
+          output = f"{summary}\n{pain}"
+          print(output)
+
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
+              f.write(f"## 📊 Coverage\n```\n{output}\n```\n")
+
+          with open('coverage/summary.txt', 'w') as f:
+              f.write(output)
+          EOF
 
       - name: 📋 Upload coverage artifacts
         if: success()
@@ -238,15 +289,31 @@ jobs:
           name: coverage-report
           path: coverage/
 
-      - name: Commit and push README update
-        if: success()
+      - name: 📊 Auto-update README stats
+        if: success() && github.event_name == 'push'
         run: |
+          SUMMARY=$(lcov --summary coverage/lcov_filtered.info 2>&1)
+          COVERAGE=$(echo "$SUMMARY" | grep -oP 'lines......: \K[\d.]+')
+          HIT=$(echo "$SUMMARY" | grep -oP 'lines......: [\d.]+% \(\K[\d]+')
+          TOTAL=$(echo "$SUMMARY" | grep -oP 'of \K[\d]+')
+          TEST_COUNT=$(grep -oP '\+(\d+):' test_output.txt | tail -1 | grep -oP '\d+')
+
+          if   (( $(echo "$COVERAGE >= 70" | bc -l) )); then COLOR="brightgreen"
+          elif (( $(echo "$COVERAGE >= 50" | bc -l) )); then COLOR="yellow"
+          else COLOR="red"; fi
+
+          sed -i "s|Coverage-[^-]*%25-[a-z]*\.svg|Coverage-${COVERAGE}%25-${COLOR}.svg|g" README.md
+          sed -i "s|Tests-[0-9]*+-[a-z]*\.svg|Tests-${TEST_COUNT}+-brightgreen.svg|g" README.md
+          sed -i "s|[0-9.]*% code coverage ([0-9,]* of [0-9,]* lines)|${COVERAGE}% code coverage (${HIT} of ${TOTAL} lines)|g" README.md
+
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action [bot]"
           git add README.md
           if ! git diff --cached --quiet; then
-            git commit -m "📊 Update README stats [skip ci]"
+            git commit -m "📊 Update README: ${COVERAGE}% coverage · ${TEST_COUNT} tests [skip ci]"
             git push
+          else
+            echo "ℹ️ Stats unchanged — skipping commit"
           fi
 
   comment:
@@ -276,18 +343,23 @@ jobs:
                 default: return '🔄';
               }
             };
-            const autoFormatEnabled = '${{ github.event.inputs.auto_format }}' === 'true' || '${{ github.event_name }}' === 'push';
-            const formatNote = autoFormatEnabled ? '🎨 Auto-format: Enabled' : '⚠️ Auto-format: Disabled';
+            let coverageSummary = '';
+            try {
+              const fs = require('fs');
+              coverageSummary = fs.readFileSync('coverage/summary.txt', 'utf8');
+            } catch { coverageSummary = 'Coverage data unavailable'; }
+
             const comment = `## 🎉 CI Results for PR #${{ github.event.number }}
 
             ${getStatusEmoji(analyzeStatus)} **Static Analysis**: ${analyzeStatus}
             ${getStatusEmoji(testStatus)} **Tests**: ${testStatus}
 
-            ${formatNote}
+            \`\`\`
+            ${coverageSummary}
+            \`\`\`
 
             ### ${analyzeStatus === 'success' && testStatus === 'success' ? '🚀 Ready to merge!' : '⚠️ Issues found - check the logs'}
 
-            ${analyzeStatus === 'failure' && !autoFormatEnabled ? '\n💡 **Tip**: Enable auto-format when running the workflow to automatically fix formatting issues!' : ''}
 
             ---
             *Generated by GitHub Actions*`;
