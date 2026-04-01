@@ -93,9 +93,18 @@ jobs:
               fi
 
               if ! git diff --quiet; then
-                git add .
-                git commit -m "🎨 Auto-format code with dart format [skip ci]"
-                git push origin "$BRANCH"
+                # ⚠️ Exclude auto-generated files from commit
+                git add lib/ test/ pubspec.yaml pubspec.lock i18n/ docs/
+                git reset -- '**/GeneratedPluginRegistrant*' '**/generated_plugin_registrant*' 2>/dev/null || true
+                
+                # Only commit if source files changed (not just generated files)
+                if ! git diff --cached --quiet; then
+                  git commit -m "🎨 Auto-format code with dart format [skip ci]"
+                  git push origin "$BRANCH"
+                else
+                  echo "ℹ️ Only generated files were reformatted, skipping commit"
+                  git checkout -- .
+                fi
               fi
             else
               echo "❌ Auto-formatting is disabled. Please format manually:"
@@ -122,9 +131,18 @@ jobs:
           fi
 
           if ! git diff --quiet; then
-            git add .
-            git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
-            git push origin "$BRANCH"
+            # ⚠️ Exclude auto-generated files from commit
+            git add lib/ test/ pubspec.yaml pubspec.lock i18n/ docs/
+            git reset -- '**/GeneratedPluginRegistrant*' '**/generated_plugin_registrant*' 2>/dev/null || true
+            
+            # Only commit if source files changed (not just generated files)
+            if ! git diff --cached --quiet; then
+              git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
+              git push origin "$BRANCH"
+            else
+              echo "ℹ️ Only generated files were modified by dart fix, skipping commit"
+              git checkout -- .
+            fi
           fi
 
       - name: 🔍 Analyze code
