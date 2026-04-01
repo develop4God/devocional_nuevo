@@ -216,22 +216,26 @@ class VoiceDataRegistry {
 
   /// German premium voices
   static const Map<String, VoiceMetadata> germanVoices = {
-    'de-de-x-ded-local': VoiceMetadata(
+    // ♂ Male premium
+    'de-de-x-deb-network': VoiceMetadata(
       emoji: '🇩🇪',
       description: 'Mann Deutschland',
       genderIcon: Icons.man_3_outlined,
     ),
-    'de-de-x-dea-local': VoiceMetadata(
+    // ♀ Female premium
+    'de-de-x-nfh-local': VoiceMetadata(
       emoji: '🇩🇪',
       description: 'Frau Deutschland',
       genderIcon: Icons.woman_outlined,
     ),
-    'de-de-x-dec-network': VoiceMetadata(
+    // ♂ Male premium 2
+    'de-de-x-deg-network': VoiceMetadata(
       emoji: '🇩🇪',
       description: 'Mann Deutschland 2',
       genderIcon: Icons.man_3_outlined,
     ),
-    'de-DE-language': VoiceMetadata(
+    // ♀ Female premium 2
+    'de-de-x-dea-local': VoiceMetadata(
       emoji: '🇩🇪',
       description: 'Frau Deutschland 2',
       genderIcon: Icons.woman_outlined,
