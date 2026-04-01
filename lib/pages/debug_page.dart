@@ -862,8 +862,9 @@ class _DebugPageState extends State<DebugPage> {
                                   value: branch, child: Text(branch)))
                               .toList(),
                           onChanged: (newBranch) async {
+                            if (newBranch == null) return;
                             setState(() =>
-                                DebugFlags.debugBranchDevotionals = newBranch!);
+                                DebugFlags.debugBranchDevotionals = newBranch);
                             // Trigger refresh via provider
                             if (mounted && context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
