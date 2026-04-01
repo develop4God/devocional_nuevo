@@ -312,7 +312,7 @@ void main() {
       expect(repository.wasLastFetchOffline, isTrue);
     });
 
-    test('is false after resetIndexCache', () async {
+    test('is false after resetCache', () async {
       when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => null);
       when(() => mockHttpClient.get(any()))
           .thenThrow(Exception('Network error'));
