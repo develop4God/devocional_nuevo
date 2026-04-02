@@ -225,8 +225,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                           (index) {
                             return Expanded(
                               child: Container(
-                                margin: EdgeInsets.only(
-                                  right: index <
+                                margin: EdgeInsetsDirectional.only(
+                                  end: index <
                                           OnboardingSteps.defaultSteps.length -
                                               2
                                       ? 8
