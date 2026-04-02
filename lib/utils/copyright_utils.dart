@@ -8,7 +8,8 @@ class CopyrightUtils {
         language == 'en' ||
         language == 'pt' ||
         language == 'fr' ||
-        language == 'de') {
+        language == 'de' ||
+        language == 'ar') {
       final regex = RegExp(r'\(([A-Z0-9]+)\)$');
       final match = regex.firstMatch(version);
       if (match != null) {
@@ -88,6 +89,20 @@ class CopyrightUtils {
             'Schlachter 2000 © Genfer Bibelgesellschaft. Alle Rechte vorbehalten.',
         'default':
             'Lutherbibel, revidiert 2017, © 2016 Deutsche Bibelgesellschaft, Stuttgart.',
+      },
+      'ar': {
+        'NAV':
+            'النص الكتابي الترجمة العربية الجديدة © 2005 Biblica, Inc. جميع الحقوق محفوظة.',
+        'SVDA': 'النص الكتابي ترجمة سميث وفاندايك، ملك عام.',
+        'NAV_ar.SQLite3':
+            'النص الكتابي الترجمة العربية الجديدة © 2005 Biblica, Inc. جميع الحقوق محفوظة.',
+        'SVDA_ar.SQLite3': 'النص الكتابي ترجمة سميث وفاندايك، ملك عام.',
+        'الترجمة العربية الجديدة (NAV)':
+            'النص الكتابي الترجمة العربية الجديدة © 2005 Biblica, Inc. جميع الحقوق محفوظة.',
+        'ترجمة سميث وفاندايك (SVDA)':
+            'النص الكتابي ترجمة سميث وفاندايك، ملك عام.',
+        'default':
+            'النص الكتابي الترجمة العربية الجديدة © 2005 Biblica, Inc. جميع الحقوق محفوظة.',
       },
     };
 

@@ -66,6 +66,7 @@ class VoiceSettingsService {
       'zh': ['zh-CN', 'zh-TW', 'yue-HK'],
       'hi': ['hi-IN'], // Hindi
       'de': ['de-DE', 'de-AT', 'de-CH'], // German
+      'ar': ['ar-SA', 'ar-EG', 'ar-AE'], // Arabic
     };
     final locales = preferredLocales[language] ?? [language];
 
@@ -145,6 +146,12 @@ class VoiceSettingsService {
           'de-de-x-dec-network', // Male voice Germany 2
           'de-de-x-dea-local', // Female voice Germany
           'de-DE-language', // Female voice Germany 2
+        ],
+        'ar': [
+          'ar-sa-x-ard-local', // Male voice Saudi Arabia
+          'ar-SA-language', // Female voice Saudi Arabia
+          'ar-eg-x-are-local', // Male voice Egypt
+          'ar-EG-language', // Female voice Egypt
         ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];
@@ -477,6 +484,15 @@ class VoiceSettingsService {
         case 'zh':
           friendlyName = '默认语音';
           break;
+        case 'hi':
+          friendlyName = 'डिफ़ॉल्ट आवाज़';
+          break;
+        case 'de':
+          friendlyName = 'Standardstimme';
+          break;
+        case 'ar':
+          friendlyName = 'الصوت الافتراضي';
+          break;
         default:
           friendlyName = 'Default Voice';
       }
@@ -518,6 +534,14 @@ class VoiceSettingsService {
         return gender == 'female' ? 'Voix Féminine$num' : 'Voix Masculine$num';
       case String s when s.startsWith('zh'):
         return gender == 'female' ? '女性声音$num' : '男性声音$num';
+      case String s when s.startsWith('hi'):
+        return gender == 'female' ? 'महिला आवाज़$num' : 'पुरुष आवाज़$num';
+      case String s when s.startsWith('de'):
+        return gender == 'female'
+            ? 'Weibliche Stimme$num'
+            : 'Männliche Stimme$num';
+      case String s when s.startsWith('ar'):
+        return gender == 'female' ? 'صوت أنثى$num' : 'صوت ذكر$num';
       default:
         return gender == 'female' ? 'Female Voice$num' : 'Male Voice$num';
     }
@@ -661,6 +685,10 @@ class VoiceSettingsService {
         return 'zh-CN';
       case 'de':
         return 'de-DE';
+      case 'hi':
+        return 'hi-IN';
+      case 'ar':
+        return 'ar-SA';
       default:
         return 'es-ES';
     }
