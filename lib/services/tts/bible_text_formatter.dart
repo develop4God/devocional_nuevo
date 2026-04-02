@@ -240,6 +240,11 @@ class BibleTextFormatter {
           'HERV': 'पवित्र बाइबिल हिंदी आसान पठन संस्करण',
           'OV': 'पुराना संस्करण',
         };
+      case 'ar':
+        return {
+          'NAV': 'الترجمة العربية الجديدة',
+          'SVDA': 'ترجمة سميث وفاندايك',
+        };
       default:
         return {'RVR1960': 'Reina Valera mil novecientos sesenta'};
     }
@@ -287,6 +292,8 @@ class BibleTextFormatter {
       // Chino: capítulo=章, versículo=节
       'hi': 'अध्याय|पद',
       // Hindi: capítulo=अध्याय (adhyāya), versículo=पद (pada)
+      'ar': 'الإصحاح|الآية',
+      // Arabic: capítulo=الإصحاح (chapter), versículo=الآية (verse)
     };
 
     final words = referenceWords[language] ?? referenceWords['es']!;

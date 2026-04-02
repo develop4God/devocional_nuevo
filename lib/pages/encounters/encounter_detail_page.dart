@@ -413,7 +413,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                     // Exit/Next Button on right side with responsive sizing
                     if (isLast)
                       Padding(
-                        padding: const EdgeInsets.only(left: 12),
+                        padding: const EdgeInsetsDirectional.only(start: 12),
                         child: _ExitButton(
                           onPressed: _exitWithTransition,
                         ),
