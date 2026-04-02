@@ -780,7 +780,7 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                                         fontSize: 16,
                                         color: colorScheme.onSurface,
                                       ),
-                                    ),
+                                    ).newBubbleWithId('gray_theme_badge'),
                                   ),
                                 ],
                               ),

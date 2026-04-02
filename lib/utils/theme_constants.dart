@@ -643,16 +643,22 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
   },
   'Gray': {
     'light': _baseLightTheme.copyWith(
+      scaffoldBackgroundColor:
+          const Color(0xFFF5F5F5), // Paper-like gray background
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.grey[600],
         foregroundColor: Colors.white,
+        elevation: 1,
+        shadowColor: Colors.black.withAlpha(76),
       ),
       colorScheme: ColorScheme.fromSwatch(
         primarySwatch: Colors.grey,
         brightness: Brightness.light,
       ).copyWith(
-        secondary: Colors.grey[400],
-        surface: Colors.white,
+        primary: Colors.grey[600],
+        secondary: Colors.grey[500],
+        surface: const Color(0xFFFAFAFA), // Soft paper white
+        surfaceContainer: const Color(0xFFF5F5F5), // Paper gray
         onPrimary: Colors.white,
         onSecondary: Colors.black87,
         onSurface: Colors.black87,
@@ -663,61 +669,73 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.grey[600],
           foregroundColor: Colors.white,
+          elevation: 2,
+          shadowColor: Colors.black.withAlpha(38),
         ),
       ),
       sliderTheme: SliderThemeData(
-        inactiveTrackColor: Colors.grey[300],
+        inactiveTrackColor: const Color(0xFFE0E0E0),
         activeTrackColor: Colors.grey[600],
         thumbColor: Colors.grey[600],
         overlayColor: Colors.grey[600]!.withAlpha(32),
         trackHeight: 4,
       ),
-      inputDecorationTheme: const InputDecorationTheme(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      inputDecorationTheme: InputDecorationTheme(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        filled: true,
+        fillColor: const Color(0xFFFAFAFA),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 1.0),
+          borderRadius: const BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.grey[400]!, width: 1.0),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 1.0),
+          borderRadius: const BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.grey[400]!, width: 1.0),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 2.0),
+          borderRadius: const BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.grey[600]!, width: 2.0),
         ),
-        errorBorder: OutlineInputBorder(
+        errorBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
           borderSide: BorderSide(color: Colors.red, width: 1.0),
         ),
-        focusedErrorBorder: OutlineInputBorder(
+        focusedErrorBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
           borderSide: BorderSide(color: Colors.red, width: 2.0),
         ),
-        filled: true,
-        fillColor: Colors.white,
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.black, width: 1.0),
+          side: BorderSide(color: Colors.grey[600]!, width: 1.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
         ),
       ),
+      cardTheme: CardThemeData(
+        color: const Color(0xFFFAFAFA),
+        elevation: 1,
+        shadowColor: Colors.black.withAlpha(38),
+      ),
     ),
     'dark': _baseDarkTheme.copyWith(
+      scaffoldBackgroundColor: const Color(0xFF2A2A2A), // Warm dark gray
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: const Color(0xFF1F1F1F),
         foregroundColor: Colors.white,
+        elevation: 1,
+        shadowColor: Colors.black.withAlpha(127),
       ),
       colorScheme: ColorScheme.fromSwatch(
         primarySwatch: Colors.grey,
         brightness: Brightness.dark,
       ).copyWith(
-        primary: Colors.grey[700],
+        primary: Colors.grey[500],
         secondary: Colors.grey[400],
-        surface: const Color(0xFF121212),
+        surface: const Color(0xFF2A2A2A), // Warm dark gray
+        surfaceContainer: const Color(0xFF3A3A3A), // Lighter dark gray
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: Colors.white,
@@ -728,31 +746,33 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.grey[700],
           foregroundColor: Colors.white,
+          elevation: 2,
+          shadowColor: Colors.black.withAlpha(127),
         ),
       ),
       sliderTheme: SliderThemeData(
-        inactiveTrackColor: Colors.grey[600],
+        inactiveTrackColor: const Color(0xFF4A4A4A),
         activeTrackColor: Colors.grey[400],
         thumbColor: Colors.grey[400],
         overlayColor: Colors.grey[400]!.withAlpha(32),
         trackHeight: 4,
       ),
       inputDecorationTheme: InputDecorationTheme(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        filled: true,
+        fillColor: const Color(0xFF3A3A3A),
+        border: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.grey[600]!, width: 1.0),
         ),
-        border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.white, width: 1.0),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.grey[600]!, width: 1.0),
         ),
-        enabledBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.white, width: 1.0),
-        ),
-        focusedBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.white, width: 2.0),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.grey[400]!, width: 2.0),
         ),
         errorBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -762,16 +782,19 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
           borderRadius: BorderRadius.all(Radius.circular(25)),
           borderSide: BorderSide(color: Colors.red, width: 2.0),
         ),
-        filled: true,
-        fillColor: Colors.grey.shade800,
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.white, width: 1.0),
+          side: BorderSide(color: Colors.grey[500]!, width: 1.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
         ),
+      ),
+      cardTheme: CardThemeData(
+        color: const Color(0xFF3A3A3A),
+        elevation: 1,
+        shadowColor: Colors.black.withAlpha(127),
       ),
     ),
   },
