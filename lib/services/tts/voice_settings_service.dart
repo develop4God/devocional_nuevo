@@ -484,6 +484,15 @@ class VoiceSettingsService {
         case 'zh':
           friendlyName = '默认语音';
           break;
+        case 'hi':
+          friendlyName = 'डिफ़ॉल्ट आवाज़';
+          break;
+        case 'de':
+          friendlyName = 'Standardstimme';
+          break;
+        case 'ar':
+          friendlyName = 'الصوت الافتراضي';
+          break;
         default:
           friendlyName = 'Default Voice';
       }
@@ -525,6 +534,14 @@ class VoiceSettingsService {
         return gender == 'female' ? 'Voix Féminine$num' : 'Voix Masculine$num';
       case String s when s.startsWith('zh'):
         return gender == 'female' ? '女性声音$num' : '男性声音$num';
+      case String s when s.startsWith('hi'):
+        return gender == 'female' ? 'महिला आवाज़$num' : 'पुरुष आवाज़$num';
+      case String s when s.startsWith('de'):
+        return gender == 'female'
+            ? 'Weibliche Stimme$num'
+            : 'Männliche Stimme$num';
+      case String s when s.startsWith('ar'):
+        return gender == 'female' ? 'صوت أنثى$num' : 'صوت ذكر$num';
       default:
         return gender == 'female' ? 'Female Voice$num' : 'Male Voice$num';
     }
@@ -668,6 +685,10 @@ class VoiceSettingsService {
         return 'zh-CN';
       case 'de':
         return 'de-DE';
+      case 'hi':
+        return 'hi-IN';
+      case 'ar':
+        return 'ar-SA';
       default:
         return 'es-ES';
     }

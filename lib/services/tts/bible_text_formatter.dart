@@ -52,6 +52,8 @@ class BibleTextFormatter {
         return _formatBibleBookChinese(reference);
       case 'hi':
         return _formatBibleBookHindi(reference);
+      case 'ar':
+        return _formatBibleBookArabic(reference);
       default:
         debugPrint(
           '[BibleTextFormatter] Unknown language "$language", using Spanish as default',
@@ -200,6 +202,29 @@ class BibleTextFormatter {
     });
   }
 
+  /// Formato para libros bíblicos en árabe (con ordinales para 1, 2, 3)
+  static String _formatBibleBookArabic(String reference) {
+    // Arabic uses ordinals for numbered books (1 يوحنا -> الأول يوحنا)
+    // Pattern to match digit + Arabic book name (Unicode range \u0600-\u06FF)
+    final exp = RegExp(
+      r'(^|\s)([123])\s+([\u0600-\u06FF]+)',
+      caseSensitive: false,
+    );
+    final ordinals = {
+      '1': 'الأول', // First (al-awwal)
+      '2': 'الثاني', // Second (al-thānī)
+      '3': 'الثالث', // Third (al-thālith)
+    };
+
+    return reference.replaceAllMapped(exp, (match) {
+      final separator = match.group(1)!;
+      final number = match.group(2)!;
+      final bookName = match.group(3)!;
+      final ordinal = ordinals[number] ?? number;
+      return '$separator$ordinal $bookName';
+    });
+  }
+
   /// Get Bible version expansions based on language
   static Map<String, String> getBibleVersionExpansions(String language) {
     switch (language) {
@@ -304,6 +329,7 @@ class BibleTextFormatter {
     // to avoid word boundary issues with non-ASCII characters
     final isCJK = language == 'zh' || language == 'ja';
     final isDevanagari = language == 'hi';
+    final isArabic = language == 'ar';
     final pattern = isCJK
         ? RegExp(
             r'((?:\d+\s+)?[一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
@@ -314,10 +340,15 @@ class BibleTextFormatter {
                 r'((?:पहला|दूसरा|तीसरा)?\s*[\u0900-\u097F]+)\s+(\d+):(\d+)(?:-(\d+))?',
                 caseSensitive: false,
               )
-            : RegExp(
-                r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑäöüßÄÖÜ]+)\s+(\d+):(\d+)(?:-(\d+))?',
-                caseSensitive: false,
-              );
+            : isArabic
+                ? RegExp(
+                    r'((?:الأول|الثاني|الثالث)?\s*[\u0600-\u06FF]+)\s+(\d+):(\d+)(?:-(\d+))?',
+                    caseSensitive: false,
+                  )
+                : RegExp(
+                    r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑäöüßÄÖÜ]+)\s+(\d+):(\d+)(?:-(\d+))?',
+                    caseSensitive: false,
+                  );
 
     return text.replaceAllMapped(pattern, (match) {
       final book = match.group(1)!;
@@ -341,7 +372,9 @@ class BibleTextFormatter {
                                 ? '至'
                                 : language == 'hi'
                                     ? 'से'
-                                    : 'al';
+                                    : language == 'ar'
+                                        ? 'إلى'
+                                        : 'al';
         result += ' $toWord $verseEnd';
       }
       return result;
