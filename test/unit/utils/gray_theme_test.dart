@@ -42,7 +42,7 @@ void main() {
       });
 
       test('color scheme surface is white', () {
-        expect(lightTheme.colorScheme.surface, equals(Colors.white));
+        expect(lightTheme.colorScheme.surface, equals(const Color(0xFFFAFAFA)));
       });
 
       test('color scheme onSurface is black87', () {
@@ -54,9 +54,7 @@ void main() {
 
       test('elevated button background is grey[600]', () {
         final style = lightTheme.elevatedButtonTheme.style!;
-        final bg = style
-            .backgroundColor
-            ?.resolve({WidgetState.pressed}) as Color?;
+        final bg = style.backgroundColor?.resolve({WidgetState.pressed});
         expect(bg, equals(Colors.grey[600]));
       });
 
@@ -71,10 +69,10 @@ void main() {
         expect(lightTheme.sliderTheme.thumbColor, equals(Colors.grey[600]));
       });
 
-      test('input decoration fill color is white', () {
+      test('input decoration fill color is paper gray', () {
         expect(
           lightTheme.inputDecorationTheme.fillColor,
-          equals(Colors.white),
+          equals(const Color(0xFFFAFAFA)),
         );
         expect(lightTheme.inputDecorationTheme.filled, isTrue);
       });
@@ -91,22 +89,22 @@ void main() {
         expect(darkTheme.colorScheme.brightness, equals(Brightness.dark));
       });
 
-      test('AppBar has grey[900] background and white foreground', () {
+      test('AppBar has dark gray background and white foreground', () {
         expect(
           darkTheme.appBarTheme.backgroundColor,
-          equals(Colors.grey[900]),
+          equals(const Color(0xFF1F1F1F)),
         );
         expect(darkTheme.appBarTheme.foregroundColor, equals(Colors.white));
       });
 
-      test('color scheme primary is grey[700]', () {
-        expect(darkTheme.colorScheme.primary, equals(Colors.grey[700]));
+      test('color scheme primary is grey[500]', () {
+        expect(darkTheme.colorScheme.primary, equals(Colors.grey[500]));
       });
 
       test('color scheme surface is dark', () {
         expect(
           darkTheme.colorScheme.surface,
-          equals(const Color(0xFF121212)),
+          equals(const Color(0xFF2A2A2A)),
         );
       });
 
@@ -116,9 +114,7 @@ void main() {
 
       test('elevated button background is grey[700]', () {
         final style = darkTheme.elevatedButtonTheme.style!;
-        final bg = style
-            .backgroundColor
-            ?.resolve({WidgetState.pressed}) as Color?;
+        final bg = style.backgroundColor?.resolve({WidgetState.pressed});
         expect(bg, equals(Colors.grey[700]));
       });
 
@@ -133,10 +129,10 @@ void main() {
         expect(darkTheme.sliderTheme.thumbColor, equals(Colors.grey[400]));
       });
 
-      test('input decoration fill color is grey.shade800', () {
+      test('input decoration fill color is grey container', () {
         expect(
           darkTheme.inputDecorationTheme.fillColor,
-          equals(Colors.grey.shade800),
+          equals(const Color(0xFF3A3A3A)),
         );
         expect(darkTheme.inputDecorationTheme.filled, isTrue);
       });
