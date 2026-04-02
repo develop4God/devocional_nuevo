@@ -66,6 +66,7 @@ class VoiceSettingsService {
       'zh': ['zh-CN', 'zh-TW', 'yue-HK'],
       'hi': ['hi-IN'], // Hindi
       'de': ['de-DE', 'de-AT', 'de-CH'], // German
+      'ar': ['ar-SA', 'ar-EG', 'ar-AE'], // Arabic
     };
     final locales = preferredLocales[language] ?? [language];
 
@@ -145,6 +146,12 @@ class VoiceSettingsService {
           'de-de-x-dec-network', // Male voice Germany 2
           'de-de-x-dea-local', // Female voice Germany
           'de-DE-language', // Female voice Germany 2
+        ],
+        'ar': [
+          'ar-sa-x-ard-local', // Male voice Saudi Arabia
+          'ar-SA-language', // Female voice Saudi Arabia
+          'ar-eg-x-are-local', // Male voice Egypt
+          'ar-EG-language', // Female voice Egypt
         ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];
