@@ -403,7 +403,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           if (!isFirst)
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(right: 6),
+                padding: const EdgeInsetsDirectional.only(end: 6),
                 child: SizedBox(
                   height: 44,
                   child: TextButton.icon(
@@ -442,7 +442,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             const Expanded(child: SizedBox.shrink()),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(left: 6),
+              padding: const EdgeInsetsDirectional.only(start: 6),
               child: SizedBox(
                 height: 44,
                 child: isLast

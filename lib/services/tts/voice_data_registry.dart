@@ -242,6 +242,34 @@ class VoiceDataRegistry {
     ),
   };
 
+  /// Arabic premium voices
+  static const Map<String, VoiceMetadata> arabicVoices = {
+    // ♂ Male premium Saudi Arabia
+    'ar-sa-x-ard-local': VoiceMetadata(
+      emoji: '🇸🇦',
+      description: 'رجل السعودية',
+      genderIcon: Icons.man_3_outlined,
+    ),
+    // ♀ Female premium Saudi Arabia
+    'ar-SA-language': VoiceMetadata(
+      emoji: '🇸🇦',
+      description: 'امرأة السعودية',
+      genderIcon: Icons.woman_outlined,
+    ),
+    // ♂ Male premium Egypt
+    'ar-eg-x-are-local': VoiceMetadata(
+      emoji: '🇪🇬',
+      description: 'رجل مصر',
+      genderIcon: Icons.man_3_outlined,
+    ),
+    // ♀ Female premium Egypt
+    'ar-EG-language': VoiceMetadata(
+      emoji: '🇪🇬',
+      description: 'امرأة مصر',
+      genderIcon: Icons.woman_outlined,
+    ),
+  };
+
   // ─── Language → Voice Map Lookup ──────────────────────────────────────
 
   /// All premium voice maps indexed by language code.
@@ -254,6 +282,7 @@ class VoiceDataRegistry {
     'zh': chineseVoices,
     'hi': hindiVoices,
     'de': germanVoices,
+    'ar': arabicVoices,
   };
 
   /// Returns the premium voice map for [language], or `null` if none exists.
@@ -286,6 +315,7 @@ class VoiceDataRegistry {
         'आप इस आवाज़ को सहेज सकते हैं या अपनी पसंद के अनुसार दूसरी आवाज़ चुन सकते हैं',
     'de':
         'Sie können diese Stimme speichern oder eine andere nach Ihrer Vorliebe auswählen',
+    'ar': 'يمكنك حفظ هذا الصوت أو اختيار صوت آخر حسب تفضيلك',
   };
 
   /// Returns the localized sample text for [language], defaulting to Spanish.
@@ -305,6 +335,7 @@ class VoiceDataRegistry {
     'zh': ['zh-CN', 'zh-TW'],
     'hi': ['hi-IN'],
     'de': ['de-DE', 'de-AT', 'de-CH'],
+    'ar': ['ar-SA', 'ar-EG', 'ar-AE'],
   };
 
   /// Returns the priority locales for [language].
@@ -334,6 +365,9 @@ class VoiceDataRegistry {
     'de-DE': 'Deutsch (Deutschland)',
     'de-AT': 'Deutsch (Österreich)',
     'de-CH': 'Deutsch (Schweiz)',
+    'ar-SA': 'العربية (السعودية)',
+    'ar-EG': 'العربية (مصر)',
+    'ar-AE': 'العربية (الإمارات)',
   };
 
   static String getFriendlyLocaleName(String locale) {

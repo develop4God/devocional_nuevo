@@ -16,6 +16,7 @@ class BibleVersionRegistry {
     'zh': '中文', // Add Chinese
     'hi': 'हिन्दी', // Add Hindi
     'de': 'Deutsch', // Add German
+    'ar': 'العربية', // Add Arabic
   };
 
   static const Map<String, List<Map<String, String>>> _versionsByLanguage = {
@@ -53,6 +54,13 @@ class BibleVersionRegistry {
       {'name': 'Lutherbibel 2017 (LU17)', 'dbFile': 'LU17_de.SQLite3'},
       {'name': 'Schlachter 2000 (SCH2000)', 'dbFile': 'SCH2000_de.SQLite3'},
     ], // Add German
+    'ar': [
+      {'name': 'الترجمة العربية الجديدة (NAV)', 'dbFile': 'NAV_ar.SQLite3'},
+      {
+        'name': 'ترجمة سميث وفاندايك (SVDA)',
+        'dbFile': 'SVDA_ar.SQLite3',
+      },
+    ], // Add Arabic
   };
 
   /// Get all Bible versions for a specific language
