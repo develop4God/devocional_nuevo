@@ -235,7 +235,7 @@ class EncounterRepository {
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final study = EncounterStudy.fromJson(json);
+      final study = EncounterStudy.fromJson(json, imageVersion: version);
       await _saveStudyToCache(id, lang, response.body, version); // NEW
       return study;
     }
@@ -259,7 +259,7 @@ class EncounterRepository {
           await httpClient.get(Uri.parse(enUrl)).timeout(_networkTimeout);
       if (enResponse.statusCode == 200) {
         final json = jsonDecode(enResponse.body) as Map<String, dynamic>;
-        final study = EncounterStudy.fromJson(json);
+        final study = EncounterStudy.fromJson(json, imageVersion: version);
         await _saveStudyToCache(id, 'en', enResponse.body, version); // NEW
         return study;
       }
@@ -300,7 +300,9 @@ class EncounterRepository {
 
       debugPrint('✅ Encounter: Cache hit $id ($lang) v$expectedVersion');
       return EncounterStudy.fromJson(
-          jsonDecode(cached) as Map<String, dynamic>);
+        jsonDecode(cached) as Map<String, dynamic>,
+        imageVersion: expectedVersion, // same version used for cache validation
+      );
     } catch (e) {
       developer.log('Failed to load encounter study from cache: $e',
           name: 'EncounterRepository._loadStudyFromCache');
@@ -336,7 +338,7 @@ class EncounterRepository {
       final json = jsonDecode(raw) as Map<String, dynamic>;
       debugPrint(
           '📂 Encounter: Using bundled fallback study ($lang) → $assetPath');
-      return EncounterStudy.fromJson(json);
+      return EncounterStudy.fromJson(json, imageVersion: '1.0');
     } catch (e) {
       throw Exception('Failed to load fallback encounter: $e');
     }

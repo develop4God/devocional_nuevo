@@ -13,8 +13,8 @@ import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_detail_page.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/utils/image_precache_utils.dart';
+import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -192,12 +192,6 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
     final accentColor =
         _parseColor(entry.accentColor) ?? const Color(0xFF1e3a5f);
 
-    // Dynamic intro image from JSON schema
-    final String? imageUrl = entry.introImage != null
-        ? Constants.getEncounterImageUrl(entry.introImage!,
-            encounterId: entry.id)
-        : null;
-
     return BlocListener<EncounterBloc, EncounterState>(
         listener: (context, state) {
           if (state is EncounterLoaded &&
@@ -225,22 +219,19 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
             fit: StackFit.expand,
             children: [
               // 1. CINEMATIC BACKGROUND IMAGE
-              if (imageUrl != null)
+              if (entry.introImage != null)
                 FadeTransition(
                   opacity: _imageOpacity,
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
+                  child: EncounterImageWidget(
+                    baseFilename: entry.introImage!,
+                    encounterId: entry.id,
+                    imageVersion: entry.imageVersion,
                     fit: BoxFit.cover,
-                    alignment: Alignment.center,
-                    placeholder: (context, url) =>
-                        Container(color: const Color(0xFF0a0e1a)),
-                    errorWidget: (context, url, error) {
-                      debugPrint(
-                          '⚠️ Encounter: CDN image failed — ${widget.entry.introImage}');
-                      return Container(color: const Color(0xFF0a0e1a));
-                    },
+                    fallbackColor: const Color(0xFF0a0e1a),
                   ),
-                ),
+                )
+              else
+                Container(color: const Color(0xFF0a0e1a)),
 
               // 2. GRADIENT OVERLAYS
               Container(
