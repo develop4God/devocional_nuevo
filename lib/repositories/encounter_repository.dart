@@ -7,14 +7,12 @@ import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Repository for fetching Encounters content from remote JSON via GitHub Pages.
 ///
 /// Strategy: Network-first with fallback to SharedPreferences cache.
-/// On complete failure for the index, falls back to the bundled asset.
 class EncounterRepository {
   final http.Client httpClient;
 
@@ -25,18 +23,6 @@ class EncounterRepository {
   /// Fetched at most once per app session — reset on every cold start.
   static bool _indexFetchedThisSession = false; // NEW
 
-  /// Bundled fallback assets for peter_water_001, keyed by language code.
-  /// Files live at assets/encounters/peter_water_{lang}_001.json.
-  static const Map<String, String> _fallbackAssets = {
-    'es': 'assets/encounters/peter_water_es_001.json',
-    'en': 'assets/encounters/peter_water_en_001.json',
-    'pt': 'assets/encounters/peter_water_pt_001.json',
-    'fr': 'assets/encounters/peter_water_fr_001.json',
-    'zh': 'assets/encounters/peter_water_zh_001.json',
-    'hi': 'assets/encounters/peter_water_hi_001.json',
-    'ja': 'assets/encounters/peter_water_ja_001.json',
-  };
-
   static const Duration _networkTimeout = Duration(seconds: 10);
 
   EncounterRepository({required this.httpClient});
@@ -45,7 +31,7 @@ class EncounterRepository {
   // Index
   // ---------------------------------------------------------------------------
 
-  /// Fetches the encounter index. Cache-first within session → network → fallback asset.
+  /// Fetches the encounter index. Cache-first within session → network → SharedPreferences cache.
   Future<List<EncounterIndexEntry>> fetchIndex({
     bool forceRefresh = false,
   }) async {
@@ -108,13 +94,11 @@ class EncounterRepository {
           return entries;
         } catch (_) {
           debugPrint(
-              '💥 Encounter: Cached index corrupt — falling back to asset');
+              '💥 Encounter: Cached index corrupt — no fallback available');
         }
       }
 
-      // Fall back to bundled asset
-      debugPrint('📂 Encounter: Falling back to bundled asset');
-      return _loadFallbackAsIndex();
+      rethrow;
     }
   }
 
@@ -129,57 +113,11 @@ class EncounterRepository {
     return [];
   }
 
-  /// Loads the fallback asset as a single-entry index.
-  Future<List<EncounterIndexEntry>> _loadFallbackAsIndex() async {
-    try {
-      // Build bilingual entry directly from known fallback content
-      return [
-        EncounterIndexEntry(
-          id: 'peter_water_001',
-          version: '1.0',
-          emoji: '🌊',
-          status: 'published',
-          moodPrimary: 'storm',
-          accentColor: '#1e3a5f',
-          testament: 'new',
-          character: 'Peter',
-          files: const {
-            'en': 'peter_water_en_001.json',
-            'es': 'peter_water_es_001.json',
-            'pt': 'peter_water_pt_001.json',
-            'fr': 'peter_water_fr_001.json',
-            'zh': 'peter_water_zh_001.json',
-            'hi': 'peter_water_hi_001.json',
-            'ja': 'peter_water_ja_001.json',
-          },
-          titles: const {
-            'en': 'Peter Walks on Water',
-            'es': 'Pedro Camina sobre el Agua',
-          },
-          subtitles: const {
-            'en': 'Faith Beyond the Storm',
-            'es': 'Fe Más Allá de la Tormenta',
-          },
-          scriptureReference: const {
-            'en': 'Matthew 14:22-33',
-            'es': 'Mateo 14:22-33',
-          },
-          estimatedReadingMinutes: const {'en': 8, 'es': 8},
-        ),
-      ];
-    } catch (e) {
-      developer.log('Failed to build fallback encounter index: $e',
-          name: 'EncounterRepository._loadFallbackAsIndex');
-      return [];
-    }
-  }
-
   // ---------------------------------------------------------------------------
   // Study
   // ---------------------------------------------------------------------------
 
   /// Fetches an individual encounter study. Checks cache first, then network.
-  /// Falls back to the bundled fallback asset for 'peter_water_001'.
   ///
   /// [filename] — the exact filename from the index `files` map
   ///   (e.g. `peter_water_001_es.json`). Preferred over constructing it from [id].
@@ -209,10 +147,6 @@ class EncounterRepository {
       return study;
     } catch (e) {
       debugPrint('❌ Encounter: Error fetching study $id ($lang): $e');
-      // Fallback to bundled asset only when fallback is enabled
-      if (Constants.enableEncounterFallback && id == 'peter_water_001') {
-        return _loadFallbackStudy(lang);
-      }
       rethrow;
     }
   }
@@ -327,20 +261,6 @@ class EncounterRepository {
     } catch (e) {
       developer.log('Failed to save encounter study to cache: $e',
           name: 'EncounterRepository._saveStudyToCache');
-    }
-  }
-
-  Future<EncounterStudy> _loadFallbackStudy(String lang) async {
-    // Pick language-appropriate bundled asset; default to 'en' for unsupported langs.
-    final assetPath = _fallbackAssets[lang] ?? _fallbackAssets['en']!;
-    try {
-      final raw = await rootBundle.loadString(assetPath);
-      final json = jsonDecode(raw) as Map<String, dynamic>;
-      debugPrint(
-          '📂 Encounter: Using bundled fallback study ($lang) → $assetPath');
-      return EncounterStudy.fromJson(json, imageVersion: '1.0');
-    } catch (e) {
-      throw Exception('Failed to load fallback encounter: $e');
     }
   }
 }
