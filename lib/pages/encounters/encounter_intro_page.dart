@@ -13,6 +13,7 @@ import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_detail_page.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/utils/image_precache_utils.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
 import 'package:flutter/material.dart';
@@ -106,12 +107,11 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
     final study = state.getStudy(widget.entry.id);
     if (study == null || study.cards.isEmpty) return;
 
-    final url = study.cards.first.imageUrl;
-    if (url == null || url.isEmpty) {
-      debugPrint(
-          '🖼️ [Intro/${widget.entry.id}] card[0] — no imageUrl, skipping precache');
-      return;
-    }
+    final base = study.cards.first.imageUrl;
+    final url = base != null
+        ? Constants.getEncounterImageUrl(base, encounterId: widget.entry.id)
+        : null;
+    if (url == null) return;
 
     final sw = Stopwatch()..start();
     debugPrint('🖼️ [Intro/${widget.entry.id}] card[0] precache START → $url');
@@ -148,8 +148,11 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
     // Fire-and-forget card[1] so the first swipe is instant.
     // Runs during the 600ms fade transition — free time we'd otherwise waste.
     if (mounted && study.cards.length > 1) {
-      final url = study.cards[1].imageUrl;
-      if (url != null && url.isNotEmpty) {
+      final base = study.cards[1].imageUrl;
+      final url = base != null
+          ? Constants.getEncounterImageUrl(base, encounterId: widget.entry.id)
+          : null;
+      if (url != null) {
         debugPrint(
             '🖼️ [Intro/${widget.entry.id}] card[1] fire-and-forget START → $url');
         safePrecacheImage(
@@ -201,8 +204,12 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
             // Fire-and-forget preload cards 0 and 1 into memory cache
             // so they render instantly when the user opens the detail page.
             for (int i = 0; i < study.cards.length && i < 2; i++) {
-              final url = study.cards[i].imageUrl;
-              if (url != null && url.isNotEmpty) {
+              final base = study.cards[i].imageUrl;
+              final url = base != null
+                  ? Constants.getEncounterImageUrl(base,
+                      encounterId: widget.entry.id)
+                  : null;
+              if (url != null) {
                 safePrecacheImage(
                   CachedNetworkImageProvider(url),
                   context,
