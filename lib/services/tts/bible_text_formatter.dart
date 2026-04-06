@@ -267,8 +267,8 @@ class BibleTextFormatter {
         };
       case 'ar':
         return {
-          'NAV': 'الترجمة العربية الجديدة',
-          'SVDA': 'ترجمة سميث وفاندايك',
+          'NAV': 'كتاب الحياة',
+          'SVDA': 'الكتاب المقدس — فان دايك',
         };
       default:
         return {'RVR1960': 'Reina Valera mil novecientos sesenta'};
