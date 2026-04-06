@@ -685,17 +685,17 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         filled: true,
         fillColor: const Color(0xFFFAFAFA),
-        border: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.grey[400]!, width: 1.0),
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.grey[400]!, width: 1.0),
+        enabledBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.grey[600]!, width: 2.0),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 2.0),
         ),
         errorBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -708,7 +708,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.grey[600]!, width: 1.0),
+          side: const BorderSide(color: Colors.black, width: 1.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
@@ -762,17 +762,17 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         filled: true,
         fillColor: const Color(0xFF3A3A3A),
-        border: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.grey[600]!, width: 1.0),
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.grey[600]!, width: 1.0),
+        enabledBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.grey[400]!, width: 2.0),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.white, width: 2.0),
         ),
         errorBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -785,7 +785,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.grey[500]!, width: 1.0),
+          side: const BorderSide(color: Colors.white, width: 1.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
