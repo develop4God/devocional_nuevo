@@ -133,10 +133,10 @@ void main() {
       // WHEN: Getting available languages
       final languages = provider.getAvailableLanguages();
 
-      // THEN: All 8 languages are present
-      expect(languages.length, equals(8));
+      // THEN: All 9 languages are present
+      expect(languages.length, equals(9));
       expect(languages.keys,
-          containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de']));
+          containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar']));
 
       // AND: Display names are in native language
       expect(languages['zh'], equals('中文'));
