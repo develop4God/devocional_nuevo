@@ -481,7 +481,7 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                                               fontSize: 16,
                                             ),
                                             overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
+                                            maxLines: 2,
                                           ),
                                         ),
                                       ],
