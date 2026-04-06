@@ -3,7 +3,16 @@ import 'package:flutter/material.dart';
 
 typedef ThemeChangedCallback = void Function(String selectedTheme);
 
-class ThemeSelectorCircleGrid extends StatelessWidget {
+const _kThemeOrder = [
+  'Cyan',
+  'Green',
+  'Pink',
+  'Light Blue',
+  'Deep Purple',
+  'Gray',
+];
+
+class ThemeSelectorCircleGrid extends StatefulWidget {
   final String selectedTheme;
   final ThemeChangedCallback onThemeChanged;
   final Brightness brightness;
@@ -16,75 +25,146 @@ class ThemeSelectorCircleGrid extends StatelessWidget {
   });
 
   @override
+  State<ThemeSelectorCircleGrid> createState() =>
+      _ThemeSelectorCircleGridState();
+}
+
+class _ThemeSelectorCircleGridState extends State<ThemeSelectorCircleGrid> {
+  bool _expanded = false;
+
+  Color _colorFor(String family) {
+    final brightnessKey =
+        widget.brightness == Brightness.light ? 'light' : 'dark';
+    return appThemeFamilies[family]?[brightnessKey]?.colorScheme.primary ??
+        Colors.grey;
+  }
+
+  Color get _pillColor => widget.brightness == Brightness.light
+      ? const Color(0xFFF2F2F7)
+      : const Color(0xFF2C2C2E);
+
+  void _toggle() => setState(() => _expanded = !_expanded);
+
+  void _select(String family) {
+    widget.onThemeChanged(family);
+    setState(() => _expanded = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final themeFamilies = appThemeFamilies.keys.toList();
+    return AnimatedCrossFade(
+      duration: const Duration(milliseconds: 280),
+      crossFadeState:
+          _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+      firstChild: _buildCollapsed(),
+      secondChild: _buildExpanded(),
+    );
+  }
 
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 4,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 1,
-      children: themeFamilies.map((family) {
-        final themeData = appThemeFamilies[family]
-            ?[brightness == Brightness.light ? 'light' : 'dark'];
-        final primaryColor = themeData?.colorScheme.primary ?? Colors.grey;
+  Widget _buildCollapsed() {
+    return Container(
+      height: 72,
+      decoration: BoxDecoration(
+        color: _pillColor,
+        borderRadius: BorderRadius.circular(36),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: _kThemeOrder.map((family) {
+          final isSelected = family == widget.selectedTheme;
+          final color = _colorFor(family);
+          final size = isSelected ? 52.0 : 28.0;
 
-        final isSelected = family == selectedTheme;
+          return GestureDetector(
+            onTap: isSelected ? _toggle : () => _select(family),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: color.withAlpha(140),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                        ),
+                      ]
+                    : null,
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
 
-        return GestureDetector(
-          onTap: () => onThemeChanged(family),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: 48,
-                height: 48,
+  Widget _buildExpanded() {
+    return Container(
+      height: 72,
+      decoration: BoxDecoration(
+        color: _pillColor,
+        borderRadius: BorderRadius.circular(36),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          ..._kThemeOrder.map((family) {
+            final isSelected = family == widget.selectedTheme;
+            final color = _colorFor(family);
+
+            return GestureDetector(
+              onTap: () => _select(family),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: primaryColor,
+                  color: color,
                   shape: BoxShape.circle,
                   border: isSelected
-                      ? Border.all(color: primaryColor, width: 3)
-                      : Border.all(color: Colors.transparent, width: 3),
+                      ? Border.all(color: Colors.white, width: 2.5)
+                      : null,
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: primaryColor.withAlpha((255 * 0.4).round()),
+                            color: color.withAlpha(160),
                             blurRadius: 10,
                             spreadRadius: 2,
                           ),
                         ]
                       : null,
                 ),
-                child: isSelected
-                    ? const Center(
-                        child: Icon(Icons.check, color: Colors.white, size: 24),
-                      )
-                    : null,
               ),
-              const SizedBox(height: 8),
-              Flexible(
-                child: Text(
-                  family,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected
-                        ? primaryColor
-                        : Theme.of(context).colorScheme.onSurface.withAlpha(
-                              (255 * 0.7).round(),
-                            ),
-                  ),
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                ),
+            );
+          }),
+          GestureDetector(
+            onTap: _toggle,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: widget.brightness == Brightness.light
+                    ? Colors.black.withAlpha(20)
+                    : Colors.white.withAlpha(30),
+                shape: BoxShape.circle,
               ),
-            ],
+              child: Icon(
+                Icons.close_rounded,
+                size: 18,
+                color: widget.brightness == Brightness.light
+                    ? Colors.black87
+                    : Colors.white,
+              ),
+            ),
           ),
-        );
-      }).toList(),
+        ],
+      ),
     );
   }
 }
