@@ -66,7 +66,13 @@ class VoiceSettingsService {
       'zh': ['zh-CN', 'zh-TW', 'yue-HK'],
       'hi': ['hi-IN'], // Hindi
       'de': ['de-DE', 'de-AT', 'de-CH'], // German
-      'ar': ['ar-SA', 'ar-EG', 'ar-AE'], // Arabic
+      'ar': [
+        'ar-xa',
+        'ar-SA',
+        'ar-EG',
+        'ar-AE',
+        'ar'
+      ], // Arabic - any ar-* device voice
     };
     final locales = preferredLocales[language] ?? [language];
 
@@ -81,8 +87,10 @@ class VoiceSettingsService {
             (voice) =>
                 locales.any(
                   (loc) =>
-                      (voice['locale'] as String?)?.toLowerCase() ==
-                      loc.toLowerCase(),
+                      (voice['locale'] as String?)?.toLowerCase().startsWith(
+                            loc.toLowerCase(),
+                          ) ??
+                      false,
                 ) &&
                 (voice['name'] as String?) != null &&
                 (voice['name'] as String).trim().isNotEmpty,
@@ -148,10 +156,10 @@ class VoiceSettingsService {
           'de-DE-language', // Female voice Germany 2
         ],
         'ar': [
-          'ar-sa-x-ard-local', // Male voice Saudi Arabia
-          'ar-SA-language', // Female voice Saudi Arabia
-          'ar-eg-x-are-local', // Male voice Egypt
-          'ar-EG-language', // Female voice Egypt
+          'ar-xa-x-are-local', // Male voice Arabic primary
+          'ar-xa-x-ard-local', // Male voice Arabic 2
+          'ar-xa-x-arz-local', // Female voice Arabic 1
+          'ar-xa-x-arz-network', // Female voice Arabic 2
         ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];

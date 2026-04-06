@@ -244,28 +244,24 @@ class VoiceDataRegistry {
 
   /// Arabic premium voices
   static const Map<String, VoiceMetadata> arabicVoices = {
-    // ♂ Male premium Saudi Arabia
-    'ar-sa-x-ard-local': VoiceMetadata(
+    'ar-xa-x-are-local': VoiceMetadata(
       emoji: '🇸🇦',
-      description: 'رجل السعودية',
+      description: 'ذكر ١',
       genderIcon: Icons.man_3_outlined,
     ),
-    // ♀ Female premium Saudi Arabia
-    'ar-SA-language': VoiceMetadata(
+    'ar-xa-x-ard-local': VoiceMetadata(
       emoji: '🇸🇦',
-      description: 'امرأة السعودية',
+      description: 'ذكر ٢',
+      genderIcon: Icons.man_3_outlined,
+    ),
+    'ar-xa-x-arz-local': VoiceMetadata(
+      emoji: '🇸🇦',
+      description: 'أنثى ١',
       genderIcon: Icons.woman_outlined,
     ),
-    // ♂ Male premium Egypt
-    'ar-eg-x-are-local': VoiceMetadata(
-      emoji: '🇪🇬',
-      description: 'رجل مصر',
-      genderIcon: Icons.man_3_outlined,
-    ),
-    // ♀ Female premium Egypt
-    'ar-EG-language': VoiceMetadata(
-      emoji: '🇪🇬',
-      description: 'امرأة مصر',
+    'ar-xa-x-arz-network': VoiceMetadata(
+      emoji: '🇸🇦',
+      description: 'أنثى ٢',
       genderIcon: Icons.woman_outlined,
     ),
   };
