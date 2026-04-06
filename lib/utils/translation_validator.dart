@@ -1,8 +1,34 @@
 import 'dart:convert';
 import 'dart:io';
 
-/// Supported languages (en.json is the single source of truth)
-const supportedLanguages = ['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de'];
+/// Dynamically discover supported languages from i18n directory
+/// No hardcoding needed - automatically syncs with available translation files
+List<String> getSupportedLanguages() {
+  final i18nDir = Directory('i18n');
+  if (!i18nDir.existsSync()) {
+    stderr.writeln('❌ i18n directory not found. Aborting.');
+    exit(1);
+  }
+
+  final languages = <String>[];
+  for (final file in i18nDir.listSync()) {
+    if (file is File && file.path.endsWith('.json')) {
+      // Extract language code from filename (e.g., 'es.json' → 'es')
+      final filename = file.path.split('/').last;
+      final languageCode = filename.replaceFirst(RegExp(r'\.json$'), '');
+      languages.add(languageCode);
+    }
+  }
+
+  // Sort to ensure consistent order (en first, then alphabetically)
+  languages.sort((a, b) {
+    if (a == 'en') return -1;
+    if (b == 'en') return 1;
+    return a.compareTo(b);
+  });
+
+  return languages;
+}
 
 /// Bidirectional translation validator.
 /// - Detects keys MISSING in the target (compared to en.json) → adds as "PENDING"
@@ -14,9 +40,10 @@ const supportedLanguages = ['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de'];
 void main(List<String> args) async {
   stdout.writeln('Starting bidirectional language validation...\n');
 
+  final allSupportedLanguages = getSupportedLanguages();
   final languages = args.isNotEmpty
       ? args
-      : supportedLanguages.where((l) => l != 'en').toList();
+      : allSupportedLanguages.where((l) => l != 'en').toList();
 
   final processed = <String>[];
   final notFound = <String>[];
@@ -182,7 +209,7 @@ void main(List<String> args) async {
   // ──────────────
   // Reference:  i18n/en.json
   // Targets:    i18n/es.json, i18n/pt.json, i18n/fr.json, i18n/ja.json,
-  //             i18n/zh.json, i18n/hi.json
+  //             i18n/zh.json, i18n/hi.json, i18n/de.json, i18n/ar.json
   //
   // ═══════════════════════════════════════════════════════════════════════════
   //
