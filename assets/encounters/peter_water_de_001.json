@@ -1,0 +1,187 @@
+{
+    "id": "peter_water_001",
+    "type": "encounter",
+    "schema_version": "encounters_v1",
+    "language": "de",
+    "bible_version": "LU17",
+    "version": "1.0",
+    "estimated_reading_minutes": 9,
+    "meta": {
+        "character": "Petrus",
+        "testament": "new",
+        "scripture_reference": "Matthäus 14:22-33",
+        "mood_primary": "storm",
+        "accent_color": "#1e3a5f",
+        "emoji": "🌊",
+        "tags": [
+            "glaube",
+            "angst",
+            "wunder",
+            "sturm",
+            "gnade",
+            "petrus",
+            "jesus"
+        ]
+    },
+    "key_verse": {
+        "reference": "Matthäus 14:31",
+        "text": "Jesus aber streckte sogleich die Hand aus und ergriff ihn und sprach zu ihm: Du Kleingläubiger, warum hast du gezweifelt?",
+        "bible_version": "LU17"
+    },
+    "cards": [
+        {
+            "order": 1,
+            "type": "cinematic_scene",
+            "mood": "storm",
+            "image_url": "peter_intro",
+            "title": "3 Uhr nachts. Sturm. Kein Jesus.",
+            "narrative": "Die Jünger ruderten seit Stunden gegen den reißenden Wind an. Jesus hatte sie allein vorausgeschickt. Das Meer tobte vor Wut. Und sie verloren den Kampf.",
+            "ambient_sound": "storm_waves",
+            "haptic": "storm_rumble",
+            "revelation_key": "In unserem Leben lässt Gott Stürme zu — mit einem Ziel."
+        },
+        {
+            "order": 2,
+            "type": "scripture_moment",
+            "mood": "tense",
+            "image_url": "waves_night",
+            "verse_reference": "Matthäus 14:24",
+            "verse_text": "Das Boot aber war schon weit vom Land entfernt und kam in Not durch die Wellen; denn der Wind stand ihm entgegen.",
+            "reflection": "Achte darauf, was dieser Vers NICHT sagt.\n\nEr sagt nicht, dass Gott sie verlassen hat. Er sagt nicht, dass sie bestraft wurden. Er sagt: der Wind stand ihnen entgegen.\n\nManche Stürme sind keine Strafe. Manche Stürme sind kein Irrtum. Manche Stürme sind der Weg, den Gott für dich gewählt hat — weil auf der anderen Seite etwas auf dich wartet.",
+            "revelation_key": "Ein entgegenkommender Wind bedeutet nicht die falsche Richtung."
+        },
+        {
+            "order": 3,
+            "type": "character_moment",
+            "mood": "intense",
+            "image_url": "peter_storm_boat",
+            "title": "Das kühnste Gebet der Bibel",
+            "subtitle": "Matthäus 14:28",
+            "content": "Die Reaktion des Petrus ist außergewöhnlich. Nicht Schreien vor Angst wie alle anderen — das ganze Boot schrie.\n\nNur Petrus tat etwas anderes. Ein Mensch. Eine waghalsige Bitte:\n\n„Herr, bist du es, so befiehl mir, zu dir auf das Wasser zu kommen!”\n\nDenk darüber nach, was er damit wirklich bittet. Nicht gerettet zu werden. Nicht den Sturm zu stoppen. Sondern AUS dem Boot zu steigen und selbst dem Sturm entgegenzugehen.\n\n⚡ DIE ANDEREN ELF JÜNGER:\n\nKeiner von ihnen stellte diese Bitte. Sie blieben im Boot. Sicher. Trocken. Vernünftig.\n\nSie sind auch nie auf dem Wasser gegangen.\n\nDer Glaube des Petrus war kühn. Impulsiv. Für die anderen wohl peinlich.\n\nUnd es war der einzige Glaube, der ihn ans Unmögliche herantrug.",
+            "revelation_key": "Petrus bat Jesus nicht, zu ihm zu kommen. Er bat darum, zu Jesus zu gehen. Das ändert alles."
+        },
+        {
+            "order": 4,
+            "type": "cinematic_scene",
+            "mood": "mysterious",
+            "image_url": "jesus_light_water",
+            "title": "Etwas geht auf sie zu",
+            "narrative": "Dann sahen sie es. Eine Gestalt. Die sich durch den Sturm bewegte, als wäre er nicht da. Auf dem Wasser gehend. Auf sie zu.\n\nSie erschraken und schrien vor Angst. Sie glaubten, ein Gespenst zu sehen.",
+            "ambient_sound": "storm_fading",
+            "verse_overlay": {
+                "reference": "Matthäus 14:27",
+                "text": "Aber sogleich redete Jesus mit ihnen und sprach: Seid getrost, ich bin's; fürchtet euch nicht!"
+            },
+            "revelation_key": "Jesus kommt zu uns mitten in unseren schlimmsten Stürmen. Nicht danach."
+        },
+        {
+            "order": 5,
+            "type": "cinematic_scene",
+            "mood": "awe",
+            "image_url": "peter_walking_water",
+            "title": "Und er ging auf dem Wasser",
+            "narrative": "Ein einziges Wort von Jesus. „Komm.”\n\nUnd Petrus stieg aus dem Boot. In den Sturm hinein. Auf das Wasser.\n\nFür einen unmöglichen, strahlenden, erschreckenden Augenblick — ging er.",
+            "ambient_sound": "wind_gentle",
+            "haptic": "gentle_pulse",
+            "verse_overlay": {
+                "reference": "Matthäus 14:29",
+                "text": "Und er sprach: Komm her! Und Petrus stieg aus dem Boot und ging auf dem Wasser und kam auf Jesus zu."
+            },
+            "revelation_key": "Petrus ist der einzige Mensch in der Geschichte — außer Jesus — der auf dem Wasser gegangen ist. Weil er der Einzige war, der gefragt hat."
+        },
+        {
+            "order": 6,
+            "type": "theological_depth",
+            "mood": "storm",
+            "image_url": "waves_night",
+            "title": "Der Moment, in dem alles kippte",
+            "subtitle": "Drei Worte, die jedes Scheitern des Glaubens erklären",
+            "content": "Matthäus hält die genaue Abfolge fest:\n\n1️⃣ „Er sah den Wind” — seine Aufmerksamkeit verschob sich\n2️⃣ „Er erschrak” — die Angst folgte seinem Blick\n3️⃣ „Er begann zu sinken” — sein Körper folgte seinem Herzen\n\n🔑 DAS SCHLÜSSELWORT: „Begann”\n\nEr sank nicht sofort. Zwischen Zweifel und Ertrinken lag ein Moment. Ein Fenster. Ein Schrei.\n\n„Herr, hilf mir!”\n\nDrei Worte. Das kürzeste Gebet der Schrift. Und das ehrlichste.\n\nKeine Theologie. Keine Erklärung. Kein Verhandeln. Nur die nackte Wahrheit eines Mannes, der es versucht hatte, gescheitert war und genau wusste, wen er rufen musste.\n\n⚠️ WAS JESUS NICHT SAGTE:\n\nEr sagte nicht: „Du hättest im Boot bleiben sollen.”\nEr sagte nicht: „Das hab ich dir doch gesagt.”\nEr ließ ihn nicht sinken, um ihm eine Lektion zu erteilen.\n\nDas griechische Wort eutheos — sogleich — erscheint in dem Moment, in dem Petrus aufschreit. Auf der Stelle. Ohne Zögern. Das ist die Geschwindigkeit der Gnade.\n\nSogleich. Er streckte die Hand aus.",
+            "revelation_key": "Das kürzeste Gebet ist manchmal das kraftvollste. „Herr, hilf mir” genügt.",
+            "scripture_connections": [
+                {
+                    "reference": "Jesaja 41:13",
+                    "text": "Denn ich bin der HERR, dein Gott, der deine rechte Hand fasst und zu dir spricht: Fürchte dich nicht, ich helfe dir!"
+                },
+                {
+                    "reference": "Psalm 18:17",
+                    "text": "Er streckte seine Hand aus von der Höhe und fasste mich und zog mich aus großen Wassern."
+                }
+            ]
+        },
+        {
+            "order": 7,
+            "type": "cinematic_scene",
+            "mood": "grace",
+            "image_url": "peter_hand_saved",
+            "title": "Sogleich",
+            "narrative": "Dieses Wort — sogleich — ist alles.\n\nKein Zögern. Keine Belehrung zuerst. Kein „Lass mich überlegen, ob du das verdient hast.”\n\nSogleich streckte Jesus seine Hand aus und ergriff ihn.\n\nGnade ist schneller als das Scheitern.",
+            "ambient_sound": "storm_stopping",
+            "haptic": "rescue_pulse",
+            "verse_overlay": {
+                "reference": "Matthäus 14:31",
+                "text": "Jesus aber streckte sogleich die Hand aus und ergriff ihn und sprach zu ihm: Du Kleingläubiger, warum hast du gezweifelt?"
+            },
+            "revelation_key": "Jesus fängt uns auf, bevor er uns zurechtweist. Erst Gnade, dann Zuspruch. Immer."
+        },
+        {
+            "order": 8,
+            "type": "character_moment",
+            "mood": "peace",
+            "image_url": "waves_night",
+            "title": "Du Kleingläubiger",
+            "subtitle": "Der Tadel, der eigentlich keiner war",
+            "content": "Jesus stellt Petrus eine einzige Frage:\n\n„Du Kleingläubiger, warum hast du gezweifelt?”\n\nLies das genau. Jesus nennt es KLEINEN Glauben — nicht KEINEN Glauben.\n\nPetrus hatte mehr Glauben als die elf im Boot. Er stieg aus. Er ging. Er rief im Sinken den Richtigen.\n\nDas ist keine Glaubenslosigkeit. Das ist Glaube unterwegs.\n\n🚣 DIE REAKTION IM BOOT:\n\nAls Jesus und Petrus ins Boot stiegen, geschah etwas, das es zuvor nicht gegeben hatte:\n\n„Die aber im Boot waren, fielen vor ihm nieder und sprachen: Du bist wahrhaftig Gottes Sohn!”\n\nDie elf, die sicher geblieben waren — die nie gezweifelt hatten, weil sie es nie versucht hatten — wurden durch das Scheitern und die Rettung des Petrus zu einer Begegnung geführt, die sie anbeten ließ.\n\nGott nutzte das Sinken des Petrus, um Jesus allen im Boot zu offenbaren.",
+            "revelation_key": "Manchmal lässt Gott uns sinken, damit andere sehen können, wie er uns herauszieht."
+        },
+        {
+            "order": 9,
+            "type": "interactive_moment",
+            "icon": "🌊",
+            "image_url": "waves_night",
+            "title": "Nenn deine Welle",
+            "subtitle": "Was ist der Sturm, der deinen Blick von Jesus ablenkt?",
+            "reflection_prompt": "Nimm dir einen Moment und benenne den Wind und die Wellen in deinem Leben gerade jetzt. Wie würde es aussehen, wenn du in dieser Situation aus dem Boot heraustrittst — auf Jesus zu?"
+        },
+        {
+            "order": 10,
+            "type": "discovery_activation",
+            "icon": "🙏",
+            "mood": "grace",
+            "image_url": "jesus_light_water",
+            "title": "Deine Begegnung",
+            "subtitle": "Die Geschichte des Petrus ist nicht nur Geschichte. Sie ist ein Spiegel.",
+            "discovery_questions": [
+                {
+                    "category": "Ehrlichkeit",
+                    "question": "Welchen Sturm in deinem Leben starrst du gerade an, statt auf Jesus zu schauen? Was sind deine Wellen?"
+                },
+                {
+                    "category": "Mut",
+                    "question": "Gibt es ein Boot, aus dem du aussteigen musst? Etwas, wozu Gott dich ruft, das unmöglich erscheint — und du hast noch nicht gefragt?"
+                },
+                {
+                    "category": "Gnade",
+                    "question": "Hast du jemals „Herr, hilf mir!” gerufen und dich aufgefangen gefühlt? Was ist passiert? Wenn nicht — was hält dich davon ab, jetzt aufzuschreien?"
+                }
+            ],
+            "prayer": {
+                "title": "Gebet des Sinkenden",
+                "content": "Herr, ich gestehe es: Ich habe auf die Wellen geschaut.\n\nDer Sturm ist wirklich. Der Wind steht mir entgegen. Und ich habe Angst.\n\nWie Petrus rufe ich — Herr, hilf mir!\n\nNicht weil ich genug Glauben habe. Nicht weil ich Rettung verdient hätte. Sondern weil du der Gott bist, der sogleich die Hand ausstreckt.\n\nFang mich auf. Ich strecke mich nach oben.\n\nUnd wenn du es tust — halte meinen Blick auf dich gerichtet und nicht auf das Wasser unter meinen Füßen.\n\nIn Jesu Namen, Amen."
+            }
+        },
+        {
+            "order": 11,
+            "type": "completion",
+            "mood": "awe",
+            "image_url": "peter_thumb",
+            "completion_verse": {
+                "reference": "Matthäus 14:33",
+                "text": "Die aber im Boot waren, fielen vor ihm nieder und sprachen: Du bist wahrhaftig Gottes Sohn!",
+                "bible_version": "LU17"
+            },
+            "reflection_prompt": "Was ist eine Wahrheit aus der Begegnung des Petrus, die du heute mit dir tragen möchtest?",
+            "celebration_type": "gentle_light"
+        }
+    ]
+}
