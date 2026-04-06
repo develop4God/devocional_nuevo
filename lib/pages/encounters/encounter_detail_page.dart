@@ -7,6 +7,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/utils/image_precache_utils.dart';
+import 'package:devocional_nuevo/utils/constants.dart';
 
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
@@ -88,8 +89,11 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
   void _preloadCardImage(List<EncounterCard> cards, int targetIndex) {
     if (targetIndex < 0 || targetIndex >= cards.length) return;
 
-    final url = cards[targetIndex].imageUrl;
-    if (url == null || url.isEmpty) {
+    final base = cards[targetIndex].imageUrl;
+    final url = base != null
+        ? Constants.getEncounterImageUrl(base, encounterId: widget.entry.id)
+        : null;
+    if (url == null) {
       debugPrint(
           '🖼️ [Detail/${widget.entry.id}] card[$targetIndex] — no imageUrl, skip');
       return;
