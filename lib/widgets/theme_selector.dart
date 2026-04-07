@@ -78,21 +78,23 @@ class _ThemeSelectorCircleGridState extends State<ThemeSelectorCircleGrid> {
     final peek = _peekThemes;
 
     return Container(
-      height: 52,
+      height: 60,
       decoration: BoxDecoration(
         color: _pillColor,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(30),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ..._visibleThemes.map((family) {
             final isSelected = family == widget.selectedTheme;
             final color = _colorFor(family);
+
             return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 5),
               child: GestureDetector(
                 onTap: isSelected
                     ? () => _openSheet(context)
@@ -100,8 +102,8 @@ class _ThemeSelectorCircleGridState extends State<ThemeSelectorCircleGrid> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 280),
                   curve: Curves.easeInOut,
-                  width: 36,
-                  height: 36,
+                  width: 42,
+                  height: 42,
                   decoration: BoxDecoration(
                     color: color,
                     shape: BoxShape.circle,
@@ -109,41 +111,41 @@ class _ThemeSelectorCircleGridState extends State<ThemeSelectorCircleGrid> {
                         ? [
                             BoxShadow(
                               color: color.withAlpha(130),
-                              blurRadius: 8,
-                              spreadRadius: 1,
+                              blurRadius: 10,
+                              spreadRadius: 2,
                             ),
                           ]
                         : null,
                   ),
                   child: isSelected
-                      ? Icon(Icons.check_rounded, size: 16, color: _iconColor)
+                      ? Icon(Icons.check_rounded, size: 18, color: _iconColor)
                       : null,
                 ),
               ),
             );
           }),
 
-          const SizedBox(width: 2),
+          const Spacer(flex: 1),
 
           // Overlapping peek stack
           if (peek.isNotEmpty)
             GestureDetector(
               onTap: () => _openSheet(context),
               child: SizedBox(
-                width: 16.0 + (peek.length - 1) * 12.0,
-                height: 36,
+                width: 20.0 + (peek.length - 1) * 12.0,
+                height: 42,
                 child: Stack(
                   alignment: Alignment.centerLeft,
                   children: peek.asMap().entries.map((e) {
                     return Positioned(
                       left: e.key * 12.0,
                       child: Container(
-                        width: 16,
-                        height: 16,
+                        width: 20,
+                        height: 20,
                         decoration: BoxDecoration(
                           color: _colorFor(e.value),
                           shape: BoxShape.circle,
-                          border: Border.all(color: _pillColor, width: 1.5),
+                          border: Border.all(color: _pillColor, width: 1.2),
                         ),
                       ),
                     );
@@ -152,11 +154,13 @@ class _ThemeSelectorCircleGridState extends State<ThemeSelectorCircleGrid> {
               ),
             ),
 
+          const SizedBox(width: 6),
+
           // Chevron
           GestureDetector(
             onTap: () => _openSheet(context),
             child: Padding(
-              padding: const EdgeInsets.only(left: 2, right: 2),
+              padding: const EdgeInsets.only(left: 2, right: 4),
               child: Icon(
                 Icons.chevron_right_rounded,
                 size: 18,
