@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 typedef ThemeChangedCallback = void Function(String selectedTheme);
 
 const _kThemeOrder = [
-  'Cyan',
-  'Green',
-  'Pink',
-  'Light Blue',
   'Deep Purple',
   'Gray',
+  'Pink',
+  'Cyan',
+  'Green',
+  'Light Blue',
 ];
 
 class ThemeSelectorCircleGrid extends StatefulWidget {
@@ -30,8 +30,6 @@ class ThemeSelectorCircleGrid extends StatefulWidget {
 }
 
 class _ThemeSelectorCircleGridState extends State<ThemeSelectorCircleGrid> {
-  bool _expanded = false;
-
   Color _colorFor(String family) {
     final brightnessKey =
         widget.brightness == Brightness.light ? 'light' : 'dark';
@@ -43,127 +41,232 @@ class _ThemeSelectorCircleGridState extends State<ThemeSelectorCircleGrid> {
       ? const Color(0xFFF2F2F7)
       : const Color(0xFF2C2C2E);
 
-  void _toggle() => setState(() => _expanded = !_expanded);
+  Color get _iconColor =>
+      widget.brightness == Brightness.light ? Colors.black54 : Colors.white70;
 
-  void _select(String family) {
-    widget.onThemeChanged(family);
-    setState(() => _expanded = false);
+  List<String> get _visibleThemes {
+    final others =
+        _kThemeOrder.where((t) => t != widget.selectedTheme).toList();
+    return [widget.selectedTheme, ...others.take(2)];
+  }
+
+  List<String> get _peekThemes {
+    final others =
+        _kThemeOrder.where((t) => t != widget.selectedTheme).toList();
+    return others.skip(2).toList();
+  }
+
+  void _openSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: false,
+      builder: (_) => _ThemeBottomSheet(
+        selectedTheme: widget.selectedTheme,
+        brightness: widget.brightness,
+        colorFor: _colorFor,
+        onSelect: (family) {
+          widget.onThemeChanged(family);
+          Navigator.of(context).pop();
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedCrossFade(
-      duration: const Duration(milliseconds: 280),
-      crossFadeState:
-          _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-      firstChild: _buildCollapsed(),
-      secondChild: _buildExpanded(),
-    );
-  }
+    final peek = _peekThemes;
 
-  Widget _buildCollapsed() {
     return Container(
-      height: 72,
+      height: 52,
       decoration: BoxDecoration(
         color: _pillColor,
-        borderRadius: BorderRadius.circular(36),
+        borderRadius: BorderRadius.circular(26),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: _kThemeOrder.map((family) {
-          final isSelected = family == widget.selectedTheme;
-          final color = _colorFor(family);
-          final size = isSelected ? 52.0 : 28.0;
-
-          return GestureDetector(
-            onTap: isSelected ? _toggle : () => _select(family),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: color.withAlpha(140),
-                          blurRadius: 12,
-                          spreadRadius: 2,
-                        ),
-                      ]
-                    : null,
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildExpanded() {
-    return Container(
-      height: 72,
-      decoration: BoxDecoration(
-        color: _pillColor,
-        borderRadius: BorderRadius.circular(36),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ..._kThemeOrder.map((family) {
+          ..._visibleThemes.map((family) {
             final isSelected = family == widget.selectedTheme;
             final color = _colorFor(family);
-
-            return GestureDetector(
-              onTap: () => _select(family),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                  border: isSelected
-                      ? Border.all(color: Colors.white, width: 2.5)
-                      : null,
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: color.withAlpha(160),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ]
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: GestureDetector(
+                onTap: isSelected
+                    ? () => _openSheet(context)
+                    : () => widget.onThemeChanged(family),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeInOut,
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: color.withAlpha(130),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: isSelected
+                      ? Icon(Icons.check_rounded, size: 16, color: _iconColor)
                       : null,
                 ),
               ),
             );
           }),
-          GestureDetector(
-            onTap: _toggle,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: widget.brightness == Brightness.light
-                    ? Colors.black.withAlpha(20)
-                    : Colors.white.withAlpha(30),
-                shape: BoxShape.circle,
+
+          const SizedBox(width: 2),
+
+          // Overlapping peek stack
+          if (peek.isNotEmpty)
+            GestureDetector(
+              onTap: () => _openSheet(context),
+              child: SizedBox(
+                width: 16.0 + (peek.length - 1) * 12.0,
+                height: 36,
+                child: Stack(
+                  alignment: Alignment.centerLeft,
+                  children: peek.asMap().entries.map((e) {
+                    return Positioned(
+                      left: e.key * 12.0,
+                      child: Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: _colorFor(e.value),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: _pillColor, width: 1.5),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
+            ),
+
+          // Chevron
+          GestureDetector(
+            onTap: () => _openSheet(context),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 2, right: 2),
               child: Icon(
-                Icons.close_rounded,
+                Icons.chevron_right_rounded,
                 size: 18,
-                color: widget.brightness == Brightness.light
-                    ? Colors.black87
-                    : Colors.white,
+                color: _iconColor,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ThemeBottomSheet extends StatelessWidget {
+  final String selectedTheme;
+  final Brightness brightness;
+  final Color Function(String) colorFor;
+  final void Function(String) onSelect;
+
+  const _ThemeBottomSheet({
+    required this.selectedTheme,
+    required this.brightness,
+    required this.colorFor,
+    required this.onSelect,
+  });
+
+  Color get _sheetColor => brightness == Brightness.light
+      ? const Color(0xFFF2F2F7)
+      : const Color(0xFF2C2C2E);
+
+  Color get _iconColor =>
+      brightness == Brightness.light ? Colors.black54 : Colors.white70;
+
+  @override
+  Widget build(BuildContext context) {
+    final ordered = [
+      selectedTheme,
+      ..._kThemeOrder.where((t) => t != selectedTheme),
+    ];
+
+    return SafeArea(
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        decoration: BoxDecoration(
+          color: _sheetColor,
+          borderRadius: BorderRadius.circular(28),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 32,
+              height: 4,
+              decoration: BoxDecoration(
+                color: _iconColor.withAlpha(80),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final count = ordered.length;
+                const spacing = 10.0;
+                final circleSize =
+                    ((constraints.maxWidth - spacing * (count - 1)) / count)
+                        .clamp(48.0, 72.0);
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: ordered.map((family) {
+                    final isSelected = family == selectedTheme;
+                    final color = colorFor(family);
+
+                    return GestureDetector(
+                      onTap: () => onSelect(family),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: circleSize,
+                        height: circleSize,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: color.withAlpha(140),
+                                    blurRadius: 14,
+                                    spreadRadius: 2,
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: isSelected
+                            ? Icon(
+                                Icons.check_rounded,
+                                size: circleSize * 0.42,
+                                color: _iconColor,
+                              )
+                            : null,
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
