@@ -785,19 +785,15 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              // Evita overflow limitando el alto del grid visual
-                              SizedBox(
-                                height: 120,
-                                child: ThemeSelectorCircleGrid(
-                                  selectedTheme: currentThemeFamily,
-                                  brightness: currentBrightness,
-                                  onThemeChanged: (theme) {
-                                    context.read<ThemeBloc>().add(
-                                          ChangeThemeFamily(theme),
-                                        );
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
+                              ThemeSelectorCircleGrid(
+                                selectedTheme: currentThemeFamily,
+                                brightness: currentBrightness,
+                                onThemeChanged: (theme) {
+                                  context.read<ThemeBloc>().add(
+                                        ChangeThemeFamily(theme),
+                                      );
+                                  Navigator.of(context).pop();
+                                },
                               ),
                             ],
                           ),
