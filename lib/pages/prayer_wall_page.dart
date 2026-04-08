@@ -174,6 +174,10 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
         icon: const Text('🙏', style: TextStyle(fontSize: 18)),
         label: Text('prayer_wall.submit'.tr()),
       ),
+      floatingActionButtonLocation:
+          Directionality.of(context) == TextDirection.rtl
+              ? FloatingActionButtonLocation.startFloat
+              : FloatingActionButtonLocation.endFloat,
     );
   }
 }
