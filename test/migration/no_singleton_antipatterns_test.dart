@@ -429,6 +429,125 @@ void main() {
       );
     });
 
+    // ── BibleReader TTS DI patterns ───────────────────────────────────────────
+
+    test(
+      'BibleReaderPage accepts optional FlutterTts for dependency injection',
+      () async {
+        final file = File('lib/pages/bible_reader_page.dart');
+        expect(await file.exists(), isTrue,
+            reason: 'BibleReaderPage source file should exist');
+
+        final content = await file.readAsString();
+
+        // Widget constructor must expose an injectable FlutterTts parameter.
+        expect(
+          content.contains('FlutterTts? flutterTts'),
+          isTrue,
+          reason:
+              'BibleReaderPage must have optional FlutterTts? flutterTts field for DI',
+        );
+
+        // FlutterTts must NOT be instantiated at field level.
+        expect(
+          RegExp(r'final FlutterTts _flutterTts\s*=\s*FlutterTts\(\)')
+              .hasMatch(content),
+          isFalse,
+          reason:
+              'BibleReaderPage must not instantiate FlutterTts at field level; '
+              'use widget.flutterTts ?? FlutterTts() in initState instead',
+        );
+      },
+    );
+
+    test(
+      'BibleReaderPage resolves VoiceSettingsService once in initState, '
+      'not inside _handleTtsPlayPause',
+      () async {
+        final file = File('lib/pages/bible_reader_page.dart');
+        final content = await file.readAsString();
+
+        // _handleTtsPlayPause must NOT contain an inline getService call.
+        // We check by extracting the method body heuristically.
+        final methodStart =
+            content.indexOf('Future<void> _handleTtsPlayPause(');
+        final methodEnd = content.indexOf('\n  Future<void>', methodStart + 1);
+        final methodBody = methodStart != -1 && methodEnd != -1
+            ? content.substring(methodStart, methodEnd)
+            : '';
+
+        expect(
+          methodBody.contains('getService<VoiceSettingsService>()'),
+          isFalse,
+          reason:
+              '_handleTtsPlayPause must not call getService<VoiceSettingsService>() '
+              'inline; resolve in initState and use the stored field instead',
+        );
+      },
+    );
+
+    test(
+      'BibleReaderTtsMiniplayerPresenter accepts AnalyticsService at '
+      'construction time, not via inline getService<>',
+      () async {
+        final file = File(
+          'lib/widgets/bible/bible_reader_tts_miniplayer_presenter.dart',
+        );
+        expect(await file.exists(), isTrue,
+            reason:
+                'BibleReaderTtsMiniplayerPresenter source file should exist');
+
+        final content = await file.readAsString();
+
+        // Constructor must accept an AnalyticsService parameter.
+        expect(
+          content.contains('required AnalyticsService analyticsService'),
+          isTrue,
+          reason:
+              'BibleReaderTtsMiniplayerPresenter must accept AnalyticsService '
+              'via constructor for proper dependency injection',
+        );
+
+        // The presenter must NOT import service_locator.dart.
+        expect(
+          content.contains(
+            "import 'package:devocional_nuevo/services/service_locator.dart'",
+          ),
+          isFalse,
+          reason:
+              'BibleReaderTtsMiniplayerPresenter must not import service_locator; '
+              'all services must be injected, never resolved inline',
+        );
+
+        // There must be no inline getService<AnalyticsService>() call.
+        expect(
+          content.contains('getService<AnalyticsService>()'),
+          isFalse,
+          reason: 'BibleReaderTtsMiniplayerPresenter must not call '
+              'getService<AnalyticsService>() inline inside handlers',
+        );
+      },
+    );
+
+    test(
+      'BibleReaderTtsMiniplayerPresenter exposes onShowVoiceSelector callback '
+      'to eliminate duplicate voice selector paths',
+      () async {
+        final file = File(
+          'lib/widgets/bible/bible_reader_tts_miniplayer_presenter.dart',
+        );
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('onShowVoiceSelector'),
+          isTrue,
+          reason:
+              'BibleReaderTtsMiniplayerPresenter must have onShowVoiceSelector '
+              'callback so both the page and miniplayer share one implementation',
+        );
+      },
+    );
+
     // ── DevocionalRepository DI registration ──────────────────────────────────
 
     test(
