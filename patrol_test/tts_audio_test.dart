@@ -147,12 +147,12 @@ void main() {
           reason: 'Duration should remain constant, calculated at 1.0x speed',
         );
 
-        // WHEN: User continues cycling speed to 2.0x
+        // WHEN: User continues cycling speed to 0.5x
         await controller.cyclePlaybackRate();
         await Future.delayed(const Duration(milliseconds: 200));
 
-        // THEN: Speed is now 2.0x, duration still unchanged
-        expect(controller.playbackRate.value, equals(2.0));
+        // THEN: Speed is now 0.5x, duration still unchanged
+        expect(controller.playbackRate.value, equals(0.5));
         expect(controller.totalDuration.value, equals(originalDuration));
 
         // WHEN: User cycles back to 1.0x
@@ -214,7 +214,7 @@ void main() {
 
     group('Scenario 3: Speed Cycling Edge Cases', () {
       test(
-        'User cycles through all speeds: 1.0x -> 1.5x -> 2.0x -> 1.0x',
+        'User cycles through all speeds: 1.0x -> 1.5x -> 0.5x -> 1.0x',
         () async {
           // GIVEN: Controller with text
           controller.setText('Test text');
@@ -231,10 +231,10 @@ void main() {
           expect(controller.playbackRate.value, equals(1.5));
           expect(controller.totalDuration.value, equals(baseDuration));
 
-          // Cycle to 2.0x
+          // Cycle to 0.5x
           await controller.cyclePlaybackRate();
           await Future.delayed(const Duration(milliseconds: 100));
-          expect(controller.playbackRate.value, equals(2.0));
+          expect(controller.playbackRate.value, equals(0.5));
           expect(controller.totalDuration.value, equals(baseDuration));
 
           // Cycle back to 1.0x
@@ -246,29 +246,29 @@ void main() {
       );
 
       test('Speed changes persist during pause/resume', () async {
-        // GIVEN: User sets speed to 2.0x
+        // GIVEN: User sets speed to 0.5x (1.0 -> 1.5 -> 0.5)
         controller.setText('Test text for speed persistence');
         await controller.play();
         await Future.delayed(const Duration(milliseconds: 500));
 
         await controller.cyclePlaybackRate(); // 1.5x
-        await controller.cyclePlaybackRate(); // 2.0x
+        await controller.cyclePlaybackRate(); // 0.5x
         await Future.delayed(const Duration(milliseconds: 200));
 
-        expect(controller.playbackRate.value, equals(2.0));
+        expect(controller.playbackRate.value, equals(0.5));
 
         // WHEN: User pauses
         await controller.pause();
 
-        // THEN: Speed is still 2.0x
-        expect(controller.playbackRate.value, equals(2.0));
+        // THEN: Speed is still 0.5x
+        expect(controller.playbackRate.value, equals(0.5));
 
         // WHEN: User resumes
         await controller.play();
         await Future.delayed(const Duration(milliseconds: 500));
 
-        // THEN: Speed remains 2.0x
-        expect(controller.playbackRate.value, equals(2.0));
+        // THEN: Speed remains 0.5x
+        expect(controller.playbackRate.value, equals(0.5));
       });
     });
 
@@ -323,8 +323,11 @@ void main() {
 
     group('Scenario 5: Progress Tracking', () {
       test('User plays audio, progress updates correctly', () async {
-        // GIVEN: User has audio ready
-        const devotionalText = 'Reflexión breve para probar el progreso.';
+        // GIVEN: User has audio ready — long enough text so 500ms/total ≤ 10%
+        const devotionalText =
+            'Versículo del día: Juan 3:16. Porque de tal manera amó Dios al mundo, '
+            'que ha dado a su Hijo unigénito, para que todo aquel que en él cree, '
+            'no se pierda, mas tenga vida eterna. Reflexiona hoy en este amor.';
 
         controller.setText(devotionalText);
         await Future.delayed(const Duration(milliseconds: 100));
@@ -333,11 +336,11 @@ void main() {
         await controller.play();
         await Future.delayed(const Duration(milliseconds: 500));
 
-        // THEN: Initial progress is close to 0.0
-        final progress = controller.currentPosition.value.inMilliseconds /
-            (controller.totalDuration.value.inMilliseconds > 0
-                ? controller.totalDuration.value.inMilliseconds
-                : 1);
+        // THEN: Progress is well below 10% (text yields ~10s+ duration)
+        final totalMs = controller.totalDuration.value.inMilliseconds;
+        final progress = totalMs > 0
+            ? controller.currentPosition.value.inMilliseconds / totalMs
+            : 0.0;
         expect(
           progress,
           lessThanOrEqualTo(0.1),
