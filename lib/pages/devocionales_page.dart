@@ -920,7 +920,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     iconColor: colorScheme.onPrimary,
                   ),
                   floatingActionButtonLocation:
-                      FloatingActionButtonLocation.endFloat,
+                      Directionality.of(context) == TextDirection.rtl
+                          ? FloatingActionButtonLocation.startFloat
+                          : FloatingActionButtonLocation.endFloat,
                   body: Stack(
                     children: [
                       Column(
