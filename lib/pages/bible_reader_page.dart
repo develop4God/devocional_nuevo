@@ -1210,7 +1210,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             borderRadius: BorderRadius.circular(12),
           );
         } else {
-          mainIcon = Icon(Icons.headphones, size: 28, color: themeColor);
+          mainIcon = Icon(Icons.mic_outlined, size: 28, color: themeColor);
           decoration = BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(color: themeColor, width: borderWidth),
