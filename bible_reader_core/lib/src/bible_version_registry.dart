@@ -55,9 +55,9 @@ class BibleVersionRegistry {
       {'name': 'Schlachter 2000 (SCH2000)', 'dbFile': 'SCH2000_de.SQLite3'},
     ], // Add German
     'ar': [
-      {'name': 'الترجمة العربية الجديدة (NAV)', 'dbFile': 'NAV_ar.SQLite3'},
+      {'name': 'كتاب الحياة', 'dbFile': 'NAV_ar.SQLite3'},
       {
-        'name': 'ترجمة سميث وفاندايك (SVDA)',
+        'name': 'فان دايك',
         'dbFile': 'SVDA_ar.SQLite3',
       },
     ], // Add Arabic
