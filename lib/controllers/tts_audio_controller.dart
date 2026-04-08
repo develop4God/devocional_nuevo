@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
-import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -14,6 +13,7 @@ class TtsAudioController {
     TtsPlayerState.idle,
   );
   final FlutterTts flutterTts;
+  final VoiceSettingsService _voiceSettingsService;
   String? _currentText;
   String? _fullText;
   String _languageCode = 'es';
@@ -62,14 +62,17 @@ class TtsAudioController {
     }
   }
 
-  TtsAudioController({required this.flutterTts}) {
+  TtsAudioController({
+    required this.flutterTts,
+    required VoiceSettingsService voiceSettingsService,
+  }) : _voiceSettingsService = voiceSettingsService {
     // Cargar el rate guardado usando VoiceSettingsService
     try {
-      getService<VoiceSettingsService>().getSavedSpeechRate().then((
+      _voiceSettingsService.getSavedSpeechRate().then((
         settingsRate,
       ) {
         final miniRate = VoiceSettingsService.settingsToMini[settingsRate] ??
-            VoiceSettingsService().getMiniPlayerRate(settingsRate);
+            _voiceSettingsService.getMiniPlayerRate(settingsRate);
         final allowed = VoiceSettingsService.miniPlayerRates;
         final validRate =
             allowed.contains(miniRate) ? miniRate : _defaultMiniRate;
@@ -84,7 +87,7 @@ class TtsAudioController {
           debugPrint(
             '⚠️ [TTS Controller] miniRate $miniRate no permitido - reset a $validRate',
           );
-          getService<VoiceSettingsService>().setSavedSpeechRate(validRate);
+          _voiceSettingsService.setSavedSpeechRate(validRate);
         }
       });
     } catch (e) {
@@ -199,9 +202,9 @@ class TtsAudioController {
 
     // Obtener y aplicar la velocidad guardada usando VoiceSettingsService
     final double settingsRate =
-        await getService<VoiceSettingsService>().getSavedSpeechRate();
+        await _voiceSettingsService.getSavedSpeechRate();
     final double miniRate = VoiceSettingsService.settingsToMini[settingsRate] ??
-        VoiceSettingsService().getMiniPlayerRate(settingsRate);
+        _voiceSettingsService.getMiniPlayerRate(settingsRate);
     playbackRate.value = miniRate;
     final double ttsEngineRate =
         VoiceSettingsService.miniToSettings[miniRate] ?? 0.5;
@@ -256,8 +259,8 @@ class TtsAudioController {
       // instance. Without this, Arabic (and other non-default-language) voices
       // are never applied, causing TTS to speak with the wrong voice or silently fail.
       try {
-        await getService<VoiceSettingsService>()
-            .applyVoiceToInstance(flutterTts, _languageCode);
+        await _voiceSettingsService.applyVoiceToInstance(
+            flutterTts, _languageCode);
       } catch (e) {
         debugPrint(
           '⚠️ [TTS Controller] applyVoiceToInstance failed for $_languageCode: $e',
@@ -559,7 +562,7 @@ class TtsAudioController {
   // FIX: NO recalcular duración - mantener siempre a velocidad 1.0x
   Future<void> cyclePlaybackRate() async {
     try {
-      final voiceService = getService<VoiceSettingsService>();
+      final voiceService = _voiceSettingsService;
       debugPrint('🔁 [TTS Controller] Delegando ciclo a VoiceSettingsService');
 
       // Guardamos posición actual para mantenerla después del cambio

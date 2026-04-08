@@ -50,6 +50,7 @@ import 'package:share_plus/share_plus.dart';
 import '../controllers/audio_controller.dart';
 import '../controllers/tts_audio_controller.dart';
 import '../services/analytics_service.dart';
+import '../services/tts/voice_settings_service.dart';
 import '../services/spiritual_stats_service.dart';
 import '../widgets/animated_fab_with_text.dart';
 import '../widgets/devocionales/devocionales_bottom_bar.dart';
@@ -121,7 +122,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       getService<DeepLinkHandler>().flushPendingLink();
     });
-    _ttsAudioController = TtsAudioController(flutterTts: _flutterTts);
+    _ttsAudioController = TtsAudioController(
+      flutterTts: _flutterTts,
+      voiceSettingsService: getService<VoiceSettingsService>(),
+    );
     _ttsMiniplayerPresenter = DevocionalTtsMiniplayerPresenter(
         ttsAudioController: _ttsAudioController);
     _navigationHelper = DevocionalNavigationHelper(

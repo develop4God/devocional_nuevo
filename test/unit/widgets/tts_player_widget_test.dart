@@ -4,6 +4,7 @@ library;
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -43,7 +44,10 @@ void main() {
       date: DateTime.now(),
     );
     final mockTts = MockFlutterTts();
-    final controller = TtsAudioController(flutterTts: mockTts);
+    final controller = TtsAudioController(
+      flutterTts: mockTts,
+      voiceSettingsService: VoiceSettingsService(),
+    );
 
     await tester.pumpWidget(
       MaterialApp(

@@ -54,8 +54,11 @@ void main() {
       });
 
       mockTts = FlutterTts();
-      controller = TtsAudioController(flutterTts: mockTts);
       voiceSettings = VoiceSettingsService();
+      controller = TtsAudioController(
+        flutterTts: mockTts,
+        voiceSettingsService: voiceSettings,
+      );
     });
 
     tearDown(() {
