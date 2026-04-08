@@ -396,6 +396,62 @@ class VoiceSettingsService {
     return null;
   }
 
+  /// Applies the saved voice for [language] directly to the given [ttsInstance].
+  ///
+  /// This is the critical method that ensures the correct voice is set on the
+  /// [TtsAudioController]'s own FlutterTts instance before calling speak().
+  /// Without this, the controller speaks with the default system voice regardless
+  /// of user voice selection (the voice was previously only applied to the
+  /// VoiceSettingsService's own internal FlutterTts instance).
+  Future<void> applyVoiceToInstance(
+      FlutterTts ttsInstance, String language) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedVoice = prefs.getString('tts_voice_$language');
+
+      if (savedVoice == null) {
+        debugPrint(
+          '⚠️ VoiceSettings: No saved voice for $language, skipping applyVoiceToInstance',
+        );
+        return;
+      }
+
+      String voiceName, locale;
+      if (savedVoice.contains('technical_name')) {
+        final parts = savedVoice.split(', ');
+        voiceName = parts
+            .firstWhere((p) => p.contains('technical_name'))
+            .split(': ')[1];
+        locale = parts.firstWhere((p) => p.contains('locale')).split(': ')[1];
+        // Strip trailing '}' if present
+        locale = locale.replaceAll('}', '').trim();
+        voiceName = voiceName.trim();
+      } else {
+        final voiceParts = savedVoice.split(' (');
+        voiceName = voiceParts[0].trim();
+        locale = voiceParts.length > 1
+            ? voiceParts[1].replaceAll(')', '').trim()
+            : _getDefaultLocaleForLanguage(language);
+      }
+
+      if (voiceName.isEmpty || locale.isEmpty) {
+        debugPrint(
+          '⚠️ VoiceSettings: Invalid voice data for $language in applyVoiceToInstance (name: "$voiceName", locale: "$locale")',
+        );
+        return;
+      }
+
+      await ttsInstance.setVoice({'name': voiceName, 'locale': locale});
+      debugPrint(
+        '🎙️ VoiceSettings: Applied voice "$voiceName" (locale: $locale) to controller FlutterTts for language $language',
+      );
+    } catch (e) {
+      debugPrint(
+        '⚠️ VoiceSettings: Failed to applyVoiceToInstance for $language: $e',
+      );
+    }
+  }
+
   /// ✅ METODO PRINCIPAL MEJORADO PARA NOMBRES USER-FRIENDLY
   String _getFriendlyVoiceName(String technicalName, String locale) {
     // 1. Verificar mapeo amigable con emoji y nombre
@@ -912,6 +968,14 @@ class VoiceSettingsService {
       'cmn-cn-x-ccc-local': '🇨🇳 女性 声 1', // Mujer (China)
       'cmn-tw-x-cte-network': '🇹🇼 男性 声 2', // Hombre 2 (Taiwán)
       'cmn-tw-x-ctc-network': '🇹🇼 女性 声 2', // Mujer 2 (Taiwán)
+    },
+    'ar': {
+      'ar-xa-x-are-local': '🇸🇦 رجل صوت 1', // Male Arabic 1
+      'ar-xa-x-are-network': '🇸🇦 رجل صوت 1', // Male Arabic 1 network
+      'ar-xa-x-ard-local': '🇸🇦 رجل صوت 2', // Male Arabic 2
+      'ar-xa-x-ard-network': '🇸🇦 رجل صوت 2', // Male Arabic 2 network
+      'ar-xa-x-arz-local': '🇸🇦 امرأة صوت 1', // Female Arabic 1
+      'ar-xa-x-arz-network': '🇸🇦 امرأة صوت 1', // Female Arabic 1 network
     },
   };
 

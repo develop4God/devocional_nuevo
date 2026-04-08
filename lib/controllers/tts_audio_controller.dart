@@ -16,6 +16,7 @@ class TtsAudioController {
   final FlutterTts flutterTts;
   String? _currentText;
   String? _fullText;
+  String _languageCode = 'es';
   Duration _fullDuration = Duration.zero;
   bool _disposed = false;
 
@@ -145,6 +146,7 @@ class TtsAudioController {
     );
     _fullText = text;
     _currentText = text;
+    _languageCode = languageCode; // store for voice application in play()
     // Estimar duración solo para UI
     int estimatedSeconds;
     if (languageCode == 'ja' || languageCode == 'zh') {
@@ -248,6 +250,19 @@ class TtsAudioController {
       '🎤 [TTS Controller] Llamando flutterTts.speak() con ${_currentText!.length} caracteres',
     );
     if (_currentText != null && _currentText!.isNotEmpty) {
+      // CRITICAL FIX: Apply the saved voice to THIS FlutterTts instance before
+      // speaking. VoiceSettingsService.loadSavedVoice() only applies the voice
+      // to its own internal FlutterTts instance, not to this controller's
+      // instance. Without this, Arabic (and other non-default-language) voices
+      // are never applied, causing TTS to speak with the wrong voice or silently fail.
+      try {
+        await getService<VoiceSettingsService>()
+            .applyVoiceToInstance(flutterTts, _languageCode);
+      } catch (e) {
+        debugPrint(
+          '⚠️ [TTS Controller] applyVoiceToInstance failed for $_languageCode: $e',
+        );
+      }
       await flutterTts.speak(_currentText!);
       debugPrint('🎤 [TTS Controller] flutterTts.speak() completado (async)');
     }
