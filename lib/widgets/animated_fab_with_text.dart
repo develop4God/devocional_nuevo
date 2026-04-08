@@ -61,17 +61,17 @@ class _AnimatedFabWithTextState extends State<AnimatedFabWithText>
     final screenWidth = MediaQuery.of(context).size.width;
     final calculatedWidth = (screenWidth * 0.95).clamp(140.0, double.infinity);
     final maxWidth = widget.width ?? calculatedWidth;
+    final textDirection = Directionality.of(context);
 
     return SizedBox(
       height: widget.height,
-      child: Stack(
-        alignment: Alignment.centerRight,
-        clipBehavior: Clip.none,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Contenedor de texto expandible (detrás)
+          // Contenedor de texto expandible (RTL-aware via textDirection)
           if (_showText)
-            Positioned(
-              right: 0,
+            Flexible(
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.easeOutCubic,
@@ -95,38 +95,35 @@ class _AnimatedFabWithTextState extends State<AnimatedFabWithText>
                       onTap: widget.onPressed,
                       borderRadius: BorderRadius.circular(widget.height / 2),
                       child: Padding(
-                        padding: EdgeInsets.only(
-                          left: 20,
-                          right: widget.height + 4,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20,
                         ),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: AnimatedOpacity(
-                            opacity: _showText ? 1.0 : 0.0,
-                            duration: const Duration(milliseconds: 400),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.add_circle,
-                                  color: widget.textColor,
-                                  size: 50,
-                                ),
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: Text(
-                                    widget.text,
-                                    style: TextStyle(
-                                      color: widget.textColor,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 15,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                        child: AnimatedOpacity(
+                          opacity: _showText ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 400),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            textDirection: textDirection,
+                            children: [
+                              Icon(
+                                Icons.add_circle,
+                                color: widget.textColor,
+                                size: 50,
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  widget.text,
+                                  style: TextStyle(
+                                    color: widget.textColor,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -135,12 +132,11 @@ class _AnimatedFabWithTextState extends State<AnimatedFabWithText>
                 ),
               ),
             ),
-          // FAB circular (siempre visible, al frente)
-          Positioned(
-            right: 0,
+          // FAB circular (always visible, end position in both LTR and RTL)
+          SizedBox(
+            width: widget.height,
+            height: widget.height,
             child: Container(
-              width: widget.height,
-              height: widget.height,
               decoration: BoxDecoration(
                 color: widget.fabColor,
                 shape: BoxShape.circle,
