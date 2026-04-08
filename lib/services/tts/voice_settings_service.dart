@@ -379,6 +379,18 @@ class VoiceSettingsService {
           await autoAssignDefaultVoice(language);
           return await loadSavedVoice(language); // Try again after fix
         }
+
+        // Additional validation for Arabic: ar-xa-x-* voices use locale 'ar', not 'ar-SA'
+        if (language == 'ar' &&
+            !locale.toLowerCase().startsWith('ar-xa') &&
+            locale != 'ar') {
+          debugPrint(
+            '⚠️ [VoiceSettings] Invalid locale for ar detected (locale: "$locale"). Clearing and re-assigning.',
+          );
+          await clearSavedVoice(language);
+          await autoAssignDefaultVoice(language);
+          return await loadSavedVoice(language); // Try again after fix
+        }
         // --- END VALIDATION ---
 
         // Aplicar la voz al TTS
@@ -441,9 +453,19 @@ class VoiceSettingsService {
         return;
       }
 
-      await ttsInstance.setVoice({'name': voiceName, 'locale': locale});
+      // CRITICAL: setLanguage() MUST be called before setVoice() to ensure the
+      // TTS engine loads the correct language module. Without this, speak() can
+      // hang indefinitely on non-system languages (e.g. Arabic on a Spanish device)
+      // because the engine never fires onStart/onError callbacks.
+      final langResult = await ttsInstance.setLanguage(locale);
       debugPrint(
-        '🎙️ VoiceSettings: Applied voice "$voiceName" (locale: $locale) to controller FlutterTts for language $language',
+        '🌐 [VoiceSettings] setLanguage("$locale") → result: $langResult (language: $language)',
+      );
+
+      final voiceResult =
+          await ttsInstance.setVoice({'name': voiceName, 'locale': locale});
+      debugPrint(
+        '🎙️ VoiceSettings: setVoice result: $voiceResult — applied "$voiceName" (locale: $locale) to controller FlutterTts for language $language',
       );
     } catch (e) {
       debugPrint(
@@ -752,7 +774,7 @@ class VoiceSettingsService {
       case 'hi':
         return 'hi-IN';
       case 'ar':
-        return 'ar-SA';
+        return 'ar';
       default:
         return 'es-ES';
     }

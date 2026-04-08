@@ -141,6 +141,19 @@ class TtsAudioController {
       stopProgressTimer();
       _setStateIfNotDisposed(TtsPlayerState.idle);
     });
+
+    // CRITICAL: ErrorHandler must be registered to catch TTS engine failures.
+    // Without this, errors (e.g. language not loaded, voice not available) are
+    // completely silent and speak() may hang forever without any callback.
+    flutterTts.setErrorHandler((dynamic message) {
+      debugPrint(
+        '❌ [TTS Controller] ERROR HANDLER — message: $message (language: $_languageCode, state: ${state.value})',
+      );
+      if (!_isPlayingSample) {
+        stopProgressTimer();
+        _setStateIfNotDisposed(TtsPlayerState.error);
+      }
+    });
   }
 
   void setText(String text, {String languageCode = 'es'}) {
@@ -266,8 +279,41 @@ class TtsAudioController {
           '⚠️ [TTS Controller] applyVoiceToInstance failed for $_languageCode: $e',
         );
       }
-      await flutterTts.speak(_currentText!);
-      debugPrint('🎤 [TTS Controller] flutterTts.speak() completado (async)');
+
+      // SAFETY NET: wrap speak() in a 10-second timeout.
+      // On some Android devices/languages (e.g. Arabic), speak() can hang
+      // indefinitely if the TTS engine rejects the request without calling
+      // any callback. The timeout prevents the UI from freezing in LOADING.
+      bool speakTimedOut = false;
+      debugPrint(
+        '🎤 [TTS Controller] Iniciando speak() [lang=$_languageCode, ${_currentText!.length}ch]',
+      );
+      try {
+        await flutterTts.speak(_currentText!).timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            speakTimedOut = true;
+            debugPrint(
+              '⚠️ [TTS Controller] speak() TIMED OUT after 10s — language: $_languageCode. '
+              'Engine did not respond. Check setLanguage/setVoice calls.',
+            );
+            return null;
+          },
+        );
+      } catch (e) {
+        debugPrint('❌ [TTS Controller] speak() threw exception: $e');
+      }
+      debugPrint(
+        '🎤 [TTS Controller] flutterTts.speak() completado (async) — timeout: $speakTimedOut',
+      );
+
+      if (speakTimedOut) {
+        debugPrint(
+          '❌ [TTS Controller] speak() timed out — transitioning to ERROR state',
+        );
+        _setStateIfNotDisposed(TtsPlayerState.error);
+        return;
+      }
     }
 
     if (state.value == TtsPlayerState.loading) {
