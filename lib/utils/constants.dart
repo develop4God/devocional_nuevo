@@ -207,7 +207,8 @@ class Constants {
   static String versionAbbreviation(BibleVersion version) {
     if (version.languageCode == 'ja' ||
         version.languageCode == 'zh' ||
-        version.languageCode == 'hi') {
+        version.languageCode == 'hi' ||
+        version.languageCode == 'ar') {
       return '';
     }
     final parts = version.dbFileName.split('_');
