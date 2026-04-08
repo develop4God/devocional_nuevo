@@ -77,7 +77,7 @@ class DevocionalesBottomBar extends StatelessWidget {
               return LinearProgressIndicator(
                 value: progress,
                 minHeight: 6,
-                backgroundColor: Colors.grey[300],
+                backgroundColor: colorScheme.onSurface.withAlpha(51),
                 color: colorScheme.primary,
               );
             },
@@ -94,28 +94,38 @@ class DevocionalesBottomBar extends StatelessWidget {
                     icon: Icon(
                       Icons.arrow_back_ios,
                       size: 16,
-                      color: colorScheme.primary,
+                      color: canNavigatePrevious
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withAlpha(97),
                     ),
                     label: Text(
                       'devotionals.previous'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: colorScheme.primary,
+                        color: canNavigatePrevious
+                            ? colorScheme.primary
+                            : colorScheme.onSurface.withAlpha(97),
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(
-                        color: colorScheme.primary,
+                        color: canNavigatePrevious
+                            ? colorScheme.primary
+                            : colorScheme.onSurface.withAlpha(51),
                         width: 1.5,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(22),
                       ),
-                      foregroundColor: colorScheme.primary,
-                      overlayColor: colorScheme.primary.withAlpha(
-                        (0.1 * 255).round(),
-                      ),
+                      foregroundColor: canNavigatePrevious
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withAlpha(97),
+                      overlayColor: canNavigatePrevious
+                          ? colorScheme.primary.withAlpha(
+                              (0.1 * 255).round(),
+                            )
+                          : Colors.transparent,
                     ),
                   ),
                 ),
@@ -151,16 +161,22 @@ class DevocionalesBottomBar extends StatelessWidget {
                     onPressed: canNavigateNext ? onNext : null,
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(
-                        color: colorScheme.primary,
+                        color: canNavigateNext
+                            ? colorScheme.primary
+                            : colorScheme.onSurface.withAlpha(51),
                         width: 1.5,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(22),
                       ),
-                      foregroundColor: colorScheme.primary,
-                      overlayColor: colorScheme.primary.withAlpha(
-                        (0.1 * 255).round(),
-                      ),
+                      foregroundColor: canNavigateNext
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withAlpha(97),
+                      overlayColor: canNavigateNext
+                          ? colorScheme.primary.withAlpha(
+                              (0.1 * 255).round(),
+                            )
+                          : Colors.transparent,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -170,14 +186,18 @@ class DevocionalesBottomBar extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: colorScheme.primary,
+                            color: canNavigateNext
+                                ? colorScheme.primary
+                                : colorScheme.onSurface.withAlpha(97),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Icon(
                           Icons.arrow_forward_ios,
                           size: 16,
-                          color: colorScheme.primary,
+                          color: canNavigateNext
+                              ? colorScheme.primary
+                              : colorScheme.onSurface.withAlpha(97),
                         ),
                       ],
                     ),
