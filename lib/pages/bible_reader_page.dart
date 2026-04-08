@@ -385,12 +385,14 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   // Helper para prefijos de capítulo y versículo según idioma
   String getChapterPrefix(String? lang) {
     if (lang == 'ja' || lang == 'zh') return '章'; // japonés o chino
+    if (lang == 'ar') return 'ف'; // árabe
     if (lang == 'hi') return 'अ.';
     return 'C.';
   }
 
   String getVersePrefix(String? lang) {
     if (lang == 'ja' || lang == 'zh') return '节'; // japonés o chino
+    if (lang == 'ar') return 'آ'; // árabe
     if (lang == 'hi') return 'प.';
     return 'V.';
   }
@@ -461,129 +463,103 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           child: Scaffold(
             appBar: PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight),
-              child: Stack(
-                children: [
-                  CustomAppBar(
-                    titleWidget: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'bible.title'.tr(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.onPrimary,
-                              ),
-                        ),
-                        if (!state.isLoading && state.selectedVersion != null)
-                          Text(
-                            _versionLabel(state.selectedVersion!),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimary
-                                      .withValues(alpha: 0.85),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    right: state.availableVersions.length > 1 ? 96 : 48,
-                    top: 0,
-                    bottom: 0,
-                    child: SafeArea(
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.search,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                        tooltip: 'bible.search'.tr(),
-                        onPressed: _showSearchOverlay,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: state.availableVersions.length > 1 ? 48 : 0,
-                    top: 0,
-                    bottom: 0,
-                    child: SafeArea(
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.text_increase_outlined,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                        tooltip: 'bible.adjust_font_size'.tr(),
-                        onPressed: () => _controller.toggleFontControls(),
-                      ),
-                    ),
-                  ),
-                  if (state.availableVersions.length > 1)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      child: SafeArea(
-                        child: PopupMenuButton<BibleVersion>(
-                          icon: Icon(
-                            Icons.menu,
+              child: CustomAppBar(
+                titleWidget: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'bible.title'.tr(),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: Theme.of(context).colorScheme.onPrimary,
                           ),
-                          tooltip: 'bible.select_version'.tr(),
-                          onSelected: (version) async {
-                            final scaffoldMessenger = ScaffoldMessenger.of(
-                              context,
-                            );
-                            final colorScheme = Theme.of(context).colorScheme;
-                            await _controller.switchVersion(version);
-                            if (!mounted) return;
-                            scaffoldMessenger.showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'bible.loading_version'.tr({
-                                    'version': version.name,
-                                  }),
-                                  style: TextStyle(
-                                    color: colorScheme.onSecondary,
-                                  ),
-                                ),
-                                backgroundColor: colorScheme.secondary,
-                                duration: const Duration(seconds: 1),
-                              ),
-                            );
-                          },
-                          itemBuilder: (context) =>
-                              state.availableVersions.map((version) {
-                            return PopupMenuItem<BibleVersion>(
-                              value: version,
-                              child: Row(
-                                children: [
-                                  if (version.dbFileName ==
-                                      state.selectedVersion?.dbFileName)
-                                    Icon(
-                                      Icons.check,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                      size: 20,
-                                    )
-                                  else
-                                    const SizedBox(width: 20),
-                                  const SizedBox(width: 8),
-                                  Text(_versionPickerLabel(version)),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ),
+                    ),
+                    if (!state.isLoading && state.selectedVersion != null)
+                      Text(
+                        _versionLabel(state.selectedVersion!),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimary
+                                  .withValues(alpha: 0.85),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                            ),
                       ),
+                  ],
+                ),
+                actions: [
+                  // Search button (leftmost in RTL, rightmost in LTR)
+                  IconButton(
+                    icon: Icon(
+                      Icons.search,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    tooltip: 'bible.search'.tr(),
+                    onPressed: _showSearchOverlay,
+                  ),
+                  // Font size button (middle position)
+                  IconButton(
+                    icon: Icon(
+                      Icons.text_increase_outlined,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    tooltip: 'bible.adjust_font_size'.tr(),
+                    onPressed: () => _controller.toggleFontControls(),
+                  ),
+                  // Version menu (rightmost in RTL, leftmost action in LTR)
+                  if (state.availableVersions.length > 1)
+                    PopupMenuButton<BibleVersion>(
+                      icon: Icon(
+                        Icons.menu,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                      tooltip: 'bible.select_version'.tr(),
+                      onSelected: (version) async {
+                        final scaffoldMessenger = ScaffoldMessenger.of(
+                          context,
+                        );
+                        final colorScheme = Theme.of(context).colorScheme;
+                        await _controller.switchVersion(version);
+                        if (!mounted) return;
+                        scaffoldMessenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'bible.loading_version'.tr({
+                                'version': version.name,
+                              }),
+                              style: TextStyle(
+                                color: colorScheme.onSecondary,
+                              ),
+                            ),
+                            backgroundColor: colorScheme.secondary,
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                      itemBuilder: (context) =>
+                          state.availableVersions.map((version) {
+                        return PopupMenuItem<BibleVersion>(
+                          value: version,
+                          child: Row(
+                            children: [
+                              if (version.dbFileName ==
+                                  state.selectedVersion?.dbFileName)
+                                Icon(
+                                  Icons.check,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary,
+                                  size: 20,
+                                )
+                              else
+                                const SizedBox(width: 20),
+                              const SizedBox(width: 8),
+                              Text(_versionPickerLabel(version)),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                     ),
                 ],
               ),
