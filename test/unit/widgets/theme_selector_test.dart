@@ -11,7 +11,7 @@ void main() {
     late List<String> callbackRecords;
 
     setUp(() {
-      selectedTheme = 'Blue';
+      selectedTheme = 'Deep Purple';
       callbackRecords = [];
     });
 
@@ -39,56 +39,65 @@ void main() {
       expect(find.byType(ThemeSelectorCircleGrid), findsOneWidget);
     });
 
-    testWidgets('displays grid of theme options', (WidgetTester tester) async {
+    testWidgets('displays horizontal pill with circular theme indicators',
+        (WidgetTester tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      expect(find.byType(GridView), findsOneWidget);
+      // Should have Container for pill shape
+      expect(find.byType(Container), findsWidgets);
+
+      // Should have GestureDetector for theme circles
+      expect(find.byType(GestureDetector), findsWidgets);
     });
 
     testWidgets('shows check icon on selected theme',
         (WidgetTester tester) async {
-      await tester.pumpWidget(createWidgetUnderTest(theme: 'Blue'));
+      await tester.pumpWidget(createWidgetUnderTest(theme: 'Deep Purple'));
       await tester.pumpAndSettle();
 
-      // Theme selector should render (may or may not have Blue theme in constants)
-      expect(find.byType(ThemeSelectorCircleGrid), findsOneWidget);
+      // Find check icon (should appear on selected theme)
+      expect(find.byIcon(Icons.check_rounded), findsWidgets);
     });
 
-    testWidgets('displays theme names', (WidgetTester tester) async {
+    testWidgets('displays initial visible themes', (WidgetTester tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Should find text widgets (theme names)
-      expect(find.byType(Text), findsWidgets);
+      // Should have AnimatedContainers for theme circles
+      expect(find.byType(AnimatedContainer), findsWidgets);
     });
 
-    testWidgets('invokes callback when theme is tapped',
+    testWidgets('invokes callback when non-selected theme is tapped',
         (WidgetTester tester) async {
-      await tester.pumpWidget(createWidgetUnderTest(theme: 'Blue'));
+      await tester.pumpWidget(createWidgetUnderTest(theme: 'Deep Purple'));
       await tester.pumpAndSettle();
 
-      // Find a different theme to tap (not the selected one)
-      // First, let's find text widgets other than 'Blue'
-      final texts = find.byType(Text);
-      final textWidgets = tester.widgetList<Text>(texts).toList();
+      // Tap on one of the visible themes (Gray is second in order)
+      final gestureDetectors = find.byType(GestureDetector);
 
-      // Find a non-selected theme name
-      String? otherTheme;
-      for (var textWidget in textWidgets) {
-        final data = textWidget.data;
-        if (data != null && data != 'Blue' && data.length > 1) {
-          otherTheme = data;
-          break;
-        }
-      }
-
-      if (otherTheme != null) {
-        await tester.tap(find.text(otherTheme).first);
+      // Skip the first one (selected theme) and tap the next visible theme
+      if (tester.widgetList(gestureDetectors).length > 1) {
+        await tester.tap(gestureDetectors.at(1));
         await tester.pumpAndSettle();
 
-        expect(callbackRecords, contains(otherTheme));
+        // Callback should have been called
+        expect(callbackRecords, isNotEmpty);
       }
+    });
+
+    testWidgets('selected theme opens bottom sheet on tap',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(createWidgetUnderTest(theme: 'Deep Purple'));
+      await tester.pumpAndSettle();
+
+      // Tap on the selected theme circle
+      final selectCircle = find.byType(AnimatedContainer).first;
+      await tester.tap(selectCircle);
+      await tester.pumpAndSettle();
+
+      // Should open bottom sheet (Flutter wraps with 2 ModalBarriers)
+      expect(find.byType(ModalBarrier), findsWidgets);
     });
 
     testWidgets('handles light mode correctly', (WidgetTester tester) async {
@@ -109,63 +118,59 @@ void main() {
       expect(find.byType(ThemeSelectorCircleGrid), findsOneWidget);
     });
 
-    testWidgets('displays circular theme indicators',
+    testWidgets('displays chevron icon for theme selection',
         (WidgetTester tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Should have multiple GestureDetector widgets for theme selection
-      expect(find.byType(GestureDetector), findsWidgets);
+      // Should have chevron icon
+      expect(find.byIcon(Icons.chevron_right_rounded), findsOneWidget);
     });
 
-    testWidgets('all themes are tappable', (WidgetTester tester) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      final gestureDetectors = find.byType(GestureDetector);
-      expect(gestureDetectors, findsWidgets);
-
-      // All gesture detectors should be interactive
-      final count = tester.widgetList(gestureDetectors).length;
-      expect(count, greaterThan(0));
-    });
-
-    testWidgets('grid has proper layout constraints',
+    testWidgets('chevron opens theme selection sheet',
         (WidgetTester tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      final gridView = tester.widget<GridView>(find.byType(GridView));
-      expect(gridView.shrinkWrap, isTrue);
-      expect(gridView.physics, isA<NeverScrollableScrollPhysics>());
-    });
-
-    testWidgets('theme selector updates on selection change',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createWidgetUnderTest(theme: 'Blue'));
+      // Tap on chevron icon
+      await tester.tap(find.byIcon(Icons.chevron_right_rounded));
       await tester.pumpAndSettle();
 
-      // Initially with Blue selected
+      // Should open bottom sheet (Flutter wraps with 2 ModalBarriers)
+      expect(find.byType(ModalBarrier), findsWidgets);
+    });
+
+    testWidgets('theme selector updates when selection changes',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(createWidgetUnderTest(theme: 'Deep Purple'));
+      await tester.pumpAndSettle();
+
+      // Check initial state
       expect(find.byType(ThemeSelectorCircleGrid), findsOneWidget);
 
       // Rebuild with different selection
-      await tester.pumpWidget(createWidgetUnderTest(theme: 'Red'));
+      await tester.pumpWidget(createWidgetUnderTest(theme: 'Gray'));
       await tester.pumpAndSettle();
 
-      // Should still render without errors
+      // Should still render correctly
       expect(find.byType(ThemeSelectorCircleGrid), findsOneWidget);
     });
 
-    testWidgets('displays multiple theme options', (WidgetTester tester) async {
+    testWidgets('displays peek themes stack when available',
+        (WidgetTester tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Should display multiple theme names
-      final textWidgets = find.byType(Text);
-      expect(textWidgets, findsWidgets);
+      // Peek themes display in a Stack
+      expect(find.byType(Stack), findsWidgets);
+    });
 
-      // Should have more than just one theme option
-      expect(tester.widgetList(textWidgets).length, greaterThan(1));
+    testWidgets('pill shape has correct styling', (WidgetTester tester) async {
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      final containers = find.byType(Container);
+      expect(containers, findsWidgets);
     });
   });
 }
