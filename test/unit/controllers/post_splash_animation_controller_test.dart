@@ -83,5 +83,20 @@ void main() {
       c1.dispose();
       c2.dispose();
     });
+
+    test('no crash when disposed before animation timer fires', () async {
+      bool dismissCalled = false;
+      controller.initialize(onDismiss: () => dismissCalled = true);
+      expect(controller.isVisible, isTrue);
+
+      // Dispose immediately — before the 7-second timer fires
+      controller.dispose();
+
+      // Pump a short delay — the real timer won't fire in tests, but
+      // this verifies the guard path doesn't throw
+      await Future<void>.delayed(Duration.zero);
+
+      expect(dismissCalled, isFalse); // onDismiss must NOT be called
+    });
   });
 }

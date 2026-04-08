@@ -32,6 +32,7 @@ class PostSplashAnimationController extends ChangeNotifier {
 
   String? _selectedAsset;
   bool _isVisible = false;
+  bool _disposed = false;
 
   /// The randomly selected Lottie asset path
   String get selectedAsset => _selectedAsset ?? fallbackAsset;
@@ -53,6 +54,7 @@ class PostSplashAnimationController extends ChangeNotifier {
       notifyListeners();
 
       Future.delayed(animationDuration, () {
+        if (_disposed) return; // Guard: controller may have been disposed
         _isVisible = false;
         notifyListeners();
         onDismiss();
@@ -76,6 +78,13 @@ class PostSplashAnimationController extends ChangeNotifier {
   void _pickRandomAsset() {
     final random = Random();
     _selectedAsset = lottieAssets[random.nextInt(lottieAssets.length)];
+  }
+
+  @override
+  void dispose() {
+    if (_disposed) return; // Guard against double-dispose
+    _disposed = true;
+    super.dispose();
   }
 
   /// Reset the static flag (useful for testing).
