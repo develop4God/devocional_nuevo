@@ -91,8 +91,11 @@ void main() {
       ServiceLocator().reset();
       await setupServiceLocator();
       mockTts = MockFlutterTts();
-      controller = TtsAudioController(flutterTts: mockTts);
       voiceSettingsService = getService<VoiceSettingsService>();
+      controller = TtsAudioController(
+        flutterTts: mockTts,
+        voiceSettingsService: voiceSettingsService,
+      );
     });
 
     tearDown(() {

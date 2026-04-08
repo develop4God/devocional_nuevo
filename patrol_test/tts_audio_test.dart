@@ -2,6 +2,7 @@
 
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -61,7 +62,10 @@ void main() {
       });
 
       mockTts = FlutterTts();
-      controller = TtsAudioController(flutterTts: mockTts);
+      controller = TtsAudioController(
+        flutterTts: mockTts,
+        voiceSettingsService: VoiceSettingsService(),
+      );
     });
 
     tearDown(() {
