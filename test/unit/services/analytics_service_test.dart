@@ -19,7 +19,7 @@ void main() {
       mockAnalytics = MockFirebaseAnalytics();
       analyticsService = AnalyticsService(analytics: mockAnalytics);
       // Reset error count before each test
-      AnalyticsService.resetErrorCount();
+      AnalyticsService.reset();
     });
 
     group('logTtsPlay', () {
@@ -383,7 +383,7 @@ void main() {
         expect(AnalyticsService.analyticsErrorCount, 2);
       });
 
-      test('resetErrorCount should reset error counter', () async {
+      test('reset() should reset error counter', () async {
         // Arrange
         when(
           mockAnalytics.logEvent(name: 'tts_play', parameters: null),
@@ -393,7 +393,7 @@ void main() {
         expect(AnalyticsService.analyticsErrorCount, greaterThan(0));
 
         // Act
-        AnalyticsService.resetErrorCount();
+        AnalyticsService.reset();
 
         // Assert
         expect(AnalyticsService.analyticsErrorCount, 0);

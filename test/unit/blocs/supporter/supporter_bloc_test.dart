@@ -370,7 +370,7 @@ void main() {
             .deliver(SupporterTier.fromLevel(SupporterTierLevel.silver));
         await pumpEventQueue();
 
-        fakeIap.resetForTesting();
+        fakeIap.reset();
         fakeIap.setAvailable(false);
 
         await fakeIap

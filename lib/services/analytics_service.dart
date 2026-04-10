@@ -46,9 +46,8 @@ class AnalyticsService {
     }
   }
 
-  /// Resets error count (for testing purposes)
-  @visibleForTesting
-  static void resetErrorCount() {
+  /// Resets error count.
+  static void reset() {
     _analyticsErrorCount = 0;
   }
 

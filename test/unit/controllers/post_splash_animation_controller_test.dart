@@ -6,7 +6,7 @@ void main() {
     late PostSplashAnimationController controller;
 
     setUp(() {
-      PostSplashAnimationController.resetShownFlag();
+      PostSplashAnimationController.reset();
       controller = PostSplashAnimationController();
     });
 
@@ -69,12 +69,12 @@ void main() {
           const Duration(seconds: 7));
     });
 
-    test('resetShownFlag allows showing animation again', () {
+    test('reset() allows showing animation again', () {
       final c1 = PostSplashAnimationController();
       c1.initialize(onDismiss: () {});
       expect(c1.isVisible, isTrue);
 
-      PostSplashAnimationController.resetShownFlag();
+      PostSplashAnimationController.reset();
 
       final c2 = PostSplashAnimationController();
       c2.initialize(onDismiss: () {});

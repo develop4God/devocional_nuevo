@@ -20,7 +20,7 @@ void main() {
     setUp(() {
       mockAnalytics = MockFirebaseAnalytics();
       analyticsService = AnalyticsService(analytics: mockAnalytics);
-      AnalyticsService.resetErrorCount();
+      AnalyticsService.reset();
 
       // Register mock analytics service
       ServiceLocator().registerFactory<AnalyticsService>(
@@ -30,7 +30,7 @@ void main() {
     });
 
     tearDown(() {
-      AnalyticsService.resetErrorCount();
+      AnalyticsService.reset();
     });
 
     group('TTS Play Button Tracking', () {
@@ -202,7 +202,7 @@ void main() {
 
         // Act & Assert
         for (final testCase in testCases) {
-          AnalyticsService.resetErrorCount();
+          AnalyticsService.reset();
           final tag = testCase['tag'] as String;
           final shouldBeValid = testCase['valid'] as bool;
 

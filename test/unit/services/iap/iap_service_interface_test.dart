@@ -3,7 +3,7 @@ library;
 
 // test/unit/services/iap/iap_service_interface_test.dart
 //
-// TASK 1: Verify resetForTesting() is absent from IIapService (compile-time
+// TASK 1: Verify reset() is absent from IIapService (compile-time
 //         guarantee) and present on the concrete IapService.
 // TASK 7: Verify initStatus is exposed on IIapService.
 
@@ -43,24 +43,24 @@ void main() {
 
   group('IIapService interface contract', () {
     test(
-        'resetForTesting() is present on concrete IapService '
+        'reset() is present on concrete IapService '
         'and can be called without error', () {
       final svc = _makeService();
       // If the method were removed from IapService this would fail to compile.
-      expect(() => svc.resetForTesting(), returnsNormally);
+      expect(() => svc.reset(), returnsNormally);
     });
 
     test(
-        'IapService held as IIapService does not expose resetForTesting '
+        'IapService held as IIapService does not expose reset '
         '(compile-time enforcement)', () {
-      // Assigned to the interface type; resetForTesting must NOT be callable
+      // Assigned to the interface type; reset must NOT be callable
       // on this reference — that would be a compile error.
       final IIapService iapInterface = _makeService();
 
       expect(iapInterface, isA<IIapService>());
       // Downcast confirms the method IS on the concrete class:
       expect(iapInterface, isA<IapService>());
-      (iapInterface as IapService).resetForTesting();
+      (iapInterface as IapService).reset();
 
       // goldSupporterName and saveGoldSupporterName are absent from the
       // interface (TASK 6). Verified at compile time — if you tried:

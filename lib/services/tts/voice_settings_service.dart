@@ -18,12 +18,10 @@ class VoiceSettingsService {
   /// The Service Locator will create and manage the singleton instance.
   VoiceSettingsService();
 
-  /// Test constructor for injecting a mock FlutterTts instance.
-  @visibleForTesting
+  /// Constructor for injecting a mock FlutterTts instance.
   VoiceSettingsService.withTts(FlutterTts tts) : _flutterTtsInstance = tts;
 
-  /// Test constructor for injecting both main and sample TTS instances.
-  @visibleForTesting
+  /// Constructor for injecting both main and sample TTS instances.
   VoiceSettingsService.withBothTts(FlutterTts mainTts, FlutterTts sampleTts)
       : _flutterTtsInstance = mainTts,
         _sampleTtsInstance = sampleTts;

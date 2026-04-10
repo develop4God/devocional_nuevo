@@ -87,9 +87,8 @@ class PostSplashAnimationController extends ChangeNotifier {
     super.dispose();
   }
 
-  /// Reset the static flag (useful for testing).
-  @visibleForTesting
-  static void resetShownFlag() {
+  /// Reset the static session flag so the animation can be shown again.
+  static void reset() {
     _hasBeenShown = false;
   }
 }
