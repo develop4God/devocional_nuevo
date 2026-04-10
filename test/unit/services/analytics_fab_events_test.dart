@@ -18,7 +18,7 @@ void main() {
     setUp(() {
       mockAnalytics = MockFirebaseAnalytics();
       analyticsService = AnalyticsService(analytics: mockAnalytics);
-      AnalyticsService.resetErrorCount();
+      AnalyticsService.reset();
     });
 
     group('logFabTapped', () {

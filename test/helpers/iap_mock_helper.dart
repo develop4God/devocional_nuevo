@@ -113,7 +113,7 @@ class FakeIapService implements IIapService {
 
   /// Reset state for testing. Not part of [IIapService] — call only on
   /// the concrete [FakeIapService] reference.
-  void resetForTesting() {
+  void reset() {
     _purchasedLevels.clear();
     _isAvailable = false;
     _isInitialized = false;
@@ -122,7 +122,7 @@ class FakeIapService implements IIapService {
 
   @override
   void forceReinitialize() {
-    // In tests, forceReinitialize is a no-op (use resetForTesting() instead).
+    // In tests, forceReinitialize is a no-op (use reset() instead).
   }
 
   // ── Test helpers ──────────────────────────────────────────────────────────
