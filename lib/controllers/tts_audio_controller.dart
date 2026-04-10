@@ -27,6 +27,13 @@ class TtsAudioController {
   /// Flag to prevent modal close during seek operation
   bool _isSeeking = false;
 
+  /// True while play() is flushing the Android TTS queue with stop() just
+  /// before the first speak() call.  Guards cancelHandler so the deferred
+  /// Android stop event (left over from a previous flutterTts.pause(), which
+  /// calls stop() internally on Android) does NOT cancel the new utterance or
+  /// reset state to idle during the flush window.
+  bool _isPreparingToSpeak = false;
+
   /// When true, the completion handler is suppressed (intermediate chunk
   /// finished speaking but more chunks remain). Reset to false before the
   /// last chunk so the handler fires normally at the end of playback.
@@ -176,9 +183,10 @@ class TtsAudioController {
     flutterTts.setCancelHandler(() {
       debugPrint('❌ [TTS Controller] CANCEL HANDLER - Audio cancelado');
       // Don't change state to idle if we're in the middle of a seek operation
-      if (_isSeeking) {
+      // or if play() is currently flushing a stale Android stop event.
+      if (_isSeeking || _isPreparingToSpeak) {
         debugPrint(
-          '⏭️ [TTS Controller] Seek en progreso, manteniendo estado actual',
+          '⏭️ [TTS Controller] Cancel ignorado — seek:$_isSeeking preparing:$_isPreparingToSpeak',
         );
         return;
       }
@@ -400,6 +408,39 @@ class TtsAudioController {
           '⚠️ [TTS Controller] applyVoiceToInstance failed for $_languageCode: $e',
         );
       }
+
+      // CRITICAL FIX — pre-speak engine flush.
+      //
+      // On Android, flutterTts.pause() has no native pause; it calls
+      // tts.stop() internally.  That stop fires a deferred Android cancel
+      // event that arrives in Dart asynchronously — sometimes AFTER play()
+      // has already set state→LOADING and called speak().  When that stale
+      // cancel event lands in Android's TTS queue it silently cancels the
+      // new utterance before setStartHandler can fire, leaving the UI stuck
+      // in the LOADING / spinner state forever.
+      //
+      // Calling flutterTts.stop() here, under the _isPreparingToSpeak guard,
+      // explicitly drains that pending event BEFORE we queue the new
+      // utterance, guaranteeing a clean engine state.  The guard prevents
+      // cancelHandler from resetting state to idle during this flush window.
+      _isPreparingToSpeak = true;
+      try {
+        await flutterTts.stop();
+      } finally {
+        _isPreparingToSpeak = false;
+      }
+      if (_disposed) return;
+      // Re-verify state hasn't been changed by something outside our control
+      // (e.g. a very-delayed external event that slipped through the guard).
+      if (state.value != TtsPlayerState.loading) {
+        debugPrint(
+          '⚠️ [TTS Controller] State changed during pre-speak flush: ${state.value} — aborting play()',
+        );
+        return;
+      }
+      debugPrint(
+        '🧹 [TTS Controller] Pre-speak engine flush complete — engine clean',
+      );
 
       // SAFETY NET: wrap speak() in a timeout.
       // On some Android devices/languages (e.g. Arabic), speak() can hang

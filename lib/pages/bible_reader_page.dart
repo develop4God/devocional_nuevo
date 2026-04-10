@@ -66,8 +66,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   late final TtsAudioController _ttsAudioController;
   late final BibleReaderTtsMiniplayerPresenter _ttsMiniplayerPresenter;
   late final VoiceSettingsService _voiceSettingsService;
-  late VoidCallback _ttsStateListener;
-  // Guards the _ttsStateListener closure after dispose().
+  // Guards addPostFrameCallback callbacks after dispose().
   bool _disposed = false;
 
   @override
@@ -107,21 +106,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           _showBibleVoiceSelector(ctx, lang, sampleText),
     );
 
-    // Auto-open miniplayer when TTS starts playing.
-    _ttsStateListener = () {
-      if (_disposed) return;
-      final ttsState = _ttsAudioController.state.value;
-      if (ttsState == TtsPlayerState.playing &&
-          !_ttsMiniplayerPresenter.isShowing) {
-        if (mounted) {
-          _ttsMiniplayerPresenter.showMiniplayerModal(
-            context,
-            () => _controller.state,
-          );
-        }
-      }
-    };
-    _ttsAudioController.state.addListener(_ttsStateListener);
+    // Auto-open miniplayer when TTS starts playing — same pattern as
+    // devocionales_page (tested by 3000+ users in production).
+    // Opens on LOADING state for instant feedback; no need to wait for
+    // setStartHandler (which can take seconds on large chapters like Psalm 119).
+    _ttsAudioController.state.addListener(_handleTtsStateChange);
 
     // Initialize controller with device language
     final deviceLanguage = ui.PlatformDispatcher.instance.locale.languageCode;
@@ -133,12 +122,66 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     _disposed = true;
     _ttsAudioController.stop();
     try {
-      _ttsAudioController.state.removeListener(_ttsStateListener);
+      _ttsAudioController.state.removeListener(_handleTtsStateChange);
     } catch (_) {}
     _ttsMiniplayerPresenter.dispose();
     _ttsAudioController.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  /// TTS state listener — mirrors the production-validated devocionales_page
+  /// implementation (tested by 3000+ users).
+  ///
+  /// Key differences from the old bible_reader lambda:
+  ///  • Opens the modal on [TtsPlayerState.loading] for instant feedback —
+  ///    no need to wait for setStartHandler, which can take several seconds
+  ///    on large chapters (Psalm 119 = ~12 kB, 4 chunks).
+  ///  • Uses [WidgetsBinding.addPostFrameCallback] to avoid calling
+  ///    showModalBottomSheet during a ValueNotifier notification frame.
+  ///  • Explicitly handles [TtsPlayerState.completed] to close the modal
+  ///    instead of relying solely on the modal builder's own close logic.
+  void _handleTtsStateChange() {
+    try {
+      final s = _ttsAudioController.state.value;
+
+      // Show modal immediately when LOADING starts (instant feedback while
+      // the TTS engine warms up the first chunk).
+      if ((s == TtsPlayerState.loading || s == TtsPlayerState.playing) &&
+          mounted &&
+          !_ttsMiniplayerPresenter.isShowing) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_disposed || !mounted || _ttsMiniplayerPresenter.isShowing) {
+            return;
+          }
+          debugPrint(
+            '🎵 [BibleReader Modal] Opening modal on state: $s (instant feedback)',
+          );
+          _ttsMiniplayerPresenter.showMiniplayerModal(
+            context,
+            () => _controller.state,
+          );
+        });
+      }
+
+      // Close modal ONLY when audio completes (not on pause/stop/idle).
+      if (s == TtsPlayerState.completed) {
+        if (_ttsMiniplayerPresenter.isShowing) {
+          _ttsMiniplayerPresenter.resetModalState();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_disposed) return;
+            if (mounted && Navigator.canPop(context)) {
+              debugPrint(
+                '🏁 [BibleReader Modal] Closing modal on COMPLETED state',
+              );
+              Navigator.of(context).pop();
+            }
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('[BibleReaderPage] Error en _handleTtsStateChange: $e');
+    }
   }
 
   // UI helper methods
