@@ -6,6 +6,7 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
+import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -97,6 +98,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     _ttsAudioController = TtsAudioController(
       flutterTts: flutterTts,
       voiceSettingsService: _voiceSettingsService,
+      chunkProcessor: getService<TtsChunkProcessor>(),
     );
     _ttsMiniplayerPresenter = BibleReaderTtsMiniplayerPresenter(
       ttsAudioController: _ttsAudioController,

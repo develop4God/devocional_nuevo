@@ -3,6 +3,7 @@ library;
 
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -380,8 +381,13 @@ void main() {
     });
   });
 
-  // ── _chunkTimeout ──────────────────────────────────────────────────────────
-  group('TtsAudioController - chunkTimeoutForTest', () {
+  // ── TtsChunkProcessor injection ───────────────────────────────────────────
+  // Chunk logic is tested in its own black-box suite:
+  //   test/unit/services/tts/utils/tts_chunk_processor_test.dart
+  //
+  // This group verifies that the controller accepts an injected processor and
+  // remains fully functional — integration smoke test.
+  group('TtsAudioController - TtsChunkProcessor injection', () {
     late TtsAudioController controller;
 
     setUp(() async {
@@ -390,10 +396,6 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
               const MethodChannel('flutter_tts'), (call) async => 1);
-      controller = TtsAudioController(
-        flutterTts: FlutterTts(),
-        voiceSettingsService: VoiceSettingsService(),
-      );
     });
 
     tearDown(() {
@@ -402,114 +404,35 @@ void main() {
           .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
     });
 
-    // Expected values derived from the constants:
-    //   _kBaselineCharsPerSec=12.0, _kTimeoutSafetyMultiplier=2.0
-    //   miniToSettings: 0.5→0.25, 1.0→0.5, 1.5→0.75
-    //   formula: ceil(chars / (12.0*(settingsRate/0.5)) * 2.0)
-    //            clamped to [60, 1200]
-
-    test('3500 chars @ 0.5x rate returns 1167s (within [1000, 1200])', () {
-      // settings=0.25 → adj=6.0 → ceil(3500/6.0*2)=1167 → clamped=1167
-      controller.playbackRate.value = 0.5;
-      final t = controller.chunkTimeoutForTest(3500);
-      debugPrint('chunkTimeout 3500@0.5x → ${t.inSeconds}s');
-      expect(t.inSeconds, 1167);
-      expect(t.inSeconds, greaterThanOrEqualTo(1000));
-      expect(t.inSeconds, lessThanOrEqualTo(1200));
+    test('controller is created with an explicit TtsChunkProcessor', () {
+      controller = TtsAudioController(
+        flutterTts: FlutterTts(),
+        voiceSettingsService: VoiceSettingsService(),
+        chunkProcessor: TtsChunkProcessor(),
+      );
+      expect(controller.state.value, TtsPlayerState.idle);
     });
 
-    test('3500 chars @ 1.5x rate returns 389s', () {
-      // settings=0.75 → adj=18.0 → ceil(3500/18.0*2)=389 → clamped=389
-      controller.playbackRate.value = 1.5;
-      final t = controller.chunkTimeoutForTest(3500);
-      debugPrint('chunkTimeout 3500@1.5x → ${t.inSeconds}s');
-      expect(t.inSeconds, 389);
-    });
-
-    test('100 chars @ 1.0x rate returns floor (60s)', () {
-      // settings=0.5 → adj=12.0 → ceil(100/12*2)=17 → clamped to floor=60
-      controller.playbackRate.value = 1.0;
-      final t = controller.chunkTimeoutForTest(100);
-      debugPrint('chunkTimeout 100@1.0x → ${t.inSeconds}s');
-      expect(t.inSeconds, 60);
-    });
-
-    test('99999 chars @ 1.0x rate returns ceiling (1200s)', () {
-      // settings=0.5 → adj=12.0 → ceil(99999/12*2)=16667 → clamped to ceiling=1200
-      controller.playbackRate.value = 1.0;
-      final t = controller.chunkTimeoutForTest(99999);
-      debugPrint('chunkTimeout 99999@1.0x → ${t.inSeconds}s');
-      expect(t.inSeconds, 1200);
-    });
-  });
-
-  // ── _splitIntoChunks ───────────────────────────────────────────────────────
-  group('TtsAudioController - splitIntoChunksForTest', () {
-    late TtsAudioController controller;
-
-    setUp(() async {
-      await registerTestServices();
-      SharedPreferences.setMockInitialValues({});
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-              const MethodChannel('flutter_tts'), (call) async => 1);
+    test('controller defaults to an internal processor when none is provided',
+        () {
       controller = TtsAudioController(
         flutterTts: FlutterTts(),
         voiceSettingsService: VoiceSettingsService(),
       );
+      expect(controller.state.value, TtsPlayerState.idle);
     });
 
-    tearDown(() {
-      controller.dispose();
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
-    });
-
-    test('short text (below maxLength) returns single unchanged chunk', () {
-      const text = 'Porque de tal manera amó Dios al mundo.';
-      final chunks = controller.splitIntoChunksForTest(text);
-      debugPrint('splitIntoChunks short → ${chunks.length} chunk(s)');
-      expect(chunks, hasLength(1));
-      expect(chunks.first, text);
-    });
-
-    test('long text produces multiple chunks each within maxLength', () {
-      // 800 × "word " = 4000 chars > default maxLength 3500
+    test('play() with long text (multi-chunk) reaches playing state', () async {
+      // 800×"word " is > 3500 chars — forces _processor.splitIntoChunks()
       final longText = ('word ' * 800).trim();
-      final chunks = controller.splitIntoChunksForTest(longText);
-      debugPrint('splitIntoChunks long → ${chunks.length} chunks, '
-          'sizes: ${chunks.map((c) => c.length).toList()}');
-      expect(chunks.length, greaterThan(1));
-      for (final chunk in chunks) {
-        expect(
-          chunk.length,
-          lessThanOrEqualTo(3500),
-          reason: 'chunk length ${chunk.length} exceeds _kMaxChunkLength',
-        );
-      }
-    });
-
-    test('chunks joined with space reconstruct original text', () {
-      // Verifies no words are dropped or mid-word splits occur
-      final original = ('Lorem ipsum dolor sit amet ' * 200).trim();
-      final chunks = controller.splitIntoChunksForTest(original);
-      final reassembled = chunks.join(' ');
-      debugPrint('splitIntoChunks reassembly: ${chunks.length} chunks, '
-          'original=${original.length} reassembled=${reassembled.length}');
-      expect(reassembled, original);
-    });
-
-    test('custom maxLength parameter is respected', () {
-      // Provide a tiny maxLength to force many small chunks
-      const text = 'one two three four five six seven eight nine ten';
-      final chunks = controller.splitIntoChunksForTest(text, maxLength: 10);
-      debugPrint(
-          'splitIntoChunks maxLength=10 → ${chunks.length} chunks: $chunks');
-      for (final chunk in chunks) {
-        expect(chunk.length, lessThanOrEqualTo(10));
-      }
-      // Reassembly still holds
-      expect(chunks.join(' '), text);
+      controller = TtsAudioController(
+        flutterTts: FlutterTts(),
+        voiceSettingsService: VoiceSettingsService(),
+        chunkProcessor: TtsChunkProcessor(),
+      );
+      controller.setText(longText);
+      await controller.play();
+      expect(controller.state.value, TtsPlayerState.playing);
     });
   });
 }

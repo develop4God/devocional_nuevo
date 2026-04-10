@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
+import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -14,6 +15,7 @@ class TtsAudioController {
   );
   final FlutterTts flutterTts;
   final VoiceSettingsService _voiceSettingsService;
+  late final TtsChunkProcessor _processor;
   String? _currentText;
   String? _fullText;
   String _languageCode = 'es';
@@ -52,36 +54,6 @@ class TtsAudioController {
   // Solo usar los rates permitidos y lógica de VoiceSettingsService
   static const double _defaultMiniRate = 1.0;
 
-  // ── Chunk-speak constants ─────────────────────────────────────────────────
-  /// Android TTS engine hard-rejects input >= 4096 chars (ERROR_OUTPUT -8).
-  /// 3500 gives a 596-char safety margin below that limit.
-  static const int _kMaxChunkLength = 3500;
-
-  /// Approximate chars/second at flutter_tts settings-rate 0.5 (normal speed).
-  /// Deliberately conservative at 12.0 rather than the theoretical 13.75
-  /// (150 wpm × 5.5 chars/word ÷ 60 s) to account for TTS engine warm-up,
-  /// inter-sentence pauses, and device variance.  A lower baseline produces
-  /// longer timeouts — the safe direction for a hang-detection safety net.
-  static const double _kBaselineCharsPerSec = 12.0;
-
-  /// Safety multiplier applied to the estimated speaking time.
-  /// 2× means the timeout fires only if TTS takes twice as long as expected,
-  /// which in practice means the engine silently hung.
-  static const double _kTimeoutSafetyMultiplier = 2.0;
-
-  /// Floor: even very short chunks or very fast rates get at least this.
-  static const int _kMinChunkTimeoutSec = 60;
-
-  /// Ceiling: hard cap so a hung engine never freezes the app for more than
-  /// 20 minutes regardless of chapter length or playback speed.
-  static const int _kMaxChunkTimeoutSec = 1200; // 20 min
-
-  /// Timeout for single-chunk (fire-and-forget) mode.
-  /// In this mode speak() resolves when the utterance is *queued*, not when
-  /// it finishes speaking, so 10 s is ample to detect a non-responsive engine.
-  static const int _kQueueTimeoutSec = 10;
-  // ─────────────────────────────────────────────────────────────────────────
-
   /// Check if currently playing a voice sample (not full content)
   bool get isPlayingSample => _isPlayingSample;
 
@@ -107,7 +79,9 @@ class TtsAudioController {
   TtsAudioController({
     required this.flutterTts,
     required VoiceSettingsService voiceSettingsService,
-  }) : _voiceSettingsService = voiceSettingsService {
+    TtsChunkProcessor? chunkProcessor,
+  })  : _voiceSettingsService = voiceSettingsService,
+        _processor = chunkProcessor ?? TtsChunkProcessor() {
     // Cargar el rate guardado usando VoiceSettingsService
     try {
       _voiceSettingsService.getSavedSpeechRate().then((
@@ -244,83 +218,6 @@ class TtsAudioController {
     debugPrint('📝 [TTS Controller] Posición inicializada a 0:00');
   }
 
-  /// Computes a per-chunk speak() timeout based on actual chunk length and
-  /// the current TTS engine rate.
-  ///
-  /// When [awaitSpeakCompletion] is `true` the Future returned by speak()
-  /// blocks until the utterance actually *finishes speaking* (which can be
-  /// several minutes for a long chunk at slow speed).  A fixed 300 s timeout
-  /// is too short at 0.5× speed (Psalm 119 chunks take ~510 s) and
-  /// unnecessarily large at 1.5× speed.  This method scales the timeout to
-  /// the actual workload and adds a 2× safety margin for engine irregularities.
-  ///
-  /// Floor  : [_kMinChunkTimeoutSec] (60 s)  — short chunks / fast rates.
-  /// Ceiling: [_kMaxChunkTimeoutSec] (1200 s) — even the longest Bible chapter
-  ///          at the slowest speed will complete well within 20 min per chunk.
-  Duration _chunkTimeout(int charCount) {
-    final double settingsRate =
-        VoiceSettingsService.miniToSettings[playbackRate.value] ?? 0.5;
-
-    // Scale baseline chars/sec linearly with the engine rate.
-    // settingsRate=0.5 is normal speed; 0.25 is half speed → half chars/sec.
-    final double adjustedCharsPerSec =
-        _kBaselineCharsPerSec * (settingsRate / 0.5);
-
-    final int estimated =
-        (charCount / adjustedCharsPerSec * _kTimeoutSafetyMultiplier).ceil();
-
-    final int clamped =
-        estimated.clamp(_kMinChunkTimeoutSec, _kMaxChunkTimeoutSec);
-
-    debugPrint(
-      '⏱️ [TTS Controller] _chunkTimeout: $charCount chars, '
-      'rate=$settingsRate → est=${estimated}s → timeout=${clamped}s',
-    );
-    return Duration(seconds: clamped);
-  }
-
-  /// Splits text into chunks of at most [_kMaxChunkLength] characters,
-  /// breaking only at word boundaries to avoid mid-word cuts.
-  /// Android TTS engine hard-rejects input >= 4096 chars (ERROR_OUTPUT -8).
-  List<String> _splitIntoChunks(String text,
-      {int maxLength = _kMaxChunkLength}) {
-    if (text.length <= maxLength) return [text];
-    final chunks = <String>[];
-    int start = 0;
-    while (start < text.length) {
-      int end = (start + maxLength).clamp(0, text.length);
-      if (end < text.length) {
-        // Walk back to last space to avoid mid-word cut
-        final lastSpace = text.lastIndexOf(' ', end);
-        if (lastSpace > start) end = lastSpace;
-      }
-      chunks.add(text.substring(start, end).trim());
-      start = end;
-      // Skip leading whitespace for next chunk
-      while (start < text.length && text[start] == ' ') {
-        start++;
-      }
-    }
-    debugPrint(
-      '📝 [TTS Controller] Text split into ${chunks.length} chunks (max $maxLength chars each)',
-    );
-    return chunks;
-  }
-
-  // ── Test-only accessors ───────────────────────────────────────────────────
-  /// Exposes [_chunkTimeout] for unit testing.
-  /// Private Dart members cannot be accessed from test files; this thin
-  /// wrapper adds no production overhead and is stripped by tree-shaking.
-  @visibleForTesting
-  Duration chunkTimeoutForTest(int charCount) => _chunkTimeout(charCount);
-
-  /// Exposes [_splitIntoChunks] for unit testing.
-  @visibleForTesting
-  List<String> splitIntoChunksForTest(String text,
-          {int maxLength = _kMaxChunkLength}) =>
-      _splitIntoChunks(text, maxLength: maxLength);
-  // ─────────────────────────────────────────────────────────────────────────
-
   Future<void> play() async {
     debugPrint('▶️ [TTS Controller] ========== PLAY() LLAMADO ==========');
     debugPrint('▶️ [TTS Controller] Estado previo: ${state.value.toString()}');
@@ -446,7 +343,7 @@ class TtsAudioController {
       // On some Android devices/languages (e.g. Arabic), speak() can hang
       // indefinitely if the TTS engine rejects the request without calling
       // any callback. The timeout prevents the UI from freezing in LOADING.
-      final chunks = _splitIntoChunks(_currentText!);
+      final chunks = _processor.splitIntoChunks(_currentText!);
       bool speakTimedOut = false;
       bool speakErrored = false;
 
@@ -497,8 +394,11 @@ class TtsAudioController {
           // When false (single chunk, fire-and-forget) speak() resolves as soon
           // as the utterance is queued, so a short queue-check timeout suffices.
           final speakTimeout = isMultiChunk
-              ? _chunkTimeout(chunks[i].length)
-              : const Duration(seconds: _kQueueTimeoutSec);
+              ? _processor.chunkTimeout(
+                  chunks[i].length,
+                  settingsRate: ttsEngineRate,
+                )
+              : const Duration(seconds: TtsChunkProcessor.kQueueTimeoutSec);
 
           try {
             await flutterTts.speak(chunks[i]).timeout(

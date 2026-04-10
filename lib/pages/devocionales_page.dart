@@ -49,6 +49,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../controllers/audio_controller.dart';
 import '../controllers/tts_audio_controller.dart';
+import '../services/tts/utils/tts_chunk_processor.dart';
 import '../services/analytics_service.dart';
 import '../services/tts/voice_settings_service.dart';
 import '../services/spiritual_stats_service.dart';
@@ -125,6 +126,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     _ttsAudioController = TtsAudioController(
       flutterTts: _flutterTts,
       voiceSettingsService: getService<VoiceSettingsService>(),
+      chunkProcessor: getService<TtsChunkProcessor>(),
     );
     _ttsMiniplayerPresenter = DevocionalTtsMiniplayerPresenter(
         ttsAudioController: _ttsAudioController);
