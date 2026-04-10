@@ -192,6 +192,33 @@ class TtsAudioController {
     debugPrint('📝 [TTS Controller] Posición inicializada a 0:00');
   }
 
+  /// Splits text into chunks of at most [maxLength] characters,
+  /// breaking only at word boundaries to avoid mid-word cuts.
+  /// Android TTS engine hard-rejects input >= 4096 chars (ERROR_OUTPUT -8).
+  List<String> _splitIntoChunks(String text, {int maxLength = 3500}) {
+    if (text.length <= maxLength) return [text];
+    final chunks = <String>[];
+    int start = 0;
+    while (start < text.length) {
+      int end = (start + maxLength).clamp(0, text.length);
+      if (end < text.length) {
+        // Walk back to last space to avoid mid-word cut
+        final lastSpace = text.lastIndexOf(' ', end);
+        if (lastSpace > start) end = lastSpace;
+      }
+      chunks.add(text.substring(start, end).trim());
+      start = end;
+      // Skip leading whitespace for next chunk
+      while (start < text.length && text[start] == ' ') {
+        start++;
+      }
+    }
+    debugPrint(
+      '📝 [TTS Controller] Text split into ${chunks.length} chunks (max $maxLength chars each)',
+    );
+    return chunks;
+  }
+
   Future<void> play() async {
     debugPrint('▶️ [TTS Controller] ========== PLAY() LLAMADO ==========');
     debugPrint('▶️ [TTS Controller] Estado previo: ${state.value.toString()}');
@@ -284,32 +311,49 @@ class TtsAudioController {
       // On some Android devices/languages (e.g. Arabic), speak() can hang
       // indefinitely if the TTS engine rejects the request without calling
       // any callback. The timeout prevents the UI from freezing in LOADING.
+      final chunks = _splitIntoChunks(_currentText!);
       bool speakTimedOut = false;
-      debugPrint(
-        '🎤 [TTS Controller] Iniciando speak() [lang=$_languageCode, ${_currentText!.length}ch]',
-      );
-      try {
-        await flutterTts.speak(_currentText!).timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            speakTimedOut = true;
-            debugPrint(
-              '⚠️ [TTS Controller] speak() TIMED OUT after 10s — language: $_languageCode. '
-              'Engine did not respond. Check setLanguage/setVoice calls.',
-            );
-            return null;
-          },
-        );
-      } catch (e) {
-        debugPrint('❌ [TTS Controller] speak() threw exception: $e');
-      }
-      debugPrint(
-        '🎤 [TTS Controller] flutterTts.speak() completado (async) — timeout: $speakTimedOut',
-      );
+      bool speakErrored = false;
 
-      if (speakTimedOut) {
+      for (int i = 0; i < chunks.length; i++) {
+        if (_disposed) break;
+        // Re-check state — user may have paused/stopped between chunks
+        if (state.value != TtsPlayerState.loading &&
+            state.value != TtsPlayerState.playing) {
+          debugPrint(
+            '⏹️ [TTS Controller] Chunk loop interrupted — state: ${state.value}',
+          );
+          break;
+        }
         debugPrint(
-          '❌ [TTS Controller] speak() timed out — transitioning to ERROR state',
+          '🎤 [TTS Controller] Iniciando speak() chunk ${i + 1}/${chunks.length} [lang=$_languageCode, ${chunks[i].length}ch]',
+        );
+        try {
+          await flutterTts.speak(chunks[i]).timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              speakTimedOut = true;
+              debugPrint(
+                '⚠️ [TTS Controller] speak() TIMED OUT after 10s — chunk ${i + 1}, language: $_languageCode.',
+              );
+              return null;
+            },
+          );
+        } catch (e) {
+          debugPrint(
+              '❌ [TTS Controller] speak() threw exception on chunk ${i + 1}: $e');
+          speakErrored = true;
+          break;
+        }
+        debugPrint(
+          '🎤 [TTS Controller] Chunk ${i + 1}/${chunks.length} completado — timeout: $speakTimedOut',
+        );
+        if (speakTimedOut) break;
+      }
+
+      if (speakTimedOut || speakErrored) {
+        debugPrint(
+          '❌ [TTS Controller] speak() failed — transitioning to ERROR state (timedOut: $speakTimedOut, errored: $speakErrored)',
         );
         _setStateIfNotDisposed(TtsPlayerState.error);
         return;
