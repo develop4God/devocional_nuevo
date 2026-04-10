@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
+import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -203,23 +204,65 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       '[TTS Widget] Texto TTS armado: ${_ttsText != null && _ttsText!.length > 80 ? '${_ttsText!.substring(0, 80)}...' : _ttsText}',
     );
 
+    const bubbleId = 'devocional_tts_play_bubble';
+
     // Restore dynamic visuals: show spinner while loading, pause when playing, play otherwise.
-    return ValueListenableBuilder<TtsPlayerState>(
-      valueListenable: widget.audioController.state,
-      builder: (context, state, _) {
-        return Material(
-          color: Colors.transparent,
-          elevation: 0,
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: () => _handlePlayPause(
-                context,
-                state,
-                _currentLanguage ??
-                    Localizations.localeOf(context).languageCode,
-                _ttsText ?? ''),
-            child: _buildButton(context, state),
-          ),
+    return FutureBuilder<bool>(
+      future: BubbleUtils.shouldShowBubble(bubbleId),
+      builder: (context, snapshot) {
+        final showBubble = snapshot.data ?? false;
+        return ValueListenableBuilder<TtsPlayerState>(
+          valueListenable: widget.audioController.state,
+          builder: (context, state, _) {
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Material(
+                  color: Colors.transparent,
+                  elevation: 0,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () async {
+                      await BubbleUtils.markAsShown(bubbleId);
+                      if (mounted) {
+                        _handlePlayPause(
+                            context,
+                            state,
+                            _currentLanguage ??
+                                Localizations.localeOf(context).languageCode,
+                            _ttsText ?? '');
+                      }
+                    },
+                    child: _buildButton(context, state),
+                  ),
+                ),
+                if (showBubble && state == TtsPlayerState.idle)
+                  Positioned(
+                    top: -6,
+                    right: -6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: BubbleConstants.newFeatureColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: BubbleConstants.bubbleShadow,
+                      ),
+                      child: Text(
+                        'bubble_constants.new_feature'.tr(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         );
       },
     );
