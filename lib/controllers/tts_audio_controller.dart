@@ -481,6 +481,23 @@ class TtsAudioController {
             '🎤 [TTS Controller] Chunk ${i + 1}/${chunks.length} completado — timeout: $speakTimedOut',
           );
           if (speakTimedOut) break;
+
+          // FIX: Freeze the timer between chunks so inter-chunk dead-zones
+          // (TTS engine silent while the next utterance is queued) do NOT
+          // count as elapsed playback time.  _pauseProgressTimer() snapshots
+          // the session elapsed into accumulatedPosition and nulls
+          // _playStartTime; setStartHandler for chunk i+1 will call
+          // _startProgressTimer() which restarts the timer from the correct
+          // accumulated base — eliminating the cumulative drift that causes
+          // the slider to finish before the audio on long multi-chunk texts.
+          if (isMultiChunk && i < chunks.length - 1) {
+            _pauseProgressTimer();
+            debugPrint(
+              '⏸️ [TTS Controller] Inter-chunk timer frozen — '
+              'accumulated=${accumulatedPosition.inSeconds}s '
+              '(chunk ${i + 1}/${chunks.length} done)',
+            );
+          }
         }
       } finally {
         // Cleanup: restore fire-and-forget mode so other callers (seek,
