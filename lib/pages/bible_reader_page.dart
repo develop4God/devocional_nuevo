@@ -530,7 +530,17 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                 Navigator.of(ctx).pop();
                 await voiceService.setUserSavedVoice(languageCode);
                 if (ttsState != TtsPlayerState.loading) {
-                  _updateTtsText(state);
+                  // Only set text if we're starting fresh (idle or after completion)
+                  if (ttsState == TtsPlayerState.idle ||
+                      ttsState == TtsPlayerState.completed) {
+                    debugPrint(
+                        '[BibleReader TTS] Configurando texto para primera reproducción');
+                    _updateTtsText(state);
+                  } else if (ttsState == TtsPlayerState.paused) {
+                    // Don't reset text when resuming from pause
+                    debugPrint(
+                        '[BibleReader TTS] Reanudando desde pausa (sin reset)');
+                  }
                   _ttsAudioController.play();
                 }
               },
@@ -552,9 +562,21 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         debugPrint(
             '[BibleReader TTS] 🔄 Completed, reseteando antes de play()');
         await _ttsAudioController.stop();
+        // Only set text when completed (will be starting fresh from beginning)
+        debugPrint('[BibleReader TTS] Reseteando texto después de completion');
+        _updateTtsText(state);
+      } else if (ttsState == TtsPlayerState.paused) {
+        // CRITICAL FIX: Don't call setText() when resuming from pause!
+        // setText() resets accumulatedPosition to zero, causing skip to next chunk.
+        // Just resume from current position using play() alone.
+        debugPrint(
+            '[BibleReader TTS] ⏸️→▶️ Reanudando desde posición guardada (sin reset de texto)');
+      } else if (ttsState == TtsPlayerState.idle) {
+        // First time playing (idle state)
+        debugPrint('[BibleReader TTS] 🚀 Primer play, configurando texto');
+        _updateTtsText(state);
       }
       debugPrint('[BibleReader TTS] ▶️ Llamando play()');
-      _updateTtsText(state);
       _ttsAudioController.play();
     }
 
@@ -1210,7 +1232,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             borderRadius: BorderRadius.circular(12),
           );
         } else {
-          mainIcon = Icon(Icons.mic_outlined, size: 28, color: themeColor);
+          mainIcon = Icon(Icons.play_arrow, size: 28, color: themeColor);
           decoration = BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(color: themeColor, width: borderWidth),
