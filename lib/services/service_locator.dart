@@ -33,6 +33,7 @@ import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
+import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -101,6 +102,7 @@ Future<void> setupServiceLocator() async {
       .registerLazySingleton<LocalizationService>(() => LocalizationService());
   locator.registerLazySingleton<VoiceSettingsService>(
       () => VoiceSettingsService());
+  locator.registerLazySingleton<TtsChunkProcessor>(() => TtsChunkProcessor());
   locator.registerLazySingleton<ITtsService>(() => TtsService());
   locator.registerLazySingleton<AnalyticsService>(() => AnalyticsService());
   locator
