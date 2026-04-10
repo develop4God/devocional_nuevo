@@ -478,14 +478,14 @@ class VoiceSettingsService {
     final language = locale.split('-').first;
     final map = friendlyVoiceMap[language];
     if (map != null && map.containsKey(technicalName)) {
-      return map[technicalName]!;
+      return map[technicalName] ?? technicalName;
     }
 
     // 2. Verificar patrones complejos
     for (final pattern in _voicePatternMappings.keys) {
       if (pattern.hasMatch(technicalName)) {
         final match = pattern.firstMatch(technicalName);
-        String baseName = _voicePatternMappings[pattern]!;
+        String baseName = _voicePatternMappings[pattern] ?? '';
 
         // Si hay un grupo capturado (número), agregarlo
         if (match != null && match.groupCount > 0) {
@@ -846,7 +846,7 @@ class VoiceSettingsService {
       final prefs = await SharedPreferences.getInstance();
       double toStore;
       if (miniToSettings.containsKey(rate)) {
-        toStore = miniToSettings[rate]!;
+        toStore = miniToSettings[rate] ?? 0.5;
       } else if (rate >= 0.1 && rate <= 1.0) {
         toStore = rate;
       } else {
@@ -923,7 +923,7 @@ class VoiceSettingsService {
   /// Dado un rate de settings, devuelve el rate homologado del miniplayer
   double getMiniPlayerRate(double settingsRate) {
     if (settingsToMini.containsKey(settingsRate)) {
-      return settingsToMini[settingsRate]!;
+      return settingsToMini[settingsRate] ?? 1.0;
     }
     if ((settingsRate - 0.25).abs() < 0.08) return 0.5;
     if ((settingsRate - 0.5).abs() < 0.12) return 1.0;
@@ -1003,7 +1003,7 @@ class VoiceSettingsService {
   String getFriendlyVoiceName(String language, String technicalName) {
     final map = friendlyVoiceMap[language];
     if (map != null && map.containsKey(technicalName)) {
-      return map[technicalName]!;
+      return map[technicalName] ?? technicalName;
     }
     return technicalName;
   }

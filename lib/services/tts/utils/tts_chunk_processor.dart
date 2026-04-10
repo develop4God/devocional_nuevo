@@ -94,13 +94,25 @@ class TtsChunkProcessor {
   /// Ceiling: [kMaxChunkTimeoutSec] (1200 s) — even the longest Bible chapter
   ///          at the slowest speed completes well within 20 min per chunk.
   Duration chunkTimeout(int charCount, {required double settingsRate}) {
+    // Debug-time assertions to catch callers passing invalid values early.
+    assert(settingsRate > 0, 'settingsRate must be > 0, got $settingsRate');
+    assert(charCount >= 0, 'charCount must be >= 0, got $charCount');
+
+    // Production-safe guards (asserts are stripped in release builds).
+    // settingsRate ≤ 0 causes adjustedCharsPerSec = 0, then
+    //   charCount / 0.0 = double.infinity, and infinity.ceil() throws
+    //   "Unsupported operation: Not a finite number" at runtime.
+    // charCount < 0 produces a negative estimated time before clamp, which
+    //   clamp() recovers from, but the intent is clearly wrong.
+    final double safeRate = settingsRate > 0 ? settingsRate : 0.5;
+    final int safeCharCount = charCount >= 0 ? charCount : 0;
+
     // Scale baseline chars/sec linearly with the engine rate.
     // settingsRate=0.5 is normal speed; 0.25 is half speed → half chars/sec.
-    final double adjustedCharsPerSec =
-        kBaselineCharsPerSec * (settingsRate / 0.5);
+    final double adjustedCharsPerSec = kBaselineCharsPerSec * (safeRate / 0.5);
 
     final int estimated =
-        (charCount / adjustedCharsPerSec * kTimeoutSafetyMultiplier).ceil();
+        (safeCharCount / adjustedCharsPerSec * kTimeoutSafetyMultiplier).ceil();
 
     final int clamped =
         estimated.clamp(kMinChunkTimeoutSec, kMaxChunkTimeoutSec);
