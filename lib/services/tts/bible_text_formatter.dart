@@ -76,6 +76,12 @@ class BibleTextFormatter {
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
       final number = match.group(1) ?? '';
       final book = match.group(2) ?? '';
+      // Guard: both groups are structurally required by the regex, but if
+      // either ever resolves to '' (e.g. after a future regex change that
+      // makes a group optional), emitting '$prefix$ordinal $book' with an
+      // empty component would produce malformed TTS text.  Return the
+      // original match text unchanged instead.
+      if (number.isEmpty || book.isEmpty) return matchText;
       String ordinal;
       switch (number) {
         case '1':
@@ -105,6 +111,7 @@ class BibleTextFormatter {
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
       final number = match.group(1) ?? '';
       final bookName = match.group(2) ?? '';
+      if (number.isEmpty || bookName.isEmpty) return matchText;
       final ordinal = ordinals[number] ?? number;
       return '$prefix$ordinal $bookName';
     });
@@ -124,6 +131,7 @@ class BibleTextFormatter {
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
       final number = match.group(1) ?? '';
       final bookName = match.group(2) ?? '';
+      if (number.isEmpty || bookName.isEmpty) return matchText;
       final ordinal = ordinals[number] ?? number;
       return '$prefix$ordinal $bookName';
     });
@@ -143,6 +151,7 @@ class BibleTextFormatter {
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
       final number = match.group(1) ?? '';
       final bookName = match.group(2) ?? '';
+      if (number.isEmpty || bookName.isEmpty) return matchText;
       final ordinal = ordinals[number] ?? number;
       return '$prefix$ordinal $bookName';
     });
@@ -162,6 +171,7 @@ class BibleTextFormatter {
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
       final number = match.group(1) ?? '';
       final bookName = match.group(2) ?? '';
+      if (number.isEmpty || bookName.isEmpty) return matchText;
       final ordinal = ordinals[number] ?? number;
       return '$prefix$ordinal $bookName';
     });
@@ -197,6 +207,9 @@ class BibleTextFormatter {
       final separator = match.group(1) ?? '';
       final number = match.group(2) ?? '';
       final bookName = match.group(3) ?? '';
+      // separator can be '' when the number is at start of string (^ branch).
+      // number and bookName are structurally required; guard against corruption.
+      if (number.isEmpty || bookName.isEmpty) return match.group(0) ?? '';
       final ordinal = ordinals[number] ?? number;
       return '$separator$ordinal $bookName';
     });
@@ -220,6 +233,9 @@ class BibleTextFormatter {
       final separator = match.group(1) ?? '';
       final number = match.group(2) ?? '';
       final bookName = match.group(3) ?? '';
+      // separator can be '' when the number is at start of string (^ branch).
+      // number and bookName are structurally required; guard against corruption.
+      if (number.isEmpty || bookName.isEmpty) return match.group(0) ?? '';
       final ordinal = ordinals[number] ?? number;
       return '$separator$ordinal $bookName';
     });
@@ -354,6 +370,13 @@ class BibleTextFormatter {
       final book = match.group(1) ?? '';
       final chapter = match.group(2) ?? '';
       final verseStart = match.group(3) ?? '';
+      // Guard: these three groups are structurally required in every pattern
+      // branch.  If any ever resolves to '' (e.g. after a future pattern
+      // change), '$book $chapterWord $chapter ...' would produce leading
+      // spaces or missing tokens that TTS reads aloud verbatim.
+      if (book.isEmpty || chapter.isEmpty || verseStart.isEmpty) {
+        return match.group(0) ?? '';
+      }
       final verseEnd = match.group(4);
 
       String result = '$book $chapterWord $chapter $verseWord $verseStart';

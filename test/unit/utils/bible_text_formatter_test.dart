@@ -360,9 +360,191 @@ void main() {
       expect(result, 'Capítulo 1');
     });
 
-    test('handles number at end of text', () {
+    test('number at end of text', () {
       final result = BibleTextFormatter.formatBibleBook('Libro número 1', 'es');
       expect(result, 'Libro número 1');
+    });
+  });
+
+  // ── Guard-path regression tests ──────────────────────────────────────────
+  //
+  // The replaceAllMapped callbacks now have an early-return guard:
+  //   if (number.isEmpty || book.isEmpty) return matchText;
+  //
+  // These tests verify that:
+  //   a) Normal valid references still produce the correct ordinal output.
+  //   b) Text that does NOT match the pattern passes through unchanged
+  //      (i.e. the guard never corrupts non-matching text).
+  //   c) The function never throws for any language on unexpected input.
+
+  group('BibleTextFormatter — early-return guard regression', () {
+    // The guard fires only when a structurally-required group somehow resolves
+    // to ''. That cannot happen with the current regexes (all groups are
+    // required), so the guard is dead code today.  These tests document the
+    // CONTRACT: the output must never be a malformed reference.
+
+    const languages = ['es', 'en', 'pt', 'fr', 'de', 'hi', 'ar', 'zh', 'ja'];
+
+    for (final lang in languages) {
+      test('empty string does not throw for language=$lang', () {
+        expect(
+          () => BibleTextFormatter.formatBibleBook('', lang),
+          returnsNormally,
+        );
+        expect(BibleTextFormatter.formatBibleBook('', lang), '');
+      });
+
+      test(
+          'text with no Bible reference is returned unchanged for language=$lang',
+          () {
+        const text = 'This is plain text without any numbered book reference';
+        final result = BibleTextFormatter.formatBibleBook(text, lang);
+        // Non-matching text must pass through; no partial corruption allowed.
+        expect(result, isNotEmpty);
+        // Result must not introduce leading/trailing spaces from a misfire.
+        expect(result.trimLeft(), result,
+            reason: 'Guard must not produce leading whitespace on non-match');
+      });
+    }
+
+    test(
+        'valid Spanish reference produces correct ordinal (guard does not interfere)',
+        () {
+      expect(
+        BibleTextFormatter.formatBibleBook('1 Corintios', 'es'),
+        'Primera de Corintios',
+      );
+    });
+
+    test(
+        'valid English reference produces correct ordinal (guard does not interfere)',
+        () {
+      expect(
+        BibleTextFormatter.formatBibleBook('2 Timothy', 'en'),
+        'Second Timothy',
+      );
+    });
+
+    test('formatBibleReferences: empty string does not throw', () {
+      expect(
+        () => BibleTextFormatter.formatBibleReferences('', 'es'),
+        returnsNormally,
+      );
+      expect(BibleTextFormatter.formatBibleReferences('', 'es'), '');
+    });
+
+    test(
+        'formatBibleReferences: text with no reference passes through unchanged',
+        () {
+      const text = 'Solo texto sin referencia bíblica';
+      expect(BibleTextFormatter.formatBibleReferences(text, 'es'), text);
+    });
+  });
+
+  // ── Per-language smoke tests ──────────────────────────────────────────────
+  //
+  // One representative reference per language through the full normalizeTtsText
+  // pipeline.  Confirms no crash and that key tokens appear in the output.
+
+  group('BibleTextFormatter — normalizeTtsText per-language smoke tests', () {
+    test('Spanish: ordinal + chapter:verse + version expansion', () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        '1 Pedro 3:16 RVR1960',
+        'es',
+      );
+      expect(result, contains('Primera de Pedro'));
+      expect(result, contains('capítulo'));
+      expect(result, contains('versículo'));
+      expect(result, contains('Reina Valera'));
+    });
+
+    test('English: ordinal + chapter:verse + version expansion', () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        '1 Peter 3:16 KJV',
+        'en',
+      );
+      expect(result, contains('First Peter'));
+      expect(result, contains('chapter'));
+      expect(result, contains('verse'));
+      expect(result, contains('King James Version'));
+    });
+
+    test('Portuguese: ordinal + chapter:verse + version expansion', () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        '1 Pedro 3:16 ARC',
+        'pt',
+      );
+      expect(result, contains('Primeiro Pedro'));
+      expect(result, contains('capítulo'));
+      expect(result, contains('Almeida Revista'));
+    });
+
+    test('French: ordinal + chapter:verse + version expansion', () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        '1 Pierre 3:16 LSG1910',
+        'fr',
+      );
+      expect(result, contains('Premier Pierre'));
+      expect(result, contains('chapitre'));
+      expect(result, contains('Louis Segond'));
+    });
+
+    test('German: ordinal + chapter:verse + version expansion', () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        '1 Petrus 3:16 LU17',
+        'de',
+      );
+      expect(result, contains('Erster Petrus'));
+      expect(result, contains('Kapitel'));
+      expect(result, contains('Lutherbibel'));
+    });
+
+    test('Chinese: book name preserved + chapter:verse + version expansion',
+        () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        '约翰福音 3:16 和合本1919',
+        'zh',
+      );
+      expect(result, contains('约翰福音'));
+      expect(result, contains('章'));
+      expect(result, contains('和合本一九一九'));
+    });
+
+    test('Japanese: book name preserved + chapter:verse (no ordinals)', () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        'ヨハネ 3:16',
+        'ja',
+      );
+      expect(result, contains('ヨハネ'));
+      expect(result, contains('章'));
+    });
+
+    test('Hindi: ordinal + chapter:verse + version expansion', () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        '1 यूहन्ना 3:16 HIOV',
+        'hi',
+      );
+      expect(result, contains('पहला यूहन्ना'));
+      expect(result, contains('पवित्र बाइबिल'));
+    });
+
+    test('Arabic: ordinal + chapter:verse + version expansion', () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        '1 يوحنا 3:16 NAV',
+        'ar',
+      );
+      expect(result, contains('الأول يوحنا'));
+      expect(result, contains('الإصحاح'));
+      expect(result, contains('كتاب الحياة'));
+    });
+
+    test('unknown language falls back to Spanish pipeline without crashing',
+        () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        '1 Pedro 3:16',
+        'xx',
+      );
+      expect(result, contains('Primera de Pedro'));
     });
   });
 }

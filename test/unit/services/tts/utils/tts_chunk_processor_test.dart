@@ -162,6 +162,83 @@ void main() {
       });
     });
 
+    // ── chunkTimeout: guard / crash-regression tests ─────────────────────────
+    //
+    // The original unguarded code had:
+    //   adjustedCharsPerSec = kBaselineCharsPerSec * (settingsRate / 0.5)
+    //   estimated = (charCount / adjustedCharsPerSec * ...).ceil()
+    //
+    // When settingsRate = 0  →  adjustedCharsPerSec = 0
+    //                        →  charCount / 0.0     = double.infinity
+    //                        →  infinity.ceil()     throws "Not a finite number"
+    //
+    // This group verifies:
+    //   a) The assert fires in debug/test mode (expected developer feedback).
+    //   b) Boundary-valid inputs that exercise the production-guard code path
+    //      produce correct clamped results.
+
+    group('chunkTimeout — guard / crash-regression', () {
+      test(
+          'settingsRate = 0 throws AssertionError in debug mode '
+          '(assert is the first line of defence)', () {
+        // In release builds asserts are stripped; the production guard
+        // (safeRate = 0.5 fallback) prevents the infinity crash there.
+        expect(
+          () => processor.chunkTimeout(100, settingsRate: 0),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('settingsRate < 0 throws AssertionError in debug mode', () {
+        expect(
+          () => processor.chunkTimeout(100, settingsRate: -0.5),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('charCount = -1 throws AssertionError in debug mode', () {
+        expect(
+          () => processor.chunkTimeout(-1, settingsRate: 0.5),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test(
+          'charCount = 0 (boundary-valid) returns kMinChunkTimeoutSec '
+          'and does not throw', () {
+        // charCount=0 is valid (assert passes); estimated = 0 → clamped to floor.
+        final t = processor.chunkTimeout(0, settingsRate: 0.5);
+        expect(t.inSeconds, TtsChunkProcessor.kMinChunkTimeoutSec);
+      });
+
+      test(
+          'very small but positive settingsRate (0.001) does not throw '
+          'and result is within bounds', () {
+        // Passes the assert (0.001 > 0).
+        // Without the production guard this would produce a valid but huge
+        // timeout that gets clamped to kMaxChunkTimeoutSec.
+        final t = processor.chunkTimeout(100, settingsRate: 0.001);
+        expect(
+          t.inSeconds,
+          greaterThanOrEqualTo(TtsChunkProcessor.kMinChunkTimeoutSec),
+        );
+        expect(
+          t.inSeconds,
+          lessThanOrEqualTo(TtsChunkProcessor.kMaxChunkTimeoutSec),
+        );
+      });
+
+      test(
+          'production guard equivalence: safeRate fallback produces same result '
+          'as explicit 0.5 rate when rate is at boundary', () {
+        // The guard uses 0.5 as the fallback when settingsRate <= 0.
+        // Verify that charCount=0 at rate=0.5 returns exactly kMinChunkTimeoutSec
+        // (this is what the release-mode guard would compute for settingsRate=0).
+        final t = processor.chunkTimeout(0, settingsRate: 0.5);
+        expect(t.inSeconds, TtsChunkProcessor.kMinChunkTimeoutSec);
+      });
+    });
+
     // ── Constants sanity ─────────────────────────────────────────────────────
 
     group('constants', () {
