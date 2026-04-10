@@ -122,24 +122,24 @@ class TtsAudioController {
           VoiceSettingsService.miniToSettings[validRate] ?? 0.5,
         );
         debugPrint(
-          '🔧 [TTS Controller] Inicializado playbackRate: mini=$validRate (settings=${VoiceSettingsService.miniToSettings[validRate] ?? 0.5})',
+          '🔧 [TTS Controller] Initialized playbackRate: mini=$validRate (settings=${VoiceSettingsService.miniToSettings[validRate] ?? 0.5})',
         );
         if (!allowed.contains(miniRate)) {
           debugPrint(
-            '⚠️ [TTS Controller] miniRate $miniRate no permitido - reset a $validRate',
+            '⚠️ [TTS Controller] miniRate $miniRate not allowed - reset to $validRate',
           );
           _voiceSettingsService.setSavedSpeechRate(validRate);
         }
       });
     } catch (e) {
-      debugPrint('[TTS Controller] No se pudo cargar playbackRate: $e');
+      debugPrint('[TTS Controller] Failed to load playbackRate: $e');
     }
     flutterTts.setStartHandler(() {
       debugPrint(
-        '🎬 [TTS Controller] ▶️ START HANDLER LLAMADO - Inicio de reproducción recibido',
+        '🎬 [TTS Controller] ▶️ START HANDLER FIRED - Playback started',
       );
       debugPrint(
-        '🎬 [TTS Controller] Estado previo: ${state.value}, _isPlayingSample: $_isPlayingSample',
+        '🎬 [TTS Controller] Previous state: ${state.value}, _isPlayingSample: $_isPlayingSample',
       );
 
       // Audio is actually playing — cancel the silent-utterance watchdog.
@@ -151,16 +151,16 @@ class TtsAudioController {
       // This prevents the mini-player modal from opening during voice selection
       if (_isPlayingSample) {
         debugPrint(
-          '🎬 [TTS Controller] ⏭️ Ignorando cambio de estado (es un sample de voz)',
+          '🎬 [TTS Controller] ⏭️ Ignoring state change (voice sample)',
         );
         return;
       }
 
-      debugPrint('🎬 [TTS Controller] Cambiando a PLAYING');
+      debugPrint('🎬 [TTS Controller] Changing to PLAYING');
       _setStateIfNotDisposed(TtsPlayerState.playing);
-      debugPrint('🎬 [TTS Controller] Iniciando timer de progreso...');
+      debugPrint('🎬 [TTS Controller] Starting progress timer...');
       _startProgressTimer();
-      debugPrint('🎬 [TTS Controller] Timer iniciado correctamente');
+      debugPrint('🎬 [TTS Controller] Timer started successfully');
     });
     flutterTts.setCompletionHandler(() {
       // During multi-chunk speaking, intermediate chunks fire the completion
@@ -175,7 +175,7 @@ class TtsAudioController {
       _silentUtteranceWatchdog?.cancel();
       _silentUtteranceWatchdog = null;
       debugPrint(
-        '🏁 [TTS Controller] COMPLETION HANDLER - Audio completado, cambiando estado a COMPLETED',
+        '🏁 [TTS Controller] COMPLETION HANDLER - Audio completed, changing state to COMPLETED',
       );
       stopProgressTimer();
       currentPosition.value = totalDuration.value;
@@ -184,18 +184,18 @@ class TtsAudioController {
       accumulatedPosition = Duration.zero;
       _silentRetryCount = 0;
       debugPrint(
-        '🏁 [TTS Controller] Posición acumulada reseteada a 0 para permitir replay desde el inicio',
+        '🏁 [TTS Controller] Accumulated position reset to 0 to allow replay from start',
       );
     });
     flutterTts.setCancelHandler(() {
-      debugPrint('❌ [TTS Controller] CANCEL HANDLER - Audio cancelado');
+      debugPrint('❌ [TTS Controller] CANCEL HANDLER - Audio cancelled');
       _silentUtteranceWatchdog?.cancel();
       _silentUtteranceWatchdog = null;
       // Don't change state to idle if we're in the middle of a seek operation
       // or if play() is currently flushing a stale Android stop event.
       if (_isSeeking || _isPreparingToSpeak) {
         debugPrint(
-          '⏭️ [TTS Controller] Cancel ignorado — seek:$_isSeeking preparing:$_isPreparingToSpeak',
+          '⏭️ [TTS Controller] Cancel ignored — seek:$_isSeeking preparing:$_isPreparingToSpeak',
         );
         return;
       }
