@@ -45,6 +45,36 @@ class TtsAudioController {
   // Solo usar los rates permitidos y lógica de VoiceSettingsService
   static const double _defaultMiniRate = 1.0;
 
+  // ── Chunk-speak constants ─────────────────────────────────────────────────
+  /// Android TTS engine hard-rejects input >= 4096 chars (ERROR_OUTPUT -8).
+  /// 3500 gives a 596-char safety margin below that limit.
+  static const int _kMaxChunkLength = 3500;
+
+  /// Approximate chars/second at flutter_tts settings-rate 0.5 (normal speed).
+  /// Deliberately conservative at 12.0 rather than the theoretical 13.75
+  /// (150 wpm × 5.5 chars/word ÷ 60 s) to account for TTS engine warm-up,
+  /// inter-sentence pauses, and device variance.  A lower baseline produces
+  /// longer timeouts — the safe direction for a hang-detection safety net.
+  static const double _kBaselineCharsPerSec = 12.0;
+
+  /// Safety multiplier applied to the estimated speaking time.
+  /// 2× means the timeout fires only if TTS takes twice as long as expected,
+  /// which in practice means the engine silently hung.
+  static const double _kTimeoutSafetyMultiplier = 2.0;
+
+  /// Floor: even very short chunks or very fast rates get at least this.
+  static const int _kMinChunkTimeoutSec = 60;
+
+  /// Ceiling: hard cap so a hung engine never freezes the app for more than
+  /// 20 minutes regardless of chapter length or playback speed.
+  static const int _kMaxChunkTimeoutSec = 1200; // 20 min
+
+  /// Timeout for single-chunk (fire-and-forget) mode.
+  /// In this mode speak() resolves when the utterance is *queued*, not when
+  /// it finishes speaking, so 10 s is ample to detect a non-responsive engine.
+  static const int _kQueueTimeoutSec = 10;
+  // ─────────────────────────────────────────────────────────────────────────
+
   /// Check if currently playing a voice sample (not full content)
   bool get isPlayingSample => _isPlayingSample;
 
@@ -206,10 +236,46 @@ class TtsAudioController {
     debugPrint('📝 [TTS Controller] Posición inicializada a 0:00');
   }
 
-  /// Splits text into chunks of at most [maxLength] characters,
+  /// Computes a per-chunk speak() timeout based on actual chunk length and
+  /// the current TTS engine rate.
+  ///
+  /// When [awaitSpeakCompletion] is `true` the Future returned by speak()
+  /// blocks until the utterance actually *finishes speaking* (which can be
+  /// several minutes for a long chunk at slow speed).  A fixed 300 s timeout
+  /// is too short at 0.5× speed (Psalm 119 chunks take ~510 s) and
+  /// unnecessarily large at 1.5× speed.  This method scales the timeout to
+  /// the actual workload and adds a 2× safety margin for engine irregularities.
+  ///
+  /// Floor  : [_kMinChunkTimeoutSec] (60 s)  — short chunks / fast rates.
+  /// Ceiling: [_kMaxChunkTimeoutSec] (1200 s) — even the longest Bible chapter
+  ///          at the slowest speed will complete well within 20 min per chunk.
+  Duration _chunkTimeout(int charCount) {
+    final double settingsRate =
+        VoiceSettingsService.miniToSettings[playbackRate.value] ?? 0.5;
+
+    // Scale baseline chars/sec linearly with the engine rate.
+    // settingsRate=0.5 is normal speed; 0.25 is half speed → half chars/sec.
+    final double adjustedCharsPerSec =
+        _kBaselineCharsPerSec * (settingsRate / 0.5);
+
+    final int estimated =
+        (charCount / adjustedCharsPerSec * _kTimeoutSafetyMultiplier).ceil();
+
+    final int clamped =
+        estimated.clamp(_kMinChunkTimeoutSec, _kMaxChunkTimeoutSec);
+
+    debugPrint(
+      '⏱️ [TTS Controller] _chunkTimeout: $charCount chars, '
+      'rate=$settingsRate → est=${estimated}s → timeout=${clamped}s',
+    );
+    return Duration(seconds: clamped);
+  }
+
+  /// Splits text into chunks of at most [_kMaxChunkLength] characters,
   /// breaking only at word boundaries to avoid mid-word cuts.
   /// Android TTS engine hard-rejects input >= 4096 chars (ERROR_OUTPUT -8).
-  List<String> _splitIntoChunks(String text, {int maxLength = 3500}) {
+  List<String> _splitIntoChunks(String text,
+      {int maxLength = _kMaxChunkLength}) {
     if (text.length <= maxLength) return [text];
     final chunks = <String>[];
     int start = 0;
@@ -232,6 +298,20 @@ class TtsAudioController {
     );
     return chunks;
   }
+
+  // ── Test-only accessors ───────────────────────────────────────────────────
+  /// Exposes [_chunkTimeout] for unit testing.
+  /// Private Dart members cannot be accessed from test files; this thin
+  /// wrapper adds no production overhead and is stripped by tree-shaking.
+  @visibleForTesting
+  Duration chunkTimeoutForTest(int charCount) => _chunkTimeout(charCount);
+
+  /// Exposes [_splitIntoChunks] for unit testing.
+  @visibleForTesting
+  List<String> splitIntoChunksForTest(String text,
+          {int maxLength = _kMaxChunkLength}) =>
+      _splitIntoChunks(text, maxLength: maxLength);
+  // ─────────────────────────────────────────────────────────────────────────
 
   Future<void> play() async {
     debugPrint('▶️ [TTS Controller] ========== PLAY() LLAMADO ==========');
@@ -342,72 +422,78 @@ class TtsAudioController {
         );
       }
 
-      for (int i = 0; i < chunks.length; i++) {
-        if (_disposed) break;
-        // Re-check state — user may have paused/stopped between chunks
-        if (state.value != TtsPlayerState.loading &&
-            state.value != TtsPlayerState.playing) {
+      try {
+        for (int i = 0; i < chunks.length; i++) {
+          if (_disposed) break;
+          // Re-check state — user may have paused/stopped between chunks
+          if (state.value != TtsPlayerState.loading &&
+              state.value != TtsPlayerState.playing) {
+            debugPrint(
+              '⏹️ [TTS Controller] Chunk loop interrupted — state: ${state.value}',
+            );
+            break;
+          }
+
+          // Un-suppress completion handler before the last chunk so the
+          // normal end-of-playback logic (state→completed, timer stop,
+          // accumulatedPosition reset) fires when TTS finishes the final chunk.
+          if (isMultiChunk && i == chunks.length - 1) {
+            _suppressTtsCompletion = false;
+            debugPrint(
+              '🔓 [TTS Controller] Last chunk — completion handler re-enabled',
+            );
+          }
+
           debugPrint(
-            '⏹️ [TTS Controller] Chunk loop interrupted — state: ${state.value}',
+            '🎤 [TTS Controller] Iniciando speak() chunk ${i + 1}/${chunks.length} '
+            '[lang=$_languageCode, ${chunks[i].length}ch, await=$isMultiChunk]',
           );
-          break;
-        }
 
-        // Un-suppress completion handler before the last chunk so the
-        // normal end-of-playback logic (state→completed, timer stop,
-        // accumulatedPosition reset) fires when TTS finishes the final chunk.
-        if (isMultiChunk && i == chunks.length - 1) {
-          _suppressTtsCompletion = false;
+          // Timeout: when awaitSpeakCompletion is true the Future blocks for
+          // the entire utterance duration.  Compute a rate-aware timeout so
+          // slow speeds (0.5×) and large chapters (Psalm 119) never time out
+          // while the TTS is still actively speaking.
+          // When false (single chunk, fire-and-forget) speak() resolves as soon
+          // as the utterance is queued, so a short queue-check timeout suffices.
+          final speakTimeout = isMultiChunk
+              ? _chunkTimeout(chunks[i].length)
+              : const Duration(seconds: _kQueueTimeoutSec);
+
+          try {
+            await flutterTts.speak(chunks[i]).timeout(
+              speakTimeout,
+              onTimeout: () {
+                speakTimedOut = true;
+                debugPrint(
+                  '⚠️ [TTS Controller] speak() TIMED OUT after ${speakTimeout.inSeconds}s — '
+                  'chunk ${i + 1}, language: $_languageCode.',
+                );
+                return null;
+              },
+            );
+          } catch (e) {
+            debugPrint(
+                '❌ [TTS Controller] speak() threw exception on chunk ${i + 1}: $e');
+            speakErrored = true;
+            break;
+          }
           debugPrint(
-            '🔓 [TTS Controller] Last chunk — completion handler re-enabled',
+            '🎤 [TTS Controller] Chunk ${i + 1}/${chunks.length} completado — timeout: $speakTimedOut',
           );
+          if (speakTimedOut) break;
         }
-
-        debugPrint(
-          '🎤 [TTS Controller] Iniciando speak() chunk ${i + 1}/${chunks.length} '
-          '[lang=$_languageCode, ${chunks[i].length}ch, await=$isMultiChunk]',
-        );
-
-        // Timeout: when awaitSpeakCompletion is true the Future blocks for
-        // the entire utterance (minutes); use a generous per-chunk timeout.
-        // When false (single chunk / fire-and-forget) 10 s is enough.
-        final speakTimeout = isMultiChunk
-            ? const Duration(seconds: 300)
-            : const Duration(seconds: 10);
-
-        try {
-          await flutterTts.speak(chunks[i]).timeout(
-            speakTimeout,
-            onTimeout: () {
-              speakTimedOut = true;
-              debugPrint(
-                '⚠️ [TTS Controller] speak() TIMED OUT after ${speakTimeout.inSeconds}s — '
-                'chunk ${i + 1}, language: $_languageCode.',
-              );
-              return null;
-            },
-          );
-        } catch (e) {
+      } finally {
+        // Cleanup: restore fire-and-forget mode so other callers (seek,
+        // cyclePlaybackRate) are not affected, and clear the suppression flag.
+        // Guaranteed even if speak() throws synchronously.
+        if (isMultiChunk) {
+          await flutterTts.awaitSpeakCompletion(false);
           debugPrint(
-              '❌ [TTS Controller] speak() threw exception on chunk ${i + 1}: $e');
-          speakErrored = true;
-          break;
+            '🔗 [TTS Controller] Multi-chunk mode OFF — awaitSpeakCompletion(false)',
+          );
         }
-        debugPrint(
-          '🎤 [TTS Controller] Chunk ${i + 1}/${chunks.length} completado — timeout: $speakTimedOut',
-        );
-        if (speakTimedOut) break;
+        _suppressTtsCompletion = false;
       }
-
-      // Cleanup: restore fire-and-forget mode so other callers (seek,
-      // cyclePlaybackRate) are not affected, and clear the suppression flag.
-      if (isMultiChunk) {
-        await flutterTts.awaitSpeakCompletion(false);
-        debugPrint(
-          '🔗 [TTS Controller] Multi-chunk mode OFF — awaitSpeakCompletion(false)',
-        );
-      }
-      _suppressTtsCompletion = false;
 
       if (speakTimedOut || speakErrored) {
         debugPrint(
