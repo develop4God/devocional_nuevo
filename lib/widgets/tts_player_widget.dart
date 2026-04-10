@@ -209,11 +209,11 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     // Restore dynamic visuals: show spinner while loading, pause when playing, play otherwise.
     return FutureBuilder<bool>(
       future: BubbleUtils.shouldShowBubble(bubbleId),
-      builder: (context, snapshot) {
+      builder: (_, snapshot) {
         final showBubble = snapshot.data ?? false;
         return ValueListenableBuilder<TtsPlayerState>(
           valueListenable: widget.audioController.state,
-          builder: (context, state, _) {
+          builder: (__, state, ___) {
             return Stack(
               clipBehavior: Clip.none,
               children: [
@@ -225,11 +225,13 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
                     onTap: () async {
                       await BubbleUtils.markAsShown(bubbleId);
                       if (mounted) {
+                        // ignore: use_build_context_synchronously
                         _handlePlayPause(
-                            context,
+                            this.context,
                             state,
                             _currentLanguage ??
-                                Localizations.localeOf(context).languageCode,
+                                Localizations.localeOf(this.context)
+                                    .languageCode,
                             _ttsText ?? '');
                       }
                     },
@@ -286,10 +288,9 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
 
     if (!hasSaved) {
       debugPrint('[TTS Widget] Mostrando diálogo de configuración de voz...');
-      // Safe to use context here - we just checked mounted right before this call
+      // Use this.context (State context) — safe because mounted was checked above.
       await showModalBottomSheet<void>(
-        // ignore: use_build_context_synchronously
-        context: context,
+        context: this.context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
@@ -298,7 +299,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         builder: (ctx) {
           return Padding(
             padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
+              // Use the builder's own ctx, not the outer captured context.
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
             ),
             child: ModernVoiceFeatureDialog(
               onConfigure: () async {
