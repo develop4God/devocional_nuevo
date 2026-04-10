@@ -13,6 +13,7 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_reader_tts_text_builder.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
+import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_book_selector_dialog.dart';
@@ -1251,54 +1252,95 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     BibleReaderState readerState,
     ColorScheme colorScheme,
   ) {
-    return ValueListenableBuilder<TtsPlayerState>(
-      valueListenable: _ttsAudioController.state,
-      builder: (context, ttsState, _) {
-        final themeColor = colorScheme.primary;
-        const borderWidth = 2.0;
+    const bubbleId = 'bible_reader_tts_play_bubble';
+    return FutureBuilder<bool>(
+      future: BubbleUtils.shouldShowBubble(bubbleId),
+      builder: (context, snapshot) {
+        final showBubble = snapshot.data ?? false;
+        return ValueListenableBuilder<TtsPlayerState>(
+          valueListenable: _ttsAudioController.state,
+          builder: (context, ttsState, _) {
+            final themeColor = colorScheme.primary;
+            const borderWidth = 2.0;
 
-        Widget mainIcon;
-        BoxDecoration decoration;
+            Widget mainIcon;
+            BoxDecoration decoration;
 
-        if (ttsState == TtsPlayerState.loading) {
-          mainIcon = const SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          );
-          decoration = BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: themeColor, width: borderWidth),
-          );
-        } else if (ttsState == TtsPlayerState.playing) {
-          mainIcon = Icon(Icons.pause, size: 28, color: themeColor);
-          decoration = BoxDecoration(
-            border: Border.all(color: themeColor, width: borderWidth),
-            borderRadius: BorderRadius.circular(12),
-          );
-        } else {
-          mainIcon = Icon(Icons.play_arrow, size: 28, color: themeColor);
-          decoration = BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: themeColor, width: borderWidth),
-          );
-        }
+            if (ttsState == TtsPlayerState.loading) {
+              mainIcon = const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              );
+              decoration = BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: themeColor, width: borderWidth),
+              );
+            } else if (ttsState == TtsPlayerState.playing) {
+              mainIcon = Icon(Icons.pause, size: 28, color: themeColor);
+              decoration = BoxDecoration(
+                border: Border.all(color: themeColor, width: borderWidth),
+                borderRadius: BorderRadius.circular(12),
+              );
+            } else {
+              mainIcon = Icon(Icons.play_arrow, size: 28, color: themeColor);
+              decoration = BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: themeColor, width: borderWidth),
+              );
+            }
 
-        return Material(
-          color: Colors.transparent,
-          elevation: 0,
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: readerState.verses.isNotEmpty
-                ? () => _handleTtsPlayPause(readerState)
-                : null,
-            child: Container(
-              decoration: decoration,
-              width: 44,
-              height: 44,
-              child: Center(child: mainIcon),
-            ),
-          ),
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Material(
+                  color: Colors.transparent,
+                  elevation: 0,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: readerState.verses.isNotEmpty
+                        ? () async {
+                            await BubbleUtils.markAsShown(bubbleId);
+                            if (mounted) {
+                              _handleTtsPlayPause(readerState);
+                            }
+                          }
+                        : null,
+                    child: Container(
+                      decoration: decoration,
+                      width: 44,
+                      height: 44,
+                      child: Center(child: mainIcon),
+                    ),
+                  ),
+                ),
+                if (showBubble && ttsState == TtsPlayerState.idle)
+                  Positioned(
+                    top: -10,
+                    right: -10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: BubbleConstants.newFeatureColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: BubbleConstants.bubbleShadow,
+                      ),
+                      child: Text(
+                        'bubble_constants.new_feature'.tr(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         );
       },
     );

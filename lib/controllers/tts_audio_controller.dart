@@ -57,6 +57,15 @@ class TtsAudioController {
   /// rapid play/pause cycles). Triggers an automatic stop→settle→retry.
   Timer? _silentUtteranceWatchdog;
 
+  /// How many watchdog retries have been attempted for the current utterance.
+  /// Reset at the start of every play() call.  Caps automatic retries so a
+  /// permanently-broken engine cannot loop forever.
+  int _silentRetryCount = 0;
+
+  /// Maximum number of automatic watchdog retries per utterance before the
+  /// controller gives up and transitions to the ERROR state.
+  static const int _maxSilentRetries = 2;
+
   // Progress notifiers for miniplayer
   final ValueNotifier<Duration> currentPosition = ValueNotifier(Duration.zero);
   final ValueNotifier<Duration> totalDuration = ValueNotifier(Duration.zero);
@@ -173,6 +182,7 @@ class TtsAudioController {
       _setStateIfNotDisposed(TtsPlayerState.completed);
       // CRITICAL FIX: Reset accumulated position to allow replay from beginning
       accumulatedPosition = Duration.zero;
+      _silentRetryCount = 0;
       debugPrint(
         '🏁 [TTS Controller] Posición acumulada reseteada a 0 para permitir replay desde el inicio',
       );
@@ -273,6 +283,9 @@ class TtsAudioController {
     debugPrint(
       '▶️ [TTS Controller] Texto completo: ${_fullText?.length ?? 0} caracteres',
     );
+
+    // Reset per-utterance watchdog retry counter.
+    _silentRetryCount = 0;
 
     // Check _fullText (not _currentText) because we need the full text to calculate resume positions
     if (_fullText == null || _fullText!.isEmpty) {
@@ -636,6 +649,7 @@ class TtsAudioController {
     );
     _silentUtteranceWatchdog?.cancel();
     _silentUtteranceWatchdog = null;
+    _silentRetryCount = 0;
     await flutterTts.stop();
     state.value = TtsPlayerState.idle;
     stopProgressTimer();
@@ -681,8 +695,11 @@ class TtsAudioController {
   }
 
   /// Called by the watchdog when startHandler has not fired 1.2 s after
-  /// speak().  Performs a hard stop → settle → re-apply-voice → retry-speak
+  /// speak().  Performs a hard stop → settle → re-apply-rate+voice → retry-speak
   /// cycle to recover from MIUI/Android audio-session corruption.
+  ///
+  /// Retries up to [_maxSilentRetries] times.  After that it transitions to
+  /// ERROR so the UI can surface a recoverable failure instead of looping.
   Future<void> _handleSilentUtterance() async {
     _silentUtteranceWatchdog = null;
     if (_startHandlerFired ||
@@ -691,14 +708,27 @@ class TtsAudioController {
       return;
     }
 
+    _silentRetryCount++;
+
+    if (_silentRetryCount > _maxSilentRetries) {
+      debugPrint(
+        '🔇 [TTS Controller] ❌ Max retries ($_maxSilentRetries) alcanzado — transitioning to ERROR',
+      );
+      stopProgressTimer();
+      _setStateIfNotDisposed(TtsPlayerState.error);
+      return;
+    }
+
     debugPrint(
-      '🔇 [TTS Controller] ⚠️ UTTERANCE SILENCIOSA — startHandler no disparó en 1.2s',
+      '🔇 [TTS Controller] ⚠️ UTTERANCE SILENCIOSA (intento $_silentRetryCount/$_maxSilentRetries) — startHandler no disparó en 1.2s',
     );
     debugPrint(
-      '🔇 [TTS Controller] Reintentando con flush + re-apply voice...',
+      '🔇 [TTS Controller] Reintentando con flush + re-apply rate+voice...',
     );
 
-    // Flush with a longer settle to let the MIUI audio session fully reset.
+    // Hard-flush under the guard so the cancelHandler is suppressed.
+    // 250 ms settle gives MIUI time to drain stale callbacks and
+    // re-acquire audio focus before we queue a new utterance.
     _isPreparingToSpeak = true;
     try {
       await flutterTts.stop();
@@ -709,7 +739,20 @@ class TtsAudioController {
 
     if (_disposed || state.value != TtsPlayerState.playing) return;
 
-    // Re-apply voice settings after the retry flush.
+    // Re-apply speech rate — stop() can reset it on some devices.
+    final settingsRate =
+        VoiceSettingsService.miniToSettings[playbackRate.value] ?? 0.5;
+    try {
+      await flutterTts.setSpeechRate(settingsRate);
+      debugPrint(
+          '🔇 [TTS Controller] Retry setSpeechRate($settingsRate) aplicado');
+    } catch (e) {
+      debugPrint('⚠️ [TTS Controller] setSpeechRate en retry falló: $e');
+    }
+
+    if (_disposed || state.value != TtsPlayerState.playing) return;
+
+    // Re-apply voice settings after the flush.
     try {
       await _voiceSettingsService.applyVoiceToInstance(
           flutterTts, _languageCode);
@@ -721,12 +764,17 @@ class TtsAudioController {
 
     final text = _currentText;
     if (text != null && text.isNotEmpty) {
+      // Re-arm the watchdog BEFORE speak() so that if this retry utterance
+      // is also silent, the next watchdog cycle will catch it.
       _startHandlerFired = false;
+      _scheduleUtteranceWatchdog();
+
       debugPrint(
-        '🔇 [TTS Controller] Retry speak() — ${text.length} caracteres',
+        '🔇 [TTS Controller] Retry speak() intento $_silentRetryCount — ${text.length} caracteres',
       );
       await flutterTts.speak(text);
-      debugPrint('🔇 [TTS Controller] Retry speak() completado');
+      debugPrint(
+          '🔇 [TTS Controller] Retry speak() completado (intento $_silentRetryCount)');
     }
   }
 

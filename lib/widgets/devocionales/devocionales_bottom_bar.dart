@@ -250,26 +250,64 @@ class DevocionalesBottomBar extends StatelessWidget {
                 ),
               ),
               // 2. Bible
-              IconButton(
-                key: const Key('bottom_appbar_bible_icon'),
-                tooltip: 'tooltips.bible'.tr(),
-                onPressed: () async {
-                  getService<AnalyticsService>().logBottomBarAction(
-                    action: 'bible',
-                  );
-                  await BubbleUtils.markAsShown(
-                    BubbleUtils.getIconBubbleId(
-                      Icons.auto_stories_outlined,
-                      'new',
-                    ),
-                  );
-                  onBible();
-                },
-                icon: const Icon(
-                  Icons.auto_stories_outlined,
-                  color: Colors.white,
-                  size: 32,
+              FutureBuilder<bool>(
+                future: BubbleUtils.shouldShowBubble(
+                  BubbleUtils.getIconBubbleId(
+                    Icons.auto_stories_outlined,
+                    'new',
+                  ),
                 ),
+                builder: (context, snapshot) {
+                  final showBubble = snapshot.data ?? false;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        key: const Key('bottom_appbar_bible_icon'),
+                        tooltip: 'tooltips.bible'.tr(),
+                        onPressed: () async {
+                          getService<AnalyticsService>().logBottomBarAction(
+                            action: 'bible',
+                          );
+                          await BubbleUtils.markAsShown(
+                            BubbleUtils.getIconBubbleId(
+                              Icons.auto_stories_outlined,
+                              'new',
+                            ),
+                          );
+                          onBible();
+                        },
+                        icon: const Icon(
+                          Icons.auto_stories_outlined,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                      ),
+                      if (showBubble)
+                        Positioned(
+                          top: BubbleConstants.iconBadgeTop,
+                          right: BubbleConstants.iconBadgeRight,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: BubbleConstants.newFeatureColor,
+                              borderRadius: BorderRadius.circular(
+                                BubbleConstants.iconBadgeRadius,
+                              ),
+                              boxShadow: BubbleConstants.bubbleShadow,
+                            ),
+                            child: Text(
+                              'bubble_constants.new_feature'.tr(),
+                              style: BubbleConstants.iconBadgeTextStyle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
               // 3. Discovery Studies
               if (Constants.enableDiscoveryFeature)
