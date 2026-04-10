@@ -101,6 +101,19 @@ class TtsAudioController {
     }
   }
 
+  /// Safely update a [ValueNotifier] if controller is not disposed.
+  /// Prevents "ValueNotifier used after dispose" crashes from async callbacks
+  /// (e.g. timer ticks or post-await continuations that race with dispose()).
+  void _setNotifierIfNotDisposed<T>(ValueNotifier<T> notifier, T value) {
+    if (_disposed) return;
+    try {
+      notifier.value = value;
+    } catch (e) {
+      debugPrint(
+          '⚠️ [TTS Controller] Error setting notifier after dispose: $e');
+    }
+  }
+
   TtsAudioController({
     required this.flutterTts,
     required VoiceSettingsService voiceSettingsService,
@@ -546,7 +559,7 @@ class TtsAudioController {
 
     if (state.value == TtsPlayerState.loading) {
       debugPrint('▶️ [TTS Controller] Cambiando estado de LOADING a PLAYING');
-      state.value = TtsPlayerState.playing;
+      _setStateIfNotDisposed(TtsPlayerState.playing);
 
       // CRITICAL FIX: Iniciar el timer manualmente ya que el START HANDLER
       // no siempre se dispara en todas las plataformas al reanudar
@@ -594,8 +607,11 @@ class TtsAudioController {
 
         await flutterTts.stop();
 
+        // SAFEGUARD: controller may have been disposed during the await.
+        if (_disposed) return;
+
         // Set state to paused (not idle) to indicate we can resume
-        state.value = TtsPlayerState.paused;
+        _setStateIfNotDisposed(TtsPlayerState.paused);
         _pauseProgressTimer();
 
         // Preserve the position for resume
@@ -613,7 +629,9 @@ class TtsAudioController {
 
     try {
       await flutterTts.pause();
-      state.value = TtsPlayerState.paused;
+      // SAFEGUARD: controller may have been disposed during the await.
+      if (_disposed) return;
+      _setStateIfNotDisposed(TtsPlayerState.paused);
       _pauseProgressTimer();
 
       // CRITICAL: Fallback position capture for test environments or edge cases
@@ -632,7 +650,8 @@ class TtsAudioController {
       debugPrint('❌ [TTS Controller] ERROR en pause(): $e');
       debugPrint('❌ [TTS Controller] Stack trace: $stackTrace');
       // Even if pause fails, update state to paused to maintain consistency
-      state.value = TtsPlayerState.paused;
+      if (_disposed) return;
+      _setStateIfNotDisposed(TtsPlayerState.paused);
       _pauseProgressTimer();
       // Capture position even on error
       if (currentPosition.value > accumulatedPosition) {
@@ -651,9 +670,17 @@ class TtsAudioController {
     _silentUtteranceWatchdog = null;
     _silentRetryCount = 0;
     await flutterTts.stop();
-    state.value = TtsPlayerState.idle;
+    // SAFEGUARD: dispose() may have been called while we were awaiting
+    // flutterTts.stop() (e.g. widget tree disposed during async gap).
+    // Writing to a disposed ValueNotifier throws a Fatal Exception — bail out.
+    if (_disposed) {
+      debugPrint(
+          '[TTS Controller] stop() — controller disposed, skipping state update');
+      return;
+    }
+    _setStateIfNotDisposed(TtsPlayerState.idle);
     stopProgressTimer();
-    currentPosition.value = Duration.zero;
+    _setNotifierIfNotDisposed(currentPosition, Duration.zero);
     accumulatedPosition = Duration.zero;
     debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
@@ -663,8 +690,8 @@ class TtsAudioController {
       '[TTS Controller] complete() llamado, estado previo: ${state.value.toString()}',
     );
     stopProgressTimer();
-    state.value = TtsPlayerState.completed;
-    currentPosition.value = totalDuration.value;
+    _setStateIfNotDisposed(TtsPlayerState.completed);
+    _setNotifierIfNotDisposed(currentPosition, totalDuration.value);
     accumulatedPosition = Duration.zero;
     debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
@@ -673,7 +700,7 @@ class TtsAudioController {
     debugPrint(
       '[TTS Controller] error() llamado, estado previo: ${state.value.toString()}',
     );
-    state.value = TtsPlayerState.error;
+    _setStateIfNotDisposed(TtsPlayerState.error);
     stopProgressTimer();
     debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
@@ -809,6 +836,14 @@ class TtsAudioController {
     );
 
     _progressTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      // SAFEGUARD: bail out immediately if the controller was disposed between
+      // when this tick was queued and when it actually runs.  Without this
+      // guard, writing to a disposed ValueNotifier throws a Fatal Exception.
+      if (_disposed) {
+        _progressTimer?.cancel();
+        return;
+      }
+
       final now = clock.now();
       // Calculate elapsed time from when playback started, plus any accumulated position
       final elapsed = now.difference(_playStartTime!) + accumulatedPosition;
@@ -819,13 +854,13 @@ class TtsAudioController {
 
       if (elapsed >= totalDuration.value) {
         debugPrint('⏱️ [TTS Controller] Llegó al final - deteniendo timer');
-        currentPosition.value = totalDuration.value;
+        _setNotifierIfNotDisposed(currentPosition, totalDuration.value);
         stopProgressTimer();
         // CRITICAL FIX: Set state to completed to trigger "heard" stats
         debugPrint('✅ [TTS Controller] Setting state to COMPLETED');
-        state.value = TtsPlayerState.completed;
+        _setStateIfNotDisposed(TtsPlayerState.completed);
       } else {
-        currentPosition.value = elapsed;
+        _setNotifierIfNotDisposed(currentPosition, elapsed);
       }
     });
 
