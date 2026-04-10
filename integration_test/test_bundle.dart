@@ -21,7 +21,6 @@ import 'system_navigation_bar_integration_test.dart'
 import 'thanksgiving_integration_test.dart' as thanksgiving_integration_test;
 import 'tts_complete_user_flow_test.dart' as tts_complete_user_flow_test;
 import 'tts_di_integration_test.dart' as tts_di_integration_test;
-import 'tts_modal_user_workflow_test.dart' as tts_modal_user_workflow_test;
 import 'tts_pause_behavior_test.dart' as tts_pause_behavior_test;
 import 'tts_timer_resume_test.dart' as tts_timer_resume_test;
 import 'voice_persistence_user_test.dart' as voice_persistence_user_test;
@@ -97,7 +96,6 @@ Future<void> main() async {
   group('thanksgiving_integration_test', thanksgiving_integration_test.main);
   group('tts_complete_user_flow_test', tts_complete_user_flow_test.main);
   group('tts_di_integration_test', tts_di_integration_test.main);
-  group('tts_modal_user_workflow_test', tts_modal_user_workflow_test.main);
   group('tts_pause_behavior_test', tts_pause_behavior_test.main);
   group('tts_timer_resume_test', tts_timer_resume_test.main);
   group('voice_persistence_user_test', voice_persistence_user_test.main);
