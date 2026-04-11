@@ -177,7 +177,7 @@ echo "RESULT=$RESULT (EXIT_CODE=$TEST_EXIT_CODE)"
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
 
-# Clean up older log files (keep last 10)
-find /tmp -name "flutter_test_*.log" -type f | sort -r | tail -n +11 | xargs -r rm
+# Clean up older log files (keep last 10, suppress permission errors)
+find /tmp -name "flutter_test_*.log" -type f 2>/dev/null | sort -r | tail -n +11 | xargs -r rm 2>/dev/null || true
 
 exit $TEST_EXIT_CODE
