@@ -11,13 +11,13 @@ import '../../helpers/test_helpers.dart';
 
 void main() {
   group('Devotional Reading Logic Tests', () {
-    setUp(() {
+    setUp(() async {
       // Initialize Flutter binding for tests
       TestWidgetsFlutterBinding.ensureInitialized();
       // Initialize SharedPreferences mock for each test
       SharedPreferences.setMockInitialValues({});
       // Setup service locator with all required services
-      registerTestServices();
+      await registerTestServices();
     });
 
     test('DevocionalProvider recordDevocionalRead works correctly', () async {

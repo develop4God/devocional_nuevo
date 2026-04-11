@@ -24,10 +24,10 @@ Map<String, dynamic>? getDrawer(Map<String, dynamic> json) {
 }
 
 void main() {
-  setUp(() {
+  setUp(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
-    registerTestServices();
+    await registerTestServices();
   });
 
   group('Drawer Translation Tests', () {
