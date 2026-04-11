@@ -73,11 +73,15 @@ class _FakeBibleDbService extends BibleDbService {
       ];
 
   @override
-  Future<Map<String, dynamic>?> findBookByName(String name) async =>
-      _books.firstWhere(
+  Future<Map<String, dynamic>?> findBookByName(String name) async {
+    try {
+      return _books.firstWhere(
         (b) => b['short_name'] == name || b['long_name'] == name,
-        orElse: () => {},
       );
+    } catch (e) {
+      return null;
+    }
+  }
 }
 
 // ── Test factory ───────────────────────────────────────────────────────────
@@ -85,14 +89,16 @@ class _FakeBibleDbService extends BibleDbService {
 BibleVersion _makeVersion({
   String name = 'RVR1960',
   String languageCode = 'es',
+  String? dbFileName,
   _FakeBibleDbService? fakeDb,
 }) {
+  final effectiveDbFileName = dbFileName ?? '$name.db';
   final version = BibleVersion(
     name: name,
     language: languageCode == 'ar' ? 'Arabic' : 'Español',
     languageCode: languageCode,
-    assetPath: 'assets/fake/$name.db',
-    dbFileName: '$name.db',
+    assetPath: 'assets/fake/$effectiveDbFileName',
+    dbFileName: effectiveDbFileName,
   );
   version.service = fakeDb ?? _FakeBibleDbService();
   return version;
@@ -661,6 +667,68 @@ void main() {
           controller.state.isLoading,
           isFalse,
           reason: 'isLoading leak after version switch',
+        );
+        controller.dispose();
+      });
+
+      test(
+          'Same name, different dbFileName — controller treats them as different',
+          () async {
+        // Two versions share the display name but have distinct database files.
+        // The controller must use dbFileName (not name) as the identity key.
+        final versionA = _makeVersion(
+          name: 'RVR1960',
+          dbFileName: 'rvr1960_v1.db',
+        );
+        final versionB = _makeVersion(
+          name: 'RVR1960',
+          dbFileName: 'rvr1960_v2.db',
+        );
+        final controller = _makeController(versions: [versionA, versionB]);
+        await controller.initialize('es');
+
+        // Controller should have selected versionA during init
+        expect(controller.state.selectedVersion?.dbFileName, 'rvr1960_v1.db');
+
+        final stateBefore = controller.state;
+        await controller.switchVersion(versionB);
+
+        expect(
+          controller.state,
+          isNot(same(stateBefore)),
+          reason:
+              'Versions with different dbFileName must be treated as distinct '
+              '— switchVersion should emit new state',
+        );
+        expect(controller.state.selectedVersion?.dbFileName, 'rvr1960_v2.db');
+        controller.dispose();
+      });
+
+      test('Different name, same dbFileName — controller treats them as same',
+          () async {
+        // Two version objects have different display names but identical
+        // dbFileName. The controller should consider them the same version
+        // and skip the switch entirely.
+        final versionA = _makeVersion(
+          name: 'RVR1960',
+          dbFileName: 'shared.db',
+        );
+        final versionB = _makeVersion(
+          name: 'NVI',
+          dbFileName: 'shared.db',
+        );
+        final controller = _makeController(versions: [versionA, versionB]);
+        await controller.initialize('es');
+
+        final stateBefore = controller.state;
+        await controller.switchVersion(versionB);
+
+        expect(
+          controller.state,
+          same(stateBefore),
+          reason:
+              'Versions with the same dbFileName must be treated as identical '
+              '— switchVersion should be a no-op',
         );
         controller.dispose();
       });
