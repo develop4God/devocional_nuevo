@@ -21,7 +21,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('TTS DI Integration Tests', () {
-    setUp(() {
+    setUp(() async {
       SharedPreferences.setMockInitialValues({});
       ServiceLocator().reset();
 
@@ -68,6 +68,9 @@ void main() {
           }
         },
       );
+
+      // Initialize service locator with all dependencies
+      await setupServiceLocator();
     });
 
     tearDown(() {
@@ -82,8 +85,6 @@ void main() {
     });
 
     test('ServiceLocator provides ITtsService instance', () {
-      setupServiceLocator();
-
       final service = getService<ITtsService>();
 
       expect(service, isNotNull);
@@ -94,8 +95,6 @@ void main() {
     test(
       'ServiceLocator returns same singleton instance on multiple calls',
       () {
-        setupServiceLocator();
-
         final service1 = getService<ITtsService>();
         final service2 = getService<ITtsService>();
         final service3 = getService<ITtsService>();
@@ -111,7 +110,6 @@ void main() {
     );
 
     test('AudioController works with injected ITtsService', () async {
-      setupServiceLocator();
       final ttsService = getService<ITtsService>();
 
       final controller = AudioController(ttsService);
@@ -126,7 +124,6 @@ void main() {
     });
 
     test('AudioController can play devotional through DI', () async {
-      setupServiceLocator();
       final ttsService = getService<ITtsService>();
       final controller = AudioController(ttsService);
       controller.initialize();
@@ -154,8 +151,6 @@ void main() {
     });
 
     test('DevocionalProvider retrieves TTS from service locator', () async {
-      setupServiceLocator();
-
       final provider = DevocionalProvider();
       await provider.initializeData();
 
@@ -166,8 +161,6 @@ void main() {
     });
 
     test('Multiple AudioControllers share same TTS singleton', () async {
-      setupServiceLocator();
-
       final controller1 = AudioController(getService<ITtsService>());
       final controller2 = AudioController(getService<ITtsService>());
       final controller3 = AudioController(getService<ITtsService>());
@@ -187,8 +180,6 @@ void main() {
     test(
       'Concurrent access to service locator returns same instance',
       () async {
-        setupServiceLocator();
-
         final futures = List.generate(
           50,
           (_) => Future(() => getService<ITtsService>()),
@@ -215,11 +206,10 @@ void main() {
     });
 
     test('ServiceLocator can be reset and re-initialized', () async {
-      setupServiceLocator();
       final service1 = getService<ITtsService>();
 
       ServiceLocator().reset();
-      setupServiceLocator();
+      await setupServiceLocator();
       final service2 = getService<ITtsService>();
 
       expect(
@@ -233,7 +223,6 @@ void main() {
     });
 
     test('TTS service lifecycle works through DI', () async {
-      setupServiceLocator();
       final service = getService<ITtsService>();
 
       await service.initialize();
@@ -249,8 +238,6 @@ void main() {
     });
 
     test('Factory constructor creates functional TTS instance', () async {
-      setupServiceLocator();
-
       final service = TtsService();
       await service.initialize();
 
@@ -261,7 +248,6 @@ void main() {
     });
 
     test('Integration: Full user flow with DI', () async {
-      setupServiceLocator();
       final ttsService = getService<ITtsService>();
       final controller = AudioController(ttsService);
       controller.initialize();
