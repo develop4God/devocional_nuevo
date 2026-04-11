@@ -44,15 +44,12 @@ void main() {
     });
 
     group('TTS Play Button Tracking', () {
-      testWidgets('should log tts_play event when play button is pressed', (
-        tester,
-      ) async {
+      test('should log tts_play event when play button is pressed', () async {
         when(
           mockAnalytics.logEvent(name: 'tts_play', parameters: null),
         ).thenAnswer((_) async => {});
 
         await analyticsService.logTtsPlay();
-        await tester.pumpAndSettle();
 
         verify(
           mockAnalytics.logEvent(name: 'tts_play', parameters: null),
@@ -60,15 +57,14 @@ void main() {
         expect(AnalyticsService.analyticsErrorCount, 0);
       });
 
-      testWidgets(
+      test(
         'should handle analytics failure gracefully when tracking TTS play',
-        (tester) async {
+        () async {
           when(
             mockAnalytics.logEvent(name: 'tts_play', parameters: null),
           ).thenThrow(Exception('Network timeout'));
 
           await analyticsService.logTtsPlay();
-          await tester.pumpAndSettle();
 
           expect(AnalyticsService.analyticsErrorCount, 1);
         },
@@ -76,12 +72,13 @@ void main() {
     });
 
     group('Devotional Completion Tracking', () {
-      testWidgets(
+      test(
         'should log completion with valid campaign tag from constants',
-        (tester) async {
+        () async {
           const devocionalId = 'dev_integration_test_001';
           final campaignTag = AnalyticsConstants.getCampaignTag(
             devocionalId: devocionalId,
+            totalDevocionalesRead: 7,
           );
 
           when(
@@ -98,7 +95,6 @@ void main() {
             readingTimeSeconds: 120,
             scrollPercentage: 0.95,
           );
-          await tester.pumpAndSettle();
 
           final captured = verify(
             mockAnalytics.logEvent(
@@ -118,9 +114,7 @@ void main() {
         },
       );
 
-      testWidgets('should log heard completion with listened percentage', (
-        tester,
-      ) async {
+      test('should log heard completion with listened percentage', () async {
         const devocionalId = 'dev_heard_test';
         const campaignTag = 'custom_1';
 
@@ -137,7 +131,6 @@ void main() {
           source: 'heard',
           listenedPercentage: 0.8,
         );
-        await tester.pumpAndSettle();
 
         final captured = verify(
           mockAnalytics.logEvent(
@@ -153,7 +146,7 @@ void main() {
         expect(params['listened_percentage'], 80);
       });
 
-      testWidgets('should reject invalid campaign tags', (tester) async {
+      test('should reject invalid campaign tags', () async {
         const devocionalId = 'dev_invalid_tag_test';
         const invalidTag = 'invalid tag with spaces';
 
@@ -161,7 +154,6 @@ void main() {
           devocionalId: devocionalId,
           campaignTag: invalidTag,
         );
-        await tester.pumpAndSettle();
 
         verifyNever(
           mockAnalytics.logEvent(
@@ -174,9 +166,7 @@ void main() {
     });
 
     group('Campaign Tag Validation', () {
-      testWidgets('should validate campaign tag before logging', (
-        tester,
-      ) async {
+      test('should validate campaign tag before logging', () async {
         final testCases = [
           {'tag': 'custom_1', 'valid': true},
           {'tag': 'valid_tag_123', 'valid': true},
@@ -203,7 +193,6 @@ void main() {
             devocionalId: 'test_dev',
             campaignTag: tag,
           );
-          await tester.pumpAndSettle();
 
           if (shouldBeValid) {
             expect(
@@ -223,7 +212,7 @@ void main() {
     });
 
     group('Error Telemetry', () {
-      testWidgets('should track multiple consecutive errors', (tester) async {
+      test('should track multiple consecutive errors', () async {
         when(
           mockAnalytics.logEvent(name: 'tts_play', parameters: null),
         ).thenThrow(Exception('Persistent error'));
@@ -232,13 +221,12 @@ void main() {
 
         for (var i = 0; i < 5; i++) {
           await analyticsService.logTtsPlay();
-          await tester.pump();
         }
 
         expect(AnalyticsService.analyticsErrorCount, 5);
       });
 
-      testWidgets('should track errors from mixed operations', (tester) async {
+      test('should track errors from mixed operations', () async {
         when(
           mockAnalytics.logEvent(name: 'tts_play', parameters: null),
         ).thenThrow(Exception('TTS error'));
@@ -257,21 +245,17 @@ void main() {
           campaignTag: 'custom_1',
         );
         await analyticsService.logTtsPlay();
-        await tester.pumpAndSettle();
 
         expect(AnalyticsService.analyticsErrorCount, 3);
       });
 
-      testWidgets('should warn after exceeding error threshold', (
-        tester,
-      ) async {
+      test('should warn after exceeding error threshold', () async {
         when(
           mockAnalytics.logEvent(name: 'tts_play', parameters: null),
         ).thenThrow(Exception('Error'));
 
         for (var i = 0; i < 12; i++) {
           await analyticsService.logTtsPlay();
-          await tester.pump();
         }
 
         expect(AnalyticsService.analyticsErrorCount, 12);
@@ -280,10 +264,11 @@ void main() {
     });
 
     group('Integration with AnalyticsConstants', () {
-      testWidgets('should use constants for campaign tags', (tester) async {
+      test('should use constants for campaign tags', () async {
         const devocionalId = 'dev_constants_test';
         final expectedTag = AnalyticsConstants.getCampaignTag(
           devocionalId: devocionalId,
+          totalDevocionalesRead: 7,
         );
 
         when(
@@ -297,7 +282,6 @@ void main() {
           devocionalId: devocionalId,
           campaignTag: expectedTag,
         );
-        await tester.pumpAndSettle();
 
         final captured = verify(
           mockAnalytics.logEvent(
@@ -310,8 +294,8 @@ void main() {
         expect(params['campaign_tag'], AnalyticsConstants.defaultCampaignTag);
       });
 
-      testWidgets('should validate constants-generated tags', (tester) async {
-        final tag = AnalyticsConstants.getCampaignTag();
+      test('should validate constants-generated tags', () async {
+        final tag = AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 7);
 
         expect(
           AnalyticsService.isValidCampaignTag(tag),
@@ -322,12 +306,11 @@ void main() {
     });
 
     group('Real-World Scenarios', () {
-      testWidgets('complete user journey: read devotional and track', (
-        tester,
-      ) async {
+      test('complete user journey: read devotional and track', () async {
         const devocionalId = 'daily_devotional_2024_01_01';
         final campaignTag = AnalyticsConstants.getCampaignTag(
           devocionalId: devocionalId,
+          totalDevocionalesRead: 7,
         );
 
         when(
@@ -344,7 +327,6 @@ void main() {
           readingTimeSeconds: 180,
           scrollPercentage: 0.9,
         );
-        await tester.pumpAndSettle();
 
         verify(
           mockAnalytics.logEvent(
@@ -355,12 +337,11 @@ void main() {
         expect(AnalyticsService.analyticsErrorCount, 0);
       });
 
-      testWidgets('complete user journey: TTS playback and track', (
-        tester,
-      ) async {
+      test('complete user journey: TTS playback and track', () async {
         const devocionalId = 'audio_devotional_test';
         final campaignTag = AnalyticsConstants.getCampaignTag(
           devocionalId: devocionalId,
+          totalDevocionalesRead: 7,
         );
 
         when(
@@ -380,7 +361,6 @@ void main() {
           source: 'heard',
           listenedPercentage: 0.75,
         );
-        await tester.pumpAndSettle();
 
         verify(
           mockAnalytics.logEvent(name: 'tts_play', parameters: null),
