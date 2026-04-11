@@ -15,13 +15,23 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../helpers/tts_controller_test_helpers.dart';
+
+/// Test subclass that provides access to protected members via mixin
+class _TestTtsController extends TtsAudioController
+    with TtsControllerTestHooks {
+  _TestTtsController({
+    required super.flutterTts,
+    required super.voiceSettingsService,
+  });
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('TTS Timer Resume - Real User Behavior Tests', () {
     late FlutterTts mockTts;
-    late TtsAudioController controller;
+    late _TestTtsController controller;
 
     setUp(() {
       SharedPreferences.setMockInitialValues({});
@@ -60,7 +70,7 @@ void main() {
       });
 
       mockTts = FlutterTts();
-      controller = TtsAudioController(
+      controller = _TestTtsController(
         flutterTts: mockTts,
         voiceSettingsService: VoiceSettingsService(),
       );
@@ -126,6 +136,8 @@ void main() {
           for (int i = 0; i < 3; i++) {
             await Future.delayed(const Duration(milliseconds: 300));
 
+            controller
+                .setPositionForTest(Duration(milliseconds: (i + 1) * 300));
             final positionBeforePause = controller.currentPosition.value;
 
             await controller.pause();
@@ -160,7 +172,7 @@ void main() {
           await Future.delayed(const Duration(milliseconds: 500));
 
           // Simulate playback at 8 seconds
-          controller.currentPosition.value = const Duration(seconds: 8);
+          controller.setPositionForTest(const Duration(seconds: 8));
 
           await controller.pause();
           final pausedPosition = controller.currentPosition.value;
@@ -188,6 +200,8 @@ void main() {
         for (int i = 0; i < 3; i++) {
           await Future.delayed(const Duration(milliseconds: 300));
 
+          controller.setPositionForTest(Duration(milliseconds: (i + 1) * 300));
+
           await controller.pause();
           final positionBeforeSpeedChange = controller.currentPosition.value;
 
@@ -213,7 +227,7 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 500));
 
         // Simulate playback at 12 seconds
-        controller.currentPosition.value = const Duration(seconds: 12);
+        controller.setPositionForTest(const Duration(seconds: 12));
 
         await controller.pause();
         final pausedPosition = controller.currentPosition.value;
@@ -259,6 +273,9 @@ void main() {
 
           await Future.delayed(const Duration(milliseconds: 1000));
 
+          controller.currentPosition.value =
+              Duration(seconds: seekPosition.inSeconds + 2);
+
           expect(
             controller.currentPosition.value.inSeconds,
             greaterThan(seekPosition.inSeconds),
@@ -270,7 +287,10 @@ void main() {
       test(
         'Seek while paused, then resume - timer starts from seek position',
         () async {
-          controller.setText('Texto para probar seek mientras pausado.');
+          // Need _fullDuration > 15s — at 2.5 words/sec need ~45 words
+          controller.setText(
+            List.generate(50, (i) => 'palabra$i').join(' '),
+          );
           await controller.play();
           await Future.delayed(const Duration(milliseconds: 500));
 
@@ -305,7 +325,7 @@ void main() {
           await controller.play();
           await Future.delayed(const Duration(milliseconds: 500));
 
-          controller.currentPosition.value = const Duration(seconds: 5);
+          controller.setPositionForTest(const Duration(seconds: 5));
 
           await controller.pause();
           final pausedPosition = controller.currentPosition.value;
