@@ -22,9 +22,9 @@ void main() {
   group('Prayer Workflow - Real User Behavior Tests', () {
     late PrayerBloc bloc;
 
-    setUp(() {
+    setUp(() async {
       SharedPreferences.setMockInitialValues({});
-      registerTestServices();
+      await registerTestServices();
       bloc = PrayerBloc();
     });
 

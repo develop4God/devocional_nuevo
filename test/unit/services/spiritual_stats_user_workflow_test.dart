@@ -19,9 +19,9 @@ void main() {
   group('Devotional Reading - Real User Workflow Tests', () {
     late SpiritualStatsService statsService;
 
-    setUp(() {
+    setUp(() async {
       SharedPreferences.setMockInitialValues({});
-      registerTestServices();
+      await registerTestServices();
       statsService = SpiritualStatsService();
     });
 

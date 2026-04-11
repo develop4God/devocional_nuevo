@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<void> registerTestServices() async {
   ServiceLocator().reset();
   SharedPreferences.setMockInitialValues({});
+  PathProviderPlatform.instance = MockPathProviderPlatform();
   await setupServiceLocator();
 }
 
@@ -18,6 +19,7 @@ Future<void> registerTestServices() async {
 Future<void> registerTestServicesWithFakes() async {
   ServiceLocator().reset();
   SharedPreferences.setMockInitialValues({});
+  PathProviderPlatform.instance = MockPathProviderPlatform();
   await setupServiceLocator();
 
   // Override AnalyticsService with fake that doesn't require Firebase
