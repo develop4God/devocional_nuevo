@@ -168,18 +168,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       }
 
       // Close modal ONLY when audio completes (not on pause/stop/idle).
+      // NOTE: The modal's builder in BibleReaderTtsMiniplayerPresenter already
+      // handles closing itself when TTS completes via Navigator.pop(ctx).
+      // We only reset the modal showing state here - do NOT call Navigator.pop()
+      // from this context as it would pop the BibleReaderPage route itself!
       if (s == TtsPlayerState.completed) {
         if (_ttsMiniplayerPresenter.isShowing) {
+          debugPrint(
+            '🏁 [BibleReader Modal] TTS Completed - modal builder will close itself',
+          );
           _ttsMiniplayerPresenter.resetModalState();
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (_disposed) return;
-            if (mounted && Navigator.canPop(context)) {
-              debugPrint(
-                '🏁 [BibleReader Modal] Closing modal on COMPLETED state',
-              );
-              Navigator.of(context).pop();
-            }
-          });
         }
       }
     } catch (e) {
