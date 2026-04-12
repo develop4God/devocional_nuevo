@@ -8,7 +8,7 @@ set -e  # Exit on any command failure
 export PATH="$PATH:/home/develop4god/development/flutter/bin"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$SCRIPT_DIR"
 
 # Debug: Print environment and path info for hook troubleshooting
 (

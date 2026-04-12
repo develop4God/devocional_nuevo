@@ -3,245 +3,220 @@ library;
 
 // test/unit/widgets/drawer_offline_widget_test.dart
 //
-// Unit tests for offline/download feature behavior
+// Unit tests for the offline/download feature.
 //
-// ✅ HIGH-VALUE TEST: Validates core offline functionality that users depend on
-//    - Users without internet need to pre-download devotionals
-//    - Different UI states based on data availability
-//    - Download dialog interaction patterns
+// ✅ Tests the REAL DevocionalProvider delegation contract:
+//    - Provider.hasTargetYearsLocalData() delegates to repository with the
+//      correct language and version arguments.
+//    - The provider correctly reflects the repository's answer (true/false).
 //
-// NOTE: This test validates the USER BEHAVIOR FLOW by testing:
-//   1. Initial state: no offline data → show download button
-//   2. Downloaded state: offline data exists → show "ready" state
-//   3. Download action: user triggers download flow
-//   4. Cancellation: user can cancel without consequences
-//
-// For full widget rendering tests, see integration_test/
+// A FakeDevocionalRepository (not a Mock) is used so that tests exercise the
+// real provider code path rather than only verifying what the mock returns.
 
+import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../helpers/test_helpers.dart';
+// ---------------------------------------------------------------------------
+// Fake repository — implements the real interface without mocking.
+// Tests can flip _localDataResult to drive provider responses.
+// ---------------------------------------------------------------------------
+class _FakeDevocionalRepository implements DevocionalRepository {
+  bool _localDataResult;
 
-class _MockDevocionalProvider extends Mock implements DevocionalProvider {}
+  /// Captures the arguments the provider passed on the most recent call.
+  String? capturedLanguage;
+  String? capturedVersion;
 
-/// Offline Feature Test Suite
-///
-/// Tests the critical user workflow for offline content:
-/// State 1: No local data → "Download Devotionals" button visible
-/// State 2: Local data exists → "Content Ready Offline" message
-/// Action: Download flow with confirmation dialog
+  int hasTargetYearsCallCount = 0;
+
+  _FakeDevocionalRepository({bool localDataResult = false})
+      : _localDataResult = localDataResult;
+
+  void setLocalData(bool value) => _localDataResult = value;
+
+  @override
+  Future<bool> hasTargetYearsLocalData(String language, String version) async {
+    hasTargetYearsCallCount++;
+    capturedLanguage = language;
+    capturedVersion = version;
+    return _localDataResult;
+  }
+
+  // ── Minimal stubs for remaining interface members ──────────────────────
+
+  @override
+  int findFirstUnreadDevocionalIndex(
+          List<Devocional> devocionales, List<String> readDevocionalIds) =>
+      0;
+
+  @override
+  Future<List<Devocional>> fetchAll(
+          int year, String language, String version) async =>
+      [];
+
+  @override
+  List<Devocional> filterByVersion(
+          List<Devocional> devocionales, String version) =>
+      devocionales;
+
+  @override
+  Future<bool> hasLocalData(int year, String language, String version) async =>
+      _localDataResult;
+
+  @override
+  Future<bool> downloadAndStoreDevocionales(
+          int year, String language, String version) async =>
+      true;
+
+  @override
+  Future<void> clearOldFiles() async {}
+
+  @override
+  bool get wasLastFetchOffline => false;
+
+  @override
+  Future<bool> downloadCurrentYearDevocionales(
+          String language, String version) async =>
+      true;
+
+  @override
+  Future<bool> hasCurrentYearLocalData(String language, String version) async =>
+      _localDataResult;
+
+  @override
+  Future<List<int>> getAvailableYears() async => [2025, 2026];
+
+  @override
+  void resetCache() {}
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+DevocionalProvider _makeProvider(_FakeDevocionalRepository repo) =>
+    DevocionalProvider(
+      devocionalRepository: repo,
+      enableAudio: false, // no audio setup needed in unit tests
+    );
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 void main() {
-  late _MockDevocionalProvider mockDevocionalProvider;
-
-  setUpAll(() async {
+  setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
-    await registerTestServices();
+    // Minimal service locator setup — provider constructor needs SharedPreferences
+    // only when it resolves the repository from the locator (we inject it directly,
+    // so this is a safety net only).
+    ServiceLocator().reset();
   });
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    mockDevocionalProvider = _MockDevocionalProvider();
-
-    // Mock provider behavior - these are the key states for offline feature
-    when(() => mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
-    when(() => mockDevocionalProvider.availableVersions)
-        .thenReturn(['RVR1960', 'NVI', 'KJV']);
-    when(() => mockDevocionalProvider.selectedLanguage).thenReturn('es');
-
-    // Default: no local data (initial state)
-    when(() => mockDevocionalProvider.hasTargetYearsLocalData())
-        .thenAnswer((_) async => false);
-
-    // Download succeeds when user accepts
-    when(() => mockDevocionalProvider.downloadDevocionalesWithProgress(
-          onProgress: any(named: 'onProgress'),
-        )).thenAnswer((_) async => true);
   });
 
-  group('Offline Content Feature - User Behavior Flow', () {
+  group('Offline Content Feature — DevocionalProvider delegation', () {
     test(
-      'Provider returns false when no devotionals downloaded',
+      'hasTargetYearsLocalData returns false when repository has no data',
       () async {
-        when(() => mockDevocionalProvider.hasTargetYearsLocalData())
-            .thenAnswer((_) async => false);
+        final fakeRepo = _FakeDevocionalRepository(localDataResult: false);
+        final provider = _makeProvider(fakeRepo);
 
-        final hasData = await mockDevocionalProvider.hasTargetYearsLocalData();
+        final result = await provider.hasTargetYearsLocalData();
 
-        expect(
-          hasData,
-          false,
-          reason: 'New user should not have local devotional data',
-        );
+        expect(result, isFalse,
+            reason:
+                'Provider must return false when repository reports no local data');
+        expect(fakeRepo.hasTargetYearsCallCount, 1,
+            reason: 'Provider must delegate to the repository exactly once');
       },
     );
 
     test(
-      'Provider returns true when devotionals are downloaded',
+      'hasTargetYearsLocalData returns true when repository has data',
       () async {
-        when(() => mockDevocionalProvider.hasTargetYearsLocalData())
-            .thenAnswer((_) async => true);
+        final fakeRepo = _FakeDevocionalRepository(localDataResult: true);
+        final provider = _makeProvider(fakeRepo);
 
-        final hasData = await mockDevocionalProvider.hasTargetYearsLocalData();
+        final result = await provider.hasTargetYearsLocalData();
 
-        expect(
-          hasData,
-          true,
-          reason: 'User who downloaded devotionals should have local data',
-        );
+        expect(result, isTrue,
+            reason:
+                'Provider must return true when repository reports local data present');
       },
     );
 
     test(
-      'Download succeeds and user receives confirmation',
+      'hasTargetYearsLocalData passes the default language (es) to the repository',
       () async {
-        bool? downloadResult;
-        void mockProgressCallback(double progress) {
-          // Progress callback during download
-        }
+        final fakeRepo = _FakeDevocionalRepository();
+        final provider = _makeProvider(fakeRepo);
 
-        when(() => mockDevocionalProvider.downloadDevocionalesWithProgress(
-              onProgress: any(named: 'onProgress'),
-            )).thenAnswer((_) async => true);
-
-        downloadResult =
-            await mockDevocionalProvider.downloadDevocionalesWithProgress(
-          onProgress: mockProgressCallback,
-        );
+        await provider.hasTargetYearsLocalData();
 
         expect(
-          downloadResult,
-          true,
-          reason: 'Download should complete successfully',
+          fakeRepo.capturedLanguage,
+          isNotNull,
+          reason: 'Provider must forward a language argument to the repository',
         );
+        // Default language without initialization is 'es'
+        expect(fakeRepo.capturedLanguage, equals('es'));
       },
     );
 
     test(
-      'Provider state transitions from no-data to has-data after download',
+      'hasTargetYearsLocalData passes the default version (RVR1960) to the repository',
       () async {
-        // State 1: Initial - no local data
-        when(() => mockDevocionalProvider.hasTargetYearsLocalData())
-            .thenAnswer((_) async => false);
+        final fakeRepo = _FakeDevocionalRepository();
+        final provider = _makeProvider(fakeRepo);
 
-        var initialState =
-            await mockDevocionalProvider.hasTargetYearsLocalData();
-        expect(initialState, false);
+        await provider.hasTargetYearsLocalData();
 
-        // State 2: User downloads
-        when(() => mockDevocionalProvider.downloadDevocionalesWithProgress(
-              onProgress: any(named: 'onProgress'),
-            )).thenAnswer((_) async => true);
-
-        await mockDevocionalProvider.downloadDevocionalesWithProgress(
-          onProgress: (_) {},
+        expect(
+          fakeRepo.capturedVersion,
+          isNotNull,
+          reason: 'Provider must forward a version argument to the repository',
         );
-
-        // State 3: After download - has local data
-        when(() => mockDevocionalProvider.hasTargetYearsLocalData())
-            .thenAnswer((_) async => true);
-
-        var finalState = await mockDevocionalProvider.hasTargetYearsLocalData();
-        expect(finalState, true);
+        expect(fakeRepo.capturedVersion, equals('RVR1960'));
       },
     );
 
     test(
-      'Download can be cancelled without side effects',
+      'hasTargetYearsLocalData transitions from false to true after data is available',
       () async {
-        // User initiates download
-        when(() => mockDevocionalProvider.downloadDevocionalesWithProgress(
-              onProgress: any(named: 'onProgress'),
-            )).thenAnswer((_) async => false); // Simulates user cancellation
+        final fakeRepo = _FakeDevocionalRepository(localDataResult: false);
+        final provider = _makeProvider(fakeRepo);
 
-        final result =
-            await mockDevocionalProvider.downloadDevocionalesWithProgress(
-          onProgress: (_) {},
-        );
+        // State 1: no local data
+        expect(await provider.hasTargetYearsLocalData(), isFalse);
 
-        expect(
-          result,
-          false,
-          reason: 'Cancelled download should return false',
-        );
+        // Simulate download completing
+        fakeRepo.setLocalData(true);
 
-        // State should remain unchanged - still no local data
-        when(() => mockDevocionalProvider.hasTargetYearsLocalData())
-            .thenAnswer((_) async => false);
-
-        final stillNoData =
-            await mockDevocionalProvider.hasTargetYearsLocalData();
-        expect(
-          stillNoData,
-          false,
-          reason: 'Cancelling download should not create local data',
-        );
+        // State 2: local data present
+        expect(await provider.hasTargetYearsLocalData(), isTrue,
+            reason:
+                'Provider must reflect repository state change after download');
       },
     );
 
     test(
-      'User can retry download after previous attempt failed',
+      'hasTargetYearsLocalData delegates on every call (not cached inside provider)',
       () async {
-        // First attempt: download fails
-        when(() => mockDevocionalProvider.downloadDevocionalesWithProgress(
-              onProgress: any(named: 'onProgress'),
-            )).thenAnswer((_) async => false);
+        final fakeRepo = _FakeDevocionalRepository(localDataResult: false);
+        final provider = _makeProvider(fakeRepo);
 
-        var firstAttempt =
-            await mockDevocionalProvider.downloadDevocionalesWithProgress(
-          onProgress: (_) {},
-        );
-        expect(firstAttempt, false);
+        await provider.hasTargetYearsLocalData();
+        await provider.hasTargetYearsLocalData();
 
-        // Second attempt: download succeeds
-        when(() => mockDevocionalProvider.downloadDevocionalesWithProgress(
-              onProgress: any(named: 'onProgress'),
-            )).thenAnswer((_) async => true);
-
-        var secondAttempt =
-            await mockDevocionalProvider.downloadDevocionalesWithProgress(
-          onProgress: (_) {},
-        );
-        expect(
-          secondAttempt,
-          true,
-          reason: 'User should be able to retry download after failure',
-        );
-      },
-    );
-
-    test(
-      'Download progress callback is invoked during download',
-      () async {
-        final List<double> progressValues = [];
-
-        when(() => mockDevocionalProvider.downloadDevocionalesWithProgress(
-              onProgress: any(named: 'onProgress'),
-            )).thenAnswer((invocation) async {
-          final callback = invocation.namedArguments[#onProgress] as Function?;
-          if (callback != null) {
-            // Simulate progress: 0% → 50% → 100%
-            callback(0.0);
-            callback(0.5);
-            callback(1.0);
-          }
-          return true;
-        });
-
-        await mockDevocionalProvider.downloadDevocionalesWithProgress(
-          onProgress: (progress) {
-            progressValues.add(progress);
-          },
-        );
-
-        expect(
-          progressValues,
-          [0.0, 0.5, 1.0],
-          reason:
-              'Progress callback should be invoked with realistic progression',
-        );
+        expect(fakeRepo.hasTargetYearsCallCount, 2,
+            reason: 'Provider must not cache the result — it should delegate '
+                'to the repository on every call so UI always reflects '
+                'current disk state');
       },
     );
   });
