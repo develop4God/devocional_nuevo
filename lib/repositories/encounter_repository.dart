@@ -132,7 +132,8 @@ class EncounterRepository {
   }) async {
     // 1. Check SharedPreferences cache (skipped when fallback is disabled)
     if (Constants.enableEncounterFallback) {
-      final cached = await _loadStudyFromCache(id, lang, entry?.version);
+      final cached = await _loadStudyFromCache(
+          id, lang, entry?.version, entry?.imageVersion);
       if (cached != null) return cached;
     }
 
@@ -143,6 +144,8 @@ class EncounterRepository {
         lang,
         filename: filename,
         version: entry?.version, // NEW — passed to save
+        imageVersion:
+            entry?.imageVersion, // NEW — for EncounterCard image cache
       );
       return study;
     } catch (e) {
@@ -160,7 +163,9 @@ class EncounterRepository {
     String id,
     String lang, {
     String? filename,
-    String? version, // NEW — passed from fetchStudy
+    String? version, // NEW — passed from fetchStudy, used for cache staleness
+    String?
+        imageVersion, // NEW — passed from entry.imageVersion for card image cache
   }) async {
     final url = Constants.getEncounterStudyUrl(id, lang, filename: filename);
     debugPrint('🌐 Encounter: Fetching study $id ($lang) from $url');
@@ -169,7 +174,7 @@ class EncounterRepository {
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final study = EncounterStudy.fromJson(json, imageVersion: version);
+      final study = EncounterStudy.fromJson(json, imageVersion: imageVersion);
       await _saveStudyToCache(id, lang, response.body, version); // NEW
       return study;
     }
@@ -193,7 +198,7 @@ class EncounterRepository {
           await httpClient.get(Uri.parse(enUrl)).timeout(_networkTimeout);
       if (enResponse.statusCode == 200) {
         final json = jsonDecode(enResponse.body) as Map<String, dynamic>;
-        final study = EncounterStudy.fromJson(json, imageVersion: version);
+        final study = EncounterStudy.fromJson(json, imageVersion: imageVersion);
         await _saveStudyToCache(id, 'en', enResponse.body, version); // NEW
         return study;
       }
@@ -207,6 +212,8 @@ class EncounterRepository {
     String id,
     String lang, [
     String? expectedVersion,
+    String?
+        imageVersion, // NEW — driven by entry.imageVersion, not content version
   ]) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -235,7 +242,8 @@ class EncounterRepository {
       debugPrint('✅ Encounter: Cache hit $id ($lang) v$expectedVersion');
       return EncounterStudy.fromJson(
         jsonDecode(cached) as Map<String, dynamic>,
-        imageVersion: expectedVersion, // same version used for cache validation
+        imageVersion:
+            imageVersion, // keyed on image_version, not content version
       );
     } catch (e) {
       developer.log('Failed to load encounter study from cache: $e',

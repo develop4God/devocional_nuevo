@@ -31,10 +31,15 @@ class TtsPlayerWidget extends StatefulWidget {
 
 class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     with WidgetsBindingObserver {
+  static const String _bubbleId = 'devocional_tts_play_bubble';
+
   bool _hasRegisteredHeard = false;
   late VoidCallback _stateListener;
   String? _ttsText;
   String? _currentLanguage;
+
+  /// Cached future so SharedPreferences is not re-read on every rebuild.
+  late Future<bool> _showBubbleFuture;
 
   void _updateTtsText(String language) {
     _currentLanguage = language;
@@ -49,6 +54,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Cache the Future once; SharedPreferences is not re-read on every rebuild.
+    _showBubbleFuture = BubbleUtils.shouldShowBubble(_bubbleId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final language = Localizations.localeOf(context).languageCode;
@@ -204,11 +211,9 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       '[TTS Widget] Texto TTS armado: ${_ttsText != null && _ttsText!.length > 80 ? '${_ttsText!.substring(0, 80)}...' : _ttsText}',
     );
 
-    const bubbleId = 'devocional_tts_play_bubble';
-
     // Restore dynamic visuals: show spinner while loading, pause when playing, play otherwise.
     return FutureBuilder<bool>(
-      future: BubbleUtils.shouldShowBubble(bubbleId),
+      future: _showBubbleFuture,
       builder: (_, snapshot) {
         final showBubble = snapshot.data ?? false;
         return ValueListenableBuilder<TtsPlayerState>(
@@ -223,8 +228,13 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
                   child: InkWell(
                     customBorder: const CircleBorder(),
                     onTap: () async {
-                      await BubbleUtils.markAsShown(bubbleId);
+                      await BubbleUtils.markAsShown(_bubbleId);
                       if (mounted) {
+                        setState(() {
+                          // Bubble has been shown — resolve to false immediately
+                          // so the badge disappears without an extra async read.
+                          _showBubbleFuture = Future.value(false);
+                        });
                         // ignore: use_build_context_synchronously
                         _handlePlayPause(
                             this.context,
