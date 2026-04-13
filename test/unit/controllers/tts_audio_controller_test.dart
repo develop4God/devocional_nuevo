@@ -436,17 +436,10 @@ void main() {
     });
   });
 
-  // ── Silent-utterance watchdog retry ───────────────────────────────────────
-  // NOTE: The 1.2s watchdog timer itself cannot be reliably unit-tested here
-  // because MethodChannel mock responses (flutter_tts) are scheduled outside
-  // fakeAsync's Zone, causing play()'s internal async chain to hang under
-  // fakeAsync. The timer-based retry behavior is verified by integration / manual
-  // on-device tests.
-  //
-  // What IS verifiable here:
-  //   • The retry counter resets to 0 at the start of every play() session.
-  //   • stop() also resets the counter so the next session has a full budget.
-  group('TtsAudioController - Silent utterance watchdog retry', () {
+  // ── State machine resilience ──────────────────────────────────────────────
+  // Verifies that play() always starts from a clean state regardless of the
+  // previous session's outcome (error, stop, normal completion).
+  group('TtsAudioController - State machine resilience after error/stop', () {
     late TtsAudioController controller;
 
     setUp(() async {
@@ -467,28 +460,25 @@ void main() {
           .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
     });
 
-    test('retry counter resets on each new play() — fresh budget after error',
-        () async {
+    test('play() after error returns to playing state', () async {
       controller.setText('short test text');
       await controller.play();
       expect(controller.state.value, TtsPlayerState.playing);
 
-      // Simulate ERROR (as if the watchdog exhausted its retry budget).
+      // Simulate error state.
       controller.error();
       expect(controller.state.value, TtsPlayerState.error);
 
-      // A new play() must reset the counter and succeed when the engine is
-      // responsive (startHandler fires normally).
+      // A new play() must succeed regardless of previous error.
       await controller.play();
       expect(
         controller.state.value,
         TtsPlayerState.playing,
-        reason: 'New play() after error must succeed — retry counter was reset',
+        reason: 'New play() after error must succeed',
       );
     });
 
-    test('stop() resets the retry counter so the next play() has a full budget',
-        () async {
+    test('play() after stop() returns to playing state', () async {
       controller.setText('short test text');
       await controller.play();
       await controller.stop();
