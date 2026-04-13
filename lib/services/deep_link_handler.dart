@@ -29,6 +29,11 @@ class DeepLinkHandler {
   /// Flushed by [flushPendingLink] once the app is fully loaded.
   Uri? _pendingLink;
 
+  /// Deduplication: track the last processed link and time
+  /// to suppress duplicate events within 1 second
+  Uri? _lastProcessedLink;
+  DateTime? _lastProcessedTime;
+
   /// Initialize deep link handling
   Future<void> initialize() async {
     developer.log(
@@ -43,11 +48,20 @@ class DeepLinkHandler {
     try {
       final String? initialLink = await _channel.invokeMethod('getInitialLink');
       if (initialLink != null) {
-        developer.log(
-          'App launched with deep link: $initialLink',
-          name: 'DeepLinkHandler',
-        );
-        await _processDeepLink(initialLink);
+        // Always pend on cold start — navigator is not ready yet.
+        // DevocionalesPage.initState will flush via flushPendingLink().
+        try {
+          _pendingLink = Uri.parse(initialLink);
+          developer.log(
+            'App launched with deep link (buffered): $initialLink',
+            name: 'DeepLinkHandler',
+          );
+        } catch (e) {
+          developer.log(
+            'Error parsing initial link: $e',
+            name: 'DeepLinkHandler',
+          );
+        }
       }
     } catch (e) {
       developer.log(
@@ -83,9 +97,22 @@ class DeepLinkHandler {
   }
 
   /// Process deep link string
+  /// Includes deduplication to suppress the same link within 1 second
   Future<void> _processDeepLink(String link) async {
     try {
       final uri = Uri.parse(link);
+      final now = DateTime.now();
+
+      // Deduplicate — same link within 1 second = ignore
+      if (_lastProcessedLink == uri &&
+          _lastProcessedTime != null &&
+          now.difference(_lastProcessedTime!) < const Duration(seconds: 1)) {
+        debugPrint('🔗 [DeepLink] Duplicate suppressed: $link');
+        return;
+      }
+      _lastProcessedLink = uri;
+      _lastProcessedTime = now;
+
       await handleDeepLink(uri);
     } catch (e) {
       developer.log(
