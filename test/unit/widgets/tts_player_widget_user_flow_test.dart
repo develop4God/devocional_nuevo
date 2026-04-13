@@ -31,6 +31,9 @@ class MockFlutterTts extends FlutterTts {
   Future<dynamic> speak(String text, {bool focus = false}) async {
     speakCalled = true;
     lastSpokenText = text;
+    // Simulate a working TTS engine: fire startHandler immediately so the
+    // silent-utterance watchdog is cancelled before it can transition to ERROR.
+    _startHandler?.call();
     return 1;
   }
 
