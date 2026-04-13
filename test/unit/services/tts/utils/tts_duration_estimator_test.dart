@@ -138,16 +138,16 @@ void main() {
     });
 
     // ── Chinese (ZH) character-based tests ───────────────────────────────────
-    group('Chinese (zh) — 7 chars/sec', () {
-      test('35 characters in Chinese at 7 chars/sec = 5 seconds', () {
-        // 35 chars / 7.0 = 5 seconds
+    group('Chinese (zh) — 5.5 chars/sec', () {
+      test('35 characters in Chinese at 5.5 chars/sec = 6 seconds', () {
+        // 35 chars / 5.5 = 6.36... seconds
         final chineseText = '中文文本测试';
         expect(chineseText.replaceAll(RegExp(r'\s+'), '').length, 6);
         // For 35 chars, create longer text
         final longChinese = chineseText * 6; // ~36 chars
         final duration = TtsDurationEstimator.estimate(longChinese, 'zh');
-        // ~36 chars / 7.0 ≈ 5 seconds
-        expect(duration.inSeconds, 5);
+        // ~36 chars / 5.5 ≈ 6.54 seconds → rounds to 7 seconds
+        expect(duration.inSeconds, 7);
       });
     });
 
