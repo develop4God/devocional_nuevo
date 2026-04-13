@@ -1,6 +1,6 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/devocional_tts_text_builder.dart';
 import 'package:devocional_nuevo/widgets/tts_miniplayer_modal.dart';
@@ -104,7 +104,7 @@ class DevocionalTtsMiniplayerPresenter {
                               ttsAudioController.pause();
                             } else {
                               try {
-                                getService<AnalyticsService>().logTtsPlay();
+                                getService<IAnalyticsService>().logTtsPlay();
                               } catch (e) {
                                 debugPrint(
                                   '❌ Error logging TTS play analytics: $e',

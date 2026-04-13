@@ -8,7 +8,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_reader_tts_text_builder.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
@@ -103,7 +103,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
     _ttsMiniplayerPresenter = BibleReaderTtsMiniplayerPresenter(
       ttsAudioController: _ttsAudioController,
-      analyticsService: getService<AnalyticsService>(),
+      analyticsService: getService<IAnalyticsService>(),
       // Delegate voice selector to the single implementation on this page.
       onShowVoiceSelector: (ctx, lang, sampleText) =>
           _showBibleVoiceSelector(ctx, lang, sampleText),

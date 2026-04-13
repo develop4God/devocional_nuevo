@@ -12,7 +12,7 @@ import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_detail_page.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/discovery_share_helper.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
@@ -69,7 +69,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
   void _toggleGridOverlay() {
     // Log analytics event
-    getService<AnalyticsService>().logDiscoveryAction(
+    getService<IAnalyticsService>().logDiscoveryAction(
       action: _showGridOverlay ? 'toggle_carousel_view' : 'toggle_grid_view',
     );
 
@@ -487,7 +487,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
   void _navigateToDetail(BuildContext context, String studyId) {
     // Log analytics event
-    getService<AnalyticsService>().logDiscoveryAction(
+    getService<IAnalyticsService>().logDiscoveryAction(
       action: 'study_opened',
       studyId: studyId,
     );
@@ -558,7 +558,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
   Future<void> _handleDownloadStudy(String studyId, String title) async {
     // Log analytics event
-    getService<AnalyticsService>().logDiscoveryAction(
+    getService<IAnalyticsService>().logDiscoveryAction(
       action: 'study_downloaded',
       studyId: studyId,
     );
@@ -574,7 +574,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     String studyId,
   ) async {
     // Log analytics event
-    getService<AnalyticsService>().logDiscoveryAction(
+    getService<IAnalyticsService>().logDiscoveryAction(
       action: 'study_shared',
       studyId: studyId,
     );

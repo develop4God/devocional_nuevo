@@ -13,7 +13,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/models/testimony_model.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/add_entry_choice_modal.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
@@ -836,7 +836,7 @@ class _PrayersPageState extends State<PrayersPage>
 
   void _showAddPrayerOrThanksgivingChoice() {
     // Log FAB tap event
-    getService<AnalyticsService>().logFabTapped(source: 'prayers_page');
+    getService<IAnalyticsService>().logFabTapped(source: 'prayers_page');
 
     showModalBottomSheet(
       context: context,

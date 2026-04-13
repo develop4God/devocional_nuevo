@@ -15,7 +15,7 @@ import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_intro_page.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_welcome_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_grid_overlay.dart';
@@ -61,7 +61,7 @@ class _EncountersListPageState extends State<EncountersListPage>
       final lang = context.read<DevocionalProvider>().selectedLanguage;
       bloc.add(LoadEncounterIndex(languageCode: lang));
     }
-    getService<AnalyticsService>().logEncounterAction(action: 'index_loaded');
+    getService<IAnalyticsService>().logEncounterAction(action: 'index_loaded');
     _checkWelcomeSeen();
   }
 
@@ -123,7 +123,7 @@ class _EncountersListPageState extends State<EncountersListPage>
   }
 
   void _toggleGridOverlay() {
-    getService<AnalyticsService>().logEncounterAction(
+    getService<IAnalyticsService>().logEncounterAction(
       action: _showGridOverlay ? 'toggle_list_view' : 'toggle_grid_view',
     );
     setState(() {
@@ -352,7 +352,7 @@ class _EncountersListPageState extends State<EncountersListPage>
   }
 
   void _openEncounter(EncounterIndexEntry entry, String lang) {
-    getService<AnalyticsService>().logEncounterAction(
+    getService<IAnalyticsService>().logEncounterAction(
       action: 'encounter_opened',
       encounterId: entry.id,
     );

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
@@ -23,13 +23,13 @@ class DevocionalesTracking {
   BuildContext? _context;
 
   // Lazy-initialized analytics service
-  AnalyticsService? _analyticsService;
+  IAnalyticsService? _analyticsService;
 
   // Getter with lazy initialization
-  AnalyticsService? get _analytics {
+  IAnalyticsService? get _analytics {
     if (_analyticsService == null) {
       try {
-        _analyticsService = getService<AnalyticsService>();
+        _analyticsService = getService<IAnalyticsService>();
       } catch (e) {
         debugPrint('⚠️ Analytics service not available: $e');
         return null;

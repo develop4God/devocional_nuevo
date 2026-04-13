@@ -11,7 +11,7 @@ import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_detail_page.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/utils/image_precache_utils.dart';
@@ -172,7 +172,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
     debugPrint(
         '🎬 [Intro/${widget.entry.id}] → navigating to EncounterDetailPage (600ms fade)');
 
-    getService<AnalyticsService>().logEncounterAction(
+    getService<IAnalyticsService>().logEncounterAction(
       action: 'encounter_started',
       encounterId: widget.entry.id,
     );
