@@ -1,6 +1,6 @@
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/tts/bible_reader_tts_text_builder.dart';
 import 'package:devocional_nuevo/widgets/tts_miniplayer_modal.dart';
 import 'package:devocional_nuevo/widgets/voice_selector_dialog.dart';
@@ -15,13 +15,13 @@ import 'package:flutter/material.dart';
 /// Works with [TtsAudioController] for playback state and
 /// [BibleReaderTtsTextBuilder] for text formatting.
 ///
-/// All dependencies ([AnalyticsService]) are injected at construction time
+/// All dependencies ([IAnalyticsService]) are injected at construction time
 /// — no inline [getService] calls inside handlers or closures.
 class BibleReaderTtsMiniplayerPresenter {
   final TtsAudioController ttsAudioController;
 
   /// Injected analytics service — resolved once by the page, not inline.
-  final AnalyticsService _analyticsService;
+  final IAnalyticsService _analyticsService;
 
   /// Optional callback that shows the voice selector dialog.
   ///
@@ -44,7 +44,7 @@ class BibleReaderTtsMiniplayerPresenter {
 
   BibleReaderTtsMiniplayerPresenter({
     required this.ttsAudioController,
-    required AnalyticsService analyticsService,
+    required IAnalyticsService analyticsService,
     this.onShowVoiceSelector,
   }) : _analyticsService = analyticsService;
 

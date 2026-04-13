@@ -5,7 +5,7 @@ import 'package:devocional_nuevo/blocs/prayer_wall/prayer_wall_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_wall/prayer_wall_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/repositories/prayer_wall_repository.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/auth_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -47,7 +47,7 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
       context.read<PrayerWallBloc>().add(
           LoadPrayerWall(userLanguage: _userLanguage, authorHash: _authorHash));
 
-      getService<AnalyticsService>().logCustomEvent(
+      getService<IAnalyticsService>().logCustomEvent(
           eventName: 'prayer_wall_viewed',
           parameters: {'language': _userLanguage});
     });
@@ -106,7 +106,7 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
                   duration: const Duration(seconds: 3),
                 ),
               );
-              getService<AnalyticsService>().logCustomEvent(
+              getService<IAnalyticsService>().logCustomEvent(
                   eventName: 'prayer_reported',
                   parameters: {'prayerId': prayerId});
             },
@@ -124,12 +124,12 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
       body: BlocListener<PrayerWallBloc, PrayerWallState>(
         listener: (context, state) {
           if (state is PrayerSubmitted) {
-            getService<AnalyticsService>().logCustomEvent(
+            getService<IAnalyticsService>().logCustomEvent(
               eventName: 'prayer_submitted',
               parameters: {'prayerId': state.prayerId},
             );
           } else if (state is PastoralResponseTriggered) {
-            getService<AnalyticsService>()
+            getService<IAnalyticsService>()
                 .logCustomEvent(eventName: 'pastoral_sheet_shown');
             PastoralSupportSheet.show(context);
           } else if (state is PrayerWallError) {
@@ -158,7 +158,7 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
                   context
                       .read<PrayerWallBloc>()
                       .add(TapPrayerHand(prayerId: id));
-                  getService<AnalyticsService>().logCustomEvent(
+                  getService<IAnalyticsService>().logCustomEvent(
                       eventName: 'prayer_hand_tapped',
                       parameters: {'prayerId': id});
                 },

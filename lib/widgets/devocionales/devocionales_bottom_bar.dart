@@ -7,7 +7,7 @@ import 'package:devocional_nuevo/pages/encounters/encounters_list_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/pages/supporter_page.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
@@ -231,7 +231,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                 key: const Key('bottom_appbar_prayers_icon'),
                 tooltip: 'tooltips.my_prayers'.tr(),
                 onPressed: () async {
-                  getService<AnalyticsService>().logBottomBarAction(
+                  getService<IAnalyticsService>().logBottomBarAction(
                     action: 'prayers',
                   );
                   HapticFeedback.mediumImpact();
@@ -266,7 +266,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                         key: const Key('bottom_appbar_bible_icon'),
                         tooltip: 'tooltips.bible'.tr(),
                         onPressed: () async {
-                          getService<AnalyticsService>().logBottomBarAction(
+                          getService<IAnalyticsService>().logBottomBarAction(
                             action: 'bible',
                           );
                           await BubbleUtils.markAsShown(
@@ -315,7 +315,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                   key: const Key('bottom_appbar_discovery_icon'),
                   tooltip: 'discovery.discovery_studies'.tr(),
                   onPressed: () {
-                    getService<AnalyticsService>().logBottomBarAction(
+                    getService<IAnalyticsService>().logBottomBarAction(
                       action: 'discovery',
                     );
                     Navigator.push(
@@ -350,7 +350,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                           key: const Key('bottom_appbar_encounters_icon'),
                           tooltip: 'Encounters',
                           onPressed: () async {
-                            getService<AnalyticsService>().logBottomBarAction(
+                            getService<IAnalyticsService>().logBottomBarAction(
                               action: 'encounters',
                             );
                             await BubbleUtils.markAsShown(
@@ -405,7 +405,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                 key: const Key('bottom_appbar_progress_icon'),
                 tooltip: 'tooltips.progress'.tr(),
                 onPressed: () {
-                  getService<AnalyticsService>().logBottomBarAction(
+                  getService<IAnalyticsService>().logBottomBarAction(
                     action: 'progress',
                   );
                   Navigator.push(
@@ -436,7 +436,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                 tooltip: 'tooltips.settings'.tr(),
                 onPressed: () async {
                   debugPrint('🔥 [BottomBar] Tap: settings');
-                  getService<AnalyticsService>().logBottomBarAction(
+                  getService<IAnalyticsService>().logBottomBarAction(
                     action: 'settings',
                   );
                   await BubbleUtils.markAsShown(
@@ -489,7 +489,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                           onPressed: () async {
                             debugPrint(
                                 '\u2764\ufe0f [BottomBar] Tap: supporter');
-                            getService<AnalyticsService>().logBottomBarAction(
+                            getService<IAnalyticsService>().logBottomBarAction(
                               action: 'supporter',
                             );
                             await BubbleUtils.markAsShown(

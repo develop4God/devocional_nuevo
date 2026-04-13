@@ -1,5 +1,5 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -92,7 +92,7 @@ class DevocionalHeaderWidget extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  getService<AnalyticsService>()
+                  getService<IAnalyticsService>()
                       .logBottomBarAction(action: 'favorite');
                   HapticFeedback.mediumImpact();
                   onFavoriteToggle();
@@ -110,7 +110,7 @@ class DevocionalHeaderWidget extends StatelessWidget {
                   size: 24,
                 ),
                 onPressed: () {
-                  getService<AnalyticsService>()
+                  getService<IAnalyticsService>()
                       .logBottomBarAction(action: 'share');
                   HapticFeedback.lightImpact();
                   onShare();
