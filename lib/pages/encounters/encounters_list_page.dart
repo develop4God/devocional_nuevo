@@ -4,7 +4,6 @@
 // published  → full opacity, tappable → navigates to EncounterIntroPage
 // coming_soon → 0.45 opacity, badge, not tappable
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
@@ -16,11 +15,11 @@ import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_intro_page.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_welcome_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_grid_overlay.dart';
+import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -62,7 +61,7 @@ class _EncountersListPageState extends State<EncountersListPage>
       final lang = context.read<DevocionalProvider>().selectedLanguage;
       bloc.add(LoadEncounterIndex(languageCode: lang));
     }
-    getService<AnalyticsService>().logEncounterAction(action: 'index_loaded');
+    getService<IAnalyticsService>().logEncounterAction(action: 'index_loaded');
     _checkWelcomeSeen();
   }
 
@@ -124,7 +123,7 @@ class _EncountersListPageState extends State<EncountersListPage>
   }
 
   void _toggleGridOverlay() {
-    getService<AnalyticsService>().logEncounterAction(
+    getService<IAnalyticsService>().logEncounterAction(
       action: _showGridOverlay ? 'toggle_list_view' : 'toggle_grid_view',
     );
     setState(() {
@@ -353,7 +352,7 @@ class _EncountersListPageState extends State<EncountersListPage>
   }
 
   void _openEncounter(EncounterIndexEntry entry, String lang) {
-    getService<AnalyticsService>().logEncounterAction(
+    getService<IAnalyticsService>().logEncounterAction(
       action: 'encounter_opened',
       encounterId: entry.id,
     );
@@ -439,11 +438,6 @@ class _EncounterCard extends StatelessWidget {
     final bool isToday = !isCompleted && entry.isPublished;
     final bool isNew = !isCompleted && !isToday;
 
-    final imageUrl = entry.introImage != null
-        ? Constants.getEncounterImageUrl(entry.introImage!,
-            encounterId: entry.id)
-        : null;
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -467,16 +461,13 @@ class _EncounterCard extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               // 1. Background Image or Fallback Color
-              if (imageUrl != null)
-                CachedNetworkImage(
-                  imageUrl: imageUrl,
+              if (entry.introImage != null)
+                EncounterImageWidget(
+                  baseFilename: entry.introImage!,
+                  encounterId: entry.id,
+                  imageVersion: entry.imageVersion,
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(color: accentColor),
-                  errorWidget: (context, url, error) {
-                    debugPrint(
-                        '⚠️ Encounter: CDN image failed — ${entry.introImage}');
-                    return Container(color: accentColor);
-                  },
+                  fallbackColor: accentColor,
                 )
               else
                 Container(color: accentColor),

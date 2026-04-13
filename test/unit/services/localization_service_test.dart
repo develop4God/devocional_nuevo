@@ -145,10 +145,10 @@ void main() {
     });
 
     test('should support all required locales', () {
-      expect(LocalizationService.supportedLocales.length, equals(8));
+      expect(LocalizationService.supportedLocales.length, equals(9));
       expect(
         LocalizationService.supportedLocales.map((l) => l.languageCode),
-        containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de']),
+        containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar']),
       );
     });
 

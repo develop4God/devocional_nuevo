@@ -69,7 +69,7 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
       }
 
       final newPrayer = Prayer(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
         text: event.text.trim(),
         createdDate: DateTime.now(),
         status: PrayerStatus.active,

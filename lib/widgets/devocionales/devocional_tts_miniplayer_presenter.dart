@@ -1,6 +1,6 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/devocional_tts_text_builder.dart';
 import 'package:devocional_nuevo/widgets/tts_miniplayer_modal.dart';
@@ -18,10 +18,15 @@ import 'package:flutter/material.dart';
 class DevocionalTtsMiniplayerPresenter {
   final TtsAudioController ttsAudioController;
 
-  bool _isModalShowing = false;
-
   /// Whether the TTS mini-player modal is currently visible
-  bool get isShowing => _isModalShowing;
+  /// Delegates to [_shouldAutoCloseOnCompletion] as the single source of truth
+  /// for modal presence — avoids a redundant boolean that can desync.
+  bool get isShowing => _shouldAutoCloseOnCompletion;
+
+  /// Track whether the modal is currently showing.
+  /// Set to true when the modal opens, false when closed or user dismisses.
+  /// Prevents duplicate modals and duplicate pop attempts.
+  bool _shouldAutoCloseOnCompletion = false;
 
   DevocionalTtsMiniplayerPresenter({required this.ttsAudioController});
 
@@ -33,9 +38,9 @@ class DevocionalTtsMiniplayerPresenter {
     BuildContext context,
     Devocional? Function() getCurrentDevocional,
   ) {
-    if (!context.mounted || _isModalShowing) return;
+    if (!context.mounted || _shouldAutoCloseOnCompletion) return;
 
-    _isModalShowing = true;
+    _shouldAutoCloseOnCompletion = true;
 
     showModalBottomSheet(
       context: context,
@@ -48,17 +53,22 @@ class DevocionalTtsMiniplayerPresenter {
           valueListenable: ttsAudioController.state,
           builder: (context, state, _) {
             debugPrint('[TtsMiniplayerModal] 🎵 State changed to: $state');
-            if (state == TtsPlayerState.completed) {
+            if (state == TtsPlayerState.completed &&
+                _shouldAutoCloseOnCompletion) {
               debugPrint(
                   '[TtsMiniplayerModal] ✅ TTS Completed - Scheduling modal close');
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (Navigator.canPop(ctx)) {
+                // Only close if:
+                // 1. Auto-close is still enabled (user didn't explicitly close)
+                // 2. Navigator can still pop (modal is still in the stack)
+                if (_shouldAutoCloseOnCompletion && Navigator.canPop(ctx)) {
                   debugPrint(
                       '[TtsMiniplayerModal] 🔚 Closing modal via Navigator.pop()');
+                  _shouldAutoCloseOnCompletion = false;
                   Navigator.of(ctx).pop();
                 } else {
                   debugPrint(
-                      '[TtsMiniplayerModal] ⚠️ Cannot pop - Navigator.canPop() returned false');
+                      '[TtsMiniplayerModal] ⚠️ Modal already closing or user dismissed — skipping pop');
                 }
               });
             }
@@ -83,7 +93,7 @@ class DevocionalTtsMiniplayerPresenter {
                           playbackRates: ttsAudioController.supportedRates,
                           onStop: () {
                             ttsAudioController.stop();
-                            _isModalShowing = false;
+                            _shouldAutoCloseOnCompletion = false;
                             if (Navigator.canPop(ctx)) {
                               Navigator.of(ctx).pop();
                             }
@@ -94,7 +104,7 @@ class DevocionalTtsMiniplayerPresenter {
                               ttsAudioController.pause();
                             } else {
                               try {
-                                getService<AnalyticsService>().logTtsPlay();
+                                getService<IAnalyticsService>().logTtsPlay();
                               } catch (e) {
                                 debugPrint(
                                   '❌ Error logging TTS play analytics: $e',
@@ -171,7 +181,7 @@ class DevocionalTtsMiniplayerPresenter {
         );
       },
     ).whenComplete(() {
-      _isModalShowing = false;
+      _shouldAutoCloseOnCompletion = false;
     });
   }
 
@@ -180,11 +190,11 @@ class DevocionalTtsMiniplayerPresenter {
   /// Use this when the modal needs to be closed externally (e.g., on TTS
   /// completion). Use [dispose] only during widget teardown.
   void resetModalState() {
-    _isModalShowing = false;
+    _shouldAutoCloseOnCompletion = false;
   }
 
   /// Clean up resources.
   void dispose() {
-    _isModalShowing = false;
+    _shouldAutoCloseOnCompletion = false;
   }
 }

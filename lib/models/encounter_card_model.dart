@@ -1,7 +1,5 @@
 // lib/models/encounter_card_model.dart
 
-import 'package:devocional_nuevo/utils/constants.dart';
-
 /// Union-type model for all encounter card types.
 ///
 /// Supported types:
@@ -15,6 +13,8 @@ class EncounterCard {
   // Shared optional fields
   final String? mood;
   final String? imageUrl;
+  final String? imageVersion; // NEW — for cacheKey construction
+  final String? encounterId; // NEW — for cacheKey construction
   final String? title;
   final String? narrative;
   final EncounterVerseOverlay? verseOverlay;
@@ -38,6 +38,8 @@ class EncounterCard {
     required this.type,
     this.mood,
     this.imageUrl,
+    this.imageVersion, // NEW
+    this.encounterId, // NEW
     this.title,
     this.narrative,
     this.verseOverlay,
@@ -60,15 +62,22 @@ class EncounterCard {
   /// Resolves an image_url value from JSON:
   /// - Returns null if the value is null or empty.
   /// - Returns the value as-is if it already starts with 'http'.
-  /// - Otherwise resolves it using the encounter ID to build the GitHub URL.
-  static String? _resolveImageUrl(String? raw, {required String encounterId}) {
+  /// - Otherwise strips extension and returns base name only.
+  ///   EncounterImageWidget owns format + URL resolution (SRP).
+  static String? _resolveImageUrl(String? raw) {
     if (raw == null || raw.isEmpty) return null;
-    if (raw.startsWith('http')) return raw;
-    return Constants.getEncounterImageUrl(raw, encounterId: encounterId);
+    if (raw.startsWith('http')) {
+      return raw; // absolute URLs: pass through unchanged
+    }
+    // Store base name only — EncounterImageWidget owns format + URL resolution (SRP)
+    return raw.contains('.') ? raw.substring(0, raw.lastIndexOf('.')) : raw;
   }
 
-  factory EncounterCard.fromJson(Map<String, dynamic> json,
-      {required String encounterId}) {
+  factory EncounterCard.fromJson(
+    Map<String, dynamic> json, {
+    required String encounterId,
+    String? imageVersion, // NEW
+  }) {
     // Unknown type handling — never crash
     final String rawType = json['type'] as String? ?? 'unknown';
     const knownTypes = {
@@ -86,8 +95,9 @@ class EncounterCard {
       order: json['order'] as int? ?? 0,
       type: type,
       mood: json['mood'] as String?,
-      imageUrl: _resolveImageUrl(json['image_url'] as String?,
-          encounterId: encounterId),
+      imageUrl: _resolveImageUrl(json['image_url'] as String?),
+      imageVersion: imageVersion, // NEW — passed from EncounterStudy.fromJson
+      encounterId: encounterId, // NEW — passed from EncounterStudy.fromJson
       title: json['title'] as String?,
       narrative: json['narrative'] as String?,
       verseOverlay: json['verse_overlay'] != null

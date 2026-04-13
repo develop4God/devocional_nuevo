@@ -397,7 +397,7 @@ class TierCard extends StatelessWidget {
                 Flexible(
                   child: Text(
                     key.tr(),
-                    textAlign: TextAlign.left,
+                    textAlign: TextAlign.start,
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.95),
                       fontWeight: FontWeight.w700,

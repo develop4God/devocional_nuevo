@@ -206,10 +206,9 @@ class IapService implements IIapService {
     _isInitialized = false;
   }
 
-  /// Reset all state for testing. Not part of [IIapService]; call only on
+  /// Reset all state. Not part of [IIapService]; call only on
   /// the concrete [IapService] reference in tests.
-  @visibleForTesting
-  void resetForTesting() {
+  void reset() {
     _purchasedLevels.clear();
     _products.clear();
     _isAvailable = false;

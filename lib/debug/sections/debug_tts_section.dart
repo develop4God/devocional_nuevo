@@ -13,14 +13,24 @@ class DebugTtsSection extends StatefulWidget {
 }
 
 class _DebugTtsSectionState extends State<DebugTtsSection> {
-  String _explorerLang = 'de';
+  String _explorerLang = 'ar';
   List<Map<String, dynamic>> _explorerVoices = [];
   Map<String, String> _explorerGenders = {};
   int? _explorerPlayingIndex;
   bool _explorerLoading = false;
   final FlutterTts _explorerTts = FlutterTts();
 
-  static const _languages = ['de', 'es', 'en', 'fr', 'pt', 'ja', 'zh', 'hi'];
+  static const _languages = [
+    'ar',
+    'de',
+    'es',
+    'en',
+    'fr',
+    'pt',
+    'ja',
+    'zh',
+    'hi'
+  ];
 
   Future<void> _loadAllVoices(String lang) async {
     setState(() => _explorerLoading = true);
@@ -48,7 +58,7 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
   Future<void> _playSample(String name, String locale, int index) async {
     setState(() => _explorerPlayingIndex = index);
     await _explorerTts.setVoice({'name': name, 'locale': locale});
-    await _explorerTts.speak('Hallo, das ist eine Teststimme. Guten Tag.');
+    await _explorerTts.speak('مرحبا، هذا صوت تجريبي. كيفك؟');
     setState(() => _explorerPlayingIndex = null);
   }
 

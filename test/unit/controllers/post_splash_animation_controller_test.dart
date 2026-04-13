@@ -6,7 +6,7 @@ void main() {
     late PostSplashAnimationController controller;
 
     setUp(() {
-      PostSplashAnimationController.resetShownFlag();
+      PostSplashAnimationController.reset();
       controller = PostSplashAnimationController();
     });
 
@@ -69,12 +69,12 @@ void main() {
           const Duration(seconds: 7));
     });
 
-    test('resetShownFlag allows showing animation again', () {
+    test('reset() allows showing animation again', () {
       final c1 = PostSplashAnimationController();
       c1.initialize(onDismiss: () {});
       expect(c1.isVisible, isTrue);
 
-      PostSplashAnimationController.resetShownFlag();
+      PostSplashAnimationController.reset();
 
       final c2 = PostSplashAnimationController();
       c2.initialize(onDismiss: () {});
@@ -82,6 +82,21 @@ void main() {
 
       c1.dispose();
       c2.dispose();
+    });
+
+    test('no crash when disposed before animation timer fires', () async {
+      bool dismissCalled = false;
+      controller.initialize(onDismiss: () => dismissCalled = true);
+      expect(controller.isVisible, isTrue);
+
+      // Dispose immediately — before the 7-second timer fires
+      controller.dispose();
+
+      // Pump a short delay — the real timer won't fire in tests, but
+      // this verifies the guard path doesn't throw
+      await Future<void>.delayed(Duration.zero);
+
+      expect(dismissCalled, isFalse); // onDismiss must NOT be called
     });
   });
 }

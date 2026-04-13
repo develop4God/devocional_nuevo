@@ -8,11 +8,13 @@ import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
 import 'package:devocional_nuevo/repositories/prayer_wall_repository.dart';
+import 'package:devocional_nuevo/services/auth_service.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
 import 'package:devocional_nuevo/services/devocional_index_service.dart';
 import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
 import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/connectivity_service.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart'; // NEW
@@ -33,6 +35,7 @@ import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
+import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -97,12 +100,15 @@ Future<void> setupServiceLocator() async {
 
   locator.registerSingleton<SharedPreferences>(prefs);
 
+  locator.registerLazySingleton<IAuthService>(() => FirebaseAuthService());
+
   locator
       .registerLazySingleton<LocalizationService>(() => LocalizationService());
   locator.registerLazySingleton<VoiceSettingsService>(
       () => VoiceSettingsService());
+  locator.registerLazySingleton<TtsChunkProcessor>(() => TtsChunkProcessor());
   locator.registerLazySingleton<ITtsService>(() => TtsService());
-  locator.registerLazySingleton<AnalyticsService>(() => AnalyticsService());
+  locator.registerLazySingleton<IAnalyticsService>(() => AnalyticsService());
   locator
       .registerLazySingleton<NotificationService>(NotificationService.create);
   locator

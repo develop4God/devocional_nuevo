@@ -7,7 +7,7 @@ import 'package:devocional_nuevo/pages/encounters/encounters_list_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/pages/supporter_page.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
@@ -77,7 +77,7 @@ class DevocionalesBottomBar extends StatelessWidget {
               return LinearProgressIndicator(
                 value: progress,
                 minHeight: 6,
-                backgroundColor: Colors.grey[300],
+                backgroundColor: colorScheme.onSurface.withAlpha(51),
                 color: colorScheme.primary,
               );
             },
@@ -94,28 +94,38 @@ class DevocionalesBottomBar extends StatelessWidget {
                     icon: Icon(
                       Icons.arrow_back_ios,
                       size: 16,
-                      color: colorScheme.primary,
+                      color: canNavigatePrevious
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withAlpha(97),
                     ),
                     label: Text(
                       'devotionals.previous'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: colorScheme.primary,
+                        color: canNavigatePrevious
+                            ? colorScheme.primary
+                            : colorScheme.onSurface.withAlpha(97),
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(
-                        color: colorScheme.primary,
+                        color: canNavigatePrevious
+                            ? colorScheme.primary
+                            : colorScheme.onSurface.withAlpha(51),
                         width: 1.5,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(22),
                       ),
-                      foregroundColor: colorScheme.primary,
-                      overlayColor: colorScheme.primary.withAlpha(
-                        (0.1 * 255).round(),
-                      ),
+                      foregroundColor: canNavigatePrevious
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withAlpha(97),
+                      overlayColor: canNavigatePrevious
+                          ? colorScheme.primary.withAlpha(
+                              (0.1 * 255).round(),
+                            )
+                          : Colors.transparent,
                     ),
                   ),
                 ),
@@ -151,16 +161,22 @@ class DevocionalesBottomBar extends StatelessWidget {
                     onPressed: canNavigateNext ? onNext : null,
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(
-                        color: colorScheme.primary,
+                        color: canNavigateNext
+                            ? colorScheme.primary
+                            : colorScheme.onSurface.withAlpha(51),
                         width: 1.5,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(22),
                       ),
-                      foregroundColor: colorScheme.primary,
-                      overlayColor: colorScheme.primary.withAlpha(
-                        (0.1 * 255).round(),
-                      ),
+                      foregroundColor: canNavigateNext
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withAlpha(97),
+                      overlayColor: canNavigateNext
+                          ? colorScheme.primary.withAlpha(
+                              (0.1 * 255).round(),
+                            )
+                          : Colors.transparent,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -170,14 +186,18 @@ class DevocionalesBottomBar extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: colorScheme.primary,
+                            color: canNavigateNext
+                                ? colorScheme.primary
+                                : colorScheme.onSurface.withAlpha(97),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Icon(
                           Icons.arrow_forward_ios,
                           size: 16,
-                          color: colorScheme.primary,
+                          color: canNavigateNext
+                              ? colorScheme.primary
+                              : colorScheme.onSurface.withAlpha(97),
                         ),
                       ],
                     ),
@@ -211,7 +231,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                 key: const Key('bottom_appbar_prayers_icon'),
                 tooltip: 'tooltips.my_prayers'.tr(),
                 onPressed: () async {
-                  getService<AnalyticsService>().logBottomBarAction(
+                  getService<IAnalyticsService>().logBottomBarAction(
                     action: 'prayers',
                   );
                   HapticFeedback.mediumImpact();
@@ -230,26 +250,64 @@ class DevocionalesBottomBar extends StatelessWidget {
                 ),
               ),
               // 2. Bible
-              IconButton(
-                key: const Key('bottom_appbar_bible_icon'),
-                tooltip: 'tooltips.bible'.tr(),
-                onPressed: () async {
-                  getService<AnalyticsService>().logBottomBarAction(
-                    action: 'bible',
-                  );
-                  await BubbleUtils.markAsShown(
-                    BubbleUtils.getIconBubbleId(
-                      Icons.auto_stories_outlined,
-                      'new',
-                    ),
-                  );
-                  onBible();
-                },
-                icon: const Icon(
-                  Icons.auto_stories_outlined,
-                  color: Colors.white,
-                  size: 32,
+              FutureBuilder<bool>(
+                future: BubbleUtils.shouldShowBubble(
+                  BubbleUtils.getIconBubbleId(
+                    Icons.auto_stories_outlined,
+                    'new',
+                  ),
                 ),
+                builder: (context, snapshot) {
+                  final showBubble = snapshot.data ?? false;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        key: const Key('bottom_appbar_bible_icon'),
+                        tooltip: 'tooltips.bible'.tr(),
+                        onPressed: () async {
+                          getService<IAnalyticsService>().logBottomBarAction(
+                            action: 'bible',
+                          );
+                          await BubbleUtils.markAsShown(
+                            BubbleUtils.getIconBubbleId(
+                              Icons.auto_stories_outlined,
+                              'new',
+                            ),
+                          );
+                          onBible();
+                        },
+                        icon: const Icon(
+                          Icons.auto_stories_outlined,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                      ),
+                      if (showBubble)
+                        Positioned(
+                          top: BubbleConstants.iconBadgeTop,
+                          right: BubbleConstants.iconBadgeRight,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: BubbleConstants.newFeatureColor,
+                              borderRadius: BorderRadius.circular(
+                                BubbleConstants.iconBadgeRadius,
+                              ),
+                              boxShadow: BubbleConstants.bubbleShadow,
+                            ),
+                            child: Text(
+                              'bubble_constants.new_feature'.tr(),
+                              style: BubbleConstants.iconBadgeTextStyle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
               // 3. Discovery Studies
               if (Constants.enableDiscoveryFeature)
@@ -257,7 +315,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                   key: const Key('bottom_appbar_discovery_icon'),
                   tooltip: 'discovery.discovery_studies'.tr(),
                   onPressed: () {
-                    getService<AnalyticsService>().logBottomBarAction(
+                    getService<IAnalyticsService>().logBottomBarAction(
                       action: 'discovery',
                     );
                     Navigator.push(
@@ -292,7 +350,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                           key: const Key('bottom_appbar_encounters_icon'),
                           tooltip: 'Encounters',
                           onPressed: () async {
-                            getService<AnalyticsService>().logBottomBarAction(
+                            getService<IAnalyticsService>().logBottomBarAction(
                               action: 'encounters',
                             );
                             await BubbleUtils.markAsShown(
@@ -347,7 +405,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                 key: const Key('bottom_appbar_progress_icon'),
                 tooltip: 'tooltips.progress'.tr(),
                 onPressed: () {
-                  getService<AnalyticsService>().logBottomBarAction(
+                  getService<IAnalyticsService>().logBottomBarAction(
                     action: 'progress',
                   );
                   Navigator.push(
@@ -378,7 +436,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                 tooltip: 'tooltips.settings'.tr(),
                 onPressed: () async {
                   debugPrint('🔥 [BottomBar] Tap: settings');
-                  getService<AnalyticsService>().logBottomBarAction(
+                  getService<IAnalyticsService>().logBottomBarAction(
                     action: 'settings',
                   );
                   await BubbleUtils.markAsShown(
@@ -431,7 +489,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                           onPressed: () async {
                             debugPrint(
                                 '\u2764\ufe0f [BottomBar] Tap: supporter');
-                            getService<AnalyticsService>().logBottomBarAction(
+                            getService<IAnalyticsService>().logBottomBarAction(
                               action: 'supporter',
                             );
                             await BubbleUtils.markAsShown(
