@@ -6,13 +6,13 @@ import 'package:devocional_nuevo/blocs/prayer_wall/prayer_wall_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/repositories/prayer_wall_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/auth_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/prayer_wall/pastoral_support_sheet.dart';
 import 'package:devocional_nuevo/widgets/prayer_wall/prayer_wall_card.dart';
 import 'package:devocional_nuevo/widgets/prayer_wall/submit_prayer_modal.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -40,7 +40,7 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
     _userLanguage = localization.currentLocale.languageCode;
 
     // Hash the Firebase UID once — never use raw UID
-    final uid = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';
+    final uid = getService<IAuthService>().currentUserId ?? 'anonymous';
     _authorHash = PrayerWallRepository.hashUserId(uid);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
