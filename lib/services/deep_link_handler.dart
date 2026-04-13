@@ -207,12 +207,12 @@ class DeepLinkHandler {
     List<String> pathSegments,
     Map<String, String> queryParams,
   ) async {
-    // For now, just navigate to the main devotional page
-    // In the future, this could navigate to a specific date
     try {
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
+      // Navigate to the main devotional page
+      Navigator.of(context).pushNamed('devotional');
     } catch (e) {
       developer.log(
         'Navigation error: $e',
