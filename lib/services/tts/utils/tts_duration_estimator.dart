@@ -13,7 +13,7 @@
 class TtsDurationEstimator {
   const TtsDurationEstimator._();
 
-  static const double _charsPerSecondCjk = 7.0;
+  static const double _charsPerSecondCjk = 5.5;
   static const double _wpmStandard = 150.0;
   static const double _wpmArabic = 80.0;
 
