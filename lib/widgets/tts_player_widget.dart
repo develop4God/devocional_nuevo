@@ -144,19 +144,23 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     debugPrint('[TTS Widget] didChangeAppLifecycleState: $state');
+    // Only pause when the app is fully backgrounded (paused/detached).
+    // Do NOT pause on AppLifecycleState.inactive — that fires when the user
+    // pulls down the notification bar, which is a very common gesture and
+    // should NOT interrupt audio. Pausing on inactive causes the "terrible
+    // UX" of audio stopping whenever the user briefly checks notifications.
     if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive ||
         state == AppLifecycleState.detached) {
       final ttsState = widget.audioController.state.value;
       if (ttsState == TtsPlayerState.playing ||
           ttsState == TtsPlayerState.loading) {
         debugPrint(
-          '[TTS Widget] App en segundo plano, pausando audio (tts=$ttsState)',
+          '[TTS Widget] App fully backgrounded — pausing audio (tts=$ttsState)',
         );
         widget.audioController.pause();
       } else {
         debugPrint(
-          '[TTS Widget] App en segundo plano — TTS no activo (tts=$ttsState), omitiendo pausa',
+          '[TTS Widget] App backgrounded — TTS not active (tts=$ttsState), skipping pause',
         );
       }
     }
