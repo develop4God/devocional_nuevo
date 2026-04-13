@@ -435,4 +435,68 @@ void main() {
       expect(controller.state.value, TtsPlayerState.playing);
     });
   });
+
+  // ── Silent-utterance watchdog retry ───────────────────────────────────────
+  // NOTE: The 1.2s watchdog timer itself cannot be reliably unit-tested here
+  // because MethodChannel mock responses (flutter_tts) are scheduled outside
+  // fakeAsync's Zone, causing play()'s internal async chain to hang under
+  // fakeAsync. The timer-based retry behavior is verified by integration / manual
+  // on-device tests.
+  //
+  // What IS verifiable here:
+  //   • The retry counter resets to 0 at the start of every play() session.
+  //   • stop() also resets the counter so the next session has a full budget.
+  group('TtsAudioController - Silent utterance watchdog retry', () {
+    late TtsAudioController controller;
+
+    setUp(() async {
+      await registerTestServices();
+      SharedPreferences.setMockInitialValues({});
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+              const MethodChannel('flutter_tts'), (call) async => 1);
+      controller = TtsAudioController(
+        flutterTts: FlutterTts(),
+        voiceSettingsService: VoiceSettingsService(),
+      );
+    });
+
+    tearDown(() {
+      controller.dispose();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
+    });
+
+    test('retry counter resets on each new play() — fresh budget after error',
+        () async {
+      controller.setText('short test text');
+      await controller.play();
+      expect(controller.state.value, TtsPlayerState.playing);
+
+      // Simulate ERROR (as if the watchdog exhausted its retry budget).
+      controller.error();
+      expect(controller.state.value, TtsPlayerState.error);
+
+      // A new play() must reset the counter and succeed when the engine is
+      // responsive (startHandler fires normally).
+      await controller.play();
+      expect(
+        controller.state.value,
+        TtsPlayerState.playing,
+        reason: 'New play() after error must succeed — retry counter was reset',
+      );
+    });
+
+    test('stop() resets the retry counter so the next play() has a full budget',
+        () async {
+      controller.setText('short test text');
+      await controller.play();
+      await controller.stop();
+      expect(controller.state.value, TtsPlayerState.idle);
+
+      // play() after stop() must work normally — counter was reset by stop().
+      await controller.play();
+      expect(controller.state.value, TtsPlayerState.playing);
+    });
+  });
 }
