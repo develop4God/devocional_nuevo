@@ -23,6 +23,20 @@ class DevocionalTtsMiniplayerPresenter {
   /// Whether the TTS mini-player modal is currently visible
   bool get isShowing => _isModalShowing;
 
+  /// TECH DEBT: _isModalShowing is now partially-purposed.
+  /// After the modal auto-close fix, this flag is kept for:
+  /// 1. Public [isShowing] getter (external contract)
+  /// 2. State tracking in [onStop] callback
+  ///
+  /// It is NO LONGER used in the critical completion logic (which uses
+  /// [_shouldAutoCloseOnCompletion] and [Navigator.canPop(ctx)]).
+  ///
+  /// Future refactor: Consider removing this flag and using
+  /// [_shouldAutoCloseOnCompletion] as the single source of truth,
+  /// or extract modal state to a separate enum (Idle, Showing, Closing).
+  ///
+  /// See: https://github.com/develop4God/devocional_nuevo/issues/<backlog>
+
   /// Track whether the completion handler should attempt to close the modal.
   /// Set to false when user explicitly closes (via stop/drag), preventing
   /// duplicate pop attempts after modal is already dismissed.
@@ -54,16 +68,14 @@ class DevocionalTtsMiniplayerPresenter {
           builder: (context, state, _) {
             debugPrint('[TtsMiniplayerModal] 🎵 State changed to: $state');
             if (state == TtsPlayerState.completed &&
-                _isModalShowing &&
                 _shouldAutoCloseOnCompletion) {
               debugPrint(
                   '[TtsMiniplayerModal] ✅ TTS Completed - Scheduling modal close');
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                // Double-check: only pop if modal is still showing and we haven't
-                // been explicitly closed by user action (stop button or drag).
-                if (_isModalShowing &&
-                    _shouldAutoCloseOnCompletion &&
-                    Navigator.canPop(ctx)) {
+                // Only close if:
+                // 1. Auto-close is still enabled (user didn't explicitly close)
+                // 2. Navigator can still pop (modal is still in the stack)
+                if (_shouldAutoCloseOnCompletion && Navigator.canPop(ctx)) {
                   debugPrint(
                       '[TtsMiniplayerModal] 🔚 Closing modal via Navigator.pop()');
                   _shouldAutoCloseOnCompletion = false;
