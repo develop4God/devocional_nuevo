@@ -30,16 +30,16 @@ void main() {
     });
 
     group('Supported Locales Configuration', () {
-      test('supports exactly 8 languages as per app requirements', () {
-        // User expects app to support Spanish, English, Portuguese, French, Japanese, Chinese, Hindi
-        expect(LocalizationService.supportedLocales, hasLength(8));
+      test('supports exactly 9 languages as per app requirements', () {
+        // User expects app to support Spanish, English, Portuguese, French, Japanese, Chinese, Hindi, German, Arabic
+        expect(LocalizationService.supportedLocales, hasLength(9));
 
         final languageCodes = LocalizationService.supportedLocales.map(
           (l) => l.languageCode,
         );
         expect(
           languageCodes,
-          containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de']),
+          containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar']),
         );
       });
 

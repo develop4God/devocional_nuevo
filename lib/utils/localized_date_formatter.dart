@@ -10,7 +10,7 @@ class LocalizedDateFormatter {
 
   /// Returns a [DateFormat] appropriate for the given locale.
   ///
-  /// Supports: es, en, fr, pt, ja, zh, hi, de. Defaults to English format.
+  /// Supports: es, en, fr, pt, ja, zh, hi, de, ar. Defaults to English format.
   static DateFormat getDateFormat(String languageCode) {
     debugPrint(
         '📅 [DateFormatter] Getting date format for language: $languageCode');
@@ -32,6 +32,9 @@ class LocalizedDateFormatter {
       case 'hi':
         debugPrint('📅 [DateFormatter] Using Hindi date format');
         return DateFormat('EEEE, d MMMM', 'hi');
+      case 'ar':
+        debugPrint('📅 [DateFormatter] Using Arabic date format');
+        return DateFormat('EEEE، d MMMM', 'ar');
       default:
         debugPrint(
             '📅 [DateFormatter] Unknown language "$languageCode", using English');

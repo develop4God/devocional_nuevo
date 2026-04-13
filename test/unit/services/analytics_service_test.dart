@@ -19,7 +19,7 @@ void main() {
       mockAnalytics = MockFirebaseAnalytics();
       analyticsService = AnalyticsService(analytics: mockAnalytics);
       // Reset error count before each test
-      AnalyticsService.resetErrorCount();
+      AnalyticsService.reset();
     });
 
     group('logTtsPlay', () {
@@ -383,7 +383,7 @@ void main() {
         expect(AnalyticsService.analyticsErrorCount, 2);
       });
 
-      test('resetErrorCount should reset error counter', () async {
+      test('reset() should reset error counter', () async {
         // Arrange
         when(
           mockAnalytics.logEvent(name: 'tts_play', parameters: null),
@@ -393,7 +393,7 @@ void main() {
         expect(AnalyticsService.analyticsErrorCount, greaterThan(0));
 
         // Act
-        AnalyticsService.resetErrorCount();
+        AnalyticsService.reset();
 
         // Assert
         expect(AnalyticsService.analyticsErrorCount, 0);
@@ -749,6 +749,150 @@ void main() {
           currentIndex: 0,
           totalDevocionales: 365,
           viaBloc: 'true',
+        );
+      });
+    });
+
+    group('logBibleOpen', () {
+      test('should log bible_open event with all optional parameters',
+          () async {
+        // Arrange
+        when(
+          mockAnalytics.logEvent(
+            name: 'bible_open',
+            parameters: anyNamed('parameters'),
+          ),
+        ).thenAnswer((_) async => {});
+
+        // Act
+        await analyticsService.logBibleOpen(
+          translation: 'RVR1960',
+          book: 'John',
+          chapter: 3,
+        );
+
+        // Assert
+        final captured = verify(
+          mockAnalytics.logEvent(
+            name: 'bible_open',
+            parameters: captureAnyNamed('parameters'),
+          ),
+        ).captured;
+
+        expect(captured.length, 1);
+        final params = captured[0] as Map<String, Object>;
+        expect(params['translation'], 'RVR1960');
+        expect(params['book'], 'John');
+        expect(params['chapter'], 3);
+      });
+
+      test('should log bible_open event without parameters', () async {
+        // Arrange
+        when(
+          mockAnalytics.logEvent(
+            name: 'bible_open',
+            parameters: null,
+          ),
+        ).thenAnswer((_) async => {});
+
+        // Act
+        await analyticsService.logBibleOpen();
+
+        // Assert
+        verify(
+          mockAnalytics.logEvent(
+            name: 'bible_open',
+            parameters: null,
+          ),
+        ).called(1);
+      });
+
+      test('should not throw on analytics error', () async {
+        // Arrange
+        when(
+          mockAnalytics.logEvent(
+            name: 'bible_open',
+            parameters: anyNamed('parameters'),
+          ),
+        ).thenThrow(Exception('Analytics error'));
+
+        // Act & Assert - should not throw
+        await analyticsService.logBibleOpen(
+          translation: 'NASB',
+          book: 'Romans',
+          chapter: 1,
+        );
+      });
+    });
+
+    group('logTtsBiblePlay', () {
+      test('should log tts_bible_play event with all optional parameters',
+          () async {
+        // Arrange
+        when(
+          mockAnalytics.logEvent(
+            name: 'tts_bible_play',
+            parameters: anyNamed('parameters'),
+          ),
+        ).thenAnswer((_) async => {});
+
+        // Act
+        await analyticsService.logTtsBiblePlay(
+          translation: 'RVR1960',
+          book: 'Psalms',
+          chapter: 23,
+        );
+
+        // Assert
+        final captured = verify(
+          mockAnalytics.logEvent(
+            name: 'tts_bible_play',
+            parameters: captureAnyNamed('parameters'),
+          ),
+        ).captured;
+
+        expect(captured.length, 1);
+        final params = captured[0] as Map<String, Object>;
+        expect(params['translation'], 'RVR1960');
+        expect(params['book'], 'Psalms');
+        expect(params['chapter'], 23);
+      });
+
+      test('should log tts_bible_play event without parameters', () async {
+        // Arrange
+        when(
+          mockAnalytics.logEvent(
+            name: 'tts_bible_play',
+            parameters: null,
+          ),
+        ).thenAnswer((_) async => {});
+
+        // Act
+        await analyticsService.logTtsBiblePlay();
+
+        // Assert
+        verify(
+          mockAnalytics.logEvent(
+            name: 'tts_bible_play',
+            parameters: null,
+          ),
+        ).called(1);
+      });
+
+      test('should not throw on analytics error', () async {
+        // Arrange
+        when(
+          mockAnalytics.logEvent(
+            name: 'tts_bible_play',
+            parameters: anyNamed('parameters'),
+          ),
+        ).thenThrow(Exception('Analytics error'));
+
+        // Act & Assert - should not throw
+        await analyticsService.logTtsBiblePlay(
+          translation: 'NASB',
+          book: 'Luke',
+          chapter: 15,
         );
       });
     });

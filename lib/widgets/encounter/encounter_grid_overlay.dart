@@ -3,11 +3,10 @@
 // Grid overlay for Encounters feature.
 // Mirrors DiscoveryGridOverlay pattern with All / Pending / Completed filters.
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
 import 'package:flutter/material.dart';
 
 enum EncounterFilter { all, pending, completed }
@@ -279,11 +278,6 @@ class _EncounterGridCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final accentColor = _parseColor(entry.accentColor) ?? colorScheme.primary;
 
-    final imageUrl = entry.introImage != null
-        ? Constants.getEncounterImageUrl(entry.introImage!,
-            encounterId: entry.id)
-        : null;
-
     return Card(
       elevation: isActive ? 8 : 2,
       shape: RoundedRectangleBorder(
@@ -302,25 +296,13 @@ class _EncounterGridCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             // Background image or accent gradient
-            if (imageUrl != null)
-              CachedNetworkImage(
-                imageUrl: imageUrl,
+            if (entry.introImage != null)
+              EncounterImageWidget(
+                baseFilename: entry.introImage!,
+                encounterId: entry.id,
+                imageVersion: entry.imageVersion,
                 fit: BoxFit.cover,
-                placeholder: (_, __) => Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        accentColor.withValues(alpha: 0.4),
-                        accentColor.withValues(alpha: 0.1),
-                      ],
-                    ),
-                  ),
-                ),
-                errorWidget: (_, __, ___) => Container(
-                  color: accentColor.withValues(alpha: 0.2),
-                ),
+                fallbackColor: accentColor,
               )
             else
               Container(

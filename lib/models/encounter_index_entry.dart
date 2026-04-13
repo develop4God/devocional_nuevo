@@ -24,6 +24,8 @@
 class EncounterIndexEntry {
   final String id;
   final String version;
+  final String
+      imageVersion; // NEW — drives image cache invalidation independently of JSON version
   final String? emoji;
   final String status; // 'published' | 'coming_soon'
   final String? moodPrimary;
@@ -50,6 +52,7 @@ class EncounterIndexEntry {
   const EncounterIndexEntry({
     required this.id,
     required this.version,
+    this.imageVersion = '1.0', // NEW
     this.emoji,
     this.status = 'coming_soon',
     this.moodPrimary,
@@ -126,6 +129,7 @@ class EncounterIndexEntry {
     return EncounterIndexEntry(
       id: json['id'] as String? ?? '',
       version: json['version'] as String? ?? '1.0',
+      imageVersion: json['image_version'] as String? ?? '1.0', // NEW
       emoji: json['emoji'] as String?,
       status: json['status'] as String? ?? 'coming_soon',
       moodPrimary: json['mood_primary'] as String?,
@@ -146,6 +150,7 @@ class EncounterIndexEntry {
   Map<String, dynamic> toJson() => {
         'id': id,
         'version': version,
+        'image_version': imageVersion, // NEW
         'emoji': emoji,
         'status': status,
         'mood_primary': moodPrimary,

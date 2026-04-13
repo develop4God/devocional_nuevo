@@ -17,9 +17,9 @@ void main() {
   group('AudioController - Peripheral Behavior Tests', () {
     late AudioController controller;
 
-    setUpAll(() {
+    setUpAll(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
-      registerTestServices();
+      await registerTestServices();
     });
 
     setUp(() {

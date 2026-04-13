@@ -6,7 +6,6 @@ library;
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
-import 'package:flutter/foundation.dart';
 
 /// Abstract interface defining TTS service capabilities
 abstract class ITtsService {
@@ -63,7 +62,6 @@ abstract class ITtsService {
 
   Future<void> dispose();
 
-  // Testing support
-  @visibleForTesting
+  // Formatting support
   String formatBibleBook(String reference);
 }

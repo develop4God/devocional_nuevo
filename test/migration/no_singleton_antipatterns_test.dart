@@ -429,6 +429,125 @@ void main() {
       );
     });
 
+    // ── BibleReader TTS DI patterns ───────────────────────────────────────────
+
+    test(
+      'BibleReaderPage accepts optional FlutterTts for dependency injection',
+      () async {
+        final file = File('lib/pages/bible_reader_page.dart');
+        expect(await file.exists(), isTrue,
+            reason: 'BibleReaderPage source file should exist');
+
+        final content = await file.readAsString();
+
+        // Widget constructor must expose an injectable FlutterTts parameter.
+        expect(
+          content.contains('FlutterTts? flutterTts'),
+          isTrue,
+          reason:
+              'BibleReaderPage must have optional FlutterTts? flutterTts field for DI',
+        );
+
+        // FlutterTts must NOT be instantiated at field level.
+        expect(
+          RegExp(r'final FlutterTts _flutterTts\s*=\s*FlutterTts\(\)')
+              .hasMatch(content),
+          isFalse,
+          reason:
+              'BibleReaderPage must not instantiate FlutterTts at field level; '
+              'use widget.flutterTts ?? FlutterTts() in initState instead',
+        );
+      },
+    );
+
+    test(
+      'BibleReaderPage resolves VoiceSettingsService once in initState, '
+      'not inside _handleTtsPlayPause',
+      () async {
+        final file = File('lib/pages/bible_reader_page.dart');
+        final content = await file.readAsString();
+
+        // _handleTtsPlayPause must NOT contain an inline getService call.
+        // We check by extracting the method body heuristically.
+        final methodStart =
+            content.indexOf('Future<void> _handleTtsPlayPause(');
+        final methodEnd = content.indexOf('\n  Future<void>', methodStart + 1);
+        final methodBody = methodStart != -1 && methodEnd != -1
+            ? content.substring(methodStart, methodEnd)
+            : '';
+
+        expect(
+          methodBody.contains('getService<VoiceSettingsService>()'),
+          isFalse,
+          reason:
+              '_handleTtsPlayPause must not call getService<VoiceSettingsService>() '
+              'inline; resolve in initState and use the stored field instead',
+        );
+      },
+    );
+
+    test(
+      'BibleReaderTtsMiniplayerPresenter accepts AnalyticsService at '
+      'construction time, not via inline getService<>',
+      () async {
+        final file = File(
+          'lib/widgets/bible/bible_reader_tts_miniplayer_presenter.dart',
+        );
+        expect(await file.exists(), isTrue,
+            reason:
+                'BibleReaderTtsMiniplayerPresenter source file should exist');
+
+        final content = await file.readAsString();
+
+        // Constructor must accept an IAnalyticsService parameter (interface, not concrete).
+        expect(
+          content.contains('required IAnalyticsService analyticsService'),
+          isTrue,
+          reason:
+              'BibleReaderTtsMiniplayerPresenter must accept IAnalyticsService '
+              'via constructor for proper dependency injection',
+        );
+
+        // The presenter must NOT import service_locator.dart.
+        expect(
+          content.contains(
+            "import 'package:devocional_nuevo/services/service_locator.dart'",
+          ),
+          isFalse,
+          reason:
+              'BibleReaderTtsMiniplayerPresenter must not import service_locator; '
+              'all services must be injected, never resolved inline',
+        );
+
+        // There must be no inline getService<AnalyticsService>() call.
+        expect(
+          content.contains('getService<AnalyticsService>()'),
+          isFalse,
+          reason: 'BibleReaderTtsMiniplayerPresenter must not call '
+              'getService<AnalyticsService>() inline inside handlers',
+        );
+      },
+    );
+
+    test(
+      'BibleReaderTtsMiniplayerPresenter exposes onShowVoiceSelector callback '
+      'to eliminate duplicate voice selector paths',
+      () async {
+        final file = File(
+          'lib/widgets/bible/bible_reader_tts_miniplayer_presenter.dart',
+        );
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('onShowVoiceSelector'),
+          isTrue,
+          reason:
+              'BibleReaderTtsMiniplayerPresenter must have onShowVoiceSelector '
+              'callback so both the page and miniplayer share one implementation',
+        );
+      },
+    );
+
     // ── DevocionalRepository DI registration ──────────────────────────────────
 
     test(
@@ -489,6 +608,157 @@ void main() {
           reason:
               'DevocionalProvider should not directly instantiate DevocionalRepositoryImpl',
         );
+      },
+    );
+
+    // ── AnalyticsService DI registration ──────────────────────────────────────
+
+    test(
+      'AnalyticsService is registered as lazy singleton under IAnalyticsService '
+      'in ServiceLocator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(await file.exists(), isTrue,
+            reason: 'ServiceLocator source file should exist');
+
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('registerLazySingleton<IAnalyticsService>'),
+          isTrue,
+          reason:
+              'IAnalyticsService should be registered as lazy singleton in ServiceLocator',
+        );
+
+        expect(
+          content.contains('AnalyticsService()'),
+          isTrue,
+          reason:
+              'AnalyticsService should be instantiated in ServiceLocator registration',
+        );
+
+        // Verify interface import exists
+        expect(
+          content.contains(
+            "import 'package:devocional_nuevo/services/i_analytics_service.dart'",
+          ),
+          isTrue,
+          reason: 'ServiceLocator should import IAnalyticsService interface',
+        );
+      },
+    );
+
+    test(
+      'AnalyticsService does not use static singleton antipattern',
+      () async {
+        final file = File('lib/services/analytics_service.dart');
+        expect(await file.exists(), isTrue,
+            reason: 'AnalyticsService source file should exist');
+
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('static AnalyticsService? _instance'),
+          isFalse,
+          reason: 'AnalyticsService should not have static _instance field',
+        );
+
+        expect(
+          content.contains('static AnalyticsService get instance'),
+          isFalse,
+          reason: 'AnalyticsService should not have static instance getter',
+        );
+      },
+    );
+
+    test(
+      'AnalyticsService implements IAnalyticsService interface',
+      () async {
+        final file = File('lib/services/analytics_service.dart');
+        expect(await file.exists(), isTrue);
+
+        final content = await file.readAsString();
+
+        expect(
+          content
+              .contains('class AnalyticsService implements IAnalyticsService'),
+          isTrue,
+          reason:
+              'AnalyticsService should implement IAnalyticsService interface',
+        );
+
+        // Verify import of interface
+        expect(
+          content.contains(
+            "import 'package:devocional_nuevo/services/i_analytics_service.dart'",
+          ),
+          isTrue,
+          reason: 'AnalyticsService should import IAnalyticsService interface',
+        );
+      },
+    );
+
+    test(
+      'FakeAnalyticsService in test helpers implements IAnalyticsService',
+      () async {
+        final file = File('test/helpers/test_helpers.dart');
+        expect(await file.exists(), isTrue,
+            reason: 'Test helpers should exist');
+
+        final content = await file.readAsString();
+
+        // Use regex to handle line breaks in the class declaration
+        expect(
+          RegExp(r'class FakeAnalyticsService extends AnalyticsService\s+implements IAnalyticsService')
+              .hasMatch(content),
+          isTrue,
+          reason:
+              'FakeAnalyticsService should implement IAnalyticsService interface',
+        );
+
+        // Verify test setup registers by interface type
+        expect(
+          content.contains('registerSingleton<IAnalyticsService>'),
+          isTrue,
+          reason:
+              'Test setup should register FakeAnalyticsService under IAnalyticsService type',
+        );
+      },
+    );
+
+    test(
+      'Codebase does not instantiate AnalyticsService directly outside '
+      'service_locator.dart',
+      () async {
+        // Check lib directory (excluding service_locator.dart)
+        final libDir = Directory('lib');
+        expect(
+          await libDir.exists(),
+          isTrue,
+          reason: 'lib directory should exist',
+        );
+
+        final libFiles = await libDir
+            .list(recursive: true)
+            .where(
+              (entity) =>
+                  entity is File &&
+                  entity.path.endsWith('.dart') &&
+                  !entity.path.contains('service_locator.dart'),
+            )
+            .cast<File>()
+            .toList();
+
+        for (final file in libFiles) {
+          final content = await file.readAsString();
+          expect(
+            content.contains('AnalyticsService()'),
+            isFalse,
+            reason:
+                'File ${file.path} should not directly instantiate AnalyticsService(); '
+                'use getService<IAnalyticsService>() or dependency injection',
+          );
+        }
       },
     );
   });
