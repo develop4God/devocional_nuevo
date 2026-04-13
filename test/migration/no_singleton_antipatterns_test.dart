@@ -610,6 +610,157 @@ void main() {
         );
       },
     );
+
+    // ── AnalyticsService DI registration ──────────────────────────────────────
+
+    test(
+      'AnalyticsService is registered as lazy singleton under IAnalyticsService '
+      'in ServiceLocator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(await file.exists(), isTrue,
+            reason: 'ServiceLocator source file should exist');
+
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('registerLazySingleton<IAnalyticsService>'),
+          isTrue,
+          reason:
+              'IAnalyticsService should be registered as lazy singleton in ServiceLocator',
+        );
+
+        expect(
+          content.contains('AnalyticsService()'),
+          isTrue,
+          reason:
+              'AnalyticsService should be instantiated in ServiceLocator registration',
+        );
+
+        // Verify interface import exists
+        expect(
+          content.contains(
+            "import 'package:devocional_nuevo/services/i_analytics_service.dart'",
+          ),
+          isTrue,
+          reason: 'ServiceLocator should import IAnalyticsService interface',
+        );
+      },
+    );
+
+    test(
+      'AnalyticsService does not use static singleton antipattern',
+      () async {
+        final file = File('lib/services/analytics_service.dart');
+        expect(await file.exists(), isTrue,
+            reason: 'AnalyticsService source file should exist');
+
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('static AnalyticsService? _instance'),
+          isFalse,
+          reason: 'AnalyticsService should not have static _instance field',
+        );
+
+        expect(
+          content.contains('static AnalyticsService get instance'),
+          isFalse,
+          reason: 'AnalyticsService should not have static instance getter',
+        );
+      },
+    );
+
+    test(
+      'AnalyticsService implements IAnalyticsService interface',
+      () async {
+        final file = File('lib/services/analytics_service.dart');
+        expect(await file.exists(), isTrue);
+
+        final content = await file.readAsString();
+
+        expect(
+          content
+              .contains('class AnalyticsService implements IAnalyticsService'),
+          isTrue,
+          reason:
+              'AnalyticsService should implement IAnalyticsService interface',
+        );
+
+        // Verify import of interface
+        expect(
+          content.contains(
+            "import 'package:devocional_nuevo/services/i_analytics_service.dart'",
+          ),
+          isTrue,
+          reason: 'AnalyticsService should import IAnalyticsService interface',
+        );
+      },
+    );
+
+    test(
+      'FakeAnalyticsService in test helpers implements IAnalyticsService',
+      () async {
+        final file = File('test/helpers/test_helpers.dart');
+        expect(await file.exists(), isTrue,
+            reason: 'Test helpers should exist');
+
+        final content = await file.readAsString();
+
+        // Use regex to handle line breaks in the class declaration
+        expect(
+          RegExp(r'class FakeAnalyticsService extends AnalyticsService\s+implements IAnalyticsService')
+              .hasMatch(content),
+          isTrue,
+          reason:
+              'FakeAnalyticsService should implement IAnalyticsService interface',
+        );
+
+        // Verify test setup registers by interface type
+        expect(
+          content.contains('registerSingleton<IAnalyticsService>'),
+          isTrue,
+          reason:
+              'Test setup should register FakeAnalyticsService under IAnalyticsService type',
+        );
+      },
+    );
+
+    test(
+      'Codebase does not instantiate AnalyticsService directly outside '
+      'service_locator.dart',
+      () async {
+        // Check lib directory (excluding service_locator.dart)
+        final libDir = Directory('lib');
+        expect(
+          await libDir.exists(),
+          isTrue,
+          reason: 'lib directory should exist',
+        );
+
+        final libFiles = await libDir
+            .list(recursive: true)
+            .where(
+              (entity) =>
+                  entity is File &&
+                  entity.path.endsWith('.dart') &&
+                  !entity.path.contains('service_locator.dart'),
+            )
+            .cast<File>()
+            .toList();
+
+        for (final file in libFiles) {
+          final content = await file.readAsString();
+          expect(
+            content.contains('AnalyticsService()'),
+            isFalse,
+            reason:
+                'File ${file.path} should not directly instantiate AnalyticsService(); '
+                'use getService<IAnalyticsService>() or dependency injection',
+          );
+        }
+      },
+    );
   });
 }
 
