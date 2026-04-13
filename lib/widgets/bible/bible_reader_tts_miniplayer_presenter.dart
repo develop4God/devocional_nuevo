@@ -37,6 +37,11 @@ class BibleReaderTtsMiniplayerPresenter {
   /// Whether the TTS mini-player modal is currently visible.
   bool get isShowing => _isModalShowing;
 
+  /// Track whether the completion handler should attempt to close the modal.
+  /// Set to false when user explicitly closes (via stop/drag), preventing
+  /// duplicate pop attempts after modal is already dismissed.
+  bool _shouldAutoCloseOnCompletion = true;
+
   BibleReaderTtsMiniplayerPresenter({
     required this.ttsAudioController,
     required AnalyticsService analyticsService,
@@ -65,17 +70,25 @@ class BibleReaderTtsMiniplayerPresenter {
           valueListenable: ttsAudioController.state,
           builder: (context, state, _) {
             debugPrint('[BibleTtsMiniplayerModal] 🎵 State changed to: $state');
-            if (state == TtsPlayerState.completed) {
+            if (state == TtsPlayerState.completed &&
+                _isModalShowing &&
+                _shouldAutoCloseOnCompletion) {
               debugPrint(
                   '[BibleTtsMiniplayerModal] ✅ TTS Completed - Scheduling modal close');
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (Navigator.canPop(ctx)) {
+                // Double-check: only pop if modal is still showing and we haven't
+                // been explicitly closed by user action (stop button or drag).
+                if (_isModalShowing &&
+                    _shouldAutoCloseOnCompletion &&
+                    Navigator.canPop(ctx)) {
                   debugPrint(
                       '[BibleTtsMiniplayerModal] 🔚 Closing modal via Navigator.pop()');
+                  _shouldAutoCloseOnCompletion = false;
+                  _isModalShowing = false;
                   Navigator.of(ctx).pop();
                 } else {
                   debugPrint(
-                      '[BibleTtsMiniplayerModal] ⚠️ Cannot pop - Navigator.canPop() returned false');
+                      '[BibleTtsMiniplayerModal] ⚠️ Modal already closing or user dismissed — skipping pop');
                 }
               });
             }
@@ -100,6 +113,7 @@ class BibleReaderTtsMiniplayerPresenter {
                           playbackRates: ttsAudioController.supportedRates,
                           onStop: () {
                             ttsAudioController.stop();
+                            _shouldAutoCloseOnCompletion = false;
                             _isModalShowing = false;
                             if (Navigator.canPop(ctx)) {
                               Navigator.of(ctx).pop();
@@ -198,6 +212,7 @@ class BibleReaderTtsMiniplayerPresenter {
       },
     ).whenComplete(() {
       _isModalShowing = false;
+      _shouldAutoCloseOnCompletion = true;
     });
   }
 
