@@ -132,11 +132,11 @@ class DebugEncountersSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Use Bundled Fallback',
+                      const Text('Use Cache Fallback',
                           style: TextStyle(fontWeight: FontWeight.w600)),
                       Text(
                         Constants.enableEncounterFallback
-                            ? '✅ ON — 404s use bundled asset'
+                            ? '✅ ON — network errors use cached data'
                             : '🚫 OFF — network errors are thrown',
                         style: TextStyle(
                           fontSize: 12,

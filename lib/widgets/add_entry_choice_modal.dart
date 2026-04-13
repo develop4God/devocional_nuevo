@@ -1,6 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/material.dart';
 
@@ -93,7 +93,7 @@ class AddEntryChoiceModal extends StatelessWidget {
       child: InkWell(
         onTap: () {
           // Log analytics event
-          getService<AnalyticsService>().logFabChoiceSelected(
+          getService<IAnalyticsService>().logFabChoiceSelected(
             source: source,
             choice: choice,
           );

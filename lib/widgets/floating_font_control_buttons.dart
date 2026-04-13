@@ -122,7 +122,7 @@ class FloatingFontControlButtons extends StatelessWidget {
 
                 // Decrease font (smaller circle) - centrado con los botones más grandes
                 Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsetsDirectional.only(end: 8),
                   child: GestureDetector(
                     onTap: canDecrease ? onDecrease : null,
                     child: Container(

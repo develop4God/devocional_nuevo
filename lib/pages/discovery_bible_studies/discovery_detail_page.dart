@@ -7,7 +7,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
@@ -63,7 +63,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   void _onCompleteStudy() {
     if (_hasTriggeredCompletion) return;
 
-    getService<AnalyticsService>().logDiscoveryAction(
+    getService<IAnalyticsService>().logDiscoveryAction(
       action: 'study_completed',
       studyId: widget.studyId,
     );
@@ -403,7 +403,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           if (!isFirst)
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(right: 6),
+                padding: const EdgeInsetsDirectional.only(end: 6),
                 child: SizedBox(
                   height: 44,
                   child: TextButton.icon(
@@ -442,7 +442,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             const Expanded(child: SizedBox.shrink()),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(left: 6),
+              padding: const EdgeInsetsDirectional.only(start: 6),
               child: SizedBox(
                 height: 44,
                 child: isLast

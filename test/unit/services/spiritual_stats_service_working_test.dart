@@ -11,9 +11,9 @@ void main() {
   group('SpiritualStatsService user behavior', () {
     late SpiritualStatsService statsService;
 
-    setUp(() {
+    setUp(() async {
       SharedPreferences.setMockInitialValues({});
-      registerTestServices();
+      await registerTestServices();
       statsService = SpiritualStatsService();
     });
 

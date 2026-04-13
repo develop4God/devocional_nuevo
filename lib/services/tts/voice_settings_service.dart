@@ -18,12 +18,10 @@ class VoiceSettingsService {
   /// The Service Locator will create and manage the singleton instance.
   VoiceSettingsService();
 
-  /// Test constructor for injecting a mock FlutterTts instance.
-  @visibleForTesting
+  /// Constructor for injecting a mock FlutterTts instance.
   VoiceSettingsService.withTts(FlutterTts tts) : _flutterTtsInstance = tts;
 
-  /// Test constructor for injecting both main and sample TTS instances.
-  @visibleForTesting
+  /// Constructor for injecting both main and sample TTS instances.
   VoiceSettingsService.withBothTts(FlutterTts mainTts, FlutterTts sampleTts)
       : _flutterTtsInstance = mainTts,
         _sampleTtsInstance = sampleTts;
@@ -66,6 +64,13 @@ class VoiceSettingsService {
       'zh': ['zh-CN', 'zh-TW', 'yue-HK'],
       'hi': ['hi-IN'], // Hindi
       'de': ['de-DE', 'de-AT', 'de-CH'], // German
+      'ar': [
+        'ar-xa',
+        'ar-SA',
+        'ar-EG',
+        'ar-AE',
+        'ar'
+      ], // Arabic - any ar-* device voice
     };
     final locales = preferredLocales[language] ?? [language];
 
@@ -80,8 +85,10 @@ class VoiceSettingsService {
             (voice) =>
                 locales.any(
                   (loc) =>
-                      (voice['locale'] as String?)?.toLowerCase() ==
-                      loc.toLowerCase(),
+                      (voice['locale'] as String?)?.toLowerCase().startsWith(
+                            loc.toLowerCase(),
+                          ) ??
+                      false,
                 ) &&
                 (voice['name'] as String?) != null &&
                 (voice['name'] as String).trim().isNotEmpty,
@@ -145,6 +152,12 @@ class VoiceSettingsService {
           'de-de-x-dec-network', // Male voice Germany 2
           'de-de-x-dea-local', // Female voice Germany
           'de-DE-language', // Female voice Germany 2
+        ],
+        'ar': [
+          'ar-xa-x-are-local', // Male voice Arabic primary
+          'ar-xa-x-ard-local', // Male voice Arabic 2
+          'ar-xa-x-arz-local', // Female voice Arabic 1
+          'ar-xa-x-arz-network', // Female voice Arabic 2
         ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];
@@ -364,6 +377,18 @@ class VoiceSettingsService {
           await autoAssignDefaultVoice(language);
           return await loadSavedVoice(language); // Try again after fix
         }
+
+        // Additional validation for Arabic: ar-xa-x-* voices use locale 'ar', not 'ar-SA'
+        if (language == 'ar' &&
+            !locale.toLowerCase().startsWith('ar-xa') &&
+            locale != 'ar') {
+          debugPrint(
+            '⚠️ [VoiceSettings] Invalid locale for ar detected (locale: "$locale"). Clearing and re-assigning.',
+          );
+          await clearSavedVoice(language);
+          await autoAssignDefaultVoice(language);
+          return await loadSavedVoice(language); // Try again after fix
+        }
         // --- END VALIDATION ---
 
         // Aplicar la voz al TTS
@@ -381,20 +406,86 @@ class VoiceSettingsService {
     return null;
   }
 
+  /// Applies the saved voice for [language] directly to the given [ttsInstance].
+  ///
+  /// This is the critical method that ensures the correct voice is set on the
+  /// [TtsAudioController]'s own FlutterTts instance before calling speak().
+  /// Without this, the controller speaks with the default system voice regardless
+  /// of user voice selection (the voice was previously only applied to the
+  /// VoiceSettingsService's own internal FlutterTts instance).
+  Future<void> applyVoiceToInstance(
+      FlutterTts ttsInstance, String language) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedVoice = prefs.getString('tts_voice_$language');
+
+      if (savedVoice == null) {
+        debugPrint(
+          '⚠️ VoiceSettings: No saved voice for $language, skipping applyVoiceToInstance',
+        );
+        return;
+      }
+
+      String voiceName, locale;
+      if (savedVoice.contains('technical_name')) {
+        final parts = savedVoice.split(', ');
+        voiceName = parts
+            .firstWhere((p) => p.contains('technical_name'))
+            .split(': ')[1];
+        locale = parts.firstWhere((p) => p.contains('locale')).split(': ')[1];
+        // Strip trailing '}' if present
+        locale = locale.replaceAll('}', '').trim();
+        voiceName = voiceName.trim();
+      } else {
+        final voiceParts = savedVoice.split(' (');
+        voiceName = voiceParts[0].trim();
+        locale = voiceParts.length > 1
+            ? voiceParts[1].replaceAll(')', '').trim()
+            : _getDefaultLocaleForLanguage(language);
+      }
+
+      if (voiceName.isEmpty || locale.isEmpty) {
+        debugPrint(
+          '⚠️ VoiceSettings: Invalid voice data for $language in applyVoiceToInstance (name: "$voiceName", locale: "$locale")',
+        );
+        return;
+      }
+
+      // CRITICAL: setLanguage() MUST be called before setVoice() to ensure the
+      // TTS engine loads the correct language module. Without this, speak() can
+      // hang indefinitely on non-system languages (e.g. Arabic on a Spanish device)
+      // because the engine never fires onStart/onError callbacks.
+      final langResult = await ttsInstance.setLanguage(locale);
+      debugPrint(
+        '🌐 [VoiceSettings] setLanguage("$locale") → result: $langResult (language: $language)',
+      );
+
+      final voiceResult =
+          await ttsInstance.setVoice({'name': voiceName, 'locale': locale});
+      debugPrint(
+        '🎙️ VoiceSettings: setVoice result: $voiceResult — applied "$voiceName" (locale: $locale) to controller FlutterTts for language $language',
+      );
+    } catch (e) {
+      debugPrint(
+        '⚠️ VoiceSettings: Failed to applyVoiceToInstance for $language: $e',
+      );
+    }
+  }
+
   /// ✅ METODO PRINCIPAL MEJORADO PARA NOMBRES USER-FRIENDLY
   String _getFriendlyVoiceName(String technicalName, String locale) {
     // 1. Verificar mapeo amigable con emoji y nombre
     final language = locale.split('-').first;
     final map = friendlyVoiceMap[language];
     if (map != null && map.containsKey(technicalName)) {
-      return map[technicalName]!;
+      return map[technicalName] ?? technicalName;
     }
 
     // 2. Verificar patrones complejos
     for (final pattern in _voicePatternMappings.keys) {
       if (pattern.hasMatch(technicalName)) {
         final match = pattern.firstMatch(technicalName);
-        String baseName = _voicePatternMappings[pattern]!;
+        String baseName = _voicePatternMappings[pattern] ?? '';
 
         // Si hay un grupo capturado (número), agregarlo
         if (match != null && match.groupCount > 0) {
@@ -477,6 +568,15 @@ class VoiceSettingsService {
         case 'zh':
           friendlyName = '默认语音';
           break;
+        case 'hi':
+          friendlyName = 'डिफ़ॉल्ट आवाज़';
+          break;
+        case 'de':
+          friendlyName = 'Standardstimme';
+          break;
+        case 'ar':
+          friendlyName = 'الصوت الافتراضي';
+          break;
         default:
           friendlyName = 'Default Voice';
       }
@@ -518,6 +618,14 @@ class VoiceSettingsService {
         return gender == 'female' ? 'Voix Féminine$num' : 'Voix Masculine$num';
       case String s when s.startsWith('zh'):
         return gender == 'female' ? '女性声音$num' : '男性声音$num';
+      case String s when s.startsWith('hi'):
+        return gender == 'female' ? 'महिला आवाज़$num' : 'पुरुष आवाज़$num';
+      case String s when s.startsWith('de'):
+        return gender == 'female'
+            ? 'Weibliche Stimme$num'
+            : 'Männliche Stimme$num';
+      case String s when s.startsWith('ar'):
+        return gender == 'female' ? 'صوت أنثى$num' : 'صوت ذكر$num';
       default:
         return gender == 'female' ? 'Female Voice$num' : 'Male Voice$num';
     }
@@ -661,6 +769,10 @@ class VoiceSettingsService {
         return 'zh-CN';
       case 'de':
         return 'de-DE';
+      case 'hi':
+        return 'hi-IN';
+      case 'ar':
+        return 'ar';
       default:
         return 'es-ES';
     }
@@ -734,7 +846,7 @@ class VoiceSettingsService {
       final prefs = await SharedPreferences.getInstance();
       double toStore;
       if (miniToSettings.containsKey(rate)) {
-        toStore = miniToSettings[rate]!;
+        toStore = miniToSettings[rate] ?? 0.5;
       } else if (rate >= 0.1 && rate <= 1.0) {
         toStore = rate;
       } else {
@@ -811,7 +923,7 @@ class VoiceSettingsService {
   /// Dado un rate de settings, devuelve el rate homologado del miniplayer
   double getMiniPlayerRate(double settingsRate) {
     if (settingsToMini.containsKey(settingsRate)) {
-      return settingsToMini[settingsRate]!;
+      return settingsToMini[settingsRate] ?? 1.0;
     }
     if ((settingsRate - 0.25).abs() < 0.08) return 0.5;
     if ((settingsRate - 0.5).abs() < 0.12) return 1.0;
@@ -877,13 +989,21 @@ class VoiceSettingsService {
       'cmn-tw-x-cte-network': '🇹🇼 男性 声 2', // Hombre 2 (Taiwán)
       'cmn-tw-x-ctc-network': '🇹🇼 女性 声 2', // Mujer 2 (Taiwán)
     },
+    'ar': {
+      'ar-xa-x-are-local': '🇸🇦 رجل صوت 1', // Male Arabic 1
+      'ar-xa-x-are-network': '🇸🇦 رجل صوت 1', // Male Arabic 1 network
+      'ar-xa-x-ard-local': '🇸🇦 رجل صوت 2', // Male Arabic 2
+      'ar-xa-x-ard-network': '🇸🇦 رجل صوت 2', // Male Arabic 2 network
+      'ar-xa-x-arz-local': '🇸🇦 امرأة صوت 1', // Female Arabic 1
+      'ar-xa-x-arz-network': '🇸🇦 امرأة صوت 1', // Female Arabic 1 network
+    },
   };
 
   /// Nuevo metodo para obtener nombre amigable con emoji
   String getFriendlyVoiceName(String language, String technicalName) {
     final map = friendlyVoiceMap[language];
     if (map != null && map.containsKey(technicalName)) {
-      return map[technicalName]!;
+      return map[technicalName] ?? technicalName;
     }
     return technicalName;
   }

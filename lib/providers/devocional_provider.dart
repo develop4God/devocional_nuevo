@@ -9,7 +9,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
 import 'package:devocional_nuevo/services/devocional_index_service.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
@@ -124,6 +124,7 @@ class DevocionalProvider with ChangeNotifier {
     'zh', // Add Chinese
     'hi', // Add Hindi
     'de', // Add German
+    'ar', // Add Arabic
   ];
   static const String _fallbackLanguage = 'es';
 
@@ -332,7 +333,7 @@ class DevocionalProvider with ChangeNotifier {
     // Get feature flags from Remote Config (with ready check)
     try {
       final remoteConfig = getService<RemoteConfigService>();
-      final analytics = getService<AnalyticsService>();
+      final analytics = getService<IAnalyticsService>();
 
       if (remoteConfig.isReady) {
         final useLegacy = remoteConfig.featureLegacy;
@@ -754,7 +755,7 @@ class DevocionalProvider with ChangeNotifier {
 
             // Log telemetry for migration
             try {
-              final analytics = getService<AnalyticsService>();
+              final analytics = getService<IAnalyticsService>();
 
               // Log migration success
               analytics.logCustomEvent(
@@ -796,7 +797,7 @@ class DevocionalProvider with ChangeNotifier {
 
             // Log migration failure
             try {
-              final analytics = getService<AnalyticsService>();
+              final analytics = getService<IAnalyticsService>();
               analytics.logCustomEvent(
                 eventName: 'favorites_migration_failure',
                 parameters: {
@@ -915,7 +916,7 @@ class DevocionalProvider with ChangeNotifier {
         !_hasFiredMismatchTelemetry) {
       _hasFiredMismatchTelemetry = true;
       try {
-        final analytics = getService<AnalyticsService>();
+        final analytics = getService<IAnalyticsService>();
         analytics.logCustomEvent(
           eventName: 'favorites_id_mismatch',
           parameters: {

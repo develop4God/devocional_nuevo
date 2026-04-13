@@ -641,6 +641,163 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
       ),
     ),
   },
+  'Gray': {
+    'light': _baseLightTheme.copyWith(
+      scaffoldBackgroundColor:
+          const Color(0xFFF5F5F5), // Paper-like gray background
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.grey[600],
+        foregroundColor: Colors.white,
+        elevation: 1,
+        shadowColor: Colors.black.withAlpha(76),
+      ),
+      colorScheme: ColorScheme.fromSwatch(
+        primarySwatch: Colors.grey,
+        brightness: Brightness.light,
+      ).copyWith(
+        primary: Colors.grey[600],
+        secondary: Colors.grey[500],
+        surface: const Color(0xFFFAFAFA), // Soft paper white
+        surfaceContainer: const Color(0xFFF5F5F5), // Paper gray
+        onPrimary: Colors.white,
+        onSecondary: Colors.black87,
+        onSurface: Colors.black87,
+        error: Colors.red,
+        onError: Colors.white,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.grey[600],
+          foregroundColor: Colors.white,
+          elevation: 2,
+          shadowColor: Colors.black.withAlpha(38),
+        ),
+      ),
+      sliderTheme: SliderThemeData(
+        inactiveTrackColor: const Color(0xFFE0E0E0),
+        activeTrackColor: Colors.grey[600],
+        thumbColor: Colors.grey[600],
+        overlayColor: Colors.grey[600]!.withAlpha(32),
+        trackHeight: 4,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        filled: true,
+        fillColor: const Color(0xFFFAFAFA),
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        enabledBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 2.0),
+        ),
+        errorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 1.0),
+        ),
+        focusedErrorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.black, width: 1.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: const Color(0xFFFAFAFA),
+        elevation: 1,
+        shadowColor: Colors.black.withAlpha(38),
+      ),
+    ),
+    'dark': _baseDarkTheme.copyWith(
+      scaffoldBackgroundColor: const Color(0xFF2A2A2A), // Warm dark gray
+      appBarTheme: AppBarTheme(
+        backgroundColor: const Color(0xFF1F1F1F),
+        foregroundColor: Colors.white,
+        elevation: 1,
+        shadowColor: Colors.black.withAlpha(127),
+      ),
+      colorScheme: ColorScheme.fromSwatch(
+        primarySwatch: Colors.grey,
+        brightness: Brightness.dark,
+      ).copyWith(
+        primary: Colors.grey[500],
+        secondary: Colors.grey[400],
+        surface: const Color(0xFF2A2A2A), // Warm dark gray
+        surfaceContainer: const Color(0xFF3A3A3A), // Lighter dark gray
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
+        onSurface: Colors.white,
+        error: Colors.redAccent,
+        onError: Colors.white,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.grey[700],
+          foregroundColor: Colors.white,
+          elevation: 2,
+          shadowColor: Colors.black.withAlpha(127),
+        ),
+      ),
+      sliderTheme: SliderThemeData(
+        inactiveTrackColor: const Color(0xFF4A4A4A),
+        activeTrackColor: Colors.grey[400],
+        thumbColor: Colors.grey[400],
+        overlayColor: Colors.grey[400]!.withAlpha(32),
+        trackHeight: 4,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        filled: true,
+        fillColor: const Color(0xFF3A3A3A),
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
+        ),
+        enabledBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.white, width: 2.0),
+        ),
+        errorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 1.0),
+        ),
+        focusedErrorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.white, width: 1.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: const Color(0xFF3A3A3A),
+        elevation: 1,
+        shadowColor: Colors.black.withAlpha(127),
+      ),
+    ),
+  },
   'Light Blue': {
     'light': _baseLightTheme.copyWith(
       appBarTheme: const AppBarTheme(
@@ -788,6 +945,7 @@ const Map<String, String> themeDisplayNames = {
   'Green': 'Vida',
   'Pink': 'Pureza',
   'Light Blue': 'Celestial',
+  'Gray': 'Serenidad',
 };
 
 const TextStyle settingsOptionTextStyle = TextStyle(fontSize: 20.0);

@@ -7,6 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
+import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -75,8 +76,16 @@ class _VisualHeader extends StatelessWidget {
   final String? imageUrl;
   final String? mood;
   final String? icon;
+  final String? encounterId;
+  final String? imageVersion;
 
-  const _VisualHeader({this.imageUrl, this.mood, this.icon});
+  const _VisualHeader({
+    this.imageUrl,
+    this.mood,
+    this.icon,
+    this.encounterId,
+    this.imageVersion,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -88,17 +97,25 @@ class _VisualHeader extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (imageUrl != null && imageUrl!.isNotEmpty)
+          if (imageUrl != null &&
+              imageUrl!.isNotEmpty &&
+              encounterId != null &&
+              imageVersion != null)
+            EncounterImageWidget(
+              baseFilename: imageUrl!,
+              encounterId: encounterId!,
+              imageVersion: imageVersion!,
+              fit: BoxFit.cover,
+              fallbackColor: base,
+            )
+          else if (imageUrl != null && imageUrl!.isNotEmpty)
             CachedNetworkImage(
               imageUrl: imageUrl!,
               fit: BoxFit.cover,
-              // Zero fade means cached images appear the instant the card
-              // mounts — no dark void before the image appears.
               fadeInDuration: Duration.zero,
               fadeOutDuration: Duration.zero,
               placeholder: (_, __) => Shimmer.fromColors(
                 baseColor: base,
-                // Slightly lighter highlight for a subtle cinematic shimmer
                 highlightColor:
                     Color.lerp(base, const Color(0xFF4a6080), 0.35) ?? base,
                 child: Container(
@@ -149,6 +166,8 @@ class _CardShell extends StatefulWidget {
   final String? imageUrl;
   final String? mood;
   final String? icon;
+  final String? encounterId;
+  final String? imageVersion;
   final List<Widget> children;
   final bool showScrollIndicator;
 
@@ -156,6 +175,8 @@ class _CardShell extends StatefulWidget {
     this.imageUrl,
     this.mood,
     this.icon,
+    this.encounterId,
+    this.imageVersion,
     required this.children,
     this.showScrollIndicator = true,
   });
@@ -213,7 +234,9 @@ class _CardShellState extends State<_CardShell> {
                 _VisualHeader(
                     imageUrl: widget.imageUrl,
                     mood: widget.mood,
-                    icon: widget.icon),
+                    icon: widget.icon,
+                    encounterId: widget.encounterId,
+                    imageVersion: widget.imageVersion),
                 Expanded(
                   child: RawScrollbar(
                     controller: _scrollController,
@@ -355,6 +378,8 @@ class CinematicSceneCard extends StatelessWidget {
     return _CardShell(
       imageUrl: card.imageUrl,
       mood: card.mood,
+      encounterId: card.encounterId,
+      imageVersion: card.imageVersion,
       children: [
         if (card.title != null)
           _DelayedEntry(
@@ -416,6 +441,8 @@ class ScriptureMomentCard extends StatelessWidget {
     return _CardShell(
       imageUrl: card.imageUrl,
       mood: card.mood,
+      encounterId: card.encounterId,
+      imageVersion: card.imageVersion,
       children: [
         Center(
           child: Column(
@@ -505,6 +532,8 @@ class CharacterMomentCard extends StatelessWidget {
       imageUrl: card.imageUrl,
       mood: card.mood,
       icon: card.icon,
+      encounterId: card.encounterId,
+      imageVersion: card.imageVersion,
       children: [
         if (card.title != null)
           _DelayedEntry(
@@ -571,6 +600,8 @@ class TheologicalDepthCard extends StatelessWidget {
       imageUrl: card.imageUrl,
       mood: card.mood,
       icon: card.icon,
+      encounterId: card.encounterId,
+      imageVersion: card.imageVersion,
       children: [
         if (card.title != null)
           _DelayedEntry(
@@ -658,6 +689,8 @@ class DiscoveryActivationCard extends StatelessWidget {
     return _CardShell(
       imageUrl: card.imageUrl,
       mood: card.mood,
+      encounterId: card.encounterId,
+      imageVersion: card.imageVersion,
       children: [
         if (card.title != null)
           _DelayedEntry(
@@ -746,6 +779,8 @@ class _CompletionCardState extends State<CompletionCard> {
     return _CardShell(
       imageUrl: widget.card.imageUrl,
       mood: widget.card.mood,
+      encounterId: widget.card.encounterId,
+      imageVersion: widget.card.imageVersion,
       showScrollIndicator: false,
       children: [
         Center(
@@ -887,6 +922,8 @@ class InteractiveMomentCard extends StatelessWidget {
     return _CardShell(
       imageUrl: card.imageUrl,
       mood: card.mood,
+      encounterId: card.encounterId,
+      imageVersion: card.imageVersion,
       children: [
         Center(
           child: Column(

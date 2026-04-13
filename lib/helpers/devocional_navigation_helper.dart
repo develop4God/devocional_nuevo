@@ -2,7 +2,7 @@ import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
@@ -137,7 +137,7 @@ class DevocionalNavigationHelper {
     int currentIndex,
     int totalDevocionales,
   ) async {
-    final analytics = getService<AnalyticsService>();
+    final analytics = getService<IAnalyticsService>();
     if (direction == DevocionalNavigationDirection.next) {
       await analytics.logNavigationNext(
         currentIndex: currentIndex,

@@ -42,6 +42,7 @@ class Constants {
     'zh': '中文', // Habilitar chino
     'hi': 'हिन्दी', // Habilitar hindi
     'de': 'Deutsch', // Habilitar alemán
+    'ar': 'العربية', // Habilitar árabe
   };
 
   // Banderas emoji para cada idioma
@@ -54,6 +55,7 @@ class Constants {
     'zh': '🇨🇳',
     'hi': '🇮🇳',
     'de': '🇩🇪',
+    'ar': '🇸🇦',
   };
 
   /// Obtiene el emoji de la bandera para un idioma
@@ -71,6 +73,7 @@ class Constants {
     'zh': ['和合本1919', '新译本'], // Chinese versions (fix: 新译本)
     'hi': ['HIOV', 'HERV'], // Hindi versions
     'de': ['LU17', 'SCH2000'], // German versions
+    'ar': ['NAV', 'SVDA'], // Arabic versions
   };
 
   // Versión de Biblia por defecto por idioma
@@ -83,6 +86,7 @@ class Constants {
     'zh': '和合本1919', // Default Chinese version
     'hi': 'HIOV', // Default Hindi version
     'de': 'LU17', // Default German version
+    'ar': 'NAV', // Default Arabic version
   };
 
   // Nombres japoneses para versiones de la Biblia (deprecated - versions now use Japanese names directly)
@@ -170,17 +174,23 @@ class Constants {
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/encounters/$lang/$file';
   }
 
-  /// Obtiene la URL de una imagen de Encounter.
-  /// Las imágenes se organizan por encounter ID.
+  /// Resolves an encounter image URL.
   ///
-  /// Formato: /encounters/{encounterId}/{filename}
-  ///
-  /// Ejemplo:
-  ///   Constants.getEncounterImageUrl("peter_intro.jpg", encounterId: "peter_water_001")
-  ///   → /encounters/peter_water_001/peter_intro.jpg
-  static String getEncounterImageUrl(String filename,
-      {required String encounterId}) {
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/$encounterId/$filename';
+  /// [filename] — base name WITHOUT extension (e.g. "peter_intro").
+  ///   Legacy callers passing a name with extension are handled gracefully:
+  ///   the extension is stripped and replaced by [format].
+  /// [encounterId] — encounter folder name.
+  /// [format] — image format extension, default 'avif'. Pass 'png' for fallback.
+  static String getEncounterImageUrl(
+    String filename, {
+    required String encounterId,
+    String format = 'avif',
+  }) {
+    // Strip any existing extension to support both old (with ext) and new (no ext) callers
+    final base = filename.contains('.')
+        ? filename.substring(0, filename.lastIndexOf('.'))
+        : filename;
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/$encounterId/$base.$format';
   }
 
   // ---------------------------------------------------------------------------
@@ -197,7 +207,8 @@ class Constants {
   static String versionAbbreviation(BibleVersion version) {
     if (version.languageCode == 'ja' ||
         version.languageCode == 'zh' ||
-        version.languageCode == 'hi') {
+        version.languageCode == 'hi' ||
+        version.languageCode == 'ar') {
       return '';
     }
     final parts = version.dbFileName.split('_');

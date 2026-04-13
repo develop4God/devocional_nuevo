@@ -21,6 +21,7 @@ import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
@@ -49,7 +50,8 @@ import 'package:share_plus/share_plus.dart';
 
 import '../controllers/audio_controller.dart';
 import '../controllers/tts_audio_controller.dart';
-import '../services/analytics_service.dart';
+import '../services/tts/utils/tts_chunk_processor.dart';
+import '../services/tts/voice_settings_service.dart';
 import '../services/spiritual_stats_service.dart';
 import '../widgets/animated_fab_with_text.dart';
 import '../widgets/devocionales/devocionales_bottom_bar.dart';
@@ -121,7 +123,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       getService<DeepLinkHandler>().flushPendingLink();
     });
-    _ttsAudioController = TtsAudioController(flutterTts: _flutterTts);
+    _ttsAudioController = TtsAudioController(
+      flutterTts: _flutterTts,
+      voiceSettingsService: getService<VoiceSettingsService>(),
+      chunkProcessor: getService<TtsChunkProcessor>(),
+    );
     _ttsMiniplayerPresenter = DevocionalTtsMiniplayerPresenter(
         ttsAudioController: _ttsAudioController);
     _navigationHelper = DevocionalNavigationHelper(
@@ -147,7 +153,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     _initializeNavigationBloc();
 
     // Log analytics event for app initialization with BLoC
-    getService<AnalyticsService>().logAppInit(
+    getService<IAnalyticsService>().logAppInit(
       parameters: {'use_navigation_bloc': 'true'},
     );
 
@@ -581,7 +587,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   void _showAddPrayerOrThanksgivingChoice() {
     // Log FAB tap event
-    getService<AnalyticsService>().logFabTapped(source: 'devocionales_page');
+    getService<IAnalyticsService>().logFabTapped(source: 'devocionales_page');
 
     showModalBottomSheet(
       context: context,
@@ -920,7 +926,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     iconColor: colorScheme.onPrimary,
                   ),
                   floatingActionButtonLocation:
-                      FloatingActionButtonLocation.endFloat,
+                      Directionality.of(context) == TextDirection.rtl
+                          ? FloatingActionButtonLocation.startFloat
+                          : FloatingActionButtonLocation.endFloat,
                   body: Stack(
                     children: [
                       Column(

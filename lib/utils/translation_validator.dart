@@ -1,8 +1,34 @@
 import 'dart:convert';
 import 'dart:io';
 
-/// Supported languages (en.json is the single source of truth)
-const supportedLanguages = ['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de'];
+/// Dynamically discover supported languages from i18n directory
+/// No hardcoding needed - automatically syncs with available translation files
+List<String> getSupportedLanguages() {
+  final i18nDir = Directory('i18n');
+  if (!i18nDir.existsSync()) {
+    stderr.writeln('❌ i18n directory not found. Aborting.');
+    exit(1);
+  }
+
+  final languages = <String>[];
+  for (final file in i18nDir.listSync()) {
+    if (file is File && file.path.endsWith('.json')) {
+      // Extract language code from filename (e.g., 'es.json' → 'es')
+      final filename = file.path.split('/').last;
+      final languageCode = filename.replaceFirst(RegExp(r'\.json$'), '');
+      languages.add(languageCode);
+    }
+  }
+
+  // Sort to ensure consistent order (en first, then alphabetically)
+  languages.sort((a, b) {
+    if (a == 'en') return -1;
+    if (b == 'en') return 1;
+    return a.compareTo(b);
+  });
+
+  return languages;
+}
 
 /// Bidirectional translation validator.
 /// - Detects keys MISSING in the target (compared to en.json) → adds as "PENDING"
@@ -14,12 +40,16 @@ const supportedLanguages = ['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de'];
 void main(List<String> args) async {
   stdout.writeln('Starting bidirectional language validation...\n');
 
+  final allSupportedLanguages = getSupportedLanguages();
   final languages = args.isNotEmpty
       ? args
-      : supportedLanguages.where((l) => l != 'en').toList();
+      : allSupportedLanguages.where((l) => l != 'en').toList();
 
   final processed = <String>[];
   final notFound = <String>[];
+
+  // Collect validation data for consolidated report
+  final validationReports = <String, Map<String, dynamic>>{};
 
   final referenceFile = File('i18n/en.json');
   if (!referenceFile.existsSync()) {
@@ -76,6 +106,30 @@ void main(List<String> args) async {
       const JsonEncoder.withIndent('  ').convert(reorderedTarget),
     );
 
+    // Collect validation report for consolidated summary
+    final sectionReports = <String, Map<String, dynamic>>{};
+    var sectionOk = true;
+    for (final sec in refSectionCounts.keys) {
+      final refCnt = refSectionCounts[sec] ?? 0;
+      final tgtCnt = tgtSectionCounts[sec] ?? 0;
+      final ok = refCnt == tgtCnt;
+      if (!ok) sectionOk = false;
+      sectionReports[sec] = {
+        'ok': ok,
+        'target': tgtCnt,
+        'reference': refCnt,
+      };
+    }
+
+    validationReports[lang] = {
+      'refTotal': refTotal,
+      'tgtTotal': tgtTotal,
+      'missingKeys': missingKeys,
+      'extraKeys': extraKeys,
+      'allSectionsOk': sectionOk,
+      'sectionReports': sectionReports,
+    };
+
     stdout.writeln('==== VALIDATION REPORT ($lang) ====');
     stdout.writeln('  Reference (en): $refTotal keys');
     stdout.writeln('  Target ($lang):  $tgtTotal keys');
@@ -103,12 +157,10 @@ void main(List<String> args) async {
     }
 
     stdout.writeln('  --- Per-section counts ($lang vs en) ---');
-    var sectionOk = true;
     for (final sec in refSectionCounts.keys) {
       final refCnt = refSectionCounts[sec] ?? 0;
       final tgtCnt = tgtSectionCounts[sec] ?? 0;
       final ok = refCnt == tgtCnt;
-      if (!ok) sectionOk = false;
       stdout.writeln('    ${ok ? '✅' : '❌'} $sec: $tgtCnt / $refCnt');
     }
     if (sectionOk) stdout.writeln('  ✅ All sections match reference counts.');
@@ -120,9 +172,236 @@ void main(List<String> args) async {
   if (notFound.isNotEmpty) {
     stdout.writeln('Languages not found: ${notFound.join(', ')}');
   }
-  stdout.writeln('en.json is the source of truth. All files are now in sync.');
+  stdout
+      .writeln('en.json is the source of truth. All files are now in sync.\n');
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // CONSOLIDATED VALIDATION REPORT BY LANGUAGE
+  // ═══════════════════════════════════════════════════════════════════════════
+  stdout.writeln('═' * 75);
+  stdout.writeln('📋 CONSOLIDATED VALIDATION REPORT — ALL LANGUAGES');
+  stdout.writeln('═' * 75);
+  stdout.writeln('');
+
+  for (final lang in processed) {
+    final report = validationReports[lang];
+    if (report == null) continue;
+
+    final refTotal = report['refTotal'] as int;
+    final tgtTotal = report['tgtTotal'] as int;
+    final missingKeys = report['missingKeys'] as List<String>;
+    final extraKeys = report['extraKeys'] as List<String>;
+    final allSectionsOk = report['allSectionsOk'] as bool;
+    final sectionReports =
+        report['sectionReports'] as Map<String, Map<String, dynamic>>;
+
+    stdout
+        .writeln('==== VALIDATION REPORT ($lang) [Language Code: $lang] ====');
+    stdout.writeln('  Reference (en): $refTotal keys');
+    stdout.writeln('  Target ($lang):  $tgtTotal keys');
+
+    if (missingKeys.isEmpty && extraKeys.isEmpty) {
+      stdout.writeln('  ✅ Perfect match — no changes needed.');
+    } else {
+      if (missingKeys.isNotEmpty) {
+        stdout.writeln(
+            '  ❌ ${missingKeys.length} missing keys → added as PENDING:');
+        for (final k in missingKeys) {
+          stdout.writeln('    + $k');
+        }
+      }
+      if (extraKeys.isNotEmpty) {
+        stdout.writeln('  🗑️  ${extraKeys.length} extra keys → removed:');
+        final shown = extraKeys.take(30).toList();
+        for (final k in shown) {
+          stdout.writeln('    - $k');
+        }
+        if (extraKeys.length > 30) {
+          stdout.writeln('    ... and ${extraKeys.length - 30} more.');
+        }
+      }
+    }
+
+    stdout.writeln('  --- Per-section counts ($lang vs en) ---');
+    for (final sec in sectionReports.keys) {
+      final sectionReport = sectionReports[sec]!;
+      final ok = sectionReport['ok'] as bool;
+      final tgtCnt = sectionReport['target'] as int;
+      final refCnt = sectionReport['reference'] as int;
+      stdout.writeln('    ${ok ? '✅' : '❌'} $sec: $tgtCnt / $refCnt');
+    }
+    if (allSectionsOk) {
+      stdout.writeln('  ✅ All sections match reference counts.');
+    }
+    stdout.writeln('');
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SUMMARY STATISTICS
+  // ═══════════════════════════════════════════════════════════════════════════
+  stdout.writeln('═' * 75);
+  stdout.writeln('📊 SUMMARY STATISTICS');
+  stdout.writeln('═' * 75);
+
+  var totalLanguages = processed.length;
+  var completeLanguages = 0;
+  var languagesWithErrors = <String>[];
+  var totalMissingKeys = 0;
+  var totalExtraKeys = 0;
+
+  for (final lang in processed) {
+    final report = validationReports[lang];
+    if (report == null) continue;
+
+    final missingKeys = report['missingKeys'] as List<String>;
+    final extraKeys = report['extraKeys'] as List<String>;
+
+    totalMissingKeys += missingKeys.length;
+    totalExtraKeys += extraKeys.length;
+
+    if (missingKeys.isEmpty && extraKeys.isEmpty) {
+      completeLanguages++;
+    } else {
+      languagesWithErrors.add(lang);
+    }
+  }
+
+  stdout.writeln('Total languages processed: $totalLanguages');
+  stdout.writeln('');
+
+  // Build language status list with emojis
+  final languageStatusList = <String>[];
+  for (final lang in processed) {
+    final report = validationReports[lang];
+    if (report != null) {
+      final missingKeys = report['missingKeys'] as List<String>;
+      final extraKeys = report['extraKeys'] as List<String>;
+      final isComplete = missingKeys.isEmpty && extraKeys.isEmpty;
+      final statusEmoji = isComplete ? '✅' : '❌';
+      languageStatusList.add('$statusEmoji $lang');
+    }
+  }
+
+  stdout.writeln('✅ Complete languages: $completeLanguages');
+  stdout.writeln('  ${languageStatusList.join(', ')}');
+  stdout.writeln('');
+
+  if (languagesWithErrors.isNotEmpty) {
+    stdout.writeln('❌ Languages with issues: ${languagesWithErrors.length}');
+    stdout.writeln('');
+  }
+
+  stdout.writeln('Total missing keys (all languages): $totalMissingKeys');
+  stdout.writeln('Total extra keys (all languages): $totalExtraKeys');
+  stdout.writeln('');
+
+  if (totalMissingKeys == 0 && totalExtraKeys == 0) {
+    stdout.writeln('═' * 75);
+    stdout.writeln('✅ ALL LANGUAGES PERFECTLY SYNCHRONIZED');
+    stdout.writeln('═' * 75);
+  } else {
+    stdout.writeln('═' * 75);
+    stdout.writeln('⚠️  SOME LANGUAGES NEED ATTENTION');
+    stdout.writeln('═' * 75);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // REVERSE VALIDATION - Cross-check all language files
+  // ═══════════════════════════════════════════════════════════════════════════
+  stdout.writeln('');
+  stdout.writeln('═' * 75);
+  stdout.writeln('🔄 REVERSE VALIDATION — Cross-Check All Languages');
+  stdout.writeln('═' * 75);
+  stdout.writeln('');
+
+  // Load all processed language files to cross-validate
+  final allLanguageFiles = <String, Map<String, dynamic>>{};
+  for (final lang in processed) {
+    final filePath = 'i18n/$lang.json';
+    final file = File(filePath);
+    if (file.existsSync()) {
+      final jsonData =
+          json.decode(await file.readAsString()) as Map<String, dynamic>;
+      allLanguageFiles[lang] = jsonData;
+    }
+  }
+
+  var reverseValidationOk = true;
+  final reverseIssues = <String, List<String>>{};
+
+  // Check that all languages have the same key structure as each other
+  if (processed.length > 1) {
+    final firstLang = processed.first;
+    final firstLangData = allLanguageFiles[firstLang]!;
+    final firstLangKeys = _getAllKeys(firstLangData, '');
+
+    for (int i = 1; i < processed.length; i++) {
+      final currentLang = processed[i];
+      final currentLangData = allLanguageFiles[currentLang]!;
+      final currentLangKeys = _getAllKeys(currentLangData, '');
+
+      final missingInCurrent =
+          firstLangKeys.where((k) => !currentLangKeys.contains(k)).toList();
+      final extraInCurrent =
+          currentLangKeys.where((k) => !firstLangKeys.contains(k)).toList();
+
+      if (missingInCurrent.isNotEmpty || extraInCurrent.isNotEmpty) {
+        reverseValidationOk = false;
+        reverseIssues[currentLang] = [
+          ...missingInCurrent.map((k) => '❌ Missing: $k'),
+          ...extraInCurrent.map((k) => '❌ Extra: $k'),
+        ];
+      }
+    }
+  }
+
+  if (reverseValidationOk) {
+    stdout.writeln('✅ Reverse validation PASSED');
+    stdout.writeln(
+        'All language files have consistent structure and key counts.');
+    stdout.writeln('');
+  } else {
+    stdout.writeln('❌ Reverse validation FAILED');
+    stdout.writeln('Some language files have structural inconsistencies:');
+    stdout.writeln('');
+    for (final entry in reverseIssues.entries) {
+      stdout.writeln('  Language: ${entry.key}');
+      for (final issue in entry.value.take(10)) {
+        stdout.writeln('    $issue');
+      }
+      if (entry.value.length > 10) {
+        stdout.writeln('    ... and ${entry.value.length - 10} more issues');
+      }
+      stdout.writeln('');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FINAL VALIDATION STATUS
+  // ═══════════════════════════════════════════════════════════════════════════
+  stdout.writeln('═' * 75);
+  stdout.writeln('🎯 FINAL VALIDATION STATUS');
+  stdout.writeln('═' * 75);
+  stdout.writeln('');
+
+  final forwardValidationOk = totalMissingKeys == 0 && totalExtraKeys == 0;
+
+  stdout.writeln(
+      'Forward validation (vs en.json): ${forwardValidationOk ? '✅ PASS' : '❌ FAIL'}');
+  stdout.writeln(
+      'Reverse validation (cross-check): ${reverseValidationOk ? '✅ PASS' : '❌ FAIL'}');
+  stdout.writeln('');
+
+  if (forwardValidationOk && reverseValidationOk) {
+    stdout.writeln('═' * 75);
+    stdout.writeln('✅✅ ALL VALIDATIONS PASSED — TRANSLATIONS READY');
+    stdout.writeln('═' * 75);
+  } else {
+    stdout.writeln('═' * 75);
+    stdout.writeln('⚠️  VALIDATION WARNINGS DETECTED');
+    stdout.writeln('═' * 75);
+  }
+
   //
   // 📋 TRANSLATION VALIDATOR DOCUMENTATION & SUMMARY
   //
@@ -182,7 +461,7 @@ void main(List<String> args) async {
   // ──────────────
   // Reference:  i18n/en.json
   // Targets:    i18n/es.json, i18n/pt.json, i18n/fr.json, i18n/ja.json,
-  //             i18n/zh.json, i18n/hi.json
+  //             i18n/zh.json, i18n/hi.json, i18n/de.json, i18n/ar.json
   //
   // ═══════════════════════════════════════════════════════════════════════════
   //
@@ -305,6 +584,22 @@ int _countLeaves(dynamic obj) {
     return obj.values.fold(0, (sum, v) => sum + _countLeaves(v));
   }
   return 1;
+}
+
+/// Get all keys from a language file (for reverse validation)
+Set<String> _getAllKeys(dynamic obj, String prefix) {
+  final keys = <String>{};
+  if (obj is Map<String, dynamic>) {
+    for (final key in obj.keys) {
+      final full = prefix.isEmpty ? key : '$prefix.$key';
+      if (obj[key] is Map<String, dynamic>) {
+        keys.addAll(_getAllKeys(obj[key], full));
+      } else {
+        keys.add(full);
+      }
+    }
+  }
+  return keys;
 }
 
 void _findMissing(
