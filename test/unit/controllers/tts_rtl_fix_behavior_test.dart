@@ -247,8 +247,7 @@ void main() {
     // ── Scenario: resume-from-pause succeeds (the core regression) ──────────
     test(
         'Resume from paused state produces playing state '
-        '(regression: previously killed by unguarded deferred cancel)',
-        () {
+        '(regression: previously killed by unguarded deferred cancel)', () {
       fakeAsync((async) {
         controller.setText(
             'Texto de devocional suficientemente largo para una prueba real.');
@@ -299,8 +298,7 @@ void main() {
   // GROUP 2 — Bug 2: watchdog detect-only, no retry
   // ──────────────────────────────────────────────────────────────────────────
 
-  group('Bug 2 — Watchdog: silent utterance → ERROR immediately, no retry',
-      () {
+  group('Bug 2 — Watchdog: silent utterance → ERROR immediately, no retry', () {
     late MockFlutterTts mockTts;
     late TestableController controller;
 
@@ -317,8 +315,7 @@ void main() {
     // ── Scenario: watchdog fires after 1.2s → error ──────────────────────────
     test(
         'Silent engine: watchdog transitions to ERROR after 1.2s '
-        '(no retries, no silent loop)',
-        () {
+        '(no retries, no silent loop)', () {
       fakeAsync((async) {
         controller.setText('Silent engine test text.');
 
@@ -363,8 +360,7 @@ void main() {
     // ── Scenario: watchdog fires in loading state too (fixed guard) ──────────
     test(
         'Watchdog fires even when state is loading (not just playing) — '
-        'detects silent engine before speak() starts handler',
-        () {
+        'detects silent engine before speak() starts handler', () {
       fakeAsync((async) {
         controller.setText('Silent engine loading state test.');
 
@@ -392,8 +388,7 @@ void main() {
     // ── Scenario: watchdog is cancelled when startHandler fires normally ─────
     test(
         'Working engine: startHandler cancels watchdog — state stays playing, '
-        'no error after 1.2s',
-        () {
+        'no error after 1.2s', () {
       fakeAsync((async) {
         // Healthy engine for this test.
         mockTts.autoFireStart = true;
@@ -509,8 +504,7 @@ void main() {
     // ── User receives error on broken engine (e.g. Arabic on MIUI) ──────────
     test(
         'User with broken TTS engine (silent utterance): sees error state '
-        'within 1.2s — not infinite spinner',
-        () {
+        'within 1.2s — not infinite spinner', () {
       fakeAsync((async) {
         // Broken engine: never fires startHandler.
         mockTts.autoFireStart = false;
@@ -603,7 +597,8 @@ void main() {
         voiceSettingsService: getService<VoiceSettingsService>(),
       );
 
-      localController.setText('Texto para probar dispose durante reproducción.');
+      localController
+          .setText('Texto para probar dispose durante reproducción.');
 
       unawaited(localController.play());
       await Future.microtask(() {});
@@ -613,8 +608,7 @@ void main() {
     });
 
     // ── Arabic text plays just like Spanish (language-agnostic path) ─────────
-    test(
-        'Arabic text plays without error — same code path as Spanish/English',
+    test('Arabic text plays without error — same code path as Spanish/English',
         () async {
       controller.setText(
         // Arabic: 'Jesus loved us so much that he died for us.
