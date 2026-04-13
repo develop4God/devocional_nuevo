@@ -32,29 +32,15 @@ class BibleReaderTtsMiniplayerPresenter {
   final Future<void> Function(BuildContext, String, String)?
       onShowVoiceSelector;
 
-  bool _isModalShowing = false;
-
   /// Whether the TTS mini-player modal is currently visible.
-  bool get isShowing => _isModalShowing;
+  /// Delegates to [_shouldAutoCloseOnCompletion] as the single source of truth
+  /// for modal presence — avoids a redundant boolean that can desync.
+  bool get isShowing => _shouldAutoCloseOnCompletion;
 
-  /// TECH DEBT: _isModalShowing is now partially-purposed.
-  /// After the modal auto-close fix, this flag is kept for:
-  /// 1. Public [isShowing] getter (external contract)
-  /// 2. State tracking in [onStop] callback
-  ///
-  /// It is NO LONGER used in the critical completion logic (which uses
-  /// [_shouldAutoCloseOnCompletion] and [Navigator.canPop(ctx)]).
-  ///
-  /// Future refactor: Consider removing this flag and using
-  /// [_shouldAutoCloseOnCompletion] as the single source of truth,
-  /// or extract modal state to a separate enum (Idle, Showing, Closing).
-  ///
-  /// See: https://github.com/develop4God/devocional_nuevo/issues/<backlog>
-
-  /// Track whether the completion handler should attempt to close the modal.
-  /// Set to false when user explicitly closes (via stop/drag), preventing
-  /// duplicate pop attempts after modal is already dismissed.
-  bool _shouldAutoCloseOnCompletion = true;
+  /// Track whether the modal is currently showing.
+  /// Set to true when the modal opens, false when closed or user dismisses.
+  /// Prevents duplicate modals and duplicate pop attempts.
+  bool _shouldAutoCloseOnCompletion = false;
 
   BibleReaderTtsMiniplayerPresenter({
     required this.ttsAudioController,
@@ -69,9 +55,9 @@ class BibleReaderTtsMiniplayerPresenter {
     BuildContext context,
     BibleReaderState Function() getCurrentState,
   ) {
-    if (!context.mounted || _isModalShowing) return;
+    if (!context.mounted || _shouldAutoCloseOnCompletion) return;
 
-    _isModalShowing = true;
+    _shouldAutoCloseOnCompletion = true;
 
     showModalBottomSheet(
       context: context,
@@ -96,7 +82,6 @@ class BibleReaderTtsMiniplayerPresenter {
                   debugPrint(
                       '[BibleTtsMiniplayerModal] 🔚 Closing modal via Navigator.pop()');
                   _shouldAutoCloseOnCompletion = false;
-                  _isModalShowing = false;
                   Navigator.of(ctx).pop();
                 } else {
                   debugPrint(
@@ -126,7 +111,6 @@ class BibleReaderTtsMiniplayerPresenter {
                           onStop: () {
                             ttsAudioController.stop();
                             _shouldAutoCloseOnCompletion = false;
-                            _isModalShowing = false;
                             if (Navigator.canPop(ctx)) {
                               Navigator.of(ctx).pop();
                             }
@@ -223,18 +207,17 @@ class BibleReaderTtsMiniplayerPresenter {
         );
       },
     ).whenComplete(() {
-      _isModalShowing = false;
-      _shouldAutoCloseOnCompletion = true;
+      _shouldAutoCloseOnCompletion = false;
     });
   }
 
   /// Reset the modal showing state without disposing resources.
   void resetModalState() {
-    _isModalShowing = false;
+    _shouldAutoCloseOnCompletion = false;
   }
 
   /// Clean up resources.
   void dispose() {
-    _isModalShowing = false;
+    _shouldAutoCloseOnCompletion = false;
   }
 }

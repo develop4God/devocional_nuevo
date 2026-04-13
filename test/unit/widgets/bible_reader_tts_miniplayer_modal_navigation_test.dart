@@ -107,11 +107,16 @@ void main() {
     test(
       'isShowing flag is reset via whenComplete callback after modal closes',
       () {
+        // _shouldAutoCloseOnCompletion represents "modal is showing".
+        // The whenComplete callback resets it to false (not showing)
+        // to allow the next modal to open.
         expect(
-          presenterSource.contains('_isModalShowing = false'),
+          presenterSource.contains('_shouldAutoCloseOnCompletion = false'),
           isTrue,
-          reason: 'The presenter must reset _isModalShowing so subsequent TTS '
-              'playbacks can open a new modal.',
+          reason:
+              'The presenter must reset _shouldAutoCloseOnCompletion to false '
+              'in the whenComplete callback so subsequent TTS playbacks can open '
+              'a new modal.',
         );
       },
     );
