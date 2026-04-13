@@ -95,7 +95,7 @@ void main() {
   });
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
-    registerTestServices();
+    await registerTestServices();
   });
   test(
     'speakDevotional llama a speak en FlutterTts con el texto normalizado',

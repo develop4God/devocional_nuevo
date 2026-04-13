@@ -3,6 +3,7 @@ library;
 
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,7 +16,10 @@ import '../../helpers/tts_controller_test_helpers.dart';
 
 class TestableTtsAudioController extends TtsAudioController
     with TtsControllerTestHooks {
-  TestableTtsAudioController({required super.flutterTts});
+  TestableTtsAudioController({
+    required super.flutterTts,
+    required super.voiceSettingsService,
+  });
 }
 
 /// Comprehensive test for TTS timer pause/resume behavior
@@ -76,7 +80,10 @@ void main() {
 
     setUp(() async {
       mockTts = FlutterTts();
-      controller = TestableTtsAudioController(flutterTts: mockTts);
+      controller = TestableTtsAudioController(
+        flutterTts: mockTts,
+        voiceSettingsService: getService<VoiceSettingsService>(),
+      );
     });
 
     tearDown(() async {

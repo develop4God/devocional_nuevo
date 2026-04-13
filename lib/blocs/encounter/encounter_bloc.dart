@@ -7,9 +7,11 @@ import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
+import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const Duration _kPrefetchDelay = Duration(seconds: 3);
 
@@ -271,18 +273,34 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
 
         if (_disposed) return;
 
-        // Now warm the disk cache with all card images
-        final imageUrls = study.cards
+        // Warm the disk cache using the same AVIF-first resolution
+        // that EncounterImageWidget uses — respecting SharedPrefs fallback flags
+        // and version-scoped cache keys (SRP: resolution logic stays in one place).
+        final prefs = await SharedPreferences.getInstance();
+        final bases = study.cards
             .map((c) => c.imageUrl)
             .whereType<String>()
-            .where((url) => url.isNotEmpty)
+            .where((b) => b.isNotEmpty)
             .toSet();
 
+        // Format resolution is per-encounter, not per-image (loop-invariant)
+        final flagKey =
+            'img_fallback_${nextEntry.id}_${nextEntry.imageVersion}';
+        final usePng = prefs.getBool(flagKey) ?? false;
+        final format = usePng ? 'png' : 'avif';
+
         int cached = 0;
-        for (final url in imageUrls) {
+        for (final base in bases) {
           if (_disposed) return;
           try {
-            await cacheManager.downloadFile(url);
+            final url = Constants.getEncounterImageUrl(
+              base,
+              encounterId: nextEntry.id,
+              format: format,
+            );
+            final cacheKey =
+                '${nextEntry.id}_${base}_${nextEntry.imageVersion}_$format';
+            await cacheManager.downloadFile(url, key: cacheKey);
             cached++;
           } catch (_) {
             // Individual image failure is non-fatal
@@ -290,7 +308,7 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
         }
 
         debugPrint(
-            '✅ [EncounterBloc] BG: Prefetched ${nextEntry.id} — cached $cached/${imageUrls.length} images');
+            '✅ [EncounterBloc] BG: Prefetched ${nextEntry.id} — cached $cached/${bases.length} images');
       } catch (e) {
         // Background prefetch is non-critical — log and swallow
         debugPrint('⚠️ [EncounterBloc] BG: Prefetch failed — $e');

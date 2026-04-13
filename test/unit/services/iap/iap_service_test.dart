@@ -183,12 +183,12 @@ void main() {
       });
     });
 
-    // ── resetForTesting ─────────────────────────────────────────────────────
+    // ── reset ────────────────────────────────────────────────────────────────
 
-    group('resetForTesting()', () {
+    group('reset()', () {
       test('clears all state', () async {
         await service.initialize();
-        service.resetForTesting();
+        service.reset();
 
         expect(service.purchasedLevels, isEmpty);
         expect(service.isAvailable, isFalse);

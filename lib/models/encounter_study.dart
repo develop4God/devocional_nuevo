@@ -30,7 +30,11 @@ class EncounterStudy {
 
   int get cardCount => cards.length;
 
-  factory EncounterStudy.fromJson(Map<String, dynamic> json) {
+  factory EncounterStudy.fromJson(
+    Map<String, dynamic> json, {
+    String?
+        imageVersion, // NEW — passed from EncounterRepository.fetchStudy via index entry
+  }) {
     final encounterId = json['id'] as String? ?? '';
     return EncounterStudy(
       id: encounterId,
@@ -46,8 +50,12 @@ class EncounterStudy {
               json['key_verse'] as Map<String, dynamic>)
           : null,
       cards: (json['cards'] as List<dynamic>?)
-              ?.map((e) => EncounterCard.fromJson(e as Map<String, dynamic>,
-                  encounterId: encounterId))
+              ?.map((e) => EncounterCard.fromJson(
+                    e as Map<String, dynamic>,
+                    encounterId: encounterId,
+                    imageVersion:
+                        imageVersion, // NEW — thread down from EncounterStudy.fromJson parameter
+                  ))
               .toList() ??
           [],
     );

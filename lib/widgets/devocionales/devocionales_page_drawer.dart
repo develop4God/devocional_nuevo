@@ -481,7 +481,7 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                                               fontSize: 16,
                                             ),
                                             overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
+                                            maxLines: 2,
                                           ),
                                         ),
                                       ],
@@ -780,24 +780,20 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                                         fontSize: 16,
                                         color: colorScheme.onSurface,
                                       ),
-                                    ),
+                                    ).newBubbleWithId('gray_theme_badge'),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              // Evita overflow limitando el alto del grid visual
-                              SizedBox(
-                                height: 120,
-                                child: ThemeSelectorCircleGrid(
-                                  selectedTheme: currentThemeFamily,
-                                  brightness: currentBrightness,
-                                  onThemeChanged: (theme) {
-                                    context.read<ThemeBloc>().add(
-                                          ChangeThemeFamily(theme),
-                                        );
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
+                              ThemeSelectorCircleGrid(
+                                selectedTheme: currentThemeFamily,
+                                brightness: currentBrightness,
+                                onThemeChanged: (theme) {
+                                  context.read<ThemeBloc>().add(
+                                        ChangeThemeFamily(theme),
+                                      );
+                                  Navigator.of(context).pop();
+                                },
                               ),
                             ],
                           ),

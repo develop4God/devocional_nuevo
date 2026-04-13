@@ -195,8 +195,9 @@ void main() {
         'image_url': 'peter_intro.jpg'
       };
       final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
-      expect(card.imageUrl,
-          'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/peter_water_001/peter_intro.jpg');
+      // After Patch A: _resolveImageUrl stores base name only
+      // EncounterImageWidget owns format + URL resolution (SRP)
+      expect(card.imageUrl, 'peter_intro');
     });
 
     test('imageUrl passes through absolute URL unchanged', () {

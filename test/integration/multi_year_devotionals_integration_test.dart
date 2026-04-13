@@ -12,10 +12,10 @@ import '../helpers/test_helpers.dart';
 
 void main() {
   group('Multi-Year Devotionals Integration Tests', () {
-    setUp(() {
+    setUp(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
-      registerTestServices();
+      await registerTestServices();
     });
 
     group('Real User Behavior - Year Transition Scenarios', () {

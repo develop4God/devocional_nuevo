@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
+import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -30,10 +31,15 @@ class TtsPlayerWidget extends StatefulWidget {
 
 class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     with WidgetsBindingObserver {
+  static const String _bubbleId = 'devocional_tts_play_bubble';
+
   bool _hasRegisteredHeard = false;
   late VoidCallback _stateListener;
   String? _ttsText;
   String? _currentLanguage;
+
+  /// Cached future so SharedPreferences is not re-read on every rebuild.
+  late Future<bool> _showBubbleFuture;
 
   void _updateTtsText(String language) {
     _currentLanguage = language;
@@ -48,6 +54,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Cache the Future once; SharedPreferences is not re-read on every rebuild.
+    _showBubbleFuture = BubbleUtils.shouldShowBubble(_bubbleId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final language = Localizations.localeOf(context).languageCode;
@@ -121,6 +129,23 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     }
   }
 
+  /// Pause TTS when the app goes to background so audio stops gracefully.
+  /// Only pauses when state is [TtsPlayerState.playing] — avoids changing
+  /// state when already paused, idle, or completed.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      if (widget.audioController.state.value == TtsPlayerState.playing) {
+        debugPrint(
+          '[TTS Widget] App going to background — pausing TTS playback',
+        );
+        widget.audioController.pause();
+      }
+    }
+  }
+
   @override
   void dispose() {
     debugPrint('[TTS Widget] dispose() llamado, deteniendo audio');
@@ -131,19 +156,6 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     } catch (_) {}
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint('[TTS Widget] didChangeAppLifecycleState: $state');
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.detached) {
-      debugPrint(
-        '[TTS Widget] App en segundo plano o pantalla inactiva, pausando audio',
-      );
-      widget.audioController.pause();
-    }
   }
 
   String _buildTtsText(String language) {
@@ -204,22 +216,69 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     );
 
     // Restore dynamic visuals: show spinner while loading, pause when playing, play otherwise.
-    return ValueListenableBuilder<TtsPlayerState>(
-      valueListenable: widget.audioController.state,
-      builder: (context, state, _) {
-        return Material(
-          color: Colors.transparent,
-          elevation: 0,
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: () => _handlePlayPause(
-                context,
-                state,
-                _currentLanguage ??
-                    Localizations.localeOf(context).languageCode,
-                _ttsText ?? ''),
-            child: _buildButton(context, state),
-          ),
+    return FutureBuilder<bool>(
+      future: _showBubbleFuture,
+      builder: (_, snapshot) {
+        final showBubble = snapshot.data ?? false;
+        return ValueListenableBuilder<TtsPlayerState>(
+          valueListenable: widget.audioController.state,
+          builder: (__, state, ___) {
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Material(
+                  color: Colors.transparent,
+                  elevation: 0,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () async {
+                      await BubbleUtils.markAsShown(_bubbleId);
+                      if (mounted) {
+                        setState(() {
+                          // Bubble has been shown — resolve to false immediately
+                          // so the badge disappears without an extra async read.
+                          _showBubbleFuture = Future.value(false);
+                        });
+                        // ignore: use_build_context_synchronously
+                        _handlePlayPause(
+                            this.context,
+                            state,
+                            _currentLanguage ??
+                                Localizations.localeOf(this.context)
+                                    .languageCode,
+                            _ttsText ?? '');
+                      }
+                    },
+                    child: _buildButton(context, state),
+                  ),
+                ),
+                if (showBubble && state == TtsPlayerState.idle)
+                  Positioned(
+                    top: -6,
+                    right: -6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: BubbleConstants.newFeatureColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: BubbleConstants.bubbleShadow,
+                      ),
+                      child: Text(
+                        'bubble_constants.new_feature'.tr(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         );
       },
     );
@@ -243,10 +302,9 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
 
     if (!hasSaved) {
       debugPrint('[TTS Widget] Mostrando diálogo de configuración de voz...');
-      // Safe to use context here - we just checked mounted right before this call
+      // Use this.context (State context) — safe because mounted was checked above.
       await showModalBottomSheet<void>(
-        // ignore: use_build_context_synchronously
-        context: context,
+        context: this.context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
@@ -255,7 +313,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         builder: (ctx) {
           return Padding(
             padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
+              // Use the builder's own ctx, not the outer captured context.
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
             ),
             child: ModernVoiceFeatureDialog(
               onConfigure: () async {

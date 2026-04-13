@@ -52,6 +52,8 @@ class BibleTextFormatter {
         return _formatBibleBookChinese(reference);
       case 'hi':
         return _formatBibleBookHindi(reference);
+      case 'ar':
+        return _formatBibleBookArabic(reference);
       default:
         debugPrint(
           '[BibleTextFormatter] Unknown language "$language", using Spanish as default',
@@ -70,10 +72,16 @@ class BibleTextFormatter {
     );
 
     return reference.replaceAllMapped(exp, (match) {
-      final matchText = match.group(0)!;
+      final matchText = match.group(0) ?? '';
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
-      final number = match.group(1)!;
-      final book = match.group(2)!;
+      final number = match.group(1) ?? '';
+      final book = match.group(2) ?? '';
+      // Guard: both groups are structurally required by the regex, but if
+      // either ever resolves to '' (e.g. after a future regex change that
+      // makes a group optional), emitting '$prefix$ordinal $book' with an
+      // empty component would produce malformed TTS text.  Return the
+      // original match text unchanged instead.
+      if (number.isEmpty || book.isEmpty) return matchText;
       String ordinal;
       switch (number) {
         case '1':
@@ -99,10 +107,11 @@ class BibleTextFormatter {
     final ordinals = {'1': 'First', '2': 'Second', '3': 'Third'};
 
     return reference.replaceAllMapped(exp, (match) {
-      final matchText = match.group(0)!;
+      final matchText = match.group(0) ?? '';
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
-      final number = match.group(1)!;
-      final bookName = match.group(2)!;
+      final number = match.group(1) ?? '';
+      final bookName = match.group(2) ?? '';
+      if (number.isEmpty || bookName.isEmpty) return matchText;
       final ordinal = ordinals[number] ?? number;
       return '$prefix$ordinal $bookName';
     });
@@ -118,10 +127,11 @@ class BibleTextFormatter {
     final ordinals = {'1': 'Primeiro', '2': 'Segundo', '3': 'Terceiro'};
 
     return reference.replaceAllMapped(exp, (match) {
-      final matchText = match.group(0)!;
+      final matchText = match.group(0) ?? '';
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
-      final number = match.group(1)!;
-      final bookName = match.group(2)!;
+      final number = match.group(1) ?? '';
+      final bookName = match.group(2) ?? '';
+      if (number.isEmpty || bookName.isEmpty) return matchText;
       final ordinal = ordinals[number] ?? number;
       return '$prefix$ordinal $bookName';
     });
@@ -137,10 +147,11 @@ class BibleTextFormatter {
     final ordinals = {'1': 'Premier', '2': 'Deuxième', '3': 'Troisième'};
 
     return reference.replaceAllMapped(exp, (match) {
-      final matchText = match.group(0)!;
+      final matchText = match.group(0) ?? '';
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
-      final number = match.group(1)!;
-      final bookName = match.group(2)!;
+      final number = match.group(1) ?? '';
+      final bookName = match.group(2) ?? '';
+      if (number.isEmpty || bookName.isEmpty) return matchText;
       final ordinal = ordinals[number] ?? number;
       return '$prefix$ordinal $bookName';
     });
@@ -156,10 +167,11 @@ class BibleTextFormatter {
     final ordinals = {'1': 'Erster', '2': 'Zweiter', '3': 'Dritter'};
 
     return reference.replaceAllMapped(exp, (match) {
-      final matchText = match.group(0)!;
+      final matchText = match.group(0) ?? '';
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
-      final number = match.group(1)!;
-      final bookName = match.group(2)!;
+      final number = match.group(1) ?? '';
+      final bookName = match.group(2) ?? '';
+      if (number.isEmpty || bookName.isEmpty) return matchText;
       final ordinal = ordinals[number] ?? number;
       return '$prefix$ordinal $bookName';
     });
@@ -192,9 +204,38 @@ class BibleTextFormatter {
     };
 
     return reference.replaceAllMapped(exp, (match) {
-      final separator = match.group(1)!;
-      final number = match.group(2)!;
-      final bookName = match.group(3)!;
+      final separator = match.group(1) ?? '';
+      final number = match.group(2) ?? '';
+      final bookName = match.group(3) ?? '';
+      // separator can be '' when the number is at start of string (^ branch).
+      // number and bookName are structurally required; guard against corruption.
+      if (number.isEmpty || bookName.isEmpty) return match.group(0) ?? '';
+      final ordinal = ordinals[number] ?? number;
+      return '$separator$ordinal $bookName';
+    });
+  }
+
+  /// Formato para libros bíblicos en árabe (con ordinales para 1, 2, 3)
+  static String _formatBibleBookArabic(String reference) {
+    // Arabic uses ordinals for numbered books (1 يوحنا -> الأول يوحنا)
+    // Pattern to match digit + Arabic book name (Unicode range \u0600-\u06FF)
+    final exp = RegExp(
+      r'(^|\s)([123])\s+([\u0600-\u06FF]+)',
+      caseSensitive: false,
+    );
+    final ordinals = {
+      '1': 'الأول', // First (al-awwal)
+      '2': 'الثاني', // Second (al-thānī)
+      '3': 'الثالث', // Third (al-thālith)
+    };
+
+    return reference.replaceAllMapped(exp, (match) {
+      final separator = match.group(1) ?? '';
+      final number = match.group(2) ?? '';
+      final bookName = match.group(3) ?? '';
+      // separator can be '' when the number is at start of string (^ branch).
+      // number and bookName are structurally required; guard against corruption.
+      if (number.isEmpty || bookName.isEmpty) return match.group(0) ?? '';
       final ordinal = ordinals[number] ?? number;
       return '$separator$ordinal $bookName';
     });
@@ -239,6 +280,11 @@ class BibleTextFormatter {
           'HIOV': 'पवित्र बाइबिल पुराना संस्करण',
           'HERV': 'पवित्र बाइबिल हिंदी आसान पठन संस्करण',
           'OV': 'पुराना संस्करण',
+        };
+      case 'ar':
+        return {
+          'NAV': 'كتاب الحياة',
+          'SVDA': 'الكتاب المقدس — فان دايك',
         };
       default:
         return {'RVR1960': 'Reina Valera mil novecientos sesenta'};
@@ -287,9 +333,11 @@ class BibleTextFormatter {
       // Chino: capítulo=章, versículo=节
       'hi': 'अध्याय|पद',
       // Hindi: capítulo=अध्याय (adhyāya), versículo=पद (pada)
+      'ar': 'الإصحاح|الآية',
+      // Arabic: capítulo=الإصحاح (chapter), versículo=الآية (verse)
     };
 
-    final words = referenceWords[language] ?? referenceWords['es']!;
+    final words = referenceWords[language] ?? 'capítulo|versículo';
     final chapterWord = words.split('|')[0];
     final verseWord = words.split('|')[1];
 
@@ -297,6 +345,7 @@ class BibleTextFormatter {
     // to avoid word boundary issues with non-ASCII characters
     final isCJK = language == 'zh' || language == 'ja';
     final isDevanagari = language == 'hi';
+    final isArabic = language == 'ar';
     final pattern = isCJK
         ? RegExp(
             r'((?:\d+\s+)?[一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
@@ -307,15 +356,27 @@ class BibleTextFormatter {
                 r'((?:पहला|दूसरा|तीसरा)?\s*[\u0900-\u097F]+)\s+(\d+):(\d+)(?:-(\d+))?',
                 caseSensitive: false,
               )
-            : RegExp(
-                r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑäöüßÄÖÜ]+)\s+(\d+):(\d+)(?:-(\d+))?',
-                caseSensitive: false,
-              );
+            : isArabic
+                ? RegExp(
+                    r'((?:الأول|الثاني|الثالث)?\s*[\u0600-\u06FF]+)\s+(\d+):(\d+)(?:-(\d+))?',
+                    caseSensitive: false,
+                  )
+                : RegExp(
+                    r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑäöüßÄÖÜ]+)\s+(\d+):(\d+)(?:-(\d+))?',
+                    caseSensitive: false,
+                  );
 
     return text.replaceAllMapped(pattern, (match) {
-      final book = match.group(1)!;
-      final chapter = match.group(2)!;
-      final verseStart = match.group(3)!;
+      final book = match.group(1) ?? '';
+      final chapter = match.group(2) ?? '';
+      final verseStart = match.group(3) ?? '';
+      // Guard: these three groups are structurally required in every pattern
+      // branch.  If any ever resolves to '' (e.g. after a future pattern
+      // change), '$book $chapterWord $chapter ...' would produce leading
+      // spaces or missing tokens that TTS reads aloud verbatim.
+      if (book.isEmpty || chapter.isEmpty || verseStart.isEmpty) {
+        return match.group(0) ?? '';
+      }
       final verseEnd = match.group(4);
 
       String result = '$book $chapterWord $chapter $verseWord $verseStart';
@@ -334,7 +395,9 @@ class BibleTextFormatter {
                                 ? '至'
                                 : language == 'hi'
                                     ? 'से'
-                                    : 'al';
+                                    : language == 'ar'
+                                        ? 'إلى'
+                                        : 'al';
         result += ' $toWord $verseEnd';
       }
       return result;

@@ -3,6 +3,7 @@ library;
 
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -50,7 +51,10 @@ void main() {
       });
 
       mockFlutterTts = FlutterTts();
-      controller = TtsAudioController(flutterTts: mockFlutterTts);
+      controller = TtsAudioController(
+        flutterTts: mockFlutterTts,
+        voiceSettingsService: VoiceSettingsService(),
+      );
     });
 
     tearDown(() {
@@ -120,9 +124,9 @@ void main() {
       const chineseText = '哥林多后书 4:16-18 和合本1919: "所以，我们不丧志；外体虽然毁坏，内心却一天新似一天。"';
       controller.setText(chineseText, languageCode: 'zh');
 
-      // Chinese: ~7 characters per second
+      // Chinese: ~5.5 characters per second (matches TtsDurationEstimator._charsPerSecondZh)
       final chars = chineseText.replaceAll(RegExp(r'\s+'), '').length;
-      final expectedSeconds = (chars / 7.0).round();
+      final expectedSeconds = (chars / 5.5).round();
 
       expect(controller.totalDuration.value.inSeconds, expectedSeconds);
       debugPrint(
@@ -136,9 +140,9 @@ void main() {
           'ヨハネの福音書 3:16 新改訳2003: 「神は、実に、そのひとり子をお与えになったほどに世を愛された。」';
       controller.setText(japaneseText, languageCode: 'ja');
 
-      // Japanese: ~7 characters per second
+      // Japanese: ~3.0 characters per second (matches TtsDurationEstimator._charsPerSecondJa)
       final chars = japaneseText.replaceAll(RegExp(r'\s+'), '').length;
-      final expectedSeconds = (chars / 7.0).round();
+      final expectedSeconds = (chars / 3.0).round();
 
       expect(controller.totalDuration.value.inSeconds, expectedSeconds);
       debugPrint(
@@ -251,7 +255,10 @@ void main() {
       });
 
       mockFlutterTts = FlutterTts();
-      controller = TtsAudioController(flutterTts: mockFlutterTts);
+      controller = TtsAudioController(
+        flutterTts: mockFlutterTts,
+        voiceSettingsService: VoiceSettingsService(),
+      );
     });
 
     tearDown(() {
@@ -371,6 +378,115 @@ void main() {
       debugPrint(
         'Short multibyte text test: state is ${controller.state.value}',
       );
+    });
+  });
+
+  // ── TtsChunkProcessor injection ───────────────────────────────────────────
+  // Chunk logic is tested in its own black-box suite:
+  //   test/unit/services/tts/utils/tts_chunk_processor_test.dart
+  //
+  // This group verifies that the controller accepts an injected processor and
+  // remains fully functional — integration smoke test.
+  group('TtsAudioController - TtsChunkProcessor injection', () {
+    late TtsAudioController controller;
+
+    setUp(() async {
+      await registerTestServices();
+      SharedPreferences.setMockInitialValues({});
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+              const MethodChannel('flutter_tts'), (call) async => 1);
+    });
+
+    tearDown(() {
+      controller.dispose();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
+    });
+
+    test('controller is created with an explicit TtsChunkProcessor', () {
+      controller = TtsAudioController(
+        flutterTts: FlutterTts(),
+        voiceSettingsService: VoiceSettingsService(),
+        chunkProcessor: TtsChunkProcessor(),
+      );
+      expect(controller.state.value, TtsPlayerState.idle);
+    });
+
+    test('controller defaults to an internal processor when none is provided',
+        () {
+      controller = TtsAudioController(
+        flutterTts: FlutterTts(),
+        voiceSettingsService: VoiceSettingsService(),
+      );
+      expect(controller.state.value, TtsPlayerState.idle);
+    });
+
+    test('play() with long text (multi-chunk) reaches playing state', () async {
+      // 800×"word " is > 3500 chars — forces _processor.splitIntoChunks()
+      final longText = ('word ' * 800).trim();
+      controller = TtsAudioController(
+        flutterTts: FlutterTts(),
+        voiceSettingsService: VoiceSettingsService(),
+        chunkProcessor: TtsChunkProcessor(),
+      );
+      controller.setText(longText);
+      await controller.play();
+      expect(controller.state.value, TtsPlayerState.playing);
+    });
+  });
+
+  // ── State machine resilience ──────────────────────────────────────────────
+  // Verifies that play() always starts from a clean state regardless of the
+  // previous session's outcome (error, stop, normal completion).
+  group('TtsAudioController - State machine resilience after error/stop', () {
+    late TtsAudioController controller;
+
+    setUp(() async {
+      await registerTestServices();
+      SharedPreferences.setMockInitialValues({});
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+              const MethodChannel('flutter_tts'), (call) async => 1);
+      controller = TtsAudioController(
+        flutterTts: FlutterTts(),
+        voiceSettingsService: VoiceSettingsService(),
+      );
+    });
+
+    tearDown(() {
+      controller.dispose();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
+    });
+
+    test('play() after error returns to playing state', () async {
+      controller.setText('short test text');
+      await controller.play();
+      expect(controller.state.value, TtsPlayerState.playing);
+
+      // Simulate error state.
+      controller.error();
+      expect(controller.state.value, TtsPlayerState.error);
+
+      // A new play() must succeed regardless of previous error.
+      await controller.play();
+      expect(
+        controller.state.value,
+        TtsPlayerState.playing,
+        reason: 'New play() after error must succeed',
+      );
+    });
+
+    test('play() after stop() returns to playing state', () async {
+      controller.setText('short test text');
+      await controller.play();
+      await controller.stop();
+      expect(controller.state.value, TtsPlayerState.idle);
+
+      // play() after stop() must work normally — counter was reset by stop().
+      await controller.play();
+      expect(controller.state.value, TtsPlayerState.playing);
     });
   });
 }

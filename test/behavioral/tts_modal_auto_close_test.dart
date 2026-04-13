@@ -5,6 +5,8 @@ library;
 // Tests for real user behavior: TTS modal auto-close on completion
 
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
@@ -25,7 +27,10 @@ void main() {
 
       // Create FlutterTts instance and a controller that mixes in test hooks
       flutterTts = FlutterTts();
-      controller = _TestableTtsAudioController(flutterTts: flutterTts);
+      controller = _TestableTtsAudioController(
+        flutterTts: flutterTts,
+        voiceSettingsService: getService<VoiceSettingsService>(),
+      );
     });
 
     tearDown(() async {
@@ -186,5 +191,8 @@ void main() {
 // Define a local testable controller class that mixes in test hooks
 class _TestableTtsAudioController extends TtsAudioController
     with TtsControllerTestHooks {
-  _TestableTtsAudioController({required super.flutterTts});
+  _TestableTtsAudioController({
+    required super.flutterTts,
+    required super.voiceSettingsService,
+  });
 }

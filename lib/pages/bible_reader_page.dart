@@ -5,19 +5,31 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
+import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
+import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/tts/bible_reader_tts_text_builder.dart';
+import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
+import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_book_selector_dialog.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_chapter_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_action_modal.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_reader_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_search_overlay.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
+import 'package:devocional_nuevo/widgets/modern_voice_feature_dialog.dart';
+import 'package:devocional_nuevo/widgets/voice_selector_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
@@ -28,12 +40,16 @@ class BibleReaderPage extends StatefulWidget {
   final List<BibleVersion> versions;
   final BibleReaderService? readerService; // Optional for DI
   final BiblePreferencesService? preferencesService; // Optional for DI
+  /// Optional [FlutterTts] instance for dependency injection / testing.
+  /// When null a new instance is created internally in [initState].
+  final FlutterTts? flutterTts;
 
   const BibleReaderPage({
     super.key,
     required this.versions,
     this.readerService,
     this.preferencesService,
+    this.flutterTts,
   });
 
   @override
@@ -46,6 +62,14 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
+
+  // TTS fields — FlutterTts is resolved in initState (not at field-level) so
+  // that an injected instance from widget.flutterTts takes precedence.
+  late final TtsAudioController _ttsAudioController;
+  late final BibleReaderTtsMiniplayerPresenter _ttsMiniplayerPresenter;
+  late final VoiceSettingsService _voiceSettingsService;
+  // Guards addPostFrameCallback callbacks after dispose().
+  bool _disposed = false;
 
   @override
   void initState() {
@@ -67,6 +91,30 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       preferencesService: preferencesService,
     );
 
+    // ── TTS ──────────────────────────────────────────────────────────────────
+    // Resolve all TTS dependencies once at init-time, never inside handlers.
+    _voiceSettingsService = getService<VoiceSettingsService>();
+    final flutterTts = widget.flutterTts ?? FlutterTts();
+
+    _ttsAudioController = TtsAudioController(
+      flutterTts: flutterTts,
+      voiceSettingsService: _voiceSettingsService,
+      chunkProcessor: getService<TtsChunkProcessor>(),
+    );
+    _ttsMiniplayerPresenter = BibleReaderTtsMiniplayerPresenter(
+      ttsAudioController: _ttsAudioController,
+      analyticsService: getService<IAnalyticsService>(),
+      // Delegate voice selector to the single implementation on this page.
+      onShowVoiceSelector: (ctx, lang, sampleText) =>
+          _showBibleVoiceSelector(ctx, lang, sampleText),
+    );
+
+    // Auto-open miniplayer when TTS starts playing — same pattern as
+    // devocionales_page (tested by 3000+ users in production).
+    // Opens on LOADING state for instant feedback; no need to wait for
+    // setStartHandler (which can take seconds on large chapters like Psalm 119).
+    _ttsAudioController.state.addListener(_handleTtsStateChange);
+
     // Initialize controller with device language
     final deviceLanguage = ui.PlatformDispatcher.instance.locale.languageCode;
     _controller.initialize(deviceLanguage);
@@ -74,8 +122,67 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   @override
   void dispose() {
+    _disposed = true;
+    _ttsAudioController.stop();
+    try {
+      _ttsAudioController.state.removeListener(_handleTtsStateChange);
+    } catch (_) {}
+    _ttsMiniplayerPresenter.dispose();
+    _ttsAudioController.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  /// TTS state listener — mirrors the production-validated devocionales_page
+  /// implementation (tested by 3000+ users).
+  ///
+  /// Key differences from the old bible_reader lambda:
+  ///  • Opens the modal on [TtsPlayerState.loading] for instant feedback —
+  ///    no need to wait for setStartHandler, which can take several seconds
+  ///    on large chapters (Psalm 119 = ~12 kB, 4 chunks).
+  ///  • Uses [WidgetsBinding.addPostFrameCallback] to avoid calling
+  ///    showModalBottomSheet during a ValueNotifier notification frame.
+  ///  • Explicitly handles [TtsPlayerState.completed] to close the modal
+  ///    instead of relying solely on the modal builder's own close logic.
+  void _handleTtsStateChange() {
+    try {
+      final s = _ttsAudioController.state.value;
+
+      // Show modal immediately when LOADING starts (instant feedback while
+      // the TTS engine warms up the first chunk).
+      if ((s == TtsPlayerState.loading || s == TtsPlayerState.playing) &&
+          mounted &&
+          !_ttsMiniplayerPresenter.isShowing) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_disposed || !mounted || _ttsMiniplayerPresenter.isShowing) {
+            return;
+          }
+          debugPrint(
+            '🎵 [BibleReader Modal] Opening modal on state: $s (instant feedback)',
+          );
+          _ttsMiniplayerPresenter.showMiniplayerModal(
+            context,
+            () => _controller.state,
+          );
+        });
+      }
+
+      // Close modal ONLY when audio completes (not on pause/stop/idle).
+      // NOTE: The modal's builder in BibleReaderTtsMiniplayerPresenter already
+      // handles closing itself when TTS completes via Navigator.pop(ctx).
+      // We only reset the modal showing state here - do NOT call Navigator.pop()
+      // from this context as it would pop the BibleReaderPage route itself!
+      if (s == TtsPlayerState.completed) {
+        if (_ttsMiniplayerPresenter.isShowing) {
+          debugPrint(
+            '🏁 [BibleReader Modal] TTS Completed - modal builder will close itself',
+          );
+          _ttsMiniplayerPresenter.resetModalState();
+        }
+      }
+    } catch (e) {
+      debugPrint('[BibleReaderPage] Error en _handleTtsStateChange: $e');
+    }
   }
 
   // UI helper methods
@@ -385,12 +492,14 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   // Helper para prefijos de capítulo y versículo según idioma
   String getChapterPrefix(String? lang) {
     if (lang == 'ja' || lang == 'zh') return '章'; // japonés o chino
+    if (lang == 'ar') return 'ف'; // árabe
     if (lang == 'hi') return 'अ.';
     return 'C.';
   }
 
   String getVersePrefix(String? lang) {
     if (lang == 'ja' || lang == 'zh') return '节'; // japonés o chino
+    if (lang == 'ar') return 'آ'; // árabe
     if (lang == 'hi') return 'प.';
     return 'V.';
   }
@@ -400,6 +509,183 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   String _versionLabel(BibleVersion version) {
     // Use display name directly from registry
     return _getDisplayName(version.name, version.languageCode);
+  }
+
+  // -- TTS methods --
+
+  /// Prepare and set TTS text from current Bible reader state.
+  void _updateTtsText(BibleReaderState state) {
+    final languageCode = state.selectedVersion?.languageCode ??
+        ui.PlatformDispatcher.instance.locale.languageCode;
+    final ttsText = BibleReaderTtsTextBuilder.build(state);
+    if (ttsText.isNotEmpty) {
+      // Normalize through BibleTextFormatter for proper book name pronunciation
+      final version = state.selectedVersion?.name ?? '';
+      final normalized =
+          BibleTextFormatter.normalizeTtsText(ttsText, languageCode, version);
+      _ttsAudioController.setText(normalized, languageCode: languageCode);
+      debugPrint(
+        '[BibleReader TTS] Texto configurado: ${normalized.length} caracteres, idioma: $languageCode',
+      );
+    }
+  }
+
+  /// Handle TTS play/pause button tap — same logic as devotional TTS widget.
+  Future<void> _handleTtsPlayPause(BibleReaderState state) async {
+    final languageCode = state.selectedVersion?.languageCode ??
+        ui.PlatformDispatcher.instance.locale.languageCode;
+    final ttsState = _ttsAudioController.state.value;
+
+    debugPrint('[BibleReader TTS] ========== HANDLE PLAY/PAUSE ==========');
+    debugPrint('[BibleReader TTS] Estado actual: $ttsState');
+
+    // Use the field resolved once in initState — never call getService<> here.
+    final voiceService = _voiceSettingsService;
+    final hasSaved = await voiceService.hasUserSavedVoice(languageCode);
+    debugPrint('[BibleReader TTS] ¿Tiene voz guardada?: $hasSaved');
+
+    if (!mounted) return;
+
+    if (!hasSaved) {
+      debugPrint(
+          '[BibleReader TTS] Mostrando diálogo de configuración de voz...');
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        builder: (ctx) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: ModernVoiceFeatureDialog(
+              onConfigure: () async {
+                Navigator.of(ctx).pop();
+                if (!mounted) return;
+                await _showBibleVoiceSelector(context, languageCode,
+                    BibleReaderTtsTextBuilder.build(state));
+              },
+              onContinue: () async {
+                debugPrint(
+                    '[BibleReader TTS] Usuario continuó sin configurar voz');
+                Navigator.of(ctx).pop();
+                await voiceService.setUserSavedVoice(languageCode);
+                if (ttsState != TtsPlayerState.loading) {
+                  // Only set text if we're starting fresh (idle or after completion)
+                  if (ttsState == TtsPlayerState.idle ||
+                      ttsState == TtsPlayerState.completed) {
+                    debugPrint(
+                        '[BibleReader TTS] Configurando texto para primera reproducción');
+                    _updateTtsText(state);
+                  } else if (ttsState == TtsPlayerState.paused) {
+                    // Don't reset text when resuming from pause
+                    debugPrint(
+                        '[BibleReader TTS] Reanudando desde pausa (sin reset)');
+                  }
+                  _ttsAudioController.play();
+                }
+              },
+            ),
+          );
+        },
+      );
+      return;
+    }
+
+    final friendlyName = await voiceService.loadSavedVoice(languageCode);
+    debugPrint('[BibleReader TTS] 🗂️🔊 Voz aplicada: $friendlyName');
+
+    if (ttsState == TtsPlayerState.playing) {
+      debugPrint('[BibleReader TTS] ⏸️ Pausando');
+      _ttsAudioController.pause();
+    } else if (ttsState != TtsPlayerState.loading) {
+      if (ttsState == TtsPlayerState.completed) {
+        debugPrint(
+            '[BibleReader TTS] 🔄 Completed, reseteando antes de play()');
+        await _ttsAudioController.stop();
+        // Only set text when completed (will be starting fresh from beginning)
+        debugPrint('[BibleReader TTS] Reseteando texto después de completion');
+        _updateTtsText(state);
+      } else if (ttsState == TtsPlayerState.paused) {
+        // CRITICAL FIX: Don't call setText() when resuming from pause!
+        // setText() resets accumulatedPosition to zero, causing skip to next chunk.
+        // Just resume from current position using play() alone.
+        debugPrint(
+            '[BibleReader TTS] ⏸️→▶️ Reanudando desde posición guardada (sin reset de texto)');
+      } else if (ttsState == TtsPlayerState.idle) {
+        // First time playing (idle state)
+        debugPrint('[BibleReader TTS] 🚀 Primer play, configurando texto');
+        _updateTtsText(state);
+      }
+      debugPrint('[BibleReader TTS] ▶️ Llamando play()');
+      _ttsAudioController.play();
+    }
+
+    debugPrint('[BibleReader TTS] ========== FIN HANDLE PLAY/PAUSE ==========');
+  }
+
+  /// Shows the voice selector dialog.
+  ///
+  /// Shared implementation used by both the first-time play flow
+  /// (_handleTtsPlayPause) and the miniplayer voice button (via presenter
+  /// [onShowVoiceSelector] callback). Single path — no duplication.
+  Future<void> _showBibleVoiceSelector(
+    BuildContext context,
+    String language,
+    String sampleText,
+  ) async {
+    if (sampleText.isEmpty) return;
+    if (!context.mounted) return;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetCtx) => FractionallySizedBox(
+        heightFactor: 0.8,
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
+          ),
+          child: VoiceSelectorDialog(
+            language: language,
+            sampleText: sampleText,
+            onVoiceSelected: (name, locale) {
+              // Called on each tap-to-preview inside the dialog.
+              // The dialog's Save button handles persistence; here we
+              // log the tap for diagnostics.
+              debugPrint(
+                '[BibleReader TTS] Voice tapped for preview: $name ($locale)',
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    // After the dialog closes (saved or dismissed), re-apply the current
+    // saved voice to our TTS instance so the next play() uses it immediately
+    // without waiting for TtsAudioController.play() to call applyVoiceToInstance.
+    if (context.mounted) {
+      try {
+        await _voiceSettingsService.applyVoiceToInstance(
+          _ttsAudioController.flutterTts,
+          language,
+        );
+        debugPrint(
+          '[BibleReader TTS] Voice re-applied after selector closed',
+        );
+      } catch (e) {
+        debugPrint(
+          '[BibleReader TTS] applyVoiceToInstance after selector failed: $e',
+        );
+      }
+    }
   }
 
   String _versionPickerLabel(BibleVersion version) {
@@ -461,129 +747,103 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           child: Scaffold(
             appBar: PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight),
-              child: Stack(
-                children: [
-                  CustomAppBar(
-                    titleWidget: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'bible.title'.tr(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.onPrimary,
-                              ),
-                        ),
-                        if (!state.isLoading && state.selectedVersion != null)
-                          Text(
-                            _versionLabel(state.selectedVersion!),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimary
-                                      .withValues(alpha: 0.85),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    right: state.availableVersions.length > 1 ? 96 : 48,
-                    top: 0,
-                    bottom: 0,
-                    child: SafeArea(
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.search,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                        tooltip: 'bible.search'.tr(),
-                        onPressed: _showSearchOverlay,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: state.availableVersions.length > 1 ? 48 : 0,
-                    top: 0,
-                    bottom: 0,
-                    child: SafeArea(
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.text_increase_outlined,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                        tooltip: 'bible.adjust_font_size'.tr(),
-                        onPressed: () => _controller.toggleFontControls(),
-                      ),
-                    ),
-                  ),
-                  if (state.availableVersions.length > 1)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      child: SafeArea(
-                        child: PopupMenuButton<BibleVersion>(
-                          icon: Icon(
-                            Icons.menu,
+              child: CustomAppBar(
+                titleWidget: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'bible.title'.tr(),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: Theme.of(context).colorScheme.onPrimary,
                           ),
-                          tooltip: 'bible.select_version'.tr(),
-                          onSelected: (version) async {
-                            final scaffoldMessenger = ScaffoldMessenger.of(
-                              context,
-                            );
-                            final colorScheme = Theme.of(context).colorScheme;
-                            await _controller.switchVersion(version);
-                            if (!mounted) return;
-                            scaffoldMessenger.showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'bible.loading_version'.tr({
-                                    'version': version.name,
-                                  }),
-                                  style: TextStyle(
-                                    color: colorScheme.onSecondary,
-                                  ),
-                                ),
-                                backgroundColor: colorScheme.secondary,
-                                duration: const Duration(seconds: 1),
-                              ),
-                            );
-                          },
-                          itemBuilder: (context) =>
-                              state.availableVersions.map((version) {
-                            return PopupMenuItem<BibleVersion>(
-                              value: version,
-                              child: Row(
-                                children: [
-                                  if (version.dbFileName ==
-                                      state.selectedVersion?.dbFileName)
-                                    Icon(
-                                      Icons.check,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                      size: 20,
-                                    )
-                                  else
-                                    const SizedBox(width: 20),
-                                  const SizedBox(width: 8),
-                                  Text(_versionPickerLabel(version)),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ),
+                    ),
+                    if (!state.isLoading && state.selectedVersion != null)
+                      Text(
+                        _versionLabel(state.selectedVersion!),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimary
+                                  .withValues(alpha: 0.85),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                            ),
                       ),
+                  ],
+                ),
+                actions: [
+                  // Search button (leftmost in RTL, rightmost in LTR)
+                  IconButton(
+                    icon: Icon(
+                      Icons.search,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    tooltip: 'bible.search'.tr(),
+                    onPressed: _showSearchOverlay,
+                  ),
+                  // Font size button (middle position)
+                  IconButton(
+                    icon: Icon(
+                      Icons.text_increase_outlined,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    tooltip: 'bible.adjust_font_size'.tr(),
+                    onPressed: () => _controller.toggleFontControls(),
+                  ),
+                  // Version menu (rightmost in RTL, leftmost action in LTR)
+                  if (state.availableVersions.length > 1)
+                    PopupMenuButton<BibleVersion>(
+                      icon: Icon(
+                        Icons.menu,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                      tooltip: 'bible.select_version'.tr(),
+                      onSelected: (version) async {
+                        final scaffoldMessenger = ScaffoldMessenger.of(
+                          context,
+                        );
+                        final colorScheme = Theme.of(context).colorScheme;
+                        await _controller.switchVersion(version);
+                        if (!mounted) return;
+                        scaffoldMessenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'bible.loading_version'.tr({
+                                'version': version.name,
+                              }),
+                              style: TextStyle(
+                                color: colorScheme.onSecondary,
+                              ),
+                            ),
+                            backgroundColor: colorScheme.secondary,
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                      itemBuilder: (context) =>
+                          state.availableVersions.map((version) {
+                        return PopupMenuItem<BibleVersion>(
+                          value: version,
+                          child: Row(
+                            children: [
+                              if (version.dbFileName ==
+                                  state.selectedVersion?.dbFileName)
+                                Icon(
+                                  Icons.check,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary,
+                                  size: 20,
+                                )
+                              else
+                                const SizedBox(width: 20),
+                              const SizedBox(width: 8),
+                              Text(_versionPickerLabel(version)),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                     ),
                 ],
               ),
@@ -898,10 +1158,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                               ),
                               tooltip: 'bible.previous_chapter'.tr(),
                               onPressed: () async {
+                                _ttsAudioController.stop();
                                 await _controller.goToPreviousChapter();
                                 _scrollToTop();
                               },
                             ),
+                            // TTS play/pause button
+                            _buildTtsButton(context, state, colorScheme),
                             // Botón de capítulo expandido para tablets y pantallas grandes
                             Expanded(
                               child: Padding(
@@ -931,7 +1194,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                       fit: BoxFit.scaleDown,
                                       child: AutoSizeText(
                                         state.selectedBookName != null
-                                            ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
+                                            ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => <String, dynamic>{
                                                   'long_name':
                                                       state.selectedBookName
                                                 })['long_name']} ${state.selectedChapter}'
@@ -962,6 +1225,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                               ),
                               tooltip: 'bible.next_chapter'.tr(),
                               onPressed: () async {
+                                _ttsAudioController.stop();
                                 await _controller.goToNextChapter();
                                 _itemScrollController.jumpTo(index: 0);
                                 _scrollToTop();
@@ -974,6 +1238,107 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                   )
                 : null,
           ),
+        );
+      },
+    );
+  }
+
+  /// Builds the TTS play/pause button for the bottom navigation bar.
+  /// Reuses the same visual style as the devotional TTS player.
+  Widget _buildTtsButton(
+    BuildContext context,
+    BibleReaderState readerState,
+    ColorScheme colorScheme,
+  ) {
+    const bubbleId = 'bible_reader_tts_play_bubble';
+    return FutureBuilder<bool>(
+      future: BubbleUtils.shouldShowBubble(bubbleId),
+      builder: (context, snapshot) {
+        final showBubble = snapshot.data ?? false;
+        return ValueListenableBuilder<TtsPlayerState>(
+          valueListenable: _ttsAudioController.state,
+          builder: (context, ttsState, _) {
+            final themeColor = colorScheme.primary;
+            const borderWidth = 2.0;
+
+            Widget mainIcon;
+            BoxDecoration decoration;
+
+            if (ttsState == TtsPlayerState.loading) {
+              mainIcon = const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              );
+              decoration = BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: themeColor, width: borderWidth),
+              );
+            } else if (ttsState == TtsPlayerState.playing) {
+              mainIcon = Icon(Icons.pause, size: 28, color: themeColor);
+              decoration = BoxDecoration(
+                border: Border.all(color: themeColor, width: borderWidth),
+                borderRadius: BorderRadius.circular(12),
+              );
+            } else {
+              mainIcon = Icon(Icons.play_arrow, size: 28, color: themeColor);
+              decoration = BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: themeColor, width: borderWidth),
+              );
+            }
+
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Material(
+                  color: Colors.transparent,
+                  elevation: 0,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: readerState.verses.isNotEmpty
+                        ? () async {
+                            await BubbleUtils.markAsShown(bubbleId);
+                            if (mounted) {
+                              _handleTtsPlayPause(readerState);
+                            }
+                          }
+                        : null,
+                    child: Container(
+                      decoration: decoration,
+                      width: 44,
+                      height: 44,
+                      child: Center(child: mainIcon),
+                    ),
+                  ),
+                ),
+                if (showBubble && ttsState == TtsPlayerState.idle)
+                  Positioned(
+                    top: -10,
+                    right: -10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: BubbleConstants.newFeatureColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: BubbleConstants.bubbleShadow,
+                      ),
+                      child: Text(
+                        'bubble_constants.new_feature'.tr(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         );
       },
     );
