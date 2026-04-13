@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:clock/clock.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
+import 'package:devocional_nuevo/services/tts/utils/tts_duration_estimator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -221,26 +222,8 @@ class TtsAudioController {
     _fullText = text;
     _currentText = text;
     _languageCode = languageCode; // store for voice application in play()
-    // Estimar duración solo para UI
-    int estimatedSeconds;
-    if (languageCode == 'ja' || languageCode == 'zh') {
-      // Japonés y Chino: estimar por caracteres (7 chars/segundo típico)
-      final chars = _fullText!.replaceAll(RegExp(r'\s+'), '').length;
-      const charsPerSecond = 7.0;
-      estimatedSeconds = (chars / charsPerSecond).round();
-      debugPrint(
-        '📝 [TTS Controller] Idioma $languageCode (caracteres): $chars caracteres -> $estimatedSeconds segundos estimados',
-      );
-    } else {
-      // Otros idiomas: estimar por palabras
-      final words = _fullText!.split(RegExp(r"\s+")).length;
-      final double wordsPerSecond = 150.0 / 60.0;
-      estimatedSeconds = (words / wordsPerSecond).round();
-      debugPrint(
-        '📝 [TTS Controller] Palabras: $words -> $estimatedSeconds segundos estimados',
-      );
-    }
-    _fullDuration = Duration(seconds: estimatedSeconds);
+    // Estimar duración solo para UI — delegado a TtsDurationEstimator
+    _fullDuration = TtsDurationEstimator.estimate(_fullText!, languageCode);
     totalDuration.value = _fullDuration;
     currentPosition.value = Duration.zero;
     accumulatedPosition = Duration.zero;
