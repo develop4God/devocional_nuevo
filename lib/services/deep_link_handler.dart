@@ -235,11 +235,10 @@ class DeepLinkHandler {
     Map<String, String> queryParams,
   ) async {
     try {
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      }
-      // Navigate to the main devotional page
-      Navigator.of(context).pushNamed('devotional');
+      // Reset the navigation stack and navigate to the main devotional page
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil('devotional', (route) => false);
     } catch (e) {
       developer.log(
         'Navigation error: $e',
