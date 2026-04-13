@@ -1,8 +1,7 @@
 - **COPILOT VALIDATION & SYNCHRONIZATION MANDATE:**
   - ✅ On **every interaction**, read and validate `.github/copilot-instructions.md` (this file)
   - ✅ On **every interaction**, read `.github/SKILL.md` — the Flutter coding execution rules
-  - ✅ On **every interaction**, read `docs/COPILOT_WORKSPACE_IDENTITY.md` — workspace fingerprint + terminal contingency
-  - ✅ **CONFIRM READING ALL THREE FILES** at the start of each response before proceeding
+  - ✅ **CONFIRM READING ALL TWO FILES** at the start of each response before proceeding
   - Purpose: Ensure you and the user are synchronized on standards, patterns, and quality gates
 
 # Copilot Instructions for devocional_nuevo — Flutter/Dart Repository
