@@ -124,9 +124,9 @@ void main() {
       const chineseText = '哥林多后书 4:16-18 和合本1919: "所以，我们不丧志；外体虽然毁坏，内心却一天新似一天。"';
       controller.setText(chineseText, languageCode: 'zh');
 
-      // Chinese: ~7 characters per second
+      // Chinese: ~5.5 characters per second (matches TtsDurationEstimator._charsPerSecondZh)
       final chars = chineseText.replaceAll(RegExp(r'\s+'), '').length;
-      final expectedSeconds = (chars / 7.0).round();
+      final expectedSeconds = (chars / 5.5).round();
 
       expect(controller.totalDuration.value.inSeconds, expectedSeconds);
       debugPrint(
@@ -140,9 +140,9 @@ void main() {
           'ヨハネの福音書 3:16 新改訳2003: 「神は、実に、そのひとり子をお与えになったほどに世を愛された。」';
       controller.setText(japaneseText, languageCode: 'ja');
 
-      // Japanese: ~7 characters per second
+      // Japanese: ~3.0 characters per second (matches TtsDurationEstimator._charsPerSecondJa)
       final chars = japaneseText.replaceAll(RegExp(r'\s+'), '').length;
-      final expectedSeconds = (chars / 7.0).round();
+      final expectedSeconds = (chars / 3.0).round();
 
       expect(controller.totalDuration.value.inSeconds, expectedSeconds);
       debugPrint(

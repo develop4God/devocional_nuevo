@@ -499,12 +499,12 @@ void main() {
 
         final content = await file.readAsString();
 
-        // Constructor must accept an AnalyticsService parameter.
+        // Constructor must accept an IAnalyticsService parameter (interface, not concrete).
         expect(
-          content.contains('required AnalyticsService analyticsService'),
+          content.contains('required IAnalyticsService analyticsService'),
           isTrue,
           reason:
-              'BibleReaderTtsMiniplayerPresenter must accept AnalyticsService '
+              'BibleReaderTtsMiniplayerPresenter must accept IAnalyticsService '
               'via constructor for proper dependency injection',
         );
 

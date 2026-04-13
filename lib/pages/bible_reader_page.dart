@@ -1194,7 +1194,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                       fit: BoxFit.scaleDown,
                                       child: AutoSizeText(
                                         state.selectedBookName != null
-                                            ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
+                                            ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => <String, dynamic>{
                                                   'long_name':
                                                       state.selectedBookName
                                                 })['long_name']} ${state.selectedChapter}'

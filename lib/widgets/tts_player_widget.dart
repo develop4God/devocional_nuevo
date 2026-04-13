@@ -129,6 +129,23 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     }
   }
 
+  /// Pause TTS when the app goes to background so audio stops gracefully.
+  /// Only pauses when state is [TtsPlayerState.playing] — avoids changing
+  /// state when already paused, idle, or completed.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      if (widget.audioController.state.value == TtsPlayerState.playing) {
+        debugPrint(
+          '[TTS Widget] App going to background — pausing TTS playback',
+        );
+        widget.audioController.pause();
+      }
+    }
+  }
+
   @override
   void dispose() {
     debugPrint('[TTS Widget] dispose() llamado, deteniendo audio');
@@ -139,31 +156,6 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     } catch (_) {}
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint('[TTS Widget] didChangeAppLifecycleState: $state');
-    // Only pause when the app is fully backgrounded (paused/detached).
-    // Do NOT pause on AppLifecycleState.inactive — that fires when the user
-    // pulls down the notification bar, which is a very common gesture and
-    // should NOT interrupt audio. Pausing on inactive causes the "terrible
-    // UX" of audio stopping whenever the user briefly checks notifications.
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
-      final ttsState = widget.audioController.state.value;
-      if (ttsState == TtsPlayerState.playing ||
-          ttsState == TtsPlayerState.loading) {
-        debugPrint(
-          '[TTS Widget] App fully backgrounded — pausing audio (tts=$ttsState)',
-        );
-        widget.audioController.pause();
-      } else {
-        debugPrint(
-          '[TTS Widget] App backgrounded — TTS not active (tts=$ttsState), skipping pause',
-        );
-      }
-    }
   }
 
   String _buildTtsText(String language) {
