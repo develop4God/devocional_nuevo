@@ -1,3 +1,4 @@
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 
@@ -9,11 +10,11 @@ import 'package:flutter/foundation.dart';
 ///
 /// Usage:
 /// ```dart
-/// final analytics = getService<AnalyticsService>();
+/// final analytics = getService<IAnalyticsService>();
 /// await analytics.logTtsPlay();
 /// await analytics.logDevocionalComplete(devocionalId: 'dev_123', campaignTag: 'custom_1');
 /// ```
-class AnalyticsService {
+class AnalyticsService implements IAnalyticsService {
   FirebaseAnalytics? _analytics;
 
   // Analytics error telemetry
@@ -57,6 +58,7 @@ class AnalyticsService {
   ///
   /// This tracks when users press the TTS Play button to listen to devotionals.
   /// Helps measure engagement with the audio feature.
+  @override
   Future<void> logTtsPlay() async {
     try {
       await analytics.logEvent(name: 'tts_play', parameters: null);
@@ -80,6 +82,7 @@ class AnalyticsService {
   ///
   /// This enables the marketing team to create custom audiences in Firebase
   /// for targeted In-App Messaging campaigns (e.g., donation requests).
+  @override
   Future<void> logDevocionalComplete({
     required String devocionalId,
     required String campaignTag,
@@ -131,6 +134,7 @@ class AnalyticsService {
   /// Log custom event with parameters
   ///
   /// Generic method for logging any custom event
+  @override
   Future<void> logCustomEvent({
     required String eventName,
     Map<String, Object>? parameters,
@@ -147,6 +151,7 @@ class AnalyticsService {
   /// Set user property
   ///
   /// Useful for audience segmentation
+  @override
   Future<void> setUserProperty({
     required String name,
     required String value,
@@ -161,6 +166,7 @@ class AnalyticsService {
   }
 
   /// Set user ID
+  @override
   Future<void> setUserId(String? userId) async {
     try {
       await analytics.setUserId(id: userId);
@@ -172,6 +178,7 @@ class AnalyticsService {
   }
 
   /// Reset analytics data (for testing or logout)
+  @override
   Future<void> resetAnalyticsData() async {
     try {
       await analytics.resetAnalyticsData();
@@ -186,6 +193,7 @@ class AnalyticsService {
   ///
   /// Event name: `bottom_bar_action`
   /// Parameter: `action` (e.g., 'favorite', 'prayers', 'bible', 'share', 'progress', 'settings')
+  @override
   Future<void> logBottomBarAction({required String action}) async {
     try {
       debugPrint('🔥 [BottomBar] Tap: $action');
@@ -203,6 +211,7 @@ class AnalyticsService {
   ///
   /// Event name: `app_init`
   /// Parameters: Additional context parameters (e.g., use_navigation_bloc)
+  @override
   Future<void> logAppInit({Map<String, Object>? parameters}) async {
     try {
       await analytics.logEvent(name: 'app_init', parameters: parameters);
@@ -220,6 +229,7 @@ class AnalyticsService {
   /// - `total_devocionales`: Total number of devotionals
   /// - `via_bloc`: Whether navigation used BLoC ('true') or legacy ('false')
   /// - `fallback_reason`: Reason for fallback to legacy (optional)
+  @override
   Future<void> logNavigationNext({
     required int currentIndex,
     required int totalDevocionales,
@@ -255,6 +265,7 @@ class AnalyticsService {
   /// - `total_devocionales`: Total number of devotionals
   /// - `via_bloc`: Whether navigation used BLoC ('true') or legacy ('false')
   /// - `fallback_reason`: Reason for fallback to legacy (optional)
+  @override
   Future<void> logNavigationPrevious({
     required int currentIndex,
     required int totalDevocionales,
@@ -287,6 +298,7 @@ class AnalyticsService {
   /// Event name: `fab_tapped`
   /// Parameters:
   /// - `source`: Where the FAB was tapped ('devocionales_page' or 'prayers_page')
+  @override
   Future<void> logFabTapped({required String source}) async {
     try {
       debugPrint('🔥 [FAB] Tapped on: $source');
@@ -306,6 +318,7 @@ class AnalyticsService {
   /// Parameters:
   /// - `source`: Where the choice was made ('devocionales_page' or 'prayers_page')
   /// - `choice`: What was selected ('prayer', 'thanksgiving', or 'testimony')
+  @override
   Future<void> logFabChoiceSelected({
     required String source,
     required String choice,
@@ -333,6 +346,7 @@ class AnalyticsService {
   /// Parameters:
   /// - `action`: The action performed (e.g., 'study_opened', 'study_completed', 'study_shared', 'toggle_view')
   /// - `study_id`: ID of the study (optional, for study-specific actions)
+  @override
   Future<void> logDiscoveryAction({
     required String action,
     String? studyId,
@@ -360,6 +374,7 @@ class AnalyticsService {
   /// - `action`: The action performed (e.g., 'index_loaded', 'encounter_opened', 'card_viewed', 'encounter_completed')
   /// - `encounter_id`: ID of the encounter (optional)
   /// - `card_order`: Card order number (optional)
+  @override
   Future<void> logEncounterAction({
     required String action,
     String? encounterId,
@@ -377,6 +392,71 @@ class AnalyticsService {
       debugPrint('📊 Analytics: encounter_action event logged ($action)');
     } catch (e) {
       _logAnalyticsError('encounter_action', e);
+      // Fail silently - analytics errors should not affect app functionality
+    }
+  }
+
+  /// Log Bible Reader page open event
+  ///
+  /// Event name: `bible_open`
+  /// Parameters:
+  /// - `translation`: Bible translation used (e.g., 'RVR1960', 'NASB')
+  /// - `book`: Book name (optional, e.g., 'John', 'Romans')
+  /// - `chapter`: Chapter number (optional)
+  @override
+  Future<void> logBibleOpen({
+    String? translation,
+    String? book,
+    int? chapter,
+  }) async {
+    try {
+      debugPrint('🔥 [Bible] Opened');
+      final parameters = <String, Object>{};
+      if (translation != null) parameters['translation'] = translation;
+      if (book != null) parameters['book'] = book;
+      if (chapter != null) parameters['chapter'] = chapter;
+
+      await analytics.logEvent(
+        name: 'bible_open',
+        parameters: parameters.isNotEmpty ? parameters : null,
+      );
+      debugPrint('📊 Analytics: bible_open event logged');
+    } catch (e) {
+      _logAnalyticsError('bible_open', e);
+      // Fail silently - analytics errors should not affect app functionality
+    }
+  }
+
+  /// Log TTS Bible Play button press event
+  ///
+  /// Event name: `tts_bible_play`
+  /// Parameters:
+  /// - `translation`: Bible translation being played (e.g., 'RVR1960', 'NASB')
+  /// - `book`: Book name (optional, e.g., 'John', 'Romans')
+  /// - `chapter`: Chapter number (optional)
+  ///
+  /// This tracks when users press the TTS Play button to listen to Bible passages.
+  /// Helps measure engagement with the audio feature for Bible reading.
+  @override
+  Future<void> logTtsBiblePlay({
+    String? translation,
+    String? book,
+    int? chapter,
+  }) async {
+    try {
+      debugPrint('🔥 [TTS Bible] Play button pressed');
+      final parameters = <String, Object>{};
+      if (translation != null) parameters['translation'] = translation;
+      if (book != null) parameters['book'] = book;
+      if (chapter != null) parameters['chapter'] = chapter;
+
+      await analytics.logEvent(
+        name: 'tts_bible_play',
+        parameters: parameters.isNotEmpty ? parameters : null,
+      );
+      debugPrint('📊 Analytics: tts_bible_play event logged');
+    } catch (e) {
+      _logAnalyticsError('tts_bible_play', e);
       // Fail silently - analytics errors should not affect app functionality
     }
   }

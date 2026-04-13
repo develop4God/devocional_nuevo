@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/auth_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -174,10 +175,10 @@ Future<void> registerTestServicesWithFakes() async {
 
   // Override AnalyticsService with fake that doesn't require Firebase
   final locator = ServiceLocator();
-  if (locator.isRegistered<AnalyticsService>()) {
-    locator.unregister<AnalyticsService>();
+  if (locator.isRegistered<IAnalyticsService>()) {
+    locator.unregister<IAnalyticsService>();
   }
-  locator.registerSingleton<AnalyticsService>(FakeAnalyticsService());
+  locator.registerSingleton<IAnalyticsService>(FakeAnalyticsService());
 
   if (locator.isRegistered<IAuthService>()) {
     locator.unregister<IAuthService>();
@@ -187,7 +188,8 @@ Future<void> registerTestServicesWithFakes() async {
 
 /// Fake AnalyticsService that doesn't require Firebase initialization
 /// Use this in widget tests to avoid Firebase initialization errors
-class FakeAnalyticsService extends AnalyticsService {
+class FakeAnalyticsService extends AnalyticsService
+    implements IAnalyticsService {
   @override
   Future<void> logBottomBarAction({required String action}) async {
     // No-op for tests - don't actually log to Firebase
@@ -257,6 +259,27 @@ class FakeAnalyticsService extends AnalyticsService {
 
   @override
   Future<void> logAppInit({Map<String, Object>? parameters}) async {}
+
+  @override
+  Future<void> logBibleOpen({
+    String? translation,
+    String? book,
+    int? chapter,
+  }) async {}
+
+  @override
+  Future<void> logTtsBiblePlay({
+    String? translation,
+    String? book,
+    int? chapter,
+  }) async {}
+
+  @override
+  Future<void> logEncounterAction({
+    required String action,
+    String? encounterId,
+    int? cardOrder,
+  }) async {}
 }
 
 /// Fake AuthService for testing
