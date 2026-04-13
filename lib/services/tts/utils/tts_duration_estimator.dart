@@ -3,9 +3,9 @@
 /// Estimates the total TTS playback duration for a given text and language.
 ///
 /// Each language uses a rate calibrated to its typical TTS engine output:
-/// - JA: character-based (logographic script, ~7 chars/sec)
+/// - JA: character-based (logographic script, ~3 chars/sec)
 /// - ZH: character-based (logographic script, ~5.5 chars/sec)
-/// - AR: word-based, slower rate (~100 WPM — morphologically dense)
+/// - AR: word-based, slower rate (~80 WPM — morphologically dense)
 /// - All others: word-based, standard rate (~150 WPM)
 ///
 /// Used by [TtsAudioController.setText] to set the UI timer before playback.
