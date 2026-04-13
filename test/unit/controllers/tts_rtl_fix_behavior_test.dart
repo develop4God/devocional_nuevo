@@ -28,8 +28,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // ── Test subclass that exposes protected internals ────────────────────────────
 
-class _TestableController extends TtsAudioController {
-  _TestableController({
+class TestableController extends TtsAudioController {
+  TestableController({
     required super.flutterTts,
     required super.voiceSettingsService,
   });
@@ -41,7 +41,7 @@ class _TestableController extends TtsAudioController {
 // TestDefaultBinaryMessengerBinding) EXCEPT for the handler registration
 // methods, which it stores for direct invocation by tests.
 
-class _MockFlutterTts extends FlutterTts {
+class MockFlutterTts extends FlutterTts {
   VoidCallback? _startHandler;
   VoidCallback? _completionHandler;
   VoidCallback? _cancelHandler;
@@ -157,12 +157,12 @@ void main() {
   // ──────────────────────────────────────────────────────────────────────────
 
   group('Bug 1 — _isPreparingToSpeak guard suppresses deferred cancel', () {
-    late _MockFlutterTts mockTts;
-    late _TestableController controller;
+    late MockFlutterTts mockTts;
+    late TestableController controller;
 
     setUp(() {
-      mockTts = _MockFlutterTts();
-      controller = _TestableController(
+      mockTts = MockFlutterTts();
+      controller = TestableController(
         flutterTts: mockTts,
         voiceSettingsService: getService<VoiceSettingsService>(),
       );
@@ -301,12 +301,12 @@ void main() {
 
   group('Bug 2 — Watchdog: silent utterance → ERROR immediately, no retry',
       () {
-    late _MockFlutterTts mockTts;
-    late _TestableController controller;
+    late MockFlutterTts mockTts;
+    late TestableController controller;
 
     setUp(() {
-      mockTts = _MockFlutterTts()..autoFireStart = false; // silent engine
-      controller = _TestableController(
+      mockTts = MockFlutterTts()..autoFireStart = false; // silent engine
+      controller = TestableController(
         flutterTts: mockTts,
         voiceSettingsService: getService<VoiceSettingsService>(),
       );
@@ -424,12 +424,12 @@ void main() {
   // ──────────────────────────────────────────────────────────────────────────
 
   group('Real user behavior — end-to-end flows', () {
-    late _MockFlutterTts mockTts;
-    late _TestableController controller;
+    late MockFlutterTts mockTts;
+    late TestableController controller;
 
     setUp(() {
-      mockTts = _MockFlutterTts();
-      controller = _TestableController(
+      mockTts = MockFlutterTts();
+      controller = TestableController(
         flutterTts: mockTts,
         voiceSettingsService: getService<VoiceSettingsService>(),
       );
@@ -515,7 +515,9 @@ void main() {
         // Broken engine: never fires startHandler.
         mockTts.autoFireStart = false;
 
-        controller.setText('نص عربي لاختبار المحرك الصامت.');
+        controller.setText(
+          'نص عربي لاختبار المحرك الصامت.', // Arabic: 'Arabic text to test the silent engine'
+        );
 
         unawaited(controller.play());
         async.flushMicrotasks();
@@ -595,8 +597,8 @@ void main() {
     test('Dispose during play does not crash and produces no late state update',
         () async {
       // Use a separate controller so tearDown's dispose() doesn't double-dispose.
-      final localMock = _MockFlutterTts();
-      final localController = _TestableController(
+      final localMock = MockFlutterTts();
+      final localController = TestableController(
         flutterTts: localMock,
         voiceSettingsService: getService<VoiceSettingsService>(),
       );
@@ -615,6 +617,8 @@ void main() {
         'Arabic text plays without error — same code path as Spanish/English',
         () async {
       controller.setText(
+        // Arabic: 'Jesus loved us so much that he died for us.
+        //          This is the central message of the Gospel.'
         'يسوع أحبنا إلى درجة أنه مات لأجلنا. هذه هي الرسالة المركزية للإنجيل.',
         languageCode: 'ar',
       );
@@ -636,8 +640,8 @@ void main() {
   group('No retry loop: _handleSilentUtterance fires only once', () {
     test('Silent utterance transitions to error once, never retries', () {
       fakeAsync((async) {
-        final mockTts = _MockFlutterTts()..autoFireStart = false;
-        final controller = _TestableController(
+        final mockTts = MockFlutterTts()..autoFireStart = false;
+        final controller = TestableController(
           flutterTts: mockTts,
           voiceSettingsService: getService<VoiceSettingsService>(),
         );
