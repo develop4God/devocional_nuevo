@@ -30,18 +30,18 @@ void main() {
         expect(arDuration.inSeconds, greaterThan(esDuration.inSeconds));
       });
 
-      test('10 words in Arabic at 100 WPM = 6 seconds', () {
-        // 10 words / (100 WPM / 60) = 10 / 1.667 = 6 seconds
+      test('10 words in Arabic at 80 WPM = 8 seconds', () {
+        // 10 words / (80 WPM / 60) = 10 / 1.333... = 7.5 → rounds to 8 seconds
         final arabicText = List.generate(10, (i) => 'كلمة').join(' ');
         final duration = TtsDurationEstimator.estimate(arabicText, 'ar');
-        expect(duration.inSeconds, 6);
+        expect(duration.inSeconds, 8);
       });
 
-      test('30 words in Arabic at 100 WPM = 18 seconds', () {
-        // 30 words / (100 WPM / 60) = 30 / 1.667 = 18 seconds
+      test('30 words in Arabic at 80 WPM = 23 seconds', () {
+        // 30 words / (80 WPM / 60) = 30 / 1.333... = 22.5 → rounds to 23 seconds
         final arabicText = List.generate(30, (i) => 'كلمة').join(' ');
         final duration = TtsDurationEstimator.estimate(arabicText, 'ar');
-        expect(duration.inSeconds, 18);
+        expect(duration.inSeconds, 23);
       });
     });
 
