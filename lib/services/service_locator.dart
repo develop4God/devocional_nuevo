@@ -14,6 +14,7 @@ import 'package:devocional_nuevo/services/devocional_index_service.dart';
 import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
 import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/connectivity_service.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart'; // NEW
@@ -107,7 +108,7 @@ Future<void> setupServiceLocator() async {
       () => VoiceSettingsService());
   locator.registerLazySingleton<TtsChunkProcessor>(() => TtsChunkProcessor());
   locator.registerLazySingleton<ITtsService>(() => TtsService());
-  locator.registerLazySingleton<AnalyticsService>(() => AnalyticsService());
+  locator.registerLazySingleton<IAnalyticsService>(() => AnalyticsService());
   locator
       .registerLazySingleton<NotificationService>(NotificationService.create);
   locator
