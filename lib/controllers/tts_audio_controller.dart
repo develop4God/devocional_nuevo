@@ -46,23 +46,6 @@ class TtsAudioController {
   /// silently dropped instead of corrupting the TTS engine state.
   bool _playInProgress = false;
 
-  /// Set to true by startHandler whenever the TTS engine actually begins
-  /// producing audio. Reset to false just before each speak() call so the
-  /// silent-utterance watchdog can detect a zombie engine state.
-  bool _startHandlerFired = false;
-
-  /// Watchdog that fires ~1.2 s after speak() if startHandler never fired,
-  /// indicating a "silent utterance" (engine accepted the request but produced
-  /// no audio — common on MIUI after audio-session revocation or after many
-  /// rapid play/pause cycles). Retries once with a fresh engine flush, then
-  /// transitions to ERROR on the second failure.
-  Timer? _silentUtteranceWatchdog;
-
-  /// Counts how many times the silent-utterance watchdog has fired for the
-  /// current play() session. Reset to 0 at the start of each play() call and
-  /// in stop(). Budget: 1 retry per session.
-  int _silentUtteranceRetryCount = 0;
-
   // Progress notifiers for miniplayer
   final ValueNotifier<Duration> currentPosition = ValueNotifier(Duration.zero);
   final ValueNotifier<Duration> totalDuration = ValueNotifier(Duration.zero);
@@ -152,11 +135,6 @@ class TtsAudioController {
         '🎬 [TTS Controller] Previous state: ${state.value}, _isPlayingSample: $_isPlayingSample',
       );
 
-      // Audio is actually playing — cancel the silent-utterance watchdog.
-      _startHandlerFired = true;
-      _silentUtteranceWatchdog?.cancel();
-      _silentUtteranceWatchdog = null;
-
       // CRITICAL: Don't change state when playing voice samples
       // This prevents the mini-player modal from opening during voice selection
       if (_isPlayingSample) {
@@ -182,8 +160,6 @@ class TtsAudioController {
         );
         return;
       }
-      _silentUtteranceWatchdog?.cancel();
-      _silentUtteranceWatchdog = null;
       debugPrint(
         '🏁 [TTS Controller] COMPLETION HANDLER - Audio completed, changing state to COMPLETED',
       );
@@ -198,13 +174,25 @@ class TtsAudioController {
     });
     flutterTts.setCancelHandler(() {
       debugPrint('❌ [TTS Controller] CANCEL HANDLER - Audio cancelled');
-      _silentUtteranceWatchdog?.cancel();
-      _silentUtteranceWatchdog = null;
-      // Don't change state to idle if we're in the middle of a seek operation
-      // or if play() is currently flushing a stale Android stop event.
+      // Guard 1: Suppress during seek or pre-speak flush.
       if (_isSeeking || _isPreparingToSpeak) {
         debugPrint(
           '⏭️ [TTS Controller] Cancel ignored — seek:$_isSeeking preparing:$_isPreparingToSpeak',
+        );
+        return;
+      }
+      // Guard 2 (belt-and-suspenders): Suppress stale cancels during active setup.
+      //
+      // - loading: play() is setting up — any cancel here is a stale one from
+      //   the preceding pause() call that outlasted the _isPreparingToSpeak window.
+      // - paused: flutterTts.pause() calls stop() internally on Android and fires
+      //   a cancel AFTER the await returns — must not override paused with idle
+      //   or the accumulated position is lost and subsequent play() resumes wrong.
+      if (state.value == TtsPlayerState.loading ||
+          state.value == TtsPlayerState.paused) {
+        debugPrint(
+          '⏭️ [TTS Controller] Cancel ignored — state=${state.value} '
+          '(stale from preceding pause/stop)',
         );
         return;
       }
@@ -293,127 +281,119 @@ class TtsAudioController {
       '▶️ [TTS Controller] Texto completo: ${_fullText?.length ?? 0} caracteres',
     );
 
-    // Reset silent-utterance retry budget for this play session.
-    _silentUtteranceRetryCount = 0;
+    // ── CRITICAL: Raise guard BEFORE the first await ──────────────────────────
+    // On Android, flutterTts.pause() calls tts.stop() internally and fires a
+    // cancel event ASYNCHRONOUSLY — sometimes hundreds of ms after the pause()
+    // call returns.  If this cancel arrives during getSavedSpeechRate() or
+    // setSpeechRate() (which yield to the event loop), the cancel handler would
+    // set state = idle, and the abort check below would kill play() before
+    // speak() is ever called.
+    //
+    // By setting _isPreparingToSpeak = true HERE (before any await), the cancel
+    // handler suppresses all such stale events for the entire setup window.
+    //
+    // NOTE: We do NOT call flutterTts.stop() inside play() anymore.  The
+    // preceding pause() already stopped the engine; calling stop() again would
+    // generate a NEW cancel that races with the guard window when it arrives
+    // after _isPreparingToSpeak = false.  Removing it eliminates that race.
+    _isPreparingToSpeak = true;
 
-    // Check _fullText (not _currentText) because we need the full text to calculate resume positions
-    if (_fullText == null || _fullText!.isEmpty) {
-      debugPrint('❌ [TTS Controller] ERROR: No hay texto para reproducir');
-      _setStateIfNotDisposed(TtsPlayerState.error);
-      return;
-    }
-
-    // ── FIX: Unconditionally reset awaitSpeakCompletion to false ─────────────
-    // Under stress a previous multi-chunk play() may have set this to true.
-    // If a concurrent or interrupted play() never reached the finally block
-    // that resets it, the next single-chunk speak() will block on a pending
-    // cancel and return "immediately" without producing any audio (silent bug).
-    await flutterTts.awaitSpeakCompletion(false);
-    _suppressTtsCompletion = false;
-    debugPrint(
-      '🔄 [TTS Controller] awaitSpeakCompletion reset to false (stress guard)',
-    );
-
-    debugPrint('⏳ [TTS Controller] Cambiando estado a LOADING');
-    _setStateIfNotDisposed(TtsPlayerState.loading);
-
-    // Obtener y aplicar la velocidad guardada usando VoiceSettingsService
-    final double settingsRate =
-        await _voiceSettingsService.getSavedSpeechRate();
-    final double miniRate = VoiceSettingsService.settingsToMini[settingsRate] ??
-        _voiceSettingsService.getMiniPlayerRate(settingsRate);
-    playbackRate.value = miniRate;
-    final double ttsEngineRate =
-        VoiceSettingsService.miniToSettings[miniRate] ?? 0.5;
-    debugPrint(
-      '🎚️ [TTS Controller] Velocidad aplicada: mini=$miniRate (settings=$ttsEngineRate)',
-    );
-    await flutterTts.setSpeechRate(ttsEngineRate);
-
-    // CRITICAL FIX: If resuming from pause (accumulated position > 0),
-    // calculate which part of text to speak from accumulated position
-    if (accumulatedPosition > Duration.zero &&
-        accumulatedPosition < _fullDuration) {
-      debugPrint(
-        '▶️ [TTS Controller] REANUDANDO desde posición: ${accumulatedPosition.inSeconds}s',
-      );
-
-      // Calculate which words to skip based on accumulated position
-      final fullWords =
-          _fullText!.split(RegExp(r"\s+")).where((w) => w.isNotEmpty).toList();
-      final fullSeconds =
-          _fullDuration.inSeconds > 0 ? _fullDuration.inSeconds : 1;
-      final ratio = accumulatedPosition.inSeconds / fullSeconds;
-      final skipWords =
-          (fullWords.length * ratio).clamp(0, fullWords.length).round();
-
-      // Build remaining text from skipWords
-      final remainingWords = fullWords.skip(skipWords).toList();
-      _currentText = remainingWords.join(' ');
-
-      // Update position tracking for resume (will be used by _startProgressTimer)
-      currentPosition.value = accumulatedPosition;
-
-      debugPrint(
-        '▶️ [TTS Controller] Saltando $skipWords/${fullWords.length} palabras, quedan ${remainingWords.length} palabras',
-      );
-    } else {
-      // Starting fresh from beginning
-      debugPrint('▶️ [TTS Controller] INICIANDO desde el principio');
-      _currentText = _fullText;
-      accumulatedPosition = Duration.zero;
-      currentPosition.value = Duration.zero;
-    }
-
-    // Speak the current text (either full or remaining after resume)
-    debugPrint(
-      '🎤 [TTS Controller] Llamando flutterTts.speak() con ${_currentText!.length} caracteres',
-    );
-    if (_currentText != null && _currentText!.isNotEmpty) {
-      // ── FIX: Pre-speak engine flush FIRST, then apply voice ─────────────────
-      //
-      // Original order was: applyVoice → stop() → speak()
-      // On MIUI and some Android devices, stop() resets the TTS engine's
-      // language/voice configuration back to defaults, so the voice applied
-      // before stop() is lost and speak() runs with no voice → silent audio.
-      //
-      // Correct order: stop() → [settle] → applyVoice → speak()
-      // This guarantees the voice is set on a clean engine state.
-      //
-      // Additionally, on Android flutterTts.pause() calls tts.stop() internally.
-      // That stop fires a deferred cancel event that arrives asynchronously —
-      // sometimes AFTER play() has set state→LOADING.  Calling stop() here,
-      // under the _isPreparingToSpeak guard, explicitly drains that stale event
-      // BEFORE we queue the new utterance.
-      _isPreparingToSpeak = true;
-      try {
-        // FIX: 400ms UI-feedback delay moved inside the guard so the deferred
-        // Android cancel from a previous flutterTts.pause() arrives while
-        // _isPreparingToSpeak is true and is suppressed by cancelHandler.
-        // Without this, the cancel fires in the unguarded window, sets
-        // state = idle, and the abort check below kills play() before speak().
-        await Future.delayed(const Duration(milliseconds: 400));
-        await flutterTts.stop();
-        // Settle: gives the Android TTS engine time to fully drain any
-        // remaining deferred callbacks before we apply voice and speak.
-        await Future.delayed(const Duration(milliseconds: 80));
-      } finally {
-        _isPreparingToSpeak = false;
+    try {
+      // Check _fullText (not _currentText) because we need the full text to calculate resume positions
+      if (_fullText == null || _fullText!.isEmpty) {
+        debugPrint('❌ [TTS Controller] ERROR: No hay texto para reproducir');
+        _setStateIfNotDisposed(TtsPlayerState.error);
+        return;
       }
+
+      // ── FIX: Unconditionally reset awaitSpeakCompletion to false ─────────────
+      // Under stress a previous multi-chunk play() may have set this to true.
+      // If a concurrent or interrupted play() never reached the finally block
+      // that resets it, the next single-chunk speak() will block on a pending
+      // cancel and return "immediately" without producing any audio (silent bug).
+      await flutterTts.awaitSpeakCompletion(false);
+      _suppressTtsCompletion = false;
+      debugPrint(
+        '🔄 [TTS Controller] awaitSpeakCompletion reset to false (stress guard)',
+      );
+
+      debugPrint('⏳ [TTS Controller] Cambiando estado a LOADING');
+      _setStateIfNotDisposed(TtsPlayerState.loading);
+
+      // Obtener y aplicar la velocidad guardada usando VoiceSettingsService
+      final double settingsRate =
+          await _voiceSettingsService.getSavedSpeechRate();
+      final double miniRate =
+          VoiceSettingsService.settingsToMini[settingsRate] ??
+              _voiceSettingsService.getMiniPlayerRate(settingsRate);
+      playbackRate.value = miniRate;
+      final double ttsEngineRate =
+          VoiceSettingsService.miniToSettings[miniRate] ?? 0.5;
+      debugPrint(
+        '🎚️ [TTS Controller] Velocidad aplicada: mini=$miniRate (settings=$ttsEngineRate)',
+      );
+      await flutterTts.setSpeechRate(ttsEngineRate);
+
+      // CRITICAL FIX: If resuming from pause (accumulated position > 0),
+      // calculate which part of text to speak from accumulated position
+      if (accumulatedPosition > Duration.zero &&
+          accumulatedPosition < _fullDuration) {
+        debugPrint(
+          '▶️ [TTS Controller] REANUDANDO desde posición: ${accumulatedPosition.inSeconds}s',
+        );
+
+        // Calculate which words to skip based on accumulated position
+        final fullWords = _fullText!
+            .split(RegExp(r"\s+"))
+            .where((w) => w.isNotEmpty)
+            .toList();
+        final fullSeconds =
+            _fullDuration.inSeconds > 0 ? _fullDuration.inSeconds : 1;
+        final ratio = accumulatedPosition.inSeconds / fullSeconds;
+        final skipWords =
+            (fullWords.length * ratio).clamp(0, fullWords.length).round();
+
+        // Build remaining text from skipWords
+        final remainingWords = fullWords.skip(skipWords).toList();
+        _currentText = remainingWords.join(' ');
+
+        // Update position tracking for resume (will be used by _startProgressTimer)
+        currentPosition.value = accumulatedPosition;
+
+        debugPrint(
+          '▶️ [TTS Controller] Saltando $skipWords/${fullWords.length} palabras, quedan ${remainingWords.length} palabras',
+        );
+      } else {
+        // Starting fresh from beginning
+        debugPrint('▶️ [TTS Controller] INICIANDO desde el principio');
+        _currentText = _fullText;
+        accumulatedPosition = Duration.zero;
+        currentPosition.value = Duration.zero;
+      }
+
+      if (_currentText == null || _currentText!.isEmpty) {
+        debugPrint('⚠️ [TTS Controller] _currentText vacío — abortando play()');
+        return;
+      }
+
+      // 400ms UX-feedback delay. The guard (_isPreparingToSpeak) is already
+      // active, so any deferred cancel from the preceding pause() that arrives
+      // during this window is suppressed and will NOT fire again.
+      await Future.delayed(const Duration(milliseconds: 400));
+
       if (_disposed) return;
-      // Re-verify state hasn't been changed by something outside our control
-      // (e.g. a very-delayed external event that slipped through the guard).
       if (state.value != TtsPlayerState.loading) {
         debugPrint(
-          '⚠️ [TTS Controller] State changed during pre-speak flush: ${state.value} — aborting play()',
+          '⚠️ [TTS Controller] State changed during pre-speak setup: ${state.value} — aborting play()',
         );
         return;
       }
       debugPrint(
-        '🧹 [TTS Controller] Pre-speak engine flush complete — engine clean',
+        '🧹 [TTS Controller] Pre-speak setup complete — proceeding to speak',
       );
 
-      // Apply the saved voice AFTER the flush so stop() cannot clear it.
+      // Apply the saved voice. On Android, pause() calls stop() internally which
+      // clears the engine's voice settings. Re-apply them here before speaking.
       try {
         await _voiceSettingsService.applyVoiceToInstance(
             flutterTts, _languageCode);
@@ -422,6 +402,12 @@ class TtsAudioController {
           '⚠️ [TTS Controller] applyVoiceToInstance failed for $_languageCode: $e',
         );
       }
+
+      // Release the guard now. The stale cancel from pause() was suppressed
+      // during the 400ms window (it fires once and is done — no re-fire).
+      // Releasing here ensures pause()/stop() during multi-chunk speaking are
+      // NOT suppressed by this guard.
+      _isPreparingToSpeak = false;
 
       // SAFETY NET: wrap speak() in a timeout.
       // On some Android devices/languages (e.g. Arabic), speak() can hang
@@ -484,17 +470,6 @@ class TtsAudioController {
                 )
               : const Duration(seconds: TtsChunkProcessor.kQueueTimeoutSec);
 
-          // ── Silent-utterance watchdog (single-chunk / fire-and-forget only) ──
-          // In fire-and-forget mode speak() returns as soon as the utterance is
-          // *queued*, not when it starts playing.  If startHandler never fires
-          // within 1.2 s it means the engine silently dropped the utterance
-          // (e.g. MIUI revoked audio focus, or a stale cancel arrived after the
-          // flush window).  The watchdog auto-retries with a fresh flush.
-          if (!isMultiChunk) {
-            _startHandlerFired = false;
-            _scheduleUtteranceWatchdog();
-          }
-
           try {
             await flutterTts.speak(chunks[i]).timeout(
               speakTimeout,
@@ -520,12 +495,7 @@ class TtsAudioController {
 
           // FIX: Freeze the timer between chunks so inter-chunk dead-zones
           // (TTS engine silent while the next utterance is queued) do NOT
-          // count as elapsed playback time.  _pauseProgressTimer() snapshots
-          // the session elapsed into accumulatedPosition and nulls
-          // _playStartTime; setStartHandler for chunk i+1 will call
-          // _startProgressTimer() which restarts the timer from the correct
-          // accumulated base — eliminating the cumulative drift that causes
-          // the slider to finish before the audio on long multi-chunk texts.
+          // count as elapsed playback time.
           if (isMultiChunk && i < chunks.length - 1) {
             _pauseProgressTimer();
             debugPrint(
@@ -555,6 +525,10 @@ class TtsAudioController {
         _setStateIfNotDisposed(TtsPlayerState.error);
         return;
       }
+    } finally {
+      // Belt-and-suspenders: ensure guard is always released even on early
+      // return (disposed check, state-change abort, empty text, etc.).
+      _isPreparingToSpeak = false;
     }
 
     if (state.value == TtsPlayerState.loading) {
@@ -577,8 +551,6 @@ class TtsAudioController {
     debugPrint(
       '⏸️ [TTS Controller] Posición actual antes de pausar: ${currentPosition.value.inSeconds}s',
     );
-    _silentUtteranceWatchdog?.cancel();
-    _silentUtteranceWatchdog = null;
 
     // Add validation logging for debugging StringIndexOutOfBoundsException
     debugPrint(
@@ -666,9 +638,6 @@ class TtsAudioController {
     debugPrint(
       '[TTS Controller] stop() llamado, estado previo: ${state.value.toString()}',
     );
-    _silentUtteranceWatchdog?.cancel();
-    _silentUtteranceWatchdog = null;
-    _silentUtteranceRetryCount = 0;
     await flutterTts.stop();
     // SAFEGUARD: dispose() may have been called while we were awaiting
     // flutterTts.stop() (e.g. widget tree disposed during async gap).
@@ -708,131 +677,7 @@ class TtsAudioController {
   /// Exponer los rates permitidos desde VoiceSettingsService
   List<double> get supportedRates => VoiceSettingsService.miniPlayerRates;
 
-  // ── Silent-utterance watchdog ────────────────────────────────────────────────
-
-  /// Schedules [_handleSilentUtterance] to fire 1.2 s after speak() is called
-  /// in fire-and-forget (single-chunk) mode.  If startHandler fires first,
-  /// the watchdog is cancelled immediately (see startHandler registration).
-  ///
-  /// The watchdog detects a "silent utterance": the TTS engine accepted the
-  /// speak() call but produced no audio and never fired startHandler.
-  /// This is common on MIUI after audio-session revocation.
-  ///
-  /// On detection: transition immediately to ERROR so the UI surfaces a
-  /// visible, actionable failure.  No retries — a user who hears nothing
-  /// needs feedback, not a silent loop.
-  void _scheduleUtteranceWatchdog() {
-    _silentUtteranceWatchdog?.cancel();
-    _silentUtteranceWatchdog = Timer(const Duration(milliseconds: 1200), () {
-      _handleSilentUtterance();
-    });
-    debugPrint('🐕 [TTS Controller] Silent-utterance watchdog armed (1.2s)');
-  }
-
-  /// Called when startHandler has not fired 1.2 s after speak().
-  /// Retries once (MIUI needs extra time to restore audio focus after a
-  /// lifecycle pause/resume). On the second failure, transitions to ERROR.
-  void _handleSilentUtterance() {
-    _silentUtteranceWatchdog = null;
-    if (_startHandlerFired ||
-        (state.value != TtsPlayerState.playing &&
-            state.value != TtsPlayerState.loading) ||
-        _disposed) {
-      return;
-    }
-
-    if (_silentUtteranceRetryCount < 1) {
-      _silentUtteranceRetryCount++;
-      debugPrint(
-        '🔇 [TTS Controller] ⚠️ SILENT UTTERANCE — retrying '
-        '(attempt $_silentUtteranceRetryCount/1) — flushing and re-speaking',
-      );
-      _retrySilentUtterance();
-      return;
-    }
-
-    debugPrint(
-      '🔇 [TTS Controller] ⚠️ SILENT UTTERANCE — startHandler did not fire '
-      'after $_silentUtteranceRetryCount retry, transitioning to ERROR',
-    );
-    stopProgressTimer();
-    _setStateIfNotDisposed(TtsPlayerState.error);
-  }
-
-  /// Flushes the TTS engine, waits 500 ms for the Android audio-focus
-  /// subsystem to recover (needed on MIUI after lifecycle interruptions), then
-  /// re-speaks the current text and re-arms the silent-utterance watchdog.
-  ///
-  /// If the user stops or pauses during the 500 ms settle window the retry is
-  /// silently aborted (state check on resume).
-  Future<void> _retrySilentUtterance() async {
-    if (_disposed) return;
-    if (_currentText == null || _currentText!.isEmpty) {
-      // No text to retry — fail cleanly.
-      _setStateIfNotDisposed(TtsPlayerState.error);
-      return;
-    }
-
-    stopProgressTimer();
-    // Return to LOADING so the UI shows a spinner, not a stale progress bar.
-    _setStateIfNotDisposed(TtsPlayerState.loading);
-
-    // CRITICAL: Guard the flush + settle window with _isPreparingToSpeak so the
-    // cancel callback fired by flutterTts.stop() is suppressed.  Without this
-    // guard the cancel handler runs, sets state → idle, and the state-check
-    // below treats it as a user-initiated stop and aborts the retry.
-    // This mirrors the identical guard in _playInternal().
-    _isPreparingToSpeak = true;
-    try {
-      await flutterTts.stop();
-      if (_disposed) return;
-
-      // Extra settle time: MIUI needs ~500 ms to restore audio focus after an
-      // app lifecycle pause/resume before it will actually produce audio.
-      await Future.delayed(const Duration(milliseconds: 500));
-    } catch (e) {
-      debugPrint(
-        '⚠️ [TTS Controller] stop() in silent-utterance retry failed: $e',
-      );
-    } finally {
-      _isPreparingToSpeak = false;
-    }
-
-    if (_disposed) return;
-    if (state.value != TtsPlayerState.loading) {
-      // User explicitly stopped/paused during the settle window — abort.
-      debugPrint(
-        '⏹️ [TTS Controller] Retry aborted — state changed to ${state.value} during settle',
-      );
-      return;
-    }
-
-    // Re-arm watchdog and re-speak.
-    _startHandlerFired = false;
-    _scheduleUtteranceWatchdog();
-
-    try {
-      await flutterTts.speak(_currentText!);
-    } catch (e) {
-      debugPrint(
-        '❌ [TTS Controller] speak() in silent-utterance retry failed: $e',
-      );
-      stopProgressTimer();
-      _setStateIfNotDisposed(TtsPlayerState.error);
-      return;
-    }
-
-    if (_disposed) return;
-    // Fallback: startHandler may not fire on some platforms even when audio is
-    // playing. If state is still LOADING after speak() returns, manually
-    // transition to PLAYING so the progress timer starts.
-    if (state.value == TtsPlayerState.loading) {
-      _setStateIfNotDisposed(TtsPlayerState.playing);
-      _startProgressTimer();
-    }
-  }
-
-  // Progress timer helpers
+  // Progress timer helpers  // Progress timer helpers
   void _startProgressTimer() {
     debugPrint(
       '⏱️ [TTS Controller] ========== INICIANDO TIMER DE PROGRESO ==========',
@@ -1072,8 +917,6 @@ class TtsAudioController {
 
   void dispose() {
     _disposed = true;
-    _silentUtteranceWatchdog?.cancel();
-    _silentUtteranceWatchdog = null;
     state.dispose();
     currentPosition.dispose();
     totalDuration.dispose();
