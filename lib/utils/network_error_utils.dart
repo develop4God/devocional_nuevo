@@ -35,11 +35,17 @@ bool isTransientNetworkError(Object error) {
       msg.contains('Connection reset by peer') ||
       msg.contains('Connection timed out') ||
       msg.contains('Network is unreachable') ||
+      msg.contains('Connection closed before full header') ||
+      msg.contains('Connection closed while receiving data') ||
       (msg.contains('ClientException') &&
           (msg.contains('SocketException') ||
               msg.contains('host lookup') ||
               msg.contains('errno') ||
               msg.contains(
                   'connection abort') || // OS TCP reset (WSAECONNABORTED)
-              msg.contains('Software caused connection abort')));
+              msg.contains('Software caused connection abort'))) ||
+      (msg.contains('HandshakeException') &&
+          !msg.contains('CERTIFICATE_VERIFY_FAILED') &&
+          (msg.contains('Connection terminated during handshake') ||
+              msg.contains('Connection reset')));
 }
