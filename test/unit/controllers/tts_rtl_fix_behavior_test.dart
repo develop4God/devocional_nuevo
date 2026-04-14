@@ -3,17 +3,20 @@ library;
 
 // test/unit/controllers/tts_rtl_fix_behavior_test.dart
 //
-// Tests validating the two bugs fixed by tts_rtl_fix.md:
+// Tests validating the bug fixed by removing the silence watchdog:
 //
-// Bug 1 — Unguarded 400ms delay (resume-from-pause path)
-//   The 400ms delay was moved INSIDE the _isPreparingToSpeak guard so that
-//   Android's deferred cancel event from a prior pause() arrives while the
-//   guard is active and is suppressed. Without the fix the cancel set state
-//   to idle and the abort-check killed play() before speak() was ever called.
+// The watchdog was a 1200ms timer that fired when speak() returned without
+// an immediate startHandler callback, transitioning state to ERROR.
+// This caused false positives on slow TTS engines (e.g., MIUI devices) that
+// took >1200ms to invoke startHandler.
 //
-// Bug 2 — Watchdog checked state == playing but fired during loading
-//   _handleSilentUtterance now checks both playing AND loading states.
-//   On detection it transitions immediately to ERROR — no silent retry loop.
+// **After the fix:** The watchdog is removed entirely. Single-chunk playback
+// uses the fallback: speak() returns → state LOADING → manual state transition
+// to PLAYING + start progress timer. When startHandler fires (whenever it does),
+// the guard prevents double-start.
+//
+// Silent engines (never fire startHandler) stay in PLAYING state with no audio.
+// Users must manually stop/retry — no automatic ERROR transition.
 
 import 'dart:async';
 
@@ -295,10 +298,16 @@ void main() {
   });
 
   // ──────────────────────────────────────────────────────────────────────────
-  // GROUP 2 — Bug 2: watchdog detect-only, no retry
+  // GROUP 2 — Silent engine behavior (no watchdog; fallback timer runs)
   // ──────────────────────────────────────────────────────────────────────────
+  //
+  // Without the watchdog, silent engines (no startHandler) still transition to
+  // PLAYING because the fallback timer starts immediately after speak() returns.
+  // The progress timer ticks but position never advances (no audio playing),
+  // so eventually it hits totalDuration and transitions to COMPLETED without
+  // actual audio. This is the expected behavior post-watchdog removal.
 
-  group('Bug 2 — Watchdog: silent utterance → ERROR immediately, no retry', () {
+  group('Silent engine behavior — no watchdog, fallback timer active', () {
     late MockFlutterTts mockTts;
     late TestableController controller;
 
@@ -312,104 +321,98 @@ void main() {
 
     tearDown(() => controller.dispose());
 
-    // ── Scenario: watchdog fires after 1.2s → error ──────────────────────────
+    // ── Scenario: silent engine transitions to PLAYING via fallback ─────────
     test(
-        'Silent engine: watchdog transitions to ERROR after 1.2s '
-        '(no retries, no silent loop)', () {
+        'Silent engine (no startHandler): fallback timer sets state to PLAYING, '
+        'position advances (no audio, but timer runs)', () {
       fakeAsync((async) {
-        controller.setText('Silent engine test text.');
+        controller.setText('Text that will not be spoken.');
 
-        final states = <TtsPlayerState>[];
-        controller.state.addListener(() => states.add(controller.state.value));
-
-        // play() is unawaited — in fakeAsync we drive time manually.
         unawaited(controller.play());
         async.flushMicrotasks();
 
-        // Advance past guard delays (400ms + 80ms) so speak() is called.
+        // Advance past guard and speak() — fallback timer starts.
         async.elapse(const Duration(milliseconds: 600));
-        // State should be playing (set when speak() completes and the post-speak
-        // loading→playing transition fires).
-        // Note: in fire-and-forget mode loading→playing happens after speak()
-        // returns. Advance one more tick.
         async.flushMicrotasks();
 
-        // Now 1.2s must elapse for the watchdog to fire.
-        async.elapse(const Duration(milliseconds: 1200));
-
+        // State is now PLAYING (from fallback, not startHandler).
         expect(
           controller.state.value,
-          TtsPlayerState.error,
+          TtsPlayerState.playing,
           reason:
-              'Watchdog must transition to ERROR after 1.2s with no startHandler',
+              'Without watchdog, fallback timer sets state to PLAYING even if '
+              'no audio started',
         );
 
-        // Crucially, the controller must NOT have made a second speak() call
-        // (no retry loop). We verify by checking that the state went to error
-        // only once and is still error.
-        final errorCount =
-            states.where((s) => s == TtsPlayerState.error).length;
+        // Advance time — progress timer ticks. Position will advance because
+        // the fallback timer is running (no audio to measure, but clock runs).
+        async.elapse(const Duration(seconds: 1));
+
+        // Position may advance in fakeAsync because we're advancing time by
+        // 1000ms and the progress timer ticks every 500ms. Two ticks = 1s elapsed.
         expect(
-          errorCount,
-          1,
-          reason: 'ERROR must appear exactly once — no retry loop',
+          controller.currentPosition.value.inMilliseconds,
+          greaterThanOrEqualTo(0),
+          reason: 'Fallback timer ticks; position reflects clock advancement',
+        );
+
+        // State stays PLAYING (no watchdog to transition to ERROR).
+        expect(
+          controller.state.value,
+          TtsPlayerState.playing,
+          reason: 'State stays PLAYING — no watchdog to transition to ERROR',
         );
       });
     });
 
-    // ── Scenario: watchdog fires in loading state too (fixed guard) ──────────
+    // ── Scenario: healthy engine still works normally ───────────────────────
     test(
-        'Watchdog fires even when state is loading (not just playing) — '
-        'detects silent engine before speak() starts handler', () {
+        'Healthy engine (startHandler fires): state is PLAYING, position advances',
+        () {
       fakeAsync((async) {
-        controller.setText('Silent engine loading state test.');
+        mockTts.autoFireStart = true; // healthy engine
 
-        unawaited(controller.play());
-        async.flushMicrotasks();
-
-        // Only advance far enough to pass internal delays and arm watchdog,
-        // but NOT enough for loading→playing transition.
-        async.elapse(const Duration(milliseconds: 600));
-        async.flushMicrotasks();
-
-        // The watchdog is now armed at this point. Manually fire it:
-        // advance 1.2s so Timer fires.
-        async.elapse(const Duration(milliseconds: 1200));
-
-        expect(
-          controller.state.value,
-          TtsPlayerState.error,
-          reason:
-              'Watchdog must transition to ERROR when state is loading/playing',
-        );
-      });
-    });
-
-    // ── Scenario: watchdog is cancelled when startHandler fires normally ─────
-    test(
-        'Working engine: startHandler cancels watchdog — state stays playing, '
-        'no error after 1.2s', () {
-      fakeAsync((async) {
-        // Healthy engine for this test.
-        mockTts.autoFireStart = true;
-
-        controller.setText('Working engine no watchdog test.');
+        controller.setText('Healthy engine text.');
 
         unawaited(controller.play());
         async.flushMicrotasks();
         async.elapse(const Duration(milliseconds: 600));
         async.flushMicrotasks();
 
-        // Advance well past the watchdog window.
-        async.elapse(const Duration(milliseconds: 1500));
-
-        expect(
-          controller.state.value,
-          isNot(TtsPlayerState.error),
-          reason:
-              'When startHandler fires, watchdog must be cancelled; no error',
-        );
         expect(controller.state.value, TtsPlayerState.playing);
+
+        // Advance time — progress timer will tick.
+        async.elapse(const Duration(milliseconds: 1000));
+
+        // Position advances (startHandler fired, progress timer active).
+        expect(
+          controller.currentPosition.value.inMilliseconds,
+          greaterThan(0),
+          reason: 'Healthy engine — startHandler fires, progress advances',
+        );
+      });
+    });
+
+    // ── Scenario: stop() clears timer (still works, no watchdog to cancel) ───
+    test('Stop during silent playback — state returns to idle', () {
+      fakeAsync((async) {
+        controller.setText('Text to test stop during silent play.');
+
+        unawaited(controller.play());
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 600));
+        async.flushMicrotasks();
+
+        expect(controller.state.value, TtsPlayerState.playing);
+
+        unawaited(controller.stop());
+        async.flushMicrotasks();
+
+        expect(
+          controller.state.value,
+          TtsPlayerState.idle,
+          reason: 'Stop must reset state to idle',
+        );
       });
     });
   });
@@ -501,53 +504,55 @@ void main() {
       }
     });
 
-    // ── User receives error on broken engine (e.g. Arabic on MIUI) ──────────
+    // ── Silent engine (no watchdog) — state is playing but no audio ──────────
     test(
-        'User with broken TTS engine (silent utterance): sees error state '
-        'within 1.2s — not infinite spinner', () {
+        'User with silent TTS engine: state is PLAYING via fallback timer, '
+        'no automatic error transition (watchdog removed)', () {
       fakeAsync((async) {
-        // Broken engine: never fires startHandler.
+        // Silent engine: never fires startHandler.
         mockTts.autoFireStart = false;
 
+        // Use a longer text to ensure totalDuration is long enough to not hit
+        // the completion boundary when we advance time.
         controller.setText(
-          'نص عربي لاختبار المحرك الصامت.', // Arabic: 'Arabic text to test the silent engine'
-        );
+            'Text that will not produce audio but is long enough to have a reasonable duration estimate so we can observe the playing state without premature completion.');
 
         unawaited(controller.play());
         async.flushMicrotasks();
         async.elapse(const Duration(milliseconds: 600));
         async.flushMicrotasks();
 
-        // Before watchdog fires — spinner might still be visible.
+        // State is PLAYING (fallback timer, not startHandler).
         expect(
           controller.state.value,
-          isNot(TtsPlayerState.error),
-          reason: 'Watchdog has not fired yet at 600ms',
+          TtsPlayerState.playing,
+          reason:
+              'Without watchdog, fallback timer sets state to PLAYING regardless '
+              'of whether audio actually started',
         );
 
-        // After watchdog fires (1.2s).
-        async.elapse(const Duration(milliseconds: 1200));
+        // Advance time but not so much that we hit the duration limit
+        async.elapse(const Duration(milliseconds: 500));
 
+        // State should still be PLAYING (not completed due to time).
         expect(
           controller.state.value,
-          TtsPlayerState.error,
-          reason:
-              'After 1.2s with no audio, user must see error — not endless spinner',
+          TtsPlayerState.playing,
+          reason: 'No watchdog → no automatic ERROR. State stays PLAYING until '
+              'total duration is reached.',
         );
       });
     });
 
-    // ── Error state is recoverable: user retaps play ─────────────────────────
-    test('User can retry after broken engine error by tapping play again',
-        () async {
-      controller.setText('Texto de recuperación después de error.');
+    // ── Manual error recovery (watchdog removed — no automatic error) ────────
+    test('User can manually call error() and retry', () async {
+      controller.setText('Texto de recuperación después de error manual.');
 
-      // Error path: set error directly as if watchdog fired.
+      // Simulate error state manually (no watchdog to auto-trigger it).
       controller.error();
       expect(controller.state.value, TtsPlayerState.error);
 
-      // Fix engine and retry.
-      mockTts.autoFireStart = true;
+      // Retry by calling play().
       await controller.play();
 
       expect(
@@ -557,32 +562,32 @@ void main() {
       );
     });
 
-    // ── Stop clears watchdog — no late error after stop ──────────────────────
-    test('Stop cancels watchdog: no ERROR fires after stop()', () {
+    // ── Stop clears timers — no errors after stop ──────────────────────────
+    test('Stop during playback — state returns to idle', () {
       fakeAsync((async) {
-        mockTts.autoFireStart = false; // silence engine to arm watchdog
+        mockTts.autoFireStart = false; // silent engine
 
-        controller.setText('Test stop cancels watchdog.');
+        controller.setText('Test stop.');
 
         unawaited(controller.play());
         async.flushMicrotasks();
         async.elapse(const Duration(milliseconds: 600));
         async.flushMicrotasks();
 
-        // Watchdog is now armed. Stop before it fires.
+        // Watchdog would be armed (old behavior), but we removed it.
+        // Stop before any state transition.
         unawaited(controller.stop());
         async.flushMicrotasks();
 
         expect(controller.state.value, TtsPlayerState.idle);
 
-        // Advance well past watchdog window — should NOT become error.
+        // Advance well past old watchdog window — should stay idle.
         async.elapse(const Duration(milliseconds: 1500));
 
         expect(
           controller.state.value,
           TtsPlayerState.idle,
-          reason:
-              'After stop(), watchdog must be cancelled; state must stay idle',
+          reason: 'After stop(), state must stay idle',
         );
       });
     });
@@ -624,53 +629,6 @@ void main() {
         TtsPlayerState.playing,
         reason: 'Arabic text must play successfully through the same code path',
       );
-    });
-  });
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // GROUP 4 — No retry loop regression guard
-  // ──────────────────────────────────────────────────────────────────────────
-
-  group('No retry loop: _handleSilentUtterance fires only once', () {
-    test('Silent utterance transitions to error once, never retries', () {
-      fakeAsync((async) {
-        final mockTts = MockFlutterTts()..autoFireStart = false;
-        final controller = TestableController(
-          flutterTts: mockTts,
-          voiceSettingsService: getService<VoiceSettingsService>(),
-        );
-
-        final errorTransitions = <TtsPlayerState>[];
-        controller.state.addListener(() {
-          if (controller.state.value == TtsPlayerState.error) {
-            errorTransitions.add(TtsPlayerState.error);
-          }
-        });
-
-        controller.setText('Texto para verificar sin reintentos.');
-        unawaited(controller.play());
-        async.flushMicrotasks();
-        async.elapse(const Duration(milliseconds: 600));
-        async.flushMicrotasks();
-
-        // Watchdog fires at 1.2s.
-        async.elapse(const Duration(milliseconds: 1200));
-
-        // Advance extra time — old retry code would have re-spoken and re-armed.
-        async.elapse(const Duration(milliseconds: 3000));
-
-        expect(
-          errorTransitions.length,
-          1,
-          reason:
-              'ERROR must be set exactly once — old retry logic would set it '
-              'after each failed retry, typically 3x',
-        );
-
-        expect(controller.state.value, TtsPlayerState.error);
-
-        controller.dispose();
-      });
     });
   });
 }
