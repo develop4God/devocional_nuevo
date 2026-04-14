@@ -1,4 +1,4 @@
-// index.js - Cloud Functions optimizadas para notificaciones y limpieza
+// index.js - Cloud Functions optimized for notifications and cleanup
 
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 const admin = require("firebase-admin");
@@ -6,7 +6,7 @@ const {logger} = require("firebase-functions");
 const {setGlobalOptions} = require("firebase-functions/v2");
 const {DateTime} = require("luxon");
 
-// --- Traducciones para notificaciones multiidioma ---
+// --- Translations for multi-language notifications ---
 // Each language has an array of variants; one is chosen randomly at send time.
 // Option A — Peace space (original)
 // Option B — Daily habit: devotional waiting
@@ -221,25 +221,25 @@ function getRandomTranslation(language) {
   return variants[Math.floor(Math.random() * variants.length)];
 }
 
-// Configuración global
+// Global configuration
 setGlobalOptions({region: "us-central1"});
 
-// Inicialización de Firebase Admin
-logger.info("Cloud Function: Iniciando inicialización.", {structuredData: true});
+// Firebase Admin initialization
+logger.info("Cloud Function: Starting initialization.", {structuredData: true});
 
 try {
   if (!admin.apps.length) {
     admin.initializeApp();
-    logger.info("Cloud Function: Firebase Admin SDK inicializado.", {structuredData: true});
+    logger.info("Cloud Function: Firebase Admin SDK initialized.", {structuredData: true});
   }
 } catch (e) {
-  logger.error("Cloud Function: Error en inicialización:", e, {structuredData: true});
+  logger.error("Cloud Function: Error during initialization:", e, {structuredData: true});
   throw e;
 }
 
 const db = admin.firestore();
 
-// Helper: Seleccionar idioma
+// Helper: Select language for user
 function selectLanguageForUser(preferredLanguage) {
   return (preferredLanguage && NOTIFICATION_TRANSLATIONS[preferredLanguage]) ?
         preferredLanguage :
@@ -247,24 +247,24 @@ function selectLanguageForUser(preferredLanguage) {
 }
 
 // ==========================================
-// FUNCIÓN 1: ENVIAR NOTIFICACIONES DIARIAS
+// FUNCTION 1: SEND DAILY NOTIFICATIONS
 // ==========================================
 exports.sendDailyDevotionalNotification = onSchedule({
   schedule: "0 * * * *",
   timeZone: "UTC",
 }, async (context) => {
-  logger.info("Notificaciones: Ejecución iniciada.", {structuredData: true});
+  logger.info("Notifications: Execution started.", {structuredData: true});
 
   const usersRef = db.collection("users");
   const usersSnapshot = await usersRef.get();
 
   if (usersSnapshot.empty) {
-    logger.info("Notificaciones: Sin usuarios.", {structuredData: true});
+    logger.info("Notifications: No users.", {structuredData: true});
     return null;
   }
 
   const nowUtc = DateTime.now().setZone("UTC");
-  logger.info(`Notificaciones: ${usersSnapshot.size} usuarios. Hora UTC: ${nowUtc.toFormat("HH:mm")}.`, {structuredData: true});
+  logger.info(`Notifications: ${usersSnapshot.size} users. UTC time: ${nowUtc.toFormat("HH:mm")}.`, {structuredData: true});
 
   for (const userDoc of usersSnapshot.docs) {
     const userId = userDoc.id;
@@ -275,7 +275,7 @@ exports.sendDailyDevotionalNotification = onSchedule({
     try {
       settingsDoc = await settingsRef.get();
     } catch (e) {
-      logger.error(`Notificaciones: Error al obtener settings de ${userId}.`, {structuredData: true});
+      logger.error(`Notifications: Error fetching settings for ${userId}.`, {structuredData: true});
       continue;
     }
 
@@ -293,18 +293,18 @@ exports.sendDailyDevotionalNotification = onSchedule({
     let userLocalTime;
     try {
       if (!DateTime.local().setZone(userTimezone).isValid) {
-        logger.warn(`Notificaciones: Timezone inválido ${userId}: ${userTimezone}.`, {structuredData: true});
+        logger.warn(`Notifications: Invalid timezone for ${userId}: ${userTimezone}.`, {structuredData: true});
         continue;
       }
       userLocalTime = nowUtc.setZone(userTimezone);
     } catch (e) {
-      logger.error(`Notificaciones: Error timezone ${userId}.`, {structuredData: true});
+      logger.error(`Notifications: Timezone error for ${userId}.`, {structuredData: true});
       continue;
     }
 
     const [preferredHour, preferredMinute] = notificationTime.split(":").map(Number);
     if (isNaN(preferredHour) || isNaN(preferredMinute)) {
-      logger.warn(`Notificaciones: Hora inválida ${userId}: ${notificationTime}.`, {structuredData: true});
+      logger.warn(`Notifications: Invalid time for ${userId}: ${notificationTime}.`, {structuredData: true});
       continue;
     }
 
@@ -324,11 +324,11 @@ exports.sendDailyDevotionalNotification = onSchedule({
       continue;
     }
 
-    logger.info(`Notificaciones: Usuario ${userId} elegible. Obteniendo tokens.`, {structuredData: true});
+    logger.info(`Notifications: User ${userId} eligible. Fetching tokens.`, {structuredData: true});
     const fcmTokensSnapshot = await db.collection("users").doc(userId).collection("fcmTokens").get();
 
     if (fcmTokensSnapshot.empty) {
-      logger.warn(`Notificaciones: Sin tokens FCM para ${userId}.`, {structuredData: true});
+      logger.warn(`Notifications: No FCM tokens for ${userId}.`, {structuredData: true});
       continue;
     }
 
@@ -371,7 +371,7 @@ exports.sendDailyDevotionalNotification = onSchedule({
     };
 
     const response = await admin.messaging().sendEachForMulticast(message);
-    logger.info(`Notificaciones: Enviadas a ${response.successCount}/${tokens.length} dispositivos (${userId}, ${userLanguage}).`, {structuredData: true});
+    logger.info(`Notifications: Sent to ${response.successCount}/${tokens.length} devices (${userId}, ${userLanguage}).`, {structuredData: true});
 
     await settingsRef.update({
       lastNotificationSentDate: admin.firestore.Timestamp.fromDate(userLocalTime.toJSDate()),
@@ -381,7 +381,7 @@ exports.sendDailyDevotionalNotification = onSchedule({
       response.responses.forEach(async (resp, idx) => {
         if (!resp.success && (resp.error?.code === "messaging/invalid-argument" || resp.error?.code === "messaging/registration-token-not-registered")) {
           const invalidToken = tokens[idx];
-          logger.warn(`Notificaciones: Eliminando token inválido de ${userId}.`, {structuredData: true});
+          logger.warn(`Notifications: Removing invalid token for ${userId}.`, {structuredData: true});
 
           const tokenQuery = await db.collection("users").doc(userId).collection("fcmTokens")
               .where("token", "==", invalidToken)
@@ -395,14 +395,14 @@ exports.sendDailyDevotionalNotification = onSchedule({
     }
   }
 
-  logger.info("Notificaciones: Ejecución finalizada.", {structuredData: true});
+  logger.info("Notifications: Execution completed.", {structuredData: true});
   return null;
 });
 
 // ==========================================
-// FUNCIÓN 2: LIMPIEZA AGRESIVA DE BASE DE DATOS
-// Elimina usuario completo si cumple cualquier condición
-// Modificado: 27-nov-2025 - Parámetros de retención ajustados
+// FUNCTION 2: AGGRESSIVE DATABASE CLEANUP
+// Deletes entire user if any condition is met
+// Modified: 27-Nov-2025 - Retention parameters adjusted
 // ==========================================
 exports.cleanupInvalidFCMTokens = onSchedule({
   schedule: "every 24 hours",
@@ -410,11 +410,11 @@ exports.cleanupInvalidFCMTokens = onSchedule({
   timeoutSeconds: 540,
   memory: "512MiB",
 }, async (context) => {
-  logger.info("Limpieza: Iniciando proceso.", {structuredData: true});
+  logger.info("Cleanup: Starting process.", {structuredData: true});
 
   const now = admin.firestore.Timestamp.now();
 
-  // Parámetros de retención configurables
+  // Configurable retention parameters
   const RETENTION_DAYS_LAST_LOGIN = 15;
   const RETENTION_DAYS_TOKENS = 30;
 
@@ -424,7 +424,7 @@ exports.cleanupInvalidFCMTokens = onSchedule({
   let deletedUsers = 0;
 
   try {
-    logger.info("Limpieza: Evaluando usuarios.", {structuredData: true});
+    logger.info("Cleanup: Evaluating users.", {structuredData: true});
 
     const usersSnapshot = await db.collection("users").get();
     let batch = db.batch();
@@ -441,34 +441,34 @@ exports.cleanupInvalidFCMTokens = onSchedule({
       try {
         settingsDoc = await settingsRef.get();
       } catch (e) {
-        logger.error(`Limpieza: Error al obtener settings de ${userId}.`, {structuredData: true});
+        logger.error(`Cleanup: Error fetching settings for ${userId}.`, {structuredData: true});
         continue;
       }
 
-      // Condición 1: Sin settings
+      // Condition 1: No settings
       if (!settingsDoc.exists) {
         shouldDelete = true;
-        deleteReason = "sin settings";
+        deleteReason = "no settings";
       }
 
-      // Condición 2: lastLogin > 15 días (modificado)
+      // Condition 2: lastLogin > 15 days (modified)
       if (!shouldDelete) {
         const userData = userDoc.data();
         const lastLogin = userData?.lastLogin;
 
         if (!lastLogin || (lastLogin instanceof admin.firestore.Timestamp && lastLogin.toMillis() < cutoffLastLogin.toMillis())) {
           shouldDelete = true;
-          deleteReason = `inactivo +${RETENTION_DAYS_LAST_LOGIN} días (lastLogin)`;
+          deleteReason = `inactive +${RETENTION_DAYS_LAST_LOGIN} days (lastLogin)`;
         }
       }
 
-      // Condición 3: Todos los tokens son > 30 días o sin tokens
+      // Condition 3: All tokens are > 30 days old or no tokens
       if (!shouldDelete) {
         const tokensSnapshot = await db.collection("users").doc(userId).collection("fcmTokens").get();
 
         if (tokensSnapshot.empty) {
           shouldDelete = true;
-          deleteReason = "sin tokens";
+          deleteReason = "no tokens";
         } else {
           const allTokensOld = tokensSnapshot.docs.every((tokenDoc) => {
             const tokenData = tokenDoc.data();
@@ -478,16 +478,16 @@ exports.cleanupInvalidFCMTokens = onSchedule({
 
           if (allTokensOld) {
             shouldDelete = true;
-            deleteReason = `todos tokens +${RETENTION_DAYS_TOKENS} días`;
+            deleteReason = `all tokens +${RETENTION_DAYS_TOKENS} days old`;
           }
         }
       }
 
-      // ELIMINAR USUARIO COMPLETO
+      // DELETE ENTIRE USER
       if (shouldDelete) {
-        logger.info(`Limpieza: Eliminando usuario ${userId} (${deleteReason}).`, {structuredData: true});
+        logger.info(`Cleanup: Deleting user ${userId} (${deleteReason}).`, {structuredData: true});
 
-        // Eliminar subcolecciones
+        // Delete subcollections
         const tokensSnapshot = await db.collection("users").doc(userId).collection("fcmTokens").get();
         tokensSnapshot.docs.forEach((tokenDoc) => {
           batch.delete(tokenDoc.ref);
@@ -499,14 +499,14 @@ exports.cleanupInvalidFCMTokens = onSchedule({
           batchCount++;
         }
 
-        // Eliminar documento principal
+        // Delete main document
         batch.delete(userDoc.ref);
         batchCount++;
         deletedUsers++;
 
         if (batchCount >= 450) {
           await batch.commit();
-          logger.info(`Limpieza: Batch commit (${deletedUsers} usuarios hasta ahora).`, {structuredData: true});
+          logger.info(`Cleanup: Batch commit (${deletedUsers} users so far).`, {structuredData: true});
           batch = db.batch();
           batchCount = 0;
         }
@@ -517,9 +517,9 @@ exports.cleanupInvalidFCMTokens = onSchedule({
       await batch.commit();
     }
 
-    logger.info(`Limpieza: Completado. ${deletedUsers} usuarios eliminados completamente.`, {structuredData: true});
+    logger.info(`Cleanup: Completed. ${deletedUsers} users fully deleted.`, {structuredData: true});
   } catch (error) {
-    logger.error("Limpieza: Error general:", error, {structuredData: true});
+    logger.error("Cleanup: General error:", error, {structuredData: true});
   }
 
   return null;
