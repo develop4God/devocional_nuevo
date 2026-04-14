@@ -47,19 +47,6 @@ class TtsAudioController {
   /// silently dropped instead of corrupting the TTS engine state.
   bool _playInProgress = false;
 
-  /// Watchdog timer: fires [_watchdogDuration] after speak() returns if the
-  /// TTS engine's startHandler has not fired (silent engine detection).
-  /// Cancelled immediately when startHandler fires or when play is interrupted.
-  Timer? _silenceWatchdog;
-
-  /// Set to true when the startHandler fires for the current utterance.
-  /// Reset to false before each speak() call so the watchdog is armed only when
-  /// the engine is actually silent (no startHandler after speak() returns).
-  bool _startHandlerFired = false;
-
-  /// Duration before the watchdog transitions to ERROR after a silent speak().
-  static const Duration _watchdogDuration = Duration(milliseconds: 1200);
-
   // Progress notifiers for miniplayer
   final ValueNotifier<Duration> currentPosition = ValueNotifier(Duration.zero);
   final ValueNotifier<Duration> totalDuration = ValueNotifier(Duration.zero);
@@ -148,13 +135,6 @@ class TtsAudioController {
       debugPrint(
         '🎬 [TTS Controller] Previous state: ${state.value}, _isPlayingSample: $_isPlayingSample',
       );
-
-      // Cancel the silence watchdog — the engine produced audio normally.
-      _silenceWatchdog?.cancel();
-      _silenceWatchdog = null;
-      _startHandlerFired = true;
-      debugPrint(
-          '🎬 [TTS Controller] Silence watchdog cancelled (startHandler fired)');
 
       // CRITICAL: Don't change state when playing voice samples
       // This prevents the mini-player modal from opening during voice selection
@@ -300,7 +280,6 @@ class TtsAudioController {
     // suppressed by the guard.  The guard is released AFTER the flush and
     // voice application, just before the first speak() call.
     // Hoisted outside the try block so it remains in scope after the try/finally
-    // closes (the watchdog arm code at the end of _playInternal needs it).
     bool isMultiChunk = false;
 
     _isPreparingToSpeak = true;
@@ -479,10 +458,6 @@ class TtsAudioController {
             '[lang=$_languageCode, ${chunks[i].length}ch, await=$isMultiChunk]',
           );
 
-          // Reset flag before each utterance so the watchdog (single-chunk only)
-          // correctly detects whether startHandler fires for THIS chunk.
-          _startHandlerFired = false;
-
           // Timeout: when awaitSpeakCompletion is true the Future blocks for
           // the entire utterance duration.  Compute a rate-aware timeout so
           // slow speeds (0.5×) and large chapters (Psalm 119) never time out
@@ -567,38 +542,8 @@ class TtsAudioController {
       _startProgressTimer();
     }
 
-    // Arm silence watchdog for single-chunk (fire-and-forget) mode.
-    // Multi-chunk blocks speak() until the engine finishes the utterance, so
-    // startHandler fires before speak() returns — watchdog not needed there.
-    // If startHandler fires (engine produced audio), it cancels this timer.
-    // If not, _handleSilentUtterance fires after _watchdogDuration → ERROR.
-    if (!isMultiChunk && !_startHandlerFired && !_disposed) {
-      _silenceWatchdog?.cancel();
-      _silenceWatchdog = Timer(_watchdogDuration, _handleSilentUtterance);
-      debugPrint(
-        '⏰ [TTS Controller] Silence watchdog armed (${_watchdogDuration.inMilliseconds}ms)',
-      );
-    }
-
     debugPrint('▶️ [TTS Controller] Estado final: ${state.value.toString()}');
     debugPrint('▶️ [TTS Controller] ========== FIN PLAY() ==========');
-  }
-
-  /// Fires [_watchdogDuration] after a fire-and-forget speak() returns without
-  /// a startHandler callback. Transitions to [TtsPlayerState.error] to prevent
-  /// an endless loading/playing spinner. No retry — the user taps Play to retry.
-  void _handleSilentUtterance() {
-    _silenceWatchdog = null;
-    if (_disposed) return;
-    if (state.value == TtsPlayerState.playing ||
-        state.value == TtsPlayerState.loading) {
-      debugPrint(
-        '⚠️ [TTS Controller] Silent engine detected — transitioning to ERROR '
-        '(no startHandler after ${_watchdogDuration.inMilliseconds}ms)',
-      );
-      stopProgressTimer();
-      _setStateIfNotDisposed(TtsPlayerState.error);
-    }
   }
 
   Future<void> pause() async {
@@ -607,17 +552,6 @@ class TtsAudioController {
     debugPrint(
       '⏸️ [TTS Controller] Posición actual antes de pausar: ${currentPosition.value.inSeconds}s',
     );
-
-    // Cancel the silence watchdog when pausing.
-    // The watchdog was armed for the current (or last) speak() call; once the
-    // user intentionally pauses, that audio session is over and the watchdog
-    // must not fire during the *next* play() attempt.  Failing to cancel here
-    // causes a stale watchdog to fire during the loading phase of the next
-    // play(), spuriously transitioning to TtsPlayerState.error.
-    _silenceWatchdog?.cancel();
-    _silenceWatchdog = null;
-    debugPrint(
-        '⏸️ [TTS Controller] Silence watchdog cancelled (pause requested)');
 
     // Add validation logging for debugging StringIndexOutOfBoundsException
     debugPrint(
@@ -705,8 +639,6 @@ class TtsAudioController {
     debugPrint(
       '[TTS Controller] stop() llamado, estado previo: ${state.value.toString()}',
     );
-    _silenceWatchdog?.cancel();
-    _silenceWatchdog = null;
     await flutterTts.stop();
     // SAFEGUARD: dispose() may have been called while we were awaiting
     // flutterTts.stop() (e.g. widget tree disposed during async gap).
@@ -727,8 +659,6 @@ class TtsAudioController {
     debugPrint(
       '[TTS Controller] complete() llamado, estado previo: ${state.value.toString()}',
     );
-    _silenceWatchdog?.cancel();
-    _silenceWatchdog = null;
     stopProgressTimer();
     _setStateIfNotDisposed(TtsPlayerState.completed);
     _setNotifierIfNotDisposed(currentPosition, totalDuration.value);
@@ -740,8 +670,6 @@ class TtsAudioController {
     debugPrint(
       '[TTS Controller] error() llamado, estado previo: ${state.value.toString()}',
     );
-    _silenceWatchdog?.cancel();
-    _silenceWatchdog = null;
     _setStateIfNotDisposed(TtsPlayerState.error);
     stopProgressTimer();
     debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
