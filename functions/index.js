@@ -36,9 +36,32 @@ const NOTIFICATION_TRANSLATIONS = {
     title: "आपकी शांति का स्थान प्रतीक्षा कर रहा है",
     body: "आज परमेश्वर के वचन से जुड़ना याद रखें!",
   },
+  ar: {
+    title: "مساحة سلامك في انتظارك",
+    body: "تذكر أن تتواصل اليوم مع كلمة الله!",
+  },
 };
 
-const NOTIFICATION_IMAGE_URL = "https://cdn.jsdelivr.net/gh/develop4God/Devocional_nuevo@main/assets/images/notification_images/cross_sky_400x200.jpg";
+const NOTIFICATION_IMAGES = [
+  "blue_mountains.avif",
+  "circle_grass_green.avif",
+  "desert_person.avif",
+  "desert_view_rocks.avif",
+  "grass_tree.avif",
+  "gray_dock_lake.avif",
+  "lake.avif",
+  "lake_colors.avif",
+  "lake_dock.avif",
+  "long_road.avif",
+  "mountain_pink.avif",
+  "river_rocks_trees.avif",
+  "road_green_montains.avif",
+  "rocks_beach.avif",
+].map((name) => `https://raw.githubusercontent.com/develop4God/Devocionales-assets/refs/heads/main/images/habitus/${name}`);
+
+function getRandomNotificationImage() {
+  return NOTIFICATION_IMAGES[Math.floor(Math.random() * NOTIFICATION_IMAGES.length)];
+}
 
 // Configuración global
 setGlobalOptions({region: "us-central1"});
@@ -159,6 +182,7 @@ exports.sendDailyDevotionalNotification = onSchedule({
 
     const userLanguage = selectLanguageForUser(preferredLanguage);
     const userTranslations = NOTIFICATION_TRANSLATIONS[userLanguage];
+    const notificationImage = getRandomNotificationImage();
 
     const message = {
       notification: {
@@ -172,7 +196,7 @@ exports.sendDailyDevotionalNotification = onSchedule({
       },
       android: {
         notification: {
-          imageUrl: NOTIFICATION_IMAGE_URL,
+          imageUrl: notificationImage,
         },
       },
       apns: {
@@ -182,7 +206,7 @@ exports.sendDailyDevotionalNotification = onSchedule({
           },
         },
         fcm_options: {
-          image: NOTIFICATION_IMAGE_URL,
+          image: notificationImage,
         },
       },
       tokens: tokens,
