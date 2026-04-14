@@ -5,7 +5,8 @@ import 'package:devocional_nuevo/blocs/testimony_bloc.dart';
 import 'package:devocional_nuevo/blocs/testimony_event.dart';
 import 'package:devocional_nuevo/blocs/testimony_state.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../helpers/test_helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -13,8 +14,8 @@ void main() {
   group('Testimony Integration Tests - Real User Scenarios', () {
     late TestimonyBloc bloc;
 
-    setUp(() {
-      SharedPreferences.setMockInitialValues({});
+    setUp(() async {
+      await registerTestServices();
       bloc = TestimonyBloc();
     });
 
