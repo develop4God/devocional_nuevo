@@ -38,5 +38,8 @@ bool isTransientNetworkError(Object error) {
       (msg.contains('ClientException') &&
           (msg.contains('SocketException') ||
               msg.contains('host lookup') ||
-              msg.contains('errno')));
+              msg.contains('errno') ||
+              msg.contains(
+                  'connection abort') || // OS TCP reset (WSAECONNABORTED)
+              msg.contains('Software caused connection abort')));
 }
