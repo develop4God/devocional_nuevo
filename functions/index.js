@@ -7,39 +7,188 @@ const {setGlobalOptions} = require("firebase-functions/v2");
 const {DateTime} = require("luxon");
 
 // --- Traducciones para notificaciones multiidioma ---
+// Each language has an array of variants; one is chosen randomly at send time.
+// Option A — Peace space (original)
+// Option B — Daily habit: devotional waiting
+// Option C — Encounter: God has something for you
+// Option D — Daily habit: have you spent time with God?
 const NOTIFICATION_TRANSLATIONS = {
-  es: {
-    title: "Tu espacio de Paz te espera",
-    body: "¡Recuerda conectarte hoy con la palabra de Dios!",
-  },
-  en: {
-    title: "Your Peace Space is waiting",
-    body: "Remember to connect today with the word of God!",
-  },
-  pt: {
-    title: "Seu espaço de Paz te espera",
-    body: "Lembre-se de se conectar hoje com a palavra de Deus!",
-  },
-  fr: {
-    title: "Votre espace de Paix vous attend",
-    body: "N'oubliez pas de vous connecter aujourd'hui avec la parole de Dieu!",
-  },
-  ja: {
-    title: "あなたの平和の空間が待っています",
-    body: "今日、神の言葉とつながることを忘れないでください！",
-  },
-  zh: {
-    title: "你的平安空间在等待",
-    body: "记得今天与神的话语连接！",
-  },
-  hi: {
-    title: "आपकी शांति का स्थान प्रतीक्षा कर रहा है",
-    body: "आज परमेश्वर के वचन से जुड़ना याद रखें!",
-  },
-  ar: {
-    title: "مساحة سلامك في انتظارك",
-    body: "تذكر أن تتواصل اليوم مع كلمة الله!",
-  },
+  es: [
+    {
+      // Option A — Peace space (original)
+      title: "Tu espacio de Paz te espera",
+      body: "¡Recuerda conectarte hoy con la palabra de Dios!",
+    },
+    {
+      // Option B — Daily habit
+      title: "Tu devocional te espera",
+      body: "Empieza el día con la Palabra de Dios.",
+    },
+    {
+      // Option C — Encounter
+      title: "Dios tiene algo para ti hoy",
+      body: "Abre tu devocional y descúbrelo.",
+    },
+    {
+      // Option D — Daily habit
+      title: "¿Ya pasaste tiempo con Dios hoy?",
+      body: "Tu devocional está listo para ti.",
+    },
+  ],
+  en: [
+    {
+      // Option A — Peace space (original)
+      title: "Your Peace Space is waiting",
+      body: "Remember to connect today with the word of God!",
+    },
+    {
+      // Option B — Daily habit
+      title: "Your devotional is waiting for you",
+      body: "Start the day with the Word of God.",
+    },
+    {
+      // Option C — Encounter
+      title: "God has something for you today",
+      body: "Open your devotional and discover it.",
+    },
+    {
+      // Option D — Daily habit
+      title: "Have you spent time with God today?",
+      body: "Your devotional is ready for you.",
+    },
+  ],
+  pt: [
+    {
+      // Option A — Peace space (original)
+      title: "Seu espaço de Paz te espera",
+      body: "Lembre-se de se conectar hoje com a palavra de Deus!",
+    },
+    {
+      // Option B — Daily habit
+      title: "Seu devocional está esperando por você",
+      body: "Comece o dia com a Palavra de Deus.",
+    },
+    {
+      // Option C — Encounter
+      title: "Deus tem algo para você hoje",
+      body: "Abra seu devocional e descubra.",
+    },
+    {
+      // Option D — Daily habit
+      title: "Você já passou um tempo com Deus hoje?",
+      body: "Seu devocional está pronto para você.",
+    },
+  ],
+  fr: [
+    {
+      // Option A — Peace space (original)
+      title: "Votre espace de Paix vous attend",
+      body: "N'oubliez pas de vous connecter aujourd'hui avec la parole de Dieu!",
+    },
+    {
+      // Option B — Daily habit
+      title: "Votre dévotionnel vous attend",
+      body: "Commencez la journée avec la Parole de Dieu.",
+    },
+    {
+      // Option C — Encounter
+      title: "Dieu a quelque chose pour vous aujourd'hui",
+      body: "Ouvrez votre dévotionnel et découvrez-le.",
+    },
+    {
+      // Option D — Daily habit
+      title: "Avez-vous passé du temps avec Dieu aujourd'hui ?",
+      body: "Votre dévotionnel est prêt pour vous.",
+    },
+  ],
+  ja: [
+    {
+      // Option A — Peace space (original)
+      title: "あなたの平和の空間が待っています",
+      body: "今日、神の言葉とつながることを忘れないでください！",
+    },
+    {
+      // Option B — Daily habit
+      title: "あなたのデボーショナルがあなたを待っています",
+      body: "神の言葉で一日を始めましょう。",
+    },
+    {
+      // Option C — Encounter
+      title: "今日、神があなたのために何かをお持ちです",
+      body: "デボーショナルを開いて、それを発見してください。",
+    },
+    {
+      // Option D — Daily habit
+      title: "今日、神と時間を過ごしましたか？",
+      body: "あなたのデボーショナルが準備できています。",
+    },
+  ],
+  zh: [
+    {
+      // Option A — Peace space (original)
+      title: "你的平安空间在等待",
+      body: "记得今天与神的话语连接！",
+    },
+    {
+      // Option B — Daily habit
+      title: "你的灵修在等你",
+      body: "用神的话语开始新的一天。",
+    },
+    {
+      // Option C — Encounter
+      title: "上帝今天为你准备了一些东西",
+      body: "打开你的灵修，去发现它。",
+    },
+    {
+      // Option D — Daily habit
+      title: "你今天和上帝在一起了吗？",
+      body: "你的灵修已经为你准备好了。",
+    },
+  ],
+  hi: [
+    {
+      // Option A — Peace space (original)
+      title: "आपकी शांति का स्थान प्रतीक्षा कर रहा है",
+      body: "आज परमेश्वर के वचन से जुड़ना याद रखें!",
+    },
+    {
+      // Option B — Daily habit
+      title: "आपका भक्तिपाठ आपका इंतजार कर रहा है",
+      body: "परमेश्वर के वचन के साथ दिन की शुरुआत करें।",
+    },
+    {
+      // Option C — Encounter
+      title: "आज परमेश्वर के पास आपके लिए कुछ है",
+      body: "अपना भक्तिपाठ खोलें और इसे जानें।",
+    },
+    {
+      // Option D — Daily habit
+      title: "क्या आपने आज परमेश्वर के साथ समय बिताया?",
+      body: "आपका भक्तिपाठ आपके लिए तैयार है।",
+    },
+  ],
+  ar: [
+    {
+      // Option A — Peace space (original)
+      title: "مساحة سلامك في انتظارك",
+      body: "تذكر أن تتواصل اليوم مع كلمة الله!",
+    },
+    {
+      // Option B — Daily habit
+      title: "دروسك الإيمانية تنتظرك",
+      body: "ابدأ يومك بكلمة الله.",
+    },
+    {
+      // Option C — Encounter
+      title: "لدى الله شيء لك اليوم",
+      body: "افتح كتاب تأملاتك واكتشفه.",
+    },
+    {
+      // Option D — Daily habit
+      title: "هل أمضيت وقتًا مع الله اليوم؟",
+      body: "دروسك الإيمانية جاهزة لك.",
+    },
+  ],
 };
 
 const NOTIFICATION_IMAGES = [
@@ -61,6 +210,15 @@ const NOTIFICATION_IMAGES = [
 
 function getRandomNotificationImage() {
   return NOTIFICATION_IMAGES[Math.floor(Math.random() * NOTIFICATION_IMAGES.length)];
+}
+
+/**
+ * Returns a random {title, body} variant for the given language.
+ * Falls back to "es" if the language is not found.
+ */
+function getRandomTranslation(language) {
+  const variants = NOTIFICATION_TRANSLATIONS[language] || NOTIFICATION_TRANSLATIONS["es"];
+  return variants[Math.floor(Math.random() * variants.length)];
 }
 
 // Configuración global
@@ -181,13 +339,13 @@ exports.sendDailyDevotionalNotification = onSchedule({
     }
 
     const userLanguage = selectLanguageForUser(preferredLanguage);
-    const userTranslations = NOTIFICATION_TRANSLATIONS[userLanguage];
+    const userTranslation = getRandomTranslation(userLanguage);
     const notificationImage = getRandomNotificationImage();
 
     const message = {
       notification: {
-        title: userTranslations.title,
-        body: userTranslations.body,
+        title: userTranslation.title,
+        body: userTranslation.body,
       },
       data: {
         userId: userId,
