@@ -217,7 +217,7 @@ void main() {
         final totalDuration = controller.totalDuration.value;
         final halfwayPosition = totalDuration ~/ 2;
 
-        controller.seek(halfwayPosition);
+        await controller.seek(halfwayPosition);
 
         // THEN: Position updates
         expect(
