@@ -367,6 +367,8 @@ class BibleTextFormatter {
       // Hindi: capítulo=अध्याय (adhyāya), versículo=पद (pada)
       'ar': 'الإصحاح|الآية',
       // Arabic: capítulo=الإصحاح (chapter), versículo=الآية (verse)
+      'tl': 'kabanata|talata',
+      // Tagalog: capítulo=kabanata, versículo=talata
     };
 
     final words = referenceWords[language] ?? 'capítulo|versículo';
@@ -429,7 +431,9 @@ class BibleTextFormatter {
                                     ? 'से'
                                     : language == 'ar'
                                         ? 'إلى'
-                                        : 'al';
+                                        : language == 'tl'
+                                            ? 'hanggang'
+                                            : 'al';
         result += ' $toWord $verseEnd';
       }
       return result;
