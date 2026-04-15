@@ -9,7 +9,8 @@ class CopyrightUtils {
         language == 'pt' ||
         language == 'fr' ||
         language == 'de' ||
-        language == 'ar') {
+        language == 'ar' ||
+        language == 'tl') {
       final regex = RegExp(r'\(([A-Z0-9]+)\)$');
       final match = regex.firstMatch(version);
       if (match != null) {
@@ -103,6 +104,22 @@ class CopyrightUtils {
             'النص الكتابي ترجمة سميث وفاندايك، ملك عام.',
         'default':
             'النص الكتابي الترجمة العربية الجديدة © 2005 Biblica, Inc. جميع الحقوق محفوظة.',
+      },
+      'tl': {
+        'ASND':
+            'Ang Salita ng Dios (Tagalog Contemporary Bible) © 2009, 2011, 2014, 2015 Biblica, Inc. ® Ginamit sa pahintulot ng Biblica, Inc.® Lahat ng karapatan ay nakalaan sa buong mundo.',
+        'ADB':
+            'Ang Dating Biblia (1905) © Philippine Bible Society. Pampublikong domain.',
+        'ASND_tl.SQLite3':
+            'Ang Salita ng Dios (Tagalog Contemporary Bible) © 2009, 2011, 2014, 2015 Biblica, Inc. ® Ginamit sa pahintulot ng Biblica, Inc.® Lahat ng karapatan ay nakalaan sa buong mundo.',
+        'ADB_tl.SQLite3':
+            'Ang Dating Biblia (1905) © Philippine Bible Society. Pampublikong domain.',
+        'Ang Salita ng Dios (ASND)':
+            'Ang Salita ng Dios (Tagalog Contemporary Bible) © 2009, 2011, 2014, 2015 Biblica, Inc. ® Ginamit sa pahintulot ng Biblica, Inc.® Lahat ng karapatan ay nakalaan sa buong mundo.',
+        'Ang Dating Biblia (ADB)':
+            'Ang Dating Biblia (1905) © Philippine Bible Society. Pampublikong domain.',
+        'default':
+            'Ang Salita ng Dios (Tagalog Contemporary Bible) © 2009, 2011, 2014, 2015 Biblica, Inc. ® Ginamit sa pahintulot ng Biblica, Inc.® Lahat ng karapatan ay nakalaan sa buong mundo.',
       },
     };
 
