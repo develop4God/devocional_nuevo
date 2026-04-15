@@ -266,6 +266,30 @@ class VoiceDataRegistry {
     ),
   };
 
+  /// Tagalog/Filipino premium voices
+  static const Map<String, VoiceMetadata> tagalogVoices = {
+    'fil-ph-x-fld-local': VoiceMetadata(
+      emoji: '🇵🇭',
+      description: 'Lalaki',
+      genderIcon: Icons.man_3_outlined,
+    ),
+    'fil-ph-x-fld-network': VoiceMetadata(
+      emoji: '🇵🇭',
+      description: 'Lalaki',
+      genderIcon: Icons.man_3_outlined,
+    ),
+    'fil-ph-x-flf-local': VoiceMetadata(
+      emoji: '🇵🇭',
+      description: 'Babae',
+      genderIcon: Icons.woman_outlined,
+    ),
+    'fil-ph-x-flf-network': VoiceMetadata(
+      emoji: '🇵🇭',
+      description: 'Babae',
+      genderIcon: Icons.woman_outlined,
+    ),
+  };
+
   // ─── Language → Voice Map Lookup ──────────────────────────────────────
 
   /// All premium voice maps indexed by language code.
@@ -279,6 +303,7 @@ class VoiceDataRegistry {
     'hi': hindiVoices,
     'de': germanVoices,
     'ar': arabicVoices,
+    'tl': tagalogVoices,
   };
 
   /// Returns the premium voice map for [language], or `null` if none exists.
@@ -312,6 +337,8 @@ class VoiceDataRegistry {
     'de':
         'Sie können diese Stimme speichern oder eine andere nach Ihrer Vorliebe auswählen',
     'ar': 'يمكنك حفظ هذا الصوت أو اختيار صوت آخر حسب تفضيلك',
+    'tl':
+        'Maaari mong i-save ang tinig na ito o pumili ng iba, ayon sa iyong kagustuhan',
   };
 
   /// Returns the localized sample text for [language], defaulting to Spanish.
@@ -332,6 +359,7 @@ class VoiceDataRegistry {
     'hi': ['hi-IN'],
     'de': ['de-DE', 'de-AT', 'de-CH'],
     'ar': ['ar-SA', 'ar-EG', 'ar-AE'],
+    'tl': ['fil-PH', 'tl-PH'],
   };
 
   /// Returns the priority locales for [language].
@@ -364,6 +392,8 @@ class VoiceDataRegistry {
     'ar-SA': 'العربية (السعودية)',
     'ar-EG': 'العربية (مصر)',
     'ar-AE': 'العربية (الإمارات)',
+    'fil-PH': 'Tagalog (Pilipinas)',
+    'tl-PH': 'Tagalog (Pilipinas)',
   };
 
   static String getFriendlyLocaleName(String locale) {

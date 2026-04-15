@@ -54,6 +54,8 @@ class BibleTextFormatter {
         return _formatBibleBookHindi(reference);
       case 'ar':
         return _formatBibleBookArabic(reference);
+      case 'tl':
+        return _formatBibleBookTagalog(reference);
       default:
         debugPrint(
           '[BibleTextFormatter] Unknown language "$language", using Spanish as default',
@@ -241,6 +243,31 @@ class BibleTextFormatter {
     });
   }
 
+  /// Formato para libros bíblicos en tagalo (con ordinales para 1, 2, 3)
+  static String _formatBibleBookTagalog(String reference) {
+    // Tagalog uses ordinals for numbered books (1 Juan -> Una ng Juan)
+    // Pattern to match digit + Tagalog book name (Latin with diacritics)
+    final exp = RegExp(
+      r'(?:^|\s)([123])\s+([A-Za-záéíóúñÁÉÍÓÚÑ]+)',
+      caseSensitive: false,
+    );
+    final ordinals = {
+      '1': 'Una', // First (Una)
+      '2': 'Pangalawa', // Second (Pangalawa)
+      '3': 'Pangatlo', // Third (Pangatlo)
+    };
+
+    return reference.replaceAllMapped(exp, (match) {
+      final matchText = match.group(0) ?? '';
+      final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
+      final number = match.group(1) ?? '';
+      final bookName = match.group(2) ?? '';
+      if (number.isEmpty || bookName.isEmpty) return matchText;
+      final ordinal = ordinals[number] ?? number;
+      return '$prefix$ordinal $bookName';
+    });
+  }
+
   /// Get Bible version expansions based on language
   static Map<String, String> getBibleVersionExpansions(String language) {
     switch (language) {
@@ -285,6 +312,11 @@ class BibleTextFormatter {
         return {
           'NAV': 'كتاب الحياة',
           'SVDA': 'الكتاب المقدس — فان دايك',
+        };
+      case 'tl':
+        return {
+          'ASND': 'Ang Salita ng Dios',
+          'ADB': 'Ang Dating Biblia',
         };
       default:
         return {'RVR1960': 'Reina Valera mil novecientos sesenta'};
