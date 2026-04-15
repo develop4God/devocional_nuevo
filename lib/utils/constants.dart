@@ -43,6 +43,7 @@ class Constants {
     'hi': 'हिन्दी', // Habilitar hindi
     'de': 'Deutsch', // Habilitar alemán
     'ar': 'العربية', // Habilitar árabe
+    'tl': 'Tagalog', // Habilitar tagalo
   };
 
   // Banderas emoji para cada idioma
@@ -56,6 +57,7 @@ class Constants {
     'hi': '🇮🇳',
     'de': '🇩🇪',
     'ar': '🇸🇦',
+    'tl': '🇵🇭',
   };
 
   /// Obtiene el emoji de la bandera para un idioma
@@ -74,6 +76,7 @@ class Constants {
     'hi': ['HIOV', 'HERV'], // Hindi versions
     'de': ['LU17', 'SCH2000'], // German versions
     'ar': ['NAV', 'SVDA'], // Arabic versions
+    'tl': ['ASND', 'ADB'], // Tagalog versions
   };
 
   // Versión de Biblia por defecto por idioma
@@ -87,6 +90,7 @@ class Constants {
     'hi': 'HIOV', // Default Hindi version
     'de': 'LU17', // Default German version
     'ar': 'NAV', // Default Arabic version
+    'tl': 'ASND', // Default Tagalog version
   };
 
   // Nombres japoneses para versiones de la Biblia (deprecated - versions now use Japanese names directly)
