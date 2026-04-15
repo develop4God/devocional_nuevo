@@ -73,5 +73,46 @@ void main() {
       final text = CopyrightUtils.getCopyrightText('xx', 'KJV');
       expect(text, contains('King James'));
     });
+
+    test('returns Tagalog ASND copyright disclaimer', () {
+      final text = CopyrightUtils.getCopyrightText('tl', 'ASND');
+      expect(text, contains('Ang Salita ng Dios'));
+      expect(text, contains('Biblica'));
+    });
+
+    test('returns Tagalog ADB copyright disclaimer', () {
+      final text = CopyrightUtils.getCopyrightText('tl', 'ADB');
+      expect(text, contains('Ang Dating Biblia'));
+      expect(text, contains('Philippine Bible Society'));
+    });
+
+    test('returns Tagalog copyright with database filename ASND', () {
+      final text = CopyrightUtils.getCopyrightText('tl', 'ASND_tl.SQLite3');
+      expect(text, contains('Ang Salita ng Dios'));
+      expect(text, contains('Biblica'));
+    });
+
+    test('returns Tagalog copyright with database filename ADB', () {
+      final text = CopyrightUtils.getCopyrightText('tl', 'ADB_tl.SQLite3');
+      expect(text, contains('Ang Dating Biblia'));
+      expect(text, contains('Philippine Bible Society'));
+    });
+
+    test('returns Tagalog copyright with display name ASND', () {
+      final text =
+          CopyrightUtils.getCopyrightText('tl', 'Ang Salita ng Dios (ASND)');
+      expect(text, contains('Biblica'));
+    });
+
+    test('returns Tagalog copyright with display name ADB', () {
+      final text =
+          CopyrightUtils.getCopyrightText('tl', 'Ang Dating Biblia (ADB)');
+      expect(text, contains('Philippine Bible Society'));
+    });
+
+    test('Tagalog falls back to ASND default when version missing', () {
+      final text = CopyrightUtils.getCopyrightText('tl', 'UNKNOWN');
+      expect(text, contains('Ang Salita ng Dios'));
+    });
   });
 }
