@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:devocional_nuevo/debug/debug_flags.dart';
+import 'package:devocional_nuevo/services/tts/voice_data_registry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
@@ -13,24 +14,21 @@ class DebugTtsSection extends StatefulWidget {
 }
 
 class _DebugTtsSectionState extends State<DebugTtsSection> {
-  String _explorerLang = 'ar';
+  late String _explorerLang;
   List<Map<String, dynamic>> _explorerVoices = [];
   Map<String, String> _explorerGenders = {};
   int? _explorerPlayingIndex;
   bool _explorerLoading = false;
   final FlutterTts _explorerTts = FlutterTts();
 
-  static const _languages = [
-    'ar',
-    'de',
-    'es',
-    'en',
-    'fr',
-    'pt',
-    'ja',
-    'zh',
-    'hi'
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Use the first supported language from the registry, or default to 'en'
+    _explorerLang = VoiceDataRegistry.supportedLanguages.isNotEmpty
+        ? VoiceDataRegistry.supportedLanguages.first
+        : 'en';
+  }
 
   Future<void> _loadAllVoices(String lang) async {
     setState(() => _explorerLoading = true);
@@ -74,13 +72,13 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
       final name = v['name'] as String;
       final locale = v['locale'] as String;
       final gender = _explorerGenders[name] ?? 'unknown';
-      final icon = gender == 'male'
+      final genderIcon = gender == 'male'
           ? 'Icons.man_3_outlined'
           : gender == 'female'
               ? 'Icons.woman_outlined'
               : 'Icons.record_voice_over_outlined';
       buffer.writeln(
-        "  '$name': VoiceMetadata(emoji: '🇩🇪', description: '$gender $locale', genderIcon: $icon),",
+        "  '$name': VoiceMetadata(emoji: '', description: '$gender $locale', genderIcon: $genderIcon),",
       );
     }
     debugPrint(buffer.toString());
@@ -159,7 +157,7 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
                 // Language chips
                 Wrap(
                   spacing: 6,
-                  children: _languages.map((lang) {
+                  children: VoiceDataRegistry.supportedLanguages.map((lang) {
                     return ChoiceChip(
                       label: Text(lang),
                       selected: _explorerLang == lang,
