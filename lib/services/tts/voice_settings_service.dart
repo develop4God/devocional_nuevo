@@ -71,6 +71,11 @@ class VoiceSettingsService {
         'ar-AE',
         'ar'
       ], // Arabic - any ar-* device voice
+      'tl': [
+        'fil-PH',
+        'tl-PH',
+        'en-US'
+      ], // Tagalog/Filipino with English fallback
     };
     final locales = preferredLocales[language] ?? [language];
 
@@ -158,6 +163,12 @@ class VoiceSettingsService {
           'ar-xa-x-ard-local', // Male voice Arabic 2
           'ar-xa-x-arz-local', // Female voice Arabic 1
           'ar-xa-x-arz-network', // Female voice Arabic 2
+        ],
+        'tl': [
+          'fil-ph-x-fld-local', // Male voice Filipino
+          'fil-ph-x-fld-network', // Male voice Filipino network
+          'fil-ph-x-flf-local', // Female voice Filipino
+          'fil-PH-language', // Default Filipino
         ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];
@@ -577,6 +588,9 @@ class VoiceSettingsService {
         case 'ar':
           friendlyName = 'الصوت الافتراضي';
           break;
+        case 'tl':
+          friendlyName = 'Default na Tinig';
+          break;
         default:
           friendlyName = 'Default Voice';
       }
@@ -773,6 +787,8 @@ class VoiceSettingsService {
         return 'hi-IN';
       case 'ar':
         return 'ar';
+      case 'tl':
+        return 'fil-PH';
       default:
         return 'es-ES';
     }
@@ -996,6 +1012,14 @@ class VoiceSettingsService {
       'ar-xa-x-ard-network': '🇸🇦 رجل صوت 2', // Male Arabic 2 network
       'ar-xa-x-arz-local': '🇸🇦 امرأة صوت 1', // Female Arabic 1
       'ar-xa-x-arz-network': '🇸🇦 امرأة صوت 1', // Female Arabic 1 network
+    },
+    'tl': {
+      'fil-ph-x-fld-local': '🇵🇭 Lalaking Pilipinas', // Male Filipino
+      'fil-ph-x-fld-network':
+          '🇵🇭 Lalaking Pilipinas', // Male Filipino network
+      'fil-ph-x-flf-local': '🇵🇭 Babae Pilipinas', // Female Filipino
+      'fil-ph-x-flf-network': '🇵🇭 Babae Pilipinas', // Female Filipino network
+      'fil-PH-language': '🇵🇭 Default na Tinig', // Default voice
     },
   };
 
