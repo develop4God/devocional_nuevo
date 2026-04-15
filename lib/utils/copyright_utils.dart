@@ -108,7 +108,8 @@ class CopyrightUtils {
       'tl': {
         'ASND':
             'Ang Salita ng Dios (Tagalog Contemporary Bible) © 2009, 2011, 2014, 2015 Biblica, Inc. ® Ginamit sa pahintulot ng Biblica, Inc.® Lahat ng karapatan ay nakalaan sa buong mundo.',
-        'ADB': 'Ang Dating Biblia (1905) © Philippine Bible Society. Pampublikong domain.',
+        'ADB':
+            'Ang Dating Biblia (1905) © Philippine Bible Society. Pampublikong domain.',
         'ASND_tl.SQLite3':
             'Ang Salita ng Dios (Tagalog Contemporary Bible) © 2009, 2011, 2014, 2015 Biblica, Inc. ® Ginamit sa pahintulot ng Biblica, Inc.® Lahat ng karapatan ay nakalaan sa buong mundo.',
         'ADB_tl.SQLite3':
