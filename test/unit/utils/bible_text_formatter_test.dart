@@ -538,6 +538,16 @@ void main() {
       expect(result, contains('كتاب الحياة'));
     });
 
+    test('Tagalog: ordinal + chapter:verse + version expansion', () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        '1 Juan 3:16 ASND',
+        'tl',
+      );
+      expect(result, contains('Una Juan'));
+      expect(result, contains('kabanata'));
+      expect(result, contains('Ang Salita ng Dios'));
+    });
+
     test('unknown language falls back to Spanish pipeline without crashing',
         () {
       final result = BibleTextFormatter.normalizeTtsText(
@@ -545,6 +555,67 @@ void main() {
         'xx',
       );
       expect(result, contains('Primera de Pedro'));
+    });
+  });
+
+  group('BibleTextFormatter - Tagalog Ordinals', () {
+    test('formats 1 Juan as Una Juan', () {
+      final result = BibleTextFormatter.formatBibleBook('1 Juan', 'tl');
+      expect(result, 'Una Juan');
+    });
+
+    test('formats 2 Pedro as Pangalawa Pedro', () {
+      final result = BibleTextFormatter.formatBibleBook('2 Pedro', 'tl');
+      expect(result, 'Pangalawa Pedro');
+    });
+
+    test('formats 3 Juan as Pangatlo Juan', () {
+      final result = BibleTextFormatter.formatBibleBook('3 Juan', 'tl');
+      expect(result, 'Pangatlo Juan');
+    });
+
+    test('leaves non-numbered books unchanged', () {
+      final result = BibleTextFormatter.formatBibleBook('Genesis', 'tl');
+      expect(result, 'Genesis');
+    });
+
+    test('handles book in middle of text', () {
+      final result = BibleTextFormatter.formatBibleBook(
+        'Basahin ang 2 Corinto ngayon',
+        'tl',
+      );
+      expect(result, contains('Pangalawa Corinto'));
+    });
+  });
+
+  group('BibleTextFormatter - Tagalog Bible References', () {
+    test('formats Tagalog chapter:verse reference with kabanata/talata', () {
+      final result = BibleTextFormatter.formatBibleReferences(
+        'Juan 3:16',
+        'tl',
+      );
+      expect(result, contains('kabanata'));
+      expect(result, contains('talata'));
+    });
+
+    test('formats Tagalog verse range with hanggang', () {
+      final result = BibleTextFormatter.formatBibleReferences(
+        'Juan 3:16-17',
+        'tl',
+      );
+      expect(result, contains('hanggang'));
+    });
+  });
+
+  group('BibleTextFormatter - Tagalog Version Expansions', () {
+    test('ASND expands to Ang Salita ng Dios', () {
+      final expansions = BibleTextFormatter.getBibleVersionExpansions('tl');
+      expect(expansions['ASND'], 'Ang Salita ng Dios');
+    });
+
+    test('ADB expands to Ang Dating Biblia', () {
+      final expansions = BibleTextFormatter.getBibleVersionExpansions('tl');
+      expect(expansions['ADB'], 'Ang Dating Biblia');
     });
   });
 }

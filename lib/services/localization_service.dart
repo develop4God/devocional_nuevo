@@ -35,6 +35,7 @@ class LocalizationService {
     Locale('hi', ''), // Hindi
     Locale('de', ''), // German
     Locale('ar', ''), // Arabic
+    Locale('tl', ''), // Tagalog
   ];
 
   // Default locale
@@ -223,6 +224,8 @@ class LocalizationService {
         return 'de-DE';
       case 'ar':
         return 'ar-SA';
+      case 'tl':
+        return 'fil-PH';
       default:
         return 'es-ES';
     }
@@ -249,6 +252,8 @@ class LocalizationService {
         return 'Deutsch';
       case 'ar':
         return 'العربية';
+      case 'tl':
+        return 'Tagalog';
       default:
         return languageCode;
     }
@@ -285,6 +290,8 @@ class LocalizationService {
         return DateFormat('EEEE, d. MMMM', 'de');
       case 'ar':
         return DateFormat('EEEE، d MMMM', 'ar');
+      case 'tl':
+        return DateFormat('EEEE, MMMM d', 'tl');
       default:
         return DateFormat('EEEE, MMMM d', 'en');
     }
