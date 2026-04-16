@@ -85,7 +85,7 @@ void main() {
       // Verify that the provider is properly instantiated and uses DI
       expect(provider, isNotNull);
       expect(provider.supportedLocales, isNotEmpty);
-      expect(provider.supportedLocales.length, equals(9));
+      expect(provider.supportedLocales.length, equals(10));
     });
 
     test('supportedLocales returns all expected languages', () {
