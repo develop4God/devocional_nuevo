@@ -8,7 +8,7 @@
   "app": {
     "title": "Mga Debosyonal ng Kristiyano",
     "loading": "Naglo-load...",
-    "preparing": "Inihahanda ang iyong espasyo kasama ang Diyos...",
+    "preparing": "Inihahanda ang iyong sandali sa Diyos...",
     "error": "Error",
     "retry": "Subukan muli",
     "close": "Isara",
@@ -223,7 +223,7 @@
     "next": "Susunod"
   },
   "drawer": {
-    "title": "Ang Iyong Biblia, Ang Iyong Estilo",
+    "title": "Biblia Mo, Estilo Mo",
     "close": "Isara",
     "language_section": "Wika",
     "bible_version_section": "Bersyon ng Biblia",
