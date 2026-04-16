@@ -220,8 +220,8 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         // Parse voice name and locale
         if (bestVoice.contains(' (') && bestVoice.contains(')')) {
           final parts = bestVoice.split(' (');
-          bestVoiceName = parts[0];
-          final localeWithGender = parts[1].replaceAll(')', '');
+          bestVoiceName = parts[0].trim();
+          final localeWithGender = parts[1].replaceAll(')', '').trim();
           // Extract locale (remove gender info)
           final localeParts = localeWithGender.split(' ');
           bestVoiceLocale =
@@ -229,8 +229,16 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
           debugPrint(
             '🎵 Parsed from format "name (locale)": name="$bestVoiceName", locale="$bestVoiceLocale"',
           );
+        } else if (bestVoice.startsWith('(') && bestVoice.endsWith(')')) {
+          // Handle voices that are just "(locale)" without a name
+          bestVoiceLocale =
+              bestVoice.replaceAll('(', '').replaceAll(')', '').trim();
+          bestVoiceName = _getDefaultVoiceNameForLocale(bestVoiceLocale);
+          debugPrint(
+            '🎵 Parsed locale-only format: name="$bestVoiceName", locale="$bestVoiceLocale"',
+          );
         } else {
-          bestVoiceName = bestVoice;
+          bestVoiceName = bestVoice.trim();
           bestVoiceLocale = _getDefaultLocaleForLanguage(languageCode);
           debugPrint(
             '🎵 No standard format, using full string: name="$bestVoiceName", locale="$bestVoiceLocale"',
@@ -328,6 +336,35 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         return 'fil-PH';
       default:
         return '$languageCode-${languageCode.toUpperCase()}';
+    }
+  }
+
+  /// Get a default voice name for a given locale code
+  /// Used when voice comes in without a proper name (e.g., just "(fil-PH)")
+  String _getDefaultVoiceNameForLocale(String locale) {
+    switch (locale) {
+      case 'fil-PH':
+        return 'Filipino';
+      case 'es-ES':
+        return 'Spanish';
+      case 'en-US':
+        return 'English';
+      case 'pt-BR':
+        return 'Portuguese';
+      case 'fr-FR':
+        return 'French';
+      case 'ja-JP':
+        return 'Japanese';
+      case 'zh-CN':
+        return 'Chinese';
+      case 'hi-IN':
+        return 'Hindi';
+      case 'de-DE':
+        return 'German';
+      case 'ar-SA':
+        return 'Arabic';
+      default:
+        return locale;
     }
   }
 
