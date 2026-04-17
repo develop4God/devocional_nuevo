@@ -272,41 +272,33 @@ class _SupporterGoldPurchaseDialogState
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // ── Header with step indicator and back button ──────────
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Stack(
+                      alignment: Alignment.center,
                       children: [
-                        // Back button (only on pet phase — name is first, confirmation is done)
+                        // Center the step indicator
+                        _buildStepIndicator(),
+
+                        // Back button — positioned left (only on pet phase)
                         if (_phase == _GoldPhase.pet)
-                          SizedBox(
-                            width: 36,
-                            height: 36,
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () => _advanceTo(_GoldPhase.name),
-                                borderRadius: BorderRadius.circular(18),
-                                child: const Icon(
-                                  Icons.arrow_back_ios_new,
-                                  color: _gold,
-                                  size: 18,
+                          Positioned(
+                            left: 0,
+                            child: SizedBox(
+                              width: 36,
+                              height: 36,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () => _advanceTo(_GoldPhase.name),
+                                  borderRadius: BorderRadius.circular(18),
+                                  child: const Icon(
+                                    Icons.arrow_back_ios_new,
+                                    color: _gold,
+                                    size: 18,
+                                  ),
                                 ),
                               ),
                             ),
-                          )
-                        else
-                          const SizedBox(width: 36),
-
-                        // Step indicator — i18n keys, hidden on confirmation
-                        // Wrapped in Flexible to prevent overflow on long text
-                        Flexible(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: _buildStepIndicator(),
                           ),
-                        ),
-
-                        // Placeholder for alignment
-                        const SizedBox(width: 36),
                       ],
                     ),
                     const SizedBox(height: 16),
