@@ -149,8 +149,11 @@ class IapService implements IIapService {
 
   @override
   Future<IapResult> purchaseTier(SupporterTier tier) async {
-    if (!_isAvailable) {
-      debugPrint('⚠️ [IapService] Billing unavailable');
+    // Re-check live availability instead of relying on cached flag
+    final available = await _iap.isAvailable();
+    if (!available) {
+      _isAvailable = false;
+      debugPrint('⚠️ [IapService] Billing unavailable at purchase time');
       return IapResult.error;
     }
 
@@ -190,6 +193,7 @@ class IapService implements IIapService {
     // Set _disposed BEFORE cancelling the subscription so any in-flight
     // _handlePurchase callback is silently dropped.
     _disposed = true;
+    _isAvailable = false;
     await _purchaseSubscription?.cancel();
     _purchaseSubscription = null;
     // Guard each controller individually: if one close() throws or is already
@@ -224,7 +228,10 @@ class IapService implements IIapService {
   void forceReinitialize() {
     if (!kDebugMode) return;
     debugPrint('🔄 [IapService] Forcing re-initialization');
+    _purchaseSubscription?.cancel();
+    _purchaseSubscription = null;
     _isInitialized = false;
+    _isAvailable = false;
     _purchasedLevels.clear();
     _deliveredProductIds.clear();
     _initStatus = IapInitStatus.notStarted;
@@ -259,7 +266,9 @@ class IapService implements IIapService {
 
   void _onPurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) {
     for (final purchase in purchaseDetailsList) {
-      _handlePurchase(purchase);
+      _handlePurchase(purchase).catchError((Object e) {
+        debugPrint('❌ [IapService] Unhandled purchase handler error: $e');
+      });
     }
   }
 
