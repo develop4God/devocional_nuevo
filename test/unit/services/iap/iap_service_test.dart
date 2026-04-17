@@ -166,6 +166,25 @@ void main() {
         );
         expect(result, equals(IapResult.error));
       });
+
+      test('returns error if isAvailable() is false at purchase time',
+          () async {
+        // Simulate available at init, unavailable at purchase
+        final availableMock = _AvailableMockInAppPurchase();
+        var available = true;
+        when(availableMock.isAvailable()).thenAnswer((_) async => available);
+        final svc = IapService(
+          inAppPurchase: availableMock,
+          prefsFactory: SharedPreferences.getInstance,
+        );
+        await svc.initialize();
+        // Now simulate billing becoming unavailable
+        available = false;
+        final result = await svc
+            .purchaseTier(SupporterTier.fromLevel(SupporterTierLevel.bronze));
+        expect(result, equals(IapResult.error));
+        await svc.dispose();
+      });
     });
 
     // ── onPurchaseDelivered stream ──────────────────────────────────────────
@@ -254,6 +273,29 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       final svc = IapService(prefsFactory: SharedPreferences.getInstance);
       expect(svc, isA<IIapService>());
+    });
+  });
+
+  group('forceReinitialize()', () {
+    test(
+        'cancels subscription and no purchase callback fires after forceReinitialize',
+        () async {
+      final availableMock = _AvailableMockInAppPurchase();
+      final svc = IapService(
+        inAppPurchase: availableMock,
+        prefsFactory: SharedPreferences.getInstance,
+      );
+      await svc.initialize();
+      bool purchaseDelivered = false;
+      svc.onPurchaseDelivered.listen((_) {
+        purchaseDelivered = true;
+      });
+      svc.forceReinitialize();
+      // Simulate a purchase event after forceReinitialize
+      availableMock.pushPurchase(_FakeErrorPurchaseDetails());
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      expect(purchaseDelivered, isFalse);
+      await svc.dispose();
     });
   });
 }

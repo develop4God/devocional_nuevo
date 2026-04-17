@@ -7,7 +7,14 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../models/supporter_tier.dart';
 
 /// Result of a purchase initiation call.
-enum IapResult { success, cancelled, error, pending }
+enum IapResult {
+  /// Reserved for future use — currently unused.
+  /// purchaseTier() returns [pending] on successful launch initiation.
+  success,
+  cancelled,
+  error,
+  pending,
+}
 
 /// Describes the outcome of [IIapService.initialize].
 enum IapInitStatus {
