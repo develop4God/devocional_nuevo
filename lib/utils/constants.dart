@@ -36,14 +36,14 @@ class Constants {
   static const Map<String, String> supportedLanguages = {
     'es': 'Español',
     'en': 'English',
-    'pt': 'Português',
-    'fr': 'Français',
-    'ja': '日本語', // Habilitar japonés
-    'zh': '中文', // Habilitar chino
-    'hi': 'हिन्दी', // Habilitar hindi
     'de': 'Deutsch', // Habilitar alemán
     'ar': 'العربية', // Habilitar árabe
     'tl': 'Tagalog', // Habilitar tagalo
+    'pt': 'Português',
+    'fr': 'Français',
+    'hi': 'हिन्दी', // Habilitar hindi
+    'ja': '日本語', // Habilitar japonés
+    'zh': '中文', // Habilitar chino
   };
 
   // Banderas emoji para cada idioma
