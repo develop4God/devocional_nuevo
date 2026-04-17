@@ -76,7 +76,7 @@ class Constants {
     'hi': ['HIOV', 'HERV'], // Hindi versions
     'de': ['LU17', 'SCH2000'], // German versions
     'ar': ['NAV', 'SVDA'], // Arabic versions
-    'tl': ['ASND', 'ADB'], // Tagalog versions
+    'tl': ['ADB', 'ASND'], // Tagalog versions
   };
 
   // Versión de Biblia por defecto por idioma
@@ -90,7 +90,7 @@ class Constants {
     'hi': 'HIOV', // Default Hindi version
     'de': 'LU17', // Default German version
     'ar': 'NAV', // Default Arabic version
-    'tl': 'ASND', // Default Tagalog version
+    'tl': 'ADB', // Default Tagalog version
   };
 
   // Nombres japoneses para versiones de la Biblia (deprecated - versions now use Japanese names directly)
