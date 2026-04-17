@@ -297,42 +297,13 @@ class _SupporterGoldPurchaseDialogState
                           const SizedBox(width: 36),
 
                         // Step indicator — i18n keys, hidden on confirmation
-                        if (_phase == _GoldPhase.name)
-                          AutoSizeText(
-                            'supporter.gold_step_name'.tr(),
-                            style: const TextStyle(
-                              color: _gold,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                            maxLines: 1,
-                            minFontSize: 11,
-                            maxFontSize: 13,
-                          )
-                        else if (_phase == _GoldPhase.pet)
-                          AutoSizeText(
-                            'supporter.gold_step_pet'.tr(),
-                            style: const TextStyle(
-                              color: _gold,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                            maxLines: 1,
-                            minFontSize: 11,
-                            maxFontSize: 13,
-                          )
-                        else
-                          AutoSizeText(
-                            'onboarding.onboarding_complete_title'.tr(),
-                            style: const TextStyle(
-                              color: _gold,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                            maxLines: 1,
-                            minFontSize: 11,
-                            maxFontSize: 13,
+                        // Wrapped in Flexible to prevent overflow on long text
+                        Flexible(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: _buildStepIndicator(),
                           ),
+                        ),
 
                         // Placeholder for alignment
                         const SizedBox(width: 36),
@@ -363,6 +334,50 @@ class _SupporterGoldPurchaseDialogState
         return _buildPetPhase();
       case _GoldPhase.confirmation:
         return _buildConfirmationPhase();
+    }
+  }
+
+  Widget _buildStepIndicator() {
+    switch (_phase) {
+      case _GoldPhase.name:
+        return AutoSizeText(
+          'supporter.gold_step_name'.tr(),
+          style: const TextStyle(
+            color: _gold,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+          maxLines: 1,
+          minFontSize: 11,
+          maxFontSize: 13,
+          textAlign: TextAlign.center,
+        );
+      case _GoldPhase.pet:
+        return AutoSizeText(
+          'supporter.gold_step_pet'.tr(),
+          style: const TextStyle(
+            color: _gold,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+          maxLines: 1,
+          minFontSize: 11,
+          maxFontSize: 13,
+          textAlign: TextAlign.center,
+        );
+      case _GoldPhase.confirmation:
+        return AutoSizeText(
+          'onboarding.onboarding_complete_title'.tr(),
+          style: const TextStyle(
+            color: _gold,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+          maxLines: 1,
+          minFontSize: 11,
+          maxFontSize: 13,
+          textAlign: TextAlign.center,
+        );
     }
   }
 
