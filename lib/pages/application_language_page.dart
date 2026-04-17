@@ -540,27 +540,49 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     final theme = Theme.of(context);
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
+    // Build the language items with no opacity fade on the last item
+    final languageEntries = Constants.supportedLanguages.entries.toList();
+    final languageItems = <Widget>[];
+    for (final entry in languageEntries) {
+      languageItems.add(_buildLanguageItem(entry.key, entry.value));
+    }
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themeState.systemUiOverlayStyle,
       child: Scaffold(
         appBar: CustomAppBar(titleText: 'application_language.title'.tr()),
         backgroundColor: theme.colorScheme.surface,
-        body: ListView(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'application_language.description'.tr(),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+        body: ScrollbarTheme(
+          data: ScrollbarThemeData(
+            thumbColor: WidgetStateProperty.all(theme.colorScheme.primary),
+            trackColor: WidgetStateProperty.all(
+                theme.colorScheme.primary.withAlpha(60)),
+            thickness: WidgetStateProperty.all(10),
+            radius: const Radius.circular(8),
+          ),
+          child: Scrollbar(
+            thumbVisibility: true,
+            thickness: 10,
+            radius: const Radius.circular(8),
+            interactive: true,
+            trackVisibility: true,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'application_language.description'.tr(),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ),
-              ),
+                ...languageItems,
+                const SizedBox(height: 20),
+              ],
             ),
-            ...Constants.supportedLanguages.entries.map((entry) {
-              return _buildLanguageItem(entry.key, entry.value);
-            }),
-            const SizedBox(height: 20),
-          ],
+          ),
         ),
       ),
     );
