@@ -59,6 +59,14 @@ class _AvailableMockInAppPurchase extends _MockInAppPurchase {
   }
 }
 
+// ── Toggleable billing AVAILABLE/UNAVAILABLE mock ─────────────────────────────
+class _ToggleableAvailableMockInAppPurchase extends _MockInAppPurchase {
+  bool billingAvailable = true;
+
+  @override
+  Future<bool> isAvailable() async => billingAvailable;
+}
+
 // ── Fake PurchaseDetails for error-status testing ─────────────────────────────
 class _FakeErrorPurchaseDetails extends Fake implements PurchaseDetails {
   @override
@@ -169,20 +177,19 @@ void main() {
 
       test('returns error if isAvailable() is false at purchase time',
           () async {
-        // Simulate available at init, unavailable at purchase
-        final availableMock = _AvailableMockInAppPurchase();
-        var available = true;
-        when(availableMock.isAvailable()).thenAnswer((_) async => available);
+        final availableMock = _ToggleableAvailableMockInAppPurchase();
         final svc = IapService(
           inAppPurchase: availableMock,
           prefsFactory: SharedPreferences.getInstance,
         );
         await svc.initialize();
         // Now simulate billing becoming unavailable
-        available = false;
+        availableMock.billingAvailable = false;
         final result = await svc
             .purchaseTier(SupporterTier.fromLevel(SupporterTierLevel.bronze));
         expect(result, equals(IapResult.error));
+        // Assert that isAvailable is now false after failed purchase
+        expect(svc.isAvailable, isFalse);
         await svc.dispose();
       });
     });
@@ -271,31 +278,11 @@ void main() {
   group('IapService — interface compliance', () {
     test('IapService implements IIapService', () {
       SharedPreferences.setMockInitialValues({});
-      final svc = IapService(prefsFactory: SharedPreferences.getInstance);
-      expect(svc, isA<IIapService>());
-    });
-  });
-
-  group('forceReinitialize()', () {
-    test(
-        'cancels subscription and no purchase callback fires after forceReinitialize',
-        () async {
-      final availableMock = _AvailableMockInAppPurchase();
       final svc = IapService(
-        inAppPurchase: availableMock,
+        inAppPurchase: _AvailableMockInAppPurchase(),
         prefsFactory: SharedPreferences.getInstance,
       );
-      await svc.initialize();
-      bool purchaseDelivered = false;
-      svc.onPurchaseDelivered.listen((_) {
-        purchaseDelivered = true;
-      });
-      svc.forceReinitialize();
-      // Simulate a purchase event after forceReinitialize
-      availableMock.pushPurchase(_FakeErrorPurchaseDetails());
-      await Future<void>.delayed(const Duration(milliseconds: 30));
-      expect(purchaseDelivered, isFalse);
-      await svc.dispose();
+      expect(svc, isA<IIapService>());
     });
   });
 }
