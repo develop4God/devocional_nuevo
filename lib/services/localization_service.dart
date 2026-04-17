@@ -39,7 +39,7 @@ class LocalizationService {
   ];
 
   // Default locale
-  static const Locale defaultLocale = Locale('es', '');
+  static const Locale defaultLocale = Locale('en', '');
 
   // Current locale
   Locale _currentLocale = defaultLocale;
