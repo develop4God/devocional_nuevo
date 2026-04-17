@@ -46,27 +46,27 @@ void main() {
     test('should load translations correctly for each language', () async {
       // Since asset loading may fail in test environment, let's test graceful handling
 
-      // Test Spanish
-      await localizationService.changeLocale(const Locale('es'));
-      final spanishTitle = localizationService.translate('app.title');
+      // Test English
+      await localizationService.changeLocale(const Locale('en'));
+      final englishTitle = localizationService.translate('app.title');
 
-      if (spanishTitle != 'app.title') {
+      if (englishTitle != 'app.title') {
         // If translations are loaded, test expected values
-        expect(spanishTitle, equals('Devocionales Cristianos'));
-        expect(
-          localizationService.translate('app.loading'),
-          equals('Cargando...'),
-        );
-
-        // Test English
-        await localizationService.changeLocale(const Locale('en'));
-        expect(
-          localizationService.translate('app.title'),
-          equals('Christian Devotionals'),
-        );
+        expect(englishTitle, equals('Christian Devotionals'));
         expect(
           localizationService.translate('app.loading'),
           equals('Loading...'),
+        );
+
+        // Test Spanish
+        await localizationService.changeLocale(const Locale('es'));
+        expect(
+          localizationService.translate('app.title'),
+          equals('Devocionales Cristianos'),
+        );
+        expect(
+          localizationService.translate('app.loading'),
+          equals('Cargando...'),
         );
 
         // Test Portuguese
@@ -93,12 +93,12 @@ void main() {
       } else {
         // If assets aren't loaded, verify graceful fallback
         expect(
-          spanishTitle,
+          englishTitle,
           equals('app.title'),
         ); // Returns key when translation missing
 
         // Test other languages also fallback gracefully
-        await localizationService.changeLocale(const Locale('en'));
+        await localizationService.changeLocale(const Locale('es'));
         expect(localizationService.translate('app.title'), equals('app.title'));
 
         await localizationService.changeLocale(const Locale('pt'));
@@ -116,11 +116,11 @@ void main() {
       await localizationService.initialize();
 
       // Test each language
-      await localizationService.changeLocale(const Locale('es'));
-      expect(localizationService.getTtsLocale(), equals('es-ES'));
-
       await localizationService.changeLocale(const Locale('en'));
       expect(localizationService.getTtsLocale(), equals('en-US'));
+
+      await localizationService.changeLocale(const Locale('es'));
+      expect(localizationService.getTtsLocale(), equals('es-ES'));
 
       await localizationService.changeLocale(const Locale('pt'));
       expect(localizationService.getTtsLocale(), equals('pt-BR'));
@@ -130,14 +130,14 @@ void main() {
     });
 
     test('should return correct native language names', () {
-      expect(localizationService.getLanguageName('es'), equals('Español'));
       expect(localizationService.getLanguageName('en'), equals('English'));
+      expect(localizationService.getLanguageName('es'), equals('Español'));
       expect(localizationService.getLanguageName('pt'), equals('Português'));
       expect(localizationService.getLanguageName('fr'), equals('Français'));
     });
 
     test('should return key when translation not found', () async {
-      await localizationService.changeLocale(const Locale('es'));
+      await localizationService.changeLocale(const Locale('en'));
       expect(
         localizationService.translate('nonexistent.key'),
         equals('nonexistent.key'),
@@ -149,7 +149,7 @@ void main() {
       expect(
         LocalizationService.supportedLocales.map((l) => l.languageCode),
         containsAll(
-            ['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar', 'tl']),
+            ['en', 'es', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar', 'tl']),
       );
     });
 
@@ -176,7 +176,7 @@ void main() {
     });
 
     test('defaultLocale is Spanish', () {
-      expect(LocalizationService.defaultLocale.languageCode, equals('es'));
+      expect(LocalizationService.defaultLocale.languageCode, equals('en'));
     });
   });
 
@@ -258,7 +258,7 @@ void main() {
 
     test('translate() interpolates parameters correctly', () async {
       await localizationService.initialize();
-      await localizationService.changeLocale(const Locale('es'));
+      await localizationService.changeLocale(const Locale('en'));
 
       // Test with navigation.switch_to_language if available
       final result = localizationService.translate(
@@ -273,7 +273,7 @@ void main() {
 
     test('translate() handles nested keys correctly', () async {
       await localizationService.initialize();
-      await localizationService.changeLocale(const Locale('es'));
+      await localizationService.changeLocale(const Locale('en'));
 
       // Test nested key
       final result = localizationService.translate('app.title');
@@ -292,13 +292,13 @@ void main() {
         // available in all test environments. We test that the method exists and
         // returns a DateFormat object, or gracefully handles the exception.
         try {
-          // Test Spanish date format
-          final esFormat = localizationService.getLocalizedDateFormat('es');
-          expect(esFormat, isNotNull);
-
           // Test English date format
           final enFormat = localizationService.getLocalizedDateFormat('en');
           expect(enFormat, isNotNull);
+
+          // Test Spanish date format
+          final esFormat = localizationService.getLocalizedDateFormat('es');
+          expect(esFormat, isNotNull);
 
           // Test Portuguese date format
           final ptFormat = localizationService.getLocalizedDateFormat('pt');
@@ -372,18 +372,18 @@ void main() {
       await localizationService.initialize();
 
       // Rapidly change locales
-      await localizationService.changeLocale(const Locale('en'));
+      await localizationService.changeLocale(const Locale('es'));
       await localizationService.changeLocale(const Locale('fr'));
       await localizationService.changeLocale(const Locale('ja'));
       await localizationService.changeLocale(const Locale('pt'));
-      await localizationService.changeLocale(const Locale('es'));
+      await localizationService.changeLocale(const Locale('en'));
 
-      // Final locale should be Spanish
-      expect(localizationService.currentLocale.languageCode, equals('es'));
+      // Final locale should be English
+      expect(localizationService.currentLocale.languageCode, equals('en'));
 
       // Verify persistence
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('locale'), equals('es'));
+      expect(prefs.getString('locale'), equals('en'));
     });
 
     test(
@@ -395,24 +395,24 @@ void main() {
         final initialLocale = localizationService.currentLocale.languageCode;
         expect(localizationService.isCached(initialLocale), isTrue);
 
-        // Switch to English - should load and cache
-        await localizationService.changeLocale(const Locale('en'));
-        expect(localizationService.isCached('en'), isTrue);
-        expect(localizationService.currentLocale.languageCode, equals('en'));
-
         // Switch to Spanish - should load and cache
         await localizationService.changeLocale(const Locale('es'));
         expect(localizationService.isCached('es'), isTrue);
         expect(localizationService.currentLocale.languageCode, equals('es'));
 
-        // Both languages should now be cached
-        expect(localizationService.isCached('en'), isTrue);
-        expect(localizationService.isCached('es'), isTrue);
-
-        // Switch back to English - should use cache (verify it's still cached)
+        // Switch to English - should load and cache
         await localizationService.changeLocale(const Locale('en'));
         expect(localizationService.isCached('en'), isTrue);
         expect(localizationService.currentLocale.languageCode, equals('en'));
+
+        // Both languages should now be cached
+        expect(localizationService.isCached('es'), isTrue);
+        expect(localizationService.isCached('en'), isTrue);
+
+        // Switch back to Spanish - should use cache (verify it's still cached)
+        await localizationService.changeLocale(const Locale('es'));
+        expect(localizationService.isCached('es'), isTrue);
+        expect(localizationService.currentLocale.languageCode, equals('es'));
       },
     );
 
