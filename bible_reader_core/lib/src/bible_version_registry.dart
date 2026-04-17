@@ -61,14 +61,14 @@ class BibleVersionRegistry {
         'name': 'فان دايك',
         'dbFile': 'SVDA_ar.SQLite3',
       },
-    ], // Add Arabic
+    ], // Added Arabic
     'tl': [
+      {'name': 'Ang Dating Biblia (ADB)', 'dbFile': 'ADB_tl.SQLite3'},
       {
         'name': 'Ang Salita ng Dios (ASND)',
         'dbFile': 'ASND_tl.SQLite3',
       },
-      {'name': 'Ang Dating Biblia (ADB)', 'dbFile': 'ADB_tl.SQLite3'},
-    ], // Add Tagalog
+    ], // Added Tagalog
   };
 
   /// Get all Bible versions for a specific language
