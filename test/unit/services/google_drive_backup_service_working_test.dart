@@ -4,6 +4,7 @@ library;
 // test/critical_coverage/google_drive_backup_service_working_test.dart
 // High-value tests for GoogleDriveBackupService business logic
 
+import 'package:devocional_nuevo/utils/backup_keys.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -237,7 +238,7 @@ void main() {
         'data': {
           'prayers': [],
           'thanksgivings': [],
-          'spiritual_stats': {},
+          BackupKeys.spiritualStats: {},
           'settings': {},
         },
       };
@@ -249,7 +250,7 @@ void main() {
       final data = backupData['data'] as Map<String, dynamic>;
       expect(data.containsKey('prayers'), isTrue);
       expect(data.containsKey('thanksgivings'), isTrue);
-      expect(data.containsKey('spiritual_stats'), isTrue);
+      expect(data.containsKey(BackupKeys.spiritualStats), isTrue);
       expect(data.containsKey('settings'), isTrue);
     });
 
