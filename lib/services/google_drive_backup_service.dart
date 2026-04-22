@@ -644,7 +644,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       // Restore favorite devotionals
       if (data.containsKey(BackupKeys.favoriteDevotionals)) {
         try {
-          final favorites = data[BackupKeys.favoriteDevotionals] as List<dynamic>;
+          final favorites =
+              data[BackupKeys.favoriteDevotionals] as List<dynamic>;
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('favorites', json.encode(favorites));
           debugPrint(
@@ -670,7 +671,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       // Restore saved thanksgivings
       if (data.containsKey(BackupKeys.savedThanksgivings)) {
         try {
-          final thanksgivings = data[BackupKeys.savedThanksgivings] as List<dynamic>;
+          final thanksgivings =
+              data[BackupKeys.savedThanksgivings] as List<dynamic>;
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('thanksgivings', json.encode(thanksgivings));
           debugPrint(
