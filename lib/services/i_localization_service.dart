@@ -7,4 +7,5 @@ abstract class ILocalizationService {
 
   /// Change the current locale
   Future<void> changeLocale(Locale locale);
+  String translate(String key, [Map<String, dynamic>? params]);
 }

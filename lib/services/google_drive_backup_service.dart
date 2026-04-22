@@ -35,8 +35,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
   static const String frequencyDeactivated = 'deactivated';
 
   // Backup file names
-  static const String _backupFileName = 'devocional_backup.json';
-  static const String _backupFolderName = 'Devocional Backup';
+  static const String _backupFileName = 'automatic_backups.json';
 
   final IGoogleDriveAuthService _authService;
   final IConnectivityService _connectivityService;
@@ -517,6 +516,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
   /// Get or create backup folder in Google Drive
   Future<String> _getOrCreateBackupFolder(drive.DriveApi driveApi) async {
     try {
+      final folderName = _localizationService.translate('app.title');
       // Check if we have cached folder ID
       final cachedFolderId = await _getBackupFolderId();
       if (cachedFolderId != null) {
@@ -531,7 +531,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
 
       // Search for existing backup folder
       final query =
-          "name='$_backupFolderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+          "name='$folderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
       final fileList = await driveApi.files.list(q: query);
 
       if (fileList.files != null && fileList.files!.isNotEmpty) {
@@ -543,7 +543,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
 
       // Create new backup folder
       final folder = drive.File()
-        ..name = _backupFolderName
+        ..name = folderName
         ..mimeType = 'application/vnd.google-apps.folder'
         ..description = 'Devocional app backup folder';
 
@@ -722,9 +722,11 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         return null;
       }
 
+      final folderName = _localizationService.translate('app.title');
+
       // Search for existing backup folder
       final folderQuery =
-          "name='$_backupFolderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+          "name='$folderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
       final folderResults = await driveApi.files.list(q: folderQuery);
 
       if (folderResults.files == null || folderResults.files!.isEmpty) {
