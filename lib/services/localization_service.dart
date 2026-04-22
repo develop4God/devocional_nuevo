@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'i_localization_service.dart';
 
 /// Service for managing app localization and translations.
 ///
@@ -19,7 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// final localizationService = getService<LocalizationService>();
 /// await localizationService.initialize();
 /// ```
-class LocalizationService {
+class LocalizationService implements ILocalizationService {
   /// Default constructor for DI registration.
   /// The Service Locator will create and manage the singleton instance.
   LocalizationService();
@@ -44,6 +45,7 @@ class LocalizationService {
   // Current locale
   Locale _currentLocale = defaultLocale;
 
+  @override
   Locale get currentLocale => _currentLocale;
 
   // Translation cache - stores loaded translations by language code to avoid
@@ -161,6 +163,7 @@ class LocalizationService {
   }
 
   /// Change current locale
+  @override
   Future<void> changeLocale(Locale locale) async {
     if (!supportedLocales.contains(locale)) {
       return;
