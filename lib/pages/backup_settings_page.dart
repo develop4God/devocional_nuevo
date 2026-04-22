@@ -441,11 +441,16 @@ class _BackupSettingsContent extends StatelessWidget {
         children: [
           const Icon(Icons.security, color: Colors.green, size: 20),
           const SizedBox(width: 8),
-          Text(
-            'backup.protection_active'.tr(),
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.green,
+          Expanded(
+            child: Text(
+              'backup.protection_active'.tr(),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
             ),
           ),
         ],
