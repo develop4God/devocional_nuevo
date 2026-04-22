@@ -15,6 +15,7 @@ import 'compression_service.dart';
 import 'i_connectivity_service.dart';
 import 'i_google_drive_auth_service.dart';
 import 'i_google_drive_backup_service.dart';
+import 'i_localization_service.dart';
 
 /// Service for managing Google Drive backup functionality
 /// Integrates with real Google Drive API for cloud storage
@@ -40,14 +41,17 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
   final IGoogleDriveAuthService _authService;
   final IConnectivityService _connectivityService;
   final ISpiritualStatsService _statsService;
+  final ILocalizationService _localizationService;
 
   GoogleDriveBackupService({
     required IGoogleDriveAuthService authService,
     required IConnectivityService connectivityService,
     required ISpiritualStatsService statsService,
+    required ILocalizationService localizationService,
   })  : _authService = authService,
         _connectivityService = connectivityService,
-        _statsService = statsService;
+        _statsService = statsService,
+        _localizationService = localizationService;
 
   /// Check if Google Drive backup is enabled
   @override
@@ -309,6 +313,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       'version': '1.0',
       'app_version': packageInfo.version, // Now gets real app version
       'compression_enabled': await isCompressionEnabled(),
+      'language': _localizationService.currentLocale.languageCode,
     };
 
     // Add logs for each section included in the backup

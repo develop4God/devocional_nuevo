@@ -30,6 +30,7 @@ import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:devocional_nuevo/services/iap/iap_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/i_localization_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
@@ -104,6 +105,8 @@ Future<void> setupServiceLocator() async {
 
   locator
       .registerLazySingleton<LocalizationService>(() => LocalizationService());
+  locator.registerSingleton<ILocalizationService>(
+      locator.get<LocalizationService>());
   locator.registerLazySingleton<VoiceSettingsService>(
       () => VoiceSettingsService());
   locator.registerLazySingleton<TtsChunkProcessor>(() => TtsChunkProcessor());
@@ -163,6 +166,7 @@ Future<void> setupServiceLocator() async {
       authService: locator.get<IGoogleDriveAuthService>(),
       connectivityService: locator.get<IConnectivityService>(),
       statsService: locator.get<ISpiritualStatsService>(),
+      localizationService: locator.get<ILocalizationService>(),
     ),
   );
 

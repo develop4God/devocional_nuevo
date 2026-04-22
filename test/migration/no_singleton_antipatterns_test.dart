@@ -89,6 +89,25 @@ void main() {
       );
     });
 
+    test('ILocalizationService is registered as singleton alias', () async {
+      final file = File('lib/services/service_locator.dart');
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('registerSingleton<ILocalizationService>('),
+        isTrue,
+        reason:
+            'ILocalizationService should be registered as singleton in ServiceLocator',
+      );
+
+      expect(
+        content.contains('locator.get<LocalizationService>()'),
+        isTrue,
+        reason:
+            'ILocalizationService should be registered using the existing LocalizationService instance',
+      );
+    });
+
     test('Codebase does not reference LocalizationService.instance', () async {
       // Check lib directory
       final libDir = Directory('lib');
