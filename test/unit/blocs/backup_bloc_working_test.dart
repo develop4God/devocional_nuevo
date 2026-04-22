@@ -6,7 +6,7 @@ import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/i_google_drive_backup_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -14,7 +14,7 @@ import 'package:mocktail/mocktail.dart';
 // Mock classes for testing
 
 class MockGoogleDriveBackupService extends Mock
-    implements GoogleDriveBackupService {}
+    implements IGoogleDriveBackupService {}
 
 class MockDevocionalProvider extends Mock implements DevocionalProvider {}
 
@@ -81,9 +81,7 @@ void main() {
       when(
         () => mockBackupService.getUserEmail(),
       ).thenAnswer((_) async => null);
-      when(
-        () => mockBackupService.getStorageInfo(),
-      ).thenAnswer((_) async => <String, dynamic>{});
+      // storageInfo removed from service interface
     });
 
     blocTest<BackupBloc, BackupState>(

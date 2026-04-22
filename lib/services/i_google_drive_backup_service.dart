@@ -59,9 +59,6 @@ abstract class IGoogleDriveBackupService {
   /// Get estimated backup size in bytes.
   Future<int> getEstimatedBackupSize(DevocionalProvider? provider);
 
-  /// Get storage usage info from Google Drive API.
-  Future<Map<String, dynamic>> getStorageInfo();
-
   // ── Backup / Restore ───────────────────────────────────────────────────────
 
   /// Create a backup on Google Drive.

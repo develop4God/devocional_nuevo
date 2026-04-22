@@ -34,7 +34,6 @@ class GoogleDriveAuthService implements IGoogleDriveAuthService {
 
   static const List<String> _scopes = [
     'https://www.googleapis.com/auth/drive.file',
-    'https://www.googleapis.com/auth/drive',
   ];
 
   static const String _isSignedInKey = 'google_drive_signed_in';

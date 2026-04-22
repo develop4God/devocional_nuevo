@@ -28,7 +28,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     on<UpdateBackupOptions>(_onUpdateBackupOptions);
     on<CreateManualBackup>(_onCreateManualBackup);
     on<RestoreFromBackup>(_onRestoreFromBackup);
-    on<LoadStorageInfo>(_onLoadStorageInfo);
     on<RefreshBackupStatus>(_onRefreshBackupStatus);
     on<SignInToGoogleDrive>(_onSignInToGoogleDrive);
     on<SignOutFromGoogleDrive>(_onSignOutFromGoogleDrive);
@@ -52,12 +51,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
       final isAuthenticated = await _backupService.isAuthenticated();
       debugPrint('📊 [BLOC] Autenticado: $isAuthenticated');
-
-      Map<String, dynamic> storageInfo = {};
-      if (isAuthenticated) {
-        storageInfo = await _backupService.getStorageInfo();
-        debugPrint('📊 [BLOC] Storage info cargado');
-      }
 
       final results = await Future.wait([
         _backupService.isAutoBackupEnabled(),
@@ -87,7 +80,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
           lastBackupTime: results[5] as DateTime?,
           nextBackupTime: results[6] as DateTime?,
           estimatedSize: results[7] as int,
-          storageInfo: storageInfo,
           isAuthenticated: isAuthenticated,
           userEmail: results[8] as String?,
         ),
@@ -334,24 +326,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   }
 
   /// Load storage information
-  Future<void> _onLoadStorageInfo(
-    LoadStorageInfo event,
-    Emitter<BackupState> emit,
-  ) async {
-    try {
-      final storageInfo = await _backupService.getStorageInfo();
-
-      if (state is BackupLoaded) {
-        final currentState = state as BackupLoaded;
-        emit(currentState.copyWith(storageInfo: storageInfo));
-      } else {
-        add(const LoadBackupSettings());
-      }
-    } catch (e) {
-      debugPrint('Error loading storage info: $e');
-      emit(BackupError('Error loading storage info: ${e.toString()}'));
-    }
-  }
 
   /// Refresh backup status
   Future<void> _onRefreshBackupStatus(

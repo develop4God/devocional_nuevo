@@ -205,62 +205,6 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     return totalSize;
   }
 
-  /// Get storage usage info from Google Drive API
-  @override
-  Future<Map<String, dynamic>> getStorageInfo() async {
-    try {
-      final driveApi = await _authService.getDriveApi();
-      if (driveApi == null) {
-        throw Exception('Not authenticated with Google Drive');
-      }
-
-      final about = await driveApi.about.get($fields: 'storageQuota');
-      final storageQuota = about.storageQuota;
-
-      if (storageQuota != null) {
-        final usedBytes = int.tryParse(storageQuota.usage ?? '0') ?? 0;
-        final totalBytes = int.tryParse(storageQuota.limit ?? '0') ?? 0;
-
-        final usedGB = usedBytes / (1024 * 1024 * 1024);
-        final totalGB = totalBytes / (1024 * 1024 * 1024);
-        final percentage =
-            totalBytes > 0 ? (usedBytes / totalBytes) * 100 : 0.0;
-
-        debugPrint(
-          'Google Drive storage: ${usedGB.toStringAsFixed(2)} GB / ${totalGB.toStringAsFixed(2)} GB',
-        );
-
-        return {
-          'used_gb': double.parse(usedGB.toStringAsFixed(2)),
-          'total_gb': double.parse(totalGB.toStringAsFixed(2)),
-          'percentage': double.parse(percentage.toStringAsFixed(1)),
-          'used_bytes': usedBytes,
-          'total_bytes': totalBytes,
-        };
-      }
-
-      // Fallback if storage quota is not available
-      return {
-        'used_gb': 0.0,
-        'total_gb': 15.0, // Free Google account default
-        'percentage': 0.0,
-        'used_bytes': 0,
-        'total_bytes': 15 * 1024 * 1024 * 1024, // 15 GB
-      };
-    } catch (e) {
-      debugPrint('Error getting Google Drive storage info: $e');
-      // Return default values on error
-      return {
-        'used_gb': 0.0,
-        'total_gb': 15.0,
-        'percentage': 0.0,
-        'used_bytes': 0,
-        'total_bytes': 15 * 1024 * 1024 * 1024,
-        'error': e.toString(),
-      };
-    }
-  }
-
   /// Create backup to Google Drive
   @override
   Future<bool> createBackup(DevocionalProvider? provider) async {

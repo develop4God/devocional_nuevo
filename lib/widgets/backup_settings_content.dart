@@ -114,7 +114,6 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
           lastBackupTime: null,
           nextBackupTime: null,
           estimatedSize: 0,
-          storageInfo: const {},
           userEmail: null,
         );
         return Stack(

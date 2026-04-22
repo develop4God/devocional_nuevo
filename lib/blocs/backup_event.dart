@@ -74,11 +74,6 @@ class RestoreFromBackup extends BackupEvent {
   const RestoreFromBackup();
 }
 
-/// Load storage information
-class LoadStorageInfo extends BackupEvent {
-  const LoadStorageInfo();
-}
-
 /// Refresh backup status
 class RefreshBackupStatus extends BackupEvent {
   const RefreshBackupStatus();
