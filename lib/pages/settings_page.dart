@@ -15,6 +15,8 @@ import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dar
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
+import 'package:devocional_nuevo/services/remote_config_service.dart';
+import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +49,8 @@ class _SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<_SettingsView> {
   late final VoiceSettingsService _voiceSettingsService =
       getService<VoiceSettingsService>();
+  late final RemoteConfigService _remoteConfigService =
+      getService<RemoteConfigService>();
   late final SupporterPetService _petService =
       getService<SupporterPetService>();
   late final ISupporterProfileRepository _profileRepo =
@@ -571,6 +575,19 @@ class _SettingsViewState extends State<_SettingsView> {
               colorScheme: colorScheme,
               textTheme: textTheme,
             ),
+
+            // Google Drive Backup
+            if (_remoteConfigService.showBackupSection)
+              _buildSettingTile(
+                icon: Icons.backup_rounded,
+                title: 'backup.title'.tr(),
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const BackupSettingsPage())),
+                colorScheme: colorScheme,
+                textTheme: textTheme,
+              ),
 
             const SizedBox(height: 20),
           ],

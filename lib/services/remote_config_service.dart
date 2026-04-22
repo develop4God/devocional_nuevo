@@ -72,6 +72,7 @@ class RemoteConfigService {
         'feature_legacy': false,
         'feature_bloc': false,
         'feature_supporter': true, // Enable supporter feature (IAP)
+        'show_backup_section': true,
       });
 
       // Configure Remote Config settings with adaptive fetch interval
@@ -162,6 +163,19 @@ class RemoteConfigService {
         error: e,
       );
       return true; // Default to enabled for testing
+    }
+  }
+
+  bool get showBackupSection {
+    try {
+      return _remoteConfig.getBool('show_backup_section');
+    } catch (e) {
+      developer.log(
+        'RemoteConfigService: Error reading show_backup_section, using default: true',
+        name: 'RemoteConfigService',
+        error: e,
+      );
+      return true;
     }
   }
 
