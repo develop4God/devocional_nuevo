@@ -393,6 +393,11 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
             debugPrint('❌ [BLOC] Error en restauración automática');
             emit(const BackupError('backup.restore_failed'));
           }
+        } else {
+          // No existing backup — create the first one immediately
+          debugPrint('📤 [BLOC] No backup found, creating initial backup...');
+          await _backupService.createBackup(_devocionalProvider);
+          debugPrint('✅ [BLOC] Initial backup created');
         }
 
         // Recargar configuración después de 2 segundos
