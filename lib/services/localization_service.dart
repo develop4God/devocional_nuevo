@@ -179,7 +179,6 @@ class LocalizationService implements ILocalizationService {
     await _loadTranslations(locale.languageCode);
   }
 
-
   /// Get translation for given key
   @override
   String translate(String key, [Map<String, dynamic>? params]) {
