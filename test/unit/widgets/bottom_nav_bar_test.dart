@@ -18,6 +18,9 @@ class FakeRemoteConfigService implements RemoteConfigService {
   bool get featureSupporter => true;
 
   @override
+  bool get showBackupSection => true;
+
+  @override
   bool get featureLegacy => false;
 
   @override
