@@ -18,6 +18,7 @@ import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -581,10 +582,16 @@ class _SettingsViewState extends State<_SettingsView> {
               _buildSettingTile(
                 icon: Icons.backup_rounded,
                 title: 'backup.title'.tr(),
-                onTap: () => Navigator.push(
+                bubbleId: 'settings_backup_new',
+                onTap: () async {
+                  await BubbleUtils.markAsShown('settings_backup_new');
+                  if (!context.mounted) return;
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const BackupSettingsPage())),
+                        builder: (_) => const BackupSettingsPage()),
+                  );
+                },
                 colorScheme: colorScheme,
                 textTheme: textTheme,
               ),
@@ -607,6 +614,7 @@ class _SettingsViewState extends State<_SettingsView> {
     required IconData icon,
     required String title,
     String? subtitle,
+    String? bubbleId,
     required VoidCallback onTap,
     required ColorScheme colorScheme,
     required TextTheme textTheme,
@@ -636,12 +644,19 @@ class _SettingsViewState extends State<_SettingsView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
-                      ),
+                    Builder(
+                      builder: (context) {
+                        final titleText = Text(
+                          title,
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface,
+                          ),
+                        );
+                        return bubbleId != null
+                            ? titleText.newBubbleWithId(bubbleId)
+                            : titleText;
+                      },
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 4),
