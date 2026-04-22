@@ -202,7 +202,7 @@
   },
   "application_language": {
     "title": "Wika ng Application",
-    "description": "Pumili at i-download ang wikang gusto mong gamitin para sa application. Kasama sa bawat wika ang interface, mga debosyonal, mga talata, at audio reader.",
+    "description": "Pumili at i-download ang wikang gusto mong gamitin para sa application. Kasama sa bawat wika ang interface, mga debosyonal, mga talata, at audio reader. Ang pag-unlad at mga istatistika ay naka-save nang hiwalay para sa bawat wika.",
     "current_language": "Kasalukuyang wika",
     "download_failed": "Error sa pag-download ng nilalaman ng wika. Subukan muli.",
     "downloading": "Dina-download...",

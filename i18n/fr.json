@@ -202,7 +202,7 @@
   },
   "application_language": {
     "title": "Langue de l'Application",
-    "description": "Sélectionnez et téléchargez the langue que vous souhaitez utiliser pour l'application. Chaque langue comprend l'interface, les méditations, les versets et the lecteur audio.",
+    "description": "Sélectionnez et téléchargez la langue que vous souhaitez utiliser pour l'application. Chaque langue comprend l'interface, les méditations, les versets et le lecteur audio. La progression et les statistiques sont enregistrées par langue.",
     "current_language": "Langue actuelle",
     "download_failed": "Échec du téléchargement du contenu linguistique. Veuillez réessayer.",
     "downloading": "Téléchargement...",

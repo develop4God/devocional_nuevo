@@ -202,7 +202,7 @@
   },
   "application_language": {
     "title": "Idioma da Aplicação",
-    "description": "Selecione e baixe o idioma que deseja usar para a aplicação. Cada idioma inclui interface, devocionais, versículos e leitor de áudio.",
+    "description": "Selecione e baixe o idioma que deseja usar para a aplicação. Cada idioma inclui interface, devocionais, versículos e leitor de áudio. O progresso e as estatísticas são salvos por idioma.",
     "current_language": "Idioma atual",
     "download_failed": "Falha ao baixar o conteúdo do idioma. Por favor, tente novamente.",
     "downloading": "Baixando...",

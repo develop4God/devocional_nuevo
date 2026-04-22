@@ -202,7 +202,7 @@
   },
   "application_language": {
     "title": "Application Language",
-    "description": "Select and download the language you want to use for the application. Each language includes interface, devotionals, verses, and audio reader.",
+    "description": "Select and download the language you want to use for the application. Each language includes interface, devotionals, verses, and audio reader. Progress and stats are saved separately for each language.",
     "current_language": "Current language",
     "download_failed": "Error downloading language content. Please try again.",
     "downloading": "Downloading...",

@@ -202,7 +202,7 @@
   },
   "application_language": {
     "title": "Anwendungssprache",
-    "description": "Wähle und lade die Sprache herunter, die du für die Anwendung verwenden möchtest. Jede Sprache enthält Oberfläche, Andachten, Verse und Audioleser.",
+    "description": "Wähle und lade die Sprache herunter, die du für die Anwendung verwenden möchtest. Jede Sprache enthält Oberfläche, Andachten, Verse und Audioleser. Fortschritt und Statistiken werden pro Sprache gespeichert.",
     "current_language": "Aktuelle Sprache",
     "download_failed": "Fehler beim Herunterladen der Sprachinhalte. Bitte versuche es erneut.",
     "downloading": "Wird heruntergeladen...",
