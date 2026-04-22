@@ -29,7 +29,6 @@ class BackupLoaded extends BackupState {
   final DateTime? lastBackupTime;
   final DateTime? nextBackupTime;
   final int estimatedSize;
-  final Map<String, dynamic> storageInfo;
   final bool isAuthenticated;
   final String? userEmail;
 
@@ -42,7 +41,6 @@ class BackupLoaded extends BackupState {
     this.lastBackupTime,
     this.nextBackupTime,
     required this.estimatedSize,
-    required this.storageInfo,
     required this.isAuthenticated,
     this.userEmail,
   });
@@ -57,7 +55,6 @@ class BackupLoaded extends BackupState {
         lastBackupTime,
         nextBackupTime,
         estimatedSize,
-        storageInfo,
         isAuthenticated,
         userEmail,
       ];
@@ -72,7 +69,6 @@ class BackupLoaded extends BackupState {
     DateTime? lastBackupTime,
     DateTime? nextBackupTime,
     int? estimatedSize,
-    Map<String, dynamic>? storageInfo,
     bool? isAuthenticated,
     String? userEmail,
   }) {
@@ -85,7 +81,6 @@ class BackupLoaded extends BackupState {
       lastBackupTime: lastBackupTime ?? this.lastBackupTime,
       nextBackupTime: nextBackupTime ?? this.nextBackupTime,
       estimatedSize: estimatedSize ?? this.estimatedSize,
-      storageInfo: storageInfo ?? this.storageInfo,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       userEmail: userEmail ?? this.userEmail,
     );
