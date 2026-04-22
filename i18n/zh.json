@@ -202,7 +202,7 @@
   },
   "application_language": {
     "title": "应用程序语言",
-    "description": "选择并下载您想要用于应用程序的语言。每种语言包括界面、灵修、经文和音频阅读器。",
+    "description": "选择并下载您想要用于应用程序的语言。每种语言包括界面、灵修、经文和音频阅读器。进度和统计数据按语言单独保存。",
     "current_language": "当前语言",
     "download_failed": "下载语言内容失败。请重试。",
     "downloading": "正在下载...",
