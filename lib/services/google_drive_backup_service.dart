@@ -16,6 +16,7 @@ import 'i_connectivity_service.dart';
 import 'i_google_drive_auth_service.dart';
 import 'i_google_drive_backup_service.dart';
 import 'i_localization_service.dart';
+import 'package:devocional_nuevo/utils/backup_keys.dart';
 
 /// Service for managing Google Drive backup functionality
 /// Integrates with real Google Drive API for cloud storage
@@ -132,10 +133,10 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
 
     // Default options - all enabled
     return {
-      'spiritual_stats': true,
-      'favorite_devotionals': true,
-      'saved_prayers': true,
-      'saved_thanksgivings': true,
+      BackupKeys.spiritualStats: true,
+      BackupKeys.favoriteDevotionals: true,
+      BackupKeys.savedPrayers: true,
+      BackupKeys.savedThanksgivings: true,
     };
   }
 
@@ -187,23 +188,23 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     final options = await getBackupOptions();
 
     // Spiritual stats (~5 KB)
-    if (options['spiritual_stats'] == true) {
+    if (options[BackupKeys.spiritualStats] == true) {
       totalSize += 5 * 1024; // 5 KB
     }
 
     // Favorite devotionals
-    if (options['favorite_devotionals'] == true && provider != null) {
+    if (options[BackupKeys.favoriteDevotionals] == true && provider != null) {
       final favoritesCount = provider.favoriteDevocionales.length;
       totalSize += favoritesCount * 2 * 1024; // ~2 KB per devotional
     }
 
     // Saved prayers (~15 KB default)
-    if (options['saved_prayers'] == true) {
+    if (options[BackupKeys.savedPrayers] == true) {
       totalSize += 15 * 1024; // 15 KB
     }
 
     // Saved thanksgivings (~15 KB default)
-    if (options['saved_thanksgivings'] == true) {
+    if (options[BackupKeys.savedThanksgivings] == true) {
       totalSize += 15 * 1024; // 15 KB
     }
 
@@ -327,60 +328,60 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     );
 
     // Include spiritual stats if enabled
-    if (options['spiritual_stats'] == true) {
+    if (options[BackupKeys.spiritualStats] == true) {
       try {
         final stats = await _statsService.getAllStats();
         debugPrint('🔍 BACKUP STATS: ${json.encode(stats)}');
-        backupData['spiritual_stats'] = stats;
+        backupData[BackupKeys.spiritualStats] = stats;
         debugPrint('Included spiritual stats in backup');
       } catch (e) {
         debugPrint('Error getting spiritual stats: $e');
-        backupData['spiritual_stats'] = {};
+        backupData[BackupKeys.spiritualStats] = {};
       }
     }
 
     // Include favorite devotionals if enabled
-    if (options['favorite_devotionals'] == true && provider != null) {
+    if (options[BackupKeys.favoriteDevotionals] == true && provider != null) {
       try {
-        backupData['favorite_devotionals'] =
+        backupData[BackupKeys.favoriteDevotionals] =
             provider.favoriteDevocionales.map((dev) => dev.toJson()).toList();
         debugPrint(
           'Included ${provider.favoriteDevocionales.length} favorite devotionals in backup',
         );
       } catch (e) {
         debugPrint('Error getting favorite devotionals: $e');
-        backupData['favorite_devotionals'] = [];
+        backupData[BackupKeys.favoriteDevotionals] = [];
       }
     }
 
     // Include saved prayers if enabled
-    if (options['saved_prayers'] == true) {
+    if (options[BackupKeys.savedPrayers] == true) {
       try {
         final prefs = await SharedPreferences.getInstance();
         final prayersJson = prefs.getString('prayers') ?? '[]';
         final prayersList = json.decode(prayersJson) as List<dynamic>;
-        backupData['saved_prayers'] = prayersList;
+        backupData[BackupKeys.savedPrayers] = prayersList;
         debugPrint('Included ${prayersList.length} saved prayers in backup');
       } catch (e) {
         debugPrint('Error getting saved prayers: $e');
-        backupData['saved_prayers'] = [];
+        backupData[BackupKeys.savedPrayers] = [];
       }
     }
 
     // Include saved thanksgivings if enabled
-    if (options['saved_thanksgivings'] == true) {
+    if (options[BackupKeys.savedThanksgivings] == true) {
       try {
         final prefs = await SharedPreferences.getInstance();
         final thanksgivingsJson = prefs.getString('thanksgivings') ?? '[]';
         final thanksgivingsList =
             json.decode(thanksgivingsJson) as List<dynamic>;
-        backupData['saved_thanksgivings'] = thanksgivingsList;
+        backupData[BackupKeys.savedThanksgivings] = thanksgivingsList;
         debugPrint(
           'Included ${thanksgivingsList.length} saved thanksgivings in backup',
         );
       } catch (e) {
         debugPrint('Error getting saved thanksgivings: $e');
-        backupData['saved_thanksgivings'] = [];
+        backupData[BackupKeys.savedThanksgivings] = [];
       }
     }
 
@@ -630,9 +631,9 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
   Future<void> _restoreBackupData(Map<String, dynamic> data) async {
     try {
       // Restore spiritual stats
-      if (data.containsKey('spiritual_stats')) {
+      if (data.containsKey(BackupKeys.spiritualStats)) {
         try {
-          final stats = data['spiritual_stats'] as Map<String, dynamic>;
+          final stats = data[BackupKeys.spiritualStats] as Map<String, dynamic>;
           await _statsService.restoreStats(stats);
           debugPrint('Restored spiritual stats from backup');
         } catch (e) {
@@ -641,9 +642,9 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       }
 
       // Restore favorite devotionals
-      if (data.containsKey('favorite_devotionals')) {
+      if (data.containsKey(BackupKeys.favoriteDevotionals)) {
         try {
-          final favorites = data['favorite_devotionals'] as List<dynamic>;
+          final favorites = data[BackupKeys.favoriteDevotionals] as List<dynamic>;
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('favorites', json.encode(favorites));
           debugPrint(
@@ -655,9 +656,9 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       }
 
       // Restore saved prayers
-      if (data.containsKey('saved_prayers')) {
+      if (data.containsKey(BackupKeys.savedPrayers)) {
         try {
-          final prayers = data['saved_prayers'] as List<dynamic>;
+          final prayers = data[BackupKeys.savedPrayers] as List<dynamic>;
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('prayers', json.encode(prayers));
           debugPrint('Restored ${prayers.length} saved prayers from backup');
@@ -667,9 +668,9 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       }
 
       // Restore saved thanksgivings
-      if (data.containsKey('saved_thanksgivings')) {
+      if (data.containsKey(BackupKeys.savedThanksgivings)) {
         try {
-          final thanksgivings = data['saved_thanksgivings'] as List<dynamic>;
+          final thanksgivings = data[BackupKeys.savedThanksgivings] as List<dynamic>;
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('thanksgivings', json.encode(thanksgivings));
           debugPrint(
