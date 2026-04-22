@@ -34,8 +34,10 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
   static const String frequencyManual = 'manual';
   static const String frequencyDeactivated = 'deactivated';
 
-  // Backup file names
-  static const String _backupFileName = 'automatic_backups.json';
+  // file name is derived from localization at runtime
+
+  String get _backupFileName =>
+      '${_localizationService.translate("backup.automatic_backups").toLowerCase().replaceAll(" ", "_")}.json';
 
   final IGoogleDriveAuthService _authService;
   final IConnectivityService _connectivityService;
