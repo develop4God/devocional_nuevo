@@ -124,13 +124,7 @@ void main() async {
         error: details.exception,
         stackTrace: details.stack,
       );
-      FirebaseCrashlytics.instance.recordError(
-        details.exception,
-        details.stack,
-        fatal: false,
-        reason: 'Transient network error — not an app bug',
-      );
-      return;
+      return; // just return, never touch Crashlytics
     }
     FirebaseCrashlytics.instance.recordFlutterFatalError(details);
   };
