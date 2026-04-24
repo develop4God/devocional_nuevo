@@ -745,6 +745,132 @@ void main() {
       },
     );
 
+    // ── GoogleDriveAuthService DI registration ────────────────────────────────
+
+    test(
+      'GoogleDriveAuthService has no static _singletonInstance field',
+      () async {
+        final file = File('lib/services/google_drive_auth_service.dart');
+        expect(await file.exists(), isTrue,
+            reason: 'GoogleDriveAuthService source file should exist');
+
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('static GoogleDriveAuthService? _singletonInstance'),
+          isFalse,
+          reason: 'GoogleDriveAuthService must not manage its own singleton — '
+              'lifecycle is owned by ServiceLocator.registerLazySingleton',
+        );
+
+        expect(
+          content.contains('static GoogleDriveAuthService get instance'),
+          isFalse,
+          reason:
+              'GoogleDriveAuthService must not have a static instance getter',
+        );
+      },
+    );
+
+    test(
+      'GoogleDriveAuthService has no internal factory singleton guard',
+      () async {
+        final file = File('lib/services/google_drive_auth_service.dart');
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('_singletonInstance != null'),
+          isFalse,
+          reason:
+              'GoogleDriveAuthService must not have a factory singleton guard; '
+              'use a plain constructor and let ServiceLocator manage lifecycle',
+        );
+      },
+    );
+
+    test(
+      'GoogleDriveAuthService has a public constructor that accepts SharedPreferences',
+      () async {
+        final file = File('lib/services/google_drive_auth_service.dart');
+        final content = await file.readAsString();
+
+        expect(
+          content.contains(
+            'GoogleDriveAuthService({required SharedPreferences prefs})',
+          ),
+          isTrue,
+          reason: 'GoogleDriveAuthService must have a public constructor with '
+              'required SharedPreferences for constructor injection',
+        );
+      },
+    );
+
+    test(
+      'GoogleDriveAuthService does not call SharedPreferences.getInstance() directly',
+      () async {
+        final file = File('lib/services/google_drive_auth_service.dart');
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('SharedPreferences.getInstance()'),
+          isFalse,
+          reason:
+              'GoogleDriveAuthService must use the injected _prefs field instead '
+              'of calling SharedPreferences.getInstance() directly',
+        );
+      },
+    );
+
+    test(
+      'IGoogleDriveAuthService is registered as lazy singleton in ServiceLocator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains(
+            'registerLazySingleton<IGoogleDriveAuthService>',
+          ),
+          isTrue,
+          reason:
+              'IGoogleDriveAuthService must be registered under its interface '
+              'type in ServiceLocator — never the concrete type',
+        );
+      },
+    );
+
+    test(
+      'GoogleDriveAuthService is not instantiated directly outside service_locator.dart',
+      () async {
+        final libDir = Directory('lib');
+        expect(await libDir.exists(), isTrue);
+
+        final libFiles = await libDir
+            .list(recursive: true)
+            .where(
+              (entity) =>
+                  entity is File &&
+                  entity.path.endsWith('.dart') &&
+                  !entity.path.contains('service_locator.dart') &&
+                  !entity.path.contains('google_drive_auth_service.dart'),
+            )
+            .cast<File>()
+            .toList();
+
+        for (final file in libFiles) {
+          final content = await file.readAsString();
+          expect(
+            content.contains('GoogleDriveAuthService('),
+            isFalse,
+            reason:
+                'File ${file.path} must not instantiate GoogleDriveAuthService() '
+                'directly; use getService<IGoogleDriveAuthService>()',
+          );
+        }
+      },
+    );
+
     test(
       'Codebase does not instantiate AnalyticsService directly outside '
       'service_locator.dart',
