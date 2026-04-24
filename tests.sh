@@ -19,7 +19,8 @@ export PATH="$PATH:/home/develop4god/development/flutter/bin"
 export FLUTTER_ROOT="/home/develop4god/development/flutter"
 
 FLUTTER="/home/develop4god/development/flutter/bin/flutter"
-PROJECT="/home/develop4god/projects/devocional_nuevo"
+# Use the actual workspace path (case-sensitive) to ensure test targets resolve correctly
+PROJECT="/home/develop4god/Projects/devocional_nuevo"
 TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
 OUTPUT_FILE="/tmp/flutter_test_${TIMESTAMP}.log"
 # shellcheck disable=SC2034
