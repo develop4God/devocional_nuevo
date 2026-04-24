@@ -158,7 +158,8 @@ Future<void> setupServiceLocator() async {
 
   // ✅ REGISTER GOOGLE DRIVE AUTH SERVICE (via interface)
   locator.registerLazySingleton<IGoogleDriveAuthService>(
-      () => GoogleDriveAuthService());
+    () => GoogleDriveAuthService(prefs: locator.get<SharedPreferences>()),
+  );
 
   // ✅ REGISTER GOOGLE DRIVE BACKUP SERVICE (via interface)
   locator.registerLazySingleton<IGoogleDriveBackupService>(
