@@ -244,7 +244,29 @@ class DevocionalProvider with ChangeNotifier {
       notifyListeners();
     } finally {
       _isLoading = false;
+      // Notify after isLoading=false so waitUntilLoaded() Completer can resolve.
+      notifyListeners();
     }
+  }
+
+  /// Completes when [isLoading] transitions to false.
+  /// Safe to call when already idle — completes immediately.
+  /// Times out after 30 seconds (allows the retry block to run).
+  Future<void> waitUntilLoaded() {
+    if (!_isLoading) return Future.value();
+    final completer = Completer<void>();
+    void listener() {
+      if (!_isLoading) {
+        removeListener(listener);
+        if (!completer.isCompleted) completer.complete();
+      }
+    }
+
+    addListener(listener);
+    return completer.future.timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => removeListener(listener),
+    );
   }
 
   String _getSupportedLanguageWithFallback(String requestedLanguage) {
@@ -571,6 +593,8 @@ class DevocionalProvider with ChangeNotifier {
       notifyListeners();
     } finally {
       _isLoading = false;
+      // Notify after isLoading=false so waitUntilLoaded() Completer can resolve.
+      notifyListeners();
     }
   }
 
