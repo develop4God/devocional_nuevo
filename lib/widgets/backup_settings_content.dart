@@ -750,7 +750,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
           Text('backup.error_loading'.tr(), style: theme.textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
-            state.message,
+            state.message.tr(),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),

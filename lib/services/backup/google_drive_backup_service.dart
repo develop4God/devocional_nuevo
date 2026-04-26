@@ -224,7 +224,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       if (!await _authService.isSignedIn()) {
         final signedIn = await _authService.signIn();
         if (signedIn != true) {
-          throw Exception('backup.sign_in_failed');
+          throw Exception('backup.error_auth_failed');
         }
       }
 
@@ -495,7 +495,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       if (!await _authService.isSignedIn()) {
         final signedIn = await _authService.signIn();
         if (signedIn != true) {
-          throw Exception('backup.sign_in_failed');
+          throw Exception('backup.error_auth_failed');
         }
       }
 
