@@ -222,7 +222,10 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       debugPrint('Google Drive backup file name: $_backupFileName');
       // Check authentication
       if (!await _authService.isSignedIn()) {
-        throw Exception('Not signed in to Google Drive');
+        final signedIn = await _authService.signIn();
+        if (signedIn != true) {
+          throw Exception('backup.sign_in_failed');
+        }
       }
 
       // Check connectivity if WiFi-only is enabled
@@ -490,7 +493,10 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
 
       // Check authentication
       if (!await _authService.isSignedIn()) {
-        throw Exception('Not signed in to Google Drive');
+        final signedIn = await _authService.signIn();
+        if (signedIn != true) {
+          throw Exception('backup.sign_in_failed');
+        }
       }
 
       final driveApi = await _authService.getDriveApi();
