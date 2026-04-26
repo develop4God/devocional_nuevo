@@ -7,15 +7,15 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../blocs/prayer_bloc.dart';
-import '../blocs/prayer_event.dart';
-import '../providers/devocional_provider.dart';
-import '../services/i_spiritual_stats_service.dart';
+import '../../blocs/prayer_bloc.dart';
+import '../../blocs/prayer_event.dart';
+import '../../providers/devocional_provider.dart';
+import '../i_spiritual_stats_service.dart';
 import 'compression_service.dart';
-import 'i_connectivity_service.dart';
+import '../i_connectivity_service.dart';
 import 'i_google_drive_auth_service.dart';
 import 'i_google_drive_backup_service.dart';
-import 'i_localization_service.dart';
+import '../i_localization_service.dart';
 import 'package:devocional_nuevo/utils/backup_keys.dart';
 
 /// Service for managing Google Drive backup functionality

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../providers/devocional_provider.dart';
-import '../services/i_google_drive_backup_service.dart';
+import '../services/backup/i_google_drive_backup_service.dart';
 import 'backup_event.dart';
 import 'backup_state.dart';
 import 'discovery/discovery_bloc.dart';

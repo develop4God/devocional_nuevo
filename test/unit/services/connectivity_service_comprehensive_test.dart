@@ -5,7 +5,7 @@ library;
 
 import 'dart:async';
 
-import 'package:devocional_nuevo/services/connectivity_service.dart';
+import 'package:devocional_nuevo/services/backup/connectivity_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

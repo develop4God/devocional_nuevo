@@ -7,7 +7,7 @@ library;
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:devocional_nuevo/services/compression_service.dart';
+import 'package:devocional_nuevo/services/backup/compression_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

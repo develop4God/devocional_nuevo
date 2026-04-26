@@ -4,8 +4,8 @@
 // Depend on this interface (not the concrete class) for
 // Dependency Inversion and easy test mocking.
 
-import '../blocs/prayer_bloc.dart';
-import '../providers/devocional_provider.dart';
+import '../../blocs/prayer_bloc.dart';
+import '../../providers/devocional_provider.dart';
 
 /// Frequency constant — backup runs daily (app startup check).
 const String kBackupFrequencyDaily = 'daily';
