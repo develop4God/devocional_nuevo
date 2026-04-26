@@ -28,7 +28,7 @@ import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
-import 'package:devocional_nuevo/services/i_google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';

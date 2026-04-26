@@ -13,7 +13,7 @@ import '../blocs/theme/theme_bloc.dart';
 import '../blocs/theme/theme_state.dart';
 import '../extensions/string_extensions.dart';
 import '../providers/devocional_provider.dart';
-import '../services/i_google_drive_backup_service.dart';
+import '../services/backup/i_google_drive_backup_service.dart';
 import '../services/service_locator.dart';
 import '../widgets/backup_configuration_sheet.dart';
 

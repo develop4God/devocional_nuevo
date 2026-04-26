@@ -15,17 +15,17 @@ import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dar
 import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
-import 'package:devocional_nuevo/services/connectivity_service.dart';
+import 'package:devocional_nuevo/services/backup/connectivity_service.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart'; // NEW
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/encounter_progress_service.dart';
-import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
-import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/backup/google_drive_auth_service.dart';
+import 'package:devocional_nuevo/services/backup/google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/i_connectivity_service.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
-import 'package:devocional_nuevo/services/i_google_drive_auth_service.dart';
-import 'package:devocional_nuevo/services/i_google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/backup/i_google_drive_auth_service.dart';
+import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:devocional_nuevo/services/iap/iap_service.dart';
