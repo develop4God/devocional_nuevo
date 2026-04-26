@@ -137,6 +137,9 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       BackupKeys.favoriteDevotionals: true,
       BackupKeys.savedPrayers: true,
       BackupKeys.savedThanksgivings: true,
+      BackupKeys.completedEncounters: true,
+      BackupKeys.discoveryProgress: true,
+      BackupKeys.discoveryFavorites: true,
     };
   }
 
@@ -331,11 +334,11 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     if (options[BackupKeys.spiritualStats] == true) {
       try {
         final stats = await _statsService.getAllStats();
-        debugPrint('🔍 BACKUP STATS: ${json.encode(stats)}');
+        debugPrint('[BACKUP] 🔍 SPIRITUAL STATS: ${json.encode(stats)}');
         backupData[BackupKeys.spiritualStats] = stats;
-        debugPrint('Included spiritual stats in backup');
+        debugPrint('[BACKUP] Included spiritual stats');
       } catch (e) {
-        debugPrint('Error getting spiritual stats: $e');
+        debugPrint('[BACKUP] ❌ Error getting spiritual stats: $e');
         backupData[BackupKeys.spiritualStats] = {};
       }
     }
@@ -346,10 +349,10 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         backupData[BackupKeys.favoriteDevotionals] =
             provider.favoriteDevocionales.map((dev) => dev.toJson()).toList();
         debugPrint(
-          'Included ${provider.favoriteDevocionales.length} favorite devotionals in backup',
+          '[BACKUP] Included ${provider.favoriteDevocionales.length} favorite devotionals',
         );
       } catch (e) {
-        debugPrint('Error getting favorite devotionals: $e');
+        debugPrint('[BACKUP] ❌ Error getting favorite devotionals: $e');
         backupData[BackupKeys.favoriteDevotionals] = [];
       }
     }
@@ -361,9 +364,9 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         final prayersJson = prefs.getString('prayers') ?? '[]';
         final prayersList = json.decode(prayersJson) as List<dynamic>;
         backupData[BackupKeys.savedPrayers] = prayersList;
-        debugPrint('Included ${prayersList.length} saved prayers in backup');
+        debugPrint('[BACKUP] Included ${prayersList.length} saved prayers');
       } catch (e) {
-        debugPrint('Error getting saved prayers: $e');
+        debugPrint('[BACKUP] ❌ Error getting saved prayers: $e');
         backupData[BackupKeys.savedPrayers] = [];
       }
     }
@@ -377,22 +380,113 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
             json.decode(thanksgivingsJson) as List<dynamic>;
         backupData[BackupKeys.savedThanksgivings] = thanksgivingsList;
         debugPrint(
-          'Included ${thanksgivingsList.length} saved thanksgivings in backup',
+          '[BACKUP] Included ${thanksgivingsList.length} saved thanksgivings',
         );
       } catch (e) {
-        debugPrint('Error getting saved thanksgivings: $e');
+        debugPrint('[BACKUP] ❌ Error getting saved thanksgivings: $e');
         backupData[BackupKeys.savedThanksgivings] = [];
       }
     }
+
+    // Include completed encounters if enabled
+    if (options[BackupKeys.completedEncounters] == true) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final completedIds =
+            prefs.getStringList('encounter_completed_ids') ?? [];
+        backupData[BackupKeys.completedEncounters] = completedIds;
+        debugPrint(
+          '[BACKUP] Included ${completedIds.length} completed encounters: $completedIds',
+        );
+      } catch (e) {
+        debugPrint('[BACKUP] Error getting completed encounters: $e');
+        backupData[BackupKeys.completedEncounters] = [];
+      }
+    }
+
+    // Include discovery progress if enabled (all keys with prefix)
+    if (options[BackupKeys.discoveryProgress] == true) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final allKeys = prefs.getKeys();
+        final discoveryProgressData = <String, dynamic>{};
+        for (final key in allKeys) {
+          if (key.startsWith('discovery_progress_')) {
+            final value = prefs.getString(key);
+            if (value != null) {
+              discoveryProgressData[key] = value;
+            }
+          }
+        }
+        backupData[BackupKeys.discoveryProgress] = discoveryProgressData;
+        debugPrint(
+          '[BACKUP] Included ${discoveryProgressData.length} discovery progress entries: ${discoveryProgressData.keys.toList()}',
+        );
+      } catch (e) {
+        debugPrint('[BACKUP] Error getting discovery progress: $e');
+        backupData[BackupKeys.discoveryProgress] = <String, dynamic>{};
+      }
+    }
+
+    // Include discovery favorites if enabled (all keys with prefix)
+    if (options[BackupKeys.discoveryFavorites] == true) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final allKeys = prefs.getKeys();
+        final discoveryFavoritesData = <String, dynamic>{};
+        for (final key in allKeys) {
+          if (key.startsWith('discovery_favorite_ids_')) {
+            final value = prefs.getString(key);
+            if (value != null) {
+              discoveryFavoritesData[key] = value;
+            }
+          }
+        }
+        backupData[BackupKeys.discoveryFavorites] = discoveryFavoritesData;
+        debugPrint(
+          '[BACKUP] Included ${discoveryFavoritesData.length} discovery favorites entries: ${discoveryFavoritesData.keys.toList()}',
+        );
+      } catch (e) {
+        debugPrint('[BACKUP] Error getting discovery favorites: $e');
+        backupData[BackupKeys.discoveryFavorites] = <String, dynamic>{};
+      }
+    }
+
+    // Full backup summary log
+    debugPrint('[BACKUP] ══════════════════════════════════');
+    debugPrint('[BACKUP] FULL BACKUP PAYLOAD SUMMARY:');
+    debugPrint('[BACKUP]   timestamp: ${backupData['timestamp']}');
+    debugPrint('[BACKUP]   version: ${backupData['version']}');
+    debugPrint('[BACKUP]   app_version: ${backupData['app_version']}');
+    debugPrint('[BACKUP]   keys included: ${backupData.keys.toList()}');
+    for (final key in [
+      BackupKeys.spiritualStats,
+      BackupKeys.favoriteDevotionals,
+      BackupKeys.savedPrayers,
+      BackupKeys.savedThanksgivings,
+      BackupKeys.completedEncounters,
+      BackupKeys.discoveryProgress,
+      BackupKeys.discoveryFavorites,
+    ]) {
+      final value = backupData[key];
+      if (value is List) {
+        debugPrint('[BACKUP]   $key: ${value.length} items');
+      } else if (value is Map) {
+        debugPrint('[BACKUP]   $key: ${value.length} entries');
+      } else {
+        debugPrint('[BACKUP]   $key: $value');
+      }
+    }
+    debugPrint('[BACKUP] ══════════════════════════════════');
 
     return backupData;
   }
 
   /// Restore from Google Drive backup
   @override
-  Future<bool> restoreBackup() async {
+  Future<bool> restoreBackup({Future<void> Function()? onRestored}) async {
     try {
-      debugPrint('Restoring from Google Drive backup...');
+      debugPrint('[RESTORE] Restoring from Google Drive backup...');
 
       // Check authentication
       if (!await _authService.isSignedIn()) {
@@ -433,7 +527,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       }
 
       final fileBytes = Uint8List.fromList(bytes);
-      debugPrint('Downloaded backup file: ${fileBytes.length} bytes');
+      debugPrint('[RESTORE] Downloaded backup file: ${fileBytes.length} bytes');
 
       // Parse backup data
       Map<String, dynamic>? backupData;
@@ -458,10 +552,17 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       // Restore data
       await _restoreBackupData(backupData);
 
-      debugPrint('Google Drive backup restored successfully');
+      // Invoke callback to reload in-memory state if provided
+      if (onRestored != null) {
+        await onRestored();
+        debugPrint(
+            '[RESTORE] ✅ In-memory state reloaded via onRestored callback');
+      }
+
+      debugPrint('[RESTORE] ✅ Google Drive backup restored successfully');
       return true;
     } catch (e) {
-      debugPrint('Error restoring from Google Drive backup: $e');
+      debugPrint('[RESTORE] ❌ Error restoring from Google Drive backup: $e');
       return false;
     }
   }
@@ -630,14 +731,18 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
   /// Restore backup data to local storage
   Future<void> _restoreBackupData(Map<String, dynamic> data) async {
     try {
+      debugPrint('[RESTORE] ══════════════════════════════════');
+      debugPrint('[RESTORE] Starting backup data restoration...');
+      debugPrint('[RESTORE] Keys in backup: ${data.keys.toList()}');
+
       // Restore spiritual stats
       if (data.containsKey(BackupKeys.spiritualStats)) {
         try {
           final stats = data[BackupKeys.spiritualStats] as Map<String, dynamic>;
           await _statsService.restoreStats(stats);
-          debugPrint('Restored spiritual stats from backup');
+          debugPrint('[RESTORE] ✅ Restored spiritual stats');
         } catch (e) {
-          debugPrint('Error restoring spiritual stats: $e');
+          debugPrint('[RESTORE] ❌ Error restoring spiritual stats: $e');
         }
       }
 
@@ -649,10 +754,10 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('favorites', json.encode(favorites));
           debugPrint(
-            'Restored ${favorites.length} favorite devotionals from backup',
+            '[RESTORE] ✅ Restored ${favorites.length} favorite devotionals',
           );
         } catch (e) {
-          debugPrint('Error restoring favorite devotionals: $e');
+          debugPrint('[RESTORE] ❌ Error restoring favorite devotionals: $e');
         }
       }
 
@@ -662,9 +767,9 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           final prayers = data[BackupKeys.savedPrayers] as List<dynamic>;
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('prayers', json.encode(prayers));
-          debugPrint('Restored ${prayers.length} saved prayers from backup');
+          debugPrint('[RESTORE] ✅ Restored ${prayers.length} saved prayers');
         } catch (e) {
-          debugPrint('Error restoring saved prayers: $e');
+          debugPrint('[RESTORE] ❌ Error restoring saved prayers: $e');
         }
       }
 
@@ -676,16 +781,74 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('thanksgivings', json.encode(thanksgivings));
           debugPrint(
-            'Restored ${thanksgivings.length} saved thanksgivings from backup',
+            '[RESTORE] ✅ Restored ${thanksgivings.length} saved thanksgivings',
           );
         } catch (e) {
-          debugPrint('Error restoring saved thanksgivings: $e');
+          debugPrint('[RESTORE] ❌ Error restoring saved thanksgivings: $e');
         }
       }
 
-      debugPrint('Backup data restoration completed');
+      // Restore completed encounter IDs
+      if (data.containsKey(BackupKeys.completedEncounters)) {
+        try {
+          final completedIds =
+              (data[BackupKeys.completedEncounters] as List<dynamic>)
+                  .map((e) => e as String)
+                  .toList();
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setStringList('encounter_completed_ids', completedIds);
+          debugPrint(
+            '[RESTORE] ✅ Restored ${completedIds.length} completed encounters: $completedIds',
+          );
+        } catch (e) {
+          debugPrint('[RESTORE] ❌ Error restoring completed encounters: $e');
+        }
+      }
+
+      // Restore discovery progress (all study progress entries)
+      if (data.containsKey(BackupKeys.discoveryProgress)) {
+        try {
+          final progressData =
+              data[BackupKeys.discoveryProgress] as Map<String, dynamic>;
+          final prefs = await SharedPreferences.getInstance();
+          for (final entry in progressData.entries) {
+            if (entry.value is String &&
+                entry.key.startsWith('discovery_progress_')) {
+              await prefs.setString(entry.key, entry.value as String);
+            }
+          }
+          debugPrint(
+            '[RESTORE] ✅ Restored ${progressData.length} discovery progress entries: ${progressData.keys.toList()}',
+          );
+        } catch (e) {
+          debugPrint('[RESTORE] ❌ Error restoring discovery progress: $e');
+        }
+      }
+
+      // Restore discovery favorites (per-language favorite study IDs)
+      if (data.containsKey(BackupKeys.discoveryFavorites)) {
+        try {
+          final favoritesData =
+              data[BackupKeys.discoveryFavorites] as Map<String, dynamic>;
+          final prefs = await SharedPreferences.getInstance();
+          for (final entry in favoritesData.entries) {
+            if (entry.value is String &&
+                entry.key.startsWith('discovery_favorite_ids_')) {
+              await prefs.setString(entry.key, entry.value as String);
+            }
+          }
+          debugPrint(
+            '[RESTORE] ✅ Restored ${favoritesData.length} discovery favorites entries: ${favoritesData.keys.toList()}',
+          );
+        } catch (e) {
+          debugPrint('[RESTORE] ❌ Error restoring discovery favorites: $e');
+        }
+      }
+
+      debugPrint('[RESTORE] ══════════════════════════════════');
+      debugPrint('[RESTORE] Backup data restoration completed successfully');
     } catch (e) {
-      debugPrint('Error restoring backup data: $e');
+      debugPrint('[RESTORE] ❌ Fatal error restoring backup data: $e');
       rethrow;
     }
   }

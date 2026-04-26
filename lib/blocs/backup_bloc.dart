@@ -304,8 +304,14 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       emit(const BackupRestoring());
       debugPrint('📥 [BLOC] Estado BackupRestoring emitido');
 
-      final success = await _backupService.restoreBackup();
+      final success = await _backupService.restoreBackup(
+        onRestored: _devocionalProvider?.reloadFavoritesFromStorage,
+      );
       debugPrint('📥 [BLOC] Resultado del restore: $success');
+
+      // TODO(backup): DiscoveryBloc and EncounterBloc in-memory state is NOT
+      // reloaded here — user must navigate away and back to see restored data.
+      // Fix: dispatch a ReloadDiscovery / ReloadEncounters event after restore.
 
       if (success) {
         debugPrint('✅ [BLOC] Restore exitoso');
