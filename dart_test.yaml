@@ -42,6 +42,9 @@ tags:
   supporter:
     # Supporter/IAP feature tests
     # Example: @Tags(['unit', 'supporter'])
+  backup:
+    # Backup and restore flow tests
+    # Example: @Tags(['unit', 'services', 'backup'])
 
   integration:
     # Integration tests across multiple components
