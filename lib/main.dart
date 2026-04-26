@@ -222,6 +222,8 @@ void main() async {
           create: (context) => BackupBloc(
             backupService: getService<IGoogleDriveBackupService>(),
             devocionalProvider: context.read<DevocionalProvider>(),
+            discoveryBloc: context.read<DiscoveryBloc>(),
+            encounterBloc: context.read<EncounterBloc>(),
           ),
         ),
         BlocProvider(

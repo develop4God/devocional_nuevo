@@ -6,18 +6,28 @@ import '../providers/devocional_provider.dart';
 import '../services/i_google_drive_backup_service.dart';
 import 'backup_event.dart';
 import 'backup_state.dart';
+import 'discovery/discovery_bloc.dart';
+import 'discovery/discovery_event.dart';
+import 'encounter/encounter_bloc.dart';
+import 'encounter/encounter_event.dart';
 
 /// BLoC for managing Google Drive backup functionality
 class BackupBloc extends Bloc<BackupEvent, BackupState> {
   final IGoogleDriveBackupService _backupService;
   DevocionalProvider? _devocionalProvider;
+  final DiscoveryBloc? _discoveryBloc;
+  final EncounterBloc? _encounterBloc;
 
   BackupBloc({
     required IGoogleDriveBackupService backupService,
     DevocionalProvider? devocionalProvider,
+    DiscoveryBloc? discoveryBloc,
+    EncounterBloc? encounterBloc,
     dynamic prayerBloc,
   })  : _backupService = backupService,
         _devocionalProvider = devocionalProvider,
+        _discoveryBloc = discoveryBloc,
+        _encounterBloc = encounterBloc,
         super(const BackupInitial()) {
     // Register event handlers
     on<LoadBackupSettings>(_onLoadBackupSettings);
@@ -309,12 +319,19 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       );
       debugPrint('📥 [BLOC] Resultado del restore: $success');
 
-      // TODO(backup): DiscoveryBloc and EncounterBloc in-memory state is NOT
-      // reloaded here — user must navigate away and back to see restored data.
-      // Fix: dispatch a ReloadDiscovery / ReloadEncounters event after restore.
-
       if (success) {
         debugPrint('✅ [BLOC] Restore exitoso');
+
+        // Reload discovery and encounter state
+        _discoveryBloc?.add(RefreshDiscoveryStudies(forceRefresh: true));
+        if (_discoveryBloc != null) {
+          debugPrint('🔄 [BLOC] RefreshDiscoveryStudies event dispatched');
+        }
+
+        _encounterBloc?.add(LoadEncounterIndex(forceRefresh: true));
+        if (_encounterBloc != null) {
+          debugPrint('🔄 [BLOC] LoadEncounterIndex event dispatched');
+        }
 
         emit(const BackupRestored());
         add(const LoadBackupSettings());
@@ -388,6 +405,19 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
           if (restored) {
             debugPrint('✅ [BLOC] Datos restaurados automáticamente');
+
+            // Reload discovery and encounter state
+            _discoveryBloc?.add(RefreshDiscoveryStudies(forceRefresh: true));
+            if (_discoveryBloc != null) {
+              debugPrint(
+                  '🔄 [BLOC] RefreshDiscoveryStudies event dispatched (login restore)');
+            }
+
+            _encounterBloc?.add(LoadEncounterIndex(forceRefresh: true));
+            if (_encounterBloc != null) {
+              debugPrint(
+                  '🔄 [BLOC] LoadEncounterIndex event dispatched (login restore)');
+            }
 
             emit(
               const BackupSuccess(
