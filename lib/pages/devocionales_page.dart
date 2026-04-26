@@ -194,9 +194,33 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         listen: false,
       );
 
-      // Wait for devotionals to load if needed
-      if (!devocionalProvider.isLoading &&
-          devocionalProvider.devocionales.isEmpty) {
+      // Case A: Provider is already loading (e.g. triggered by AppInitializer).
+      // Wait for the isLoading→false transition via event instead of polling.
+      if (devocionalProvider.isLoading) {
+        debugPrint(
+          '[DEVOCIONALES_PAGE] ⏳ Provider is loading, waiting for completion...',
+        );
+        await devocionalProvider.waitUntilLoaded();
+        if (!mounted) return;
+        debugPrint(
+          '[DEVOCIONALES_PAGE] ✅ Provider loading finished '
+          '(isEmpty=${devocionalProvider.devocionales.isEmpty})',
+        );
+      } else if (devocionalProvider.devocionales.isEmpty) {
+        // Case B: Provider is idle and empty — trigger loading now.
+        await devocionalProvider.initializeData();
+        if (!mounted) return;
+      }
+
+      // Retry once if still empty (transient network failure on cold start).
+      if (devocionalProvider.devocionales.isEmpty &&
+          !devocionalProvider.isLoading) {
+        debugPrint(
+          '[DEVOCIONALES_PAGE] ⚠️ No devotionals after first attempt, '
+          'retrying in 2s...',
+        );
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
         await devocionalProvider.initializeData();
         if (!mounted) return;
       }
