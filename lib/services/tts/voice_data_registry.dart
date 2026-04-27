@@ -268,24 +268,24 @@ class VoiceDataRegistry {
 
   /// Tagalog/Filipino premium voices
   static const Map<String, VoiceMetadata> tagalogVoices = {
-    'fil-ph-x-fld-local': VoiceMetadata(
+    'fil-ph-x-fie-local': VoiceMetadata(
       emoji: '🇵🇭',
-      description: 'Lalaki',
+      description: 'male fil-PH',
       genderIcon: Icons.man_3_outlined,
     ),
-    'fil-ph-x-fld-network': VoiceMetadata(
+    'fil-ph-x-fic-local': VoiceMetadata(
       emoji: '🇵🇭',
-      description: 'Lalaki',
-      genderIcon: Icons.man_3_outlined,
-    ),
-    'fil-ph-x-flf-local': VoiceMetadata(
-      emoji: '🇵🇭',
-      description: 'Babae',
+      description: 'female fil-PH',
       genderIcon: Icons.woman_outlined,
     ),
-    'fil-ph-x-flf-network': VoiceMetadata(
+    'fil-ph-x-fid-network': VoiceMetadata(
       emoji: '🇵🇭',
-      description: 'Babae',
+      description: 'male fil-PH',
+      genderIcon: Icons.man_3_outlined,
+    ),
+    'fil-ph-x-cfc-local': VoiceMetadata(
+      emoji: '🇵🇭',
+      description: 'female fil-PH',
       genderIcon: Icons.woman_outlined,
     ),
   };
