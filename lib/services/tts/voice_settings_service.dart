@@ -71,11 +71,7 @@ class VoiceSettingsService {
         'ar-AE',
         'ar'
       ], // Arabic - any ar-* device voice
-      'fil': [
-        'fil-PH',
-        'tl-PH',
-        'en-US'
-      ], // Filipino with English fallback
+      'fil': ['fil-PH', 'tl-PH', 'en-US'], // Filipino with English fallback
     };
     final locales = preferredLocales[language] ?? [language];
 

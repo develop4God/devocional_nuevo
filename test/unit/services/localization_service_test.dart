@@ -149,7 +149,7 @@ void main() {
       expect(
         LocalizationService.supportedLocales.map((l) => l.languageCode),
         containsAll(
-            ['en', 'es', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar', 'tl']),
+            ['en', 'es', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar', 'fil']),
       );
     });
 
@@ -158,8 +158,8 @@ void main() {
       expect(localizationService.getTtsLocale(), equals('ja-JP'));
     });
 
-    test('should return correct Tagalog TTS locale', () async {
-      await localizationService.changeLocale(const Locale('tl'));
+    test('should return correct Filipino TTS locale', () async {
+      await localizationService.changeLocale(const Locale('fil'));
       expect(localizationService.getTtsLocale(), equals('fil-PH'));
     });
 
@@ -167,8 +167,8 @@ void main() {
       expect(localizationService.getLanguageName('ja'), equals('日本語'));
     });
 
-    test('should return Tagalog language name', () {
-      expect(localizationService.getLanguageName('tl'), equals('Tagalog'));
+    test('should return Filipino language name', () {
+      expect(localizationService.getLanguageName('fil'), equals('Tagalog'));
     });
 
     test('should return language code for unknown language', () {
