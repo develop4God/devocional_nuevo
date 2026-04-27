@@ -140,6 +140,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       BackupKeys.completedEncounters: true,
       BackupKeys.discoveryProgress: true,
       BackupKeys.discoveryFavorites: true,
+      BackupKeys.testimonies: true,
     };
   }
 
@@ -209,6 +210,11 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     // Saved thanksgivings (~15 KB default)
     if (options[BackupKeys.savedThanksgivings] == true) {
       totalSize += 15 * 1024; // 15 KB
+    }
+
+    // Testimonies (~10 KB default)
+    if (options[BackupKeys.testimonies] == true) {
+      totalSize += 10 * 1024; // 10 KB
     }
 
     return totalSize;
@@ -391,6 +397,20 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       }
     }
 
+    // Include testimonies if enabled
+    if (options[BackupKeys.testimonies] == true) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final testimoniesJson = prefs.getString('testimonies') ?? '[]';
+        final testimoniesList = json.decode(testimoniesJson) as List<dynamic>;
+        backupData[BackupKeys.testimonies] = testimoniesList;
+        debugPrint('[BACKUP] Included ${testimoniesList.length} testimonies');
+      } catch (e) {
+        debugPrint('[BACKUP] ❌ Error getting testimonies: $e');
+        backupData[BackupKeys.testimonies] = [];
+      }
+    }
+
     // Include completed encounters if enabled
     if (options[BackupKeys.completedEncounters] == true) {
       try {
@@ -470,6 +490,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       BackupKeys.completedEncounters,
       BackupKeys.discoveryProgress,
       BackupKeys.discoveryFavorites,
+      BackupKeys.testimonies,
     ]) {
       final value = backupData[key];
       if (value is List) {
@@ -791,6 +812,20 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           );
         } catch (e) {
           debugPrint('[RESTORE] ❌ Error restoring saved thanksgivings: $e');
+        }
+      }
+
+      // Restore testimonies
+      if (data.containsKey(BackupKeys.testimonies)) {
+        try {
+          final testimonies = data[BackupKeys.testimonies] as List<dynamic>;
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('testimonies', json.encode(testimonies));
+          debugPrint(
+            '[RESTORE] ✅ Restored ${testimonies.length} testimonies',
+          );
+        } catch (e) {
+          debugPrint('[RESTORE] ❌ Error restoring testimonies: $e');
         }
       }
 

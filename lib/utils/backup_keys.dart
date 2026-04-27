@@ -13,4 +13,5 @@ abstract class BackupKeys {
   static const String completedEncounters = 'completed_encounters';
   static const String discoveryProgress = 'discovery_progress';
   static const String discoveryFavorites = 'discovery_favorites';
+  static const String testimonies = 'testimonies';
 }

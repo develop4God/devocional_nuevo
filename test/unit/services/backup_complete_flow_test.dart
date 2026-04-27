@@ -44,6 +44,11 @@ void main() {
     payload[BackupKeys.savedThanksgivings] =
         json.decode(thanksgivingsJson) as List<dynamic>;
 
+    // Testimonies
+    final testimoniesJson = prefs.getString('testimonies') ?? '[]';
+    payload[BackupKeys.testimonies] =
+        json.decode(testimoniesJson) as List<dynamic>;
+
     // Completed encounters
     final completedIds = prefs.getStringList('encounter_completed_ids') ?? [];
     payload[BackupKeys.completedEncounters] = completedIds;
@@ -95,6 +100,13 @@ void main() {
       );
     }
 
+    if (data.containsKey(BackupKeys.testimonies)) {
+      await prefs.setString(
+        'testimonies',
+        json.encode(data[BackupKeys.testimonies]),
+      );
+    }
+
     if (data.containsKey(BackupKeys.completedEncounters)) {
       final ids = (data[BackupKeys.completedEncounters] as List<dynamic>)
           .map((e) => e as String)
@@ -130,7 +142,7 @@ void main() {
   // ────────────────────────────────────────────────────────────────
 
   group('Backup — default getBackupOptions includes all categories', () {
-    test('all 7 categories are enabled by default', () {
+    test('all 8 categories are enabled by default', () {
       // Mirrors the default map returned by getBackupOptions()
       final defaultOptions = {
         BackupKeys.spiritualStats: true,
@@ -140,14 +152,16 @@ void main() {
         BackupKeys.completedEncounters: true,
         BackupKeys.discoveryProgress: true,
         BackupKeys.discoveryFavorites: true,
+        BackupKeys.testimonies: true,
       };
 
-      expect(defaultOptions.length, equals(7));
+      expect(defaultOptions.length, equals(8));
       expect(defaultOptions.values.every((v) => v == true), isTrue);
       expect(
           defaultOptions.containsKey(BackupKeys.completedEncounters), isTrue);
       expect(defaultOptions.containsKey(BackupKeys.discoveryProgress), isTrue);
       expect(defaultOptions.containsKey(BackupKeys.discoveryFavorites), isTrue);
+      expect(defaultOptions.containsKey(BackupKeys.testimonies), isTrue);
     });
   });
 
@@ -160,6 +174,7 @@ void main() {
       expect(BackupKeys.completedEncounters, isNotEmpty);
       expect(BackupKeys.discoveryProgress, isNotEmpty);
       expect(BackupKeys.discoveryFavorites, isNotEmpty);
+      expect(BackupKeys.testimonies, isNotEmpty);
     });
 
     test('all keys are unique', () {
@@ -171,6 +186,7 @@ void main() {
         BackupKeys.completedEncounters,
         BackupKeys.discoveryProgress,
         BackupKeys.discoveryFavorites,
+        BackupKeys.testimonies,
       ];
       expect(keys.toSet().length, equals(keys.length));
     });
