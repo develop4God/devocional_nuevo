@@ -345,7 +345,15 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         final stats = await _statsService.getAllStats();
         debugPrint('[BACKUP] 🔍 SPIRITUAL STATS: ${json.encode(stats)}');
         backupData[BackupKeys.spiritualStats] = stats;
-        debugPrint('[BACKUP] Included spiritual stats');
+
+        // Extract details for clear logging
+        final readDevocionalIds = (stats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
+        debugPrint('[BACKUP] Included spiritual stats:');
+        debugPrint('[BACKUP]   - Total devotionals read: ${stats['totalDevocionalesRead'] ?? 0}');
+        debugPrint('[BACKUP]   - Completed devotional IDs: $readDevocionalIds');
+        debugPrint('[BACKUP]   - Current streak: ${stats['currentStreak'] ?? 0}');
+        debugPrint('[BACKUP]   - Longest streak: ${stats['longestStreak'] ?? 0}');
+        debugPrint('[BACKUP]   - Favorites count: ${stats['favoritesCount'] ?? 0}');
       } catch (e) {
         debugPrint('[BACKUP] ❌ Error getting spiritual stats: $e');
         backupData[BackupKeys.spiritualStats] = {};
@@ -762,16 +770,24 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       debugPrint('[RESTORE] Starting backup data restoration...');
       debugPrint('[RESTORE] Keys in backup: ${data.keys.toList()}');
 
-      // Restore spiritual stats
-      if (data.containsKey(BackupKeys.spiritualStats)) {
-        try {
-          final stats = data[BackupKeys.spiritualStats] as Map<String, dynamic>;
-          await _statsService.restoreStats(stats);
-          debugPrint('[RESTORE] ✅ Restored spiritual stats');
-        } catch (e) {
-          debugPrint('[RESTORE] ❌ Error restoring spiritual stats: $e');
-        }
-      }
+       // Restore spiritual stats
+       if (data.containsKey(BackupKeys.spiritualStats)) {
+         try {
+           final stats = data[BackupKeys.spiritualStats] as Map<String, dynamic>;
+           await _statsService.restoreStats(stats);
+
+           // Extract and log read devotional IDs count
+           final readDevocionalIds = (stats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
+           debugPrint('[RESTORE] ✅ Restored spiritual stats');
+           debugPrint('[RESTORE]   - Total devotionals read: ${stats['totalDevocionalesRead'] ?? 0}');
+           debugPrint('[RESTORE]   - Completed devotional IDs: $readDevocionalIds (${stats['readDevocionalIds']?.toString() ?? '[]'})');
+           debugPrint('[RESTORE]   - Current streak: ${stats['currentStreak'] ?? 0}');
+           debugPrint('[RESTORE]   - Longest streak: ${stats['longestStreak'] ?? 0}');
+           debugPrint('[RESTORE]   - Favorites count: ${stats['favoritesCount'] ?? 0}');
+         } catch (e) {
+           debugPrint('[RESTORE] ❌ Error restoring spiritual stats: $e');
+         }
+       }
 
       // Restore favorite devotionals
       if (data.containsKey(BackupKeys.favoriteDevotionals)) {
