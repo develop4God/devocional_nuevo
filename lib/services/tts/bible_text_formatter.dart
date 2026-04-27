@@ -62,7 +62,7 @@ class BibleTextFormatter {
       case 'ar':
         return _formatBibleBookArabic(reference);
       case 'fil':
-        return _formatBibleBookTagalog(reference);
+        return _formatBibleBookFilipino(reference);
       default:
         debugPrint(
           '[BibleTextFormatter] Unknown language "$language", using Spanish as default',
@@ -251,8 +251,8 @@ class BibleTextFormatter {
   }
 
   /// Formato para libros bíblicos en tagalo (con ordinales para 1, 2, 3)
-  static String _formatBibleBookTagalog(String reference) {
-    // Tagalog uses ordinals for numbered books (1 Juan -> Una ng Juan)
+  static String _formatBibleBookFilipino(String reference) {
+    // Filipino uses ordinals for numbered books (1 Juan -> Una Juan)
     // Pattern to match digit + Tagalog book name (Latin with diacritics)
     final exp = RegExp(
       r'(?:^|\s)([123])\s+([A-Za-záéíóúñÁÉÍÓÚÑ]+)',
@@ -302,6 +302,11 @@ class BibleTextFormatter {
         return {
           'LU17': 'Lutherbibel zweitausendsiebzehn',
           'SCH2000': 'Schlachter zweitausend',
+        };
+      case 'ja':
+        return {
+          '新改訳2003': '新改訳にせんさんねん',
+          'リビングバイブル': 'リビングバイブル',
         };
       case 'zh':
         return {'和合本1919': '和合本一九一九', '新译本': '新译本'};
