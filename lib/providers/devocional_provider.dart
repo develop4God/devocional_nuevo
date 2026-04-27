@@ -315,6 +315,10 @@ class DevocionalProvider with ChangeNotifier {
     return await _audioController!.getVoicesForLanguage(language);
   }
 
+  Future<void> assignDefaultVoiceForLanguage(String languageCode) async {
+    await _audioController!.assignDefaultVoiceForLanguage(languageCode);
+  }
+
   Future<void> setTtsLanguage(String language) async {
     await _audioController!.setLanguage(language);
   }
