@@ -106,20 +106,26 @@ class CopyrightUtils {
             'النص الكتابي الترجمة العربية الجديدة © 2005 Biblica, Inc. جميع الحقوق محفوظة.',
       },
       'fil': {
+        'MBB05':
+            'Ang Magandang Balita Biblia (MBB) © 2005, 2012 Philippine Bible Society. Lahat ng karapatan ay nakalaan.',
         'ASND':
             'Ang Salita ng Dios (Tagalog Contemporary Bible) © 2009, 2011, 2014, 2015 Biblica, Inc. ® Ginamit sa pahintulot ng Biblica, Inc.® Lahat ng karapatan ay nakalaan sa buong mundo.',
         'ADB':
             'Ang Dating Biblia (1905) © Philippine Bible Society. Pampublikong domain.',
+        'MBB05_fil.SQLite3':
+            'Ang Magandang Balita Biblia (MBB) © 2005, 2012 Philippine Bible Society. Lahat ng karapatan ay nakalaan.',
         'ASND_fil.SQLite3':
             'Ang Salita ng Dios (Tagalog Contemporary Bible) © 2009, 2011, 2014, 2015 Biblica, Inc. ® Ginamit sa pahintulot ng Biblica, Inc.® Lahat ng karapatan ay nakalaan sa buong mundo.',
         'ADB_fil.SQLite3':
             'Ang Dating Biblia (1905) © Philippine Bible Society. Pampublikong domain.',
+        'Magandang Balita Biblia (MBB05)':
+            'Ang Magandang Balita Biblia (MBB) © 2005, 2012 Philippine Bible Society. Lahat ng karapatan ay nakalaan.',
         'Ang Salita ng Dios (ASND)':
             'Ang Salita ng Dios (Tagalog Contemporary Bible) © 2009, 2011, 2014, 2015 Biblica, Inc. ® Ginamit sa pahintulot ng Biblica, Inc.® Lahat ng karapatan ay nakalaan sa buong mundo.',
         'Ang Dating Biblia (ADB)':
             'Ang Dating Biblia (1905) © Philippine Bible Society. Pampublikong domain.',
         'default':
-            'Ang Salita ng Dios (Tagalog Contemporary Bible) © 2009, 2011, 2014, 2015 Biblica, Inc. ® Ginamit sa pahintulot ng Biblica, Inc.® Lahat ng karapatan ay nakalaan sa buong mundo.',
+            'Ang Magandang Balita Biblia (MBB) © 2005, 2012 Philippine Bible Society. Lahat ng karapatan ay nakalaan.',
       },
     };
 
