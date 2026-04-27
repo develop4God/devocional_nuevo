@@ -30,15 +30,32 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
         : 'en';
   }
 
+  /// Get all possible locale prefixes for a given language code.
+  /// Handles language aliases (e.g., 'fil' -> ['fil', 'tl'] for Tagalog/Filipino).
+  List<String> _getLocaleAliasesForLanguage(String lang) {
+    final Map<String, List<String>> languageAliases = {
+      'fil': ['fil', 'tl'], // Filipino = Tagalog
+    };
+    return languageAliases[lang] ?? [lang];
+  }
+
+  /// Check if a voice locale matches the language code or its aliases.
+  bool _voiceMatchesLanguage(String voiceLocale, String languageCode) {
+    final aliases = _getLocaleAliasesForLanguage(languageCode);
+    final voiceLowerCase = voiceLocale.toLowerCase();
+    return aliases.any(
+      (alias) => voiceLowerCase.startsWith(alias.toLowerCase()),
+    );
+  }
+
   Future<void> _loadAllVoices(String lang) async {
     setState(() => _explorerLoading = true);
     final raw = await _explorerTts.getVoices;
     if (raw is List) {
       final filtered = raw
           .cast<Map>()
-          .where((v) => (v['locale'] as String? ?? '')
-              .toLowerCase()
-              .startsWith(lang.toLowerCase()))
+          .where(
+              (v) => _voiceMatchesLanguage(v['locale'] as String? ?? '', lang))
           .map((v) => {
                 'name': v['name'] as String? ?? '',
                 'locale': v['locale'] as String? ?? ''
@@ -56,7 +73,9 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
   Future<void> _playSample(String name, String locale, int index) async {
     setState(() => _explorerPlayingIndex = index);
     await _explorerTts.setVoice({'name': name, 'locale': locale});
-    await _explorerTts.speak('مرحبا، هذا صوت تجريبي. كيفك؟');
+    // Use localized sample text for the language
+    final sampleText = VoiceDataRegistry.getSampleText(_explorerLang);
+    await _explorerTts.speak(sampleText);
     setState(() => _explorerPlayingIndex = null);
   }
 
