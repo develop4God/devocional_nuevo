@@ -21,6 +21,13 @@ class BibleTextFormatter {
     // Remove C0 control characters except common whitespace (tab/newline/carriage)
     out = out.replaceAll(RegExp(r"[\x00-\x08\x0B\x0C\x0E-\x1F]"), '');
 
+    // Remove Unicode "Enclosed Alphanumerics" (U+2460–U+24FF): circled numbers
+    // (①②③…), circled uppercase letters (Ⓐ–Ⓩ), and circled lowercase letters
+    // (ⓐ–ⓩ). These are used as inline footnote markers in Bible databases
+    // (e.g. MBB05 "Sinabi ⓐ ng Diyos" → "Sinabi ng Diyos") and should be
+    // stripped before TTS across ALL Bible versions and languages.
+    out = out.replaceAll(RegExp(r'[\u2460-\u24FF]'), '');
+
     // Also trim and normalize multiple whitespace to single spaces for stable matching
     out = out.replaceAll(RegExp(r"\s+"), ' ').trim();
     return out;
