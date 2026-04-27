@@ -272,7 +272,7 @@ void main() {
         expect(languages['hi'], isNotNull);
         expect(languages['de'], equals('Deutsch'));
         expect(languages['ar'], equals('العربية'));
-        expect(languages['tl'], equals('Tagalog'));
+        expect(languages['fil'], equals('Tagalog'));
       },
     );
 

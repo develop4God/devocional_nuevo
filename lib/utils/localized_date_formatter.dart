@@ -35,9 +35,9 @@ class LocalizedDateFormatter {
       case 'ar':
         debugPrint('📅 [DateFormatter] Using Arabic date format');
         return DateFormat('EEEE، d MMMM', 'ar');
-      case 'tl':
-        debugPrint('📅 [DateFormatter] Using Tagalog date format');
-        return DateFormat('EEEE, MMMM d', 'tl');
+      case 'fil':
+        debugPrint('📅 [DateFormatter] Using Filipino date format');
+        return DateFormat('EEEE, MMMM d', 'fil');
       default:
         debugPrint(
             '📅 [DateFormatter] Unknown language "$languageCode", using English');

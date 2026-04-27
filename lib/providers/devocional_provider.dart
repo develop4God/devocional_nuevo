@@ -125,7 +125,7 @@ class DevocionalProvider with ChangeNotifier {
     'hi', // Add Hindi
     'de', // Add German
     'ar', // Add Arabic
-    'tl', // Add Tagalog
+    'fil', // Add Filipino
   ];
   static const String _fallbackLanguage = 'es';
 
