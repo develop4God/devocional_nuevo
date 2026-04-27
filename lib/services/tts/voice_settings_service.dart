@@ -71,11 +71,11 @@ class VoiceSettingsService {
         'ar-AE',
         'ar'
       ], // Arabic - any ar-* device voice
-      'tl': [
+      'fil': [
         'fil-PH',
         'tl-PH',
         'en-US'
-      ], // Tagalog/Filipino with English fallback
+      ], // Filipino with English fallback
     };
     final locales = preferredLocales[language] ?? [language];
 
@@ -164,7 +164,7 @@ class VoiceSettingsService {
           'ar-xa-x-arz-local', // Female voice Arabic 1
           'ar-xa-x-arz-network', // Female voice Arabic 2
         ],
-        'tl': [
+        'fil': [
           'fil-ph-x-fld-local', // Male voice Filipino
           'fil-ph-x-fld-network', // Male voice Filipino network
           'fil-ph-x-flf-local', // Female voice Filipino
@@ -588,7 +588,7 @@ class VoiceSettingsService {
         case 'ar':
           friendlyName = 'الصوت الافتراضي';
           break;
-        case 'tl':
+        case 'fil':
           friendlyName = 'Default na Tinig';
           break;
         default:
@@ -787,7 +787,7 @@ class VoiceSettingsService {
         return 'hi-IN';
       case 'ar':
         return 'ar';
-      case 'tl':
+      case 'fil':
         return 'fil-PH';
       default:
         return 'es-ES';
@@ -1013,7 +1013,7 @@ class VoiceSettingsService {
       'ar-xa-x-arz-local': '🇸🇦 امرأة صوت 1', // Female Arabic 1
       'ar-xa-x-arz-network': '🇸🇦 امرأة صوت 1', // Female Arabic 1 network
     },
-    'tl': {
+    'fil': {
       'fil-ph-x-fld-local': '🇵🇭 Lalaking Pilipinas', // Male Filipino
       'fil-ph-x-fld-network':
           '🇵🇭 Lalaking Pilipinas', // Male Filipino network
