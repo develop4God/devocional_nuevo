@@ -54,7 +54,7 @@ class BibleTextFormatter {
         return _formatBibleBookHindi(reference);
       case 'ar':
         return _formatBibleBookArabic(reference);
-      case 'tl':
+      case 'fil':
         return _formatBibleBookTagalog(reference);
       default:
         debugPrint(
@@ -313,7 +313,7 @@ class BibleTextFormatter {
           'NAV': 'كتاب الحياة',
           'SVDA': 'الكتاب المقدس — فان دايك',
         };
-      case 'tl':
+      case 'fil':
         return {
           'ASND': 'Ang Salita ng Dios',
           'ADB': 'Ang Dating Biblia',
@@ -367,8 +367,8 @@ class BibleTextFormatter {
       // Hindi: capítulo=अध्याय (adhyāya), versículo=पद (pada)
       'ar': 'الإصحاح|الآية',
       // Arabic: capítulo=الإصحاح (chapter), versículo=الآية (verse)
-      'tl': 'kabanata|talata',
-      // Tagalog: capítulo=kabanata, versículo=talata
+      'fil': 'kabanata|talata',
+      // Filipino: capítulo=kabanata, versículo=talata
     };
 
     final words = referenceWords[language] ?? 'capítulo|versículo';
@@ -431,7 +431,7 @@ class BibleTextFormatter {
                                     ? 'से'
                                     : language == 'ar'
                                         ? 'إلى'
-                                        : language == 'tl'
+                                        : language == 'fil'
                                             ? 'hanggang'
                                             : 'al';
         result += ' $toWord $verseEnd';
