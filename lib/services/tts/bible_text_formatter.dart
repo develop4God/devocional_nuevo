@@ -315,6 +315,7 @@ class BibleTextFormatter {
         };
       case 'fil':
         return {
+          'MBB05': 'Magandang Balita Biblia',
           'ASND': 'Ang Salita ng Dios',
           'ADB': 'Ang Dating Biblia',
         };
