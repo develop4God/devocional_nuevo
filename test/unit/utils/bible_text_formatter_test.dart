@@ -623,4 +623,56 @@ void main() {
       expect(expansions['ADB'], 'Ang Dating Biblia');
     });
   });
+
+  group('BibleTextFormatter - Footnote Marker Sanitization', () {
+    test('removes circled lowercase letter footnote markers (ⓐ, ⓑ) for fil',
+        () {
+      // MBB05 uses ⓐ, ⓑ etc. as inline footnote markers
+      final result = BibleTextFormatter.normalizeTtsText(
+        'Sinabi ⓐ ng Diyos: "Magkaroon ng liwanag ⓑ."',
+        'fil',
+        'MBB05',
+      );
+      expect(result, isNot(contains('ⓐ')));
+      expect(result, isNot(contains('ⓑ')));
+      expect(result, contains('Sinabi'));
+      expect(result, contains('ng Diyos'));
+    });
+
+    test(
+        'removes circled letter markers for all languages (universal sanitization)',
+        () {
+      // Verify footnote stripping works for any language, not only fil
+      final result = BibleTextFormatter.normalizeTtsText(
+        'God ⓐ said: "Let there be light ⓑ."',
+        'en',
+        'KJV',
+      );
+      expect(result, isNot(contains('ⓐ')));
+      expect(result, isNot(contains('ⓑ')));
+    });
+
+    test('removes circled number markers ①②③', () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        'Verse ① contains a note ② about this passage ③.',
+        'es',
+        'RVR1960',
+      );
+      expect(result, isNot(contains('①')));
+      expect(result, isNot(contains('②')));
+      expect(result, isNot(contains('③')));
+    });
+
+    test(
+        'normalizes extra whitespace after removing consecutive footnote markers',
+        () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        'Sinabi  ⓐ  ng  Diyos',
+        'fil',
+        'MBB05',
+      );
+      // Should not have multiple spaces after removal
+      expect(result, isNot(contains('  ')));
+    });
+  });
 }

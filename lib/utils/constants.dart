@@ -76,7 +76,10 @@ class Constants {
     'hi': ['HIOV', 'HERV'], // Hindi versions
     'de': ['LU17', 'SCH2000'], // German versions
     'ar': ['NAV', 'SVDA'], // Arabic versions
-    'fil': ['MBB05', 'ASND', 'ADB'], // Filipino versions
+    'fil': [
+      'MBB05',
+      'ASND'
+    ], // Filipino versions (only versions with devotional content)
   };
 
   // Versión de Biblia por defecto por idioma
@@ -91,12 +94,6 @@ class Constants {
     'de': 'LU17', // Default German version
     'ar': 'NAV', // Default Arabic version
     'fil': 'MBB05', // Default Filipino version (Magandang Balita Biblia 2005)
-  };
-
-  // Nombres japoneses para versiones de la Biblia (deprecated - versions now use Japanese names directly)
-  static const Map<String, String> bibleJapaneseNames = {
-    '新改訳2003': '新改訳2003', // Shinkaiyaku 2003
-    'リビングバイブル': 'リビングバイブル', // Living Bible
   };
 
   /// PREFERENCIAS (SharedPreferences KEYS)
@@ -212,7 +209,11 @@ class Constants {
     if (version.languageCode == 'ja' ||
         version.languageCode == 'zh' ||
         version.languageCode == 'hi' ||
-        version.languageCode == 'ar') {
+        version.languageCode == 'ar' ||
+        version.languageCode == 'fil') {
+      // For languages whose version names are self-describing (native-script or
+      // already include the code in the name), return '' so _versionPickerLabel
+      // does not append a duplicate code suffix.
       return '';
     }
     final parts = version.dbFileName.split('_');
