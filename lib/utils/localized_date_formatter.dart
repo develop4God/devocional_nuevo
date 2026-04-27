@@ -37,7 +37,7 @@ class LocalizedDateFormatter {
         return DateFormat('EEEE، d MMMM', 'ar');
       case 'fil':
         debugPrint('📅 [DateFormatter] Using Filipino date format');
-        return DateFormat('EEEE, MMMM d', 'fil');
+        return DateFormat("EEEE, d 'ng' MMMM", 'fil');
       default:
         debugPrint(
             '📅 [DateFormatter] Unknown language "$languageCode", using English');
