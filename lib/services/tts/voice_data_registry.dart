@@ -270,22 +270,22 @@ class VoiceDataRegistry {
   static const Map<String, VoiceMetadata> tagalogVoices = {
     'fil-ph-x-fie-local': VoiceMetadata(
       emoji: '🇵🇭',
-      description: 'male fil-PH',
+      description: 'Lalaking Pilipinas',
       genderIcon: Icons.man_3_outlined,
     ),
     'fil-ph-x-fic-local': VoiceMetadata(
       emoji: '🇵🇭',
-      description: 'female fil-PH',
+      description: 'Babae Pilipinas',
       genderIcon: Icons.woman_outlined,
     ),
     'fil-ph-x-fid-network': VoiceMetadata(
       emoji: '🇵🇭',
-      description: 'male fil-PH',
+      description: 'Lalaking Pilipinas',
       genderIcon: Icons.man_3_outlined,
     ),
     'fil-ph-x-cfc-local': VoiceMetadata(
       emoji: '🇵🇭',
-      description: 'female fil-PH',
+      description: 'Babae Pilipinas',
       genderIcon: Icons.woman_outlined,
     ),
   };
