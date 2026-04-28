@@ -223,7 +223,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
 
   /// Download the current Drive backup file as a raw map.
   /// Returns null if no backup file exists yet.
-  /// Throws on network or auth errors — caller handles fallback.
+  /// Returns null on all error paths — never throws.
   Future<Map<String, dynamic>?> _downloadCurrentDriveBackup() async {
     try {
       debugPrint('[BACKUP] Fetching existing Drive backup for merge...');
@@ -340,7 +340,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     final mergedFavs = {...localFavs, ...remoteFavs}.toList();
 
     // Patch favoritesCount to reflect actual merged favorites length
-    final patchedStats = mergedStats.copyWith(favoritesCount: mergedFavs.length);
+    final patchedStats =
+        mergedStats.copyWith(favoritesCount: mergedFavs.length);
 
     // --- Prayers merge (union by id) ---
     final mergedPrayers = {
