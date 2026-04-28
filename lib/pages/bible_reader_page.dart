@@ -769,6 +769,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                               fontSize: 13,
                               fontWeight: FontWeight.w400,
                             ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                   ],
                 ),
@@ -839,7 +841,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                               else
                                 const SizedBox(width: 20),
                               const SizedBox(width: 8),
-                              Text(_versionPickerLabel(version)),
+                              Flexible(
+                                child: Text(
+                                  _versionPickerLabel(version),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ],
                           ),
                         );

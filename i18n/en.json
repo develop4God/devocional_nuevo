@@ -519,7 +519,13 @@
     "more_options": "More options",
     "optimization": "Optimization",
     "account_management": "Account Management",
-    "logout_google_drive": "Sign out from Google Drive"
+    "logout_google_drive": "Sign out from Google Drive",
+    "signing_in_title": "Connecting to Google Drive",
+    "signing_in_subtitle": "Verifying your identity to keep your spiritual progress safe...",
+    "restoring_title": "Restoring your data",
+    "restoring_subtitle": "We found a backup in your Google Drive and are bringing back your spiritual progress...",
+    "protected_title": "Your data is protected!",
+    "protected_subtitle": "Your spiritual progress is safely stored in your personal Google Drive."
   },
   "review": {
     "title": "Thank you for your consistency 🙏",

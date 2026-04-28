@@ -519,7 +519,13 @@
     "more_options": "Weitere Optionen",
     "optimization": "Optimierung",
     "account_management": "Kontoverwaltung",
-    "logout_google_drive": "Von Google Drive abmelden"
+    "logout_google_drive": "Von Google Drive abmelden",
+    "signing_in_title": "Verbindung mit Google Drive",
+    "signing_in_subtitle": "Deine Identität wird überprüft, um deinen spirituellen Fortschritt zu schützen...",
+    "restoring_title": "Deine Daten werden wiederhergestellt",
+    "restoring_subtitle": "Wir haben ein Backup in deinem Google Drive gefunden und stellen deinen spirituellen Fortschritt wieder her...",
+    "protected_title": "Deine Daten sind geschützt!",
+    "protected_subtitle": "Dein spiritueller Fortschritt ist sicher in deinem persönlichen Google Drive gespeichert."
   },
   "review": {
     "title": "Danke für deine Beständigkeit 🙏",

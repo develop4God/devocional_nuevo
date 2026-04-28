@@ -624,6 +624,15 @@ class AudioController extends ChangeNotifier {
     }
   }
 
+  Future<void> assignDefaultVoiceForLanguage(String languageCode) async {
+    try {
+      await _ttsService.assignDefaultVoiceForLanguage(languageCode);
+    } catch (e) {
+      debugPrint('AudioController: Error assigning default voice: $e');
+      rethrow;
+    }
+  }
+
   // FIX 2: Método público para forzar parada desde el exterior - sin validaciones
   Future<void> forceStop() async {
     debugPrint('AudioController: Force stop requested');

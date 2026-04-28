@@ -36,7 +36,7 @@ class LocalizationService implements ILocalizationService {
     Locale('hi', ''), // Hindi
     Locale('de', ''), // German
     Locale('ar', ''), // Arabic
-    Locale('tl', ''), // Tagalog
+    Locale('fil', ''), // Filipino
   ];
 
   // Default locale
@@ -228,7 +228,7 @@ class LocalizationService implements ILocalizationService {
         return 'de-DE';
       case 'ar':
         return 'ar-SA';
-      case 'tl':
+      case 'fil':
         return 'fil-PH';
       default:
         return 'es-ES';
@@ -256,7 +256,7 @@ class LocalizationService implements ILocalizationService {
         return 'Deutsch';
       case 'ar':
         return 'العربية';
-      case 'tl':
+      case 'fil':
         return 'Tagalog';
       default:
         return languageCode;
@@ -294,8 +294,8 @@ class LocalizationService implements ILocalizationService {
         return DateFormat('EEEE, d. MMMM', 'de');
       case 'ar':
         return DateFormat('EEEE، d MMMM', 'ar');
-      case 'tl':
-        return DateFormat('EEEE, MMMM d', 'tl');
+      case 'fil':
+        return DateFormat('EEEE, MMMM d', 'fil');
       default:
         return DateFormat('EEEE, MMMM d', 'en');
     }
