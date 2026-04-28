@@ -796,24 +796,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           debugPrint(
               '[RESTORE]   - Favorites count: ${stats['favoritesCount'] ?? 0}');
 
-          // Verify persistence: read back from SharedPreferences to confirm write succeeded
-          try {
-            final verifyPrefs = await SharedPreferences.getInstance();
-            final savedJson = verifyPrefs.getString('spiritual_stats');
-            if (savedJson != null) {
-              debugPrint(
-                '[RESTORE] ✅ Verified: spiritual_stats key written to SharedPreferences '
-                '(${savedJson.length} chars)',
-              );
-            } else {
-              debugPrint(
-                '[RESTORE] ⚠️ Warning: spiritual_stats key NOT found in SharedPreferences after restore',
-              );
-            }
-          } catch (verifyErr) {
-            debugPrint(
-                '[RESTORE] ⚠️ Could not verify SharedPreferences write: $verifyErr');
-          }
+          // (removed: downstream verify of SharedPreferences write —
+          //  restoreStats() throws on failure; key internals belong to SpiritualStatsService)
         } catch (e) {
           debugPrint('[RESTORE] ❌ Error restoring spiritual stats: $e');
         }
