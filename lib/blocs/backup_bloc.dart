@@ -1,6 +1,7 @@
 // lib/blocs/backup_bloc.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/devocional_provider.dart';
 import '../services/backup/i_google_drive_backup_service.dart';
@@ -364,7 +365,9 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
           );
         }
 
-        emit(const BackupRestored());
+        final prefs = await SharedPreferences.getInstance();
+        final restoredVersion = prefs.getString('selectedVersion');
+        emit(BackupRestored(restoredVersion: restoredVersion));
         add(const LoadBackupSettings());
         debugPrint('🔄 [BLOC] Recargando configuraciones después de restore');
       } else {
