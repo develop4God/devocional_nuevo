@@ -114,7 +114,8 @@ class BackupRestoring extends BackupState {
 
 /// Backup restored successfully
 class BackupRestored extends BackupState {
-  const BackupRestored();
+  final String? restoredVersion;
+  const BackupRestored({this.restoredVersion});
 }
 
 /// Error state

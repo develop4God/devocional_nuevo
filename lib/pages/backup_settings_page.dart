@@ -76,7 +76,7 @@ class _BackupSettingsViewState extends State<_BackupSettingsView> {
       child: Scaffold(
         appBar: CustomAppBar(titleText: 'backup.title'.tr()),
         body: BlocListener<BackupBloc, BackupState>(
-          listener: (context, state) {
+          listener: (context, state) async {
             debugPrint(
               '🔄 [DEBUG] BlocListener recibió estado: ${state.runtimeType}',
             );
@@ -104,7 +104,18 @@ class _BackupSettingsViewState extends State<_BackupSettingsView> {
               );
             } else if (state is BackupRestored) {
               debugPrint('✅ [DEBUG] BackupRestored recibido');
-              ScaffoldMessenger.of(context).showSnackBar(
+              final messenger = ScaffoldMessenger.of(context);
+              if (state.restoredVersion != null &&
+                  state.restoredVersion!.isNotEmpty) {
+                final provider = context.read<DevocionalProvider>();
+                if (provider.selectedVersion != state.restoredVersion) {
+                  await provider.setSelectedVersion(state.restoredVersion!);
+                  debugPrint(
+                    '🔄 [RESTORE] Bible version switched to ${state.restoredVersion}',
+                  );
+                }
+              }
+              messenger.showSnackBar(
                 SnackBar(
                   content: Text('backup.restored_successfully'.tr()),
                   backgroundColor: colorScheme.primary,
