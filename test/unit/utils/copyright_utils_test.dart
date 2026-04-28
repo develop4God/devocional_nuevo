@@ -87,7 +87,7 @@ void main() {
     });
 
     test('returns Filipino ADB copyright disclaimer', () {
-      final text = CopyrightUtils.getCopyrightText('fil', 'ADB');
+      final text = CopyrightUtils.getCopyrightText('fil', 'ADB_fil.SQLite3');
       expect(text, contains('Ang Dating Biblia'));
       expect(text, contains('Philippine Bible Society'));
     });
