@@ -129,14 +129,26 @@ void main() {
       expect(newProvider.currentLocale.languageCode, equals('zh'));
     });
 
-    test('All 8 languages are available and properly ordered', () {
+    test('All 10 languages are available and properly ordered', () {
       // WHEN: Getting available languages
       final languages = provider.getAvailableLanguages();
 
-      // THEN: All 9 languages are present
-      expect(languages.length, equals(9));
-      expect(languages.keys,
-          containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar']));
+      // THEN: All 10 languages are present
+      expect(languages.length, equals(10));
+      expect(
+          languages.keys,
+          containsAll([
+            'es',
+            'en',
+            'pt',
+            'fr',
+            'ja',
+            'zh',
+            'hi',
+            'de',
+            'ar',
+            'fil',
+          ]));
 
       // AND: Display names are in native language
       expect(languages['zh'], equals('中文'));
@@ -146,6 +158,9 @@ void main() {
       expect(languages['pt'], equals('Português'));
       expect(languages['fr'], equals('Français'));
       expect(languages['hi'], equals('हिन्दी'));
+      expect(languages['de'], equals('Deutsch'));
+      expect(languages['ar'], equals('العربية'));
+      expect(languages['fil'], equals('Tagalog'));
     });
 
     test('Chinese text formatting handles both simplified and traditional', () {
