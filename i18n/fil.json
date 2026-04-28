@@ -519,7 +519,13 @@
     "more_options": "Marami pang opsyon",
     "optimization": "Optimisasyon",
     "account_management": "Pamamahala ng Account",
-    "logout_google_drive": "Mag-sign out sa Google Drive"
+    "logout_google_drive": "Mag-sign out sa Google Drive",
+    "signing_in_title": "Kumokonekta sa Google Drive",
+    "signing_in_subtitle": "Bine-verify ang iyong pagkakakilanlan upang protektahan ang iyong espirituwal na pag-unlad...",
+    "restoring_title": "Inirerestora ang iyong data",
+    "restoring_subtitle": "Natagpuan namin ang isang backup sa iyong Google Drive at ibinalik ang iyong espirituwal na pag-unlad...",
+    "protected_title": "Protektado ang iyong data!",
+    "protected_subtitle": "Ang iyong espirituwal na pag-unlad ay ligtas na nakaimbak sa iyong personal na Google Drive."
   },
   "review": {
     "title": "Salamat sa iyong pagpapatuloy 🙏",

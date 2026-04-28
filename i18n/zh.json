@@ -519,7 +519,13 @@
     "more_options": "更多选项",
     "optimization": "优化",
     "account_management": "账户管理",
-    "logout_google_drive": "从Google Drive注销"
+    "logout_google_drive": "从Google Drive注销",
+    "signing_in_title": "正在连接 Google Drive",
+    "signing_in_subtitle": "正在验证您的身份以保护您的灵性进步...",
+    "restoring_title": "正在恢复您的数据",
+    "restoring_subtitle": "我们在您的 Google Drive 中找到了备份，正在恢复您的灵性进步...",
+    "protected_title": "您的数据已受到保护！",
+    "protected_subtitle": "您的灵性进步已安全存储在您的个人 Google Drive 中。"
   },
   "review": {
     "title": "感谢您的坚持 🙏",
