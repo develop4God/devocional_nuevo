@@ -6,6 +6,8 @@ import '../providers/devocional_provider.dart';
 import '../services/backup/i_google_drive_backup_service.dart';
 import 'backup_event.dart';
 import 'backup_state.dart';
+import 'devocionales/devocionales_navigation_bloc.dart';
+import 'devocionales/devocionales_navigation_event.dart';
 import 'discovery/discovery_bloc.dart';
 import 'discovery/discovery_event.dart';
 import 'encounter/encounter_bloc.dart';
@@ -17,17 +19,20 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   DevocionalProvider? _devocionalProvider;
   final DiscoveryBloc? _discoveryBloc;
   final EncounterBloc? _encounterBloc;
+  final DevocionalesNavigationBloc? _navigationBloc;
 
   BackupBloc({
     required IGoogleDriveBackupService backupService,
     DevocionalProvider? devocionalProvider,
     DiscoveryBloc? discoveryBloc,
     EncounterBloc? encounterBloc,
+    DevocionalesNavigationBloc? navigationBloc,
     dynamic prayerBloc,
   })  : _backupService = backupService,
         _devocionalProvider = devocionalProvider,
         _discoveryBloc = discoveryBloc,
         _encounterBloc = encounterBloc,
+        _navigationBloc = navigationBloc,
         super(const BackupInitial()) {
     // Register event handlers
     on<LoadBackupSettings>(_onLoadBackupSettings);
@@ -314,13 +319,29 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       emit(const BackupRestoring());
       debugPrint('📥 [BLOC] Estado BackupRestoring emitido');
 
+      // Combined callback: reload favorites AND spiritual stats after restore.
+      // Both must be called so that the provider notifies widgets of
+      // newly-restored read IDs and favourite lists simultaneously.
+      final onRestored = _devocionalProvider != null
+          ? () async {
+              await _devocionalProvider!.reloadFavoritesFromStorage();
+              await _devocionalProvider!.reloadSpiritualStatsFromStorage();
+              debugPrint(
+                '✅ [BLOC] Provider reloaded: favorites + spiritual stats',
+              );
+            }
+          : null;
+
       final success = await _backupService.restoreBackup(
-        onRestored: _devocionalProvider?.reloadFavoritesFromStorage,
+        onRestored: onRestored,
       );
       debugPrint('📥 [BLOC] Resultado del restore: $success');
 
       if (success) {
         debugPrint('✅ [BLOC] Restore exitoso');
+        debugPrint(
+          '📊 [BLOC] Provider stats actualizado — UI rebuilds con datos restaurados',
+        );
 
         // Reload discovery and encounter state
         _discoveryBloc?.add(RefreshDiscoveryStudies(forceRefresh: true));
@@ -331,6 +352,16 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         _encounterBloc?.add(LoadEncounterIndex(forceRefresh: true));
         if (_encounterBloc != null) {
           debugPrint('🔄 [BLOC] LoadEncounterIndex event dispatched');
+        }
+
+        // Recalculate current devotional index from restored read IDs
+        if (_navigationBloc != null && _devocionalProvider != null) {
+          _navigationBloc!.add(NavigateToFirstUnread(
+            _devocionalProvider!.lastRestoredReadIds.toList(),
+          ));
+          debugPrint(
+            '🧭 [BLOC] NavigateToFirstUnread dispatched — ${_devocionalProvider!.lastRestoredReadIds.length} read IDs',
+          );
         }
 
         emit(const BackupRestored());
@@ -399,7 +430,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
           final restored = await _backupService.restoreExistingBackup(
             existingBackup['fileId'],
-            devocionalProvider: _devocionalProvider,
             prayerBloc: null,
           );
 
@@ -417,6 +447,23 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
             if (_encounterBloc != null) {
               debugPrint(
                   '🔄 [BLOC] LoadEncounterIndex event dispatched (login restore)');
+            }
+
+            // Reload provider state: favorites + spiritual stats
+            await _devocionalProvider?.reloadFavoritesFromStorage();
+            await _devocionalProvider?.reloadSpiritualStatsFromStorage();
+            debugPrint(
+              '✅ [BLOC] Provider reloaded: favorites + spiritual stats (sign-in restore)',
+            );
+
+            // Recalculate current devotional index from restored read IDs
+            if (_navigationBloc != null && _devocionalProvider != null) {
+              _navigationBloc!.add(NavigateToFirstUnread(
+                _devocionalProvider!.lastRestoredReadIds.toList(),
+              ));
+              debugPrint(
+                '🧭 [BLOC] NavigateToFirstUnread dispatched (sign-in restore) — ${_devocionalProvider!.lastRestoredReadIds.length} read IDs',
+              );
             }
 
             emit(

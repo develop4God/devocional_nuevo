@@ -347,13 +347,18 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         backupData[BackupKeys.spiritualStats] = stats;
 
         // Extract details for clear logging
-        final readDevocionalIds = (stats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
+        final readDevocionalIds =
+            (stats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
         debugPrint('[BACKUP] Included spiritual stats:');
-        debugPrint('[BACKUP]   - Total devotionals read: ${stats['totalDevocionalesRead'] ?? 0}');
+        debugPrint(
+            '[BACKUP]   - Total devotionals read: ${stats['totalDevocionalesRead'] ?? 0}');
         debugPrint('[BACKUP]   - Completed devotional IDs: $readDevocionalIds');
-        debugPrint('[BACKUP]   - Current streak: ${stats['currentStreak'] ?? 0}');
-        debugPrint('[BACKUP]   - Longest streak: ${stats['longestStreak'] ?? 0}');
-        debugPrint('[BACKUP]   - Favorites count: ${stats['favoritesCount'] ?? 0}');
+        debugPrint(
+            '[BACKUP]   - Current streak: ${stats['currentStreak'] ?? 0}');
+        debugPrint(
+            '[BACKUP]   - Longest streak: ${stats['longestStreak'] ?? 0}');
+        debugPrint(
+            '[BACKUP]   - Favorites count: ${stats['favoritesCount'] ?? 0}');
       } catch (e) {
         debugPrint('[BACKUP] ❌ Error getting spiritual stats: $e');
         backupData[BackupKeys.spiritualStats] = {};
@@ -770,24 +775,49 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       debugPrint('[RESTORE] Starting backup data restoration...');
       debugPrint('[RESTORE] Keys in backup: ${data.keys.toList()}');
 
-       // Restore spiritual stats
-       if (data.containsKey(BackupKeys.spiritualStats)) {
-         try {
-           final stats = data[BackupKeys.spiritualStats] as Map<String, dynamic>;
-           await _statsService.restoreStats(stats);
+      // Restore spiritual stats
+      if (data.containsKey(BackupKeys.spiritualStats)) {
+        try {
+          final stats = data[BackupKeys.spiritualStats] as Map<String, dynamic>;
+          await _statsService.restoreStats(stats);
 
-           // Extract and log read devotional IDs count
-           final readDevocionalIds = (stats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
-           debugPrint('[RESTORE] ✅ Restored spiritual stats');
-           debugPrint('[RESTORE]   - Total devotionals read: ${stats['totalDevocionalesRead'] ?? 0}');
-           debugPrint('[RESTORE]   - Completed devotional IDs: $readDevocionalIds (${stats['readDevocionalIds']?.toString() ?? '[]'})');
-           debugPrint('[RESTORE]   - Current streak: ${stats['currentStreak'] ?? 0}');
-           debugPrint('[RESTORE]   - Longest streak: ${stats['longestStreak'] ?? 0}');
-           debugPrint('[RESTORE]   - Favorites count: ${stats['favoritesCount'] ?? 0}');
-         } catch (e) {
-           debugPrint('[RESTORE] ❌ Error restoring spiritual stats: $e');
-         }
-       }
+          // Extract and log read devotional IDs count
+          final readDevocionalIds =
+              (stats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
+          debugPrint('[RESTORE] ✅ Restored spiritual stats');
+          debugPrint(
+              '[RESTORE]   - Total devotionals read: ${stats['totalDevocionalesRead'] ?? 0}');
+          debugPrint(
+              '[RESTORE]   - Completed devotional IDs: $readDevocionalIds (${stats['readDevocionalIds']?.toString() ?? '[]'})');
+          debugPrint(
+              '[RESTORE]   - Current streak: ${stats['currentStreak'] ?? 0}');
+          debugPrint(
+              '[RESTORE]   - Longest streak: ${stats['longestStreak'] ?? 0}');
+          debugPrint(
+              '[RESTORE]   - Favorites count: ${stats['favoritesCount'] ?? 0}');
+
+          // Verify persistence: read back from SharedPreferences to confirm write succeeded
+          try {
+            final verifyPrefs = await SharedPreferences.getInstance();
+            final savedJson = verifyPrefs.getString('spiritual_stats');
+            if (savedJson != null) {
+              debugPrint(
+                '[RESTORE] ✅ Verified: spiritual_stats key written to SharedPreferences '
+                '(${savedJson.length} chars)',
+              );
+            } else {
+              debugPrint(
+                '[RESTORE] ⚠️ Warning: spiritual_stats key NOT found in SharedPreferences after restore',
+              );
+            }
+          } catch (verifyErr) {
+            debugPrint(
+                '[RESTORE] ⚠️ Could not verify SharedPreferences write: $verifyErr');
+          }
+        } catch (e) {
+          debugPrint('[RESTORE] ❌ Error restoring spiritual stats: $e');
+        }
+      }
 
       // Restore favorite devotionals
       if (data.containsKey(BackupKeys.favoriteDevotionals)) {
@@ -990,7 +1020,6 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
   @override
   Future<bool> restoreExistingBackup(
     String fileId, {
-    DevocionalProvider? devocionalProvider,
     PrayerBloc? prayerBloc,
   }) async {
     try {
@@ -1038,11 +1067,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
 
       // Restore the backup data using existing restore method
       await _restoreBackupData(backupJson);
-      // Notify providers if available (add this section)
-      if (devocionalProvider != null) {
-        await devocionalProvider.reloadFavoritesFromStorage();
-        debugPrint('✅ DevocionalProvider notified and reloaded');
-      }
+      // Provider reload is the caller's responsibility — BackupBloc handles it
+      // via the onRestored callback pattern. Do NOT call provider methods here.
 
       if (prayerBloc != null) {
         prayerBloc.add(RefreshPrayers());
