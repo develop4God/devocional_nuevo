@@ -4,7 +4,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:devocional_nuevo/constants/devocional_years.dart';
+import 'package:devocional_nuevo/utils/constants/devocional_years.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';

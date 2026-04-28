@@ -6,7 +6,7 @@ import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
-import 'package:devocional_nuevo/utils/analytics_constants.dart';
+import 'package:devocional_nuevo/utils/constants/analytics_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

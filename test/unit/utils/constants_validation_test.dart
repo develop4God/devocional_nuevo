@@ -2,7 +2,7 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 
 void main() {
   group('Constants Configuration Validation', () {

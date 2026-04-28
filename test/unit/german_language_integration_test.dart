@@ -9,7 +9,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
 import 'package:devocional_nuevo/services/devocional_index_service.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';

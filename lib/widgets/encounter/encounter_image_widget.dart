@@ -1,7 +1,7 @@
 // lib/widgets/encounter/encounter_image_widget.dart
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

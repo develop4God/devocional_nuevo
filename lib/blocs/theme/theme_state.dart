@@ -1,5 +1,5 @@
 // lib/blocs/theme/theme_state.dart
-import 'package:devocional_nuevo/utils/theme_constants.dart';
+import 'package:devocional_nuevo/utils/constants/theme_constants.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

@@ -5,7 +5,7 @@ import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/debug/debug_flags.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';

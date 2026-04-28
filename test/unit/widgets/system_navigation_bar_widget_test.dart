@@ -7,7 +7,7 @@ library;
 // Tests that systemUiOverlayStyle is applied correctly, survives navigation,
 // theme changes, and meets WCAG contrast requirements. No device required.
 
-import 'package:devocional_nuevo/utils/theme_constants.dart';
+import 'package:devocional_nuevo/utils/constants/theme_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

@@ -6,7 +6,7 @@ import 'package:devocional_nuevo/blocs/prayer_wall/prayer_wall_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_wall/prayer_wall_state.dart';
 import 'package:devocional_nuevo/models/prayer_wall_entry.dart';
 import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

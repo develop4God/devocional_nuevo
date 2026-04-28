@@ -14,7 +14,7 @@ library;
 // Fix: 'de' added to the Latin-script branch so the suffix is stripped first.
 
 import 'package:bible_reader_core/bible_reader_core.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Mirrors the _getDisplayName logic from BibleReaderPage.
