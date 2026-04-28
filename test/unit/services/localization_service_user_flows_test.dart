@@ -40,7 +40,7 @@ void main() {
         expect(
           languageCodes,
           containsAll(
-              ['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar', 'tl']),
+              ['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar', 'fil']),
         );
       });
 
@@ -53,7 +53,8 @@ void main() {
         for (final locale in LocalizationService.supportedLocales) {
           // Each locale should have a valid language code
           expect(locale.languageCode, isNotEmpty);
-          expect(locale.languageCode.length, equals(2)); // ISO 639-1 codes
+          // Support both ISO 639-1 (2 chars: es, en) and ISO 639-2 (3 chars: fil)
+          expect(locale.languageCode.length, isIn([2, 3]));
         }
       });
     });

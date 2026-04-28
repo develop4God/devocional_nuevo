@@ -102,6 +102,11 @@ class BackupCreated extends BackupState {
   List<Object?> get props => [timestamp];
 }
 
+/// Signing in to Google Drive state
+class BackupSigningIn extends BackupState {
+  const BackupSigningIn();
+}
+
 /// Restoring backup state
 class BackupRestoring extends BackupState {
   const BackupRestoring();

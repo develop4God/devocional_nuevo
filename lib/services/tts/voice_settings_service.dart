@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'voice_data_registry.dart';
+
 /// Voice Settings Service - Manages TTS voice selection and preferences.
 ///
 /// This service is registered as a lazy singleton in the Service Locator.
@@ -71,11 +73,7 @@ class VoiceSettingsService {
         'ar-AE',
         'ar'
       ], // Arabic - any ar-* device voice
-      'tl': [
-        'fil-PH',
-        'tl-PH',
-        'en-US'
-      ], // Tagalog/Filipino with English fallback
+      'fil': ['fil-PH', 'tl-PH', 'en-US'], // Filipino with English fallback
     };
     final locales = preferredLocales[language] ?? [language];
 
@@ -164,11 +162,9 @@ class VoiceSettingsService {
           'ar-xa-x-arz-local', // Female voice Arabic 1
           'ar-xa-x-arz-network', // Female voice Arabic 2
         ],
-        'tl': [
-          'fil-ph-x-fld-local', // Male voice Filipino
-          'fil-ph-x-fld-network', // Male voice Filipino network
-          'fil-ph-x-flf-local', // Female voice Filipino
-          'fil-PH-language', // Default Filipino
+        'fil': [
+          ...?VoiceDataRegistry.getVoiceMap('fil')?.keys,
+          'fil-PH-language', // Fallback — any fil-PH device voice
         ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];
@@ -485,8 +481,18 @@ class VoiceSettingsService {
 
   /// ✅ METODO PRINCIPAL MEJORADO PARA NOMBRES USER-FRIENDLY
   String _getFriendlyVoiceName(String technicalName, String locale) {
-    // 1. Verificar mapeo amigable con emoji y nombre
     final language = locale.split('-').first;
+
+    // 0. Check VoiceDataRegistry first (SOT for premium voices)
+    final registryMetadata = VoiceDataRegistry.getVoiceMetadata(
+      technicalName,
+      language,
+    );
+    if (registryMetadata != null) {
+      return '${registryMetadata.emoji} ${registryMetadata.description}';
+    }
+
+    // 1. Fallback: friendlyVoiceMap for non-registry languages
     final map = friendlyVoiceMap[language];
     if (map != null && map.containsKey(technicalName)) {
       return map[technicalName] ?? technicalName;
@@ -588,7 +594,7 @@ class VoiceSettingsService {
         case 'ar':
           friendlyName = 'الصوت الافتراضي';
           break;
-        case 'tl':
+        case 'fil':
           friendlyName = 'Default na Tinig';
           break;
         default:
@@ -787,7 +793,7 @@ class VoiceSettingsService {
         return 'hi-IN';
       case 'ar':
         return 'ar';
-      case 'tl':
+      case 'fil':
         return 'fil-PH';
       default:
         return 'es-ES';
@@ -1012,14 +1018,6 @@ class VoiceSettingsService {
       'ar-xa-x-ard-network': '🇸🇦 رجل صوت 2', // Male Arabic 2 network
       'ar-xa-x-arz-local': '🇸🇦 امرأة صوت 1', // Female Arabic 1
       'ar-xa-x-arz-network': '🇸🇦 امرأة صوت 1', // Female Arabic 1 network
-    },
-    'tl': {
-      'fil-ph-x-fld-local': '🇵🇭 Lalaking Pilipinas', // Male Filipino
-      'fil-ph-x-fld-network':
-          '🇵🇭 Lalaking Pilipinas', // Male Filipino network
-      'fil-ph-x-flf-local': '🇵🇭 Babae Pilipinas', // Female Filipino
-      'fil-ph-x-flf-network': '🇵🇭 Babae Pilipinas', // Female Filipino network
-      'fil-PH-language': '🇵🇭 Default na Tinig', // Default voice
     },
   };
 

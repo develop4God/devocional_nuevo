@@ -10,7 +10,7 @@ void main() {
         expect(
             languages,
             containsAll(
-                ['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar', 'tl']));
+                ['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar', 'fil']));
         expect(languages.length, 10);
       });
     });

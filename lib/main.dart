@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
+import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
@@ -219,11 +220,15 @@ void main() async {
           create: (_) => AudioController(getService<ITtsService>()),
         ),
         BlocProvider(
+          create: (context) => DevocionalesNavigationBloc(),
+        ),
+        BlocProvider(
           create: (context) => BackupBloc(
             backupService: getService<IGoogleDriveBackupService>(),
             devocionalProvider: context.read<DevocionalProvider>(),
             discoveryBloc: context.read<DiscoveryBloc>(),
             encounterBloc: context.read<EncounterBloc>(),
+            navigationBloc: context.read<DevocionalesNavigationBloc>(),
           ),
         ),
         BlocProvider(
