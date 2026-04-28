@@ -14,7 +14,7 @@ import 'dart:convert';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/encounter_progress_service.dart';
-import 'package:devocional_nuevo/utils/backup_keys.dart';
+import 'package:devocional_nuevo/utils/constants/backup_keys_constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
