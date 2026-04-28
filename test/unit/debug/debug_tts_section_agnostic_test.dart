@@ -46,15 +46,15 @@ void main() {
             reason:
                 'VoiceDataRegistry should have at least one supported language');
 
-        // Verify new language 'tl' (Tagalog) is in the registry
+        // Verify new language 'fil' (Filipino/Tagalog) is in the registry
         expect(
-          VoiceDataRegistry.supportedLanguages.contains('tl'),
+          VoiceDataRegistry.supportedLanguages.contains('fil'),
           true,
-          reason: 'Tagalog (tl) should be in the supported languages',
+          reason: 'Filipino (fil) should be in the supported languages',
         );
 
         // Verify it's displayed in the UI
-        expect(find.text('tl'), findsWidgets);
+        expect(find.text('fil'), findsWidgets);
       },
     );
 

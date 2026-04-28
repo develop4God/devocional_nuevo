@@ -52,6 +52,7 @@ class DevocionalProvider with ChangeNotifier {
   final SpiritualStatsService _statsService = SpiritualStatsService();
   AudioController?
       _audioController; // nullable to allow disabling audio in tests
+  Set<String> _lastRestoredReadIds = {}; // Store read IDs from last restore
 
   // ========== OFFLINE FUNCTIONALITY ==========
   bool _isDownloading = false;
@@ -114,6 +115,9 @@ class DevocionalProvider with ChangeNotifier {
   String? get currentTrackedDevocionalId =>
       _readingTracker.currentTrackedDevocionalId;
 
+  // Read devotional IDs from last restore (for backup/restore coordination)
+  Set<String> get lastRestoredReadIds => _lastRestoredReadIds;
+
   // Supported languages - Updated to include Chinese, Hindi and German
   static const List<String> _supportedLanguages = [
     'es',
@@ -125,7 +129,7 @@ class DevocionalProvider with ChangeNotifier {
     'hi', // Add Hindi
     'de', // Add German
     'ar', // Add Arabic
-    'tl', // Add Tagalog
+    'fil', // Add Filipino
   ];
   static const String _fallbackLanguage = 'es';
 
@@ -313,6 +317,10 @@ class DevocionalProvider with ChangeNotifier {
 
   Future<List<String>> getVoicesForLanguage(String language) async {
     return await _audioController!.getVoicesForLanguage(language);
+  }
+
+  Future<void> assignDefaultVoiceForLanguage(String languageCode) async {
+    await _audioController!.assignDefaultVoiceForLanguage(languageCode);
   }
 
   Future<void> setTtsLanguage(String language) async {
@@ -1083,6 +1091,52 @@ class DevocionalProvider with ChangeNotifier {
       developer.log(
         '❌FAVORITES_ERROR: Error reloading favorites from storage: $e',
         name: 'Favorites',
+      );
+    }
+  }
+
+  /// Reload spiritual stats from SharedPreferences after restore.
+  ///
+  /// Must be called immediately after a backup restore so that any widget
+  /// listening to [DevocionalProvider] rebuilds with the newly-restored
+  /// read/heard devotional IDs and streak data.
+  ///
+  /// [SpiritualStatsService.getStats()] reads from SharedPreferences on every
+  /// call, so calling [notifyListeners] here is sufficient to propagate the
+  /// restored data to all dependent widgets in the same frame.
+  Future<void> reloadSpiritualStatsFromStorage() async {
+    try {
+      final stats = await _statsService.getStats();
+      _lastRestoredReadIds = stats.readDevocionalIds.toSet();
+
+      debugPrint('📊 [PROVIDER] === reloadSpiritualStatsFromStorage ===');
+      debugPrint(
+        '📊 [PROVIDER] Read devotional IDs restored: ${stats.readDevocionalIds.length}',
+      );
+      debugPrint(
+        '📊 [PROVIDER] Read IDs: ${stats.readDevocionalIds}',
+      );
+      debugPrint(
+        '📊 [PROVIDER] Total devotionals read: ${stats.totalDevocionalesRead}',
+      );
+      debugPrint(
+        '📊 [PROVIDER] Current streak: ${stats.currentStreak}',
+      );
+      debugPrint(
+        '📊 [PROVIDER] Favorites count in stats: ${stats.favoritesCount}',
+      );
+
+      notifyListeners(); // Triggers widget rebuilds — widgets re-read stats via getStats()
+
+      developer.log(
+        '📊 [PROVIDER] Spiritual stats refreshed: ${stats.readDevocionalIds.length} '
+        'read IDs, streak=${stats.currentStreak}',
+        name: 'DevocionalProvider',
+      );
+    } catch (e) {
+      developer.log(
+        '❌ [PROVIDER] Error reloading spiritual stats from storage: $e',
+        name: 'DevocionalProvider',
       );
     }
   }

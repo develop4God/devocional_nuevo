@@ -750,7 +750,7 @@ void main() {
     test(
       'GoogleDriveAuthService has no static _singletonInstance field',
       () async {
-        final file = File('lib/services/google_drive_auth_service.dart');
+        final file = File('lib/services/backup/google_drive_auth_service.dart');
         expect(await file.exists(), isTrue,
             reason: 'GoogleDriveAuthService source file should exist');
 
@@ -775,7 +775,7 @@ void main() {
     test(
       'GoogleDriveAuthService has no internal factory singleton guard',
       () async {
-        final file = File('lib/services/google_drive_auth_service.dart');
+        final file = File('lib/services/backup/google_drive_auth_service.dart');
         final content = await file.readAsString();
 
         expect(
@@ -791,7 +791,7 @@ void main() {
     test(
       'GoogleDriveAuthService has a public constructor that accepts SharedPreferences',
       () async {
-        final file = File('lib/services/google_drive_auth_service.dart');
+        final file = File('lib/services/backup/google_drive_auth_service.dart');
         final content = await file.readAsString();
 
         expect(
@@ -808,7 +808,7 @@ void main() {
     test(
       'GoogleDriveAuthService does not call SharedPreferences.getInstance() directly',
       () async {
-        final file = File('lib/services/google_drive_auth_service.dart');
+        final file = File('lib/services/backup/google_drive_auth_service.dart');
         final content = await file.readAsString();
 
         expect(
