@@ -1,5 +1,7 @@
 // lib/models/spiritual_stats_model.dart
 
+import 'dart:math' show max;
+
 import 'package:flutter/material.dart';
 
 import '../services/localization_service.dart';
@@ -78,6 +80,46 @@ class SpiritualStats {
       unlockedAchievements: unlockedAchievements ?? this.unlockedAchievements,
       favoritesCount: favoritesCount ?? this.favoritesCount,
       readDevocionalIds: readDevocionalIds ?? this.readDevocionalIds,
+    );
+  }
+
+  /// Merge two SpiritualStats instances for multi-device backup safety.
+  /// Union of read IDs, max streak values, union of achievements, and latest activity date.
+  static SpiritualStats merge(SpiritualStats local, SpiritualStats remote) {
+    // Union of read devotional IDs — no duplicates
+    final mergedIds =
+        {...local.readDevocionalIds, ...remote.readDevocionalIds}.toList();
+
+    // Streak: take optimistic max — next read will recalculate correctly from dates
+    final mergedStreak = max(local.currentStreak, remote.currentStreak);
+    final mergedLongest = max(local.longestStreak, remote.longestStreak);
+
+    // Achievements: union by ID — unlocked on either device = unlocked in merged
+    final localUnlocked = {for (final a in local.unlockedAchievements) a.id: a};
+    final remoteUnlocked = {
+      for (final a in remote.unlockedAchievements) a.id: a
+    };
+    final mergedAchievements = {
+      ...localUnlocked,
+      ...remoteUnlocked,
+    }.values.map((a) => a.copyWith(isUnlocked: true)).toList();
+
+    // lastActivityDate: take the most recent of the two
+    final mergedLastActivity = [local.lastActivityDate, remote.lastActivityDate]
+        .whereType<DateTime>()
+        .fold<DateTime?>(
+          null,
+          (prev, d) => prev == null || d.isAfter(prev) ? d : prev,
+        );
+
+    return SpiritualStats(
+      totalDevocionalesRead: mergedIds.length,
+      currentStreak: mergedStreak,
+      longestStreak: mergedLongest,
+      lastActivityDate: mergedLastActivity,
+      unlockedAchievements: mergedAchievements,
+      favoritesCount: max(local.favoritesCount, remote.favoritesCount),
+      readDevocionalIds: mergedIds,
     );
   }
 }

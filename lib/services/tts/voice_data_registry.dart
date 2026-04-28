@@ -268,24 +268,24 @@ class VoiceDataRegistry {
 
   /// Tagalog/Filipino premium voices
   static const Map<String, VoiceMetadata> tagalogVoices = {
-    'fil-ph-x-fld-local': VoiceMetadata(
+    'fil-ph-x-fie-local': VoiceMetadata(
       emoji: '🇵🇭',
-      description: 'Lalaki',
+      description: 'Lalaking Pilipinas',
       genderIcon: Icons.man_3_outlined,
     ),
-    'fil-ph-x-fld-network': VoiceMetadata(
+    'fil-ph-x-fic-local': VoiceMetadata(
       emoji: '🇵🇭',
-      description: 'Lalaki',
-      genderIcon: Icons.man_3_outlined,
-    ),
-    'fil-ph-x-flf-local': VoiceMetadata(
-      emoji: '🇵🇭',
-      description: 'Babae',
+      description: 'Babae Pilipinas',
       genderIcon: Icons.woman_outlined,
     ),
-    'fil-ph-x-flf-network': VoiceMetadata(
+    'fil-ph-x-fid-network': VoiceMetadata(
       emoji: '🇵🇭',
-      description: 'Babae',
+      description: 'Lalaking Pilipinas',
+      genderIcon: Icons.man_3_outlined,
+    ),
+    'fil-ph-x-cfc-local': VoiceMetadata(
+      emoji: '🇵🇭',
+      description: 'Babae Pilipinas',
       genderIcon: Icons.woman_outlined,
     ),
   };
@@ -303,7 +303,7 @@ class VoiceDataRegistry {
     'hi': hindiVoices,
     'de': germanVoices,
     'ar': arabicVoices,
-    'tl': tagalogVoices,
+    'fil': tagalogVoices,
   };
 
   /// Returns the premium voice map for [language], or `null` if none exists.
@@ -337,7 +337,7 @@ class VoiceDataRegistry {
     'de':
         'Sie können diese Stimme speichern oder eine andere nach Ihrer Vorliebe auswählen',
     'ar': 'يمكنك حفظ هذا الصوت أو اختيار صوت آخر حسب تفضيلك',
-    'tl':
+    'fil':
         'Maaari mong i-save ang tinig na ito o pumili ng iba, ayon sa iyong kagustuhan',
   };
 
@@ -359,7 +359,7 @@ class VoiceDataRegistry {
     'hi': ['hi-IN'],
     'de': ['de-DE', 'de-AT', 'de-CH'],
     'ar': ['ar-SA', 'ar-EG', 'ar-AE'],
-    'tl': ['fil-PH', 'tl-PH'],
+    'fil': ['fil-PH', 'tl-PH'],
   };
 
   /// Returns the priority locales for [language].

@@ -519,7 +519,13 @@
     "more_options": "Más opciones",
     "optimization": "Optimización",
     "account_management": "Gestión de Cuenta",
-    "logout_google_drive": "Cerrar Sesión de Google Drive"
+    "logout_google_drive": "Cerrar Sesión de Google Drive",
+    "signing_in_title": "Conectando a Google Drive",
+    "signing_in_subtitle": "Verificando tu identidad para proteger tu progreso espiritual...",
+    "restoring_title": "Restaurando tus datos",
+    "restoring_subtitle": "Encontramos un respaldo en tu Google Drive y estamos recuperando tu progreso espiritual...",
+    "protected_title": "¡Tus datos están protegidos!",
+    "protected_subtitle": "Tu progreso espiritual está guardado de forma segura en tu Google Drive personal."
   },
   "review": {
     "title": "Gracias por tu constancia 🙏",

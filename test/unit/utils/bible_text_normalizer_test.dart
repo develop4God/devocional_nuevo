@@ -74,5 +74,38 @@ void main() {
       const text = 'Clean verse text';
       expect(BibleTextNormalizer.clean(text), 'Clean verse text');
     });
+
+    test('should remove circled lowercase letter footnote markers ⓐ ⓑ', () {
+      const text = 'Sinabi ⓐ ng Diyos: Magkaroon ng liwanag ⓑ.';
+      final result = BibleTextNormalizer.clean(text);
+      expect(result, isNot(contains('ⓐ')));
+      expect(result, isNot(contains('ⓑ')));
+      expect(result, contains('Sinabi'));
+      expect(result, contains('ng Diyos'));
+    });
+
+    test('should remove circled uppercase letter markers Ⓐ Ⓑ', () {
+      const text = 'God Ⓐ said let there be light Ⓑ.';
+      final result = BibleTextNormalizer.clean(text);
+      expect(result, isNot(contains('Ⓐ')));
+      expect(result, isNot(contains('Ⓑ')));
+    });
+
+    test('should remove circled number markers ①②③', () {
+      const text = 'Verse ① contains a note ② about this ③.';
+      final result = BibleTextNormalizer.clean(text);
+      expect(result, isNot(contains('①')));
+      expect(result, isNot(contains('②')));
+      expect(result, isNot(contains('③')));
+    });
+
+    test('removes footnote markers from MBB05-style Filipino verse text', () {
+      // Realistic MBB05 verse with inline footnote markers
+      const text = 'Sinabi ⓑ ng Diyos, "Magkaroon ng liwanag ⓐ";';
+      final result = BibleTextNormalizer.clean(text);
+      expect(result, isNot(contains('ⓑ')));
+      expect(result, isNot(contains('ⓐ')));
+      expect(result, contains('Sinabi'));
+    });
   });
 }

@@ -78,7 +78,6 @@ abstract class IGoogleDriveBackupService {
   /// Restore backup from existing file on Google Drive.
   Future<bool> restoreExistingBackup(
     String fileId, {
-    DevocionalProvider? devocionalProvider,
     PrayerBloc? prayerBloc,
   });
 

@@ -74,45 +74,63 @@ void main() {
       expect(text, contains('King James'));
     });
 
-    test('returns Tagalog ASND copyright disclaimer', () {
-      final text = CopyrightUtils.getCopyrightText('tl', 'ASND');
+    test('returns Filipino ASND copyright disclaimer', () {
+      final text = CopyrightUtils.getCopyrightText('fil', 'ASND');
       expect(text, contains('Ang Salita ng Dios'));
       expect(text, contains('Biblica'));
     });
 
-    test('returns Tagalog ADB copyright disclaimer', () {
-      final text = CopyrightUtils.getCopyrightText('tl', 'ADB');
+    test('returns Filipino MBB05 copyright disclaimer', () {
+      final text = CopyrightUtils.getCopyrightText('fil', 'MBB05');
+      expect(text, contains('Magandang Balita Biblia'));
+      expect(text, contains('Philippine Bible Society'));
+    });
+
+    test('returns Filipino ADB copyright disclaimer', () {
+      final text = CopyrightUtils.getCopyrightText('fil', 'ADB');
       expect(text, contains('Ang Dating Biblia'));
       expect(text, contains('Philippine Bible Society'));
     });
 
-    test('returns Tagalog copyright with database filename ASND', () {
-      final text = CopyrightUtils.getCopyrightText('tl', 'ASND_tl.SQLite3');
+    test('returns Filipino copyright with database filename ASND', () {
+      final text = CopyrightUtils.getCopyrightText('fil', 'ASND_fil.SQLite3');
       expect(text, contains('Ang Salita ng Dios'));
       expect(text, contains('Biblica'));
     });
 
-    test('returns Tagalog copyright with database filename ADB', () {
-      final text = CopyrightUtils.getCopyrightText('tl', 'ADB_tl.SQLite3');
+    test('returns Filipino copyright with database filename MBB05', () {
+      final text = CopyrightUtils.getCopyrightText('fil', 'MBB05_fil.SQLite3');
+      expect(text, contains('Magandang Balita Biblia'));
+      expect(text, contains('Philippine Bible Society'));
+    });
+
+    test('returns Filipino copyright with database filename ADB', () {
+      final text = CopyrightUtils.getCopyrightText('fil', 'ADB_fil.SQLite3');
       expect(text, contains('Ang Dating Biblia'));
       expect(text, contains('Philippine Bible Society'));
     });
 
-    test('returns Tagalog copyright with display name ASND', () {
+    test('returns Filipino copyright with display name ASND', () {
       final text =
-          CopyrightUtils.getCopyrightText('tl', 'Ang Salita ng Dios (ASND)');
+          CopyrightUtils.getCopyrightText('fil', 'Ang Salita ng Dios (ASND)');
       expect(text, contains('Biblica'));
     });
 
-    test('returns Tagalog copyright with display name ADB', () {
-      final text =
-          CopyrightUtils.getCopyrightText('tl', 'Ang Dating Biblia (ADB)');
+    test('returns Filipino copyright with display name MBB05', () {
+      final text = CopyrightUtils.getCopyrightText(
+          'fil', 'Magandang Balita Biblia (MBB05)');
       expect(text, contains('Philippine Bible Society'));
     });
 
-    test('Tagalog falls back to ASND default when version missing', () {
-      final text = CopyrightUtils.getCopyrightText('tl', 'UNKNOWN');
-      expect(text, contains('Ang Salita ng Dios'));
+    test('returns Filipino copyright with display name ADB', () {
+      final text =
+          CopyrightUtils.getCopyrightText('fil', 'Ang Dating Biblia (ADB)');
+      expect(text, contains('Philippine Bible Society'));
+    });
+
+    test('Filipino falls back to MBB05 default when version missing', () {
+      final text = CopyrightUtils.getCopyrightText('fil', 'UNKNOWN');
+      expect(text, contains('Magandang Balita Biblia'));
     });
   });
 }

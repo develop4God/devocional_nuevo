@@ -17,7 +17,7 @@ class BibleVersionRegistry {
     'hi': 'हिन्दी', // Add Hindi
     'de': 'Deutsch', // Add German
     'ar': 'العربية', // Add Arabic
-    'tl': 'Tagalog', // Add Tagalog
+    'fil': 'Filipino', // Add Filipino
   };
 
   static const Map<String, List<Map<String, String>>> _versionsByLanguage = {
@@ -62,13 +62,17 @@ class BibleVersionRegistry {
         'dbFile': 'SVDA_ar.SQLite3',
       },
     ], // Added Arabic
-    'tl': [
-      {'name': 'Ang Dating Biblia (ADB)', 'dbFile': 'ADB_tl.SQLite3'},
+    'fil': [
+      {
+        'name': 'Magandang Balita Biblia (MBB05)',
+        'dbFile': 'MBB05_fil.SQLite3',
+      },
       {
         'name': 'Ang Salita ng Dios (ASND)',
-        'dbFile': 'ASND_tl.SQLite3',
+        'dbFile': 'ASND_fil.SQLite3',
       },
-    ], // Added Tagalog
+      {'name': 'Ang Dating Biblia (ADB)', 'dbFile': 'ADB_fil.SQLite3'},
+    ], // Added Filipino (fil)
   };
 
   /// Get all Bible versions for a specific language

@@ -3,6 +3,7 @@ import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import '../blocs/backup_bloc.dart';
@@ -55,8 +56,15 @@ class BackupSettingsPage extends StatelessWidget {
   }
 }
 
-class _BackupSettingsView extends StatelessWidget {
+class _BackupSettingsView extends StatefulWidget {
   const _BackupSettingsView();
+
+  @override
+  State<_BackupSettingsView> createState() => _BackupSettingsViewState();
+}
+
+class _BackupSettingsViewState extends State<_BackupSettingsView> {
+  bool _successDialogShown = false;
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +80,11 @@ class _BackupSettingsView extends StatelessWidget {
             debugPrint(
               '🔄 [DEBUG] BlocListener recibió estado: ${state.runtimeType}',
             );
+
+            // Reset success dialog flag when going back to initial/loaded state
+            if (state is BackupLoaded || state is BackupInitial) {
+              setState(() => _successDialogShown = false);
+            }
 
             if (state is BackupError) {
               debugPrint('❌ [DEBUG] BackupError recibido: ${state.message}');
@@ -97,35 +110,39 @@ class _BackupSettingsView extends StatelessWidget {
                   backgroundColor: colorScheme.primary,
                 ),
               );
-            } else if (state is BackupSuccess) {
-              debugPrint('✅ [DEBUG] BackupSuccess recibido');
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        state.title.tr(),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(state.message.tr()),
-                    ],
-                  ),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 3),
-                ),
-              );
+            } else if (state is BackupSuccess && !_successDialogShown) {
+              debugPrint('✅ [DEBUG] BackupSuccess recibido — mostrando shield');
+              setState(() => _successDialogShown = true);
+              _showShieldSuccessDialog(context, state);
             }
           },
           child: BlocBuilder<BackupBloc, BackupState>(
             builder: (context, state) {
+              if (state is BackupSigningIn) {
+                return _buildGoogleDriveLottieScreen(
+                  context,
+                  isRestoring: false,
+                );
+              }
+
+              if (state is BackupRestoring) {
+                return _buildGoogleDriveLottieScreen(
+                  context,
+                  isRestoring: true,
+                );
+              }
+
               if (state is BackupLoading) {
                 return const Center(child: CircularProgressIndicator());
               }
 
               if (state is BackupLoaded) {
                 return _BackupSettingsContent(state: state);
+              }
+
+              if (state is BackupSuccess) {
+                // Show loaded content underneath while dialog is shown
+                return const Center(child: CircularProgressIndicator());
               }
 
               if (state is BackupError) {
@@ -171,6 +188,130 @@ class _BackupSettingsView extends StatelessWidget {
 
               return const Center(child: CircularProgressIndicator());
             },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoogleDriveLottieScreen(
+    BuildContext context, {
+    required bool isRestoring,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Lottie.asset(
+              'assets/lottie/google_drive.json',
+              width: 180,
+              height: 180,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              isRestoring
+                  ? 'backup.restoring_title'.tr()
+                  : 'backup.signing_in_title'.tr(),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              isRestoring
+                  ? 'backup.restoring_subtitle'.tr()
+                  : 'backup.signing_in_subtitle'.tr(),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showShieldSuccessDialog(BuildContext context, BackupSuccess state) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _ShieldSuccessDialog(state: state),
+    );
+  }
+}
+
+/// Full-screen dialog that plays the shield_check Lottie animation on success
+/// and auto-dismisses after the animation completes.
+class _ShieldSuccessDialog extends StatefulWidget {
+  final BackupSuccess state;
+
+  const _ShieldSuccessDialog({required this.state});
+
+  @override
+  State<_ShieldSuccessDialog> createState() => _ShieldSuccessDialogState();
+}
+
+class _ShieldSuccessDialogState extends State<_ShieldSuccessDialog> {
+  @override
+  void initState() {
+    super.initState();
+    // Auto-dismiss after 3 seconds so user returns to the updated screen
+    Future.delayed(const Duration(milliseconds: 3000), () {
+      if (mounted) Navigator.of(context).pop();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Dialog.fullscreen(
+      child: Scaffold(
+        backgroundColor: colorScheme.surface,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Lottie.asset(
+                    'assets/lottie/shield_check.json',
+                    width: 220,
+                    height: 220,
+                    repeat: false,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'backup.protected_title'.tr(),
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'backup.protected_subtitle'.tr(),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
