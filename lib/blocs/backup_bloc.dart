@@ -398,7 +398,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     debugPrint('🔐 [BLOC] === INICIANDO SignInToGoogleDrive ===');
 
     try {
-      emit(const BackupLoading());
+      emit(const BackupSigningIn());
 
       final success = await _backupService.signIn();
       debugPrint('🔐 [BLOC] Resultado sign-in: $success');

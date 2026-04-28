@@ -577,19 +577,21 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         debugPrint('[BACKUP] 🔍 SPIRITUAL STATS: ${json.encode(stats)}');
         backupData[BackupKeys.spiritualStats] = stats;
 
-        // Extract details for clear logging
+        // Extract nested stats map for clear logging
+        final innerStats =
+            (stats['stats'] as Map<String, dynamic>?) ?? <String, dynamic>{};
         final readDevocionalIds =
-            (stats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
+            (innerStats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
         debugPrint('[BACKUP] Included spiritual stats:');
         debugPrint(
-            '[BACKUP]   - Total devotionals read: ${stats['totalDevocionalesRead'] ?? 0}');
+            '[BACKUP]   - Total devotionals read: ${innerStats['totalDevocionalesRead'] ?? 0}');
         debugPrint('[BACKUP]   - Completed devotional IDs: $readDevocionalIds');
         debugPrint(
-            '[BACKUP]   - Current streak: ${stats['currentStreak'] ?? 0}');
+            '[BACKUP]   - Current streak: ${innerStats['currentStreak'] ?? 0}');
         debugPrint(
-            '[BACKUP]   - Longest streak: ${stats['longestStreak'] ?? 0}');
+            '[BACKUP]   - Longest streak: ${innerStats['longestStreak'] ?? 0}');
         debugPrint(
-            '[BACKUP]   - Favorites count: ${stats['favoritesCount'] ?? 0}');
+            '[BACKUP]   - Favorites count: ${innerStats['favoritesCount'] ?? 0}');
       } catch (e) {
         debugPrint('[BACKUP] ❌ Error getting spiritual stats: $e');
         backupData[BackupKeys.spiritualStats] = {};
