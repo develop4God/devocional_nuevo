@@ -14,4 +14,7 @@ abstract class BackupKeys {
   static const String discoveryProgress = 'discovery_progress';
   static const String discoveryFavorites = 'discovery_favorites';
   static const String testimonies = 'testimonies';
+  // Preferences fields
+  static const String preferredBibleVersion = 'preferred_bible_version';
+  static const String markedBibleVerses = 'marked_bible_verses';
 }

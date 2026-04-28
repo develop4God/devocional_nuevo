@@ -142,6 +142,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       BackupKeys.discoveryProgress: true,
       BackupKeys.discoveryFavorites: true,
       BackupKeys.testimonies: true,
+      BackupKeys.preferredBibleVersion: true,
+      BackupKeys.markedBibleVerses: true,
     };
   }
 
@@ -721,6 +723,29 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       }
     }
 
+    // Include preferred bible version
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final version = prefs.getString('selectedVersion') ?? '';
+      backupData[BackupKeys.preferredBibleVersion] = version;
+      debugPrint('[BACKUP] Included preferred bible version: $version');
+    } catch (e) {
+      debugPrint('[BACKUP] ❌ Error getting preferred bible version: $e');
+      backupData[BackupKeys.preferredBibleVersion] = '';
+    }
+
+    // Include marked bible verses
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final markedVerses = prefs.getStringList('bible_marked_verses') ?? [];
+      backupData[BackupKeys.markedBibleVerses] = markedVerses;
+      debugPrint(
+          '[BACKUP] Included ${markedVerses.length} marked bible verses');
+    } catch (e) {
+      debugPrint('[BACKUP] ❌ Error getting marked bible verses: $e');
+      backupData[BackupKeys.markedBibleVerses] = [];
+    }
+
     // Full backup summary log
     debugPrint('[BACKUP] ══════════════════════════════════');
     debugPrint('[BACKUP] FULL BACKUP PAYLOAD SUMMARY:');
@@ -1146,6 +1171,43 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           );
         } catch (e) {
           debugPrint('[RESTORE] ❌ Error restoring discovery favorites: $e');
+        }
+      }
+
+      // Restore preferred bible version
+      if (data.containsKey(BackupKeys.preferredBibleVersion)) {
+        try {
+          final version = data[BackupKeys.preferredBibleVersion] as String;
+          if (version.isNotEmpty) {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('selectedVersion', version);
+            debugPrint(
+                '[RESTORE] ✅ Restored preferred bible version: $version');
+          }
+        } catch (e) {
+          debugPrint('[RESTORE] ❌ Error restoring preferred bible version: $e');
+        }
+      }
+
+      // Restore marked bible verses (union merge — preserve local marks)
+      if (data.containsKey(BackupKeys.markedBibleVerses)) {
+        try {
+          final backupVerses =
+              (data[BackupKeys.markedBibleVerses] as List<dynamic>)
+                  .map((e) => e as String)
+                  .toSet();
+          final prefs = await SharedPreferences.getInstance();
+          final localVerses = Set<String>.from(
+              prefs.getStringList('bible_marked_verses') ?? []);
+          final mergedVerses = {...localVerses, ...backupVerses};
+          await prefs.setStringList(
+              'bible_marked_verses', mergedVerses.toList());
+          debugPrint(
+            '[RESTORE] ✅ Restored ${mergedVerses.length} marked bible verses '
+            '(local: ${localVerses.length}, backup: ${backupVerses.length})',
+          );
+        } catch (e) {
+          debugPrint('[RESTORE] ❌ Error restoring marked bible verses: $e');
         }
       }
 
