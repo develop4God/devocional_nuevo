@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../blocs/prayer_bloc.dart';
 import '../../blocs/prayer_event.dart';
+import '../../models/spiritual_stats_model.dart';
 import '../../providers/devocional_provider.dart';
 import '../i_spiritual_stats_service.dart';
 import 'compression_service.dart';
@@ -220,6 +221,196 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     return totalSize;
   }
 
+  /// Download the current Drive backup file as a raw map.
+  /// Returns null if no backup file exists yet.
+  /// Throws on network or auth errors — caller handles fallback.
+  Future<Map<String, dynamic>?> _downloadCurrentDriveBackup() async {
+    try {
+      debugPrint('[BACKUP] Fetching existing Drive backup for merge...');
+
+      final driveApi = await _authService.getDriveApi();
+      if (driveApi == null) {
+        debugPrint('[BACKUP] Could not get Drive API — no remote to fetch');
+        return null;
+      }
+
+      // Get backup folder
+      final folderId = await _getBackupFolderId();
+      if (folderId == null) {
+        debugPrint('[BACKUP] No backup folder found on Drive yet');
+        return null;
+      }
+
+      // Find backup file
+      final backupFile = await _findBackupFile(driveApi, folderId);
+      if (backupFile == null) {
+        debugPrint('[BACKUP] No backup file found on Drive yet');
+        return null;
+      }
+
+      // Download backup file
+      final media = await driveApi.files.get(
+        backupFile.id!,
+        downloadOptions: drive.DownloadOptions.fullMedia,
+      );
+
+      if (media is! drive.Media) {
+        debugPrint('[BACKUP] Failed to download backup file: expected Media');
+        return null;
+      }
+
+      // Read file content
+      final bytes = <int>[];
+      await for (final chunk in media.stream) {
+        bytes.addAll(chunk);
+      }
+
+      final fileBytes = Uint8List.fromList(bytes);
+      debugPrint(
+          '[BACKUP] Downloaded remote backup: ${fileBytes.length} bytes');
+
+      // Parse backup data
+      Map<String, dynamic>? backupData;
+
+      // Try to decompress first
+      backupData = CompressionService.decompressJson(fileBytes);
+      if (backupData == null) {
+        // Try as uncompressed JSON
+        try {
+          final jsonString = utf8.decode(fileBytes);
+          backupData = json.decode(jsonString) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('[BACKUP] Could not parse remote backup: $e');
+          return null;
+        }
+      }
+
+      return backupData;
+    } catch (e) {
+      debugPrint('[BACKUP] Error downloading current Drive backup: $e');
+      return null; // Non-fatal — caller will use local-only
+    }
+  }
+
+  /// Merge local and remote backup payloads.
+  /// Returns final merged payload ready for upload.
+  Map<String, dynamic> _mergePayloads(
+    Map<String, dynamic> local,
+    Map<String, dynamic> remote,
+  ) {
+    debugPrint('[BACKUP] Merging local and remote backups...');
+
+    // --- Stats merge ---
+    final localStats = SpiritualStats.fromJson(
+      local[BackupKeys.spiritualStats] as Map<String, dynamic>? ?? {},
+    );
+    final remoteStats = SpiritualStats.fromJson(
+      remote[BackupKeys.spiritualStats] as Map<String, dynamic>? ?? {},
+    );
+    final mergedStats = SpiritualStats.merge(localStats, remoteStats);
+
+    // Log merge details
+    debugPrint(
+      '[BACKUP] Stats merge: local=${localStats.readDevocionalIds.length} IDs, '
+      'remote=${remoteStats.readDevocionalIds.length} IDs, '
+      'merged=${mergedStats.readDevocionalIds.length} IDs',
+    );
+
+    // --- Read dates merge (union, sorted) ---
+    final localDates = (local['read_dates'] as List<dynamic>?)
+            ?.map((d) => d.toString())
+            .toSet() ??
+        {};
+    final remoteDates = (remote['read_dates'] as List<dynamic>?)
+            ?.map((d) => d.toString())
+            .toSet() ??
+        {};
+    final mergedDates = {...localDates, ...remoteDates}.toList()..sort();
+
+    // --- Favorites merge (union by ID string) ---
+    final localFavs = (local[BackupKeys.favoriteDevotionals] as List<dynamic>?)
+            ?.map((f) => f.toString())
+            .toSet() ??
+        {};
+    final remoteFavs =
+        (remote[BackupKeys.favoriteDevotionals] as List<dynamic>?)
+                ?.map((f) => f.toString())
+                .toSet() ??
+            {};
+    final mergedFavs = {...localFavs, ...remoteFavs}.toList();
+
+    // Patch favoritesCount to reflect actual merged favorites length
+    final patchedStats = mergedStats.copyWith(favoritesCount: mergedFavs.length);
+
+    // --- Prayers merge (union by id) ---
+    final mergedPrayers = {
+      for (final p in [
+        ...(local[BackupKeys.savedPrayers] as List<dynamic>?) ?? [],
+        ...(remote[BackupKeys.savedPrayers] as List<dynamic>?) ?? [],
+      ].whereType<Map<String, dynamic>>())
+        if (p.containsKey('id')) p['id'].toString(): p,
+    }.values.toList();
+
+    // --- Thanksgivings merge (union by id) ---
+    final mergedThanksgivings = {
+      for (final p in [
+        ...(local[BackupKeys.savedThanksgivings] as List<dynamic>?) ?? [],
+        ...(remote[BackupKeys.savedThanksgivings] as List<dynamic>?) ?? [],
+      ].whereType<Map<String, dynamic>>())
+        if (p.containsKey('id')) p['id'].toString(): p,
+    }.values.toList();
+
+    // --- Testimonies merge (union by id) ---
+    final mergedTestimonies = {
+      for (final p in [
+        ...(local[BackupKeys.testimonies] as List<dynamic>?) ?? [],
+        ...(remote[BackupKeys.testimonies] as List<dynamic>?) ?? [],
+      ].whereType<Map<String, dynamic>>())
+        if (p.containsKey('id')) p['id'].toString(): p,
+    }.values.toList();
+
+    // --- Completed encounters merge (union) ---
+    final localEncounters =
+        (local[BackupKeys.completedEncounters] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toSet() ??
+            {};
+    final remoteEncounters =
+        (remote[BackupKeys.completedEncounters] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toSet() ??
+            {};
+    final mergedEncounters = {...localEncounters, ...remoteEncounters}.toList();
+
+    // --- Discovery progress merge (newer values win by key) ---
+    final mergedProgress = <String, dynamic>{
+      ...?remote[BackupKeys.discoveryProgress] as Map<String, dynamic>?,
+      ...?local[BackupKeys.discoveryProgress] as Map<String, dynamic>?,
+    };
+
+    // --- Discovery favorites merge (union) ---
+    final mergedDiscoveryFavs = <String, dynamic>{
+      ...?remote[BackupKeys.discoveryFavorites] as Map<String, dynamic>?,
+      ...?local[BackupKeys.discoveryFavorites] as Map<String, dynamic>?,
+    };
+
+    // Build final merged payload
+    return {
+      ...local, // preserve all other keys (metadata, timestamps, etc.)
+      BackupKeys.spiritualStats: patchedStats.toJson(),
+      'read_dates': mergedDates,
+      BackupKeys.favoriteDevotionals: mergedFavs,
+      BackupKeys.savedPrayers: mergedPrayers,
+      BackupKeys.savedThanksgivings: mergedThanksgivings,
+      BackupKeys.completedEncounters: mergedEncounters,
+      BackupKeys.discoveryProgress: mergedProgress,
+      BackupKeys.discoveryFavorites: mergedDiscoveryFavs,
+      BackupKeys.testimonies: mergedTestimonies,
+      'backup_timestamp': DateTime.now().toIso8601String(),
+      'merge_source': 'multi_device',
+    };
+  }
+
   /// Create backup to Google Drive
   @override
   Future<bool> createBackup(DevocionalProvider? provider) async {
@@ -247,19 +438,40 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         throw Exception('Could not get Google Drive API client');
       }
 
-      // Prepare backup data
-      final backupData = await _prepareBackupData(provider);
+      // Step 1: Build local backup payload
+      final localPayload = await _prepareBackupData(provider);
+
+      // Step 2: Attempt to download existing Drive backup for merge
+      Map<String, dynamic>? remotePayload;
+      try {
+        remotePayload = await _downloadCurrentDriveBackup();
+      } catch (e) {
+        debugPrint(
+          '[BACKUP] Could not fetch remote for merge, proceeding with local only: $e',
+        );
+      }
+
+      // Step 3: Determine final payload (merged or local only)
+      final Map<String, dynamic> finalPayload;
+      if (remotePayload != null && _validateBackupData(remotePayload)) {
+        finalPayload = _mergePayloads(localPayload, remotePayload);
+        debugPrint('[BACKUP] Merged local + remote backup payloads');
+      } else {
+        finalPayload = localPayload;
+        debugPrint(
+            '[BACKUP] No valid remote backup found, uploading local only');
+      }
 
       // Convert to bytes
       Uint8List fileBytes;
       final compressionEnabled = await isCompressionEnabled();
       if (compressionEnabled) {
-        fileBytes = CompressionService.compressJson(backupData);
+        fileBytes = CompressionService.compressJson(finalPayload);
         debugPrint(
-          'Backup compressed: ${json.encode(backupData).length} -> ${fileBytes.length} bytes',
+          'Backup compressed: ${json.encode(finalPayload).length} -> ${fileBytes.length} bytes',
         );
       } else {
-        fileBytes = Uint8List.fromList(utf8.encode(json.encode(backupData)));
+        fileBytes = Uint8List.fromList(utf8.encode(json.encode(finalPayload)));
         debugPrint('Backup uncompressed: ${fileBytes.length} bytes');
       }
 
@@ -269,6 +481,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       // Check if backup file already exists
       final existingFile = await _findBackupFile(driveApi, folderId);
 
+      // Step 4: Upload merged result to Drive
       if (existingFile != null) {
         // Update existing file - NO parents field
         debugPrint('Updating existing backup file: ${existingFile.id}');
@@ -277,7 +490,6 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           ..description =
               'Devocional backup updated on ${DateTime.now().toIso8601String()}'
           ..mimeType = 'application/json';
-        // Importante: NO incluir parents field en updates
 
         final media = drive.Media(
           Stream.fromIterable([fileBytes]),
@@ -307,8 +519,26 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         await driveApi.files.create(createFile, uploadMedia: media);
       }
 
+      // Step 5: Sync merged result back to local so UI reflects true merged state
+      if (remotePayload != null && _validateBackupData(remotePayload)) {
+        try {
+          await _statsService.restoreStats(finalPayload);
+          debugPrint('[BACKUP] Local state synced to merged result');
+        } catch (e) {
+          debugPrint(
+            '[BACKUP] Warning: could not sync merged state locally: $e',
+          );
+          // non-fatal — Drive is correct, local will catch up on next restore
+        }
+      }
+
       await _setLastBackupTime(DateTime.now());
-      debugPrint('Google Drive backup created successfully');
+      debugPrint('✅ Merged backup uploaded — local IDs: '
+          '${(localPayload[BackupKeys.spiritualStats] as Map<String, dynamic>?)?['readDevocionalIds']?.length ?? 0}, '
+          'remote IDs: '
+          '${(remotePayload?[BackupKeys.spiritualStats] as Map<String, dynamic>?)?['readDevocionalIds']?.length ?? 0}, '
+          'merged IDs: '
+          '${(finalPayload[BackupKeys.spiritualStats] as Map<String, dynamic>?)?['readDevocionalIds']?.length ?? 0}');
       return true;
     } catch (e) {
       debugPrint('Error creating Google Drive backup: $e');
