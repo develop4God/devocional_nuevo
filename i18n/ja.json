@@ -519,7 +519,13 @@
     "more_options": "その他のオプション",
     "optimization": "最適化",
     "account_management": "アカウント管理",
-    "logout_google_drive": "Google Driveからログアウト"
+    "logout_google_drive": "Google Driveからログアウト",
+    "signing_in_title": "Google Driveに接続中",
+    "signing_in_subtitle": "あなたの霊的な進歩を守るために本人確認を行っています...",
+    "restoring_title": "データを復元中",
+    "restoring_subtitle": "Google Driveにバックアップが見つかりました。霊的な進歩を取り戻しています...",
+    "protected_title": "データが保護されました！",
+    "protected_subtitle": "あなたの霊的な進歩は、個人のGoogle Driveに安全に保存されています。"
   },
   "review": {
     "title": "あなたの継続に感謝します 🙏",
