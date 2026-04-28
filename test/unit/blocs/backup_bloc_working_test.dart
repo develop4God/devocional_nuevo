@@ -138,4 +138,56 @@ void main() {
 
     // Puedes agregar más pruebas de bloc para cobertura crítica
   });
+
+  group('BackupBloc SignInToGoogleDrive — BackupSigningIn state', () {
+    late MockGoogleDriveBackupService mockBackupService;
+    late MockDevocionalProvider mockDevocionalProvider;
+
+    setUp(() {
+      mockBackupService = MockGoogleDriveBackupService();
+      mockDevocionalProvider = MockDevocionalProvider();
+
+      when(() => mockBackupService.isAuthenticated())
+          .thenAnswer((_) async => true);
+      when(() => mockBackupService.isAutoBackupEnabled())
+          .thenAnswer((_) async => false);
+      when(() => mockBackupService.getBackupFrequency())
+          .thenAnswer((_) async => 'daily');
+      when(() => mockBackupService.isWifiOnlyEnabled())
+          .thenAnswer((_) async => true);
+      when(() => mockBackupService.isCompressionEnabled())
+          .thenAnswer((_) async => true);
+      when(() => mockBackupService.getBackupOptions())
+          .thenAnswer((_) async => <String, bool>{});
+      when(() => mockBackupService.getLastBackupTime())
+          .thenAnswer((_) async => null);
+      when(() => mockBackupService.getNextBackupTime())
+          .thenAnswer((_) async => null);
+      when(() => mockBackupService.getEstimatedBackupSize(any()))
+          .thenAnswer((_) async => 0);
+      when(() => mockBackupService.getUserEmail())
+          .thenAnswer((_) async => 'user@example.com');
+      when(() => mockBackupService.signIn()).thenAnswer((_) async => false);
+      when(() => mockBackupService.checkForExistingBackup())
+          .thenAnswer((_) async => null);
+      when(() => mockBackupService.setAutoBackupEnabled(any()))
+          .thenAnswer((_) async {});
+      when(() => mockBackupService.createBackup(any()))
+          .thenAnswer((_) async => true);
+    });
+
+    blocTest<BackupBloc, BackupState>(
+      'emite BackupSigningIn como primer estado al iniciar sign-in',
+      build: () => BackupBloc(
+        backupService: mockBackupService,
+        devocionalProvider: mockDevocionalProvider,
+      ),
+      act: (bloc) => bloc.add(const SignInToGoogleDrive()),
+      expect: () => <dynamic>[
+        const BackupSigningIn(),
+        // sign-in returned false → emits BackupError
+        isA<BackupError>(),
+      ],
+    );
+  });
 }
