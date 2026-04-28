@@ -481,6 +481,12 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
           debugPrint('📤 [BLOC] No backup found, creating initial backup...');
           await _backupService.createBackup(_devocionalProvider);
           debugPrint('✅ [BLOC] Initial backup created');
+          emit(
+            const BackupSuccess(
+              'backup.sign_in_success',
+              'backup.created_successfully',
+            ),
+          );
         }
 
         // Recargar configuración después de 2 segundos
