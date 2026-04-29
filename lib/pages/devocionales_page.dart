@@ -95,6 +95,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   late final DevocionalNavigationHelper _navigationHelper;
   AudioController? _audioController;
   bool _routeSubscribed = false;
+  // True when DevocionalesPage IS the top-most route (nothing pushed on top).
+  // Used to guard lifecycle-based tracking so we don't resume tracking while
+  // SupporterPage or any other modal is visible above us.
+  bool _isTopRoute = true;
   int _currentStreak = 0;
   late Future<int> _streakFuture;
 
@@ -426,8 +430,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     } else if (state == AppLifecycleState.resumed) {
       debugPrint('🔄 App resumed - refreshing state');
 
-      // Resume tracking
-      _tracking.resumeTracking();
+      // Only resume tracking if DevocionalesPage is the top-most route.
+      // When another page (e.g. SupporterPage) is pushed on top, the
+      // lifecycle observer still fires for DevocionalesPage, but we must NOT
+      // restart tracking — that would incorrectly count reading time while
+      // the user is on a different screen.
+      if (_isTopRoute) {
+        _tracking.resumeTracking();
+      } else {
+        debugPrint(
+            '🔄 App resumed but DevocionalesPage is NOT top route — skipping tracking resume');
+      }
 
       // Check for updates
       UpdateService.checkForUpdate();
@@ -457,6 +470,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   void didPush() {
+    _isTopRoute = true;
     // Only resume if there's actually something being tracked
     // Otherwise we'll start an empty criteria timer
     debugPrint(
@@ -475,6 +489,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   void didPopNext() {
+    _isTopRoute = true;
     // Refresh streak when returning to this page (e.g., from ProgressPage)
     _streakFuture = _loadStreak();
 
@@ -493,6 +508,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   void didPushNext() {
+    _isTopRoute = false;
     _tracking.pauseTracking();
     debugPrint('📄 DevocionalesPage didPushNext → tracking PAUSED');
     if (_audioController != null && _audioController!.isActive) {
