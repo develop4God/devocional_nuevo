@@ -123,8 +123,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   @override
   void initState() {
     super.initState();
-    // Flush any deep link that arrived before the navigator was ready
+    // Flush any deep link that was buffered while the navigator was not yet ready.
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       getService<DeepLinkHandler>().flushPendingLink();
     });
     _ttsAudioController = TtsAudioController(
