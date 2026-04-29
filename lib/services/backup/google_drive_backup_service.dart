@@ -1082,11 +1082,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           final isNewFormat = favorites.isEmpty || favorites.first is String;
           if (isNewFormat) {
             final preferredVersion =
-                (data[BackupKeys.preferredBibleVersion] as String?)
-                            ?.isNotEmpty ==
-                        true
-                    ? data[BackupKeys.preferredBibleVersion] as String
-                    : prefs.getString('selectedVersion') ?? 'RVR1960';
+                prefs.getString('selectedVersion') ?? 'RVR1960';
             final ids = favorites
                 .cast<String>()
                 .map((baseId) => '$baseId$preferredVersion')
