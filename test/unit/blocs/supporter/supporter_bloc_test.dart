@@ -500,7 +500,7 @@ void main() {
     test('deliver() adds tier to purchasedLevels and emits on stream',
         () async {
       final received = <SupporterTier>[];
-      fake.onPurchaseDelivered.listen(received.add);
+      fake.onPurchaseDelivered.listen((rec) => received.add(rec.$1));
 
       await fake.deliver(SupporterTier.fromLevel(SupporterTierLevel.gold));
       await pumpEventQueue();
@@ -514,7 +514,7 @@ void main() {
       await fake.deliver(SupporterTier.fromLevel(SupporterTierLevel.silver));
 
       final received = <SupporterTier>[];
-      fake.onPurchaseDelivered.listen(received.add);
+      fake.onPurchaseDelivered.listen((rec) => received.add(rec.$1));
 
       await fake.restorePurchases();
       await pumpEventQueue();
