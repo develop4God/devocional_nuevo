@@ -1155,7 +1155,7 @@ class DevocionalProvider with ChangeNotifier {
 
       if (version != _selectedVersion) {
         _selectedVersion = version;
-        debugPrint("[PROVIDER] 📖 favoriteIds at version reload: ${_favoriteIds.length}");
+        await _loadFavorites();
         _audioController?.ttsService.setLanguageContext(
           _selectedLanguage,
           _selectedVersion,
