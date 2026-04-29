@@ -325,11 +325,11 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       // newly-restored read IDs and favourite lists simultaneously.
       final onRestored = _devocionalProvider != null
           ? () async {
+              await _devocionalProvider!.reloadVersionFromStorage();
               await _devocionalProvider!.reloadFavoritesFromStorage();
               await _devocionalProvider!.reloadSpiritualStatsFromStorage();
-              await _devocionalProvider!.reloadVersionFromStorage();
               debugPrint(
-                '✅ [BLOC] Provider reloaded: favorites + spiritual stats',
+                '✅ [BLOC] Provider reloaded: version + favorites + spiritual stats',
               );
             }
           : null;
@@ -453,12 +453,12 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
                   '🔄 [BLOC] LoadEncounterIndex event dispatched (login restore)');
             }
 
-            // Reload provider state: favorites + spiritual stats
+            // Reload provider state: version + favorites + spiritual stats
+            await _devocionalProvider?.reloadVersionFromStorage();
             await _devocionalProvider?.reloadFavoritesFromStorage();
             await _devocionalProvider?.reloadSpiritualStatsFromStorage();
-            await _devocionalProvider?.reloadVersionFromStorage();
             debugPrint(
-              '✅ [BLOC] Provider reloaded: favorites + spiritual stats (sign-in restore)',
+              '✅ [BLOC] Provider reloaded: version + favorites + spiritual stats (sign-in restore)',
             );
 
             // Recalculate current devotional index from restored read IDs
