@@ -82,6 +82,7 @@ class DevocionalProvider with ChangeNotifier {
   String get selectedLanguage => _selectedLanguage;
 
   String get selectedVersion => _selectedVersion;
+  Set<String> get favoriteIds => Set.unmodifiable(_favoriteIds);
 
   List<Devocional> get favoriteDevocionales => _favoriteDevocionales;
 

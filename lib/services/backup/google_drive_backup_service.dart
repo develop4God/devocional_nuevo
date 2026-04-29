@@ -18,6 +18,7 @@ import 'i_google_drive_auth_service.dart';
 import 'i_google_drive_backup_service.dart';
 import '../i_localization_service.dart';
 import 'package:devocional_nuevo/utils/constants/backup_keys_constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 
 /// Service for managing Google Drive backup functionality
 /// Integrates with real Google Drive API for cloud storage
@@ -603,10 +604,21 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     // Include favorite devotionals if enabled
     if (options[BackupKeys.favoriteDevotionals] == true && provider != null) {
       try {
+        final allVersions =
+            Constants.bibleVersionsByLanguage.values.expand((v) => v).toSet();
         backupData[BackupKeys.favoriteDevotionals] =
-            provider.favoriteDevocionales.map((dev) => dev.toJson()).toList();
+            provider.favoriteIds.map((id) {
+          String baseId = id;
+          for (final v in allVersions) {
+            if (id.endsWith(v)) {
+              baseId = id.substring(0, id.length - v.length);
+              break;
+            }
+          }
+          return baseId;
+        }).toList();
         debugPrint(
-          '[BACKUP] Included ${provider.favoriteDevocionales.length} favorite devotionals',
+          '[BACKUP] Included ${provider.favoriteIds.length} favorite devotionals (base IDs)',
         );
       } catch (e) {
         debugPrint('[BACKUP] ❌ Error getting favorite devotionals: $e');
@@ -1067,10 +1079,29 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           final favorites =
               data[BackupKeys.favoriteDevotionals] as List<dynamic>;
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('favorites', json.encode(favorites));
-          debugPrint(
-            '[RESTORE] ✅ Restored ${favorites.length} favorite devotionals',
-          );
+          final isNewFormat = favorites.isEmpty || favorites.first is String;
+          if (isNewFormat) {
+            final preferredVersion =
+                (data[BackupKeys.preferredBibleVersion] as String?)
+                            ?.isNotEmpty ==
+                        true
+                    ? data[BackupKeys.preferredBibleVersion] as String
+                    : prefs.getString('selectedVersion') ?? 'RVR1960';
+            final ids = favorites
+                .cast<String>()
+                .map((baseId) => '$baseId$preferredVersion')
+                .toList();
+            await prefs.setString('favorite_ids', json.encode(ids));
+            debugPrint(
+              '[RESTORE] ✅ Restored ${ids.length} favorite devotionals (base IDs → $preferredVersion)',
+            );
+          } else {
+            // Legacy: full JSON objects — existing migration path handles it
+            await prefs.setString('favorites', json.encode(favorites));
+            debugPrint(
+              '[RESTORE] ✅ Restored ${favorites.length} favorite devotionals (legacy format)',
+            );
+          }
         } catch (e) {
           debugPrint('[RESTORE] ❌ Error restoring favorite devotionals: $e');
         }
