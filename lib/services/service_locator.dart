@@ -22,6 +22,8 @@ import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/encounter_progress_service.dart';
 import 'package:devocional_nuevo/services/backup/google_drive_auth_service.dart';
 import 'package:devocional_nuevo/services/backup/google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/backup/i_backup_settings_service.dart';
+import 'package:devocional_nuevo/services/backup/backup_settings_service.dart';
 import 'package:devocional_nuevo/services/i_connectivity_service.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:devocional_nuevo/services/backup/i_google_drive_auth_service.dart';
@@ -162,12 +164,17 @@ Future<void> setupServiceLocator() async {
   );
 
   // ✅ REGISTER GOOGLE DRIVE BACKUP SERVICE (via interface)
+  locator.registerLazySingleton<IBackupSettingsService>(
+    () => BackupSettingsService(),
+  );
+
   locator.registerLazySingleton<IGoogleDriveBackupService>(
     () => GoogleDriveBackupService(
       authService: locator.get<IGoogleDriveAuthService>(),
       connectivityService: locator.get<IConnectivityService>(),
       statsService: locator.get<ISpiritualStatsService>(),
       localizationService: locator.get<ILocalizationService>(),
+      settingsService: locator.get<IBackupSettingsService>(),
     ),
   );
 

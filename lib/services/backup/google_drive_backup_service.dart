@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'i_backup_settings_service.dart';
 
 import '../../blocs/prayer_bloc.dart';
 import '../../blocs/prayer_event.dart';
@@ -22,19 +23,8 @@ import 'package:devocional_nuevo/utils/constants/backup_keys_constants.dart';
 /// Service for managing Google Drive backup functionality
 /// Integrates with real Google Drive API for cloud storage
 class GoogleDriveBackupService implements IGoogleDriveBackupService {
-  static const String _lastBackupTimeKey = 'last_google_drive_backup_time';
-  static const String _autoBackupEnabledKey =
-      'google_drive_auto_backup_enabled';
-  static const String _backupFrequencyKey = 'google_drive_backup_frequency';
-  static const String _wifiOnlyKey = 'google_drive_wifi_only';
-  static const String _compressDataKey = 'google_drive_compress_data';
   static const String _backupOptionsKey = 'google_drive_backup_options';
   static const String _backupFolderIdKey = 'google_drive_backup_folder_id';
-
-  // Backup frequency options
-  static const String frequencyDaily = 'daily';
-  static const String frequencyManual = 'manual';
-  static const String frequencyDeactivated = 'deactivated';
 
   // file name is derived from localization at runtime
 
@@ -45,81 +35,56 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
   final IConnectivityService _connectivityService;
   final ISpiritualStatsService _statsService;
   final ILocalizationService _localizationService;
+  final IBackupSettingsService _settingsService;
 
   GoogleDriveBackupService({
     required IGoogleDriveAuthService authService,
     required IConnectivityService connectivityService,
     required ISpiritualStatsService statsService,
     required ILocalizationService localizationService,
+    required IBackupSettingsService settingsService,
   })  : _authService = authService,
         _connectivityService = connectivityService,
         _statsService = statsService,
-        _localizationService = localizationService;
+        _localizationService = localizationService,
+        _settingsService = settingsService;
 
   /// Check if Google Drive backup is enabled
   @override
-  Future<bool> isAutoBackupEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_autoBackupEnabledKey) ?? false;
-  }
+  Future<bool> isAutoBackupEnabled() => _settingsService.isAutoBackupEnabled();
 
   /// Enable/disable automatic Google Drive backup
   @override
-  Future<void> setAutoBackupEnabled(bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_autoBackupEnabledKey, enabled);
-    debugPrint('Google Drive auto-backup ${enabled ? "enabled" : "disabled"}');
-  }
+  Future<void> setAutoBackupEnabled(bool enabled) =>
+      _settingsService.setAutoBackupEnabled(enabled);
 
   /// Get backup frequency
   @override
-  Future<String> getBackupFrequency() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_backupFrequencyKey) ??
-        frequencyDaily; // Default to Daily (2:00 AM) as requested
-  }
+  Future<String> getBackupFrequency() => _settingsService.getBackupFrequency();
 
   /// Set backup frequency
   @override
-  Future<void> setBackupFrequency(String frequency) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_backupFrequencyKey, frequency);
-    debugPrint('Google Drive backup frequency set to: $frequency');
-  }
+  Future<void> setBackupFrequency(String frequency) =>
+      _settingsService.setBackupFrequency(frequency);
 
   /// Check if WiFi-only backup is enabled
   @override
-  Future<bool> isWifiOnlyEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_wifiOnlyKey) ??
-        true; // Default to WiFi-only for data saving
-  }
+  Future<bool> isWifiOnlyEnabled() => _settingsService.isWifiOnlyEnabled();
 
   /// Enable/disable WiFi-only backup
   @override
-  Future<void> setWifiOnlyEnabled(bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_wifiOnlyKey, enabled);
-    debugPrint(
-      'Google Drive WiFi-only backup ${enabled ? "enabled" : "disabled"}',
-    );
-  }
+  Future<void> setWifiOnlyEnabled(bool enabled) =>
+      _settingsService.setWifiOnlyEnabled(enabled);
 
   /// Check if data compression is enabled
   @override
-  Future<bool> isCompressionEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_compressDataKey) ??
-        true; // Default to enabled for smaller backups
-  }
+  Future<bool> isCompressionEnabled() =>
+      _settingsService.isCompressionEnabled();
 
   /// Enable/disable data compression
   @override
-  Future<void> setCompressionEnabled(bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_compressDataKey, enabled);
-    debugPrint('Google Drive compression ${enabled ? "enabled" : "disabled"}');
-  }
+  Future<void> setCompressionEnabled(bool enabled) =>
+      _settingsService.setCompressionEnabled(enabled);
 
   /// Get backup options (what to include in backup)
   @override
@@ -157,36 +122,11 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
 
   /// Get last backup timestamp
   @override
-  Future<DateTime?> getLastBackupTime() async {
-    final prefs = await SharedPreferences.getInstance();
-    final timestamp = prefs.getInt(_lastBackupTimeKey);
-    return timestamp != null
-        ? DateTime.fromMillisecondsSinceEpoch(timestamp)
-        : null;
-  }
+  Future<DateTime?> getLastBackupTime() => _settingsService.getLastBackupTime();
 
-  /// Set last backup timestamp
-  Future<void> _setLastBackupTime(DateTime time) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_lastBackupTimeKey, time.millisecondsSinceEpoch);
-  }
-
-  /// Calculate next backup time - Always today for startup approach
+  /// Calculate next backup time (delegated to settings service)
   @override
-  Future<DateTime?> getNextBackupTime() async {
-    final frequency = await getBackupFrequency();
-
-    if (frequency == frequencyDeactivated || frequency == frequencyManual) {
-      return null;
-    }
-
-    if (!await isAutoBackupEnabled()) {
-      return null;
-    }
-
-    // Always return today since backup is checked at app startup
-    return DateTime.now();
-  }
+  Future<DateTime?> getNextBackupTime() => _settingsService.getNextBackupTime();
 
   /// Get estimated backup size in bytes
   @override
@@ -535,7 +475,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         }
       }
 
-      await _setLastBackupTime(DateTime.now());
+      await _settingsService.setLastBackupTime(DateTime.now());
       debugPrint('✅ Merged backup uploaded — local IDs: '
           '${(localPayload[BackupKeys.spiritualStats] as Map<String, dynamic>?)?['readDevocionalIds']?.length ?? 0}, '
           'remote IDs: '
@@ -1366,7 +1306,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       }
 
       // Update last backup time
-      await _setLastBackupTime(DateTime.now());
+      await _settingsService.setLastBackupTime(DateTime.now());
 
       debugPrint('Existing backup restored successfully');
       return true;
