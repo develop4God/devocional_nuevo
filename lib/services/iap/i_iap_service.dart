@@ -36,9 +36,11 @@ enum IapInitStatus {
 /// Depend on this interface (not the concrete class) for
 /// Dependency Inversion and easy test mocking.
 abstract class IIapService {
-  /// Broadcast stream that emits a [SupporterTier] each time a
-  /// product is successfully delivered (purchased or restored).
-  Stream<SupporterTier> get onPurchaseDelivered;
+  /// Broadcast stream that emits a record `(SupporterTier, bool)` each time a
+  /// product is successfully delivered. The tuple contains the delivered
+  /// `SupporterTier` and a boolean `isRestore` which is `true` when the
+  /// delivery originated from a restore operation.
+  Stream<(SupporterTier, bool)> get onPurchaseDelivered;
 
   /// Broadcast stream that emits a product ID when a purchase fails at store level.
   Stream<String> get onPurchaseError;

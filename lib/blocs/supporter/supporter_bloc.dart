@@ -31,8 +31,9 @@ class _PurchaseCancelled extends SupporterEvent {
 
 class _PurchaseDelivered extends SupporterEvent {
   final SupporterTier tier;
+  final bool isRestore;
 
-  _PurchaseDelivered(this.tier);
+  _PurchaseDelivered(this.tier, {this.isRestore = false});
 }
 
 /// BLoC that orchestrates the supporter / IAP flow.
@@ -43,7 +44,7 @@ class _PurchaseDelivered extends SupporterEvent {
 class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
   final IIapService _iapService;
   final ISupporterProfileRepository _profileRepo;
-  StreamSubscription<SupporterTier>? _deliveredSubscription;
+  StreamSubscription<(SupporterTier, bool)>? _deliveredSubscription;
   StreamSubscription<String>? _errorSubscription;
   StreamSubscription<String>? _cancelledSubscription;
 
@@ -79,10 +80,12 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
           debugPrint('❌ [SupporterBloc] Cancelled stream: $e'),
     );
     _deliveredSubscription = _iapService.onPurchaseDelivered.listen(
-      (tier) {
+      (rec) {
+        final tier = rec.$1;
+        final isRestore = rec.$2;
         debugPrint(
-            '✅ [SupporterBloc] onPurchaseDelivered -> ${tier.productId}');
-        add(_PurchaseDelivered(tier));
+            '✅ [SupporterBloc] onPurchaseDelivered -> ${tier.productId} (isRestore=$isRestore)');
+        add(_PurchaseDelivered(tier, isRestore: isRestore));
       },
       onError: (Object error) {
         debugPrint('❌ [SupporterBloc] Delivered stream error: $error');
@@ -255,7 +258,7 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     emit(current.copyWith(
       purchasedLevels: _iapService.purchasedLevels,
       clearPurchasing: true,
-      justDeliveredTier: event.tier,
+      justDeliveredTier: event.isRestore ? null : event.tier,
     ));
   }
 

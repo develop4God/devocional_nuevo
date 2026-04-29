@@ -52,11 +52,12 @@ class IapService implements IIapService {
   final StreamController<String> _cancelledController =
       StreamController<String>.broadcast();
 
-  final StreamController<SupporterTier> _deliveredController =
-      StreamController<SupporterTier>.broadcast();
+  final StreamController<(SupporterTier, bool)> _deliveredController =
+      StreamController<(SupporterTier, bool)>.broadcast();
 
   @override
-  Stream<SupporterTier> get onPurchaseDelivered => _deliveredController.stream;
+  Stream<(SupporterTier, bool)> get onPurchaseDelivered =>
+      _deliveredController.stream;
 
   @override
   Stream<String> get onPurchaseError => _errorController.stream;
@@ -302,7 +303,8 @@ class IapService implements IIapService {
       // badge without paying.  If revenue grows, add server-side receipt
       // validation here (Google Play Developer API / Apple App Store Server
       // Notifications) before calling _deliverProduct().
-      await _deliverProduct(purchase.productID);
+      await _deliverProduct(purchase.productID,
+          isRestore: purchase.status == PurchaseStatus.restored);
     } else if (purchase.status == PurchaseStatus.canceled) {
       // User dismissed / backed out of the payment sheet (back button, system
       // navigation, or explicit cancel).  Emit to the cancelled stream so
@@ -345,7 +347,8 @@ class IapService implements IIapService {
     }
   }
 
-  Future<void> _deliverProduct(String productId) async {
+  Future<void> _deliverProduct(String productId,
+      {required bool isRestore}) async {
     final tier = SupporterTier.fromProductId(productId);
     if (tier == null) {
       debugPrint('⚠️ [IapService] Unknown productId delivered: $productId');
@@ -365,7 +368,7 @@ class IapService implements IIapService {
 
     // Notify listeners via broadcast stream (guarded against closed controller)
     if (!_deliveredController.isClosed) {
-      _deliveredController.add(tier);
+      _deliveredController.add((tier, isRestore));
     }
 
     debugPrint('✅ [IapService] Delivered: $productId (${tier.level})');

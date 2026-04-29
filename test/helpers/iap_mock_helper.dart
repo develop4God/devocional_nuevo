@@ -26,8 +26,8 @@ class IapMockAnnotationTarget {}
 /// In-memory [IIapService] fake suitable for unit tests that need full
 /// lifecycle control without Mockito stubs.
 class FakeIapService implements IIapService {
-  final StreamController<SupporterTier> _deliveredController =
-      StreamController<SupporterTier>.broadcast();
+  final StreamController<(SupporterTier, bool)> _deliveredController =
+      StreamController<(SupporterTier, bool)>.broadcast();
 
   final Set<SupporterTierLevel> _purchasedLevels = {};
   bool _isAvailable;
@@ -48,7 +48,8 @@ class FakeIapService implements IIapService {
   }) : _isAvailable = isAvailable;
 
   @override
-  Stream<SupporterTier> get onPurchaseDelivered => _deliveredController.stream;
+  Stream<(SupporterTier, bool)> get onPurchaseDelivered =>
+      _deliveredController.stream;
 
   final StreamController<String> _errorController =
       StreamController<String>.broadcast();
@@ -100,7 +101,7 @@ class FakeIapService implements IIapService {
   Future<void> restorePurchases() async {
     // Re-emit all already-purchased tiers (simulates restore)
     for (final level in _purchasedLevels) {
-      _deliveredController.add(SupporterTier.fromLevel(level));
+      _deliveredController.add((SupporterTier.fromLevel(level), true));
     }
   }
 
@@ -130,7 +131,7 @@ class FakeIapService implements IIapService {
   /// Simulate a successful delivery (purchased or restored).
   Future<void> deliver(SupporterTier tier) async {
     _purchasedLevels.add(tier.level);
-    _deliveredController.add(tier);
+    _deliveredController.add((tier, false));
   }
 
   /// Simulate the user cancelling the payment sheet (back button / dismiss).

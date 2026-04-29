@@ -203,7 +203,7 @@ void main() {
 
       test('does not emit anything at startup', () async {
         final received = <SupporterTier>[];
-        service.onPurchaseDelivered.listen(received.add);
+        service.onPurchaseDelivered.listen((rec) => received.add(rec.$1));
         await Future<void>.delayed(const Duration(milliseconds: 10));
         expect(received, isEmpty);
       });
@@ -227,7 +227,7 @@ void main() {
     group('dispose safety', () {
       test('post-dispose purchase update does not emit on stream', () async {
         final received = <SupporterTier>[];
-        service.onPurchaseDelivered.listen(received.add);
+        service.onPurchaseDelivered.listen((rec) => received.add(rec.$1));
 
         await service.initialize();
         // Dispose first — sets _disposed = true.
