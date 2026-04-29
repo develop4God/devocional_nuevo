@@ -503,9 +503,12 @@ class _AppInitializerState extends State<AppInitializer> {
     await _initCriticalServices();
     await _initAppData();
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(PageRouteBuilder(
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
         pageBuilder: (context, a, b) => const DevocionalesPage(),
-        transitionDuration: const Duration(milliseconds: 300)));
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+    );
     _initNonCriticalServices();
   }
 

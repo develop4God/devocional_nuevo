@@ -30,7 +30,9 @@ class DeepLinkHandler {
   Uri? _pendingLink;
 
   /// Deduplication: track the last processed link and time
-  /// to suppress duplicate events within 1 second
+  /// to suppress duplicate events within 10 seconds.
+  /// 10 s covers the AppInitializer race window (3 s delay + init time)
+  /// plus DevocionalesPage re-creation edge cases.
   Uri? _lastProcessedLink;
   DateTime? _lastProcessedTime;
 
@@ -96,17 +98,20 @@ class DeepLinkHandler {
     }
   }
 
-  /// Process deep link string
-  /// Includes deduplication to suppress the same link within 1 second
+  /// Process deep link string.
+  /// Includes deduplication to suppress the same link within 10 seconds.
+  /// The 10-second window covers:
+  ///   • AppInitializer's ~3-second startup delay + initialization time
+  ///   • Any DevocionalesPage re-creation edge cases
   Future<void> _processDeepLink(String link) async {
     try {
       final uri = Uri.parse(link);
       final now = DateTime.now();
 
-      // Deduplicate — same link within 1 second = ignore
+      // Deduplicate — same link within 10 seconds = ignore
       if (_lastProcessedLink == uri &&
           _lastProcessedTime != null &&
-          now.difference(_lastProcessedTime!) < const Duration(seconds: 1)) {
+          now.difference(_lastProcessedTime!) < const Duration(seconds: 10)) {
         debugPrint('🔗 [DeepLink] Duplicate suppressed: $link');
         return;
       }
