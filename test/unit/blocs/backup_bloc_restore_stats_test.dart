@@ -16,6 +16,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
@@ -27,11 +28,13 @@ class MockDevocionalProvider extends Mock implements DevocionalProvider {}
 // ── Test group ──────────────────────────────────────────────────────────────
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('BackupBloc — Restore Stats Refresh', () {
     late MockGoogleDriveBackupService mockBackupService;
     late MockDevocionalProvider mockProvider;
 
     setUp(() {
+      SharedPreferences.setMockInitialValues({});
       mockBackupService = MockGoogleDriveBackupService();
       mockProvider = MockDevocionalProvider();
 
@@ -62,6 +65,10 @@ void main() {
       when(() => mockProvider.reloadFavoritesFromStorage())
           .thenAnswer((_) async {});
       when(() => mockProvider.reloadSpiritualStatsFromStorage())
+          .thenAnswer((_) async {});
+      // reloadVersionFromStorage may be called in the restore flow; ensure it's
+      // stubbed to return a Future so tests don't hit a null return from the mock.
+      when(() => mockProvider.reloadVersionFromStorage())
           .thenAnswer((_) async {});
     });
 

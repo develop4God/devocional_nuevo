@@ -108,7 +108,6 @@ class _BackupSettingsViewState extends State<_BackupSettingsView> {
               if (state.restoredVersion != null &&
                   state.restoredVersion!.isNotEmpty) {
                 final provider = context.read<DevocionalProvider>();
-                debugPrint('[RESTORE] version check: provider=${provider.selectedVersion}, backup=${state.restoredVersion}');
                 if (provider.selectedVersion != state.restoredVersion) {
                   await provider.setSelectedVersion(state.restoredVersion!);
                   debugPrint(
