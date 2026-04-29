@@ -150,6 +150,12 @@ class DeepLinkHandler {
         name: 'DeepLinkHandler',
       );
       _pendingLink = uri;
+      // Self-flush on next frame. Covers warm-start (e.g. FIAM tap) where
+      // navigatorKey.currentContext is null at dispatch time but becomes
+      // available once Flutter finishes its next render cycle.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        flushPendingLink();
+      });
       return false;
     }
 
