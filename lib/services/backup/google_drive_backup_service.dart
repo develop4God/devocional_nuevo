@@ -18,7 +18,7 @@ import 'i_google_drive_auth_service.dart';
 import 'i_google_drive_backup_service.dart';
 import '../i_localization_service.dart';
 import 'package:devocional_nuevo/utils/constants/backup_keys_constants.dart';
-import 'package:devocional_nuevo/utils/constants/constants.dart';
+
 
 /// Service for managing Google Drive backup functionality
 /// Integrates with real Google Drive API for cloud storage
@@ -604,21 +604,10 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     // Include favorite devotionals if enabled
     if (options[BackupKeys.favoriteDevotionals] == true && provider != null) {
       try {
-        final allVersions =
-            Constants.bibleVersionsByLanguage.values.expand((v) => v).toSet();
         backupData[BackupKeys.favoriteDevotionals] =
-            provider.favoriteIds.map((id) {
-          String baseId = id;
-          for (final v in allVersions) {
-            if (id.endsWith(v)) {
-              baseId = id.substring(0, id.length - v.length);
-              break;
-            }
-          }
-          return baseId;
-        }).toList();
+            provider.favoriteIds.toList();
         debugPrint(
-          '[BACKUP] Included ${provider.favoriteIds.length} favorite devotionals (base IDs)',
+          '[BACKUP] Included ${provider.favoriteIds.length} favorite devotionals',
         );
       } catch (e) {
         debugPrint('[BACKUP] ❌ Error getting favorite devotionals: $e');
@@ -1081,15 +1070,10 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           final prefs = await SharedPreferences.getInstance();
           final isNewFormat = favorites.isEmpty || favorites.first is String;
           if (isNewFormat) {
-            final preferredVersion =
-                prefs.getString('selectedVersion') ?? 'RVR1960';
-            final ids = favorites
-                .cast<String>()
-                .map((baseId) => '$baseId$preferredVersion')
-                .toList();
+            final ids = favorites.cast<String>().toList();
             await prefs.setString('favorite_ids', json.encode(ids));
             debugPrint(
-              '[RESTORE] ✅ Restored ${ids.length} favorite devotionals (base IDs → $preferredVersion)',
+              '[RESTORE] ✅ Restored ${ids.length} favorite devotionals',
             );
           } else {
             // Legacy: full JSON objects — existing migration path handles it
