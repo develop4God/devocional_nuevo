@@ -1071,6 +1071,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           final isNewFormat = favorites.isEmpty || favorites.first is String;
           if (isNewFormat) {
             final ids = favorites.cast<String>().toList();
+            debugPrint('[RESTORE] 🔍 Writing favorite IDs to prefs: $ids');
             await prefs.setString('favorite_ids', json.encode(ids));
             debugPrint(
               '[RESTORE] ✅ Restored ${ids.length} favorite devotionals',
