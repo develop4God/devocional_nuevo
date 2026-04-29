@@ -1141,6 +1141,32 @@ class DevocionalProvider with ChangeNotifier {
     }
   }
 
+  /// Reload selected bible version from SharedPreferences after restore.
+  Future<void> reloadVersionFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString('selectedVersion') ?? '';
+      final available =
+          Constants.bibleVersionsByLanguage[_selectedLanguage] ?? ['RVR1960'];
+      final version = (saved.isNotEmpty && available.contains(saved))
+          ? saved
+          : available.first;
+
+      if (version != _selectedVersion) {
+        _selectedVersion = version;
+        _audioController?.ttsService.setLanguageContext(
+          _selectedLanguage,
+          _selectedVersion,
+        );
+        debugPrint('[PROVIDER] 📖 Version reloaded from storage: $version');
+        notifyListeners();
+        await _fetchAllDevocionalesForLanguage();
+      }
+    } catch (e) {
+      debugPrint('[PROVIDER] ❌ Error reloading version from storage: $e');
+    }
+  }
+
   // ========== INVITATION DIALOG ==========
   Future<void> _loadInvitationDialogPreference() async {
     final prefs = await SharedPreferences.getInstance();

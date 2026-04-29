@@ -327,6 +327,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
           ? () async {
               await _devocionalProvider!.reloadFavoritesFromStorage();
               await _devocionalProvider!.reloadSpiritualStatsFromStorage();
+              await _devocionalProvider!.reloadVersionFromStorage();
               debugPrint(
                 '✅ [BLOC] Provider reloaded: favorites + spiritual stats',
               );
@@ -455,6 +456,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
             // Reload provider state: favorites + spiritual stats
             await _devocionalProvider?.reloadFavoritesFromStorage();
             await _devocionalProvider?.reloadSpiritualStatsFromStorage();
+            await _devocionalProvider?.reloadVersionFromStorage();
             debugPrint(
               '✅ [BLOC] Provider reloaded: favorites + spiritual stats (sign-in restore)',
             );
