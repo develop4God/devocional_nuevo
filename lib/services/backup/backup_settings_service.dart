@@ -90,7 +90,7 @@ class BackupSettingsService implements IBackupSettingsService {
     if (lastBackup == null) return DateTime.now();
     switch (frequency) {
       case IBackupSettingsService.frequencyDaily:
-        return lastBackup.add(const Duration(days: 1));
+        return lastBackup.add(const Duration(hours: 6));
       default:
         return null;
     }
