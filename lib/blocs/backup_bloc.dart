@@ -553,12 +553,14 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       final now = DateTime.now();
 
       if (lastBackupTime != null) {
+        final forceBypass = event.forceBypass;
         final hoursSinceLastBackup = now.difference(lastBackupTime).inHours;
         debugPrint('⏰ [BLOC] Horas desde último backup: $hoursSinceLastBackup');
 
-        if (hoursSinceLastBackup >= BackupSchedule.intervalHours) {
+        if (forceBypass ||
+            hoursSinceLastBackup >= BackupSchedule.intervalHours) {
           debugPrint(
-              '🚀 [BLOC] ${BackupSchedule.intervalHours}+ horas, ejecutando startup backup');
+              '🚀 [BLOC] ${BackupSchedule.intervalHours}+ horas (or forced), ejecutando startup backup');
 
           final success = await _backupService.createBackup(
             _devocionalProvider,
