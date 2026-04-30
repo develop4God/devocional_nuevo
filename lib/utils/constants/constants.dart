@@ -115,7 +115,6 @@ class Constants {
   static const bool enableOnboardingFeature = false;
 
   /// Feature flag to disable backup initialization (not available to users)
-  static const bool enableBackupFeature = true;
 
   /// Feature flag for Discovery Studies feature
   static const bool enableDiscoveryFeature = true;
