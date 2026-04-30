@@ -45,12 +45,6 @@ abstract class ISpiritualStatsService {
   /// Restore stats from backup data.
   Future<void> restoreStats(Map<String, dynamic> backupData);
 
-  /// Check if auto-backup is enabled.
-  Future<bool> isAutoBackupEnabled();
-
-  /// Enable/disable auto-backup.
-  Future<void> setAutoBackupEnabled(bool enabled);
-
   /// Check if JSON backup is enabled.
   Future<bool> isJsonBackupEnabled();
 

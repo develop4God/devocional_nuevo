@@ -17,24 +17,7 @@ class SpiritualStatsService implements ISpiritualStatsService {
 
   // Configuración para JSON backup
   static const String _jsonBackupEnabledKey = 'json_backup_enabled';
-  static const String _autoBackupEnabledKey = 'auto_backup_enabled';
   static const String _jsonBackupFilename = 'spiritual_stats_backup.json';
-
-  /// Configurar backup automático (habilitado por defecto para mejor UX)
-  @override
-  Future<void> setAutoBackupEnabled(bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_autoBackupEnabledKey, enabled);
-    debugPrint('Auto-backup ${enabled ? "enabled" : "disabled"}');
-  }
-
-  /// Verificar si auto-backup está habilitado
-  @override
-  Future<bool> isAutoBackupEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    // Por defecto habilitado para mejor experiencia de usuario
-    return prefs.getBool(_autoBackupEnabledKey) ?? true;
-  }
 
   /// NUEVO: Habilitar/deshabilitar backup JSON manual
   @override
@@ -99,17 +82,6 @@ class SpiritualStatsService implements ISpiritualStatsService {
         return SpiritualStats.fromJson(data);
       } catch (e) {
         debugPrint('Error parsing spiritual stats: $e');
-
-        // Intentar recuperar desde auto-backup primero
-        if (await isAutoBackupEnabled()) {
-          debugPrint('Intentando recuperar desde auto-backup...');
-          final backupStats = await _restoreFromAutoBackup();
-          if (backupStats != null) {
-            await saveStats(backupStats);
-            return backupStats;
-          }
-        }
-
         // Intentar recuperar desde JSON backup manual
         if (await isJsonBackupEnabled()) {
           debugPrint('Intentando recuperar desde JSON backup manual...');
@@ -134,55 +106,6 @@ class SpiritualStatsService implements ISpiritualStatsService {
     // Backup JSON manual si está habilitado
     if (await isJsonBackupEnabled()) {
       await _createJsonBackup(stats);
-    }
-  }
-
-  /// NUEVO: Restaurar desde el auto-backup más reciente
-  Future<SpiritualStats?> _restoreFromAutoBackup() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final files = directory
-          .listSync()
-          .where(
-            (entity) =>
-                entity is File && entity.path.contains('spiritual_stats_auto_'),
-          )
-          .cast<File>()
-          .toList();
-
-      if (files.isEmpty) {
-        debugPrint('No auto-backup files found');
-        return null;
-      }
-
-      // Obtener el más reciente
-      files.sort(
-        (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
-      );
-      final mostRecentFile = files.first;
-
-      final jsonString = await mostRecentFile.readAsString();
-      final backupData = json.decode(jsonString);
-
-      debugPrint('Restoring from auto-backup: ${mostRecentFile.path}');
-
-      final stats = SpiritualStats.fromJson(backupData['stats']);
-
-      if (backupData['read_dates'] != null) {
-        await _restoreReadDates(List<String>.from(backupData['read_dates']));
-      }
-
-      if (backupData['preferences'] != null) {
-        await _restorePreferences(
-          Map<String, dynamic>.from(backupData['preferences']),
-        );
-      }
-
-      debugPrint('Successfully restored from auto-backup');
-      return stats;
-    } catch (e) {
-      debugPrint('Error restoring from auto-backup: $e');
-      return null;
     }
   }
 
@@ -396,7 +319,6 @@ class SpiritualStatsService implements ISpiritualStatsService {
       ).exists();
 
       return {
-        'auto_backup_enabled': await isAutoBackupEnabled(),
         'manual_backup_enabled': await isJsonBackupEnabled(),
         'manual_backup_exists': manualBackupExists,
       };
