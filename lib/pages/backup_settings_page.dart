@@ -17,6 +17,7 @@ import '../providers/devocional_provider.dart';
 import '../services/backup/i_google_drive_backup_service.dart';
 import '../services/service_locator.dart';
 import '../widgets/backup_configuration_sheet.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 
 /// BackupSettingsPage with simplified progressive UI
 class BackupSettingsPage extends StatelessWidget {
@@ -986,7 +987,7 @@ class _BackupSettingsContent extends StatelessWidget {
     final now = DateTime.now();
     final elapsed = now.difference(lastBackupTime);
     final totalMinutes = elapsed.inMinutes;
-    final minutesLeft = 24 * 60 - totalMinutes;
+    final minutesLeft = BackupSchedule.intervalHours * 60 - totalMinutes;
 
     debugPrint('[BACKUP] lastBackupTime: $lastBackupTime');
     debugPrint('[BACKUP] now: $now');
