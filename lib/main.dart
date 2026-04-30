@@ -1,7 +1,6 @@
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
-import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
@@ -566,8 +565,6 @@ class _AppInitializerState extends State<AppInitializer> {
           await spiritualStatsService.getStats();
 
           if (!mounted) return;
-          debugPrint('🔵 [MAIN] Firing CheckStartupBackup');
-          context.read<BackupBloc>().add(const CheckStartupBackup());
         } catch (e) {
           // Backup is non-critical, app works without it
           debugPrint('🔴 [MAIN] Backup init failed: \$e');
