@@ -556,7 +556,6 @@ class _AppInitializerState extends State<AppInitializer> {
             name: '_initNonCriticalServices', error: e);
       }
     });
-
   }
 
   Future<void> _initAppData() async {
