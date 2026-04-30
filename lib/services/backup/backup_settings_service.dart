@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'i_backup_settings_service.dart';
 
@@ -89,7 +90,8 @@ class BackupSettingsService implements IBackupSettingsService {
     if (lastBackup == null) return DateTime.now();
     switch (frequency) {
       case IBackupSettingsService.frequencyDaily:
-        return lastBackup.add(const Duration(hours: 6));
+        return lastBackup
+            .add(const Duration(hours: BackupSchedule.intervalHours));
       default:
         return null;
     }
