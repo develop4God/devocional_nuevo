@@ -5,7 +5,7 @@ import 'i_backup_settings_service.dart';
 class BackupSettingsService implements IBackupSettingsService {
   static const String _lastBackupTimeKey = 'last_google_drive_backup_time';
   static const String _autoBackupEnabledKey =
-      'google_drive_auto_backup_enabled';
+      'auto_backup_enabled';
   static const String _backupFrequencyKey = 'google_drive_backup_frequency';
   static const String _wifiOnlyKey = 'google_drive_wifi_only';
   static const String _compressDataKey = 'google_drive_compress_data';

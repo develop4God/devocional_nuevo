@@ -995,9 +995,8 @@ class _BackupSettingsContent extends StatelessWidget {
     );
     debugPrint('[BACKUP] minutesLeft before next backup: $minutesLeft');
 
-    if (minutesLeft <= 1) {
-      debugPrint('[BACKUP] Showing: Próxima copia en 24 horas');
-      return 'backup.next_backup_in_hours'.tr().replaceAll('{hours}', '24');
+    if (minutesLeft <= 0) {
+      return 'backup.next_backup_in_minutes'.tr().replaceAll('{minutes}', '0');
     } else if (minutesLeft < 60) {
       debugPrint('[BACKUP] Showing: Próxima copia en $minutesLeft minutos');
       return 'backup.next_backup_in_minutes'.tr().replaceAll(
