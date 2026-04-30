@@ -63,13 +63,13 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     LoadBackupSettings event,
     Emitter<BackupState> emit,
   ) async {
-    debugPrint('🔄 [BLOC] === INICIANDO LoadBackupSettings ===');
+    debugPrint('🔄 [BLOC] === START LoadBackupSettings ===');
 
     try {
       emit(const BackupLoading());
 
       final isAuthenticated = await _backupService.isAuthenticated();
-      debugPrint('📊 [BLOC] Autenticado: $isAuthenticated');
+      debugPrint('📊 [BLOC] Authenticated: $isAuthenticated');
 
       final results = await Future.wait([
         _backupService.isAutoBackupEnabled(),
@@ -83,11 +83,11 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         _backupService.getUserEmail(),
       ]);
 
-      debugPrint('📊 [BLOC] Configuraciones cargadas:');
+      debugPrint('📊 [BLOC] Settings loaded:');
       debugPrint('📊 [BLOC] - Auto backup: ${results[0]}');
-      debugPrint('📊 [BLOC] - Frecuencia: ${results[1]}');
-      debugPrint('📊 [BLOC] - Último backup: ${results[5]}');
-      debugPrint('📊 [BLOC] - Próximo backup: ${results[6]}');
+      debugPrint('📊 [BLOC] - Frequency: ${results[1]}');
+      debugPrint('📊 [BLOC] - Last backup: ${results[5]}');
+      debugPrint('📊 [BLOC] - Next backup: ${results[6]}');
 
       emit(
         BackupLoaded(
@@ -104,13 +104,13 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         ),
       );
 
-      debugPrint('✅ [BLOC] BackupLoaded emitido exitosamente');
+      debugPrint('✅ [BLOC] BackupLoaded emitted successfully');
     } catch (e) {
       debugPrint('❌ [BLOC] Error loading backup settings: $e');
       emit(BackupError('Error loading backup settings: ${e.toString()}'));
     }
 
-    debugPrint('🏁 [BLOC] === FIN LoadBackupSettings ===');
+    debugPrint('🏁 [BLOC] === END LoadBackupSettings ===');
   }
 
   /// Toggle automatic backup
@@ -119,7 +119,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     Emitter<BackupState> emit,
   ) async {
     debugPrint(
-      '🔄 [BLOC] === INICIANDO ToggleAutoBackup: ${event.enabled} ===',
+      '🔄 [BLOC] === START ToggleAutoBackup: ${event.enabled} ===',
     );
 
     try {
@@ -127,16 +127,16 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
       if (event.enabled) {
         final currentFrequency = await _backupService.getBackupFrequency();
-        debugPrint('🔍 [BLOC] Frecuencia actual: $currentFrequency');
+        debugPrint('🔍 [BLOC] Current frequency: $currentFrequency');
 
         if (currentFrequency == kBackupFrequencyDeactivated) {
           debugPrint(
-            '🔧 [BLOC] Auto-backup activado con frecuencia "deactivated", cambiando a "daily"',
+            '🔧 [BLOC] Auto-backup activated with frequency "deactivated", changing to "daily"',
           );
           await _backupService.setBackupFrequency(
             kBackupFrequencyDaily,
           );
-          debugPrint('✅ [BLOC] Frecuencia cambiada automáticamente a "daily"');
+          debugPrint('✅ [BLOC] Frequency auto-changed to "daily"');
         }
       }
 
@@ -161,7 +161,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       emit(BackupError('Error updating auto backup: ${e.toString()}'));
     }
 
-    debugPrint('🏁 [BLOC] === FIN ToggleAutoBackup ===');
+    debugPrint('🏁 [BLOC] === END ToggleAutoBackup ===');
   }
 
   /// Change backup frequency
@@ -170,31 +170,28 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     Emitter<BackupState> emit,
   ) async {
     debugPrint(
-      '🔄 [BLOC] === INICIANDO ChangeBackupFrequency: ${event.frequency} ===',
-    );
+        '🔄 [BLOC] === START ChangeBackupFrequency: ${event.frequency} ===');
 
     try {
-      await _backupService.setBackupFrequency(event.frequency);
-
       if (event.frequency == kBackupFrequencyDeactivated) {
-        debugPrint('🚪 [BLOC] Frecuencia desactivada, cerrando sesión...');
+        debugPrint('🚪 [BLOC] Frequency deactivated, signing out...');
         await _backupService.signOut();
       }
+
+      await _backupService.setBackupFrequency(event.frequency);
 
       if (state is BackupLoaded) {
         final currentState = state as BackupLoaded;
         final nextBackupTime = await _backupService.getNextBackupTime();
-        debugPrint('📊 [BLOC] Próximo backup recalculado: $nextBackupTime');
-
-        final isAuthenticated = event.frequency == kBackupFrequencyDeactivated
-            ? false
-            : currentState.isAuthenticated;
+        debugPrint('📊 [BLOC] Next backup recalculated: $nextBackupTime');
 
         emit(
           currentState.copyWith(
             backupFrequency: event.frequency,
             nextBackupTime: nextBackupTime,
-            isAuthenticated: isAuthenticated,
+            isAuthenticated: event.frequency == kBackupFrequencyDeactivated
+                ? false
+                : currentState.isAuthenticated,
           ),
         );
       } else {
@@ -202,10 +199,10 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('❌ [BLOC] Error changing backup frequency: $e');
-      emit(BackupError('Error updating backup frequency: ${e.toString()}'));
+      emit(BackupError('Error changing backup frequency: ${e.toString()}'));
     }
 
-    debugPrint('🏁 [BLOC] === FIN ChangeBackupFrequency ===');
+    debugPrint('🏁 [BLOC] === END ChangeBackupFrequency ===');
   }
 
   /// Toggle WiFi-only backup
@@ -213,6 +210,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     ToggleWifiOnly event,
     Emitter<BackupState> emit,
   ) async {
+    debugPrint('🔄 [BLOC] === START ToggleWifiOnly: ${event.enabled} ===');
+
     try {
       await _backupService.setWifiOnlyEnabled(event.enabled);
 
@@ -223,9 +222,11 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         add(const LoadBackupSettings());
       }
     } catch (e) {
-      debugPrint('Error toggling WiFi only: $e');
+      debugPrint('❌ [BLOC] Error toggling WiFi only: $e');
       emit(BackupError('Error updating WiFi setting: ${e.toString()}'));
     }
+
+    debugPrint('🏁 [BLOC] === END ToggleWifiOnly ===');
   }
 
   /// Toggle data compression
@@ -282,26 +283,24 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     CreateManualBackup event,
     Emitter<BackupState> emit,
   ) async {
-    debugPrint('🚀 [BLOC] === INICIANDO CreateManualBackup ===');
+    debugPrint('🚀 [BLOC] === START CreateManualBackup ===');
 
     try {
       emit(const BackupCreating());
-      debugPrint('📤 [BLOC] Estado BackupCreating emitido');
+      debugPrint('📤 [BLOC] BackupCreating state emitted');
 
       final success = await _backupService.createBackup(_devocionalProvider);
-      debugPrint('📤 [BLOC] Resultado del backup: $success');
+      debugPrint('📤 [BLOC] Backup result: $success');
 
       if (success) {
         final timestamp = DateTime.now();
-        debugPrint('✅ [BLOC] Backup manual exitoso en: $timestamp');
+        debugPrint('✅ [BLOC] Manual backup successful at: $timestamp');
 
         emit(BackupCreated(timestamp));
         add(const LoadBackupSettings());
-        debugPrint(
-          '🔄 [BLOC] Recargando configuraciones para actualizar tiempos',
-        );
+        debugPrint('🔄 [BLOC] Reloading settings to refresh times');
       } else {
-        debugPrint('❌ [BLOC] Backup manual falló');
+        debugPrint('❌ [BLOC] Manual backup failed');
         emit(const BackupError('Failed to create backup'));
       }
     } catch (e) {
@@ -309,7 +308,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       emit(BackupError('Error creating backup: ${e.toString()}'));
     }
 
-    debugPrint('🏁 [BLOC] === FIN CreateManualBackup ===');
+    debugPrint('🏁 [BLOC] === END CreateManualBackup ===');
   }
 
   /// Restore from backup
@@ -317,11 +316,11 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     RestoreFromBackup event,
     Emitter<BackupState> emit,
   ) async {
-    debugPrint('🔄 [BLOC] === INICIANDO RestoreFromBackup ===');
+    debugPrint('🔄 [BLOC] === START RestoreFromBackup ===');
 
     try {
       emit(const BackupRestoring());
-      debugPrint('📥 [BLOC] Estado BackupRestoring emitido');
+      debugPrint('📥 [BLOC] BackupRestoring state emitted');
 
       // Combined callback: reload favorites AND spiritual stats after restore.
       // Both must be called so that the provider notifies widgets of
@@ -340,13 +339,12 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       final success = await _backupService.restoreBackup(
         onRestored: onRestored,
       );
-      debugPrint('📥 [BLOC] Resultado del restore: $success');
+      debugPrint('📥 [BLOC] Restore result: $success');
 
       if (success) {
-        debugPrint('✅ [BLOC] Restore exitoso');
+        debugPrint('✅ [BLOC] Restore successful');
         debugPrint(
-          '📊 [BLOC] Provider stats actualizado — UI rebuilds con datos restaurados',
-        );
+            '📊 [BLOC] Provider stats updated — UI rebuilds with restored data');
 
         // Reload discovery and encounter state
         _discoveryBloc?.add(RefreshDiscoveryStudies(forceRefresh: true));
@@ -373,9 +371,9 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         final restoredVersion = prefs.getString('selectedVersion');
         emit(BackupRestored(restoredVersion: restoredVersion));
         add(const LoadBackupSettings());
-        debugPrint('🔄 [BLOC] Recargando configuraciones después de restore');
+        debugPrint('🔄 [BLOC] Reloading settings after restore');
       } else {
-        debugPrint('❌ [BLOC] Restore falló');
+        debugPrint('❌ [BLOC] Restore failed');
         emit(const BackupError('Failed to restore backup'));
       }
     } catch (e) {
@@ -383,7 +381,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       emit(BackupError('Error restoring backup: ${e.toString()}'));
     }
 
-    debugPrint('🏁 [BLOC] === FIN RestoreFromBackup ===');
+    debugPrint('🏁 [BLOC] === END RestoreFromBackup ===');
   }
 
   /// Load storage information
@@ -402,13 +400,13 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     SignInToGoogleDrive event,
     Emitter<BackupState> emit,
   ) async {
-    debugPrint('🔐 [BLOC] === INICIANDO SignInToGoogleDrive ===');
+    debugPrint('🔐 [BLOC] === START SignInToGoogleDrive ===');
 
     try {
       emit(const BackupSigningIn());
 
       final success = await _backupService.signIn();
-      debugPrint('🔐 [BLOC] Resultado sign-in: $success');
+      debugPrint('🔐 [BLOC] Sign-in result: $success');
 
       if (success == null) {
         debugPrint(
@@ -423,7 +421,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         final isAutoEnabled = await _backupService.isAutoBackupEnabled();
         if (!isAutoEnabled) {
           await _backupService.setAutoBackupEnabled(true);
-          debugPrint('✅ [BLOC] Auto-backup activado automáticamente al login');
+          debugPrint('✅ [BLOC] Auto-backup enabled automatically on login');
         }
 
         // RESTAURACIÓN AUTOMÁTICA - SIN INTERVENCIÓN DEL USUARIO
@@ -441,7 +439,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
           );
 
           if (restored) {
-            debugPrint('✅ [BLOC] Datos restaurados automáticamente');
+            debugPrint('✅ [BLOC] Data restored automatically');
 
             // Reload discovery and encounter state
             _discoveryBloc?.add(RefreshDiscoveryStudies(forceRefresh: true));
@@ -481,7 +479,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
               ),
             );
           } else {
-            debugPrint('❌ [BLOC] Error en restauración automática');
+            debugPrint('❌ [BLOC] Error in automatic restore');
             emit(const BackupError('backup.restore_failed'));
           }
         } else {
@@ -501,7 +499,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         await Future.delayed(const Duration(seconds: 2));
         add(const LoadBackupSettings());
       } else {
-        debugPrint('❌ [BLOC] Sign-in falló');
+        debugPrint('❌ [BLOC] Sign-in failed');
         emit(const BackupError('backup.sign_in_failed'));
       }
     } catch (e) {
@@ -509,7 +507,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       emit(BackupError('backup.sign_in_failed'));
     }
 
-    debugPrint('🏁 [BLOC] === FIN SignInToGoogleDrive ===');
+    debugPrint('🏁 [BLOC] === END SignInToGoogleDrive ===');
   }
 
   /// Sign out from Google Drive
@@ -517,11 +515,11 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     SignOutFromGoogleDrive event,
     Emitter<BackupState> emit,
   ) async {
-    debugPrint('🚪 [BLOC] === INICIANDO SignOutFromGoogleDrive ===');
+    debugPrint('🚪 [BLOC] === START SignOutFromGoogleDrive ===');
 
     try {
       await _backupService.signOut();
-      debugPrint('✅ [BLOC] Sign-out exitoso');
+      debugPrint('✅ [BLOC] Sign-out successful');
 
       add(const LoadBackupSettings());
     } catch (e) {
@@ -529,15 +527,15 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       emit(BackupError('Error signing out: ${e.toString()}'));
     }
 
-    debugPrint('🏁 [BLOC] === FIN SignOutFromGoogleDrive ===');
+    debugPrint('🏁 [BLOC] === END SignOutFromGoogleDrive ===');
   }
 
-  /// Check and execute startup backup if 24+ hours elapsed
+  /// Check and execute startup backup if interval has elapsed
   Future<void> _onCheckStartupBackup(
     CheckStartupBackup event,
     Emitter<BackupState> emit,
   ) async {
-    debugPrint('🌅 [BLOC] === INICIANDO CheckStartupBackup ===');
+    debugPrint('🌅 [BLOC] === START CheckStartupBackup ===');
 
     try {
       debugPrint('[BACKUP] checking auto enabled...');
@@ -545,7 +543,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       final isAuthenticated = await _backupService.isAuthenticated();
 
       if (!isAutoEnabled || !isAuthenticated) {
-        debugPrint('⚠️ [BLOC] Auto backup deshabilitado o no autenticado');
+        debugPrint('⚠️ [BLOC] Auto backup disabled or not authenticated');
         return;
       }
 
@@ -555,33 +553,33 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       if (lastBackupTime != null) {
         final forceBypass = event.forceBypass;
         final hoursSinceLastBackup = now.difference(lastBackupTime).inHours;
-        debugPrint('⏰ [BLOC] Horas desde último backup: $hoursSinceLastBackup');
+        debugPrint('⏰ [BLOC] Hours since last backup: $hoursSinceLastBackup');
 
         if (forceBypass ||
             hoursSinceLastBackup >= BackupSchedule.intervalHours) {
           debugPrint(
-              '🚀 [BLOC] ${BackupSchedule.intervalHours}+ horas (or forced), ejecutando startup backup');
+              '🚀 [BLOC] ${BackupSchedule.intervalHours}+ hours (or forced), executing startup backup');
 
           final success = await _backupService.createBackup(
             _devocionalProvider,
           );
 
           if (success) {
-            debugPrint('✅ [BLOC] Startup backup exitoso');
+            debugPrint('✅ [BLOC] Startup backup successful');
             add(const LoadBackupSettings());
           }
         }
       } else {
-        debugPrint('🎯 [BLOC] Sin backup previo - creando inicial');
+        debugPrint('🎯 [BLOC] No previous backup — creating initial');
         final success = await _backupService.createBackup(_devocionalProvider);
         if (success) {
           add(const LoadBackupSettings());
         }
       }
     } catch (e) {
-      debugPrint('❌ [BLOC] Error en startup backup: $e');
+      debugPrint('❌ [BLOC] Error in startup backup: $e');
     }
 
-    debugPrint('🏁 [BLOC] === FIN CheckStartupBackup ===');
+    debugPrint('🏁 [BLOC] === END CheckStartupBackup ===');
   }
 }
