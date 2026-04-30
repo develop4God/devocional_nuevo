@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/debug/sections/debug_discovery_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_encounters_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_iap_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_tts_section.dart';
+import 'package:devocional_nuevo/widgets/debug/debug_backup_section.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -91,6 +92,9 @@ class _DebugPageState extends State<DebugPage> {
 
             // ── Crashlytics + Backup + Review ──
             const DebugCrashlyticsSection(),
+            const SizedBox(height: 32),
+            // ── Backup debug tools ──
+            if (kDebugMode) const DebugBackupSection(),
             const SizedBox(height: 32),
 
             // ── Bulk add test data ──
