@@ -35,8 +35,8 @@ void main() {
         const backupFeatureEnabled = Constants.enableBackupFeature;
         expect(
           backupFeatureEnabled,
-          false,
-          reason: 'La bandera debe estar en false y prevenir inicialización.',
+          true,//now the feature is anable to user, this guard prevent the change on production logic
+          reason: 'flag-off=false: to prevent production deploy.',
         );
       },
     );
