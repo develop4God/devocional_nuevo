@@ -822,6 +822,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       return false;
     }
 
+    final remaining = nextBackup.difference(DateTime.now());
+    debugPrint('[BACKUP] ⏱ Next backup in: ${remaining.inMinutes} minutes');
     return DateTime.now().isAfter(nextBackup);
   }
 
