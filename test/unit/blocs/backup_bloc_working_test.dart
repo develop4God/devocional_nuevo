@@ -7,9 +7,11 @@ import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.dart';
-import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:mockito/mockito.dart' as mockito;
+import 'package:devocional_nuevo/services/remote_config_service.dart';
+import '../services/remote_config_service_test.mocks.dart';
 
 // Mock classes for testing
 
@@ -20,23 +22,21 @@ class MockDevocionalProvider extends Mock implements DevocionalProvider {}
 
 void main() {
   group('Backup Feature Flag Tests', () {
-    test('Backup feature debe estar deshabilitada por defecto', () {
-      expect(
-        Constants.enableBackupFeature,
-        false,
-        reason:
-            'La funcionalidad de backup debe estar deshabilitada para los usuarios',
-      );
-    });
-
     test(
-      'La bandera de funcionalidad debe prevenir la inicialización de backup',
+      'show_backup_section RC flag default must be true to protect production',
       () {
-        const backupFeatureEnabled = Constants.enableBackupFeature;
+        final mockRemoteConfig = MockFirebaseRemoteConfig();
+        mockito
+            .when(mockRemoteConfig.getBool('show_backup_section'))
+            .thenReturn(true);
+        final remoteConfigService =
+            RemoteConfigService.create(remoteConfig: mockRemoteConfig);
+
         expect(
-          backupFeatureEnabled,
-          true,//now the feature is anable to user, this guard prevent the change on production logic
-          reason: 'flag-off=false: to prevent production deploy.',
+          remoteConfigService.showBackupSection,
+          true,
+          reason: 'flag-off=false: hides backup from all users in production. '
+              'Change only via Firebase RC, never in code.',
         );
       },
     );
@@ -101,7 +101,6 @@ void main() {
     test(
       'no debe ejecutar lógica de backup si el flag está en false',
       () async {
-        expect(Constants.enableBackupFeature, false);
         final bloc = BackupBloc(
           backupService: mockBackupService,
           devocionalProvider: mockDevocionalProvider,
@@ -118,10 +117,6 @@ void main() {
     );
 
     test('debe ejecutar flujo de backup si el flag está en true', () async {
-      final originalFlag = Constants.enableBackupFeature;
-      if (!originalFlag) {
-        return;
-      }
       final bloc = BackupBloc(
         backupService: mockBackupService,
         devocionalProvider: mockDevocionalProvider,
