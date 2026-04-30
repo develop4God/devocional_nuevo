@@ -13,6 +13,7 @@ import 'discovery/discovery_bloc.dart';
 import 'discovery/discovery_event.dart';
 import 'encounter/encounter_bloc.dart';
 import 'encounter/encounter_event.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 
 /// BLoC for managing Google Drive backup functionality
 class BackupBloc extends Bloc<BackupEvent, BackupState> {
@@ -555,8 +556,9 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         final hoursSinceLastBackup = now.difference(lastBackupTime).inHours;
         debugPrint('⏰ [BLOC] Horas desde último backup: $hoursSinceLastBackup');
 
-        if (hoursSinceLastBackup >= 24) {
-          debugPrint('🚀 [BLOC] 24+ horas, ejecutando startup backup');
+        if (hoursSinceLastBackup >= BackupSchedule.intervalHours) {
+          debugPrint(
+              '🚀 [BLOC] ${BackupSchedule.intervalHours}+ horas, ejecutando startup backup');
 
           final success = await _backupService.createBackup(
             _devocionalProvider,

@@ -232,6 +232,11 @@ class FavoritesSchema {
   static const String migratedAtKey = 'favorites_migrated_at';
 }
 
+/// Backup schedule constants
+class BackupSchedule {
+  static const int intervalHours = 24;
+}
+
 // Servicio de navegación global
 class NavigationService {
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
