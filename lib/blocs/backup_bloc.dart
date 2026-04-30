@@ -173,6 +173,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         '🔄 [BLOC] === START ChangeBackupFrequency: ${event.frequency} ===');
 
     try {
+      // Sign out first — if this throws, frequency is not persisted,
+      // avoiding an inconsistent state (deactivated frequency + failed sign out).
       if (event.frequency == kBackupFrequencyDeactivated) {
         debugPrint('🚪 [BLOC] Frequency deactivated, signing out...');
         await _backupService.signOut();
