@@ -563,9 +563,7 @@ class _AppInitializerState extends State<AppInitializer> {
           if (!mounted) return;
           final spiritualStatsService = getService<ISpiritualStatsService>();
           await spiritualStatsService.getStats();
-          if (!await spiritualStatsService.isAutoBackupEnabled()) {
-            await spiritualStatsService.setAutoBackupEnabled(true);
-          }
+
           if (!mounted) return;
           context.read<BackupBloc>().add(const CheckStartupBackup());
         } catch (e) {
