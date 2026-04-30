@@ -223,6 +223,7 @@ void main() async {
           create: (context) => DevocionalesNavigationBloc(),
         ),
         BlocProvider(
+          lazy: false,
           create: (context) => BackupBloc(
             backupService: getService<IGoogleDriveBackupService>(),
             devocionalProvider: context.read<DevocionalProvider>(),
@@ -503,13 +504,13 @@ class _AppInitializerState extends State<AppInitializer> {
     await _initCriticalServices();
     await _initAppData();
     if (!mounted) return;
+    _initNonCriticalServices();
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (context, a, b) => const DevocionalesPage(),
         transitionDuration: const Duration(milliseconds: 300),
       ),
     );
-    _initNonCriticalServices();
   }
 
   Future<void> _initCriticalServices() async {
@@ -565,10 +566,12 @@ class _AppInitializerState extends State<AppInitializer> {
           await spiritualStatsService.getStats();
 
           if (!mounted) return;
+          debugPrint('🔵 [MAIN] Firing CheckStartupBackup');
           context.read<BackupBloc>().add(const CheckStartupBackup());
         } catch (e) {
           // Backup is non-critical, app works without it
-          developer.log('Backup initialization failed: $e',
+          debugPrint('🔴 [MAIN] Backup init failed: \$e');
+          developer.log('Backup initialization failed: \$e',
               name: '_initNonCriticalServices', error: e);
         }
       });

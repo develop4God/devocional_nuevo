@@ -48,6 +48,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     on<SignInToGoogleDrive>(_onSignInToGoogleDrive);
     on<SignOutFromGoogleDrive>(_onSignOutFromGoogleDrive);
     on<CheckStartupBackup>(_onCheckStartupBackup);
+    debugPrint('[BACKUP] 🔨 BackupBloc constructed, firing CheckStartupBackup');
+    add(const CheckStartupBackup());
   }
 
   /// Set the devotional provider (for dependency injection)
@@ -537,6 +539,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     debugPrint('🌅 [BLOC] === INICIANDO CheckStartupBackup ===');
 
     try {
+      debugPrint('[BACKUP] checking auto enabled...');
       final isAutoEnabled = await _backupService.isAutoBackupEnabled();
       final isAuthenticated = await _backupService.isAuthenticated();
 
