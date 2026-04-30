@@ -557,22 +557,6 @@ class _AppInitializerState extends State<AppInitializer> {
       }
     });
 
-    if (Constants.enableBackupFeature) {
-      Future.delayed(const Duration(seconds: 3), () async {
-        try {
-          if (!mounted) return;
-          final spiritualStatsService = getService<ISpiritualStatsService>();
-          await spiritualStatsService.getStats();
-
-          if (!mounted) return;
-        } catch (e) {
-          // Backup is non-critical, app works without it
-          debugPrint('🔴 [MAIN] Backup init failed: \$e');
-          developer.log('Backup initialization failed: \$e',
-              name: '_initNonCriticalServices', error: e);
-        }
-      });
-    }
   }
 
   Future<void> _initAppData() async {
