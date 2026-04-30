@@ -18,24 +18,13 @@ class SpiritualStatsService implements ISpiritualStatsService {
   // Configuración para JSON backup
   static const String _jsonBackupEnabledKey = 'json_backup_enabled';
   static const String _autoBackupEnabledKey = 'auto_backup_enabled';
-  static const String _lastBackupTimeKey = 'last_backup_time';
   static const String _jsonBackupFilename = 'spiritual_stats_backup.json';
-
-  // Configuración de auto-backup
-  static const int _autoBackupIntervalHours = 24; // Cada 24 horas
-  static const int _maxBackupFiles = 7; // Mantener 7 backups rotativos
 
   /// Configurar backup automático (habilitado por defecto para mejor UX)
   @override
   Future<void> setAutoBackupEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_autoBackupEnabledKey, enabled);
-
-    if (enabled) {
-      // Crear backup inicial
-      await _createAutoBackup();
-    }
-
     debugPrint('Auto-backup ${enabled ? "enabled" : "disabled"}');
   }
 
@@ -142,99 +131,9 @@ class SpiritualStatsService implements ISpiritualStatsService {
     final prefs = await SharedPreferences.getInstance();
     final String statsJson = json.encode(stats.toJson());
     await prefs.setString(_statsKey, statsJson);
-
-    // Auto-backup inteligente (solo cuando es necesario)
-    if (await isAutoBackupEnabled()) {
-      await _checkAndCreateAutoBackup(stats);
-    }
-
     // Backup JSON manual si está habilitado
     if (await isJsonBackupEnabled()) {
       await _createJsonBackup(stats);
-    }
-  }
-
-  /// NUEVO: Verificar si es necesario crear auto-backup
-  Future<void> _checkAndCreateAutoBackup(SpiritualStats stats) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final lastBackupTime = prefs.getInt(_lastBackupTimeKey) ?? 0;
-      final currentTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      final hoursSinceLastBackup = (currentTime - lastBackupTime) / 3600;
-
-      // Solo crear backup si han pasado las horas configuradas
-      if (hoursSinceLastBackup >= _autoBackupIntervalHours) {
-        await _createAutoBackup(stats);
-        await prefs.setInt(_lastBackupTimeKey, currentTime);
-        debugPrint(
-          'Auto-backup created (${hoursSinceLastBackup.toStringAsFixed(1)} hours since last)',
-        );
-      }
-    } catch (e) {
-      debugPrint('Error in auto-backup check: $e');
-    }
-  }
-
-  /// NUEVO: Crear auto-backup con rotación
-  Future<void> _createAutoBackup([SpiritualStats? stats]) async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      stats ??= await getStats();
-
-      // Crear backup con timestamp
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final filename = 'spiritual_stats_auto_$timestamp.json';
-      final file = File('${directory.path}/$filename');
-
-      final backupData = {
-        'version': '1.0.0',
-        'backup_type': 'auto',
-        'created_at': DateTime.now().toIso8601String(),
-        'stats': stats.toJson(),
-        'read_dates': await _getReadDatesAsStrings(),
-        'preferences': await _getPreferences(),
-      };
-
-      await file.writeAsString(
-        const JsonEncoder.withIndent('  ').convert(backupData),
-      );
-
-      // Limpiar backups antiguos
-      await _cleanupOldBackups();
-
-      debugPrint('Auto-backup created: $filename');
-    } catch (e) {
-      debugPrint('Error creating auto-backup: $e');
-    }
-  }
-
-  /// NUEVO: Limpiar backups antiguos (mantener solo los más recientes)
-  Future<void> _cleanupOldBackups() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final files = directory
-          .listSync()
-          .where(
-            (entity) =>
-                entity is File && entity.path.contains('spiritual_stats_auto_'),
-          )
-          .cast<File>()
-          .toList();
-
-      if (files.length > _maxBackupFiles) {
-        // Ordenar por fecha de modificación (más reciente primero)
-        files.sort(
-          (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
-        );
-
-        // Eliminar los más antiguos
-        for (int i = _maxBackupFiles; i < files.length; i++) {
-          await files[i].delete();
-          debugPrint('Deleted old backup: ${files[i].path}');
-        }
-      }
-    } catch (e) {
-      debugPrint('Error cleaning up old backups: $e');
     }
   }
 
@@ -492,36 +391,14 @@ class SpiritualStatsService implements ISpiritualStatsService {
   Future<Map<String, dynamic>> getBackupInfo() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
-      final autoBackups = directory
-          .listSync()
-          .where(
-            (entity) =>
-                entity is File && entity.path.contains('spiritual_stats_auto_'),
-          )
-          .cast<File>()
-          .length;
-
       final manualBackupExists = await File(
         '${directory.path}/$_jsonBackupFilename',
       ).exists();
 
-      final prefs = await SharedPreferences.getInstance();
-      final lastAutoBackup = prefs.getInt(_lastBackupTimeKey);
-
       return {
         'auto_backup_enabled': await isAutoBackupEnabled(),
         'manual_backup_enabled': await isJsonBackupEnabled(),
-        'auto_backups_count': autoBackups,
         'manual_backup_exists': manualBackupExists,
-        'last_auto_backup': lastAutoBackup != null
-            ? DateTime.fromMillisecondsSinceEpoch(lastAutoBackup * 1000)
-            : null,
-        'next_auto_backup':
-            lastAutoBackup != null && await isAutoBackupEnabled()
-                ? DateTime.fromMillisecondsSinceEpoch(
-                    (lastAutoBackup + _autoBackupIntervalHours * 3600) * 1000,
-                  )
-                : null,
       };
     } catch (e) {
       debugPrint('Error getting backup info: $e');
