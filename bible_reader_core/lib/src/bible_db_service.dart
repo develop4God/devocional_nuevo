@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -33,7 +34,16 @@ class BibleDbService {
   // Get all books
   Future<List<Map<String, dynamic>>> getAllBooks() async {
     final books = await _db.query('books');
-    return BibleCanonFilter.filterCanonical(books);
+    final filtered = BibleCanonFilter.filterCanonical(books);
+    assert(() {
+      debugPrint(
+        '[BibleCanonFilter] getAllBooks: ${books.length} raw → '
+        '${filtered.length} canonical | '
+        'removed: ${books.length - filtered.length}',
+      );
+      return true;
+    }());
+    return filtered;
   }
 
   // Get the maximum chapter number for a book
