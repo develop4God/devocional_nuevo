@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:archive/archive.dart';
+import 'bible_canon_filter.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -31,7 +32,8 @@ class BibleDbService {
 
   // Get all books
   Future<List<Map<String, dynamic>>> getAllBooks() async {
-    return await _db.query('books');
+    final books = await _db.query('books');
+    return BibleCanonFilter.filterCanonical(books);
   }
 
   // Get the maximum chapter number for a book
@@ -164,7 +166,8 @@ class BibleDbService {
       [searchTerm.toLowerCase(), searchTerm.toLowerCase()],
     );
 
-    if (results.isNotEmpty) {
+    if (results.isNotEmpty &&
+        BibleCanonFilter.isCanonical(results.first['book_number'] as int)) {
       return results.first;
     }
 
@@ -179,7 +182,8 @@ class BibleDbService {
       ['${searchTerm.toLowerCase()}%', '${searchTerm.toLowerCase()}%'],
     );
 
-    if (results.isNotEmpty) {
+    if (results.isNotEmpty &&
+        BibleCanonFilter.isCanonical(results.first['book_number'] as int)) {
       return results.first;
     }
 
@@ -194,7 +198,11 @@ class BibleDbService {
       ['%${searchTerm.toLowerCase()}%', '%${searchTerm.toLowerCase()}%'],
     );
 
-    return results.isNotEmpty ? results.first : null;
+    if (results.isNotEmpty &&
+        BibleCanonFilter.isCanonical(results.first['book_number'] as int)) {
+      return results.first;
+    }
+    return null;
   }
 
   // Get a specific verse
