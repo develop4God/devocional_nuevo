@@ -323,7 +323,10 @@ void main() {
       });
 
       test('should fall back to text search for invalid chapter', () async {
-        mockDbService.mockFoundBook = {'book_number': 500, 'short_name': 'Juan'};
+        mockDbService.mockFoundBook = {
+          'book_number': 500,
+          'short_name': 'Juan'
+        };
         mockDbService.mockMaxChapters[500] = 21;
         mockDbService.mockSearchResults = [];
 
