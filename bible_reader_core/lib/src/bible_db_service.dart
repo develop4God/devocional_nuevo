@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:archive/archive.dart';
-import 'bible_canon_filter.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'bible_canon_filter.dart';
 
 class BibleDbService {
   late Database _db;
