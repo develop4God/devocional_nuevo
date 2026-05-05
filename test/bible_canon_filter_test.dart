@@ -124,8 +124,7 @@ void main() {
     });
 
     group('filterCanonical', () {
-      test('returns all books unchanged for a clean 66-book DB', () {
-        // Replace with actual canonical numbers for first 3 + last
+      test('passes through canonical books unchanged', () {
         final books = [
           {'book_number': 10, 'long_name': 'Genesis'},
           {'book_number': 20, 'long_name': 'Exodus'},
@@ -133,6 +132,82 @@ void main() {
         ];
         final result = BibleCanonFilter.filterCanonical(books);
         expect(result, hasLength(3));
+      });
+
+      test('passes through all 66 canonical books for a clean DB', () {
+        const canonical = [
+          10,
+          20,
+          30,
+          40,
+          50,
+          60,
+          70,
+          80,
+          90,
+          100,
+          110,
+          120,
+          130,
+          140,
+          150,
+          160,
+          190,
+          220,
+          230,
+          240,
+          250,
+          260,
+          290,
+          300,
+          310,
+          330,
+          340,
+          350,
+          360,
+          370,
+          380,
+          390,
+          400,
+          410,
+          420,
+          430,
+          440,
+          450,
+          460,
+          470,
+          480,
+          490,
+          500,
+          510,
+          520,
+          530,
+          540,
+          550,
+          560,
+          570,
+          580,
+          590,
+          600,
+          610,
+          620,
+          630,
+          640,
+          650,
+          660,
+          670,
+          680,
+          690,
+          700,
+          710,
+          720,
+          730,
+        ];
+        final books = canonical
+            .map((n) => {'book_number': n, 'long_name': 'Book $n'})
+            .toList();
+        final result = BibleCanonFilter.filterCanonical(books);
+        expect(result, hasLength(66));
       });
 
       test('strips deuterocanonical rows from MBB05-style input', () {
