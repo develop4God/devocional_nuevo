@@ -1062,64 +1062,96 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   final isPersistentlyMarked = state
                                       .persistentlyMarkedVerses
                                       .contains(key);
-                                  return GestureDetector(
-                                    onTap: () => _onVerseTap(verseNumber),
-                                    onLongPress: () =>
-                                        _controller.togglePersistentMark(key),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 8,
-                                        horizontal: 4,
-                                      ),
-                                      decoration: isSelected
-                                          ? BoxDecoration(
-                                              color: colorScheme
-                                                  .primaryContainer
-                                                  .withValues(alpha: 0.3),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              border: Border.all(
-                                                color: colorScheme.primary,
-                                                width: 2,
-                                              ),
-                                            )
-                                          : null,
-                                      child: RichText(
-                                        text: TextSpan(
-                                          style: TextStyle(
-                                            fontSize: state.fontSize,
-                                            color: colorScheme.onSurface,
-                                            height: 1.6,
+
+                                  // Get section titles for this verse
+                                  final titlesForVerse = state.sectionTitles
+                                      .where((title) =>
+                                          title['verse'] == verseNumber)
+                                      .toList();
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Display section titles if any
+                                      ...titlesForVerse.map((title) => Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 16,
+                                              bottom: 8,
+                                            ),
+                                            child: Text(
+                                              title['title'] as String,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: colorScheme.primary,
+                                                  ),
+                                            ),
+                                          )),
+                                      // Verse content
+                                      GestureDetector(
+                                        onTap: () => _onVerseTap(verseNumber),
+                                        onLongPress: () => _controller
+                                            .togglePersistentMark(key),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 8,
+                                            horizontal: 4,
                                           ),
-                                          children: [
-                                            TextSpan(
-                                              text: "${verse['verse']} ",
+                                          decoration: isSelected
+                                              ? BoxDecoration(
+                                                  color: colorScheme
+                                                      .primaryContainer
+                                                      .withValues(alpha: 0.3),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: colorScheme.primary,
+                                                    width: 2,
+                                                  ),
+                                                )
+                                              : null,
+                                          child: RichText(
+                                            text: TextSpan(
                                               style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: colorScheme.primary,
-                                                fontSize: 14,
+                                                fontSize: state.fontSize,
+                                                color: colorScheme.onSurface,
+                                                height: 1.6,
                                               ),
+                                              children: [
+                                                TextSpan(
+                                                  text: "${verse['verse']} ",
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: colorScheme.primary,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: _cleanVerseText(
+                                                    verse['text'],
+                                                  ),
+                                                  style: isPersistentlyMarked
+                                                      ? TextStyle(
+                                                          backgroundColor:
+                                                              colorScheme
+                                                                  .secondary
+                                                                  .withValues(
+                                                            alpha: 0.25,
+                                                          ),
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        )
+                                                      : null,
+                                                ),
+                                              ],
                                             ),
-                                            TextSpan(
-                                              text: _cleanVerseText(
-                                                verse['text'],
-                                              ),
-                                              style: isPersistentlyMarked
-                                                  ? TextStyle(
-                                                      backgroundColor:
-                                                          colorScheme.secondary
-                                                              .withValues(
-                                                        alpha: 0.25,
-                                                      ),
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    )
-                                                  : null,
-                                            ),
-                                          ],
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                    ],
                                   );
                                 },
                               ),
