@@ -190,7 +190,8 @@ class BibleReaderController {
     );
 
     // Fetch section titles for this chapter
-    final sectionTitles = await _state.selectedVersion!.service!.getSectionTitles(
+    final sectionTitles =
+        await _state.selectedVersion!.service!.getSectionTitles(
       bookNumber: _state.selectedBookNumber!,
       chapter: _state.selectedChapter!,
     );

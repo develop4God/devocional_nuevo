@@ -1065,11 +1065,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
                                   // Get section titles for this verse
                                   final titlesForVerse = state.sectionTitles
-                                      .where((title) => title['verse'] == verseNumber)
+                                      .where((title) =>
+                                          title['verse'] == verseNumber)
                                       .toList();
 
                                   return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       // Display section titles if any
                                       ...titlesForVerse.map((title) => Padding(
@@ -1091,8 +1093,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                       // Verse content
                                       GestureDetector(
                                         onTap: () => _onVerseTap(verseNumber),
-                                        onLongPress: () =>
-                                            _controller.togglePersistentMark(key),
+                                        onLongPress: () => _controller
+                                            .togglePersistentMark(key),
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(
                                             vertical: 8,
@@ -1134,7 +1136,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                                   style: isPersistentlyMarked
                                                       ? TextStyle(
                                                           backgroundColor:
-                                                              colorScheme.secondary
+                                                              colorScheme
+                                                                  .secondary
                                                                   .withValues(
                                                             alpha: 0.25,
                                                           ),
