@@ -230,4 +230,48 @@ class BibleDbService {
 
     return results.isNotEmpty ? results.first : null;
   }
+
+  /// Get section titles (pericopes) for a chapter from the stories table
+  /// Returns list of titles with their associated verse numbers
+  /// Filters out cross-reference entries (titles containing parentheses or `<x>` tags)
+  /// Orders by order_if_several for verses with multiple titles
+  /// Returns empty list if stories table doesn't exist
+  Future<List<Map<String, dynamic>>> getSectionTitles({
+    required int bookNumber,
+    required int chapter,
+  }) async {
+    try {
+      // Check if stories table exists
+      final tables = await _db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='stories'",
+      );
+
+      if (tables.isEmpty) {
+        return [];
+      }
+
+      // Query stories table with filters per spec:
+      // - Filter out cross-reference entries (title LIKE '(%')
+      // - Filter out entries with <x> tags (cross-ref leak safety net)
+      // - Order by verse then order_if_several for multi-title verses
+      final results = await _db.rawQuery(
+        '''
+        SELECT verse, title, order_if_several
+        FROM stories
+        WHERE book_number = ?
+          AND chapter = ?
+          AND title NOT LIKE '(%'
+          AND title NOT LIKE '%<x>%'
+        ORDER BY verse ASC, order_if_several ASC
+        ''',
+        [bookNumber, chapter],
+      );
+
+      return results;
+    } catch (e) {
+      // Table doesn't exist or query failed - return empty list
+      debugPrint('[BibleDbService] getSectionTitles failed: $e');
+      return [];
+    }
+  }
 }

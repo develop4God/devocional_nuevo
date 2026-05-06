@@ -9,6 +9,7 @@ class MockBibleDbService extends BibleDbService {
   Map<int, int> mockMaxChapters = {};
   Map<String, dynamic>? mockFoundBook;
   List<Map<String, dynamic>> mockSearchResults = [];
+  List<Map<String, dynamic>> mockSectionTitles = [];
 
   @override
   Future<int> getMaxChapter(int bookNumber) async {
@@ -23,6 +24,14 @@ class MockBibleDbService extends BibleDbService {
   @override
   Future<List<Map<String, dynamic>>> searchVerses(String searchQuery) async {
     return mockSearchResults;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getSectionTitles({
+    required int bookNumber,
+    required int chapter,
+  }) async {
+    return mockSectionTitles;
   }
 }
 
