@@ -1,4 +1,4 @@
-@Tags(['behavioral', 'bible'])
+@Tags(['behavioral'])
 library;
 
 import 'package:bible_reader_core/bible_reader_core.dart';
@@ -86,6 +86,10 @@ void main() {
                   'text': 'Y la tierra estaba desordenada y vacía.',
                 },
               ]);
+      when(() => mockDbService.getSectionTitles(
+            bookNumber: any(named: 'bookNumber'),
+            chapter: any(named: 'chapter'),
+          )).thenAnswer((_) async => []);
 
       final mockVersion = BibleVersion(
         name: 'Reina Valera 1960 (RVR1960)',
