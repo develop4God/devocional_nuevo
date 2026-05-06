@@ -189,6 +189,13 @@ class BibleReaderController {
       _state.selectedChapter!,
     );
 
+    // Fetch section titles for this chapter
+    final sectionTitles =
+        await _state.selectedVersion!.service!.getSectionTitles(
+      bookNumber: _state.selectedBookNumber!,
+      chapter: _state.selectedChapter!,
+    );
+
     final maxVerse =
         verses.isNotEmpty ? (verses.last['verse'] as int? ?? 1) : 1;
     final selectedVerse = _state.selectedVerse;
@@ -199,6 +206,7 @@ class BibleReaderController {
       _state.copyWith(
         maxChapter: maxChapter,
         verses: verses,
+        sectionTitles: sectionTitles,
         maxVerse: maxVerse,
         selectedVerse: validatedVerse,
       ),

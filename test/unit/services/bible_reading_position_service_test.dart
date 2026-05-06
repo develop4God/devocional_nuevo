@@ -16,8 +16,8 @@ void main() {
       final service = BibleReadingPositionService();
 
       await service.savePosition(
-        bookName: 'Genesis',
-        bookNumber: 1,
+        bookName: 'John',
+        bookNumber: 480,
         chapter: 1,
         verse: 1,
         version: 'RVR1960',
@@ -27,8 +27,8 @@ void main() {
       final position = await service.getLastPosition();
 
       expect(position, isNotNull);
-      expect(position!['bookName'], equals('Genesis'));
-      expect(position['bookNumber'], equals(1));
+      expect(position!['bookName'], equals('John'));
+      expect(position['bookNumber'], equals(480));
       expect(position['chapter'], equals(1));
       expect(position['verse'], equals(1));
       expect(position['version'], equals('RVR1960'));
@@ -48,7 +48,7 @@ void main() {
 
       await service.savePosition(
         bookName: 'Exodus',
-        bookNumber: 2,
+        bookNumber: 20,
         chapter: 3,
         verse: 14,
         version: 'KJV',
@@ -67,7 +67,7 @@ void main() {
 
       await service.savePosition(
         bookName: 'Matthew',
-        bookNumber: 40,
+        bookNumber: 450,
         chapter: 1,
         version: 'RVR1960',
         languageCode: 'es',
@@ -75,7 +75,7 @@ void main() {
 
       await service.savePosition(
         bookName: 'John',
-        bookNumber: 43,
+        bookNumber: 480,
         chapter: 3,
         verse: 16,
         version: 'NIV',
@@ -86,7 +86,7 @@ void main() {
 
       expect(position, isNotNull);
       expect(position!['bookName'], equals('John'));
-      expect(position['bookNumber'], equals(43));
+      expect(position['bookNumber'], equals(480));
       expect(position['chapter'], equals(3));
       expect(position['verse'], equals(16));
       expect(position['version'], equals('NIV'));
