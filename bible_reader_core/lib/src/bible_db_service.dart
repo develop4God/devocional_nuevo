@@ -233,7 +233,7 @@ class BibleDbService {
 
   /// Get section titles (pericopes) for a chapter from the stories table
   /// Returns list of titles with their associated verse numbers
-  /// Filters out cross-reference entries (titles containing parentheses or <x> tags)
+  /// Filters out cross-reference entries (titles containing parentheses or `<x>` tags)
   /// Orders by order_if_several for verses with multiple titles
   /// Returns empty list if stories table doesn't exist
   Future<List<Map<String, dynamic>>> getSectionTitles({
