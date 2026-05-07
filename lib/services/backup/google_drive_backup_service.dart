@@ -988,20 +988,20 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           final stats = data[BackupKeys.spiritualStats] as Map<String, dynamic>;
           await _statsService.restoreStats(stats);
 
-          // Extract and log read devotional IDs count
+          final innerStats = (stats['stats'] as Map<String, dynamic>?) ?? {};
           final readDevocionalIds =
-              (stats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
+              (innerStats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
           debugPrint('[RESTORE] ✅ Restored spiritual stats');
           debugPrint(
-              '[RESTORE]   - Total devotionals read: ${stats['totalDevocionalesRead'] ?? 0}');
+              '[RESTORE]   - Total devotionals read: ${innerStats['totalDevocionalesRead'] ?? 0}');
           debugPrint(
-              '[RESTORE]   - Completed devotional IDs: $readDevocionalIds (${stats['readDevocionalIds']?.toString() ?? '[]'})');
+              '[RESTORE]   - Completed devotional IDs: $readDevocionalIds');
           debugPrint(
-              '[RESTORE]   - Current streak: ${stats['currentStreak'] ?? 0}');
+              '[RESTORE]   - Current streak: ${innerStats['currentStreak'] ?? 0}');
           debugPrint(
-              '[RESTORE]   - Longest streak: ${stats['longestStreak'] ?? 0}');
+              '[RESTORE]   - Longest streak: ${innerStats['longestStreak'] ?? 0}');
           debugPrint(
-              '[RESTORE]   - Favorites count: ${stats['favoritesCount'] ?? 0}');
+              '[RESTORE]   - Favorites count: ${innerStats['favoritesCount'] ?? 0}');
 
           // (removed: downstream verify of SharedPreferences write —
           //  restoreStats() throws on failure; key internals belong to SpiritualStatsService)
