@@ -14,41 +14,52 @@ class FakeDevocionalRepository implements DevocionalRepository {
   FakeDevocionalRepository(this._items);
 
   @override
-  Future<List<Devocional>> fetchAll(int year, String language, String version) async {
+  Future<List<Devocional>> fetchAll(
+      int year, String language, String version) async {
     return _items;
   }
 
   @override
-  List<Devocional> filterByVersion(List<Devocional> devocionales, String version) {
+  List<Devocional> filterByVersion(
+      List<Devocional> devocionales, String version) {
     if (version.isEmpty) return devocionales;
     return devocionales.where((d) => d.version == version).toList();
   }
 
   @override
-  Future<bool> hasLocalData(int year, String language, String version) async => true;
+  Future<bool> hasLocalData(int year, String language, String version) async =>
+      true;
 
   @override
-  Future<bool> downloadAndStoreDevocionales(int year, String language, String version) async => true;
+  Future<bool> downloadAndStoreDevocionales(
+          int year, String language, String version) async =>
+      true;
 
   @override
   bool get wasLastFetchOffline => false;
 
   @override
-  Future<bool> downloadCurrentYearDevocionales(String language, String version) async => true;
+  Future<bool> downloadCurrentYearDevocionales(
+          String language, String version) async =>
+      true;
 
   @override
-  Future<bool> hasCurrentYearLocalData(String language, String version) async => true;
+  Future<bool> hasCurrentYearLocalData(String language, String version) async =>
+      true;
 
   @override
-  Future<bool> hasTargetYearsLocalData(String language, String version) async => true;
+  Future<bool> hasTargetYearsLocalData(String language, String version) async =>
+      true;
 
   @override
   Future<List<int>> getAvailableYears() async => [2020];
 
   @override
-  int findFirstUnreadDevocionalIndex(List<Devocional> devocionales, List<String> readDevocionalIds) {
+  int findFirstUnreadDevocionalIndex(
+      List<Devocional> devocionales, List<String> readDevocionalIds) {
     return 0;
   }
+
   @override
   Future<void> clearOldFiles() async {}
 
