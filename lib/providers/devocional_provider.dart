@@ -39,6 +39,7 @@ class DevocionalProvider with ChangeNotifier {
   Set<String> _favoriteIds = {}; // ID-based favorites storage
 
   bool _isLoading = false;
+  bool _isInitialized = false;
   bool _isSwitchingVersion = false;
   String? _errorMessage;
   String _selectedLanguage = 'es';
@@ -249,6 +250,7 @@ class DevocionalProvider with ChangeNotifier {
       notifyListeners();
     } finally {
       _isLoading = false;
+      _isInitialized = true;
       // Notify after isLoading=false so waitUntilLoaded() Completer can resolve.
       notifyListeners();
     }
@@ -262,6 +264,23 @@ class DevocionalProvider with ChangeNotifier {
     final completer = Completer<void>();
     void listener() {
       if (!_isLoading) {
+        removeListener(listener);
+        if (!completer.isCompleted) completer.complete();
+      }
+    }
+
+    addListener(listener);
+    return completer.future.timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => removeListener(listener),
+    );
+  }
+
+  Future<void> waitUntilInitialized() {
+    if (_isInitialized) return Future.value();
+    final completer = Completer<void>();
+    void listener() {
+      if (_isInitialized) {
         removeListener(listener);
         if (!completer.isCompleted) completer.complete();
       }
