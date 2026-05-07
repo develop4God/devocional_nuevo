@@ -179,14 +179,11 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
             _buildConnectionPrompt(context),
           ] else if (widget.isOnboardingMode) ...[
             _buildOnboardingConnectedState(context, state),
-          ] else if (state.autoBackupEnabled) ...[
+          ] else if (state.isAuthenticated) ...[
             const SizedBox(height: 8),
             _buildProtectionTitle(context),
             const SizedBox(height: 12),
             _buildAutoBackupActiveState(context, state),
-          ] else ...[
-            const SizedBox(height: 8),
-            _buildManualBackupState(context, state),
           ],
           const SizedBox(height: 24),
           _buildSecurityInfo(context),
@@ -561,139 +558,6 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildManualBackupState(BuildContext context, BackupLoaded state) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.touch_app,
-                  size: 48,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'backup.manual_backup_active'.tr(),
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'backup.manual_backup_description'.tr(),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.cloud_done,
-                      size: 16,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'backup.connected_to_google_drive'.tr(),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                if (state.userEmail != null) ...[
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.person_outline,
-                        size: 16,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${'backup.backup_email'.tr()}: ',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          state.userEmail!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      context.read<BackupBloc>().add(
-                            const CreateManualBackup(),
-                          );
-                    },
-                    icon: const Icon(Icons.backup),
-                    label: Text('backup.create_backup'.tr()),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: () {
-                    context.read<BackupBloc>().add(
-                          const ToggleAutoBackup(true),
-                        );
-                  },
-                  child: Text('backup.enable_auto_backup'.tr()),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (state.lastBackupTime != null) ...[
-          const SizedBox(height: 16),
-          Card(
-            color: theme.colorScheme.surfaceContainerHighest.withValues(
-              alpha: 0.3,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.history,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      '${'backup.last_backup'.tr()}: ${_formatLastBackupTime(context, state.lastBackupTime!)}',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ],
     );
   }
 
