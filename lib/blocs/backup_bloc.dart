@@ -540,6 +540,11 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     debugPrint('🌅 [BLOC] === START CheckStartupBackup ===');
 
     try {
+      // Wait for provider to finish loading (favorites, version) before backup
+      if (_devocionalProvider != null) {
+        await _devocionalProvider!.waitUntilInitialized();
+      }
+
       debugPrint('[BACKUP] checking auto enabled...');
       final isAutoEnabled = await _backupService.isAutoBackupEnabled();
       final isAuthenticated = await _backupService.isAuthenticated();
