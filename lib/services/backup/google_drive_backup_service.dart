@@ -543,11 +543,18 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     // Include favorite devotionals if enabled
     if (options[BackupKeys.favoriteDevotionals] == true && provider != null) {
       try {
-        backupData[BackupKeys.favoriteDevotionals] =
-            provider.favoriteIds.toList();
-        debugPrint(
-          '[BACKUP] Included ${provider.favoriteIds.length} favorite devotionals',
-        );
+        var ids = provider.favoriteIds.toList();
+        if (ids.isEmpty) {
+          final prefs = await SharedPreferences.getInstance();
+          final raw = prefs.getString('favorite_ids');
+          if (raw != null) {
+            ids = (json.decode(raw) as List<dynamic>).cast<String>();
+            debugPrint(
+                '[BACKUP] ⚠️ Provider empty — fallback to prefs: ${ids.length} favorites');
+          }
+        }
+        backupData[BackupKeys.favoriteDevotionals] = ids;
+        debugPrint('[BACKUP] Included ${ids.length} favorite devotionals');
       } catch (e) {
         debugPrint('[BACKUP] ❌ Error getting favorite devotionals: $e');
         backupData[BackupKeys.favoriteDevotionals] = [];
