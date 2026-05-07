@@ -64,11 +64,6 @@ abstract class IGoogleDriveBackupService {
   /// Create a backup on Google Drive.
   Future<bool> createBackup(DevocionalProvider? provider);
 
-  /// Restore the most recent backup from Google Drive.
-  /// Optionally pass [onRestored] callback so in-memory state can be reloaded
-  /// immediately after restore without requiring a restart.
-  Future<bool> restoreBackup({Future<void> Function()? onRestored});
-
   /// Check whether an automatic backup should be created now.
   Future<bool> shouldCreateAutoBackup();
 

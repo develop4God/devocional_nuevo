@@ -69,11 +69,6 @@ class CreateManualBackup extends BackupEvent {
   const CreateManualBackup();
 }
 
-/// Restore from backup
-class RestoreFromBackup extends BackupEvent {
-  const RestoreFromBackup();
-}
-
 /// Refresh backup status
 class RefreshBackupStatus extends BackupEvent {
   const RefreshBackupStatus();

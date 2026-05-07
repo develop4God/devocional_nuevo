@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/devocional_provider.dart';
 import '../services/backup/i_google_drive_backup_service.dart';
@@ -45,7 +44,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     on<ToggleCompression>(_onToggleCompression);
     on<UpdateBackupOptions>(_onUpdateBackupOptions);
     on<CreateManualBackup>(_onCreateManualBackup);
-    on<RestoreFromBackup>(_onRestoreFromBackup);
     on<RefreshBackupStatus>(_onRefreshBackupStatus);
     on<SignInToGoogleDrive>(_onSignInToGoogleDrive);
     on<SignOutFromGoogleDrive>(_onSignOutFromGoogleDrive);
@@ -312,79 +310,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     }
 
     debugPrint('🏁 [BLOC] === END CreateManualBackup ===');
-  }
-
-  /// Restore from backup
-  Future<void> _onRestoreFromBackup(
-    RestoreFromBackup event,
-    Emitter<BackupState> emit,
-  ) async {
-    debugPrint('🔄 [BLOC] === START RestoreFromBackup ===');
-
-    try {
-      emit(const BackupRestoring());
-      debugPrint('📥 [BLOC] BackupRestoring state emitted');
-
-      // Combined callback: reload favorites AND spiritual stats after restore.
-      // Both must be called so that the provider notifies widgets of
-      // newly-restored read IDs and favourite lists simultaneously.
-      final onRestored = _devocionalProvider != null
-          ? () async {
-              await _devocionalProvider!.reloadVersionFromStorage();
-              await _devocionalProvider!.reloadFavoritesFromStorage();
-              await _devocionalProvider!.reloadSpiritualStatsFromStorage();
-              debugPrint(
-                '✅ [BLOC] Provider reloaded: version + favorites + spiritual stats',
-              );
-            }
-          : null;
-
-      final success = await _backupService.restoreBackup(
-        onRestored: onRestored,
-      );
-      debugPrint('📥 [BLOC] Restore result: $success');
-
-      if (success) {
-        debugPrint('✅ [BLOC] Restore successful');
-        debugPrint(
-            '📊 [BLOC] Provider stats updated — UI rebuilds with restored data');
-
-        // Reload discovery and encounter state
-        _discoveryBloc?.add(RefreshDiscoveryStudies(forceRefresh: true));
-        if (_discoveryBloc != null) {
-          debugPrint('🔄 [BLOC] RefreshDiscoveryStudies event dispatched');
-        }
-
-        _encounterBloc?.add(LoadEncounterIndex(forceRefresh: true));
-        if (_encounterBloc != null) {
-          debugPrint('🔄 [BLOC] LoadEncounterIndex event dispatched');
-        }
-
-        // Recalculate current devotional index from restored read IDs
-        if (_navigationBloc != null && _devocionalProvider != null) {
-          _navigationBloc!.add(NavigateToFirstUnread(
-            _devocionalProvider!.lastRestoredReadIds.toList(),
-          ));
-          debugPrint(
-            '🧭 [BLOC] NavigateToFirstUnread dispatched — ${_devocionalProvider!.lastRestoredReadIds.length} read IDs',
-          );
-        }
-
-        final prefs = await SharedPreferences.getInstance();
-        final restoredVersion = prefs.getString('selectedVersion');
-        emit(BackupRestored(restoredVersion: restoredVersion));
-        add(const LoadBackupSettings());
-        debugPrint('🔄 [BLOC] Reloading settings after restore');
-      } else {
-        debugPrint('❌ [BLOC] Restore failed');
-        emit(const BackupError('Failed to restore backup'));
-      }
-    } catch (e) {
-      debugPrint('❌ [BLOC] Error restoring backup: $e');
-      emit(BackupError('Error restoring backup: ${e.toString()}'));
-    }
-
-    debugPrint('🏁 [BLOC] === END RestoreFromBackup ===');
   }
 
   /// Load storage information
