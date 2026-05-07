@@ -1,5 +1,6 @@
 // lib/blocs/backup_bloc.dart
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -488,7 +489,13 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
           // No existing backup — create the first one immediately
           debugPrint('📤 [BLOC] No backup found, creating initial backup...');
           if (_devocionalProvider != null) {
-            await _devocionalProvider!.waitUntilInitialized();
+            try {
+              await _devocionalProvider!.waitUntilInitialized();
+            } on TimeoutException {
+              debugPrint(
+                  '⚠️ [BLOC] Provider not ready — initial backup deferred');
+              return;
+            }
           }
           await _backupService.createBackup(_devocionalProvider);
           debugPrint('✅ [BLOC] Initial backup created');
@@ -545,7 +552,12 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     try {
       // Wait for provider to finish loading (favorites, version) before backup
       if (_devocionalProvider != null) {
-        await _devocionalProvider!.waitUntilInitialized();
+        try {
+          await _devocionalProvider!.waitUntilInitialized();
+        } on TimeoutException {
+          debugPrint('⚠️ [BLOC] Provider not ready — startup backup deferred');
+          return;
+        }
       }
 
       debugPrint('[BACKUP] checking auto enabled...');

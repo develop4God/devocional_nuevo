@@ -272,7 +272,10 @@ class DevocionalProvider with ChangeNotifier {
     addListener(listener);
     return completer.future.timeout(
       const Duration(seconds: 30),
-      onTimeout: () => removeListener(listener),
+      onTimeout: () {
+        removeListener(listener);
+        throw TimeoutException('Provider initialization timed out after 30s');
+      },
     );
   }
 
