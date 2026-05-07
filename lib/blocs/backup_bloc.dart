@@ -487,6 +487,9 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         } else {
           // No existing backup — create the first one immediately
           debugPrint('📤 [BLOC] No backup found, creating initial backup...');
+          if (_devocionalProvider != null) {
+            await _devocionalProvider!.waitUntilInitialized();
+          }
           await _backupService.createBackup(_devocionalProvider);
           debugPrint('✅ [BLOC] Initial backup created');
           emit(

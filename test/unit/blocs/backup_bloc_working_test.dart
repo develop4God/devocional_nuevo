@@ -81,6 +81,9 @@ void main() {
       when(
         () => mockBackupService.getUserEmail(),
       ).thenAnswer((_) async => null);
+      when(
+        () => mockDevocionalProvider.waitUntilInitialized(),
+      ).thenAnswer((_) async {});
       // storageInfo removed from service interface
     });
 
@@ -222,6 +225,8 @@ void main() {
           .thenAnswer((_) async {});
       when(() => mockBackupService.createBackup(any()))
           .thenAnswer((_) async => true);
+      when(() => mockDevocionalProvider.waitUntilInitialized())
+          .thenAnswer((_) async {});
     });
 
     blocTest<BackupBloc, BackupState>(
