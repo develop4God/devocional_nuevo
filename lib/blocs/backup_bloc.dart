@@ -63,52 +63,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     Emitter<BackupState> emit,
   ) async {
     debugPrint('🔄 [BLOC] === START LoadBackupSettings ===');
-
-    try {
-      emit(const BackupLoading());
-
-      final isAuthenticated = await _backupService.isAuthenticated();
-      debugPrint('📊 [BLOC] Authenticated: $isAuthenticated');
-
-      final results = await Future.wait([
-        _backupService.isAutoBackupEnabled(),
-        _backupService.getBackupFrequency(),
-        _backupService.isWifiOnlyEnabled(),
-        _backupService.isCompressionEnabled(),
-        _backupService.getBackupOptions(),
-        _backupService.getLastBackupTime(),
-        _backupService.getNextBackupTime(),
-        _backupService.getEstimatedBackupSize(_devocionalProvider),
-        _backupService.getUserEmail(),
-      ]);
-
-      debugPrint('📊 [BLOC] Settings loaded:');
-      debugPrint('📊 [BLOC] - Auto backup: ${results[0]}');
-      debugPrint('📊 [BLOC] - Frequency: ${results[1]}');
-      debugPrint('📊 [BLOC] - Last backup: ${results[5]}');
-      debugPrint('📊 [BLOC] - Next backup: ${results[6]}');
-
-      emit(
-        BackupLoaded(
-          autoBackupEnabled: results[0] as bool,
-          backupFrequency: results[1] as String,
-          wifiOnlyEnabled: results[2] as bool,
-          compressionEnabled: results[3] as bool,
-          backupOptions: results[4] as Map<String, bool>,
-          lastBackupTime: results[5] as DateTime?,
-          nextBackupTime: results[6] as DateTime?,
-          estimatedSize: results[7] as int,
-          isAuthenticated: isAuthenticated,
-          userEmail: results[8] as String?,
-        ),
-      );
-
-      debugPrint('✅ [BLOC] BackupLoaded emitted successfully');
-    } catch (e) {
-      debugPrint('❌ [BLOC] Error loading backup settings: $e');
-      emit(BackupError('Error loading backup settings: ${e.toString()}'));
-    }
-
+    await _loadAndEmitBackupState(emit, errorLabel: 'loading backup settings');
     debugPrint('🏁 [BLOC] === END LoadBackupSettings ===');
   }
 
@@ -224,7 +179,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('❌ [BLOC] Error toggling WiFi only: $e');
-      emit(BackupError('Error updating WiFi setting: ${e.toString()}'));
+      emit(BackupError('Error updating WiFi-only setting: ${e.toString()}'));
     }
 
     debugPrint('🏁 [BLOC] === END ToggleWifiOnly ===');
@@ -246,7 +201,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('Error toggling compression: $e');
-      emit(BackupError('Error updating compression: ${e.toString()}'));
+      emit(BackupError('Error updating compression setting: ${e.toString()}'));
     }
   }
 
@@ -312,18 +267,66 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     debugPrint('🏁 [BLOC] === END CreateManualBackup ===');
   }
 
-  /// Load storage information
-
   /// Refresh backup status
   Future<void> _onRefreshBackupStatus(
     RefreshBackupStatus event,
     Emitter<BackupState> emit,
   ) async {
     debugPrint('🔄 [BLOC] Refrescando estado de backup');
-    add(const LoadBackupSettings());
+    await _loadAndEmitBackupState(emit, errorLabel: 'refreshing backup status');
   }
 
-  /// Sign in to Google Drive - METODO ACTUALIZADO CON RESTAURACIÓN AUTOMÁTICA
+  /// Shared logic: fetch all backup state and emit [BackupLoaded] or [BackupError].
+  Future<void> _loadAndEmitBackupState(
+    Emitter<BackupState> emit, {
+    required String errorLabel,
+  }) async {
+    try {
+      emit(const BackupLoading());
+
+      final isAuthenticated = await _backupService.isAuthenticated();
+      debugPrint('📊 [BLOC] Authenticated: $isAuthenticated');
+
+      final results = await Future.wait([
+        _backupService.isAutoBackupEnabled(),
+        _backupService.getBackupFrequency(),
+        _backupService.isWifiOnlyEnabled(),
+        _backupService.isCompressionEnabled(),
+        _backupService.getBackupOptions(),
+        _backupService.getLastBackupTime(),
+        _backupService.getNextBackupTime(),
+        _backupService.getEstimatedBackupSize(_devocionalProvider),
+        _backupService.getUserEmail(),
+      ]);
+
+      debugPrint('📊 [BLOC] Backup state loaded:');
+      debugPrint('📊 [BLOC] - Auto backup: ${results[0]}');
+      debugPrint('📊 [BLOC] - Frequency: ${results[1]}');
+      debugPrint('📊 [BLOC] - Last backup: ${results[5]}');
+      debugPrint('📊 [BLOC] - Next backup: ${results[6]}');
+
+      emit(
+        BackupLoaded(
+          autoBackupEnabled: results[0] as bool,
+          backupFrequency: results[1] as String,
+          wifiOnlyEnabled: results[2] as bool,
+          compressionEnabled: results[3] as bool,
+          backupOptions: results[4] as Map<String, bool>,
+          lastBackupTime: results[5] as DateTime?,
+          nextBackupTime: results[6] as DateTime?,
+          estimatedSize: results[7] as int,
+          isAuthenticated: isAuthenticated,
+          userEmail: results[8] as String?,
+        ),
+      );
+
+      debugPrint('✅ [BLOC] BackupLoaded emitted successfully');
+    } catch (e) {
+      debugPrint('❌ [BLOC] Error $errorLabel: $e');
+      emit(BackupError('Error $errorLabel: ${e.toString()}'));
+    }
+  }
+
   Future<void> _onSignInToGoogleDrive(
     SignInToGoogleDrive event,
     Emitter<BackupState> emit,
