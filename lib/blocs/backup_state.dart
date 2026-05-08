@@ -116,6 +116,9 @@ class BackupRestoring extends BackupState {
 class BackupRestored extends BackupState {
   final String? restoredVersion;
   const BackupRestored({this.restoredVersion});
+
+  @override
+  List<Object?> get props => [restoredVersion];
 }
 
 /// Error state
