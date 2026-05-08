@@ -88,4 +88,7 @@ class SignOutFromGoogleDrive extends BackupEvent {
 class CheckStartupBackup extends BackupEvent {
   const CheckStartupBackup({this.forceBypass = false});
   final bool forceBypass;
+
+  @override
+  List<Object?> get props => [forceBypass];
 }
