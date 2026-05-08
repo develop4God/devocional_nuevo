@@ -13,6 +13,7 @@ import '../blocs/prayer_bloc.dart';
 import '../blocs/theme/theme_bloc.dart';
 import '../blocs/theme/theme_state.dart';
 import '../extensions/string_extensions.dart';
+import '../models/backup_content_summary.dart';
 import '../providers/devocional_provider.dart';
 import '../services/backup/i_google_drive_backup_service.dart';
 import '../services/service_locator.dart';
@@ -282,6 +283,79 @@ class _ShieldSuccessDialogState extends State<_ShieldSuccessDialog> {
     });
   }
 
+  /// One-line horizontal summary of non-zero item counts.
+  Widget _buildSummaryLine(
+    BuildContext context,
+    BackupContentSummary summary,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final items = <({IconData icon, String label, int count})>[
+      (
+        icon: Icons.volunteer_activism,
+        label: 'backup.saved_prayers'.tr(),
+        count: summary.prayersCount,
+      ),
+      (
+        icon: Icons.sentiment_very_satisfied,
+        label: 'thanksgiving.thanksgivings'.tr(),
+        count: summary.thanksgivingsCount,
+      ),
+      (
+        icon: Icons.record_voice_over,
+        label: 'testimony.testimonies'.tr(),
+        count: summary.testimoniesCount,
+      ),
+      (
+        icon: Icons.favorite,
+        label: 'backup.favorite_devotionals'.tr(),
+        count: summary.favoritesCount,
+      ),
+      (
+        icon: Icons.church,
+        label: 'encounters.section_title'.tr(),
+        count: summary.encountersCount,
+      ),
+      (
+        icon: Icons.menu_book,
+        label: 'discovery.discovery_studies'.tr(),
+        count: summary.discoveryCount,
+      ),
+      (
+        icon: Icons.bookmark,
+        label: 'backup.saved_verses'.tr(),
+        count: summary.versesCount,
+      ),
+    ].where((e) => e.count > 0).toList();
+
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 10,
+      runSpacing: 8,
+      children: items
+          .map(
+            (item) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(item.icon, size: 14, color: colorScheme.primary),
+                const SizedBox(width: 4),
+                Text(
+                  '${item.label}: ${item.count}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          )
+          .toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -321,6 +395,15 @@ class _ShieldSuccessDialogState extends State<_ShieldSuccessDialog> {
                     ),
                     textAlign: TextAlign.center,
                   ),
+                  // Content summary
+                  if (widget.state.contentSummary != null &&
+                      !widget.state.contentSummary!.isEmpty) ...[
+                    const SizedBox(height: 20),
+                    _buildSummaryLine(
+                      context,
+                      widget.state.contentSummary!,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -746,6 +829,20 @@ class _BackupSettingsContent extends StatelessWidget {
                 ),
               ],
             ),
+            // Content summary — what is protected
+            if (state.contentSummary != null &&
+                !state.contentSummary!.isEmpty) ...[
+              const SizedBox(height: 12),
+              Divider(
+                height: 1,
+                color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+              const SizedBox(height: 10),
+              _buildContentSummaryChips(
+                context,
+                state.contentSummary!,
+              ),
+            ],
           ],
         ),
       ),
@@ -783,6 +880,88 @@ class _BackupSettingsContent extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  /// Compact chip row showing non-zero item counts from the backup payload.
+  ///
+  /// Uses 100 % existing translation keys — no new keys except [backup.saved_verses].
+  Widget _buildContentSummaryChips(
+    BuildContext context,
+    BackupContentSummary summary,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final items = <({IconData icon, String label, int count})>[
+      (
+        icon: Icons.volunteer_activism,
+        label: 'backup.saved_prayers'.tr(),
+        count: summary.prayersCount,
+      ),
+      (
+        icon: Icons.sentiment_very_satisfied,
+        label: 'thanksgiving.thanksgivings'.tr(),
+        count: summary.thanksgivingsCount,
+      ),
+      (
+        icon: Icons.record_voice_over,
+        label: 'testimony.testimonies'.tr(),
+        count: summary.testimoniesCount,
+      ),
+      (
+        icon: Icons.favorite,
+        label: 'backup.favorite_devotionals'.tr(),
+        count: summary.favoritesCount,
+      ),
+      (
+        icon: Icons.church,
+        label: 'encounters.section_title'.tr(),
+        count: summary.encountersCount,
+      ),
+      (
+        icon: Icons.menu_book,
+        label: 'discovery.discovery_studies'.tr(),
+        count: summary.discoveryCount,
+      ),
+      (
+        icon: Icons.bookmark,
+        label: 'backup.saved_verses'.tr(),
+        count: summary.versesCount,
+      ),
+    ].where((e) => e.count > 0).toList();
+
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: items.map((item) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: colorScheme.primaryContainer.withValues(alpha: 0.25),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: colorScheme.primary.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(item.icon, size: 12, color: colorScheme.primary),
+              const SizedBox(width: 4),
+              Text(
+                '${item.label}: ${item.count}',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 

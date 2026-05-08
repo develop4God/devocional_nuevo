@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../models/backup_content_summary.dart';
 import '../providers/devocional_provider.dart';
 import '../services/backup/i_google_drive_backup_service.dart';
 import 'backup_event.dart';
@@ -297,6 +298,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         _backupService.getNextBackupTime(),
         _backupService.getEstimatedBackupSize(_devocionalProvider),
         _backupService.getUserEmail(),
+        _backupService.getBackupContentSummary(),
       ]);
 
       debugPrint('📊 [BLOC] Backup state loaded:');
@@ -317,6 +319,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
           estimatedSize: results[7] as int,
           isAuthenticated: isAuthenticated,
           userEmail: results[8] as String?,
+          contentSummary: results[9] as BackupContentSummary,
         ),
       );
 
@@ -403,10 +406,13 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
               );
             }
 
+            final summaryAfterRestore =
+                await _backupService.getBackupContentSummary();
             emit(
-              const BackupSuccess(
+              BackupSuccess(
                 'backup.sign_in_success',
                 'backup.restored_successfully',
+                contentSummary: summaryAfterRestore,
               ),
             );
           } else {
@@ -427,10 +433,13 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
           }
           await _backupService.createBackup(_devocionalProvider);
           debugPrint('✅ [BLOC] Initial backup created');
+          final summaryAfterCreate =
+              await _backupService.getBackupContentSummary();
           emit(
-            const BackupSuccess(
+            BackupSuccess(
               'backup.sign_in_success',
               'backup.created_successfully',
+              contentSummary: summaryAfterCreate,
             ),
           );
         }

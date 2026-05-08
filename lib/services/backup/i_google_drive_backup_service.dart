@@ -5,6 +5,7 @@
 // Dependency Inversion and easy test mocking.
 
 import '../../blocs/prayer_bloc.dart';
+import '../../models/backup_content_summary.dart';
 import '../../providers/devocional_provider.dart';
 
 /// Frequency constant — backup runs daily (app startup check).
@@ -58,6 +59,12 @@ abstract class IGoogleDriveBackupService {
 
   /// Get estimated backup size in bytes.
   Future<int> getEstimatedBackupSize(DevocionalProvider? provider);
+
+  /// Get a summary of content item counts currently stored locally.
+  ///
+  /// Reads the same SharedPreferences keys used by [createBackup], so the
+  /// counts reflect exactly what will be included in the next backup.
+  Future<BackupContentSummary> getBackupContentSummary();
 
   // ── Backup / Restore ───────────────────────────────────────────────────────
 
