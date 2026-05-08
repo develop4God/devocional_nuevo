@@ -220,7 +220,7 @@ class _BackupSettingsViewState extends State<_BackupSettingsView> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Lottie.asset(
-              'assets/lottie/google_drive_logo.json',
+              'assets/lottie/google_logo.json',
               width: 180,
               height: 180,
             ),
