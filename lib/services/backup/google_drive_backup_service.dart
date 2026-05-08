@@ -18,6 +18,7 @@ import 'compression_service.dart';
 import '../i_connectivity_service.dart';
 import 'i_google_drive_auth_service.dart';
 import 'i_google_drive_backup_service.dart';
+import '../discovery_progress_tracker.dart';
 import '../i_localization_service.dart';
 import 'package:devocional_nuevo/utils/constants/backup_keys_constants.dart';
 
@@ -210,7 +211,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       // Discovery study progress entries
       final discoveryCount = prefs
           .getKeys()
-          .where((k) => k.startsWith('discovery_progress_'))
+          .where(
+              (k) => k.startsWith(DiscoveryProgressTracker.progressKeyPrefix))
           .length;
 
       // Marked Bible verses
@@ -713,7 +715,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         final allKeys = prefs.getKeys();
         final discoveryProgressData = <String, dynamic>{};
         for (final key in allKeys) {
-          if (key.startsWith('discovery_progress_')) {
+          if (key.startsWith(DiscoveryProgressTracker.progressKeyPrefix)) {
             final value = prefs.getString(key);
             if (value != null) {
               discoveryProgressData[key] = value;
@@ -1098,7 +1100,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           final prefs = await SharedPreferences.getInstance();
           for (final entry in progressData.entries) {
             if (entry.value is String &&
-                entry.key.startsWith('discovery_progress_')) {
+                entry.key
+                    .startsWith(DiscoveryProgressTracker.progressKeyPrefix)) {
               await prefs.setString(entry.key, entry.value as String);
             }
           }
