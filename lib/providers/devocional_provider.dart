@@ -960,7 +960,8 @@ class DevocionalProvider with ChangeNotifier {
         .where((d) => _favoriteIds.contains(d.id))
         .toList();
     final foundIds = _favoriteDevocionales.map((d) => d.id).toSet();
-    final orphanIds = _favoriteIds.where((id) => !foundIds.contains(id)).toList();
+    final orphanIds =
+        _favoriteIds.where((id) => !foundIds.contains(id)).toList();
     if (orphanIds.isNotEmpty) {
       developer.log('⭐FAVORITES_ORPHAN: $orphanIds', name: 'Favorites');
     }
