@@ -1,6 +1,8 @@
 // lib/blocs/backup_state.dart
 import 'package:equatable/equatable.dart';
 
+import '../models/backup_content_summary.dart';
+
 /// States for Google Drive backup functionality
 abstract class BackupState extends Equatable {
   const BackupState();
@@ -32,6 +34,9 @@ class BackupLoaded extends BackupState {
   final bool isAuthenticated;
   final String? userEmail;
 
+  /// Item-count summary for the backup payload. Null until first load.
+  final BackupContentSummary? contentSummary;
+
   const BackupLoaded({
     required this.autoBackupEnabled,
     required this.backupFrequency,
@@ -43,6 +48,7 @@ class BackupLoaded extends BackupState {
     required this.estimatedSize,
     required this.isAuthenticated,
     this.userEmail,
+    this.contentSummary,
   });
 
   @override
@@ -57,6 +63,7 @@ class BackupLoaded extends BackupState {
         estimatedSize,
         isAuthenticated,
         userEmail,
+        contentSummary,
       ];
 
   /// Create a copy with updated values
@@ -71,6 +78,7 @@ class BackupLoaded extends BackupState {
     int? estimatedSize,
     bool? isAuthenticated,
     String? userEmail,
+    BackupContentSummary? contentSummary,
   }) {
     return BackupLoaded(
       autoBackupEnabled: autoBackupEnabled ?? this.autoBackupEnabled,
@@ -83,6 +91,7 @@ class BackupLoaded extends BackupState {
       estimatedSize: estimatedSize ?? this.estimatedSize,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       userEmail: userEmail ?? this.userEmail,
+      contentSummary: contentSummary ?? this.contentSummary,
     );
   }
 }
@@ -141,8 +150,11 @@ class BackupSuccess extends BackupState {
   final String title;
   final String message;
 
-  const BackupSuccess(this.title, this.message);
+  /// Optional content summary shown in the success overlay.
+  final BackupContentSummary? contentSummary;
+
+  const BackupSuccess(this.title, this.message, {this.contentSummary});
 
   @override
-  List<Object?> get props => [title, message];
+  List<Object?> get props => [title, message, contentSummary];
 }

@@ -10,6 +10,7 @@ import 'i_backup_settings_service.dart';
 
 import '../../blocs/prayer_bloc.dart';
 import '../../blocs/prayer_event.dart';
+import '../../models/backup_content_summary.dart';
 import '../../models/spiritual_stats_model.dart';
 import '../../providers/devocional_provider.dart';
 import '../i_spiritual_stats_service.dart';
@@ -161,6 +162,89 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     }
 
     return totalSize;
+  }
+
+  /// Returns a [BackupContentSummary] reflecting item counts in SharedPreferences.
+  ///
+  /// Reads the same keys used by [_prepareBackupData], so the counts match
+  /// exactly what will be included in the next backup.
+  @override
+  Future<BackupContentSummary> getBackupContentSummary() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Prayers
+      int prayersCount = 0;
+      final prayersJson = prefs.getString('prayers');
+      if (prayersJson != null) {
+        prayersCount = (json.decode(prayersJson) as List<dynamic>).length;
+      }
+
+      // Thanksgivings
+      int thanksgivingsCount = 0;
+      final thanksgivingsJson = prefs.getString('thanksgivings');
+      if (thanksgivingsJson != null) {
+        thanksgivingsCount =
+            (json.decode(thanksgivingsJson) as List<dynamic>).length;
+      }
+
+      // Testimonies
+      int testimoniesCount = 0;
+      final testimoniesJson = prefs.getString('testimonies');
+      if (testimoniesJson != null) {
+        testimoniesCount =
+            (json.decode(testimoniesJson) as List<dynamic>).length;
+      }
+
+      // Favourite devotionals (stored as JSON array under 'favorite_ids')
+      int favoritesCount = 0;
+      final favoritesJson = prefs.getString('favorite_ids');
+      if (favoritesJson != null) {
+        favoritesCount = (json.decode(favoritesJson) as List<dynamic>).length;
+      }
+
+      // Completed encounters
+      final encountersCount =
+          (prefs.getStringList('encounter_completed_ids') ?? []).length;
+
+      // Discovery study progress entries
+      final discoveryCount = prefs
+          .getKeys()
+          .where((k) => k.startsWith('discovery_progress_'))
+          .length;
+
+      // Marked Bible verses
+      final versesCount =
+          (prefs.getStringList('bible_marked_verses') ?? []).length;
+
+      debugPrint(
+        '[BACKUP] ContentSummary — prayers:$prayersCount '
+        'thanks:$thanksgivingsCount testimonies:$testimoniesCount '
+        'favorites:$favoritesCount encounters:$encountersCount '
+        'discovery:$discoveryCount verses:$versesCount',
+      );
+
+      return BackupContentSummary(
+        prayersCount: prayersCount,
+        thanksgivingsCount: thanksgivingsCount,
+        testimoniesCount: testimoniesCount,
+        favoritesCount: favoritesCount,
+        encountersCount: encountersCount,
+        discoveryCount: discoveryCount,
+        versesCount: versesCount,
+      );
+    } catch (e) {
+      debugPrint('[BACKUP] Error getting content summary: $e');
+      return const BackupContentSummary(
+        prayersCount: 0,
+        thanksgivingsCount: 0,
+        testimoniesCount: 0,
+        favoritesCount: 0,
+        encountersCount: 0,
+        discoveryCount: 0,
+        versesCount: 0,
+      );
+    }
   }
 
   /// Download the current Drive backup file as a raw map.
