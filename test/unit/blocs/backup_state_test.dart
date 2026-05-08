@@ -2,6 +2,7 @@
 library;
 
 import 'package:devocional_nuevo/blocs/backup_state.dart';
+import 'package:devocional_nuevo/models/backup_content_summary.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Comprehensive tests for BackupState classes
@@ -133,6 +134,7 @@ void main() {
             1024,
             true,
             'test@example.com',
+            null, // contentSummary — nullable, not set
           ]));
     });
 
@@ -600,7 +602,7 @@ void main() {
 
     test('props includes title and message', () {
       const state = BackupSuccess('Success', 'Operation completed');
-      expect(state.props, equals(['Success', 'Operation completed']));
+      expect(state.props, equals(['Success', 'Operation completed', null]));
     });
 
     test('creates state with title and message', () {
@@ -640,6 +642,160 @@ void main() {
       expect(const BackupError('Error'), isA<BackupState>());
       expect(const BackupSettingsUpdated(), isA<BackupState>());
       expect(const BackupSuccess('Title', 'Message'), isA<BackupState>());
+    });
+  });
+
+  // ── BackupLoaded.contentSummary ─────────────────────────────────────────────
+  group('BackupLoaded — contentSummary integration', () {
+    const summary = BackupContentSummary(
+      prayersCount: 5,
+      thanksgivingsCount: 3,
+      testimoniesCount: 1,
+      favoritesCount: 8,
+      encountersCount: 2,
+      discoveryCount: 4,
+      versesCount: 7,
+    );
+
+    test('contentSummary defaults to null when not provided', () {
+      const state = BackupLoaded(
+        autoBackupEnabled: false,
+        backupFrequency: 'daily',
+        wifiOnlyEnabled: false,
+        compressionEnabled: false,
+        backupOptions: {},
+        estimatedSize: 0,
+        isAuthenticated: false,
+      );
+      expect(state.contentSummary, isNull);
+    });
+
+    test('contentSummary holds the provided value', () {
+      const state = BackupLoaded(
+        autoBackupEnabled: true,
+        backupFrequency: 'daily',
+        wifiOnlyEnabled: false,
+        compressionEnabled: false,
+        backupOptions: {},
+        estimatedSize: 0,
+        isAuthenticated: true,
+        contentSummary: summary,
+      );
+      expect(state.contentSummary, equals(summary));
+      expect(state.contentSummary!.prayersCount, 5);
+      expect(state.contentSummary!.versesCount, 7);
+      expect(state.contentSummary!.totalItems, 30);
+    });
+
+    test('copyWith preserves contentSummary when not overridden', () {
+      const state = BackupLoaded(
+        autoBackupEnabled: true,
+        backupFrequency: 'daily',
+        wifiOnlyEnabled: false,
+        compressionEnabled: false,
+        backupOptions: {},
+        estimatedSize: 0,
+        isAuthenticated: true,
+        contentSummary: summary,
+      );
+      final copied = state.copyWith(autoBackupEnabled: false);
+      expect(copied.contentSummary, equals(summary));
+      expect(copied.autoBackupEnabled, isFalse);
+    });
+
+    test('copyWith updates contentSummary when provided', () {
+      const state = BackupLoaded(
+        autoBackupEnabled: true,
+        backupFrequency: 'daily',
+        wifiOnlyEnabled: false,
+        compressionEnabled: false,
+        backupOptions: {},
+        estimatedSize: 0,
+        isAuthenticated: true,
+      );
+      const newSummary = BackupContentSummary(
+        prayersCount: 10,
+        thanksgivingsCount: 0,
+        testimoniesCount: 0,
+        favoritesCount: 0,
+        encountersCount: 0,
+        discoveryCount: 0,
+        versesCount: 0,
+      );
+      final updated = state.copyWith(contentSummary: newSummary);
+      expect(updated.contentSummary, equals(newSummary));
+      expect(updated.contentSummary!.prayersCount, 10);
+    });
+
+    test('states with different contentSummary are not equal', () {
+      const stateA = BackupLoaded(
+        autoBackupEnabled: true,
+        backupFrequency: 'daily',
+        wifiOnlyEnabled: false,
+        compressionEnabled: false,
+        backupOptions: {},
+        estimatedSize: 0,
+        isAuthenticated: true,
+        contentSummary: summary,
+      );
+      const stateB = BackupLoaded(
+        autoBackupEnabled: true,
+        backupFrequency: 'daily',
+        wifiOnlyEnabled: false,
+        compressionEnabled: false,
+        backupOptions: {},
+        estimatedSize: 0,
+        isAuthenticated: true,
+        // contentSummary omitted → null
+      );
+      expect(stateA, isNot(equals(stateB)));
+    });
+  });
+
+  // ── BackupSuccess.contentSummary ────────────────────────────────────────────
+  group('BackupSuccess — contentSummary integration', () {
+    const summary = BackupContentSummary(
+      prayersCount: 16,
+      thanksgivingsCount: 4,
+      testimoniesCount: 2,
+      favoritesCount: 3,
+      encountersCount: 2,
+      discoveryCount: 0,
+      versesCount: 7,
+    );
+
+    test('contentSummary defaults to null', () {
+      const state = BackupSuccess('title', 'message');
+      expect(state.contentSummary, isNull);
+    });
+
+    test('contentSummary holds the provided value', () {
+      final state = BackupSuccess(
+        'backup.sign_in_success',
+        'backup.created_successfully',
+        contentSummary: summary,
+      );
+      expect(state.contentSummary, equals(summary));
+      expect(state.contentSummary!.prayersCount, 16);
+      expect(state.contentSummary!.versesCount, 7);
+    });
+
+    test('props includes contentSummary in equality check', () {
+      final stateWithSummary = BackupSuccess(
+        'title',
+        'message',
+        contentSummary: summary,
+      );
+      const stateWithoutSummary = BackupSuccess('title', 'message');
+
+      expect(stateWithSummary, isNot(equals(stateWithoutSummary)));
+      expect(stateWithSummary.props, equals(['title', 'message', summary]));
+    });
+
+    test('two BackupSuccess with same summary are equal', () {
+      final a = BackupSuccess('t', 'm', contentSummary: summary);
+      final b = BackupSuccess('t', 'm', contentSummary: summary);
+      expect(a, equals(b));
     });
   });
 }

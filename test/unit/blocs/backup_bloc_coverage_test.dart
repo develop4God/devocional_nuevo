@@ -5,6 +5,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/backup_state.dart';
+import 'package:devocional_nuevo/models/backup_content_summary.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -46,6 +47,17 @@ void main() {
           .thenAnswer((_) async => 0);
       when(() => mockBackupService.getUserEmail())
           .thenAnswer((_) async => null);
+      when(() => mockBackupService.getBackupContentSummary()).thenAnswer(
+        (_) async => const BackupContentSummary(
+          prayersCount: 0,
+          thanksgivingsCount: 0,
+          testimoniesCount: 0,
+          favoritesCount: 0,
+          encountersCount: 0,
+          discoveryCount: 0,
+          versesCount: 0,
+        ),
+      );
       when(() => mockDevocionalProvider.waitUntilInitialized())
           .thenAnswer((_) async {});
     });

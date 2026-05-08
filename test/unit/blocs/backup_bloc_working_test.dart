@@ -5,6 +5,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/backup_state.dart';
+import 'package:devocional_nuevo/models/backup_content_summary.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -81,6 +82,19 @@ void main() {
       when(
         () => mockBackupService.getUserEmail(),
       ).thenAnswer((_) async => null);
+      when(
+        () => mockBackupService.getBackupContentSummary(),
+      ).thenAnswer(
+        (_) async => const BackupContentSummary(
+          prayersCount: 0,
+          thanksgivingsCount: 0,
+          testimoniesCount: 0,
+          favoritesCount: 0,
+          encountersCount: 0,
+          discoveryCount: 0,
+          versesCount: 0,
+        ),
+      );
       when(
         () => mockDevocionalProvider.waitUntilInitialized(),
       ).thenAnswer((_) async {});
@@ -172,6 +186,17 @@ void main() {
           .thenAnswer((_) async {});
       when(() => mockBackupService.createBackup(any()))
           .thenAnswer((_) async => true);
+      when(() => mockBackupService.getBackupContentSummary()).thenAnswer(
+        (_) async => const BackupContentSummary(
+          prayersCount: 0,
+          thanksgivingsCount: 0,
+          testimoniesCount: 0,
+          favoritesCount: 0,
+          encountersCount: 0,
+          discoveryCount: 0,
+          versesCount: 0,
+        ),
+      );
     });
 
     blocTest<BackupBloc, BackupState>(
@@ -227,6 +252,17 @@ void main() {
           .thenAnswer((_) async => true);
       when(() => mockDevocionalProvider.waitUntilInitialized())
           .thenAnswer((_) async {});
+      when(() => mockBackupService.getBackupContentSummary()).thenAnswer(
+        (_) async => const BackupContentSummary(
+          prayersCount: 0,
+          thanksgivingsCount: 0,
+          testimoniesCount: 0,
+          favoritesCount: 0,
+          encountersCount: 0,
+          discoveryCount: 0,
+          versesCount: 0,
+        ),
+      );
     });
 
     blocTest<BackupBloc, BackupState>(
@@ -240,10 +276,13 @@ void main() {
       // LoadBackupSettings fires after a 2 s delay — outside blocTest window
       expect: () => <dynamic>[
         const BackupSigningIn(),
-        const BackupSuccess(
-          'backup.sign_in_success',
-          'backup.created_successfully',
-        ),
+        isA<BackupSuccess>()
+            .having((s) => s.title, 'title', 'backup.sign_in_success')
+            .having(
+              (s) => s.message,
+              'message',
+              'backup.created_successfully',
+            ),
       ],
     );
   });
