@@ -20,6 +20,47 @@ import '../services/service_locator.dart';
 import '../widgets/backup_configuration_sheet.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 
+List<({IconData icon, String label, int count})> _summaryItems(
+  BackupContentSummary summary,
+) =>
+    [
+      (
+        icon: Icons.volunteer_activism,
+        label: 'backup.saved_prayers'.tr(),
+        count: summary.prayersCount,
+      ),
+      (
+        icon: Icons.sentiment_very_satisfied,
+        label: 'thanksgiving.thanksgivings'.tr(),
+        count: summary.thanksgivingsCount,
+      ),
+      (
+        icon: Icons.record_voice_over,
+        label: 'testimony.testimonies'.tr(),
+        count: summary.testimoniesCount,
+      ),
+      (
+        icon: Icons.favorite,
+        label: 'backup.favorite_devotionals'.tr(),
+        count: summary.favoritesCount,
+      ),
+      (
+        icon: Icons.church,
+        label: 'encounters.section_title'.tr(),
+        count: summary.encountersCount,
+      ),
+      (
+        icon: Icons.menu_book,
+        label: 'discovery.discovery_studies'.tr(),
+        count: summary.discoveryCount,
+      ),
+      (
+        icon: Icons.bookmark,
+        label: 'backup.saved_verses'.tr(),
+        count: summary.versesCount,
+      ),
+    ].where((e) => e.count > 0).toList();
+
 /// BackupSettingsPage with simplified progressive UI
 class BackupSettingsPage extends StatelessWidget {
   final BackupBloc? bloc; // Optional bloc for testing
@@ -291,43 +332,7 @@ class _ShieldSuccessDialogState extends State<_ShieldSuccessDialog> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final items = <({IconData icon, String label, int count})>[
-      (
-        icon: Icons.volunteer_activism,
-        label: 'backup.saved_prayers'.tr(),
-        count: summary.prayersCount,
-      ),
-      (
-        icon: Icons.sentiment_very_satisfied,
-        label: 'thanksgiving.thanksgivings'.tr(),
-        count: summary.thanksgivingsCount,
-      ),
-      (
-        icon: Icons.record_voice_over,
-        label: 'testimony.testimonies'.tr(),
-        count: summary.testimoniesCount,
-      ),
-      (
-        icon: Icons.favorite,
-        label: 'backup.favorite_devotionals'.tr(),
-        count: summary.favoritesCount,
-      ),
-      (
-        icon: Icons.church,
-        label: 'encounters.section_title'.tr(),
-        count: summary.encountersCount,
-      ),
-      (
-        icon: Icons.menu_book,
-        label: 'discovery.discovery_studies'.tr(),
-        count: summary.discoveryCount,
-      ),
-      (
-        icon: Icons.bookmark,
-        label: 'backup.saved_verses'.tr(),
-        count: summary.versesCount,
-      ),
-    ].where((e) => e.count > 0).toList();
+    final items = _summaryItems(summary);
 
     if (items.isEmpty) return const SizedBox.shrink();
 
@@ -893,43 +898,7 @@ class _BackupSettingsContent extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final items = <({IconData icon, String label, int count})>[
-      (
-        icon: Icons.volunteer_activism,
-        label: 'backup.saved_prayers'.tr(),
-        count: summary.prayersCount,
-      ),
-      (
-        icon: Icons.sentiment_very_satisfied,
-        label: 'thanksgiving.thanksgivings'.tr(),
-        count: summary.thanksgivingsCount,
-      ),
-      (
-        icon: Icons.record_voice_over,
-        label: 'testimony.testimonies'.tr(),
-        count: summary.testimoniesCount,
-      ),
-      (
-        icon: Icons.favorite,
-        label: 'backup.favorite_devotionals'.tr(),
-        count: summary.favoritesCount,
-      ),
-      (
-        icon: Icons.church,
-        label: 'encounters.section_title'.tr(),
-        count: summary.encountersCount,
-      ),
-      (
-        icon: Icons.menu_book,
-        label: 'discovery.discovery_studies'.tr(),
-        count: summary.discoveryCount,
-      ),
-      (
-        icon: Icons.bookmark,
-        label: 'backup.saved_verses'.tr(),
-        count: summary.versesCount,
-      ),
-    ].where((e) => e.count > 0).toList();
+    final items = _summaryItems(summary);
 
     if (items.isEmpty) return const SizedBox.shrink();
 

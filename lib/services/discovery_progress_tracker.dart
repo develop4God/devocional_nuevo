@@ -8,6 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class DiscoveryProgressTracker {
   static const String _progressKeyPrefix = 'discovery_progress_';
 
+  /// Public alias — use this when referencing the prefix outside this class.
+  static const String progressKeyPrefix = _progressKeyPrefix;
+
   /// Get progress for a specific study
   Future<DiscoveryProgress> getProgress(String studyId,
       [String? languageCode]) async {
