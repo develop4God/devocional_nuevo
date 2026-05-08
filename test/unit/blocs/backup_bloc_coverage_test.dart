@@ -54,21 +54,19 @@ void main() {
       blocTest<BackupBloc, BackupState>(
         'emits BackupError when loading settings fails',
         build: () {
-          var callCount = 0;
-          when(() => mockBackupService.isAuthenticated()).thenAnswer((_) async {
-            callCount++;
-            if (callCount > 1) {
-              throw Exception('Network error');
-            }
-            return false;
-          });
+          when(() => mockBackupService.isAuthenticated())
+              .thenThrow(Exception('Network error'));
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
           );
         },
-        act: (bloc) => bloc.add(const LoadBackupSettings()),
-        skip: 2, // Skip CheckStartupBackup emissions
+        act: (bloc) async {
+          // Wait for CheckStartupBackup to complete
+          await Future<void>.delayed(const Duration(milliseconds: 200));
+          bloc.add(const LoadBackupSettings());
+        },
+        wait: const Duration(milliseconds: 300),
         expect: () => [
           const BackupLoading(),
           isA<BackupError>().having(
@@ -580,6 +578,7 @@ void main() {
         ),
         act: (bloc) => bloc.add(const RefreshBackupStatus()),
         expect: () => [
+          const BackupLoading(),
           isA<BackupLoaded>()
               .having((s) => s.estimatedSize, 'estimatedSize', 2048),
         ],
@@ -606,6 +605,7 @@ void main() {
         ),
         act: (bloc) => bloc.add(const RefreshBackupStatus()),
         expect: () => [
+          const BackupLoading(),
           isA<BackupError>().having(
             (state) => state.message,
             'message',
