@@ -32,6 +32,9 @@ class BackupContentSummary extends Equatable {
   /// Number of marked Bible verses (`backup.saved_verses`).
   final int versesCount;
 
+  /// Number of read devotional IDs (`backup.read_devotionals`).
+  final int readDevocionalesCount;
+
   const BackupContentSummary({
     required this.prayersCount,
     required this.thanksgivingsCount,
@@ -40,6 +43,7 @@ class BackupContentSummary extends Equatable {
     required this.encountersCount,
     required this.discoveryCount,
     required this.versesCount,
+    this.readDevocionalesCount = 0,
   });
 
   /// Returns `true` when every counter is zero (nothing in the backup).
@@ -50,7 +54,8 @@ class BackupContentSummary extends Equatable {
       favoritesCount == 0 &&
       encountersCount == 0 &&
       discoveryCount == 0 &&
-      versesCount == 0;
+      versesCount == 0 &&
+      readDevocionalesCount == 0;
 
   /// Total number of content items across all categories.
   int get totalItems =>
@@ -60,7 +65,8 @@ class BackupContentSummary extends Equatable {
       favoritesCount +
       encountersCount +
       discoveryCount +
-      versesCount;
+      versesCount +
+      readDevocionalesCount;
 
   @override
   List<Object?> get props => [
@@ -71,5 +77,6 @@ class BackupContentSummary extends Equatable {
         encountersCount,
         discoveryCount,
         versesCount,
+        readDevocionalesCount,
       ];
 }

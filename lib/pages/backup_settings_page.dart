@@ -55,6 +55,11 @@ List<({IconData icon, String label, int count})> _summaryItems(
         count: summary.discoveryCount,
       ),
       (
+        icon: Icons.menu_book_outlined,
+        label: 'backup.read_devotionals'.tr(),
+        count: summary.readDevocionalesCount,
+      ),
+      (
         icon: Icons.bookmark,
         label: 'backup.saved_verses'.tr(),
         count: summary.versesCount,

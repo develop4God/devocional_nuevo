@@ -219,11 +219,21 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       final versesCount =
           (prefs.getStringList('bible_marked_verses') ?? []).length;
 
+      // Read devotionals (from spiritualStats blob)
+      int readDevocionalesCount = 0;
+      final statsJson = prefs.getString('spiritual_stats');
+      if (statsJson != null) {
+        final statsMap = json.decode(statsJson) as Map<String, dynamic>?;
+        readDevocionalesCount =
+            (statsMap?['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
+      }
+
       debugPrint(
         '[BACKUP] ContentSummary — prayers:$prayersCount '
         'thanks:$thanksgivingsCount testimonies:$testimoniesCount '
         'favorites:$favoritesCount encounters:$encountersCount '
-        'discovery:$discoveryCount verses:$versesCount',
+        'discovery:$discoveryCount verses:$versesCount '
+        'readDevocionales:$readDevocionalesCount',
       );
 
       return BackupContentSummary(
@@ -234,6 +244,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         encountersCount: encountersCount,
         discoveryCount: discoveryCount,
         versesCount: versesCount,
+        readDevocionalesCount: readDevocionalesCount,
       );
     } catch (e) {
       debugPrint('[BACKUP] Error getting content summary: $e');
