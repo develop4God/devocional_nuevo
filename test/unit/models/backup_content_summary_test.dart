@@ -20,6 +20,7 @@ void main() {
         encountersCount: 4,
         discoveryCount: 1,
         versesCount: 7,
+        readDevocionalesCount: 0,
       );
 
   const BackupContentSummary empty = BackupContentSummary(
@@ -30,6 +31,7 @@ void main() {
     encountersCount: 0,
     discoveryCount: 0,
     versesCount: 0,
+    readDevocionalesCount: 0,
   );
 
   // ---------------------------------------------------------------------------
@@ -87,6 +89,7 @@ void main() {
         encountersCount: 0,
         discoveryCount: 0,
         versesCount: 0,
+        readDevocionalesCount: 0,
       );
       expect(onlyPrayers.isEmpty, isFalse);
     });
@@ -104,6 +107,7 @@ void main() {
         encountersCount: 0,
         discoveryCount: 0,
         versesCount: 1,
+        readDevocionalesCount: 0,
       );
       expect(onlyVerses.isEmpty, isFalse);
     });
@@ -129,6 +133,7 @@ void main() {
         encountersCount: 0,
         discoveryCount: 0,
         versesCount: 1,
+        readDevocionalesCount: 0,
       );
       expect(single.totalItems, equals(1));
     });
@@ -136,7 +141,7 @@ void main() {
 
   // ---------------------------------------------------------------------------
   group('BackupContentSummary — props contract (Equatable)', () {
-    test('props contains all 7 fields in declaration order', () {
+    test('props contains all 8 fields in declaration order', () {
       final s = filled();
       expect(
         s.props,
@@ -148,6 +153,7 @@ void main() {
           s.encountersCount,
           s.discoveryCount,
           s.versesCount,
+          s.readDevocionalesCount,
         ]),
       );
     });
@@ -164,6 +170,7 @@ void main() {
       expect(s.encountersCount, 4);
       expect(s.discoveryCount, 1);
       expect(s.versesCount, 7);
+      expect(s.readDevocionalesCount, 0);
     });
   });
 }
