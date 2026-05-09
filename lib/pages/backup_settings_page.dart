@@ -50,12 +50,12 @@ List<({IconData icon, String label, int count})> _summaryItems(
         count: summary.encountersCount,
       ),
       (
-        icon: Icons.auto_stories_outlined,
+        icon: Icons.school_outlined,
         label: 'discovery.discovery_studies'.tr(),
         count: summary.discoveryCount,
       ),
       (
-        icon: Icons.menu_book_outlined,
+        icon: Icons.auto_stories_outlined,
         label: 'backup.read_devotionals'.tr(),
         count: summary.readDevocionalesCount,
       ),
