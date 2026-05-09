@@ -25,7 +25,7 @@ List<({IconData icon, String label, int count})> _summaryItems(
 ) =>
     [
       (
-        icon: Icons.volunteer_activism,
+        icon: Icons.local_fire_department_outlined,
         label: 'backup.saved_prayers'.tr(),
         count: summary.prayersCount,
       ),
@@ -40,17 +40,17 @@ List<({IconData icon, String label, int count})> _summaryItems(
         count: summary.testimoniesCount,
       ),
       (
-        icon: Icons.favorite,
+        icon: Icons.star_border_outlined,
         label: 'backup.favorite_devotionals'.tr(),
         count: summary.favoritesCount,
       ),
       (
-        icon: Icons.church,
+        icon: Icons.location_history_outlined,
         label: 'encounters.section_title'.tr(),
         count: summary.encountersCount,
       ),
       (
-        icon: Icons.menu_book,
+        icon: Icons.auto_stories_outlined,
         label: 'discovery.discovery_studies'.tr(),
         count: summary.discoveryCount,
       ),
@@ -69,7 +69,7 @@ class BackupSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🏗️ [DEBUG] BackupSettingsPage build iniciado');
+    debugPrint('🏗️ [DEBUG] BackupSettingsPage build started');
 
     // If bloc is provided (e.g., in tests), use it directly
     if (bloc != null) {
