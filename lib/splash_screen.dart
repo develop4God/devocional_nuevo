@@ -46,8 +46,7 @@ class _SplashScreenState extends State<SplashScreen>
       return _Particle(
         x: rnd.nextDouble() * particleAreaWidth,
         y: rnd.nextDouble() * particleAreaHeight,
-        size:
-            particleMinSize +
+        size: particleMinSize +
             rnd.nextDouble() * (particleMaxSize - particleMinSize),
         speed: 0.4 + rnd.nextDouble() * 0.8,
         opacity: 0.5 + rnd.nextDouble() * 0.5,
