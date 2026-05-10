@@ -558,9 +558,9 @@ class _AppInitializerState extends State<AppInitializer> {
     );
   }
 
-  void _handleStartupTimeout(Stopwatch stopwatch) {
+  List<dynamic> _handleStartupTimeout(Stopwatch stopwatch) {
     developer.log(
-      '⚠️ Startup timeout after ${stopwatch.elapsedMilliseconds}ms',
+      'Startup timeout after ${stopwatch.elapsedMilliseconds}ms',
       name: 'AppInitializer',
     );
     FirebaseCrashlytics.instance.recordError(
@@ -570,6 +570,7 @@ class _AppInitializerState extends State<AppInitializer> {
       reason: 'App startup exceeded ${_kAppStartupTimeout.inSeconds}s',
     );
     // Proceed — navigate with whatever state is ready
+    return [];
   }
 
   Future<void> _initCriticalServices() async {
