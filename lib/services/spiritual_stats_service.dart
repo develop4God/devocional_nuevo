@@ -60,9 +60,8 @@ class SpiritualStatsService implements ISpiritualStatsService {
 
       final updatedStats = stats.copyWith(
         currentStreak: newStreak,
-        longestStreak: newStreak > stats.longestStreak
-            ? newStreak
-            : stats.longestStreak,
+        longestStreak:
+            newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
         lastActivityDate: today,
       );
 
@@ -133,7 +132,7 @@ class SpiritualStatsService implements ISpiritualStatsService {
 
     final bool meetsReadingCriteria =
         (readingTimeSeconds >= 40 && scrollPercentage >= 0.6) ||
-        (listenedPercentage >= 0.6);
+            (listenedPercentage >= 0.6);
 
     debugPrint(
       '🎯 [STATS] Criterios: tiempo=$readingTimeSeconds, scroll=$scrollPercentage, escuchado=$listenedPercentage, cumple=$meetsReadingCriteria',
@@ -194,9 +193,8 @@ class SpiritualStatsService implements ISpiritualStatsService {
     final updatedStats = stats.copyWith(
       totalDevocionalesRead: stats.totalDevocionalesRead + 1,
       currentStreak: newStreak,
-      longestStreak: newStreak > stats.longestStreak
-          ? newStreak
-          : stats.longestStreak,
+      longestStreak:
+          newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
       lastActivityDate: today,
       favoritesCount: favoritesCount ?? stats.favoritesCount,
       readDevocionalIds: newReadDevocionalIds,
@@ -261,9 +259,8 @@ class SpiritualStatsService implements ISpiritualStatsService {
 
     final stats = await getStats();
     final existing = Set<String>.from(stats.readDevocionalIds);
-    final toAdd = ids
-        .where((id) => id.isNotEmpty && !existing.contains(id))
-        .toList();
+    final toAdd =
+        ids.where((id) => id.isNotEmpty && !existing.contains(id)).toList();
 
     if (toAdd.isEmpty) {
       debugPrint(
@@ -404,9 +401,8 @@ class SpiritualStatsService implements ISpiritualStatsService {
 
   Future<void> _restoreReadDates(List<String> dateStrings) async {
     try {
-      final dates = dateStrings
-          .map((dateString) => DateTime.parse(dateString))
-          .toList();
+      final dates =
+          dateStrings.map((dateString) => DateTime.parse(dateString)).toList();
       await _saveReadDates(dates);
     } catch (e) {
       debugPrint('Error restoring read dates: $e');
@@ -512,9 +508,8 @@ class SpiritualStatsService implements ISpiritualStatsService {
 
   Future<void> _saveReadDates(List<DateTime> dates) async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String> dateStrings = dates
-        .map((date) => date.toIso8601String().split('T').first)
-        .toList();
+    final List<String> dateStrings =
+        dates.map((date) => date.toIso8601String().split('T').first).toList();
     await prefs.setStringList(_readDatesKey, dateStrings);
   }
 
