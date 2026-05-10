@@ -965,8 +965,10 @@ class _PrayersPageState extends State<PrayersPage>
                     onSelected: (value) {
                       switch (value) {
                         case 'edit':
-                          AddThanksgivingModal.show(context,
-                              thanksgivingToEdit: thanksgiving);
+                          AddThanksgivingModal.show(
+                            context,
+                            thanksgivingToEdit: thanksgiving,
+                          );
                           break;
                         case 'delete':
                           _showDeleteThanksgivingConfirmation(
@@ -1090,10 +1092,7 @@ class _PrayersPageState extends State<PrayersPage>
     );
   }
 
-  Widget _buildTestimoniesTab(
-    BuildContext context,
-    TestimonyLoaded state,
-  ) {
+  Widget _buildTestimoniesTab(BuildContext context, TestimonyLoaded state) {
     final testimonies = state.testimonies;
 
     if (testimonies.isEmpty) {
@@ -1120,10 +1119,7 @@ class _PrayersPageState extends State<PrayersPage>
     );
   }
 
-  Widget _buildTestimonyCard(
-    BuildContext context,
-    Testimony testimony,
-  ) {
+  Widget _buildTestimonyCard(BuildContext context, Testimony testimony) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -1176,14 +1172,13 @@ class _PrayersPageState extends State<PrayersPage>
                     onSelected: (value) {
                       switch (value) {
                         case 'edit':
-                          AddTestimonyModal.show(context,
-                              testimonyToEdit: testimony);
+                          AddTestimonyModal.show(
+                            context,
+                            testimonyToEdit: testimony,
+                          );
                           break;
                         case 'delete':
-                          _showDeleteTestimonyConfirmation(
-                            context,
-                            testimony,
-                          );
+                          _showDeleteTestimonyConfirmation(context, testimony);
                           break;
                       }
                     },
@@ -1289,9 +1284,7 @@ class _PrayersPageState extends State<PrayersPage>
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              context.read<TestimonyBloc>().add(
-                    DeleteTestimony(testimony.id),
-                  );
+              context.read<TestimonyBloc>().add(DeleteTestimony(testimony.id));
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text('app.delete'.tr()),

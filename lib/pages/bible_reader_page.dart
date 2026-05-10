@@ -521,8 +521,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     if (ttsText.isNotEmpty) {
       // Normalize through BibleTextFormatter for proper book name pronunciation
       final version = state.selectedVersion?.name ?? '';
-      final normalized =
-          BibleTextFormatter.normalizeTtsText(ttsText, languageCode, version);
+      final normalized = BibleTextFormatter.normalizeTtsText(
+        ttsText,
+        languageCode,
+        version,
+      );
       _ttsAudioController.setText(normalized, languageCode: languageCode);
       debugPrint(
         '[BibleReader TTS] Texto configurado: ${normalized.length} caracteres, idioma: $languageCode',
@@ -548,7 +551,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     if (!hasSaved) {
       debugPrint(
-          '[BibleReader TTS] Mostrando diálogo de configuración de voz...');
+        '[BibleReader TTS] Mostrando diálogo de configuración de voz...',
+      );
       await showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
@@ -565,12 +569,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
               onConfigure: () async {
                 Navigator.of(ctx).pop();
                 if (!mounted) return;
-                await _showBibleVoiceSelector(context, languageCode,
-                    BibleReaderTtsTextBuilder.build(state));
+                await _showBibleVoiceSelector(
+                  context,
+                  languageCode,
+                  BibleReaderTtsTextBuilder.build(state),
+                );
               },
               onContinue: () async {
                 debugPrint(
-                    '[BibleReader TTS] Usuario continuó sin configurar voz');
+                  '[BibleReader TTS] Usuario continuó sin configurar voz',
+                );
                 Navigator.of(ctx).pop();
                 await voiceService.setUserSavedVoice(languageCode);
                 if (ttsState != TtsPlayerState.loading) {
@@ -578,12 +586,14 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                   if (ttsState == TtsPlayerState.idle ||
                       ttsState == TtsPlayerState.completed) {
                     debugPrint(
-                        '[BibleReader TTS] Configurando texto para primera reproducción');
+                      '[BibleReader TTS] Configurando texto para primera reproducción',
+                    );
                     _updateTtsText(state);
                   } else if (ttsState == TtsPlayerState.paused) {
                     // Don't reset text when resuming from pause
                     debugPrint(
-                        '[BibleReader TTS] Reanudando desde pausa (sin reset)');
+                      '[BibleReader TTS] Reanudando desde pausa (sin reset)',
+                    );
                   }
                   _ttsAudioController.play();
                 }
@@ -604,7 +614,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     } else if (ttsState != TtsPlayerState.loading) {
       if (ttsState == TtsPlayerState.completed) {
         debugPrint(
-            '[BibleReader TTS] 🔄 Completed, reseteando antes de play()');
+          '[BibleReader TTS] 🔄 Completed, reseteando antes de play()',
+        );
         await _ttsAudioController.stop();
         // Only set text when completed (will be starting fresh from beginning)
         debugPrint('[BibleReader TTS] Reseteando texto después de completion');
@@ -614,7 +625,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         // setText() resets accumulatedPosition to zero, causing skip to next chunk.
         // Just resume from current position using play() alone.
         debugPrint(
-            '[BibleReader TTS] ⏸️→▶️ Reanudando desde posición guardada (sin reset de texto)');
+          '[BibleReader TTS] ⏸️→▶️ Reanudando desde posición guardada (sin reset de texto)',
+        );
       } else if (ttsState == TtsPlayerState.idle) {
         // First time playing (idle state)
         debugPrint('[BibleReader TTS] 🚀 Primer play, configurando texto');
@@ -677,9 +689,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           _ttsAudioController.flutterTts,
           language,
         );
-        debugPrint(
-          '[BibleReader TTS] Voice re-applied after selector closed',
-        );
+        debugPrint('[BibleReader TTS] Voice re-applied after selector closed');
       } catch (e) {
         debugPrint(
           '[BibleReader TTS] applyVoiceToInstance after selector failed: $e',
@@ -762,10 +772,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       Text(
                         _versionLabel(state.selectedVersion!),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimary
-                                  .withValues(alpha: 0.85),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimary.withValues(alpha: 0.85),
                               fontSize: 13,
                               fontWeight: FontWeight.w400,
                             ),
@@ -802,9 +811,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       ),
                       tooltip: 'bible.select_version'.tr(),
                       onSelected: (version) async {
-                        final scaffoldMessenger = ScaffoldMessenger.of(
-                          context,
-                        );
+                        final scaffoldMessenger = ScaffoldMessenger.of(context);
                         final colorScheme = Theme.of(context).colorScheme;
                         await _controller.switchVersion(version);
                         if (!mounted) return;
@@ -814,17 +821,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                               'bible.loading_version'.tr({
                                 'version': version.name,
                               }),
-                              style: TextStyle(
-                                color: colorScheme.onSecondary,
-                              ),
+                              style: TextStyle(color: colorScheme.onSecondary),
                             ),
                             backgroundColor: colorScheme.secondary,
                             duration: const Duration(seconds: 1),
                           ),
                         );
                       },
-                      itemBuilder: (context) =>
-                          state.availableVersions.map((version) {
+                      itemBuilder: (context) => state.availableVersions.map((
+                        version,
+                      ) {
                         return PopupMenuItem<BibleVersion>(
                           value: version,
                           child: Row(
@@ -833,9 +839,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   state.selectedVersion?.dbFileName)
                                 Icon(
                                   Icons.check,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary,
+                                  color: Theme.of(context).colorScheme.primary,
                                   size: 20,
                                 )
                               else
@@ -1065,8 +1069,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
                                   // Get section titles for this verse
                                   final titlesForVerse = state.sectionTitles
-                                      .where((title) =>
-                                          title['verse'] == verseNumber)
+                                      .where(
+                                        (title) =>
+                                            title['verse'] == verseNumber,
+                                      )
                                       .toList();
 
                                   return Column(
@@ -1074,22 +1080,24 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       // Display section titles if any
-                                      ...titlesForVerse.map((title) => Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 16,
-                                              bottom: 8,
-                                            ),
-                                            child: Text(
-                                              title['title'] as String,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleMedium
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: colorScheme.primary,
-                                                  ),
-                                            ),
-                                          )),
+                                      ...titlesForVerse.map(
+                                        (title) => Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 16,
+                                            bottom: 8,
+                                          ),
+                                          child: Text(
+                                            title['title'] as String,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: colorScheme.primary,
+                                                ),
+                                          ),
+                                        ),
+                                      ),
                                       // Verse content
                                       GestureDetector(
                                         onTap: () => _onVerseTap(verseNumber),
@@ -1207,8 +1215,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             // Botón de capítulo expandido para tablets y pantallas grandes
                             Expanded(
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                ),
                                 child: SizedBox(
                                   height: 44,
                                   child: ElevatedButton(

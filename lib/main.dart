@@ -203,10 +203,8 @@ void main() async {
             create: (context) => DiscoveryBloc(
               repository: getService<DiscoveryRepository>(),
               progressTracker: getService<DiscoveryProgressTracker>(),
-              favoritesService:
-                  getService<
-                    DiscoveryFavoritesService
-                  >(), // ✅ FIXED: Injected service
+              favoritesService: getService<
+                  DiscoveryFavoritesService>(), // ✅ FIXED: Injected service
             ),
           ),
         if (Constants.enableEncountersFeature)
@@ -535,7 +533,7 @@ class _AppInitializerState extends State<AppInitializer> {
         _kAppStartupTimeout,
         onTimeout: () => _handleStartupTimeout(stopwatch),
       );
-    } catch (e, stack) {
+    } catch (e) {
       developer.log(
         'Startup error after ${stopwatch.elapsedMilliseconds}ms: $e',
         name: 'AppInitializer',

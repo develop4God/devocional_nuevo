@@ -56,84 +56,102 @@ void main() {
   });
   group('Critical Integration Tests', () {
     testWidgets(
-        'Switching to Bible Studies tab triggers LoadDiscoveryStudies and prevents infinite spinner',
-        (WidgetTester tester) async {
-      await tester.runAsync(() async {
-        // This is the CRITICAL integration test that validates:
-        // 1. Tab switching works correctly
-        // 2. DiscoveryBloc lazy loads only when needed
-        // 3. No infinite spinner bug (the original bug this test was created for)
-        //
-        // Other scenarios (empty state, error state, initial loading) are covered
-        // by fast unit tests in test/unit/blocs/discovery_bloc_state_transitions_test.dart
-        testBase.mockEmptyIndexFetch();
-        final discoveryBloc = DiscoveryBloc(
-          repository: testBase.mockRepository,
-          progressTracker: testBase.mockProgressTracker,
-          favoritesService: testBase.mockFavoritesService,
-        );
-        // Use a lightweight fake ThemeBloc that is already in ThemeLoaded state
-        // to avoid async initialization delays in tests.
-        final themeBloc = FakeThemeBloc();
-        // Build widget starting on Devotionals tab (index 0)
-        await tester.pumpWidget(
-          MultiProvider(
-            providers: [
-              ChangeNotifierProvider<DevocionalProvider>.value(
-                  value: mockDevocionalProvider),
-            ],
-            child: MultiBlocProvider(
+      'Switching to Bible Studies tab triggers LoadDiscoveryStudies and prevents infinite spinner',
+      (WidgetTester tester) async {
+        await tester.runAsync(() async {
+          // This is the CRITICAL integration test that validates:
+          // 1. Tab switching works correctly
+          // 2. DiscoveryBloc lazy loads only when needed
+          // 3. No infinite spinner bug (the original bug this test was created for)
+          //
+          // Other scenarios (empty state, error state, initial loading) are covered
+          // by fast unit tests in test/unit/blocs/discovery_bloc_state_transitions_test.dart
+          testBase.mockEmptyIndexFetch();
+          final discoveryBloc = DiscoveryBloc(
+            repository: testBase.mockRepository,
+            progressTracker: testBase.mockProgressTracker,
+            favoritesService: testBase.mockFavoritesService,
+          );
+          // Use a lightweight fake ThemeBloc that is already in ThemeLoaded state
+          // to avoid async initialization delays in tests.
+          final themeBloc = FakeThemeBloc();
+          // Build widget starting on Devotionals tab (index 0)
+          await tester.pumpWidget(
+            MultiProvider(
               providers: [
-                BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-                BlocProvider<ThemeBloc>.value(value: themeBloc),
+                ChangeNotifierProvider<DevocionalProvider>.value(
+                  value: mockDevocionalProvider,
+                ),
               ],
-              child: const MaterialApp(
-                home:
-                    FavoritesPage(initialIndex: 0), // Start on Devotionals tab
+              child: MultiBlocProvider(
+                providers: [
+                  BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+                  BlocProvider<ThemeBloc>.value(value: themeBloc),
+                ],
+                child: const MaterialApp(
+                  home: FavoritesPage(
+                    initialIndex: 0,
+                  ), // Start on Devotionals tab
+                ),
               ),
             ),
-          ),
-        );
-        // Wait for initial render - use pump() to avoid hanging on infinite animations
-        await tester.pump();
-        // Verify we're on Devotionals tab and DiscoveryBloc is still in Initial state
-        // This proves lazy loading - BLoC doesn't load until tab is opened
-        expect(discoveryBloc.state, isA<DiscoveryInitial>(),
-            reason: 'BLoC should not load until Discovery tab is opened');
-        // Now switch to Bible Studies tab (the critical user flow)
-        await tester.tap(find.byIcon(Icons.star_rounded));
-        // Allow multiple frames for postFrameCallback and BLoC event
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 50));
-        await tester.pump(const Duration(milliseconds: 100));
-        await tester.pump(const Duration(milliseconds: 200));
-        await tester.pump(const Duration(milliseconds: 500));
-        // Verify LoadDiscoveryStudies was triggered and bloc transitioned correctly
-        expect(discoveryBloc.state, isNot(isA<DiscoveryInitial>()),
-            reason: 'BLoC should transition from Initial after tab switch');
-        // Critical: Should not show infinite spinner
-        // Either shows empty state (CircularProgressIndicator count: 0) or loaded state
-        final spinnerCount =
-            find.byType(CircularProgressIndicator).evaluate().length;
-        expect(spinnerCount <= 1, isTrue,
+          );
+          // Wait for initial render - use pump() to avoid hanging on infinite animations
+          await tester.pump();
+          // Verify we're on Devotionals tab and DiscoveryBloc is still in Initial state
+          // This proves lazy loading - BLoC doesn't load until tab is opened
+          expect(
+            discoveryBloc.state,
+            isA<DiscoveryInitial>(),
+            reason: 'BLoC should not load until Discovery tab is opened',
+          );
+          // Now switch to Bible Studies tab (the critical user flow)
+          await tester.tap(find.byIcon(Icons.star_rounded));
+          // Allow multiple frames for postFrameCallback and BLoC event
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 50));
+          await tester.pump(const Duration(milliseconds: 100));
+          await tester.pump(const Duration(milliseconds: 200));
+          await tester.pump(const Duration(milliseconds: 500));
+          // Verify LoadDiscoveryStudies was triggered and bloc transitioned correctly
+          expect(
+            discoveryBloc.state,
+            isNot(isA<DiscoveryInitial>()),
+            reason: 'BLoC should transition from Initial after tab switch',
+          );
+          // Critical: Should not show infinite spinner
+          // Either shows empty state (CircularProgressIndicator count: 0) or loaded state
+          final spinnerCount =
+              find.byType(CircularProgressIndicator).evaluate().length;
+          expect(
+            spinnerCount <= 1,
+            isTrue,
             reason:
-                'Should not show infinite spinner - either loading or loaded/empty state');
-        await discoveryBloc.close();
-        await themeBloc.close();
-      });
-    });
+                'Should not show infinite spinner - either loading or loaded/empty state',
+          );
+          await discoveryBloc.close();
+          await themeBloc.close();
+        });
+      },
+    );
   });
 }
 
 // Test-only fake ThemeBloc that immediately provides a loaded theme state.
 class FakeThemeBloc extends Fake implements ThemeBloc {
   @override
-  Stream<ThemeState> get stream => Stream.value(ThemeLoaded.withThemeData(
-      themeFamily: 'Deep Purple', brightness: Brightness.light));
+  Stream<ThemeState> get stream => Stream.value(
+        ThemeLoaded.withThemeData(
+          themeFamily: 'Deep Purple',
+          brightness: Brightness.light,
+        ),
+      );
 
   @override
   ThemeState get state => ThemeLoaded.withThemeData(
-      themeFamily: 'Deep Purple', brightness: Brightness.light);
+        themeFamily: 'Deep Purple',
+        brightness: Brightness.light,
+      );
 
   @override
   void add(event) {}

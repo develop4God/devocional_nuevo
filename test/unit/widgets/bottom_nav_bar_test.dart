@@ -88,10 +88,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check for prayers icon
-      expect(
-        find.byIcon(Icons.local_fire_department_outlined),
-        findsOneWidget,
-      );
+      expect(find.byIcon(Icons.local_fire_department_outlined), findsOneWidget);
 
       // Check for bible icon
       expect(find.byIcon(Icons.auto_stories_outlined), findsOneWidget);
@@ -110,8 +107,9 @@ void main() {
       expect(find.byType(BottomAppBar), findsOneWidget);
     });
 
-    testWidgets('has prayers icon button with correct key',
-        (WidgetTester tester) async {
+    testWidgets('has prayers icon button with correct key', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -121,19 +119,18 @@ void main() {
       );
     });
 
-    testWidgets('has bible icon button with correct key',
-        (WidgetTester tester) async {
+    testWidgets('has bible icon button with correct key', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      expect(
-        find.byKey(const Key('bottom_appbar_bible_icon')),
-        findsOneWidget,
-      );
+      expect(find.byKey(const Key('bottom_appbar_bible_icon')), findsOneWidget);
     });
 
-    testWidgets('has progress icon button with correct key',
-        (WidgetTester tester) async {
+    testWidgets('has progress icon button with correct key', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -143,8 +140,9 @@ void main() {
       );
     });
 
-    testWidgets('has settings icon button with correct key',
-        (WidgetTester tester) async {
+    testWidgets('has settings icon button with correct key', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -154,8 +152,9 @@ void main() {
       );
     });
 
-    testWidgets('invokes onPrayers callback when prayers icon tapped',
-        (WidgetTester tester) async {
+    testWidgets('invokes onPrayers callback when prayers icon tapped', (
+      WidgetTester tester,
+    ) async {
       bool callbackInvoked = false;
 
       await tester.pumpWidget(
@@ -173,8 +172,9 @@ void main() {
       expect(callbackInvoked, isTrue);
     });
 
-    testWidgets('handles null callbacks gracefully',
-        (WidgetTester tester) async {
+    testWidgets('handles null callbacks gracefully', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -182,8 +182,9 @@ void main() {
       expect(find.byType(DiscoveryBottomNavBar), findsOneWidget);
     });
 
-    testWidgets('displays custom TTS player widget when provided',
-        (WidgetTester tester) async {
+    testWidgets('displays custom TTS player widget when provided', (
+      WidgetTester tester,
+    ) async {
       const testWidget = Icon(Icons.play_circle, key: Key('tts_player'));
 
       await tester.pumpWidget(
@@ -194,8 +195,9 @@ void main() {
       expect(find.byKey(const Key('tts_player')), findsOneWidget);
     });
 
-    testWidgets('shows default SizedBox when TTS player not provided',
-        (WidgetTester tester) async {
+    testWidgets('shows default SizedBox when TTS player not provided', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -203,8 +205,9 @@ void main() {
       expect(find.byType(DiscoveryBottomNavBar), findsOneWidget);
     });
 
-    testWidgets('all navigation buttons are tappable',
-        (WidgetTester tester) async {
+    testWidgets('all navigation buttons are tappable', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         createWidgetUnderTest(
           onPrayers: () {},
@@ -249,8 +252,9 @@ void main() {
       expect(find.byType(DiscoveryBottomNavBar), findsOneWidget);
     });
 
-    testWidgets('handles rapid taps without errors',
-        (WidgetTester tester) async {
+    testWidgets('handles rapid taps without errors', (
+      WidgetTester tester,
+    ) async {
       int tapCount = 0;
 
       await tester.pumpWidget(

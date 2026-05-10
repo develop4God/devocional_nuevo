@@ -343,10 +343,7 @@ void main() {
 
     // SCENARIO 25: User can share progress
     test('user can share their progress', () {
-      final stats = {
-        'streak': 10,
-        'completed': 50,
-      };
+      final stats = {'streak': 10, 'completed': 50};
 
       String generateShareText() {
         return 'I\'ve completed ${stats['completed']} devotionals with a ${stats['streak']}-day streak!';

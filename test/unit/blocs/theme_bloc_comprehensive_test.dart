@@ -32,16 +32,18 @@ void main() {
         newBloc.close();
       });
 
-      test('User loads theme settings for first time - defaults applied',
-          () async {
-        bloc.add(LoadTheme());
-        await Future.delayed(const Duration(milliseconds: 100));
+      test(
+        'User loads theme settings for first time - defaults applied',
+        () async {
+          bloc.add(LoadTheme());
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        final state = bloc.state as ThemeLoaded;
-        expect(state.themeFamily, isNotNull);
-        expect(state.brightness, isNotNull);
-        expect(state.themeData, isNotNull);
-      });
+          final state = bloc.state as ThemeLoaded;
+          expect(state.themeFamily, isNotNull);
+          expect(state.brightness, isNotNull);
+          expect(state.themeData, isNotNull);
+        },
+      );
 
       test('User initializes theme defaults', () async {
         bloc.add(InitializeThemeDefaults());
@@ -191,8 +193,11 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         state = bloc.state as ThemeLoaded;
-        expect(state.themeFamily, equals(themeFamily),
-            reason: 'Theme family should remain unchanged');
+        expect(
+          state.themeFamily,
+          equals(themeFamily),
+          reason: 'Theme family should remain unchanged',
+        );
         expect(state.brightness, equals(Brightness.dark));
       });
     });
@@ -251,10 +256,16 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         final loadedState = bloc2.state as ThemeLoaded;
-        expect(loadedState.themeFamily, equals(savedFamily),
-            reason: 'Theme family should persist');
-        expect(loadedState.brightness, equals(savedBrightness),
-            reason: 'Brightness should persist');
+        expect(
+          loadedState.themeFamily,
+          equals(savedFamily),
+          reason: 'Theme family should persist',
+        );
+        expect(
+          loadedState.brightness,
+          equals(savedBrightness),
+          reason: 'Brightness should persist',
+        );
 
         await bloc2.close();
       });
@@ -274,8 +285,11 @@ void main() {
       test('All available theme families are valid', () {
         // Verify all registered theme families can be loaded
         for (final family in appThemeFamilies.keys) {
-          expect(appThemeFamilies[family], isNotNull,
-              reason: 'Theme family $family should have theme data');
+          expect(
+            appThemeFamilies[family],
+            isNotNull,
+            reason: 'Theme family $family should have theme data',
+          );
         }
       });
 
@@ -321,8 +335,10 @@ void main() {
         final newThemeData = state.themeData;
 
         expect(newThemeData.brightness, equals(oppositeBrightness));
-        expect(newThemeData.brightness,
-            isNot(equals(initialThemeData.brightness)));
+        expect(
+          newThemeData.brightness,
+          isNot(equals(initialThemeData.brightness)),
+        );
       });
     });
 

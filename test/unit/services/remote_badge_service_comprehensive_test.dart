@@ -47,8 +47,9 @@ void main() {
         await service.getAvailableBadges();
 
         // Force refresh
-        final freshBadges =
-            await service.getAvailableBadges(forceRefresh: true);
+        final freshBadges = await service.getAvailableBadges(
+          forceRefresh: true,
+        );
 
         expect(freshBadges, isA<List>());
       });
@@ -149,8 +150,9 @@ void main() {
         await service.getAvailableBadges();
 
         // Force refresh should fetch fresh data
-        final freshBadges =
-            await service.getAvailableBadges(forceRefresh: true);
+        final freshBadges = await service.getAvailableBadges(
+          forceRefresh: true,
+        );
 
         expect(freshBadges, isA<List>());
       });
@@ -177,10 +179,7 @@ void main() {
 
       test('Service handles rapid consecutive requests', () async {
         // Simulate user rapidly requesting badges
-        final futures = List.generate(
-          5,
-          (_) => service.getAvailableBadges(),
-        );
+        final futures = List.generate(5, (_) => service.getAvailableBadges());
 
         final results = await Future.wait(futures);
 
@@ -191,23 +190,25 @@ void main() {
         }
       });
 
-      test('Service handles concurrent requests from different sources',
-          () async {
-        // Simulate multiple parts of app requesting badges simultaneously
-        final badgesFuture = service.getAvailableBadges();
-        final badgeByIdFuture = service.getBadgeById('test_id');
-        final updatesFuture = service.hasUpdates();
+      test(
+        'Service handles concurrent requests from different sources',
+        () async {
+          // Simulate multiple parts of app requesting badges simultaneously
+          final badgesFuture = service.getAvailableBadges();
+          final badgeByIdFuture = service.getBadgeById('test_id');
+          final updatesFuture = service.hasUpdates();
 
-        final results = await Future.wait([
-          badgesFuture,
-          badgeByIdFuture,
-          updatesFuture,
-        ]);
+          final results = await Future.wait([
+            badgesFuture,
+            badgeByIdFuture,
+            updatesFuture,
+          ]);
 
-        expect(results[0], isA<List>());
-        expect(results[1], isA<Object?>());
-        expect(results[2], isA<bool>());
-      });
+          expect(results[0], isA<List>());
+          expect(results[1], isA<Object?>());
+          expect(results[2], isA<bool>());
+        },
+      );
 
       test('Service recovers from errors and continues working', () async {
         // First call might fail

@@ -148,8 +148,18 @@ void main() {
       expect(LocalizationService.supportedLocales.length, equals(10));
       expect(
         LocalizationService.supportedLocales.map((l) => l.languageCode),
-        containsAll(
-            ['en', 'es', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar', 'fil']),
+        containsAll([
+          'en',
+          'es',
+          'pt',
+          'fr',
+          'ja',
+          'zh',
+          'hi',
+          'de',
+          'ar',
+          'fil',
+        ]),
       );
     });
 

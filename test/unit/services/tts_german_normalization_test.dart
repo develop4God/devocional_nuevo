@@ -20,53 +20,40 @@ void main() {
 
     group('German Bible Book Ordinals', () {
       test('converts "1 Johannes" to "Erster Johannes"', () {
-        final result = BibleTextFormatter.formatBibleBook(
-          '1 Johannes',
-          'de',
-        );
+        final result = BibleTextFormatter.formatBibleBook('1 Johannes', 'de');
         expect(result, contains('Erster Johannes'));
       });
 
       test('converts "2 Korinther" to "Zweiter Korinther"', () {
-        final result = BibleTextFormatter.formatBibleBook(
-          '2 Korinther',
-          'de',
-        );
+        final result = BibleTextFormatter.formatBibleBook('2 Korinther', 'de');
         expect(result, contains('Zweiter Korinther'));
       });
 
       test('converts "3 Johannes" to "Dritter Johannes"', () {
-        final result = BibleTextFormatter.formatBibleBook(
-          '3 Johannes',
-          'de',
-        );
+        final result = BibleTextFormatter.formatBibleBook('3 Johannes', 'de');
         expect(result, contains('Dritter Johannes'));
       });
 
       test('handles special German characters (ä, ö, ü, ß)', () {
-        final result = BibleTextFormatter.formatBibleBook(
-          '1 Mose',
-          'de',
-        );
+        final result = BibleTextFormatter.formatBibleBook('1 Mose', 'de');
         expect(result, contains('Erster Mose'));
       });
 
       test('converts mixed case ordinals', () {
-        final result = BibleTextFormatter.formatBibleBook(
-          '1 JOHANNES',
-          'de',
-        );
+        final result = BibleTextFormatter.formatBibleBook('1 JOHANNES', 'de');
         expect(result.toLowerCase(), contains('erster johannes'));
       });
 
-      test('handles ordinals in middle of text (e.g. "The 1 Peter chapter")',
-          () {
-        final result = BibleTextFormatter.formatBibleBook(
-          'From 1 Petrus to other references',
-          'de',
-        );
-        expect(result, contains('Erster Petrus'));
-      });
+      test(
+        'handles ordinals in middle of text (e.g. "The 1 Peter chapter")',
+        () {
+          final result = BibleTextFormatter.formatBibleBook(
+            'From 1 Petrus to other references',
+            'de',
+          );
+          expect(result, contains('Erster Petrus'));
+        },
+      );
 
       test('preserves non-ordinal numbers (4, 5, etc.)', () {
         final result = BibleTextFormatter.formatBibleBook(
@@ -150,8 +137,11 @@ void main() {
         );
         expect(result, contains('Kapitel'));
         expect(result, contains('Vers'));
-        expect(result.contains('bis'), isFalse,
-            reason: 'Should not contain "bis" without verse range');
+        expect(
+          result.contains('bis'),
+          isFalse,
+          reason: 'Should not contain "bis" without verse range',
+        );
       });
 
       test('handles multiple references in text', () {
@@ -161,8 +151,11 @@ void main() {
         );
         expect(result, contains('Kapitel'));
         expect(result, contains('Vers'));
-        expect(result.split('Kapitel').length, greaterThan(2),
-            reason: 'Should have expanded multiple references');
+        expect(
+          result.split('Kapitel').length,
+          greaterThan(2),
+          reason: 'Should have expanded multiple references',
+        );
       });
     });
 
@@ -171,18 +164,20 @@ void main() {
     // ──────────────────────────────────────────────────────────────
 
     group('German TTS Full Text Normalization (Integration)', () {
-      test('normalizes complete devotional reference: "1 Johannes 3:16 LU17"',
-          () {
-        final result = BibleTextFormatter.normalizeTtsText(
-          '1 Johannes 3:16 LU17',
-          'de',
-          'LU17',
-        );
-        expect(result, contains('Erster Johannes'));
-        expect(result, contains('Kapitel'));
-        expect(result, contains('Vers'));
-        expect(result, contains('Lutherbibel zweitausendsiebzehn'));
-      });
+      test(
+        'normalizes complete devotional reference: "1 Johannes 3:16 LU17"',
+        () {
+          final result = BibleTextFormatter.normalizeTtsText(
+            '1 Johannes 3:16 LU17',
+            'de',
+            'LU17',
+          );
+          expect(result, contains('Erster Johannes'));
+          expect(result, contains('Kapitel'));
+          expect(result, contains('Vers'));
+          expect(result, contains('Lutherbibel zweitausendsiebzehn'));
+        },
+      );
 
       test('normalizes verse range: "2 Korinther 4:7-9 SCH2000"', () {
         final result = BibleTextFormatter.normalizeTtsText(
@@ -199,11 +194,7 @@ void main() {
 
       test('handles ordinal at start and reference in middle', () {
         final text = '1 Petrus discusses 3:15-16 blessings';
-        final result = BibleTextFormatter.normalizeTtsText(
-          text,
-          'de',
-          'LU17',
-        );
+        final result = BibleTextFormatter.normalizeTtsText(text, 'de', 'LU17');
         expect(result, contains('Erster Petrus'));
         expect(result, contains('Kapitel'));
         expect(result, contains('bis'));
@@ -223,14 +214,13 @@ void main() {
 
       test('normalizes multiple whitespace to single spaces', () {
         final text = '1  Johannes   3:16   LU17';
-        final result = BibleTextFormatter.normalizeTtsText(
-          text,
-          'de',
-          'LU17',
-        );
+        final result = BibleTextFormatter.normalizeTtsText(text, 'de', 'LU17');
         // Should have normalized whitespace
-        expect(result.contains('   '), isFalse,
-            reason: 'Should normalize multiple spaces');
+        expect(
+          result.contains('   '),
+          isFalse,
+          reason: 'Should normalize multiple spaces',
+        );
       });
     });
 
@@ -240,34 +230,22 @@ void main() {
 
     group('German TTS does not break other languages', () {
       test('Spanish still converts "1 Juan" to "Primera de Juan"', () {
-        final result = BibleTextFormatter.formatBibleBook(
-          '1 Juan',
-          'es',
-        );
+        final result = BibleTextFormatter.formatBibleBook('1 Juan', 'es');
         expect(result, contains('Primera de Juan'));
       });
 
       test('English still converts "1 John" to "First John"', () {
-        final result = BibleTextFormatter.formatBibleBook(
-          '1 John',
-          'en',
-        );
+        final result = BibleTextFormatter.formatBibleBook('1 John', 'en');
         expect(result, contains('First John'));
       });
 
       test('Portuguese still converts "1 Pedro" to "Primeiro Pedro"', () {
-        final result = BibleTextFormatter.formatBibleBook(
-          '1 Pedro',
-          'pt',
-        );
+        final result = BibleTextFormatter.formatBibleBook('1 Pedro', 'pt');
         expect(result, contains('Primeiro Pedro'));
       });
 
       test('French still converts "1 Jean" to "Premier Jean"', () {
-        final result = BibleTextFormatter.formatBibleBook(
-          '1 Jean',
-          'fr',
-        );
+        final result = BibleTextFormatter.formatBibleBook('1 Jean', 'fr');
         expect(result, contains('Premier Jean'));
       });
     });

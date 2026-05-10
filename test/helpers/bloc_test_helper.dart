@@ -44,10 +44,12 @@ class DiscoveryBlocTestBase {
     mockFavoritesService = MockDiscoveryFavoritesService();
 
     // Default mock behaviors
-    when(mockFavoritesService.loadFavoriteIds(any))
-        .thenAnswer((_) async => <String>{});
-    when(mockProgressTracker.getProgress(any, any))
-        .thenAnswer((invocation) async {
+    when(
+      mockFavoritesService.loadFavoriteIds(any),
+    ).thenAnswer((_) async => <String>{});
+    when(mockProgressTracker.getProgress(any, any)).thenAnswer((
+      invocation,
+    ) async {
       final studyId = invocation.positionalArguments[0] as String;
       final languageCode = invocation.positionalArguments.length > 1
           ? invocation.positionalArguments[1] as String?
@@ -57,8 +59,9 @@ class DiscoveryBlocTestBase {
 
     // Default stub for fetchDiscoveryStudy to prevent MissingStubError and type errors.
     // prefetchedIndex is an optional named param — mocktail matches it regardless.
-    when(mockRepository.fetchDiscoveryStudy(any, any))
-        .thenAnswer((invocation) async {
+    when(mockRepository.fetchDiscoveryStudy(any, any)).thenAnswer((
+      invocation,
+    ) async {
       final studyId = invocation.positionalArguments[0] as String;
       final languageCode = invocation.positionalArguments.length > 1
           ? invocation.positionalArguments[1] as String?
@@ -81,20 +84,23 @@ class DiscoveryBlocTestBase {
 
   /// Mock successful index fetch with empty studies
   void mockEmptyIndexFetch() {
-    when(mockRepository.fetchIndex(forceRefresh: anyNamed('forceRefresh')))
-        .thenAnswer((_) async => {'studies': []});
+    when(
+      mockRepository.fetchIndex(forceRefresh: anyNamed('forceRefresh')),
+    ).thenAnswer((_) async => {'studies': []});
   }
 
   /// Mock successful index fetch with studies
   void mockIndexFetchWithStudies(List<Map<String, dynamic>> studies) {
-    when(mockRepository.fetchIndex(forceRefresh: anyNamed('forceRefresh')))
-        .thenAnswer((_) async => {'studies': studies});
+    when(
+      mockRepository.fetchIndex(forceRefresh: anyNamed('forceRefresh')),
+    ).thenAnswer((_) async => {'studies': studies});
   }
 
   /// Mock index fetch failure
   void mockIndexFetchFailure(String errorMessage) {
-    when(mockRepository.fetchIndex(forceRefresh: anyNamed('forceRefresh')))
-        .thenThrow(Exception(errorMessage));
+    when(
+      mockRepository.fetchIndex(forceRefresh: anyNamed('forceRefresh')),
+    ).thenThrow(Exception(errorMessage));
   }
 
   /// Create sample study data for testing
@@ -123,8 +129,9 @@ dynamic createMockDevocionalProvider({
   String? selectedLanguage,
 }) {
   final mock = MockDevocionalProvider();
-  when(mock.favoriteDevocionales)
-      .thenReturn(favoriteDevocionales ?? <Devocional>[]);
+  when(
+    mock.favoriteDevocionales,
+  ).thenReturn(favoriteDevocionales ?? <Devocional>[]);
   when(mock.selectedLanguage).thenReturn(selectedLanguage ?? 'es');
   return mock;
 }

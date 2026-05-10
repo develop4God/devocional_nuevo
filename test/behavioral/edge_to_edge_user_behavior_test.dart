@@ -22,61 +22,94 @@ void main() {
         expect(systemUiOverlayStyle, isNotNull);
 
         // Validate status bar configuration
-        expect(systemUiOverlayStyle.statusBarColor, Colors.transparent,
-            reason:
-                'Status bar should be transparent for edge-to-edge display');
-        expect(systemUiOverlayStyle.statusBarIconBrightness, Brightness.light,
-            reason: 'Status bar icons should be light (white) for visibility');
-        expect(systemUiOverlayStyle.statusBarBrightness, Brightness.dark,
-            reason: 'iOS status bar brightness should be dark');
+        expect(
+          systemUiOverlayStyle.statusBarColor,
+          Colors.transparent,
+          reason: 'Status bar should be transparent for edge-to-edge display',
+        );
+        expect(
+          systemUiOverlayStyle.statusBarIconBrightness,
+          Brightness.light,
+          reason: 'Status bar icons should be light (white) for visibility',
+        );
+        expect(
+          systemUiOverlayStyle.statusBarBrightness,
+          Brightness.dark,
+          reason: 'iOS status bar brightness should be dark',
+        );
 
         // Validate navigation bar configuration for Android 15+
-        expect(systemUiOverlayStyle.systemNavigationBarColor,
-            const Color(0xFF424242),
-            reason:
-                'Navigation bar should be dark gray (Material grey 800) for consistent visibility');
-        expect(systemUiOverlayStyle.systemNavigationBarIconBrightness,
-            Brightness.light,
-            reason:
-                'Navigation bar icons should be light (white) for visibility on dark background');
-        expect(systemUiOverlayStyle.systemNavigationBarDividerColor,
-            Colors.transparent,
-            reason: 'Navigation bar divider should be transparent');
+        expect(
+          systemUiOverlayStyle.systemNavigationBarColor,
+          const Color(0xFF424242),
+          reason:
+              'Navigation bar should be dark gray (Material grey 800) for consistent visibility',
+        );
+        expect(
+          systemUiOverlayStyle.systemNavigationBarIconBrightness,
+          Brightness.light,
+          reason:
+              'Navigation bar icons should be light (white) for visibility on dark background',
+        );
+        expect(
+          systemUiOverlayStyle.systemNavigationBarDividerColor,
+          Colors.transparent,
+          reason: 'Navigation bar divider should be transparent',
+        );
       });
 
       test(
-          'Navigation bar color provides sufficient contrast for accessibility',
-          () {
-        // Dark gray background: #424242
-        const backgroundColor = Color(0xFF424242);
-        // White icons
-        const iconColor = Colors.white;
+        'Navigation bar color provides sufficient contrast for accessibility',
+        () {
+          // Dark gray background: #424242
+          const backgroundColor = Color(0xFF424242);
+          // White icons
+          const iconColor = Colors.white;
 
-        // Verify the colors are different (basic validation)
-        expect(backgroundColor, isNot(equals(iconColor)),
+          // Verify the colors are different (basic validation)
+          expect(
+            backgroundColor,
+            isNot(equals(iconColor)),
             reason:
-                'Navigation bar background and icons should have different colors');
+                'Navigation bar background and icons should have different colors',
+          );
 
-        // Verify dark gray is dark but not pure black
-        // RGB values for #424242 are (66, 66, 66) - all below 128 (mid-range)
-        expect(backgroundColor.r, lessThan(128),
-            reason: 'Navigation bar should be dark');
-        expect(backgroundColor.g, lessThan(128),
-            reason: 'Navigation bar should be dark');
-        expect(backgroundColor.b, lessThan(128),
-            reason: 'Navigation bar should be dark');
+          // Verify dark gray is dark but not pure black
+          // RGB values for #424242 are (66, 66, 66) - all below 128 (mid-range)
+          expect(
+            backgroundColor.r,
+            lessThan(128),
+            reason: 'Navigation bar should be dark',
+          );
+          expect(
+            backgroundColor.g,
+            lessThan(128),
+            reason: 'Navigation bar should be dark',
+          );
+          expect(
+            backgroundColor.b,
+            lessThan(128),
+            reason: 'Navigation bar should be dark',
+          );
 
-        // Verify dark gray is not too dark (provides enough contrast)
-        // RGB values should be > 0 (not pure black which is 0,0,0)
-        expect(backgroundColor.r, greaterThan(0),
-            reason: 'Navigation bar should not be pure black');
-        expect(backgroundColor.g, greaterThan(0),
-            reason: 'Navigation bar should not be pure black');
+          // Verify dark gray is not too dark (provides enough contrast)
+          // RGB values should be > 0 (not pure black which is 0,0,0)
+          expect(
+            backgroundColor.r,
+            greaterThan(0),
+            reason: 'Navigation bar should not be pure black',
+          );
+          expect(
+            backgroundColor.g,
+            greaterThan(0),
+            reason: 'Navigation bar should not be pure black',
+          );
 
-        // Note: Actual WCAG contrast ratio for #424242 on white is ~7.27:1
-        // which exceeds WCAG AA requirement of 4.5:1 for normal text
-        // This is validated in system_ui_overlay_style_test.dart
-      });
+          // Note: Actual WCAG contrast ratio for #424242 on white is ~7.27:1
+          // which exceeds WCAG AA requirement of 4.5:1 for normal text
+          // This is validated in system_ui_overlay_style_test.dart
+        },
+      );
 
       test('System UI configuration is consistent across app lifecycle', () {
         // The systemUiOverlayStyle constant should be immutable
@@ -85,34 +118,46 @@ void main() {
         // Accessing it multiple times should return the same values
         final firstAccess = systemUiOverlayStyle.systemNavigationBarColor;
         final secondAccess = systemUiOverlayStyle.systemNavigationBarColor;
-        expect(firstAccess, equals(secondAccess),
-            reason:
-                'System UI configuration should be consistent across multiple accesses');
+        expect(
+          firstAccess,
+          equals(secondAccess),
+          reason:
+              'System UI configuration should be consistent across multiple accesses',
+        );
       });
     });
 
     group('Edge-to-Edge Display Behavior', () {
       test('Status bar transparency enables content behind status bar', () {
         // When status bar is transparent, content can render behind it
-        expect(systemUiOverlayStyle.statusBarColor, Colors.transparent,
-            reason:
-                'Transparent status bar allows edge-to-edge display with content rendering behind it');
+        expect(
+          systemUiOverlayStyle.statusBarColor,
+          Colors.transparent,
+          reason:
+              'Transparent status bar allows edge-to-edge display with content rendering behind it',
+        );
       });
 
       test('Navigation bar styling supports edge-to-edge layout', () {
         // Dark gray navigation bar with white icons is a valid edge-to-edge configuration
         // This prevents the deprecated API usage that Google Play warns about
-        expect(systemUiOverlayStyle.systemNavigationBarColor, isNotNull,
-            reason: 'Navigation bar color must be set for edge-to-edge');
         expect(
-            systemUiOverlayStyle.systemNavigationBarIconBrightness, isNotNull,
-            reason:
-                'Navigation bar icon brightness must be set for edge-to-edge');
+          systemUiOverlayStyle.systemNavigationBarColor,
+          isNotNull,
+          reason: 'Navigation bar color must be set for edge-to-edge',
+        );
+        expect(
+          systemUiOverlayStyle.systemNavigationBarIconBrightness,
+          isNotNull,
+          reason: 'Navigation bar icon brightness must be set for edge-to-edge',
+        );
 
         // Verify we're using the modern approach (not deprecated APIs)
         // By having these values set, we ensure Flutter uses the correct APIs
-        expect(systemUiOverlayStyle.systemNavigationBarColor,
-            const Color(0xFF424242));
+        expect(
+          systemUiOverlayStyle.systemNavigationBarColor,
+          const Color(0xFF424242),
+        );
       });
 
       test('System UI configuration prevents deprecated API usage', () {
@@ -124,25 +169,41 @@ void main() {
         // - android.view.Window.setNavigationBarDividerColor
 
         // Verify our configuration has all required properties
-        expect(systemUiOverlayStyle.statusBarColor, isNotNull,
-            reason: 'Status bar color must be configured');
-        expect(systemUiOverlayStyle.systemNavigationBarColor, isNotNull,
-            reason: 'Navigation bar color must be configured');
-        expect(systemUiOverlayStyle.systemNavigationBarDividerColor, isNotNull,
-            reason: 'Navigation bar divider color must be configured');
+        expect(
+          systemUiOverlayStyle.statusBarColor,
+          isNotNull,
+          reason: 'Status bar color must be configured',
+        );
+        expect(
+          systemUiOverlayStyle.systemNavigationBarColor,
+          isNotNull,
+          reason: 'Navigation bar color must be configured',
+        );
+        expect(
+          systemUiOverlayStyle.systemNavigationBarDividerColor,
+          isNotNull,
+          reason: 'Navigation bar divider color must be configured',
+        );
 
         // All three deprecated API concerns are addressed by proper configuration
-        expect(systemUiOverlayStyle.statusBarColor, Colors.transparent,
-            reason:
-                'Transparent status bar with modern WindowCompat API prevents deprecated setStatusBarColor');
-        expect(systemUiOverlayStyle.systemNavigationBarColor,
-            const Color(0xFF424242),
-            reason:
-                'Configured navigation bar with modern WindowCompat API prevents deprecated setNavigationBarColor');
-        expect(systemUiOverlayStyle.systemNavigationBarDividerColor,
-            Colors.transparent,
-            reason:
-                'Configured divider with modern WindowCompat API prevents deprecated setNavigationBarDividerColor');
+        expect(
+          systemUiOverlayStyle.statusBarColor,
+          Colors.transparent,
+          reason:
+              'Transparent status bar with modern WindowCompat API prevents deprecated setStatusBarColor',
+        );
+        expect(
+          systemUiOverlayStyle.systemNavigationBarColor,
+          const Color(0xFF424242),
+          reason:
+              'Configured navigation bar with modern WindowCompat API prevents deprecated setNavigationBarColor',
+        );
+        expect(
+          systemUiOverlayStyle.systemNavigationBarDividerColor,
+          Colors.transparent,
+          reason:
+              'Configured divider with modern WindowCompat API prevents deprecated setNavigationBarDividerColor',
+        );
       });
     });
 
@@ -153,28 +214,37 @@ void main() {
         const iconBrightness = Brightness.light; // White icons
 
         expect(systemUiOverlayStyle.systemNavigationBarColor, navBarColor);
-        expect(systemUiOverlayStyle.systemNavigationBarIconBrightness,
-            iconBrightness,
-            reason:
-                'Light icons on dark background ensure navigation buttons are always visible');
+        expect(
+          systemUiOverlayStyle.systemNavigationBarIconBrightness,
+          iconBrightness,
+          reason:
+              'Light icons on dark background ensure navigation buttons are always visible',
+        );
       });
 
       test('Users can interact with content behind status bar', () {
         // Transparent status bar allows content to extend behind it
-        expect(systemUiOverlayStyle.statusBarColor, Colors.transparent,
-            reason:
-                'Transparent status bar enables edge-to-edge content display');
+        expect(
+          systemUiOverlayStyle.statusBarColor,
+          Colors.transparent,
+          reason: 'Transparent status bar enables edge-to-edge content display',
+        );
       });
 
       test('System UI styling is theme-independent', () {
         // The systemUiOverlayStyle uses hardcoded colors, not theme-dependent colors
         // This ensures consistency regardless of user's theme choice
-        expect(systemUiOverlayStyle.systemNavigationBarColor,
-            const Color(0xFF424242),
-            reason:
-                'Navigation bar uses fixed color, not theme color, for consistency');
-        expect(systemUiOverlayStyle.statusBarColor, Colors.transparent,
-            reason: 'Status bar color is fixed for all themes');
+        expect(
+          systemUiOverlayStyle.systemNavigationBarColor,
+          const Color(0xFF424242),
+          reason:
+              'Navigation bar uses fixed color, not theme color, for consistency',
+        );
+        expect(
+          systemUiOverlayStyle.statusBarColor,
+          Colors.transparent,
+          reason: 'Status bar color is fixed for all themes',
+        );
       });
     });
 
@@ -187,20 +257,30 @@ void main() {
         // 3. Setting appropriate system UI colors
 
         // Requirement 1: Proper system UI configuration (no deprecated APIs)
-        expect(systemUiOverlayStyle, isNotNull,
-            reason: 'System UI must be configured for Android 15');
+        expect(
+          systemUiOverlayStyle,
+          isNotNull,
+          reason: 'System UI must be configured for Android 15',
+        );
 
         // Requirement 2: Edge-to-edge display support
-        expect(systemUiOverlayStyle.statusBarColor, Colors.transparent,
-            reason: 'Edge-to-edge requires transparent status bar');
+        expect(
+          systemUiOverlayStyle.statusBarColor,
+          Colors.transparent,
+          reason: 'Edge-to-edge requires transparent status bar',
+        );
 
         // Requirement 3: Proper navigation bar styling
-        expect(systemUiOverlayStyle.systemNavigationBarColor,
-            const Color(0xFF424242),
-            reason: 'Navigation bar must have defined color for Android 15');
-        expect(systemUiOverlayStyle.systemNavigationBarIconBrightness,
-            Brightness.light,
-            reason: 'Navigation bar icons must have defined brightness');
+        expect(
+          systemUiOverlayStyle.systemNavigationBarColor,
+          const Color(0xFF424242),
+          reason: 'Navigation bar must have defined color for Android 15',
+        );
+        expect(
+          systemUiOverlayStyle.systemNavigationBarIconBrightness,
+          Brightness.light,
+          reason: 'Navigation bar icons must have defined brightness',
+        );
       });
 
       test('MainActivity configuration prevents Flutter deprecated API calls',
@@ -217,12 +297,18 @@ void main() {
         const expectedTargetSdk = 35; // Android 15 - target for edge-to-edge
 
         // Verify our minimum SDK supports WindowCompat
-        expect(expectedMinSdk, greaterThanOrEqualTo(21),
-            reason: 'WindowCompat requires API 21+');
+        expect(
+          expectedMinSdk,
+          greaterThanOrEqualTo(21),
+          reason: 'WindowCompat requires API 21+',
+        );
 
         // Verify we target Android 15+
-        expect(expectedTargetSdk, greaterThanOrEqualTo(35),
-            reason: 'Should target Android 15 (API 35) for edge-to-edge');
+        expect(
+          expectedTargetSdk,
+          greaterThanOrEqualTo(35),
+          reason: 'Should target Android 15 (API 35) for edge-to-edge',
+        );
       });
 
       test('Edge-to-edge works on all supported Android versions', () {
@@ -243,15 +329,20 @@ void main() {
         ];
 
         for (final version in supportedVersions) {
-          expect(version, greaterThanOrEqualTo(21),
-              reason:
-                  'All versions should be API 21+ for WindowCompat support');
+          expect(
+            version,
+            greaterThanOrEqualTo(21),
+            reason: 'All versions should be API 21+ for WindowCompat support',
+          );
         }
 
         // Verify our configuration doesn't use version-specific features
         // that would break on older devices
-        expect(systemUiOverlayStyle.statusBarColor, Colors.transparent,
-            reason: 'Transparent status bar works on all API levels');
+        expect(
+          systemUiOverlayStyle.statusBarColor,
+          Colors.transparent,
+          reason: 'Transparent status bar works on all API levels',
+        );
       });
     });
 
@@ -263,15 +354,22 @@ void main() {
 
         // Before theme switch
         expect(
-            systemUiOverlayStyle.systemNavigationBarColor, expectedNavBarColor);
+          systemUiOverlayStyle.systemNavigationBarColor,
+          expectedNavBarColor,
+        );
         expect(systemUiOverlayStyle.statusBarColor, expectedStatusBarColor);
 
         // After theme switch (same configuration)
         expect(
-            systemUiOverlayStyle.systemNavigationBarColor, expectedNavBarColor,
-            reason: 'Navigation bar color should not change with app theme');
-        expect(systemUiOverlayStyle.statusBarColor, expectedStatusBarColor,
-            reason: 'Status bar color should not change with app theme');
+          systemUiOverlayStyle.systemNavigationBarColor,
+          expectedNavBarColor,
+          reason: 'Navigation bar color should not change with app theme',
+        );
+        expect(
+          systemUiOverlayStyle.statusBarColor,
+          expectedStatusBarColor,
+          reason: 'Status bar color should not change with app theme',
+        );
       });
 
       test('User navigates between different pages in the app', () {
@@ -282,12 +380,16 @@ void main() {
         // The systemUiOverlayStyle is applied globally in main.dart
         // and wrapped with AnnotatedRegion, so it persists across navigation
         expect(
-            systemUiOverlayStyle.systemNavigationBarColor, expectedNavBarColor,
-            reason:
-                'Navigation bar should be consistent on all pages for good UX');
-        expect(systemUiOverlayStyle.systemNavigationBarIconBrightness,
-            expectedIconBrightness,
-            reason: 'Navigation icons should be consistent on all pages');
+          systemUiOverlayStyle.systemNavigationBarColor,
+          expectedNavBarColor,
+          reason:
+              'Navigation bar should be consistent on all pages for good UX',
+        );
+        expect(
+          systemUiOverlayStyle.systemNavigationBarIconBrightness,
+          expectedIconBrightness,
+          reason: 'Navigation icons should be consistent on all pages',
+        );
       });
 
       test('User rotates device (portrait to landscape)', () {
@@ -297,17 +399,23 @@ void main() {
 
         // Portrait orientation
         expect(
-            systemUiOverlayStyle.systemNavigationBarColor, expectedNavBarColor);
+          systemUiOverlayStyle.systemNavigationBarColor,
+          expectedNavBarColor,
+        );
         expect(systemUiOverlayStyle.statusBarColor, expectedStatusBarColor);
 
         // Landscape orientation (same configuration)
         expect(
-            systemUiOverlayStyle.systemNavigationBarColor, expectedNavBarColor,
-            reason:
-                'Navigation bar color should persist through orientation changes');
-        expect(systemUiOverlayStyle.statusBarColor, expectedStatusBarColor,
-            reason:
-                'Status bar color should persist through orientation changes');
+          systemUiOverlayStyle.systemNavigationBarColor,
+          expectedNavBarColor,
+          reason:
+              'Navigation bar color should persist through orientation changes',
+        );
+        expect(
+          systemUiOverlayStyle.statusBarColor,
+          expectedStatusBarColor,
+          reason: 'Status bar color should persist through orientation changes',
+        );
       });
     });
   });

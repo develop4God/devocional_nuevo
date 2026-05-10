@@ -80,7 +80,8 @@ class ServiceLocator {
       return _factories[T]!() as T;
     }
     throw StateError(
-        'Service ${T.toString()} not registered. Did you forget to call setupServiceLocator() in main()?');
+      'Service ${T.toString()} not registered. Did you forget to call setupServiceLocator() in main()?',
+    );
   }
 
   bool isRegistered<T>() =>
@@ -105,24 +106,27 @@ Future<void> setupServiceLocator() async {
 
   locator.registerLazySingleton<IAuthService>(() => FirebaseAuthService());
 
-  locator
-      .registerLazySingleton<LocalizationService>(() => LocalizationService());
+  locator.registerLazySingleton<LocalizationService>(
+    () => LocalizationService(),
+  );
   locator.registerSingleton<ILocalizationService>(
-      locator.get<LocalizationService>());
+    locator.get<LocalizationService>(),
+  );
   locator.registerLazySingleton<VoiceSettingsService>(
-      () => VoiceSettingsService());
+    () => VoiceSettingsService(),
+  );
   locator.registerLazySingleton<TtsChunkProcessor>(() => TtsChunkProcessor());
   locator.registerLazySingleton<ITtsService>(() => TtsService());
   locator.registerLazySingleton<IAnalyticsService>(() => AnalyticsService());
-  locator
-      .registerLazySingleton<NotificationService>(NotificationService.create);
-  locator
-      .registerLazySingleton<RemoteConfigService>(RemoteConfigService.create);
+  locator.registerLazySingleton<NotificationService>(
+    NotificationService.create,
+  );
+  locator.registerLazySingleton<RemoteConfigService>(
+    RemoteConfigService.create,
+  );
   locator.registerLazySingleton<http.Client>(() => http.Client());
 
-  locator.registerLazySingleton<BaseCacheManager>(
-    () => DefaultCacheManager(),
-  );
+  locator.registerLazySingleton<BaseCacheManager>(() => DefaultCacheManager());
 
   locator.registerLazySingleton<DiscoveryRepository>(
     () => DiscoveryRepository(httpClient: locator.get<http.Client>()),
@@ -137,26 +141,31 @@ Future<void> setupServiceLocator() async {
   );
 
   locator.registerLazySingleton<DiscoveryProgressTracker>(
-      () => DiscoveryProgressTracker());
+    () => DiscoveryProgressTracker(),
+  );
 
   // ✅ REGISTER DISCOVERY FAVORITES SERVICE
   locator.registerLazySingleton<DiscoveryFavoritesService>(
-      () => DiscoveryFavoritesService());
+    () => DiscoveryFavoritesService(),
+  );
 
   // ✅ REGISTER IAP SERVICE
   locator.registerLazySingleton<IIapService>(() => IapService());
 
   // ✅ REGISTER SUPPORTER PROFILE REPOSITORY (via interface — DIP)
   locator.registerLazySingleton<ISupporterProfileRepository>(
-      () => SupporterProfileRepository());
+    () => SupporterProfileRepository(),
+  );
 
   // ✅ REGISTER SPIRITUAL STATS SERVICE (via interface)
   locator.registerLazySingleton<ISpiritualStatsService>(
-      () => SpiritualStatsService());
+    () => SpiritualStatsService(),
+  );
 
   // ✅ REGISTER CONNECTIVITY SERVICE (via interface)
-  locator
-      .registerLazySingleton<IConnectivityService>(() => ConnectivityService());
+  locator.registerLazySingleton<IConnectivityService>(
+    () => ConnectivityService(),
+  );
 
   // ✅ REGISTER GOOGLE DRIVE AUTH SERVICE (via interface)
   locator.registerLazySingleton<IGoogleDriveAuthService>(
@@ -179,7 +188,8 @@ Future<void> setupServiceLocator() async {
   );
 
   locator.registerLazySingleton<SupporterPetService>(
-      () => SupporterPetService(locator.get<SharedPreferences>()));
+    () => SupporterPetService(locator.get<SharedPreferences>()),
+  );
 
   // ✅ REGISTER DEEP LINK HANDLER
   locator.registerLazySingleton<DeepLinkHandler>(() => DeepLinkHandler());
@@ -199,9 +209,7 @@ Future<void> setupServiceLocator() async {
 
   // ✅ REGISTER DEVOCIONAL REPOSITORY (via interface — DIP)
   locator.registerLazySingleton<DevocionalRepository>(
-    () => DevocionalRepositoryImpl(
-      httpClient: locator.get<http.Client>(),
-    ),
+    () => DevocionalRepositoryImpl(httpClient: locator.get<http.Client>()),
   );
 }
 

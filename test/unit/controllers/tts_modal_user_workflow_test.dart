@@ -92,8 +92,10 @@ void main() {
 
         // THEN: State transitions to loading then playing
         expect(
-          [TtsPlayerState.loading, TtsPlayerState.playing]
-              .contains(controller.state.value),
+          [
+            TtsPlayerState.loading,
+            TtsPlayerState.playing,
+          ].contains(controller.state.value),
           isTrue,
         );
         await Future.delayed(const Duration(milliseconds: 500));

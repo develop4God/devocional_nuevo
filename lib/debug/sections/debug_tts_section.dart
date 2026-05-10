@@ -55,18 +55,22 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
       final filtered = raw
           .cast<Map>()
           .where(
-              (v) => _voiceMatchesLanguage(v['locale'] as String? ?? '', lang))
-          .map((v) => {
-                'name': v['name'] as String? ?? '',
-                'locale': v['locale'] as String? ?? ''
-              })
+            (v) => _voiceMatchesLanguage(v['locale'] as String? ?? '', lang),
+          )
+          .map(
+            (v) => {
+              'name': v['name'] as String? ?? '',
+              'locale': v['locale'] as String? ?? '',
+            },
+          )
           .toList();
       setState(() {
         _explorerVoices = filtered;
         _explorerLoading = false;
       });
       debugPrint(
-          '[VoiceExplorer] Found ${filtered.length} voices for lang=$lang');
+        '[VoiceExplorer] Found ${filtered.length} voices for lang=$lang',
+      );
     }
   }
 
@@ -85,8 +89,9 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
   }
 
   void _exportToLogcat(BuildContext context) {
-    final buffer =
-        StringBuffer('[VoiceExplorer] ── EXPORT for $_explorerLang ──\n');
+    final buffer = StringBuffer(
+      '[VoiceExplorer] ── EXPORT for $_explorerLang ──\n',
+    );
     for (final v in _explorerVoices) {
       final name = v['name'] as String;
       final locale = v['locale'] as String;
@@ -130,9 +135,11 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
                 setLocal(() => DebugFlags.forceFallbackForTesting = value);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(value
-                        ? '🎤 TTS Fallback enabled - voices will use fallback locales'
-                        : '🎤 TTS Fallback disabled - voices will use premium only'),
+                    content: Text(
+                      value
+                          ? '🎤 TTS Fallback enabled - voices will use fallback locales'
+                          : '🎤 TTS Fallback disabled - voices will use premium only',
+                    ),
                     duration: const Duration(seconds: 2),
                   ),
                 );
@@ -157,8 +164,10 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
                     const SizedBox(width: 8),
                     const Text(
                       '🔬 TTS Voice Explorer',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     const Spacer(),
                     TextButton(
@@ -259,9 +268,10 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
                 onPressed:
                     isPlaying ? null : () => _playSample(name, locale, i),
               ),
-              title: Text(name,
-                  style:
-                      const TextStyle(fontSize: 12, fontFamily: 'monospace')),
+              title: Text(
+                name,
+                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+              ),
               subtitle: Text(locale, style: const TextStyle(fontSize: 11)),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -307,8 +317,9 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
                   icon: const Icon(Icons.copy),
                   label: const Text('Export VoiceMetadata to logcat'),
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white),
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ],
             ),

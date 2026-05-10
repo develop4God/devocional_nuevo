@@ -15,9 +15,9 @@ class DebugBackupSection extends StatelessWidget {
         const Text('Backup', style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         ElevatedButton(
-          onPressed: () => context
-              .read<BackupBloc>()
-              .add(const CheckStartupBackup(forceBypass: true)),
+          onPressed: () => context.read<BackupBloc>().add(
+                const CheckStartupBackup(forceBypass: true),
+              ),
           child: const Text('Force auto-backup (bypass 24h)'),
         ),
       ],

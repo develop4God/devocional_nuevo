@@ -52,11 +52,10 @@ class FakeLocalizationService extends LocalizationService {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 SupporterBloc _makeBloc(
-    FakeIapService fakeIap, FakeSupporterProfileRepository fakeRepo) {
-  return SupporterBloc(
-    iapService: fakeIap,
-    profileRepository: fakeRepo,
-  );
+  FakeIapService fakeIap,
+  FakeSupporterProfileRepository fakeRepo,
+) {
+  return SupporterBloc(iapService: fakeIap, profileRepository: fakeRepo);
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -141,15 +140,17 @@ void main() {
     }
 
     testWidgets(
-        'shows PetHeroSection when showPetHeader and isPetUnlocked are true',
-        (tester) async {
-      await tester.pumpWidget(buildWidget());
-      await tester.pump();
-      expect(find.byType(PetHeroSection), findsOneWidget);
-    });
+      'shows PetHeroSection when showPetHeader and isPetUnlocked are true',
+      (tester) async {
+        await tester.pumpWidget(buildWidget());
+        await tester.pump();
+        expect(find.byType(PetHeroSection), findsOneWidget);
+      },
+    );
 
-    testWidgets('shows gold supporter name in PetHeroSection when set',
-        (tester) async {
+    testWidgets('shows gold supporter name in PetHeroSection when set', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWidget(goldName: 'Maria'));
       await tester.pump();
       expect(find.byType(PetHeroSection), findsOneWidget);
@@ -157,13 +158,14 @@ void main() {
     });
 
     testWidgets(
-        'does not show profile name in PetHeroSection when not a gold supporter',
-        (tester) async {
-      await tester.pumpWidget(buildWidget());
-      await tester.pump();
-      // No name should be shown in the header
-      expect(find.text('Maria'), findsNothing);
-    });
+      'does not show profile name in PetHeroSection when not a gold supporter',
+      (tester) async {
+        await tester.pumpWidget(buildWidget());
+        await tester.pump();
+        // No name should be shown in the header
+        expect(find.text('Maria'), findsNothing);
+      },
+    );
   });
 
   group('TierCard Pet Preview uses Lottie animations', () {
@@ -188,12 +190,15 @@ void main() {
       await tester.pump();
       // Pet preview text should be visible
       expect(find.textContaining('SUPPORTER.EXCLUSIVE_GIFT'), findsOneWidget);
-      expect(find.textContaining('supporter.pet_preview_description'),
-          findsOneWidget);
+      expect(
+        find.textContaining('supporter.pet_preview_description'),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('gold tier card purchase button uses AutoSizeText',
-        (tester) async {
+    testWidgets('gold tier card purchase button uses AutoSizeText', (
+      tester,
+    ) async {
       final goldTier = SupporterTier.fromLevel(SupporterTierLevel.gold);
       await tester.pumpWidget(buildTierCard(goldTier));
       await tester.pump();
@@ -255,19 +260,23 @@ void main() {
   });
 
   group('ISupporterProfileRepository goldSupporterName persistence', () {
-    test('FakeSupporterProfileRepository saves and loads goldSupporterName',
-        () async {
-      final repo = FakeSupporterProfileRepository();
-      await repo.saveProfileName('Test Name');
-      final name = await repo.loadProfileName();
-      expect(name, equals('Test Name'));
-    });
+    test(
+      'FakeSupporterProfileRepository saves and loads goldSupporterName',
+      () async {
+        final repo = FakeSupporterProfileRepository();
+        await repo.saveProfileName('Test Name');
+        final name = await repo.loadProfileName();
+        expect(name, equals('Test Name'));
+      },
+    );
 
-    test('FakeSupporterProfileRepository returns null when no name saved',
-        () async {
-      final repo = FakeSupporterProfileRepository();
-      final name = await repo.loadProfileName();
-      expect(name, isNull);
-    });
+    test(
+      'FakeSupporterProfileRepository returns null when no name saved',
+      () async {
+        final repo = FakeSupporterProfileRepository();
+        final name = await repo.loadProfileName();
+        expect(name, isNull);
+      },
+    );
   });
 }

@@ -304,10 +304,7 @@ class BibleTextFormatter {
           'SCH2000': 'Schlachter zweitausend',
         };
       case 'ja':
-        return {
-          '新改訳2003': '新改訳にせんさんねん',
-          'リビングバイブル': 'リビングバイブル',
-        };
+        return {'新改訳2003': '新改訳にせんさんねん', 'リビングバイブル': 'リビングバイブル'};
       case 'zh':
         return {'和合本1919': '和合本一九一九', '新译本': '新译本'};
       case 'hi':
@@ -321,10 +318,7 @@ class BibleTextFormatter {
           'OV': 'पुराना संस्करण',
         };
       case 'ar':
-        return {
-          'NAV': 'كتاب الحياة',
-          'SVDA': 'الكتاب المقدس — فان دايك',
-        };
+        return {'NAV': 'كتاب الحياة', 'SVDA': 'الكتاب المقدس — فان دايك'};
       case 'fil':
         return {
           'MBB05': 'Magandang Balita Biblia',

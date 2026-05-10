@@ -181,7 +181,8 @@ class DevocionalesNavigationBloc
   ) async {
     if (state is! NavigationReady && state is! NavigationInitial) return;
     debugPrint(
-        '[NAV_BLOC] 🔄 UpdateDevocionales received — state: $state, count: ${event.devocionales.length}');
+      '[NAV_BLOC] 🔄 UpdateDevocionales received — state: $state, count: ${event.devocionales.length}',
+    );
 
     if (event.devocionales.isEmpty) {
       emit(const NavigationError('No devotionals available'));

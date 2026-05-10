@@ -31,36 +31,37 @@ void main() {
     });
 
     test(
-        'German language is included in supportedLanguages and not downgraded to es',
-        () {
-      final mockHttp = MockClient((request) async {
-        return http.Response('{"data": {"de": {}}}', 200);
-      });
+      'German language is included in supportedLanguages and not downgraded to es',
+      () {
+        final mockHttp = MockClient((request) async {
+          return http.Response('{"data": {"de": {}}}', 200);
+        });
 
-      final mockIndexService = MockDevocionalIndexService();
-      final mockCacheService = MockCacheMetadataService();
-      final mockRepository = MockDevocionalRepository();
+        final mockIndexService = MockDevocionalIndexService();
+        final mockCacheService = MockCacheMetadataService();
+        final mockRepository = MockDevocionalRepository();
 
-      final provider = DevocionalProvider(
-        httpClient: mockHttp,
-        enableAudio: false,
-        devocionalIndexService: mockIndexService,
-        cacheMetadataService: mockCacheService,
-        devocionalRepository: mockRepository,
-      );
+        final provider = DevocionalProvider(
+          httpClient: mockHttp,
+          enableAudio: false,
+          devocionalIndexService: mockIndexService,
+          cacheMetadataService: mockCacheService,
+          devocionalRepository: mockRepository,
+        );
 
-      expect(
-        provider.supportedLanguages,
-        contains('de'),
-        reason: 'German must be in supportedLanguages',
-      );
+        expect(
+          provider.supportedLanguages,
+          contains('de'),
+          reason: 'German must be in supportedLanguages',
+        );
 
-      expect(
-        provider.supportedLanguages.contains('de'),
-        isTrue,
-        reason: 'German was recently added and must be present',
-      );
-    });
+        expect(
+          provider.supportedLanguages.contains('de'),
+          isTrue,
+          reason: 'German was recently added and must be present',
+        );
+      },
+    );
 
     test('German language preference can be set and retrieved', () async {
       SharedPreferences.setMockInitialValues({});
@@ -110,29 +111,31 @@ void main() {
       );
     });
 
-    test('German default version (LU17) is correctly matched from constants',
-        () {
-      final mockHttp = MockClient((request) async {
-        return http.Response('{"data": {}}', 200);
-      });
+    test(
+      'German default version (LU17) is correctly matched from constants',
+      () {
+        final mockHttp = MockClient((request) async {
+          return http.Response('{"data": {}}', 200);
+        });
 
-      final mockIndexService = MockDevocionalIndexService();
-      final mockCacheService = MockCacheMetadataService();
-      final mockRepository = MockDevocionalRepository();
+        final mockIndexService = MockDevocionalIndexService();
+        final mockCacheService = MockCacheMetadataService();
+        final mockRepository = MockDevocionalRepository();
 
-      final provider = DevocionalProvider(
-        httpClient: mockHttp,
-        enableAudio: false,
-        devocionalIndexService: mockIndexService,
-        cacheMetadataService: mockCacheService,
-        devocionalRepository: mockRepository,
-      );
+        final provider = DevocionalProvider(
+          httpClient: mockHttp,
+          enableAudio: false,
+          devocionalIndexService: mockIndexService,
+          cacheMetadataService: mockCacheService,
+          devocionalRepository: mockRepository,
+        );
 
-      // Get available versions for German
-      final germanVersions = provider.getVersionsForLanguage('de');
-      expect(germanVersions, isNotEmpty);
-      expect(germanVersions, contains('LU17'));
-      expect(germanVersions, contains('SCH2000'));
-    });
+        // Get available versions for German
+        final germanVersions = provider.getVersionsForLanguage('de');
+        expect(germanVersions, isNotEmpty);
+        expect(germanVersions, contains('LU17'));
+        expect(germanVersions, contains('SCH2000'));
+      },
+    );
   });
 }

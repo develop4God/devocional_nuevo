@@ -50,17 +50,24 @@ class _FakeDevocionalRepository implements DevocionalRepository {
 
   @override
   int findFirstUnreadDevocionalIndex(
-          List<Devocional> devocionales, List<String> readDevocionalIds) =>
+    List<Devocional> devocionales,
+    List<String> readDevocionalIds,
+  ) =>
       0;
 
   @override
   Future<List<Devocional>> fetchAll(
-          int year, String language, String version) async =>
+    int year,
+    String language,
+    String version,
+  ) async =>
       [];
 
   @override
   List<Devocional> filterByVersion(
-          List<Devocional> devocionales, String version) =>
+    List<Devocional> devocionales,
+    String version,
+  ) =>
       devocionales;
 
   @override
@@ -69,7 +76,10 @@ class _FakeDevocionalRepository implements DevocionalRepository {
 
   @override
   Future<bool> downloadAndStoreDevocionales(
-          int year, String language, String version) async =>
+    int year,
+    String language,
+    String version,
+  ) async =>
       true;
 
   @override
@@ -80,7 +90,9 @@ class _FakeDevocionalRepository implements DevocionalRepository {
 
   @override
   Future<bool> downloadCurrentYearDevocionales(
-          String language, String version) async =>
+    String language,
+    String version,
+  ) async =>
       true;
 
   @override
@@ -128,11 +140,17 @@ void main() {
 
         final result = await provider.hasTargetYearsLocalData();
 
-        expect(result, isFalse,
-            reason:
-                'Provider must return false when repository reports no local data');
-        expect(fakeRepo.hasTargetYearsCallCount, 1,
-            reason: 'Provider must delegate to the repository exactly once');
+        expect(
+          result,
+          isFalse,
+          reason:
+              'Provider must return false when repository reports no local data',
+        );
+        expect(
+          fakeRepo.hasTargetYearsCallCount,
+          1,
+          reason: 'Provider must delegate to the repository exactly once',
+        );
       },
     );
 
@@ -144,9 +162,12 @@ void main() {
 
         final result = await provider.hasTargetYearsLocalData();
 
-        expect(result, isTrue,
-            reason:
-                'Provider must return true when repository reports local data present');
+        expect(
+          result,
+          isTrue,
+          reason:
+              'Provider must return true when repository reports local data present',
+        );
       },
     );
 
@@ -198,9 +219,12 @@ void main() {
         fakeRepo.setLocalData(true);
 
         // State 2: local data present
-        expect(await provider.hasTargetYearsLocalData(), isTrue,
-            reason:
-                'Provider must reflect repository state change after download');
+        expect(
+          await provider.hasTargetYearsLocalData(),
+          isTrue,
+          reason:
+              'Provider must reflect repository state change after download',
+        );
       },
     );
 
@@ -213,10 +237,13 @@ void main() {
         await provider.hasTargetYearsLocalData();
         await provider.hasTargetYearsLocalData();
 
-        expect(fakeRepo.hasTargetYearsCallCount, 2,
-            reason: 'Provider must not cache the result — it should delegate '
-                'to the repository on every call so UI always reflects '
-                'current disk state');
+        expect(
+          fakeRepo.hasTargetYearsCallCount,
+          2,
+          reason: 'Provider must not cache the result — it should delegate '
+              'to the repository on every call so UI always reflects '
+              'current disk state',
+        );
       },
     );
   });

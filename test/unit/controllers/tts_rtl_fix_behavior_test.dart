@@ -174,21 +174,23 @@ void main() {
     tearDown(() => controller.dispose());
 
     // ── Scenario: normal first play — state reaches playing ─────────────────
-    test('Normal first play: state transitions idle → loading → playing',
-        () async {
-      controller.setText('Texto de prueba para reproducción inicial.');
+    test(
+      'Normal first play: state transitions idle → loading → playing',
+      () async {
+        controller.setText('Texto de prueba para reproducción inicial.');
 
-      expect(controller.state.value, TtsPlayerState.idle);
+        expect(controller.state.value, TtsPlayerState.idle);
 
-      final playFuture = controller.play();
-      // Right after calling play() the state should be loading before the
-      // internal awaits resolve.  Let one microtask tick so play() starts.
-      await Future.microtask(() {});
-      expect(controller.state.value, TtsPlayerState.loading);
+        final playFuture = controller.play();
+        // Right after calling play() the state should be loading before the
+        // internal awaits resolve.  Let one microtask tick so play() starts.
+        await Future.microtask(() {});
+        expect(controller.state.value, TtsPlayerState.loading);
 
-      await playFuture;
-      expect(controller.state.value, TtsPlayerState.playing);
-    });
+        await playFuture;
+        expect(controller.state.value, TtsPlayerState.playing);
+      },
+    );
 
     // ── Scenario: cancel arrives DURING guard — must be suppressed ───────────
     test(
@@ -230,22 +232,23 @@ void main() {
 
     // ── Scenario: cancel that arrives OUTSIDE the guard still takes effect ───
     test(
-        'Cancel arriving outside _isPreparingToSpeak guard resets state to idle',
-        () async {
-      controller.setText('Texto corto.');
-      await controller.play();
-      expect(controller.state.value, TtsPlayerState.playing);
+      'Cancel arriving outside _isPreparingToSpeak guard resets state to idle',
+      () async {
+        controller.setText('Texto corto.');
+        await controller.play();
+        expect(controller.state.value, TtsPlayerState.playing);
 
-      // Guard is no longer active — a cancel should reset state to idle.
-      mockTts.simulateDeferredCancel();
-      await Future.microtask(() {});
+        // Guard is no longer active — a cancel should reset state to idle.
+        mockTts.simulateDeferredCancel();
+        await Future.microtask(() {});
 
-      expect(
-        controller.state.value,
-        TtsPlayerState.idle,
-        reason: 'Cancel outside guard window must reset state to idle',
-      );
-    });
+        expect(
+          controller.state.value,
+          TtsPlayerState.idle,
+          reason: 'Cancel outside guard window must reset state to idle',
+        );
+      },
+    );
 
     // ── Scenario: resume-from-pause succeeds (the core regression) ──────────
     test(
@@ -253,7 +256,8 @@ void main() {
         '(regression: previously killed by unguarded deferred cancel)', () {
       fakeAsync((async) {
         controller.setText(
-            'Texto de devocional suficientemente largo para una prueba real.');
+          'Texto de devocional suficientemente largo para una prueba real.',
+        );
 
         // 1. Play to reach playing state.
         unawaited(controller.play());
@@ -367,31 +371,32 @@ void main() {
 
     // ── Scenario: healthy engine still works normally ───────────────────────
     test(
-        'Healthy engine (startHandler fires): state is PLAYING, position advances',
-        () {
-      fakeAsync((async) {
-        mockTts.autoFireStart = true; // healthy engine
+      'Healthy engine (startHandler fires): state is PLAYING, position advances',
+      () {
+        fakeAsync((async) {
+          mockTts.autoFireStart = true; // healthy engine
 
-        controller.setText('Healthy engine text.');
+          controller.setText('Healthy engine text.');
 
-        unawaited(controller.play());
-        async.flushMicrotasks();
-        async.elapse(const Duration(milliseconds: 600));
-        async.flushMicrotasks();
+          unawaited(controller.play());
+          async.flushMicrotasks();
+          async.elapse(const Duration(milliseconds: 600));
+          async.flushMicrotasks();
 
-        expect(controller.state.value, TtsPlayerState.playing);
+          expect(controller.state.value, TtsPlayerState.playing);
 
-        // Advance time — progress timer will tick.
-        async.elapse(const Duration(milliseconds: 1000));
+          // Advance time — progress timer will tick.
+          async.elapse(const Duration(milliseconds: 1000));
 
-        // Position advances (startHandler fired, progress timer active).
-        expect(
-          controller.currentPosition.value.inMilliseconds,
-          greaterThan(0),
-          reason: 'Healthy engine — startHandler fires, progress advances',
-        );
-      });
-    });
+          // Position advances (startHandler fired, progress timer active).
+          expect(
+            controller.currentPosition.value.inMilliseconds,
+            greaterThan(0),
+            reason: 'Healthy engine — startHandler fires, progress advances',
+          );
+        });
+      },
+    );
 
     // ── Scenario: stop() clears timer (still works, no watchdog to cancel) ───
     test('Stop during silent playback — state returns to idle', () {
@@ -438,9 +443,10 @@ void main() {
     // ── User plays a devotional from idle ────────────────────────────────────
     test('User: tap play from idle → audio playing', () async {
       controller.setText(
-          'Juan 3:16 — Porque de tal manera amó Dios al mundo que dio a su '
-          'Hijo unigénito para que todo el que crea en él no se pierda sino '
-          'que tenga vida eterna.');
+        'Juan 3:16 — Porque de tal manera amó Dios al mundo que dio a su '
+        'Hijo unigénito para que todo el que crea en él no se pierda sino '
+        'que tenga vida eterna.',
+      );
 
       await controller.play();
 
@@ -474,7 +480,8 @@ void main() {
     // ── User taps pause and play multiple times (stress) ─────────────────────
     test('User: multiple rapid pause/play cycles — all succeed', () async {
       controller.setText(
-          'Texto devocional largo para múltiples ciclos de pausa y reproducción.');
+        'Texto devocional largo para múltiples ciclos de pausa y reproducción.',
+      );
 
       for (int cycle = 1; cycle <= 3; cycle++) {
         await controller.play();
@@ -515,7 +522,8 @@ void main() {
         // Use a longer text to ensure totalDuration is long enough to not hit
         // the completion boundary when we advance time.
         controller.setText(
-            'Text that will not produce audio but is long enough to have a reasonable duration estimate so we can observe the playing state without premature completion.');
+          'Text that will not produce audio but is long enough to have a reasonable duration estimate so we can observe the playing state without premature completion.',
+        );
 
         unawaited(controller.play());
         async.flushMicrotasks();
@@ -593,42 +601,48 @@ void main() {
     });
 
     // ── Dispose during play — no crash or late state update ──────────────────
-    test('Dispose during play does not crash and produces no late state update',
-        () async {
-      // Use a separate controller so tearDown's dispose() doesn't double-dispose.
-      final localMock = MockFlutterTts();
-      final localController = TestableController(
-        flutterTts: localMock,
-        voiceSettingsService: getService<VoiceSettingsService>(),
-      );
+    test(
+      'Dispose during play does not crash and produces no late state update',
+      () async {
+        // Use a separate controller so tearDown's dispose() doesn't double-dispose.
+        final localMock = MockFlutterTts();
+        final localController = TestableController(
+          flutterTts: localMock,
+          voiceSettingsService: getService<VoiceSettingsService>(),
+        );
 
-      localController
-          .setText('Texto para probar dispose durante reproducción.');
+        localController.setText(
+          'Texto para probar dispose durante reproducción.',
+        );
 
-      unawaited(localController.play());
-      await Future.microtask(() {});
+        unawaited(localController.play());
+        await Future.microtask(() {});
 
-      // Dispose immediately while play() is in progress.
-      expect(() => localController.dispose(), returnsNormally);
-    });
+        // Dispose immediately while play() is in progress.
+        expect(() => localController.dispose(), returnsNormally);
+      },
+    );
 
     // ── Arabic text plays just like Spanish (language-agnostic path) ─────────
-    test('Arabic text plays without error — same code path as Spanish/English',
-        () async {
-      controller.setText(
-        // Arabic: 'Jesus loved us so much that he died for us.
-        //          This is the central message of the Gospel.'
-        'يسوع أحبنا إلى درجة أنه مات لأجلنا. هذه هي الرسالة المركزية للإنجيل.',
-        languageCode: 'ar',
-      );
+    test(
+      'Arabic text plays without error — same code path as Spanish/English',
+      () async {
+        controller.setText(
+          // Arabic: 'Jesus loved us so much that he died for us.
+          //          This is the central message of the Gospel.'
+          'يسوع أحبنا إلى درجة أنه مات لأجلنا. هذه هي الرسالة المركزية للإنجيل.',
+          languageCode: 'ar',
+        );
 
-      await controller.play();
+        await controller.play();
 
-      expect(
-        controller.state.value,
-        TtsPlayerState.playing,
-        reason: 'Arabic text must play successfully through the same code path',
-      );
-    });
+        expect(
+          controller.state.value,
+          TtsPlayerState.playing,
+          reason:
+              'Arabic text must play successfully through the same code path',
+        );
+      },
+    );
   });
 }

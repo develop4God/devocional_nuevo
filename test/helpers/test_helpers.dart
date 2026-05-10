@@ -14,8 +14,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<void> setupFirebaseMocks() async {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const MethodChannel channel =
-      MethodChannel('plugins.flutter.io/firebase_core');
+  const MethodChannel channel = MethodChannel(
+    'plugins.flutter.io/firebase_core',
+  );
 
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
@@ -30,11 +31,9 @@ Future<void> setupFirebaseMocks() async {
             'projectId': '123',
           },
           'pluginConstants': {
-            'plugins.flutter.io/firebase_auth': {
-              'persistence': 'local',
-            },
+            'plugins.flutter.io/firebase_auth': {'persistence': 'local'},
           },
-        }
+        },
       ];
     }
     if (methodCall.method == 'Firebase#initializeApp') {
@@ -54,7 +53,8 @@ Future<void> setupFirebaseMocks() async {
 
   // Mock Firebase pigeon channel for core
   const MethodChannel pigeonChannel = MethodChannel(
-      'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi');
+    'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi',
+  );
 
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(pigeonChannel, (MethodCall methodCall) async {
@@ -69,14 +69,10 @@ Future<void> setupFirebaseMocks() async {
             'projectId': '123',
           },
           'pluginConstants': {
-            'core': {
-              'version': '1.0.0',
-            },
-            'plugins.flutter.io/firebase_auth': {
-              'persistence': 'local',
-            },
+            'core': {'version': '1.0.0'},
+            'plugins.flutter.io/firebase_auth': {'persistence': 'local'},
           },
-        }
+        },
       ];
     }
     if (methodCall.method == 'initializeApp') {
@@ -103,8 +99,9 @@ Future<void> setupFirebaseMocks() async {
   });
 
   // Mock Firebase Auth channel
-  const MethodChannel authChannel =
-      MethodChannel('plugins.flutter.io/firebase_auth');
+  const MethodChannel authChannel = MethodChannel(
+    'plugins.flutter.io/firebase_auth',
+  );
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(authChannel, (MethodCall methodCall) async {
     if (methodCall.method == 'Auth#registerIdTokenListener') return null;
@@ -121,22 +118,26 @@ Future<void> setupFirebaseMocks() async {
 
   // Mock Firebase Auth Pigeon channel
   const MethodChannel authPigeonChannel = MethodChannel(
-      'dev.flutter.pigeon.firebase_auth_platform_interface.FirebaseAuthHostApi');
+    'dev.flutter.pigeon.firebase_auth_platform_interface.FirebaseAuthHostApi',
+  );
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-      .setMockMethodCallHandler(authPigeonChannel,
-          (MethodCall methodCall) async {
+      .setMockMethodCallHandler(authPigeonChannel, (
+    MethodCall methodCall,
+  ) async {
     return null;
   });
 
   // Mock Firebase Crashlytics
-  const MethodChannel crashlyticsChannel =
-      MethodChannel('plugins.flutter.io/firebase_crashlytics');
+  const MethodChannel crashlyticsChannel = MethodChannel(
+    'plugins.flutter.io/firebase_crashlytics',
+  );
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(crashlyticsChannel, (call) async => null);
 
   // Mock Firebase Analytics
-  const MethodChannel analyticsChannel =
-      MethodChannel('plugins.flutter.io/firebase_analytics');
+  const MethodChannel analyticsChannel = MethodChannel(
+    'plugins.flutter.io/firebase_analytics',
+  );
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(analyticsChannel, (call) async => null);
 

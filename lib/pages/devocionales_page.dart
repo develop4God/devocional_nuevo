@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'dart:async' show unawaited;
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
@@ -366,9 +367,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         setState(() {
           _initState = _PageInitializationState.error;
           // Show raw error only in debug mode, otherwise show friendly localized message
-          _initErrorMessage = kDebugMode
-              ? error.toString()
-              : 'devotionals.generic_error'.tr();
+          _initErrorMessage =
+              kDebugMode ? error.toString() : 'devotionals.generic_error'.tr();
         });
       }
     }
@@ -457,6 +457,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           '🔧 [MIGRATION] No gaps found — user state is clean',
           name: 'GapMigration',
         );
+        unawaited(
+          getService<IAnalyticsService>().logCustomEvent(
+            eventName: 'legacy_gap_migration_clean',
+          ),
+        );
         return;
       }
 
@@ -470,6 +475,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       developer.log(
         '✅ [MIGRATION] Legacy gap migration complete: ${gapIds.length} devotional(s) marked as read',
         name: 'GapMigration',
+      );
+
+      unawaited(
+        getService<IAnalyticsService>().logCustomEvent(
+          eventName: 'legacy_gap_migration_applied',
+          parameters: {
+            'gaps_filled': gapIds.length,
+            'highest_read_index': highestReadIndex,
+          },
+        ),
       );
     } catch (e, stack) {
       // Migration is non-critical — log and continue. Never block app start.
@@ -871,8 +886,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               Text(
                 _initErrorMessage ?? 'devotionals.error_no_content'.tr(),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
@@ -964,12 +979,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             // Use reference equality check instead of unreliable hashCode
             final bool listsAreDifferent =
                 !identical(_lastProcessedDevocionales, newList) &&
-                (_lastProcessedDevocionales == null ||
-                    _lastProcessedDevocionales!.length != newList.length ||
-                    !_areDevocionalListsEqual(
-                      _lastProcessedDevocionales!,
-                      newList,
-                    ));
+                    (_lastProcessedDevocionales == null ||
+                        _lastProcessedDevocionales!.length != newList.length ||
+                        !_areDevocionalListsEqual(
+                          _lastProcessedDevocionales!,
+                          newList,
+                        ));
 
             if (listsAreDifferent) {
               // Schedule update after this build completes (only once per change)
@@ -1006,10 +1021,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           return _buildLoadingScaffold(context);
         }
 
-        return BlocListener<
-          DevocionalesNavigationBloc,
-          DevocionalesNavigationState
-        >(
+        return BlocListener<DevocionalesNavigationBloc,
+            DevocionalesNavigationState>(
           bloc: _navigationBloc!,
           listener: (context, state) {
             debugPrint(
@@ -1031,7 +1044,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               );
             }
           },
-          child: BlocBuilder<DevocionalesNavigationBloc, DevocionalesNavigationState>(
+          child: BlocBuilder<DevocionalesNavigationBloc,
+              DevocionalesNavigationState>(
             bloc: _navigationBloc!,
             builder: (context, state) {
               if (state is NavigationError) {
@@ -1074,8 +1088,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       maxLines: 1,
                       minFontSize: 10,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
                     ),
                     actions: [
                       IconButton(
@@ -1098,8 +1112,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   ),
                   floatingActionButtonLocation:
                       Directionality.of(context) == TextDirection.rtl
-                      ? FloatingActionButtonLocation.startFloat
-                      : FloatingActionButtonLocation.endFloat,
+                          ? FloatingActionButtonLocation.startFloat
+                          : FloatingActionButtonLocation.endFloat,
                   body: Stack(
                     children: [
                       Column(
@@ -1162,8 +1176,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   streakFuture: _streakFuture,
                                   getLocalizedDateFormat: (context) =>
                                       LocalizedDateFormatter.formatForContext(
-                                        context,
-                                      ),
+                                    context,
+                                  ),
                                   isFavorite: isFavorite,
                                   onFavoriteToggle: () async {
                                     final wasAdded = await devocionalProvider
@@ -1188,8 +1202,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         ),
                       if (_splashAnimController.isVisible)
                         Positioned(
-                          top:
-                              MediaQuery.of(context).padding.top +
+                          top: MediaQuery.of(context).padding.top +
                               kToolbarHeight,
                           right: 0,
                           child: IgnorePointer(

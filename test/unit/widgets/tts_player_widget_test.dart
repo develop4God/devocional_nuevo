@@ -102,39 +102,40 @@ void main() {
   // ── Lifecycle guard tests ──────────────────────────────────────────────────
 
   testWidgets(
-      'lifecycle inactive does NOT pause TTS when state is idle (bug fix)',
-      (WidgetTester tester) async {
-    final controller = TtsAudioController(
-      flutterTts: FlutterTts(),
-      voiceSettingsService: VoiceSettingsService(),
-    );
-    // TTS starts in idle state
-    expect(controller.state.value, TtsPlayerState.idle);
+    'lifecycle inactive does NOT pause TTS when state is idle (bug fix)',
+    (WidgetTester tester) async {
+      final controller = TtsAudioController(
+        flutterTts: FlutterTts(),
+        voiceSettingsService: VoiceSettingsService(),
+      );
+      // TTS starts in idle state
+      expect(controller.state.value, TtsPlayerState.idle);
 
-    await tester.pumpWidget(
-      _wrap(
-        TtsPlayerWidget(
-          devocional: _makeDevocional(),
-          audioController: controller,
-          onCompleted: () {},
+      await tester.pumpWidget(
+        _wrap(
+          TtsPlayerWidget(
+            devocional: _makeDevocional(),
+            audioController: controller,
+            onCompleted: () {},
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    // Simulate app going to background while TTS is idle
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
-    await tester.pump();
+      // Simulate app going to background while TTS is idle
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
 
-    // State MUST remain idle — pause() must NOT be called on an idle controller
-    expect(
-      controller.state.value,
-      TtsPlayerState.idle,
-      reason: 'pause() should not transition idle TTS to paused on lifecycle',
-    );
+      // State MUST remain idle — pause() must NOT be called on an idle controller
+      expect(
+        controller.state.value,
+        TtsPlayerState.idle,
+        reason: 'pause() should not transition idle TTS to paused on lifecycle',
+      );
 
-    controller.dispose();
-  });
+      controller.dispose();
+    },
+  );
 
   testWidgets('lifecycle inactive DOES pause TTS when state is playing', (
     WidgetTester tester,

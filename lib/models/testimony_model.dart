@@ -10,11 +10,7 @@ class Testimony {
   final String text;
   final DateTime createdDate;
 
-  Testimony({
-    required this.id,
-    required this.text,
-    required this.createdDate,
-  });
+  Testimony({required this.id, required this.text, required this.createdDate});
 
   /// Constructor factory para crear una instancia de [Testimony] desde un JSON.
   factory Testimony.fromJson(Map<String, dynamic> json) {

@@ -114,11 +114,7 @@ void main(List<String> args) async {
       final tgtCnt = tgtSectionCounts[sec] ?? 0;
       final ok = refCnt == tgtCnt;
       if (!ok) sectionOk = false;
-      sectionReports[sec] = {
-        'ok': ok,
-        'target': tgtCnt,
-        'reference': refCnt,
-      };
+      sectionReports[sec] = {'ok': ok, 'target': tgtCnt, 'reference': refCnt};
     }
 
     validationReports[lang] = {
@@ -139,7 +135,8 @@ void main(List<String> args) async {
     } else {
       if (missingKeys.isNotEmpty) {
         stdout.writeln(
-            '  ❌ ${missingKeys.length} missing keys → added as PENDING:');
+          '  ❌ ${missingKeys.length} missing keys → added as PENDING:',
+        );
         for (final k in missingKeys) {
           stdout.writeln('    + $k');
         }
@@ -172,8 +169,9 @@ void main(List<String> args) async {
   if (notFound.isNotEmpty) {
     stdout.writeln('Languages not found: ${notFound.join(', ')}');
   }
-  stdout
-      .writeln('en.json is the source of truth. All files are now in sync.\n');
+  stdout.writeln(
+    'en.json is the source of truth. All files are now in sync.\n',
+  );
 
   // ═══════════════════════════════════════════════════════════════════════════
   // CONSOLIDATED VALIDATION REPORT BY LANGUAGE
@@ -195,8 +193,9 @@ void main(List<String> args) async {
     final sectionReports =
         report['sectionReports'] as Map<String, Map<String, dynamic>>;
 
-    stdout
-        .writeln('==== VALIDATION REPORT ($lang) [Language Code: $lang] ====');
+    stdout.writeln(
+      '==== VALIDATION REPORT ($lang) [Language Code: $lang] ====',
+    );
     stdout.writeln('  Reference (en): $refTotal keys');
     stdout.writeln('  Target ($lang):  $tgtTotal keys');
 
@@ -205,7 +204,8 @@ void main(List<String> args) async {
     } else {
       if (missingKeys.isNotEmpty) {
         stdout.writeln(
-            '  ❌ ${missingKeys.length} missing keys → added as PENDING:');
+          '  ❌ ${missingKeys.length} missing keys → added as PENDING:',
+        );
         for (final k in missingKeys) {
           stdout.writeln('    + $k');
         }
@@ -358,7 +358,8 @@ void main(List<String> args) async {
   if (reverseValidationOk) {
     stdout.writeln('✅ Reverse validation PASSED');
     stdout.writeln(
-        'All language files have consistent structure and key counts.');
+      'All language files have consistent structure and key counts.',
+    );
     stdout.writeln('');
   } else {
     stdout.writeln('❌ Reverse validation FAILED');
@@ -387,9 +388,11 @@ void main(List<String> args) async {
   final forwardValidationOk = totalMissingKeys == 0 && totalExtraKeys == 0;
 
   stdout.writeln(
-      'Forward validation (vs en.json): ${forwardValidationOk ? '✅ PASS' : '❌ FAIL'}');
+    'Forward validation (vs en.json): ${forwardValidationOk ? '✅ PASS' : '❌ FAIL'}',
+  );
   stdout.writeln(
-      'Reverse validation (cross-check): ${reverseValidationOk ? '✅ PASS' : '❌ FAIL'}');
+    'Reverse validation (cross-check): ${reverseValidationOk ? '✅ PASS' : '❌ FAIL'}',
+  );
   stdout.writeln('');
 
   if (forwardValidationOk && reverseValidationOk) {
@@ -603,7 +606,11 @@ Set<String> _getAllKeys(dynamic obj, String prefix) {
 }
 
 void _findMissing(
-    dynamic ref, dynamic target, String prefix, List<String> out) {
+  dynamic ref,
+  dynamic target,
+  String prefix,
+  List<String> out,
+) {
   if (ref is Map<String, dynamic>) {
     for (final key in ref.keys) {
       final full = prefix.isEmpty ? key : '$prefix.$key';
@@ -621,7 +628,10 @@ void _findMissing(
 }
 
 void _collectLeafPaths(
-    Map<String, dynamic> obj, String prefix, List<String> out) {
+  Map<String, dynamic> obj,
+  String prefix,
+  List<String> out,
+) {
   for (final k in obj.keys) {
     final full = '$prefix.$k';
     if (obj[k] is Map<String, dynamic>) {
@@ -679,7 +689,9 @@ void _removeExtra(dynamic ref, dynamic target) {
 }
 
 Map<String, dynamic> _reorder(
-    Map<String, dynamic> ref, Map<String, dynamic> target) {
+  Map<String, dynamic> ref,
+  Map<String, dynamic> target,
+) {
   final result = <String, dynamic>{};
   for (final key in ref.keys) {
     if (target.containsKey(key)) {

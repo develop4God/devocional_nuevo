@@ -43,9 +43,10 @@ class _PrayerWallCardState extends State<PrayerWallCard>
       vsync: this,
       duration: const Duration(milliseconds: 150),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.3,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
   }
 
   @override
@@ -142,8 +143,11 @@ class _PendingPlaceholder extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(Icons.hourglass_top_rounded,
-              size: 16, color: colorScheme.onSurface.withValues(alpha: 0.5)),
+          Icon(
+            Icons.hourglass_top_rounded,
+            size: 16,
+            color: colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
@@ -184,10 +188,7 @@ class _LanguageBadge extends StatelessWidget {
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        flag,
-        style: const TextStyle(fontSize: 14),
-      ),
+      child: Text(flag, style: const TextStyle(fontSize: 14)),
     );
   }
 }

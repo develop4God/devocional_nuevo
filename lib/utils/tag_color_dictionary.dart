@@ -7,42 +7,17 @@ class TagColorDictionary {
   /// Get tag translation based on language
   static String getTagTranslation(String tag, String languageCode) {
     final translations = <String, Map<String, String>>{
-      'luz': {
-        'es': 'Luz',
-        'en': 'Light',
-        'pt': 'Luz',
-        'fr': 'Lumière',
-      },
+      'luz': {'es': 'Luz', 'en': 'Light', 'pt': 'Luz', 'fr': 'Lumière'},
       'esperanza': {
         'es': 'Esperanza',
         'en': 'Hope',
         'pt': 'Esperança',
         'fr': 'Espoir',
       },
-      'fe': {
-        'es': 'Fe',
-        'en': 'Faith',
-        'pt': 'Fé',
-        'fr': 'Foi',
-      },
-      'amor': {
-        'es': 'Amor',
-        'en': 'Love',
-        'pt': 'Amor',
-        'fr': 'Amour',
-      },
-      'paz': {
-        'es': 'Paz',
-        'en': 'Peace',
-        'pt': 'Paz',
-        'fr': 'Paix',
-      },
-      'gracia': {
-        'es': 'Gracia',
-        'en': 'Grace',
-        'pt': 'Graça',
-        'fr': 'Grâce',
-      },
+      'fe': {'es': 'Fe', 'en': 'Faith', 'pt': 'Fé', 'fr': 'Foi'},
+      'amor': {'es': 'Amor', 'en': 'Love', 'pt': 'Amor', 'fr': 'Amour'},
+      'paz': {'es': 'Paz', 'en': 'Peace', 'pt': 'Paz', 'fr': 'Paix'},
+      'gracia': {'es': 'Gracia', 'en': 'Grace', 'pt': 'Graça', 'fr': 'Grâce'},
     };
 
     final tagKey = tag.toLowerCase();

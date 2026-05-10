@@ -54,22 +54,28 @@ void main() {
       // Default state stubs to avoid null errors
       when(() => mockSupporterBloc.state).thenReturn(SupporterInitial());
       when(() => mockPrayerWallBloc.state).thenReturn(PrayerWallInitial());
-      when(() => mockThemeBloc.state).thenReturn(ThemeLoaded.withThemeData(
-        themeFamily: 'spirit',
-        brightness: Brightness.light,
-      ));
+      when(() => mockThemeBloc.state).thenReturn(
+        ThemeLoaded.withThemeData(
+          themeFamily: 'spirit',
+          brightness: Brightness.light,
+        ),
+      );
 
       // Mock streams to avoid null stream errors
-      when(() => mockSupporterBloc.stream)
-          .thenAnswer((_) => Stream.fromIterable([SupporterInitial()]));
-      when(() => mockPrayerWallBloc.stream)
-          .thenAnswer((_) => Stream.fromIterable([PrayerWallInitial()]));
-      when(() => mockThemeBloc.stream).thenAnswer((_) => Stream.fromIterable([
-            ThemeLoaded.withThemeData(
-              themeFamily: 'spirit',
-              brightness: Brightness.light,
-            )
-          ]));
+      when(
+        () => mockSupporterBloc.stream,
+      ).thenAnswer((_) => Stream.fromIterable([SupporterInitial()]));
+      when(
+        () => mockPrayerWallBloc.stream,
+      ).thenAnswer((_) => Stream.fromIterable([PrayerWallInitial()]));
+      when(() => mockThemeBloc.stream).thenAnswer(
+        (_) => Stream.fromIterable([
+          ThemeLoaded.withThemeData(
+            themeFamily: 'spirit',
+            brightness: Brightness.light,
+          ),
+        ]),
+      );
     });
 
     tearDown(() {
@@ -86,9 +92,7 @@ void main() {
           ],
           child: MaterialApp(
             navigatorKey: navigatorKey,
-            home: const Scaffold(
-              body: Center(child: Text('Home Page')),
-            ),
+            home: const Scaffold(body: Center(child: Text('Home Page'))),
             onGenerateRoute: (settings) {
               return MaterialPageRoute(
                 settings: settings,
@@ -104,8 +108,9 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('User taps a devotional deep link',
-        (WidgetTester tester) async {
+    testWidgets('User taps a devotional deep link', (
+      WidgetTester tester,
+    ) async {
       // GIVEN: App is open on Home Page
       await pumpTestApp(tester);
       expect(find.text('Home Page'), findsOneWidget);
@@ -143,8 +148,9 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('User taps a testimonies deep link',
-        (WidgetTester tester) async {
+    testWidgets('User taps a testimonies deep link', (
+      WidgetTester tester,
+    ) async {
       await pumpTestApp(tester);
 
       final uri = Uri.parse('devocional://testimonies');
@@ -168,8 +174,9 @@ void main() {
       expect(find.byType(SupporterPage), findsOneWidget);
     });
 
-    testWidgets('User taps an invalid deep link (wrong scheme)',
-        (WidgetTester tester) async {
+    testWidgets('User taps an invalid deep link (wrong scheme)', (
+      WidgetTester tester,
+    ) async {
       await pumpTestApp(tester);
 
       final uri = Uri.parse('https://example.com/test');
@@ -178,8 +185,9 @@ void main() {
       expect(result, isFalse);
     });
 
-    testWidgets('User taps an unknown route deep link',
-        (WidgetTester tester) async {
+    testWidgets('User taps an unknown route deep link', (
+      WidgetTester tester,
+    ) async {
       await pumpTestApp(tester);
 
       final uri = Uri.parse('devocional://unknown_route');
@@ -188,8 +196,9 @@ void main() {
       expect(result, isFalse);
     });
 
-    testWidgets('User taps a prayer_wall deep link',
-        (WidgetTester tester) async {
+    testWidgets('User taps a prayer_wall deep link', (
+      WidgetTester tester,
+    ) async {
       await pumpTestApp(tester);
 
       final uri = Uri.parse('devocional://prayer_wall');
