@@ -60,8 +60,9 @@ class SpiritualStatsService implements ISpiritualStatsService {
 
       final updatedStats = stats.copyWith(
         currentStreak: newStreak,
-        longestStreak:
-            newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
+        longestStreak: newStreak > stats.longestStreak
+            ? newStreak
+            : stats.longestStreak,
         lastActivityDate: today,
       );
 
@@ -132,7 +133,7 @@ class SpiritualStatsService implements ISpiritualStatsService {
 
     final bool meetsReadingCriteria =
         (readingTimeSeconds >= 40 && scrollPercentage >= 0.6) ||
-            (listenedPercentage >= 0.6);
+        (listenedPercentage >= 0.6);
 
     debugPrint(
       '🎯 [STATS] Criterios: tiempo=$readingTimeSeconds, scroll=$scrollPercentage, escuchado=$listenedPercentage, cumple=$meetsReadingCriteria',
@@ -193,8 +194,9 @@ class SpiritualStatsService implements ISpiritualStatsService {
     final updatedStats = stats.copyWith(
       totalDevocionalesRead: stats.totalDevocionalesRead + 1,
       currentStreak: newStreak,
-      longestStreak:
-          newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
+      longestStreak: newStreak > stats.longestStreak
+          ? newStreak
+          : stats.longestStreak,
       lastActivityDate: today,
       favoritesCount: favoritesCount ?? stats.favoritesCount,
       readDevocionalIds: newReadDevocionalIds,
@@ -242,6 +244,41 @@ class SpiritualStatsService implements ISpiritualStatsService {
       listenedPercentage: listenedPercentage,
       favoritesCount: favoritesCount,
       source: 'heard',
+    );
+  }
+
+  /// Bulk-marks a list of devotional IDs as read in a single read+write.
+  /// Used exclusively by the legacy gap migration in DevocionalesPage.
+  ///
+  /// CONTRACT:
+  /// - Single getStats() call + single saveStats() call — no per-ID loop.
+  /// - Does NOT increment totalDevocionalesRead.
+  /// - Does NOT update streak or lastActivityDate.
+  /// - Does NOT fire analytics.
+  /// - Idempotent: IDs already present are silently skipped.
+  Future<void> bulkMarkAsRead(List<String> ids) async {
+    if (ids.isEmpty) return;
+
+    final stats = await getStats();
+    final existing = Set<String>.from(stats.readDevocionalIds);
+    final toAdd = ids
+        .where((id) => id.isNotEmpty && !existing.contains(id))
+        .toList();
+
+    if (toAdd.isEmpty) {
+      debugPrint(
+        '🔧 [MIGRATION] bulkMarkAsRead: all ${ids.length} IDs already present, skipping write',
+      );
+      return;
+    }
+
+    final updatedIds = List<String>.from(stats.readDevocionalIds)
+      ..addAll(toAdd);
+    final updatedStats = stats.copyWith(readDevocionalIds: updatedIds);
+    await saveStats(updatedStats);
+
+    debugPrint(
+      '🔧 [MIGRATION] bulkMarkAsRead: marked ${toAdd.length} gap IDs as read (skipped ${ids.length - toAdd.length} already present)',
     );
   }
 
@@ -367,8 +404,9 @@ class SpiritualStatsService implements ISpiritualStatsService {
 
   Future<void> _restoreReadDates(List<String> dateStrings) async {
     try {
-      final dates =
-          dateStrings.map((dateString) => DateTime.parse(dateString)).toList();
+      final dates = dateStrings
+          .map((dateString) => DateTime.parse(dateString))
+          .toList();
       await _saveReadDates(dates);
     } catch (e) {
       debugPrint('Error restoring read dates: $e');
@@ -474,8 +512,9 @@ class SpiritualStatsService implements ISpiritualStatsService {
 
   Future<void> _saveReadDates(List<DateTime> dates) async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String> dateStrings =
-        dates.map((date) => date.toIso8601String().split('T').first).toList();
+    final List<String> dateStrings = dates
+        .map((date) => date.toIso8601String().split('T').first)
+        .toList();
     await prefs.setStringList(_readDatesKey, dateStrings);
   }
 

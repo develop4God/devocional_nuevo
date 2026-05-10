@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/pages/devocionales_page.dart'; // CAMBIADO: Importar página principal
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -47,7 +46,8 @@ class _SplashScreenState extends State<SplashScreen>
       return _Particle(
         x: rnd.nextDouble() * particleAreaWidth,
         y: rnd.nextDouble() * particleAreaHeight,
-        size: particleMinSize +
+        size:
+            particleMinSize +
             rnd.nextDouble() * (particleMaxSize - particleMinSize),
         speed: 0.4 + rnd.nextDouble() * 0.8,
         opacity: 0.5 + rnd.nextDouble() * 0.5,
@@ -57,28 +57,7 @@ class _SplashScreenState extends State<SplashScreen>
     });
 
     _controller.forward(); // Inicia la animación visual
-    _navigateToNextScreen(); // Llama al metodo para manejar la navegación
-  }
-
-  // Maneja la navegacion a la siguiente pantalla después de un retraso
-  Future<void> _navigateToNextScreen() async {
-    await Future.delayed(const Duration(milliseconds: 9000));
-
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 800),
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const DevocionalesPage(),
-          // Added fade transition as requested
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            // Fade transition from splash to devotionals
-            return FadeTransition(opacity: animation, child: child);
-          },
-        ),
-      );
-    }
+    // Navigation is owned by AppInitializer — SplashScreen is pure visual
   }
 
   @override
