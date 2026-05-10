@@ -35,7 +35,7 @@ List<({IconData icon, String label, int count})> _summaryItems(
         count: summary.thanksgivingsCount,
       ),
       (
-        icon: Icons.record_voice_over,
+        icon: Icons.photo_filter_outlined,
         label: 'testimony.testimonies'.tr(),
         count: summary.testimoniesCount,
       ),
