@@ -135,7 +135,7 @@ class IapService implements IIapService {
       // Wire diagnostics in debug builds after products are loaded.
       // _diagnosticsService is injected (null in production, no-op in tests).
       if (_diagnosticsService is _LazyDiagnostics) {
-        (_diagnosticsService)?.wire(this);
+        (_diagnosticsService as _LazyDiagnostics).wire(this);
       }
       _diagnosticsService?.printDiagnostics();
 
