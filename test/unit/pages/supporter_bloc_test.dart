@@ -38,24 +38,26 @@ void main() {
 
   // ── Scenario 2: loaded with no purchases ─────────────────────────────────
 
-  test('Scenario 2 — SupporterLoaded with no purchases after initialize',
-      () async {
-    final fakeIap = FakeIapService();
-    final bloc = SupporterBloc(
-      iapService: fakeIap,
-      profileRepository: FakeSupporterProfileRepository(),
-    );
-    bloc.add(InitializeSupporter());
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+  test(
+    'Scenario 2 — SupporterLoaded with no purchases after initialize',
+    () async {
+      final fakeIap = FakeIapService();
+      final bloc = SupporterBloc(
+        iapService: fakeIap,
+        profileRepository: FakeSupporterProfileRepository(),
+      );
+      bloc.add(InitializeSupporter());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
-    final state = bloc.state as SupporterLoaded;
-    expect(state.purchasedLevels, isEmpty);
-    expect(state.isBillingAvailable, isFalse);
-    expect(state.initStatus, equals(IapInitStatus.billingUnavailable));
+      final state = bloc.state as SupporterLoaded;
+      expect(state.purchasedLevels, isEmpty);
+      expect(state.isBillingAvailable, isFalse);
+      expect(state.initStatus, equals(IapInitStatus.billingUnavailable));
 
-    await bloc.close();
-    await fakeIap.dispose();
-  });
+      await bloc.close();
+      await fakeIap.dispose();
+    },
+  );
 
   // ── Scenario 3: loaded with silver purchased ──────────────────────────────
 
@@ -81,27 +83,29 @@ void main() {
 
   // ── BlocBuilder wiring: state change updates downstream ──────────────────
 
-  test('BlocBuilder wiring — bronze delivery after initialize updates state',
-      () async {
-    final fakeIap = FakeIapService();
-    final bloc = SupporterBloc(
-      iapService: fakeIap,
-      profileRepository: FakeSupporterProfileRepository(),
-    );
-    bloc.add(InitializeSupporter());
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+  test(
+    'BlocBuilder wiring — bronze delivery after initialize updates state',
+    () async {
+      final fakeIap = FakeIapService();
+      final bloc = SupporterBloc(
+        iapService: fakeIap,
+        profileRepository: FakeSupporterProfileRepository(),
+      );
+      bloc.add(InitializeSupporter());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
-    expect((bloc.state as SupporterLoaded).purchasedLevels, isEmpty);
+      expect((bloc.state as SupporterLoaded).purchasedLevels, isEmpty);
 
-    // Deliver bronze — BlocBuilder would rebuild in the real widget.
-    await fakeIap.deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
-    await Future<void>.delayed(const Duration(milliseconds: 20));
+      // Deliver bronze — BlocBuilder would rebuild in the real widget.
+      await fakeIap.deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
 
-    final state = bloc.state as SupporterLoaded;
-    expect(state.isPurchased(SupporterTierLevel.bronze), isTrue);
-    expect(state.justDeliveredTier?.level, equals(SupporterTierLevel.bronze));
+      final state = bloc.state as SupporterLoaded;
+      expect(state.isPurchased(SupporterTierLevel.bronze), isTrue);
+      expect(state.justDeliveredTier?.level, equals(SupporterTierLevel.bronze));
 
-    await bloc.close();
-    await fakeIap.dispose();
-  });
+      await bloc.close();
+      await fakeIap.dispose();
+    },
+  );
 }

@@ -39,8 +39,18 @@ void main() {
         );
         expect(
           languageCodes,
-          containsAll(
-              ['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar', 'fil']),
+          containsAll([
+            'es',
+            'en',
+            'pt',
+            'fr',
+            'ja',
+            'zh',
+            'hi',
+            'de',
+            'ar',
+            'fil',
+          ]),
         );
       });
 

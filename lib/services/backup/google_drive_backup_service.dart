@@ -212,7 +212,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       final discoveryCount = prefs
           .getKeys()
           .where(
-              (k) => k.startsWith(DiscoveryProgressTracker.progressKeyPrefix))
+            (k) => k.startsWith(DiscoveryProgressTracker.progressKeyPrefix),
+          )
           .length;
 
       // Marked Bible verses
@@ -306,7 +307,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
 
       final fileBytes = Uint8List.fromList(bytes);
       debugPrint(
-          '[BACKUP] Downloaded remote backup: ${fileBytes.length} bytes');
+        '[BACKUP] Downloaded remote backup: ${fileBytes.length} bytes',
+      );
 
       // Parse backup data
       Map<String, dynamic>? backupData;
@@ -379,8 +381,9 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     final mergedFavs = {...localFavs, ...remoteFavs}.toList();
 
     // Patch favoritesCount to reflect actual merged favorites length
-    final patchedStats =
-        mergedStats.copyWith(favoritesCount: mergedFavs.length);
+    final patchedStats = mergedStats.copyWith(
+      favoritesCount: mergedFavs.length,
+    );
 
     // --- Prayers merge (union by id) ---
     final mergedPrayers = {
@@ -499,7 +502,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       } else {
         finalPayload = localPayload;
         debugPrint(
-            '[BACKUP] No valid remote backup found, uploading local only');
+          '[BACKUP] No valid remote backup found, uploading local only',
+        );
       }
 
       // Convert to bytes
@@ -573,12 +577,14 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       }
 
       await _settingsService.setLastBackupTime(DateTime.now());
-      debugPrint('✅ Merged backup uploaded — local IDs: '
-          '${(localPayload[BackupKeys.spiritualStats] as Map<String, dynamic>?)?['readDevocionalIds']?.length ?? 0}, '
-          'remote IDs: '
-          '${(remotePayload?[BackupKeys.spiritualStats] as Map<String, dynamic>?)?['readDevocionalIds']?.length ?? 0}, '
-          'merged IDs: '
-          '${(finalPayload[BackupKeys.spiritualStats] as Map<String, dynamic>?)?['readDevocionalIds']?.length ?? 0}');
+      debugPrint(
+        '✅ Merged backup uploaded — local IDs: '
+        '${(localPayload[BackupKeys.spiritualStats] as Map<String, dynamic>?)?['readDevocionalIds']?.length ?? 0}, '
+        'remote IDs: '
+        '${(remotePayload?[BackupKeys.spiritualStats] as Map<String, dynamic>?)?['readDevocionalIds']?.length ?? 0}, '
+        'merged IDs: '
+        '${(finalPayload[BackupKeys.spiritualStats] as Map<String, dynamic>?)?['readDevocionalIds']?.length ?? 0}',
+      );
       return true;
     } catch (e) {
       debugPrint('Error creating Google Drive backup: $e');
@@ -623,14 +629,18 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
             (innerStats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
         debugPrint('[BACKUP] Included spiritual stats:');
         debugPrint(
-            '[BACKUP]   - Total devotionals read: ${innerStats['totalDevocionalesRead'] ?? 0}');
+          '[BACKUP]   - Total devotionals read: ${innerStats['totalDevocionalesRead'] ?? 0}',
+        );
         debugPrint('[BACKUP]   - Completed devotional IDs: $readDevocionalIds');
         debugPrint(
-            '[BACKUP]   - Current streak: ${innerStats['currentStreak'] ?? 0}');
+          '[BACKUP]   - Current streak: ${innerStats['currentStreak'] ?? 0}',
+        );
         debugPrint(
-            '[BACKUP]   - Longest streak: ${innerStats['longestStreak'] ?? 0}');
+          '[BACKUP]   - Longest streak: ${innerStats['longestStreak'] ?? 0}',
+        );
         debugPrint(
-            '[BACKUP]   - Favorites count: ${innerStats['favoritesCount'] ?? 0}');
+          '[BACKUP]   - Favorites count: ${innerStats['favoritesCount'] ?? 0}',
+        );
       } catch (e) {
         debugPrint('[BACKUP] ❌ Error getting spiritual stats: $e');
         backupData[BackupKeys.spiritualStats] = {};
@@ -647,7 +657,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           if (raw != null) {
             ids = (json.decode(raw) as List<dynamic>).cast<String>();
             debugPrint(
-                '[BACKUP] ⚠️ Provider empty — fallback to prefs: ${ids.length} favorites');
+              '[BACKUP] ⚠️ Provider empty — fallback to prefs: ${ids.length} favorites',
+            );
           }
         }
         backupData[BackupKeys.favoriteDevotionals] = ids;
@@ -784,7 +795,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       final markedVerses = prefs.getStringList('bible_marked_verses') ?? [];
       backupData[BackupKeys.markedBibleVerses] = markedVerses;
       debugPrint(
-          '[BACKUP] Included ${markedVerses.length} marked bible verses');
+        '[BACKUP] Included ${markedVerses.length} marked bible verses',
+      );
     } catch (e) {
       debugPrint('[BACKUP] ❌ Error getting marked bible verses: $e');
       backupData[BackupKeys.markedBibleVerses] = [];
@@ -1002,15 +1014,20 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
               (innerStats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
           debugPrint('[RESTORE] ✅ Restored spiritual stats');
           debugPrint(
-              '[RESTORE]   - Total devotionals read: ${innerStats['totalDevocionalesRead'] ?? 0}');
+            '[RESTORE]   - Total devotionals read: ${innerStats['totalDevocionalesRead'] ?? 0}',
+          );
           debugPrint(
-              '[RESTORE]   - Completed devotional IDs: $readDevocionalIds');
+            '[RESTORE]   - Completed devotional IDs: $readDevocionalIds',
+          );
           debugPrint(
-              '[RESTORE]   - Current streak: ${innerStats['currentStreak'] ?? 0}');
+            '[RESTORE]   - Current streak: ${innerStats['currentStreak'] ?? 0}',
+          );
           debugPrint(
-              '[RESTORE]   - Longest streak: ${innerStats['longestStreak'] ?? 0}');
+            '[RESTORE]   - Longest streak: ${innerStats['longestStreak'] ?? 0}',
+          );
           debugPrint(
-              '[RESTORE]   - Favorites count: ${innerStats['favoritesCount'] ?? 0}');
+            '[RESTORE]   - Favorites count: ${innerStats['favoritesCount'] ?? 0}',
+          );
 
           // (removed: downstream verify of SharedPreferences write —
           //  restoreStats() throws on failure; key internals belong to SpiritualStatsService)
@@ -1078,9 +1095,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           final testimonies = data[BackupKeys.testimonies] as List<dynamic>;
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('testimonies', json.encode(testimonies));
-          debugPrint(
-            '[RESTORE] ✅ Restored ${testimonies.length} testimonies',
-          );
+          debugPrint('[RESTORE] ✅ Restored ${testimonies.length} testimonies');
         } catch (e) {
           debugPrint('[RESTORE] ❌ Error restoring testimonies: $e');
         }
@@ -1111,8 +1126,9 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           final prefs = await SharedPreferences.getInstance();
           for (final entry in progressData.entries) {
             if (entry.value is String &&
-                entry.key
-                    .startsWith(DiscoveryProgressTracker.progressKeyPrefix)) {
+                entry.key.startsWith(
+                  DiscoveryProgressTracker.progressKeyPrefix,
+                )) {
               await prefs.setString(entry.key, entry.value as String);
             }
           }
@@ -1152,7 +1168,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setString('selectedVersion', version);
             debugPrint(
-                '[RESTORE] ✅ Restored preferred bible version: $version');
+              '[RESTORE] ✅ Restored preferred bible version: $version',
+            );
           }
         } catch (e) {
           debugPrint('[RESTORE] ❌ Error restoring preferred bible version: $e');
@@ -1168,10 +1185,13 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
                   .toSet();
           final prefs = await SharedPreferences.getInstance();
           final localVerses = Set<String>.from(
-              prefs.getStringList('bible_marked_verses') ?? []);
+            prefs.getStringList('bible_marked_verses') ?? [],
+          );
           final mergedVerses = {...localVerses, ...backupVerses};
           await prefs.setStringList(
-              'bible_marked_verses', mergedVerses.toList());
+            'bible_marked_verses',
+            mergedVerses.toList(),
+          );
           debugPrint(
             '[RESTORE] ✅ Restored ${mergedVerses.length} marked bible verses '
             '(local: ${localVerses.length}, backup: ${backupVerses.length})',

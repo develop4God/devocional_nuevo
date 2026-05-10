@@ -92,8 +92,20 @@ void main() {
       );
     }
 
+    testWidgets('renders discovery detail page without errors', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1080, 1920);
+      tester.view.devicePixelRatio = 1.0;
+
+      await tester.pumpWidget(createDiscoveryDetailPageUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiscoveryDetailPage), findsOneWidget);
+    });
+
     testWidgets(
-      'renders discovery detail page without errors',
+      'displays discovery action controls in real discovery detail page',
       (WidgetTester tester) async {
         tester.view.physicalSize = const Size(1080, 1920);
         tester.view.devicePixelRatio = 1.0;
@@ -101,26 +113,14 @@ void main() {
         await tester.pumpWidget(createDiscoveryDetailPageUnderTest());
         await tester.pumpAndSettle();
 
-        expect(find.byType(DiscoveryDetailPage), findsOneWidget);
+        // The DiscoveryDetailPage displays navigation and completion controls.
+        // Check for check_circle_outline_rounded which is the mark-complete button
+        expect(find.byIcon(Icons.check_circle_outline_rounded), findsWidgets);
+
+        // Check for arrow_forward_ios_rounded for next navigation
+        expect(find.byIcon(Icons.arrow_forward_ios_rounded), findsWidgets);
       },
     );
-
-    testWidgets(
-        'displays discovery action controls in real discovery detail page',
-        (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1080, 1920);
-      tester.view.devicePixelRatio = 1.0;
-
-      await tester.pumpWidget(createDiscoveryDetailPageUnderTest());
-      await tester.pumpAndSettle();
-
-      // The DiscoveryDetailPage displays navigation and completion controls.
-      // Check for check_circle_outline_rounded which is the mark-complete button
-      expect(find.byIcon(Icons.check_circle_outline_rounded), findsWidgets);
-
-      // Check for arrow_forward_ios_rounded for next navigation
-      expect(find.byIcon(Icons.arrow_forward_ios_rounded), findsWidgets);
-    });
   });
 }
 

@@ -252,201 +252,215 @@ void main() {
     // ── SupporterPetService singleton registration ─────────────────────────
 
     test(
-        'SupporterPetService is registered as lazy singleton in ServiceLocator',
-        () async {
-      final file = File('lib/services/service_locator.dart');
-      expect(
-        await file.exists(),
-        isTrue,
-        reason: 'ServiceLocator source file should exist',
-      );
+      'SupporterPetService is registered as lazy singleton in ServiceLocator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'ServiceLocator source file should exist',
+        );
 
-      final content = await file.readAsString();
+        final content = await file.readAsString();
 
-      expect(
-        content.contains('registerLazySingleton<SupporterPetService>'),
-        isTrue,
-        reason:
-            'SupporterPetService should be registered as lazy singleton in ServiceLocator',
-      );
-    });
+        expect(
+          content.contains('registerLazySingleton<SupporterPetService>'),
+          isTrue,
+          reason:
+              'SupporterPetService should be registered as lazy singleton in ServiceLocator',
+        );
+      },
+    );
 
-    test('SupporterPetService does not use static singleton antipattern',
-        () async {
-      final file = File('lib/services/supporter_pet_service.dart');
-      expect(
-        await file.exists(),
-        isTrue,
-        reason: 'SupporterPetService source file should exist',
-      );
+    test(
+      'SupporterPetService does not use static singleton antipattern',
+      () async {
+        final file = File('lib/services/supporter_pet_service.dart');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'SupporterPetService source file should exist',
+        );
 
-      final content = await file.readAsString();
+        final content = await file.readAsString();
 
-      expect(
-        content.contains('static SupporterPetService? _instance'),
-        isFalse,
-        reason: 'SupporterPetService should not have static _instance field',
-      );
+        expect(
+          content.contains('static SupporterPetService? _instance'),
+          isFalse,
+          reason: 'SupporterPetService should not have static _instance field',
+        );
 
-      expect(
-        content.contains('static SupporterPetService get instance'),
-        isFalse,
-        reason: 'SupporterPetService should not have static instance getter',
-      );
-    });
+        expect(
+          content.contains('static SupporterPetService get instance'),
+          isFalse,
+          reason: 'SupporterPetService should not have static instance getter',
+        );
+      },
+    );
 
     // ── EncounterProgressService DI registration ───────────────────────────
 
     test(
-        'IEncounterProgressService is registered as lazy singleton in ServiceLocator',
-        () async {
-      final file = File('lib/services/service_locator.dart');
-      expect(
-        await file.exists(),
-        isTrue,
-        reason: 'ServiceLocator source file should exist',
-      );
+      'IEncounterProgressService is registered as lazy singleton in ServiceLocator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'ServiceLocator source file should exist',
+        );
 
-      final content = await file.readAsString();
+        final content = await file.readAsString();
 
-      expect(
-        content.contains('registerLazySingleton<IEncounterProgressService>'),
-        isTrue,
-        reason:
-            'IEncounterProgressService should be registered as lazy singleton in ServiceLocator',
-      );
-    });
+        expect(
+          content.contains('registerLazySingleton<IEncounterProgressService>'),
+          isTrue,
+          reason:
+              'IEncounterProgressService should be registered as lazy singleton in ServiceLocator',
+        );
+      },
+    );
 
     // ── BaseCacheManager DI registration ────────────────────────────────
 
-    test('BaseCacheManager is registered as lazy singleton in ServiceLocator',
-        () async {
-      final file = File('lib/services/service_locator.dart');
-      expect(
-        await file.exists(),
-        isTrue,
-        reason: 'ServiceLocator source file should exist',
-      );
+    test(
+      'BaseCacheManager is registered as lazy singleton in ServiceLocator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'ServiceLocator source file should exist',
+        );
 
-      final content = await file.readAsString();
+        final content = await file.readAsString();
 
-      expect(
-        content.contains('registerLazySingleton<BaseCacheManager>'),
-        isTrue,
-        reason:
-            'BaseCacheManager should be registered as lazy singleton in ServiceLocator',
-      );
+        expect(
+          content.contains('registerLazySingleton<BaseCacheManager>'),
+          isTrue,
+          reason:
+              'BaseCacheManager should be registered as lazy singleton in ServiceLocator',
+        );
 
-      expect(
-        content.contains('DefaultCacheManager()'),
-        isTrue,
-        reason:
-            'BaseCacheManager should be instantiated as DefaultCacheManager in ServiceLocator',
-      );
-    });
-
-    test('BaseCacheManager is injected into EncounterBloc constructor',
-        () async {
-      final file = File('lib/blocs/encounter/encounter_bloc.dart');
-      expect(
-        await file.exists(),
-        isTrue,
-        reason: 'EncounterBloc source file should exist',
-      );
-
-      final content = await file.readAsString();
-
-      expect(
-        content.contains('final BaseCacheManager cacheManager'),
-        isTrue,
-        reason: 'EncounterBloc should have BaseCacheManager field',
-      );
-
-      expect(
-        content.contains('required this.cacheManager'),
-        isTrue,
-        reason:
-            'EncounterBloc constructor should require cacheManager parameter',
-      );
-    });
-
-    test('EncounterBloc does not create DefaultCacheManager instances directly',
-        () async {
-      final file = File('lib/blocs/encounter/encounter_bloc.dart');
-      expect(
-        await file.exists(),
-        isTrue,
-        reason: 'EncounterBloc source file should exist',
-      );
-
-      final content = await file.readAsString();
-
-      expect(
-        content.contains('DefaultCacheManager()'),
-        isFalse,
-        reason:
-            'EncounterBloc should not create DefaultCacheManager instances directly',
-      );
-
-      expect(
-        content.contains('cacheManager.downloadFile'),
-        isTrue,
-        reason: 'EncounterBloc should use injected cacheManager for downloads',
-      );
-    });
-
-    test('EncounterProgressService does not use static singleton antipattern',
-        () async {
-      final file = File('lib/services/encounter_progress_service.dart');
-      expect(
-        await file.exists(),
-        isTrue,
-        reason: 'EncounterProgressService source file should exist',
-      );
-
-      final content = await file.readAsString();
-
-      expect(
-        content.contains('static EncounterProgressService? _instance'),
-        isFalse,
-        reason:
-            'EncounterProgressService should not have static _instance field',
-      );
-
-      expect(
-        content.contains('static EncounterProgressService get instance'),
-        isFalse,
-        reason:
-            'EncounterProgressService should not have static instance getter',
-      );
-    });
+        expect(
+          content.contains('DefaultCacheManager()'),
+          isTrue,
+          reason:
+              'BaseCacheManager should be instantiated as DefaultCacheManager in ServiceLocator',
+        );
+      },
+    );
 
     test(
-        'EncounterBloc depends on IEncounterProgressService interface, not concrete',
-        () async {
-      final file = File('lib/blocs/encounter/encounter_bloc.dart');
-      expect(
-        await file.exists(),
-        isTrue,
-        reason: 'EncounterBloc source file should exist',
-      );
+      'BaseCacheManager is injected into EncounterBloc constructor',
+      () async {
+        final file = File('lib/blocs/encounter/encounter_bloc.dart');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'EncounterBloc source file should exist',
+        );
 
-      final content = await file.readAsString();
+        final content = await file.readAsString();
 
-      expect(
-        content.contains('IEncounterProgressService'),
-        isTrue,
-        reason:
-            'EncounterBloc should depend on IEncounterProgressService interface',
-      );
+        expect(
+          content.contains('final BaseCacheManager cacheManager'),
+          isTrue,
+          reason: 'EncounterBloc should have BaseCacheManager field',
+        );
 
-      expect(
-        content.contains('final EncounterProgressService'),
-        isFalse,
-        reason:
-            'EncounterBloc should not depend on concrete EncounterProgressService',
-      );
-    });
+        expect(
+          content.contains('required this.cacheManager'),
+          isTrue,
+          reason:
+              'EncounterBloc constructor should require cacheManager parameter',
+        );
+      },
+    );
+
+    test(
+      'EncounterBloc does not create DefaultCacheManager instances directly',
+      () async {
+        final file = File('lib/blocs/encounter/encounter_bloc.dart');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'EncounterBloc source file should exist',
+        );
+
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('DefaultCacheManager()'),
+          isFalse,
+          reason:
+              'EncounterBloc should not create DefaultCacheManager instances directly',
+        );
+
+        expect(
+          content.contains('cacheManager.downloadFile'),
+          isTrue,
+          reason:
+              'EncounterBloc should use injected cacheManager for downloads',
+        );
+      },
+    );
+
+    test(
+      'EncounterProgressService does not use static singleton antipattern',
+      () async {
+        final file = File('lib/services/encounter_progress_service.dart');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'EncounterProgressService source file should exist',
+        );
+
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('static EncounterProgressService? _instance'),
+          isFalse,
+          reason:
+              'EncounterProgressService should not have static _instance field',
+        );
+
+        expect(
+          content.contains('static EncounterProgressService get instance'),
+          isFalse,
+          reason:
+              'EncounterProgressService should not have static instance getter',
+        );
+      },
+    );
+
+    test(
+      'EncounterBloc depends on IEncounterProgressService interface, not concrete',
+      () async {
+        final file = File('lib/blocs/encounter/encounter_bloc.dart');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'EncounterBloc source file should exist',
+        );
+
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('IEncounterProgressService'),
+          isTrue,
+          reason:
+              'EncounterBloc should depend on IEncounterProgressService interface',
+        );
+
+        expect(
+          content.contains('final EncounterProgressService'),
+          isFalse,
+          reason:
+              'EncounterBloc should not depend on concrete EncounterProgressService',
+        );
+      },
+    );
 
     // ── BibleReader TTS DI patterns ───────────────────────────────────────────
 
@@ -454,8 +468,11 @@ void main() {
       'BibleReaderPage accepts optional FlutterTts for dependency injection',
       () async {
         final file = File('lib/pages/bible_reader_page.dart');
-        expect(await file.exists(), isTrue,
-            reason: 'BibleReaderPage source file should exist');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'BibleReaderPage source file should exist',
+        );
 
         final content = await file.readAsString();
 
@@ -469,8 +486,9 @@ void main() {
 
         // FlutterTts must NOT be instantiated at field level.
         expect(
-          RegExp(r'final FlutterTts _flutterTts\s*=\s*FlutterTts\(\)')
-              .hasMatch(content),
+          RegExp(
+            r'final FlutterTts _flutterTts\s*=\s*FlutterTts\(\)',
+          ).hasMatch(content),
           isFalse,
           reason:
               'BibleReaderPage must not instantiate FlutterTts at field level; '
@@ -480,92 +498,87 @@ void main() {
     );
 
     test(
-      'BibleReaderPage resolves VoiceSettingsService once in initState, '
-      'not inside _handleTtsPlayPause',
-      () async {
-        final file = File('lib/pages/bible_reader_page.dart');
-        final content = await file.readAsString();
+        'BibleReaderPage resolves VoiceSettingsService once in initState, '
+        'not inside _handleTtsPlayPause', () async {
+      final file = File('lib/pages/bible_reader_page.dart');
+      final content = await file.readAsString();
 
-        // _handleTtsPlayPause must NOT contain an inline getService call.
-        // We check by extracting the method body heuristically.
-        final methodStart =
-            content.indexOf('Future<void> _handleTtsPlayPause(');
-        final methodEnd = content.indexOf('\n  Future<void>', methodStart + 1);
-        final methodBody = methodStart != -1 && methodEnd != -1
-            ? content.substring(methodStart, methodEnd)
-            : '';
+      // _handleTtsPlayPause must NOT contain an inline getService call.
+      // We check by extracting the method body heuristically.
+      final methodStart = content.indexOf('Future<void> _handleTtsPlayPause(');
+      final methodEnd = content.indexOf('\n  Future<void>', methodStart + 1);
+      final methodBody = methodStart != -1 && methodEnd != -1
+          ? content.substring(methodStart, methodEnd)
+          : '';
 
-        expect(
-          methodBody.contains('getService<VoiceSettingsService>()'),
-          isFalse,
-          reason:
-              '_handleTtsPlayPause must not call getService<VoiceSettingsService>() '
-              'inline; resolve in initState and use the stored field instead',
-        );
-      },
-    );
+      expect(
+        methodBody.contains('getService<VoiceSettingsService>()'),
+        isFalse,
+        reason:
+            '_handleTtsPlayPause must not call getService<VoiceSettingsService>() '
+            'inline; resolve in initState and use the stored field instead',
+      );
+    });
 
     test(
-      'BibleReaderTtsMiniplayerPresenter accepts AnalyticsService at '
-      'construction time, not via inline getService<>',
-      () async {
-        final file = File(
-          'lib/widgets/bible/bible_reader_tts_miniplayer_presenter.dart',
-        );
-        expect(await file.exists(), isTrue,
-            reason:
-                'BibleReaderTtsMiniplayerPresenter source file should exist');
+        'BibleReaderTtsMiniplayerPresenter accepts AnalyticsService at '
+        'construction time, not via inline getService<>', () async {
+      final file = File(
+        'lib/widgets/bible/bible_reader_tts_miniplayer_presenter.dart',
+      );
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'BibleReaderTtsMiniplayerPresenter source file should exist',
+      );
 
-        final content = await file.readAsString();
+      final content = await file.readAsString();
 
-        // Constructor must accept an IAnalyticsService parameter (interface, not concrete).
-        expect(
-          content.contains('required IAnalyticsService analyticsService'),
-          isTrue,
-          reason:
-              'BibleReaderTtsMiniplayerPresenter must accept IAnalyticsService '
-              'via constructor for proper dependency injection',
-        );
+      // Constructor must accept an IAnalyticsService parameter (interface, not concrete).
+      expect(
+        content.contains('required IAnalyticsService analyticsService'),
+        isTrue,
+        reason:
+            'BibleReaderTtsMiniplayerPresenter must accept IAnalyticsService '
+            'via constructor for proper dependency injection',
+      );
 
-        // The presenter must NOT import service_locator.dart.
-        expect(
-          content.contains(
-            "import 'package:devocional_nuevo/services/service_locator.dart'",
-          ),
-          isFalse,
-          reason:
-              'BibleReaderTtsMiniplayerPresenter must not import service_locator; '
-              'all services must be injected, never resolved inline',
-        );
+      // The presenter must NOT import service_locator.dart.
+      expect(
+        content.contains(
+          "import 'package:devocional_nuevo/services/service_locator.dart'",
+        ),
+        isFalse,
+        reason:
+            'BibleReaderTtsMiniplayerPresenter must not import service_locator; '
+            'all services must be injected, never resolved inline',
+      );
 
-        // There must be no inline getService<AnalyticsService>() call.
-        expect(
-          content.contains('getService<AnalyticsService>()'),
-          isFalse,
-          reason: 'BibleReaderTtsMiniplayerPresenter must not call '
-              'getService<AnalyticsService>() inline inside handlers',
-        );
-      },
-    );
+      // There must be no inline getService<AnalyticsService>() call.
+      expect(
+        content.contains('getService<AnalyticsService>()'),
+        isFalse,
+        reason: 'BibleReaderTtsMiniplayerPresenter must not call '
+            'getService<AnalyticsService>() inline inside handlers',
+      );
+    });
 
     test(
-      'BibleReaderTtsMiniplayerPresenter exposes onShowVoiceSelector callback '
-      'to eliminate duplicate voice selector paths',
-      () async {
-        final file = File(
-          'lib/widgets/bible/bible_reader_tts_miniplayer_presenter.dart',
-        );
-        final content = await file.readAsString();
+        'BibleReaderTtsMiniplayerPresenter exposes onShowVoiceSelector callback '
+        'to eliminate duplicate voice selector paths', () async {
+      final file = File(
+        'lib/widgets/bible/bible_reader_tts_miniplayer_presenter.dart',
+      );
+      final content = await file.readAsString();
 
-        expect(
-          content.contains('onShowVoiceSelector'),
-          isTrue,
-          reason:
-              'BibleReaderTtsMiniplayerPresenter must have onShowVoiceSelector '
-              'callback so both the page and miniplayer share one implementation',
-        );
-      },
-    );
+      expect(
+        content.contains('onShowVoiceSelector'),
+        isTrue,
+        reason:
+            'BibleReaderTtsMiniplayerPresenter must have onShowVoiceSelector '
+            'callback so both the page and miniplayer share one implementation',
+      );
+    });
 
     // ── DevocionalRepository DI registration ──────────────────────────────────
 
@@ -633,46 +646,50 @@ void main() {
     // ── AnalyticsService DI registration ──────────────────────────────────────
 
     test(
-      'AnalyticsService is registered as lazy singleton under IAnalyticsService '
-      'in ServiceLocator',
-      () async {
-        final file = File('lib/services/service_locator.dart');
-        expect(await file.exists(), isTrue,
-            reason: 'ServiceLocator source file should exist');
+        'AnalyticsService is registered as lazy singleton under IAnalyticsService '
+        'in ServiceLocator', () async {
+      final file = File('lib/services/service_locator.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'ServiceLocator source file should exist',
+      );
 
-        final content = await file.readAsString();
+      final content = await file.readAsString();
 
-        expect(
-          content.contains('registerLazySingleton<IAnalyticsService>'),
-          isTrue,
-          reason:
-              'IAnalyticsService should be registered as lazy singleton in ServiceLocator',
-        );
+      expect(
+        content.contains('registerLazySingleton<IAnalyticsService>'),
+        isTrue,
+        reason:
+            'IAnalyticsService should be registered as lazy singleton in ServiceLocator',
+      );
 
-        expect(
-          content.contains('AnalyticsService()'),
-          isTrue,
-          reason:
-              'AnalyticsService should be instantiated in ServiceLocator registration',
-        );
+      expect(
+        content.contains('AnalyticsService()'),
+        isTrue,
+        reason:
+            'AnalyticsService should be instantiated in ServiceLocator registration',
+      );
 
-        // Verify interface import exists
-        expect(
-          content.contains(
-            "import 'package:devocional_nuevo/services/i_analytics_service.dart'",
-          ),
-          isTrue,
-          reason: 'ServiceLocator should import IAnalyticsService interface',
-        );
-      },
-    );
+      // Verify interface import exists
+      expect(
+        content.contains(
+          "import 'package:devocional_nuevo/services/i_analytics_service.dart'",
+        ),
+        isTrue,
+        reason: 'ServiceLocator should import IAnalyticsService interface',
+      );
+    });
 
     test(
       'AnalyticsService does not use static singleton antipattern',
       () async {
         final file = File('lib/services/analytics_service.dart');
-        expect(await file.exists(), isTrue,
-            reason: 'AnalyticsService source file should exist');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'AnalyticsService source file should exist',
+        );
 
         final content = await file.readAsString();
 
@@ -690,46 +707,45 @@ void main() {
       },
     );
 
-    test(
-      'AnalyticsService implements IAnalyticsService interface',
-      () async {
-        final file = File('lib/services/analytics_service.dart');
-        expect(await file.exists(), isTrue);
+    test('AnalyticsService implements IAnalyticsService interface', () async {
+      final file = File('lib/services/analytics_service.dart');
+      expect(await file.exists(), isTrue);
 
-        final content = await file.readAsString();
+      final content = await file.readAsString();
 
-        expect(
-          content
-              .contains('class AnalyticsService implements IAnalyticsService'),
-          isTrue,
-          reason:
-              'AnalyticsService should implement IAnalyticsService interface',
-        );
+      expect(
+        content.contains('class AnalyticsService implements IAnalyticsService'),
+        isTrue,
+        reason: 'AnalyticsService should implement IAnalyticsService interface',
+      );
 
-        // Verify import of interface
-        expect(
-          content.contains(
-            "import 'package:devocional_nuevo/services/i_analytics_service.dart'",
-          ),
-          isTrue,
-          reason: 'AnalyticsService should import IAnalyticsService interface',
-        );
-      },
-    );
+      // Verify import of interface
+      expect(
+        content.contains(
+          "import 'package:devocional_nuevo/services/i_analytics_service.dart'",
+        ),
+        isTrue,
+        reason: 'AnalyticsService should import IAnalyticsService interface',
+      );
+    });
 
     test(
       'FakeAnalyticsService in test helpers implements IAnalyticsService',
       () async {
         final file = File('test/helpers/test_helpers.dart');
-        expect(await file.exists(), isTrue,
-            reason: 'Test helpers should exist');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'Test helpers should exist',
+        );
 
         final content = await file.readAsString();
 
         // Use regex to handle line breaks in the class declaration
         expect(
-          RegExp(r'class FakeAnalyticsService extends AnalyticsService\s+implements IAnalyticsService')
-              .hasMatch(content),
+          RegExp(
+            r'class FakeAnalyticsService extends AnalyticsService\s+implements IAnalyticsService',
+          ).hasMatch(content),
           isTrue,
           reason:
               'FakeAnalyticsService should implement IAnalyticsService interface',
@@ -751,8 +767,11 @@ void main() {
       'GoogleDriveAuthService has no static _singletonInstance field',
       () async {
         final file = File('lib/services/backup/google_drive_auth_service.dart');
-        expect(await file.exists(), isTrue,
-            reason: 'GoogleDriveAuthService source file should exist');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'GoogleDriveAuthService source file should exist',
+        );
 
         final content = await file.readAsString();
 
@@ -829,9 +848,7 @@ void main() {
         final content = await file.readAsString();
 
         expect(
-          content.contains(
-            'registerLazySingleton<IGoogleDriveAuthService>',
-          ),
+          content.contains('registerLazySingleton<IGoogleDriveAuthService>'),
           isTrue,
           reason:
               'IGoogleDriveAuthService must be registered under its interface '
@@ -872,40 +889,38 @@ void main() {
     );
 
     test(
-      'Codebase does not instantiate AnalyticsService directly outside '
-      'service_locator.dart',
-      () async {
-        // Check lib directory (excluding service_locator.dart)
-        final libDir = Directory('lib');
+        'Codebase does not instantiate AnalyticsService directly outside '
+        'service_locator.dart', () async {
+      // Check lib directory (excluding service_locator.dart)
+      final libDir = Directory('lib');
+      expect(
+        await libDir.exists(),
+        isTrue,
+        reason: 'lib directory should exist',
+      );
+
+      final libFiles = await libDir
+          .list(recursive: true)
+          .where(
+            (entity) =>
+                entity is File &&
+                entity.path.endsWith('.dart') &&
+                !entity.path.contains('service_locator.dart'),
+          )
+          .cast<File>()
+          .toList();
+
+      for (final file in libFiles) {
+        final content = await file.readAsString();
         expect(
-          await libDir.exists(),
-          isTrue,
-          reason: 'lib directory should exist',
+          content.contains('AnalyticsService()'),
+          isFalse,
+          reason:
+              'File ${file.path} should not directly instantiate AnalyticsService(); '
+              'use getService<IAnalyticsService>() or dependency injection',
         );
-
-        final libFiles = await libDir
-            .list(recursive: true)
-            .where(
-              (entity) =>
-                  entity is File &&
-                  entity.path.endsWith('.dart') &&
-                  !entity.path.contains('service_locator.dart'),
-            )
-            .cast<File>()
-            .toList();
-
-        for (final file in libFiles) {
-          final content = await file.readAsString();
-          expect(
-            content.contains('AnalyticsService()'),
-            isFalse,
-            reason:
-                'File ${file.path} should not directly instantiate AnalyticsService(); '
-                'use getService<IAnalyticsService>() or dependency injection',
-          );
-        }
-      },
-    );
+      }
+    });
   });
 }
 

@@ -643,8 +643,9 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
   },
   'Gray': {
     'light': _baseLightTheme.copyWith(
-      scaffoldBackgroundColor:
-          const Color(0xFFF5F5F5), // Paper-like gray background
+      scaffoldBackgroundColor: const Color(
+        0xFFF5F5F5,
+      ), // Paper-like gray background
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.grey[600],
         foregroundColor: Colors.white,
@@ -681,8 +682,10 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         trackHeight: 4,
       ),
       inputDecorationTheme: InputDecorationTheme(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         filled: true,
         fillColor: const Color(0xFFFAFAFA),
         border: const OutlineInputBorder(
@@ -758,8 +761,10 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         trackHeight: 4,
       ),
       inputDecorationTheme: InputDecorationTheme(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         filled: true,
         fillColor: const Color(0xFF3A3A3A),
         border: const OutlineInputBorder(

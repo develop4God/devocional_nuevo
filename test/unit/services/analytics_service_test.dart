@@ -754,45 +754,44 @@ void main() {
     });
 
     group('logBibleOpen', () {
-      test('should log bible_open event with all optional parameters',
-          () async {
-        // Arrange
-        when(
-          mockAnalytics.logEvent(
-            name: 'bible_open',
-            parameters: anyNamed('parameters'),
-          ),
-        ).thenAnswer((_) async => {});
+      test(
+        'should log bible_open event with all optional parameters',
+        () async {
+          // Arrange
+          when(
+            mockAnalytics.logEvent(
+              name: 'bible_open',
+              parameters: anyNamed('parameters'),
+            ),
+          ).thenAnswer((_) async => {});
 
-        // Act
-        await analyticsService.logBibleOpen(
-          translation: 'RVR1960',
-          book: 'John',
-          chapter: 3,
-        );
+          // Act
+          await analyticsService.logBibleOpen(
+            translation: 'RVR1960',
+            book: 'John',
+            chapter: 3,
+          );
 
-        // Assert
-        final captured = verify(
-          mockAnalytics.logEvent(
-            name: 'bible_open',
-            parameters: captureAnyNamed('parameters'),
-          ),
-        ).captured;
+          // Assert
+          final captured = verify(
+            mockAnalytics.logEvent(
+              name: 'bible_open',
+              parameters: captureAnyNamed('parameters'),
+            ),
+          ).captured;
 
-        expect(captured.length, 1);
-        final params = captured[0] as Map<String, Object>;
-        expect(params['translation'], 'RVR1960');
-        expect(params['book'], 'John');
-        expect(params['chapter'], 3);
-      });
+          expect(captured.length, 1);
+          final params = captured[0] as Map<String, Object>;
+          expect(params['translation'], 'RVR1960');
+          expect(params['book'], 'John');
+          expect(params['chapter'], 3);
+        },
+      );
 
       test('should log bible_open event without parameters', () async {
         // Arrange
         when(
-          mockAnalytics.logEvent(
-            name: 'bible_open',
-            parameters: null,
-          ),
+          mockAnalytics.logEvent(name: 'bible_open', parameters: null),
         ).thenAnswer((_) async => {});
 
         // Act
@@ -800,10 +799,7 @@ void main() {
 
         // Assert
         verify(
-          mockAnalytics.logEvent(
-            name: 'bible_open',
-            parameters: null,
-          ),
+          mockAnalytics.logEvent(name: 'bible_open', parameters: null),
         ).called(1);
       });
 
@@ -826,45 +822,44 @@ void main() {
     });
 
     group('logTtsBiblePlay', () {
-      test('should log tts_bible_play event with all optional parameters',
-          () async {
-        // Arrange
-        when(
-          mockAnalytics.logEvent(
-            name: 'tts_bible_play',
-            parameters: anyNamed('parameters'),
-          ),
-        ).thenAnswer((_) async => {});
+      test(
+        'should log tts_bible_play event with all optional parameters',
+        () async {
+          // Arrange
+          when(
+            mockAnalytics.logEvent(
+              name: 'tts_bible_play',
+              parameters: anyNamed('parameters'),
+            ),
+          ).thenAnswer((_) async => {});
 
-        // Act
-        await analyticsService.logTtsBiblePlay(
-          translation: 'RVR1960',
-          book: 'Psalms',
-          chapter: 23,
-        );
+          // Act
+          await analyticsService.logTtsBiblePlay(
+            translation: 'RVR1960',
+            book: 'Psalms',
+            chapter: 23,
+          );
 
-        // Assert
-        final captured = verify(
-          mockAnalytics.logEvent(
-            name: 'tts_bible_play',
-            parameters: captureAnyNamed('parameters'),
-          ),
-        ).captured;
+          // Assert
+          final captured = verify(
+            mockAnalytics.logEvent(
+              name: 'tts_bible_play',
+              parameters: captureAnyNamed('parameters'),
+            ),
+          ).captured;
 
-        expect(captured.length, 1);
-        final params = captured[0] as Map<String, Object>;
-        expect(params['translation'], 'RVR1960');
-        expect(params['book'], 'Psalms');
-        expect(params['chapter'], 23);
-      });
+          expect(captured.length, 1);
+          final params = captured[0] as Map<String, Object>;
+          expect(params['translation'], 'RVR1960');
+          expect(params['book'], 'Psalms');
+          expect(params['chapter'], 23);
+        },
+      );
 
       test('should log tts_bible_play event without parameters', () async {
         // Arrange
         when(
-          mockAnalytics.logEvent(
-            name: 'tts_bible_play',
-            parameters: null,
-          ),
+          mockAnalytics.logEvent(name: 'tts_bible_play', parameters: null),
         ).thenAnswer((_) async => {});
 
         // Act
@@ -872,10 +867,7 @@ void main() {
 
         // Assert
         verify(
-          mockAnalytics.logEvent(
-            name: 'tts_bible_play',
-            parameters: null,
-          ),
+          mockAnalytics.logEvent(name: 'tts_bible_play', parameters: null),
         ).called(1);
       });
 

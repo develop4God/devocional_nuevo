@@ -84,7 +84,8 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
         final tier = rec.$1;
         final isRestore = rec.$2;
         debugPrint(
-            '✅ [SupporterBloc] onPurchaseDelivered -> ${tier.productId} (isRestore=$isRestore)');
+          '✅ [SupporterBloc] onPurchaseDelivered -> ${tier.productId} (isRestore=$isRestore)',
+        );
         add(_PurchaseDelivered(tier, isRestore: isRestore));
       },
       onError: (Object error) {
@@ -142,13 +143,15 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
         }
       }
 
-      emit(SupporterLoaded(
-        purchasedLevels: _iapService.purchasedLevels,
-        isBillingAvailable: _iapService.isAvailable,
-        storePrices: storePrices,
-        goldSupporterName: goldName,
-        initStatus: _iapService.initStatus,
-      ));
+      emit(
+        SupporterLoaded(
+          purchasedLevels: _iapService.purchasedLevels,
+          isBillingAvailable: _iapService.isAvailable,
+          storePrices: storePrices,
+          goldSupporterName: goldName,
+          initStatus: _iapService.initStatus,
+        ),
+      );
     } catch (e) {
       debugPrint('❌ [SupporterBloc] Initialize error: $e');
       emit(SupporterError(e.toString()));
@@ -171,19 +174,23 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     }
 
     debugPrint(
-        '🛒 [SupporterBloc] Starting purchase -> ${event.tier.productId}');
+      '🛒 [SupporterBloc] Starting purchase -> ${event.tier.productId}',
+    );
     emit(current.copyWith(purchasingProductId: event.tier.productId));
 
     final result = await _iapService.purchaseTier(event.tier);
     debugPrint(
-        '🛒 [SupporterBloc] Purchase result for ${event.tier.productId} -> $result');
+      '🛒 [SupporterBloc] Purchase result for ${event.tier.productId} -> $result',
+    );
 
     if (!isClosed) {
       if (result == IapResult.error) {
-        emit((state as SupporterLoaded).copyWith(
-          clearPurchasing: true,
-          errorMessage: 'purchase_error',
-        ));
+        emit(
+          (state as SupporterLoaded).copyWith(
+            clearPurchasing: true,
+            errorMessage: 'purchase_error',
+          ),
+        );
       }
       // For IapResult.pending: keep the loading indicator until
       // _onPurchaseDelivered fires from the stream.
@@ -213,23 +220,23 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
       // restorePurchases() throws a Google Billing error.
       final afterState = state;
       if (!isClosed && afterState is SupporterLoaded) {
-        emit(afterState.copyWith(
-          purchasedLevels: _iapService.purchasedLevels,
-          isRestoring: false,
-        ));
+        emit(
+          afterState.copyWith(
+            purchasedLevels: _iapService.purchasedLevels,
+            isRestoring: false,
+          ),
+        );
       }
     }
   }
 
-  void _onPurchaseFailed(
-    _PurchaseFailed event,
-    Emitter<SupporterState> emit,
-  ) {
+  void _onPurchaseFailed(_PurchaseFailed event, Emitter<SupporterState> emit) {
     final current = state;
     if (current is! SupporterLoaded) return;
     debugPrint('❌ [SupporterBloc] Purchase failed -> ${event.productId}');
-    emit(current.copyWith(
-        clearPurchasing: true, errorMessage: 'purchase_error'));
+    emit(
+      current.copyWith(clearPurchasing: true, errorMessage: 'purchase_error'),
+    );
   }
 
   /// Clears the loading spinner when the user cancels (backs out of) the
@@ -242,7 +249,8 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     final current = state;
     if (current is! SupporterLoaded) return;
     debugPrint(
-        '🚫 [SupporterBloc] Purchase cancelled by user -> ${event.productId}');
+      '🚫 [SupporterBloc] Purchase cancelled by user -> ${event.productId}',
+    );
     emit(current.copyWith(clearPurchasing: true));
   }
 
@@ -254,12 +262,15 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     if (current is! SupporterLoaded) return;
 
     debugPrint(
-        '✅ [SupporterBloc] purchase delivered -> ${event.tier.productId}');
-    emit(current.copyWith(
-      purchasedLevels: _iapService.purchasedLevels,
-      clearPurchasing: true,
-      justDeliveredTier: event.isRestore ? null : event.tier,
-    ));
+      '✅ [SupporterBloc] purchase delivered -> ${event.tier.productId}',
+    );
+    emit(
+      current.copyWith(
+        purchasedLevels: _iapService.purchasedLevels,
+        clearPurchasing: true,
+        justDeliveredTier: event.isRestore ? null : event.tier,
+      ),
+    );
   }
 
   Future<void> _onSaveGoldName(
@@ -275,17 +286,16 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
       // the post-purchase flow.  Without this, the emitted state still carries
       // justDeliveredTier != null, causing the listener to call
       // _showSuccessDialog() a second time before ClearSupporterError fires.
-      emit(current.copyWith(
-        goldSupporterName: event.name,
-        clearJustDelivered: true,
-      ));
+      emit(
+        current.copyWith(
+          goldSupporterName: event.name,
+          clearJustDelivered: true,
+        ),
+      );
     }
   }
 
-  void _onClearError(
-    ClearSupporterError event,
-    Emitter<SupporterState> emit,
-  ) {
+  void _onClearError(ClearSupporterError event, Emitter<SupporterState> emit) {
     final current = state;
     if (current is SupporterLoaded) {
       emit(current.copyWith(clearError: true, clearJustDelivered: true));
@@ -330,7 +340,8 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     // Directly add the internal delivery event — bypasses real billing.
     add(_PurchaseDelivered(event.tier));
     debugPrint(
-        '🛒 [SupporterBloc] DEBUG: simulated purchase for ${event.tier.productId}');
+      '🛒 [SupporterBloc] DEBUG: simulated purchase for ${event.tier.productId}',
+    );
   }
 
   /// Resets all locally-stored IAP state for retesting.

@@ -64,13 +64,13 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
       curve: const Interval(0.5, 0.9, curve: Curves.easeIn),
     );
 
-    _contentSlide = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.5, 1.0, curve: Curves.easeOutCubic),
-    ));
+    _contentSlide =
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.5, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
 
     _controller.forward();
 
@@ -124,11 +124,13 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
       ).timeout(_kFirstCardPrecacheTimeout);
       sw.stop();
       debugPrint(
-          '✅ [Intro/${widget.entry.id}] card[0] precache DONE in ${sw.elapsedMilliseconds}ms');
+        '✅ [Intro/${widget.entry.id}] card[0] precache DONE in ${sw.elapsedMilliseconds}ms',
+      );
     } catch (e) {
       sw.stop();
       debugPrint(
-          '⚠️ [Intro/${widget.entry.id}] card[0] precache FAILED/TIMEOUT after ${sw.elapsedMilliseconds}ms — $e');
+        '⚠️ [Intro/${widget.entry.id}] card[0] precache FAILED/TIMEOUT after ${sw.elapsedMilliseconds}ms — $e',
+      );
       // Non-fatal — card widget has its own errorWidget fallback.
     }
   }
@@ -139,7 +141,8 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
     if (study == null) return;
 
     debugPrint(
-        '🚀 [Intro/${widget.entry.id}] BEGIN tapped — ${study.cards.length} cards');
+      '🚀 [Intro/${widget.entry.id}] BEGIN tapped — ${study.cards.length} cards',
+    );
 
     // Await first card image — already in cache in most cases (instant).
     // Capped at 500ms so a slow connection never blocks the user.
@@ -154,23 +157,29 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
           : null;
       if (url != null) {
         debugPrint(
-            '🖼️ [Intro/${widget.entry.id}] card[1] fire-and-forget START → $url');
+          '🖼️ [Intro/${widget.entry.id}] card[1] fire-and-forget START → $url',
+        );
         safePrecacheImage(
           CachedNetworkImageProvider(url),
           context,
           debugTag: '[Intro/${widget.entry.id}] card[1]',
-        ).then((_) => debugPrint(
-            '✅ [Intro/${widget.entry.id}] card[1] fire-and-forget DONE'));
+        ).then(
+          (_) => debugPrint(
+            '✅ [Intro/${widget.entry.id}] card[1] fire-and-forget DONE',
+          ),
+        );
       } else {
         debugPrint(
-            '🖼️ [Intro/${widget.entry.id}] card[1] — no imageUrl, skip');
+          '🖼️ [Intro/${widget.entry.id}] card[1] — no imageUrl, skip',
+        );
       }
     }
 
     if (!mounted) return;
 
     debugPrint(
-        '🎬 [Intro/${widget.entry.id}] → navigating to EncounterDetailPage (600ms fade)');
+      '🎬 [Intro/${widget.entry.id}] → navigating to EncounterDetailPage (600ms fade)',
+    );
 
     getService<IAnalyticsService>().logEncounterAction(
       action: 'encounter_started',
@@ -196,319 +205,328 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
         _parseColor(entry.accentColor) ?? const Color(0xFF1e3a5f);
 
     return BlocListener<EncounterBloc, EncounterState>(
-        listener: (context, state) {
-          if (state is EncounterLoaded &&
-              state.isStudyLoaded(widget.entry.id)) {
-            final study = state.getStudy(widget.entry.id);
-            if (study == null) return;
-            // Fire-and-forget preload cards 0 and 1 into memory cache
-            // so they render instantly when the user opens the detail page.
-            for (int i = 0; i < study.cards.length && i < 2; i++) {
-              final base = study.cards[i].imageUrl;
-              final url = base != null
-                  ? Constants.getEncounterImageUrl(base,
-                      encounterId: widget.entry.id)
-                  : null;
-              if (url != null) {
-                safePrecacheImage(
-                  CachedNetworkImageProvider(url),
-                  context,
-                  debugTag:
-                      '[Intro/${widget.entry.id}] card[$i] (BlocListener)',
-                );
-              }
+      listener: (context, state) {
+        if (state is EncounterLoaded && state.isStudyLoaded(widget.entry.id)) {
+          final study = state.getStudy(widget.entry.id);
+          if (study == null) return;
+          // Fire-and-forget preload cards 0 and 1 into memory cache
+          // so they render instantly when the user opens the detail page.
+          for (int i = 0; i < study.cards.length && i < 2; i++) {
+            final base = study.cards[i].imageUrl;
+            final url = base != null
+                ? Constants.getEncounterImageUrl(
+                    base,
+                    encounterId: widget.entry.id,
+                  )
+                : null;
+            if (url != null) {
+              safePrecacheImage(
+                CachedNetworkImageProvider(url),
+                context,
+                debugTag: '[Intro/${widget.entry.id}] card[$i] (BlocListener)',
+              );
             }
           }
-        },
-        child: Scaffold(
-          backgroundColor: const Color(0xFF0a0e1a),
-          body: Stack(
-            fit: StackFit.expand,
-            children: [
-              // 1. CINEMATIC BACKGROUND IMAGE
-              if (entry.introImage != null)
-                FadeTransition(
-                  opacity: _imageOpacity,
-                  child: EncounterImageWidget(
-                    baseFilename: entry.introImage!,
-                    encounterId: entry.id,
-                    imageVersion: entry.imageVersion,
-                    fit: BoxFit.cover,
-                    fallbackColor: const Color(0xFF0a0e1a),
-                  ),
-                )
-              else
-                Container(color: const Color(0xFF0a0e1a)),
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0a0e1a),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // 1. CINEMATIC BACKGROUND IMAGE
+            if (entry.introImage != null)
+              FadeTransition(
+                opacity: _imageOpacity,
+                child: EncounterImageWidget(
+                  baseFilename: entry.introImage!,
+                  encounterId: entry.id,
+                  imageVersion: entry.imageVersion,
+                  fit: BoxFit.cover,
+                  fallbackColor: const Color(0xFF0a0e1a),
+                ),
+              )
+            else
+              Container(color: const Color(0xFF0a0e1a)),
 
-              // 2. GRADIENT OVERLAYS
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.3),
-                      Colors.black.withValues(alpha: 0.1),
-                      const Color(0xFF0a0e1a).withValues(alpha: 0.95),
-                      const Color(0xFF0a0e1a),
-                    ],
-                    stops: const [0.0, 0.2, 0.7, 1.0],
-                  ),
+            // 2. GRADIENT OVERLAYS
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.3),
+                    Colors.black.withValues(alpha: 0.1),
+                    const Color(0xFF0a0e1a).withValues(alpha: 0.95),
+                    const Color(0xFF0a0e1a),
+                  ],
+                  stops: const [0.0, 0.2, 0.7, 1.0],
                 ),
               ),
+            ),
 
-              // 3. DECORATIVE ORBS (For depth)
-              Positioned(
-                top: 100,
-                left: -100,
-                child:
-                    _Orb(color: accentColor.withValues(alpha: 0.2), size: 400),
-              ),
+            // 3. DECORATIVE ORBS (For depth)
+            Positioned(
+              top: 100,
+              left: -100,
+              child: _Orb(color: accentColor.withValues(alpha: 0.2), size: 400),
+            ),
 
-              // 4. MAIN CONTENT
-              SafeArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Top Action Bar
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: IconButton(
-                        icon: const Icon(Icons.close,
-                            color: Colors.white70, size: 28),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
+            // 4. MAIN CONTENT
+            SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top Action Bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white70,
+                        size: 28,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
 
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Spacer(),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Spacer(),
 
-                            const SizedBox(height: 40),
+                          const SizedBox(height: 40),
 
-                            // Text Reveal Section
-                            FadeTransition(
-                              opacity: _contentFade,
-                              child: SlideTransition(
-                                position: _contentSlide,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    AutoSizeText(
-                                      entry.titleFor(widget.lang),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 44,
-                                        fontWeight: FontWeight.w900,
-                                        height: 1.0,
-                                        letterSpacing: -1.5,
-                                      ),
-                                      maxLines: 2,
+                          // Text Reveal Section
+                          FadeTransition(
+                            opacity: _contentFade,
+                            child: SlideTransition(
+                              position: _contentSlide,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  AutoSizeText(
+                                    entry.titleFor(widget.lang),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 44,
+                                      fontWeight: FontWeight.w900,
+                                      height: 1.0,
+                                      letterSpacing: -1.5,
                                     ),
+                                    maxLines: 2,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    entry.subtitleFor(widget.lang),
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w400,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 40),
+
+                                  // Meta Features
+                                  _FeatureRow(
+                                    icon: Icons.auto_stories_outlined,
+                                    label: entry.scriptureFor(widget.lang),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _FeatureRow(
+                                    icon: Icons.bolt_rounded,
+                                    label:
+                                        '${entry.readingMinutesFor(widget.lang)} ${'encounters.min_immersive_journey'.tr()}',
+                                  ),
+                                  if (entry.testament != null) ...[
                                     const SizedBox(height: 16),
-                                    Text(
-                                      entry.subtitleFor(widget.lang),
-                                      style: TextStyle(
-                                        color:
-                                            Colors.white.withValues(alpha: 0.7),
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w400,
-                                        height: 1.4,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 40),
-
-                                    // Meta Features
                                     _FeatureRow(
-                                      icon: Icons.auto_stories_outlined,
-                                      label: entry.scriptureFor(widget.lang),
+                                      icon: Icons.explore_rounded,
+                                      label: entry.testament!.toLowerCase() ==
+                                              'new'
+                                          ? 'encounters.new_testament'.tr()
+                                          : 'encounters.old_testament'.tr(),
                                     ),
-                                    const SizedBox(height: 16),
-                                    _FeatureRow(
-                                      icon: Icons.bolt_rounded,
-                                      label:
-                                          '${entry.readingMinutesFor(widget.lang)} ${'encounters.min_immersive_journey'.tr()}',
-                                    ),
-                                    if (entry.testament != null) ...[
-                                      const SizedBox(height: 16),
-                                      _FeatureRow(
-                                        icon: Icons.explore_rounded,
-                                        label: entry.testament!.toLowerCase() ==
-                                                'new'
-                                            ? 'encounters.new_testament'.tr()
-                                            : 'encounters.old_testament'.tr(),
-                                      ),
-                                    ],
                                   ],
-                                ),
+                                ],
                               ),
                             ),
+                          ),
 
-                            const SizedBox(height: 60),
-                          ],
-                        ),
+                          const SizedBox(height: 60),
+                        ],
                       ),
                     ),
+                  ),
 
-                    // BOTTOM ACTION AREA
-                    FadeTransition(
-                      opacity: _contentFade,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(32, 0, 32, 48),
-                        child: BlocBuilder<EncounterBloc, EncounterState>(
-                          builder: (context, state) {
-                            final loadedState =
-                                state is EncounterLoaded ? state : null;
-                            final isLoaded = loadedState != null &&
-                                loadedState.isStudyLoaded(entry.id);
-                            // Show error label if study failed to load but we have
-                            // an errorMessage (lets user know something went wrong)
-                            final hasError = loadedState?.errorMessage != null;
+                  // BOTTOM ACTION AREA
+                  FadeTransition(
+                    opacity: _contentFade,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(32, 0, 32, 48),
+                      child: BlocBuilder<EncounterBloc, EncounterState>(
+                        builder: (context, state) {
+                          final loadedState =
+                              state is EncounterLoaded ? state : null;
+                          final isLoaded = loadedState != null &&
+                              loadedState.isStudyLoaded(entry.id);
+                          // Show error label if study failed to load but we have
+                          // an errorMessage (lets user know something went wrong)
+                          final hasError = loadedState?.errorMessage != null;
 
-                            return SizedBox(
-                              width: double.infinity,
-                              height: 72,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  // Modern Gold Gradient Button
-                                  Container(
-                                    width: double.infinity,
-                                    height: 72,
-                                    decoration: BoxDecoration(
-                                      gradient: isLoaded
-                                          ? const LinearGradient(
-                                              colors: [
-                                                Color(
-                                                    0xFFB8860B), // darker gold
-                                                Color(
-                                                    0xFFFFD700), // bright gold
-                                                Color(0xFFFFFFE0), // light gold
-                                                Color(
-                                                    0xFFFFD700), // bright gold
-                                                Color(
-                                                    0xFFB8860B), // darker gold
-                                              ],
-                                              stops: [
-                                                0.0,
-                                                0.25,
-                                                0.5,
-                                                0.75,
-                                                1.0
-                                              ],
-                                              begin: Alignment.centerLeft,
-                                              end: Alignment.centerRight,
-                                            )
-                                          : LinearGradient(
-                                              colors: [
-                                                const Color(0xFFB8860B)
-                                                    .withValues(alpha: 0.6),
-                                                const Color(0xFFFFD700)
-                                                    .withValues(alpha: 0.6),
-                                                const Color(0xFFFFFFE0)
-                                                    .withValues(alpha: 0.6),
-                                                const Color(0xFFFFD700)
-                                                    .withValues(alpha: 0.6),
-                                                const Color(0xFFB8860B)
-                                                    .withValues(alpha: 0.6),
-                                              ],
-                                              stops: const [
-                                                0.0,
-                                                0.25,
-                                                0.5,
-                                                0.75,
-                                                1.0
-                                              ],
-                                              begin: Alignment.centerLeft,
-                                              end: Alignment.centerRight,
-                                            ),
-                                      borderRadius: BorderRadius.circular(24),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFFFFD700)
-                                              .withValues(
-                                                  alpha: isLoaded ? 0.6 : 0.3),
-                                          blurRadius: isLoaded ? 24 : 12,
-                                          spreadRadius: isLoaded ? 2 : 1,
-                                          offset: const Offset(0, 8),
-                                        ),
-                                        if (isLoaded)
-                                          BoxShadow(
-                                            color: const Color(0xFFFFD700)
-                                                .withValues(alpha: 0.3),
-                                            blurRadius: 12,
-                                            spreadRadius: 4,
-                                            offset: const Offset(0, 0),
+                          return SizedBox(
+                            width: double.infinity,
+                            height: 72,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Modern Gold Gradient Button
+                                Container(
+                                  width: double.infinity,
+                                  height: 72,
+                                  decoration: BoxDecoration(
+                                    gradient: isLoaded
+                                        ? const LinearGradient(
+                                            colors: [
+                                              Color(0xFFB8860B), // darker gold
+                                              Color(0xFFFFD700), // bright gold
+                                              Color(0xFFFFFFE0), // light gold
+                                              Color(0xFFFFD700), // bright gold
+                                              Color(0xFFB8860B), // darker gold
+                                            ],
+                                            stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
+                                          )
+                                        : LinearGradient(
+                                            colors: [
+                                              const Color(
+                                                0xFFB8860B,
+                                              ).withValues(alpha: 0.6),
+                                              const Color(
+                                                0xFFFFD700,
+                                              ).withValues(alpha: 0.6),
+                                              const Color(
+                                                0xFFFFFFE0,
+                                              ).withValues(alpha: 0.6),
+                                              const Color(
+                                                0xFFFFD700,
+                                              ).withValues(alpha: 0.6),
+                                              const Color(
+                                                0xFFB8860B,
+                                              ).withValues(alpha: 0.6),
+                                            ],
+                                            stops: const [
+                                              0.0,
+                                              0.25,
+                                              0.5,
+                                              0.75,
+                                              1.0,
+                                            ],
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
                                           ),
-                                      ],
-                                    ),
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: isLoaded
-                                            ? () => _beginEncounter(loadedState)
-                                            : null,
-                                        borderRadius: BorderRadius.circular(24),
-                                        splashColor:
-                                            Colors.white.withValues(alpha: 0.3),
-                                        highlightColor:
-                                            Colors.white.withValues(alpha: 0.1),
-                                        child: Center(
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 24, vertical: 8),
-                                            child: AutoSizeText(
-                                              hasError
-                                                  ? 'encounters.error_load'.tr()
-                                                  : 'encounters.enter_experience'
-                                                      .tr(),
-                                              maxLines: 2,
-                                              textAlign: TextAlign.center,
-                                              minFontSize: 12,
-                                              maxFontSize: 18,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w900,
-                                                letterSpacing: 1.5,
-                                                color: isLoaded
-                                                    ? const Color(0xFF0a0e1a)
-                                                    : const Color(0xFF0a0e1a)
-                                                        .withValues(alpha: 0.6),
-                                              ),
+                                    borderRadius: BorderRadius.circular(24),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color:
+                                            const Color(0xFFFFD700).withValues(
+                                          alpha: isLoaded ? 0.6 : 0.3,
+                                        ),
+                                        blurRadius: isLoaded ? 24 : 12,
+                                        spreadRadius: isLoaded ? 2 : 1,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                      if (isLoaded)
+                                        BoxShadow(
+                                          color: const Color(
+                                            0xFFFFD700,
+                                          ).withValues(alpha: 0.3),
+                                          blurRadius: 12,
+                                          spreadRadius: 4,
+                                          offset: const Offset(0, 0),
+                                        ),
+                                    ],
+                                  ),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: isLoaded
+                                          ? () => _beginEncounter(loadedState)
+                                          : null,
+                                      borderRadius: BorderRadius.circular(24),
+                                      splashColor: Colors.white.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      highlightColor: Colors.white.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      child: Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 24,
+                                            vertical: 8,
+                                          ),
+                                          child: AutoSizeText(
+                                            hasError
+                                                ? 'encounters.error_load'.tr()
+                                                : 'encounters.enter_experience'
+                                                    .tr(),
+                                            maxLines: 2,
+                                            textAlign: TextAlign.center,
+                                            minFontSize: 12,
+                                            maxFontSize: 18,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 1.5,
+                                              color: isLoaded
+                                                  ? const Color(0xFF0a0e1a)
+                                                  : const Color(
+                                                      0xFF0a0e1a,
+                                                    ).withValues(alpha: 0.6),
                                             ),
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                  // Spinner overlay while study is fetching
-                                  if (!isLoaded && !hasError)
-                                    const SizedBox(
-                                      height: 24,
-                                      width: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 3,
-                                        valueColor: AlwaysStoppedAnimation(
-                                            Color(0xFFFFD700)),
+                                ),
+                                // Spinner overlay while study is fetching
+                                if (!isLoaded && !hasError)
+                                  const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 3,
+                                      valueColor: AlwaysStoppedAnimation(
+                                        Color(0xFFFFD700),
                                       ),
                                     ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ));
+            ),
+          ],
+        ),
+      ),
+    );
   } // closes BlocListener child: Scaffold
 
   Color? _parseColor(String? hex) {
@@ -536,11 +554,7 @@ class _Orb extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         boxShadow: [
-          BoxShadow(
-            color: color,
-            blurRadius: size / 2,
-            spreadRadius: 20,
-          ),
+          BoxShadow(color: color, blurRadius: size / 2, spreadRadius: 20),
         ],
       ),
     );

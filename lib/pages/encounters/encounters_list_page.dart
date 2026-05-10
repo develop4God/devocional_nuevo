@@ -54,8 +54,9 @@ class _EncountersListPageState extends State<EncountersListPage>
     final bloc = context.read<EncounterBloc>();
     // Snapshot completed IDs so we can detect new ones on return
     if (bloc.state is EncounterLoaded) {
-      _previousCompletedIds =
-          Set.from((bloc.state as EncounterLoaded).completedIds);
+      _previousCompletedIds = Set.from(
+        (bloc.state as EncounterLoaded).completedIds,
+      );
     }
     if (bloc.state is! EncounterLoaded) {
       final lang = context.read<DevocionalProvider>().selectedLanguage;
@@ -150,9 +151,7 @@ class _EncountersListPageState extends State<EncountersListPage>
           if (_showGridOverlay) _toggleGridOverlay();
         },
         child: Scaffold(
-          appBar: CustomAppBar(
-            titleText: 'encounters.section_title'.tr(),
-          ),
+          appBar: CustomAppBar(titleText: 'encounters.section_title'.tr()),
           backgroundColor: colorScheme.brightness == Brightness.dark
               ? const Color(0xFF0a0e1a)
               : Colors.grey[50],
@@ -272,8 +271,9 @@ class _EncountersListPageState extends State<EncountersListPage>
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'encounters.complete_to_unlock'
-                                .tr({'title': prerequisiteTitle}),
+                            'encounters.complete_to_unlock'.tr({
+                              'title': prerequisiteTitle,
+                            }),
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: Colors.white,
@@ -405,9 +405,9 @@ class _EncountersListPageState extends State<EncountersListPage>
           ElevatedButton(
             onPressed: () {
               final lang = context.read<DevocionalProvider>().selectedLanguage;
-              context
-                  .read<EncounterBloc>()
-                  .add(LoadEncounterIndex(languageCode: lang));
+              context.read<EncounterBloc>().add(
+                    LoadEncounterIndex(languageCode: lang),
+                  );
             },
             child: Text('encounters.retry'.tr()),
           ),
@@ -451,7 +451,7 @@ class _EncounterCard extends StatelessWidget {
                     color: Colors.black.withValues(alpha: 0.3),
                     blurRadius: 25,
                     offset: const Offset(0, 12),
-                  )
+                  ),
                 ]
               : [],
         ),
@@ -523,7 +523,8 @@ class _EncounterCard extends StatelessWidget {
                             color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                             border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.1)),
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
                           ),
                           child: Text(
                             entry.emoji ?? '✨',
@@ -622,7 +623,9 @@ class _EncounterCard extends StatelessWidget {
                   child: Center(
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 28, vertical: 14),
+                        horizontal: 28,
+                        vertical: 14,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(30),

@@ -30,8 +30,9 @@ void main() {
         mockito
             .when(mockRemoteConfig.getBool('show_backup_section'))
             .thenReturn(true);
-        final remoteConfigService =
-            RemoteConfigService.create(remoteConfig: mockRemoteConfig);
+        final remoteConfigService = RemoteConfigService.create(
+          remoteConfig: mockRemoteConfig,
+        );
 
         expect(
           remoteConfigService.showBackupSection,
@@ -82,9 +83,7 @@ void main() {
       when(
         () => mockBackupService.getUserEmail(),
       ).thenAnswer((_) async => null);
-      when(
-        () => mockBackupService.getBackupContentSummary(),
-      ).thenAnswer(
+      when(() => mockBackupService.getBackupContentSummary()).thenAnswer(
         (_) async => const BackupContentSummary(
           prayersCount: 0,
           thanksgivingsCount: 0,
@@ -159,33 +158,46 @@ void main() {
       mockBackupService = MockGoogleDriveBackupService();
       mockDevocionalProvider = MockDevocionalProvider();
 
-      when(() => mockBackupService.isAuthenticated())
-          .thenAnswer((_) async => true);
-      when(() => mockBackupService.isAutoBackupEnabled())
-          .thenAnswer((_) async => false);
-      when(() => mockBackupService.getBackupFrequency())
-          .thenAnswer((_) async => 'daily');
-      when(() => mockBackupService.isWifiOnlyEnabled())
-          .thenAnswer((_) async => true);
-      when(() => mockBackupService.isCompressionEnabled())
-          .thenAnswer((_) async => true);
-      when(() => mockBackupService.getBackupOptions())
-          .thenAnswer((_) async => <String, bool>{});
-      when(() => mockBackupService.getLastBackupTime())
-          .thenAnswer((_) async => null);
-      when(() => mockBackupService.getNextBackupTime())
-          .thenAnswer((_) async => null);
-      when(() => mockBackupService.getEstimatedBackupSize(any()))
-          .thenAnswer((_) async => 0);
-      when(() => mockBackupService.getUserEmail())
-          .thenAnswer((_) async => 'user@example.com');
+      when(
+        () => mockBackupService.isAuthenticated(),
+      ).thenAnswer((_) async => true);
+      when(
+        () => mockBackupService.isAutoBackupEnabled(),
+      ).thenAnswer((_) async => false);
+      when(
+        () => mockBackupService.getBackupFrequency(),
+      ).thenAnswer((_) async => 'daily');
+      when(
+        () => mockBackupService.isWifiOnlyEnabled(),
+      ).thenAnswer((_) async => true);
+      when(
+        () => mockBackupService.isCompressionEnabled(),
+      ).thenAnswer((_) async => true);
+      when(
+        () => mockBackupService.getBackupOptions(),
+      ).thenAnswer((_) async => <String, bool>{});
+      when(
+        () => mockBackupService.getLastBackupTime(),
+      ).thenAnswer((_) async => null);
+      when(
+        () => mockBackupService.getNextBackupTime(),
+      ).thenAnswer((_) async => null);
+      when(
+        () => mockBackupService.getEstimatedBackupSize(any()),
+      ).thenAnswer((_) async => 0);
+      when(
+        () => mockBackupService.getUserEmail(),
+      ).thenAnswer((_) async => 'user@example.com');
       when(() => mockBackupService.signIn()).thenAnswer((_) async => false);
-      when(() => mockBackupService.checkForExistingBackup())
-          .thenAnswer((_) async => null);
-      when(() => mockBackupService.setAutoBackupEnabled(any()))
-          .thenAnswer((_) async {});
-      when(() => mockBackupService.createBackup(any()))
-          .thenAnswer((_) async => true);
+      when(
+        () => mockBackupService.checkForExistingBackup(),
+      ).thenAnswer((_) async => null);
+      when(
+        () => mockBackupService.setAutoBackupEnabled(any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockBackupService.createBackup(any()),
+      ).thenAnswer((_) async => true);
       when(() => mockBackupService.getBackupContentSummary()).thenAnswer(
         (_) async => const BackupContentSummary(
           prayersCount: 0,
@@ -222,36 +234,50 @@ void main() {
       mockBackupService = MockGoogleDriveBackupService();
       mockDevocionalProvider = MockDevocionalProvider();
 
-      when(() => mockBackupService.isAuthenticated())
-          .thenAnswer((_) async => true);
-      when(() => mockBackupService.isAutoBackupEnabled())
-          .thenAnswer((_) async => false);
-      when(() => mockBackupService.getBackupFrequency())
-          .thenAnswer((_) async => 'daily');
-      when(() => mockBackupService.isWifiOnlyEnabled())
-          .thenAnswer((_) async => true);
-      when(() => mockBackupService.isCompressionEnabled())
-          .thenAnswer((_) async => true);
-      when(() => mockBackupService.getBackupOptions())
-          .thenAnswer((_) async => <String, bool>{});
-      when(() => mockBackupService.getLastBackupTime())
-          .thenAnswer((_) async => null);
-      when(() => mockBackupService.getNextBackupTime())
-          .thenAnswer((_) async => null);
-      when(() => mockBackupService.getEstimatedBackupSize(any()))
-          .thenAnswer((_) async => 0);
-      when(() => mockBackupService.getUserEmail())
-          .thenAnswer((_) async => 'user@example.com');
+      when(
+        () => mockBackupService.isAuthenticated(),
+      ).thenAnswer((_) async => true);
+      when(
+        () => mockBackupService.isAutoBackupEnabled(),
+      ).thenAnswer((_) async => false);
+      when(
+        () => mockBackupService.getBackupFrequency(),
+      ).thenAnswer((_) async => 'daily');
+      when(
+        () => mockBackupService.isWifiOnlyEnabled(),
+      ).thenAnswer((_) async => true);
+      when(
+        () => mockBackupService.isCompressionEnabled(),
+      ).thenAnswer((_) async => true);
+      when(
+        () => mockBackupService.getBackupOptions(),
+      ).thenAnswer((_) async => <String, bool>{});
+      when(
+        () => mockBackupService.getLastBackupTime(),
+      ).thenAnswer((_) async => null);
+      when(
+        () => mockBackupService.getNextBackupTime(),
+      ).thenAnswer((_) async => null);
+      when(
+        () => mockBackupService.getEstimatedBackupSize(any()),
+      ).thenAnswer((_) async => 0);
+      when(
+        () => mockBackupService.getUserEmail(),
+      ).thenAnswer((_) async => 'user@example.com');
       // sign-in succeeds, no existing backup (first-time user)
       when(() => mockBackupService.signIn()).thenAnswer((_) async => true);
-      when(() => mockBackupService.checkForExistingBackup())
-          .thenAnswer((_) async => null);
-      when(() => mockBackupService.setAutoBackupEnabled(any()))
-          .thenAnswer((_) async {});
-      when(() => mockBackupService.createBackup(any()))
-          .thenAnswer((_) async => true);
-      when(() => mockDevocionalProvider.waitUntilInitialized())
-          .thenAnswer((_) async {});
+      when(
+        () => mockBackupService.checkForExistingBackup(),
+      ).thenAnswer((_) async => null);
+      when(
+        () => mockBackupService.setAutoBackupEnabled(any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockBackupService.createBackup(any()),
+      ).thenAnswer((_) async => true);
+      when(
+        () => mockDevocionalProvider.waitUntilInitialized(),
+      ).thenAnswer((_) async {});
       when(() => mockBackupService.getBackupContentSummary()).thenAnswer(
         (_) async => const BackupContentSummary(
           prayersCount: 0,
@@ -278,11 +304,7 @@ void main() {
         const BackupSigningIn(),
         isA<BackupSuccess>()
             .having((s) => s.title, 'title', 'backup.sign_in_success')
-            .having(
-              (s) => s.message,
-              'message',
-              'backup.created_successfully',
-            ),
+            .having((s) => s.message, 'message', 'backup.created_successfully'),
       ],
     );
   });

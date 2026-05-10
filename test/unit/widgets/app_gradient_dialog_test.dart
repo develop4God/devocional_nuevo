@@ -51,10 +51,7 @@ void main() {
               const Text('Title'),
               const SizedBox(height: 8),
               const Text('Description'),
-              ElevatedButton(
-                onPressed: () {},
-                child: const Text('Action'),
-              ),
+              ElevatedButton(onPressed: () {}, child: const Text('Action')),
             ],
           ),
         ),
@@ -103,8 +100,9 @@ void main() {
       expect(find.text('Dialog'), findsNothing);
     });
 
-    testWidgets('prevents dismissal when dismissible is false',
-        (WidgetTester tester) async {
+    testWidgets('prevents dismissal when dismissible is false', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -154,10 +152,7 @@ void main() {
       await tester.pumpWidget(
         createWidgetUnderTest(
           child: Column(
-            children: List.generate(
-              50,
-              (index) => Text('Item $index'),
-            ),
+            children: List.generate(50, (index) => Text('Item $index')),
           ),
         ),
       );
@@ -170,9 +165,7 @@ void main() {
     testWidgets('respects custom maxWidth', (WidgetTester tester) async {
       const customWidth = 300.0;
 
-      await tester.pumpWidget(
-        createWidgetUnderTest(maxWidth: customWidth),
-      );
+      await tester.pumpWidget(createWidgetUnderTest(maxWidth: customWidth));
       await tester.pumpAndSettle();
 
       // Widget should render without errors
@@ -215,16 +208,15 @@ void main() {
     });
 
     testWidgets('uses custom border radius', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        createWidgetUnderTest(borderRadius: 16),
-      );
+      await tester.pumpWidget(createWidgetUnderTest(borderRadius: 16));
       await tester.pumpAndSettle();
 
       expect(find.byType(AppGradientDialog), findsOneWidget);
     });
 
-    testWidgets('child tap does not dismiss dialog',
-        (WidgetTester tester) async {
+    testWidgets('child tap does not dismiss dialog', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -284,15 +276,9 @@ void main() {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('Cancel'),
-                  ),
+                  TextButton(onPressed: () {}, child: const Text('Cancel')),
                   const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {},
-                    child: const Text('OK'),
-                  ),
+                  ElevatedButton(onPressed: () {}, child: const Text('OK')),
                 ],
               ),
             ],

@@ -52,10 +52,8 @@ void main() {
 
     // Default stub for findFirstUnreadDevocionalIndex to prevent null errors
     when(
-      () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-        any(),
-        any(),
-      ),
+      () =>
+          mockDevocionalRepository.findFirstUnreadDevocionalIndex(any(), any()),
     ).thenReturn(0);
   });
 

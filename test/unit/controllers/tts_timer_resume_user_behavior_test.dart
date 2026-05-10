@@ -136,8 +136,9 @@ void main() {
           for (int i = 0; i < 3; i++) {
             await Future.delayed(const Duration(milliseconds: 300));
 
-            controller
-                .setPositionForTest(Duration(milliseconds: (i + 1) * 300));
+            controller.setPositionForTest(
+              Duration(milliseconds: (i + 1) * 300),
+            );
             final positionBeforePause = controller.currentPosition.value;
 
             await controller.pause();
@@ -273,8 +274,9 @@ void main() {
 
           await Future.delayed(const Duration(milliseconds: 1000));
 
-          controller.currentPosition.value =
-              Duration(seconds: seekPosition.inSeconds + 2);
+          controller.currentPosition.value = Duration(
+            seconds: seekPosition.inSeconds + 2,
+          );
 
           expect(
             controller.currentPosition.value.inSeconds,
@@ -288,9 +290,7 @@ void main() {
         'Seek while paused, then resume - timer starts from seek position',
         () async {
           // Need _fullDuration > 15s — at 2.5 words/sec need ~45 words
-          controller.setText(
-            List.generate(50, (i) => 'palabra$i').join(' '),
-          );
+          controller.setText(List.generate(50, (i) => 'palabra$i').join(' '));
           await controller.play();
           await Future.delayed(const Duration(milliseconds: 500));
 

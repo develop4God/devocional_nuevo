@@ -20,8 +20,9 @@ void main() {
     );
   });
   group('KeyVerseCard Widget Tests', () {
-    testWidgets('should display key verse reference and text',
-        (WidgetTester tester) async {
+    testWidgets('should display key verse reference and text', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final keyVerse = KeyVerse(
         reference: 'Hechos 1:9',
@@ -32,9 +33,7 @@ void main() {
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: KeyVerseCard(keyVerse: keyVerse),
-          ),
+          home: Scaffold(body: KeyVerseCard(keyVerse: keyVerse)),
         ),
       );
 
@@ -45,8 +44,9 @@ void main() {
       expect(find.byIcon(Icons.auto_stories_rounded), findsOneWidget);
     });
 
-    testWidgets('should display formatted verse text with quotes',
-        (WidgetTester tester) async {
+    testWidgets('should display formatted verse text with quotes', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final keyVerse = KeyVerse(
         reference: 'Juan 3:16',
@@ -56,9 +56,7 @@ void main() {
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: KeyVerseCard(keyVerse: keyVerse),
-          ),
+          home: Scaffold(body: KeyVerseCard(keyVerse: keyVerse)),
         ),
       );
 
@@ -67,8 +65,9 @@ void main() {
       expect(find.textContaining('Porque de tal manera'), findsOneWidget);
     });
 
-    testWidgets('should have proper styling and layout',
-        (WidgetTester tester) async {
+    testWidgets('should have proper styling and layout', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final keyVerse = KeyVerse(
         reference: '2 Pedro 1:19',
@@ -78,9 +77,7 @@ void main() {
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: KeyVerseCard(keyVerse: keyVerse),
-          ),
+          home: Scaffold(body: KeyVerseCard(keyVerse: keyVerse)),
         ),
       );
 
@@ -102,9 +99,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
-          home: Scaffold(
-            body: KeyVerseCard(keyVerse: keyVerse),
-          ),
+          home: Scaffold(body: KeyVerseCard(keyVerse: keyVerse)),
         ),
       );
 
@@ -144,9 +139,7 @@ class _TestLocalizationService extends LocalizationService {
   @override
   String translate(String key, [Map<String, dynamic>? params]) {
     // Provide only keys used in these tests
-    const map = {
-      'discovery.key_verse': 'VERSÍCULO CLAVE',
-    };
+    const map = {'discovery.key_verse': 'VERSÍCULO CLAVE'};
     return map[key] ?? key;
   }
 }

@@ -15,10 +15,7 @@ void main() {
       callbackRecords = [];
     });
 
-    Widget createWidgetUnderTest({
-      String? theme,
-      Brightness? brightness,
-    }) {
+    Widget createWidgetUnderTest({String? theme, Brightness? brightness}) {
       return MaterialApp(
         home: Scaffold(
           body: ThemeSelectorCircleGrid(
@@ -39,8 +36,9 @@ void main() {
       expect(find.byType(ThemeSelectorCircleGrid), findsOneWidget);
     });
 
-    testWidgets('displays horizontal pill with circular theme indicators',
-        (WidgetTester tester) async {
+    testWidgets('displays horizontal pill with circular theme indicators', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -51,8 +49,9 @@ void main() {
       expect(find.byType(GestureDetector), findsWidgets);
     });
 
-    testWidgets('shows check icon on selected theme',
-        (WidgetTester tester) async {
+    testWidgets('shows check icon on selected theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest(theme: 'Deep Purple'));
       await tester.pumpAndSettle();
 
@@ -68,8 +67,9 @@ void main() {
       expect(find.byType(AnimatedContainer), findsWidgets);
     });
 
-    testWidgets('invokes callback when non-selected theme is tapped',
-        (WidgetTester tester) async {
+    testWidgets('invokes callback when non-selected theme is tapped', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest(theme: 'Deep Purple'));
       await tester.pumpAndSettle();
 
@@ -86,8 +86,9 @@ void main() {
       }
     });
 
-    testWidgets('selected theme opens bottom sheet on tap',
-        (WidgetTester tester) async {
+    testWidgets('selected theme opens bottom sheet on tap', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest(theme: 'Deep Purple'));
       await tester.pumpAndSettle();
 
@@ -118,8 +119,9 @@ void main() {
       expect(find.byType(ThemeSelectorCircleGrid), findsOneWidget);
     });
 
-    testWidgets('displays chevron icon for theme selection',
-        (WidgetTester tester) async {
+    testWidgets('displays chevron icon for theme selection', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -127,8 +129,9 @@ void main() {
       expect(find.byIcon(Icons.chevron_right_rounded), findsOneWidget);
     });
 
-    testWidgets('chevron opens theme selection sheet',
-        (WidgetTester tester) async {
+    testWidgets('chevron opens theme selection sheet', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -140,8 +143,9 @@ void main() {
       expect(find.byType(ModalBarrier), findsWidgets);
     });
 
-    testWidgets('theme selector updates when selection changes',
-        (WidgetTester tester) async {
+    testWidgets('theme selector updates when selection changes', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest(theme: 'Deep Purple'));
       await tester.pumpAndSettle();
 
@@ -156,8 +160,9 @@ void main() {
       expect(find.byType(ThemeSelectorCircleGrid), findsOneWidget);
     });
 
-    testWidgets('displays peek themes stack when available',
-        (WidgetTester tester) async {
+    testWidgets('displays peek themes stack when available', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 

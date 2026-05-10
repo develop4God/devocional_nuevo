@@ -29,8 +29,9 @@ class _TestBundle extends CachingAssetBundle {
 }
 
 void main() {
-  testWidgets('Lottie + AnimationController.forward() does not hang',
-      (tester) async {
+  testWidgets('Lottie + AnimationController.forward() does not hang', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: DefaultAssetBundle(

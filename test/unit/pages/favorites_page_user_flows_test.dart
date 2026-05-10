@@ -166,7 +166,7 @@ void main() {
     // SCENARIO 12: User unfavorites last item
     test('user removes last favorite and sees empty state', () {
       final favorites = [
-        {'id': 1, 'isFavorite': true}
+        {'id': 1, 'isFavorite': true},
       ];
 
       void removeFavorite(int id) {

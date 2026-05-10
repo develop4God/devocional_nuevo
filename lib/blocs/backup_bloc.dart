@@ -73,9 +73,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     ToggleAutoBackup event,
     Emitter<BackupState> emit,
   ) async {
-    debugPrint(
-      '🔄 [BLOC] === START ToggleAutoBackup: ${event.enabled} ===',
-    );
+    debugPrint('🔄 [BLOC] === START ToggleAutoBackup: ${event.enabled} ===');
 
     try {
       await _backupService.setAutoBackupEnabled(event.enabled);
@@ -88,9 +86,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
           debugPrint(
             '🔧 [BLOC] Auto-backup activated with frequency "deactivated", changing to "daily"',
           );
-          await _backupService.setBackupFrequency(
-            kBackupFrequencyDaily,
-          );
+          await _backupService.setBackupFrequency(kBackupFrequencyDaily);
           debugPrint('✅ [BLOC] Frequency auto-changed to "daily"');
         }
       }
@@ -125,7 +121,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     Emitter<BackupState> emit,
   ) async {
     debugPrint(
-        '🔄 [BLOC] === START ChangeBackupFrequency: ${event.frequency} ===');
+      '🔄 [BLOC] === START ChangeBackupFrequency: ${event.frequency} ===',
+    );
 
     try {
       // Sign out first — if this throws, frequency is not persisted,
@@ -379,13 +376,15 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
             _discoveryBloc?.add(RefreshDiscoveryStudies(forceRefresh: true));
             if (_discoveryBloc != null) {
               debugPrint(
-                  '🔄 [BLOC] RefreshDiscoveryStudies event dispatched (login restore)');
+                '🔄 [BLOC] RefreshDiscoveryStudies event dispatched (login restore)',
+              );
             }
 
             _encounterBloc?.add(LoadEncounterIndex(forceRefresh: true));
             if (_encounterBloc != null) {
               debugPrint(
-                  '🔄 [BLOC] LoadEncounterIndex event dispatched (login restore)');
+                '🔄 [BLOC] LoadEncounterIndex event dispatched (login restore)',
+              );
             }
 
             // Reload provider state: version + favorites + spiritual stats
@@ -398,9 +397,11 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
             // Recalculate current devotional index from restored read IDs
             if (_navigationBloc != null && _devocionalProvider != null) {
-              _navigationBloc!.add(NavigateToFirstUnread(
-                _devocionalProvider!.lastRestoredReadIds.toList(),
-              ));
+              _navigationBloc?.add(
+                NavigateToFirstUnread(
+                  _devocionalProvider!.lastRestoredReadIds.toList(),
+                ),
+              );
               debugPrint(
                 '🧭 [BLOC] NavigateToFirstUnread dispatched (sign-in restore) — ${_devocionalProvider!.lastRestoredReadIds.length} read IDs',
               );
@@ -427,7 +428,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
               await _devocionalProvider!.waitUntilInitialized();
             } on TimeoutException {
               debugPrint(
-                  '⚠️ [BLOC] Provider not ready — initial backup deferred');
+                '⚠️ [BLOC] Provider not ready — initial backup deferred',
+              );
               return;
             }
           }
@@ -517,7 +519,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         if (forceBypass ||
             hoursSinceLastBackup >= BackupSchedule.intervalHours) {
           debugPrint(
-              '🚀 [BLOC] ${BackupSchedule.intervalHours}+ hours (or forced), executing startup backup');
+            '🚀 [BLOC] ${BackupSchedule.intervalHours}+ hours (or forced), executing startup backup',
+          );
 
           final success = await _backupService.createBackup(
             _devocionalProvider,

@@ -400,7 +400,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         debugPrint(
           '🔧 [ONBOARDING_BLOC] Configurando backup a través de BackupBloc',
         );
-        _backupBloc!.add(const ToggleAutoBackup(true));
+        _backupBloc?.add(const ToggleAutoBackup(true));
       }
 
       // Save configuration
@@ -519,8 +519,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       );
 
       // 🔧 Step 2: Enrich with REAL backup state from BackupBloc BEFORE emitting loading
-      if (_backupBloc != null) {
-        final backupState = _backupBloc!.state;
+      final backupBloc = _backupBloc;
+      if (backupBloc != null) {
+        final backupState = backupBloc.state;
         debugPrint(
           '📊 [ONBOARDING_BLOC] BackupBloc estado: \\${backupState.runtimeType}',
         );

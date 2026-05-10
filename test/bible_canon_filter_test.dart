@@ -75,8 +75,11 @@ void main() {
         ];
         expect(canonical, hasLength(66));
         for (final n in canonical) {
-          expect(BibleCanonFilter.isCanonical(n), isTrue,
-              reason: 'book_number $n should be canonical');
+          expect(
+            BibleCanonFilter.isCanonical(n),
+            isTrue,
+            reason: 'book_number $n should be canonical',
+          );
         }
       });
 
@@ -97,8 +100,11 @@ void main() {
           464,
         ];
         for (final n in mbb05Deuterocanonical) {
-          expect(BibleCanonFilter.isCanonical(n), isFalse,
-              reason: 'book_number $n (MBB05) should not be canonical');
+          expect(
+            BibleCanonFilter.isCanonical(n),
+            isFalse,
+            reason: 'book_number $n (MBB05) should not be canonical',
+          );
         }
       });
 
@@ -117,8 +123,11 @@ void main() {
           790,
         ];
         for (final n in lu17Deuterocanonical) {
-          expect(BibleCanonFilter.isCanonical(n), isFalse,
-              reason: 'book_number $n (LU17) should not be canonical');
+          expect(
+            BibleCanonFilter.isCanonical(n),
+            isFalse,
+            reason: 'book_number $n (LU17) should not be canonical',
+          );
         }
       });
     });
@@ -218,7 +227,7 @@ void main() {
           {'book_number': 190, 'long_name': 'Ester'},
           {
             'book_number': 192,
-            'long_name': 'Ester (extended)'
+            'long_name': 'Ester (extended)',
           }, // deuterocanonical
         ];
         final result = BibleCanonFilter.filterCanonical(mixed);

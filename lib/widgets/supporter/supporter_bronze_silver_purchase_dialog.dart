@@ -65,7 +65,9 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
   void initState() {
     super.initState();
     _entryCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 600));
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
     _entryAnim = CurvedAnimation(parent: _entryCtrl, curve: Curves.easeOutBack);
     _entryCtrl.forward();
   }
@@ -163,12 +165,10 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
                               _accent,
                               Colors.white,
                               _accent,
-                              _accentDark
+                              _accentDark,
                             ],
                             stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
-                          ).createShader(
-                            const Rect.fromLTWH(0, 0, 200, 70),
-                          ),
+                          ).createShader(const Rect.fromLTWH(0, 0, 200, 70)),
                       ),
                       textAlign: TextAlign.center,
                       maxLines: 2,
@@ -241,7 +241,8 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
                       width: double.infinity,
                       child: _isLoading
                           ? Center(
-                              child: CircularProgressIndicator(color: _accent))
+                              child: CircularProgressIndicator(color: _accent),
+                            )
                           : _TierButton(
                               label:
                                   'supporter.go_to_progress'.tr().toUpperCase(),
@@ -300,10 +301,7 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
         ],
       ),
       child: Center(
-        child: Text(
-          widget.tier.emoji,
-          style: const TextStyle(fontSize: 40),
-        ),
+        child: Text(widget.tier.emoji, style: const TextStyle(fontSize: 40)),
       ),
     );
   }

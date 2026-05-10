@@ -24,15 +24,15 @@ void main() {
         'character': 'Peter',
         'files': {
           'en': 'peter_water_001_en.json',
-          'es': 'peter_water_001_es.json'
+          'es': 'peter_water_001_es.json',
         },
         'titles': {
           'en': 'Peter Walks on Water',
-          'es': 'Pedro Camina sobre el Agua'
+          'es': 'Pedro Camina sobre el Agua',
         },
         'subtitles': {
           'en': 'Faith Beyond the Storm',
-          'es': 'Fe Más Allá de la Tormenta'
+          'es': 'Fe Más Allá de la Tormenta',
         },
         'scripture_reference': {'en': 'Matthew 14:22-33'},
         'estimated_reading_minutes': {'en': 10, 'es': 12},
@@ -80,7 +80,7 @@ void main() {
         'titles': {},
         'subtitles': {},
         'scripture_reference': {},
-        'estimated_reading_minutes': {}
+        'estimated_reading_minutes': {},
       });
       expect(entry.isPublished, isTrue);
     });
@@ -180,8 +180,10 @@ void main() {
 
     test('all optional fields are nullable — does not crash with nulls', () {
       final json = {'order': 1, 'type': 'cinematic_scene'};
-      expect(() => EncounterCard.fromJson(json, encounterId: 'peter_water_001'),
-          returnsNormally);
+      expect(
+        () => EncounterCard.fromJson(json, encounterId: 'peter_water_001'),
+        returnsNormally,
+      );
       final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
       expect(card.mood, isNull);
       expect(card.imageUrl, isNull);
@@ -192,7 +194,7 @@ void main() {
       final json = {
         'order': 1,
         'type': 'cinematic_scene',
-        'image_url': 'peter_intro.jpg'
+        'image_url': 'peter_intro.jpg',
       };
       final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
       // After Patch A: _resolveImageUrl stores base name only
@@ -204,7 +206,7 @@ void main() {
       final json = {
         'order': 1,
         'type': 'cinematic_scene',
-        'image_url': 'https://example.com/img.jpg'
+        'image_url': 'https://example.com/img.jpg',
       };
       final card = EncounterCard.fromJson(json, encounterId: 'peter_water_001');
       expect(card.imageUrl, 'https://example.com/img.jpg');
@@ -223,9 +225,10 @@ void main() {
       for (final type in types) {
         final json = {'order': 1, 'type': type};
         expect(
-            () => EncounterCard.fromJson(json, encounterId: 'peter_water_001'),
-            returnsNormally,
-            reason: 'Type $type should not throw');
+          () => EncounterCard.fromJson(json, encounterId: 'peter_water_001'),
+          returnsNormally,
+          reason: 'Type $type should not throw',
+        );
       }
     });
   });
@@ -271,8 +274,10 @@ void main() {
 
   group('EncounterKeyVerse.fromJson', () {
     test('parses reference and text', () {
-      final kv = EncounterKeyVerse.fromJson(
-          {'reference': 'John 3:16', 'text': 'For God so loved...'});
+      final kv = EncounterKeyVerse.fromJson({
+        'reference': 'John 3:16',
+        'text': 'For God so loved...',
+      });
       expect(kv.reference, 'John 3:16');
       expect(kv.text, 'For God so loved...');
     });
@@ -338,11 +343,7 @@ void main() {
 
     test('third entry locked when second not completed', () {
       final state = EncounterLoaded(
-        index: [
-          makeEntry('enc_01'),
-          makeEntry('enc_02'),
-          makeEntry('enc_03'),
-        ],
+        index: [makeEntry('enc_01'), makeEntry('enc_02'), makeEntry('enc_03')],
         completedIds: const {'enc_01'}, // enc_02 not yet completed
       );
       expect(state.isUnlocked('enc_02'), isTrue);
@@ -351,11 +352,7 @@ void main() {
 
     test('third entry unlocked when second is completed', () {
       final state = EncounterLoaded(
-        index: [
-          makeEntry('enc_01'),
-          makeEntry('enc_02'),
-          makeEntry('enc_03'),
-        ],
+        index: [makeEntry('enc_01'), makeEntry('enc_02'), makeEntry('enc_03')],
         completedIds: const {'enc_01', 'enc_02'},
       );
       expect(state.isUnlocked('enc_03'), isTrue);

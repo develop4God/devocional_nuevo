@@ -106,8 +106,11 @@ void main() {
       final ids = devocionales.map((d) => d.id).toList();
       final uniqueIds = ids.toSet();
 
-      expect(ids.length, uniqueIds.length,
-          reason: 'All devotional IDs should be unique');
+      expect(
+        ids.length,
+        uniqueIds.length,
+        reason: 'All devotional IDs should be unique',
+      );
     });
 
     test('Read devotionals filtering works across years', () {
@@ -161,17 +164,29 @@ void main() {
       // This test verifies the logic of loading years from constant list
       final yearsToLoad = DevocionalYears.availableYears;
 
-      expect(yearsToLoad.length, greaterThanOrEqualTo(2),
-          reason: 'At least 2025 and 2026 should be available');
-      expect(yearsToLoad.contains(2025), true,
-          reason: '2025 should always be available');
-      expect(yearsToLoad.contains(2026), true,
-          reason: '2026 should always be available');
+      expect(
+        yearsToLoad.length,
+        greaterThanOrEqualTo(2),
+        reason: 'At least 2025 and 2026 should be available',
+      );
+      expect(
+        yearsToLoad.contains(2025),
+        true,
+        reason: '2025 should always be available',
+      );
+      expect(
+        yearsToLoad.contains(2026),
+        true,
+        reason: '2026 should always be available',
+      );
 
       // Verify years are in ascending order
       for (int i = 0; i < yearsToLoad.length - 1; i++) {
-        expect(yearsToLoad[i] < yearsToLoad[i + 1], true,
-            reason: 'Years should be in ascending order');
+        expect(
+          yearsToLoad[i] < yearsToLoad[i + 1],
+          true,
+          reason: 'Years should be in ascending order',
+        );
       }
     });
   });

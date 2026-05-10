@@ -72,7 +72,8 @@ class TtsAudioController {
   void _setStateIfNotDisposed(TtsPlayerState newState) {
     if (_disposed) {
       debugPrint(
-          '⚠️ [TTS Controller] Attempted to set state after dispose: $newState');
+        '⚠️ [TTS Controller] Attempted to set state after dispose: $newState',
+      );
       return;
     }
     try {
@@ -91,7 +92,8 @@ class TtsAudioController {
       notifier.value = value;
     } catch (e) {
       debugPrint(
-          '⚠️ [TTS Controller] Error setting notifier after dispose: $e');
+        '⚠️ [TTS Controller] Error setting notifier after dispose: $e',
+      );
     }
   }
 
@@ -103,9 +105,7 @@ class TtsAudioController {
         _processor = chunkProcessor ?? TtsChunkProcessor() {
     // Cargar el rate guardado usando VoiceSettingsService
     try {
-      _voiceSettingsService.getSavedSpeechRate().then((
-        settingsRate,
-      ) {
+      _voiceSettingsService.getSavedSpeechRate().then((settingsRate) {
         final miniRate = VoiceSettingsService.settingsToMini[settingsRate] ??
             _voiceSettingsService.getMiniPlayerRate(settingsRate);
         final allowed = VoiceSettingsService.miniPlayerRates;
@@ -396,7 +396,9 @@ class TtsAudioController {
       // right before the first speak() call — to survive into the utterance.
       try {
         await _voiceSettingsService.applyVoiceToInstance(
-            flutterTts, _languageCode);
+          flutterTts,
+          _languageCode,
+        );
       } catch (e) {
         debugPrint(
           '⚠️ [TTS Controller] applyVoiceToInstance failed for $_languageCode: $e',
@@ -485,7 +487,8 @@ class TtsAudioController {
             );
           } catch (e) {
             debugPrint(
-                '❌ [TTS Controller] speak() threw exception on chunk ${i + 1}: $e');
+              '❌ [TTS Controller] speak() threw exception on chunk ${i + 1}: $e',
+            );
             speakErrored = true;
             break;
           }
@@ -645,7 +648,8 @@ class TtsAudioController {
     // Writing to a disposed ValueNotifier throws a Fatal Exception — bail out.
     if (_disposed) {
       debugPrint(
-          '[TTS Controller] stop() — controller disposed, skipping state update');
+        '[TTS Controller] stop() — controller disposed, skipping state update',
+      );
       return;
     }
     _setStateIfNotDisposed(TtsPlayerState.idle);
@@ -812,7 +816,8 @@ class TtsAudioController {
     // If currently playing, restart TTS from the remaining text
     if (state.value == TtsPlayerState.playing) {
       debugPrint(
-          '⏩ [TTS Controller] Estado es PLAYING, reiniciando desde nueva posición');
+        '⏩ [TTS Controller] Estado es PLAYING, reiniciando desde nueva posición',
+      );
       // Set seek flag to prevent cancel handler from changing state
       _isSeeking = true;
 
@@ -829,7 +834,8 @@ class TtsAudioController {
         if (_currentText != null && _currentText!.isNotEmpty) {
           await flutterTts.speak(_currentText!);
           debugPrint(
-              '⏩ [TTS Controller] Reproducción reiniciada desde nueva posición');
+            '⏩ [TTS Controller] Reproducción reiniciada desde nueva posición',
+          );
         }
         // progress timer will sync from the start handler
       } finally {
@@ -838,7 +844,8 @@ class TtsAudioController {
       }
     } else {
       debugPrint(
-          '⏩ [TTS Controller] Estado no es PLAYING, solo actualizando posición');
+        '⏩ [TTS Controller] Estado no es PLAYING, solo actualizando posición',
+      );
     }
 
     debugPrint('⏩ [TTS Controller] ========== FIN SEEK ==========');

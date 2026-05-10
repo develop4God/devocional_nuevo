@@ -31,22 +31,26 @@ void main() {
       expect(() => diagnostics.printDiagnostics(), returnsNormally);
     });
 
-    test('printDiagnostics() does not throw with purchased tiers present',
-        () async {
-      final fakeIap = FakeIapService();
-      await fakeIap.deliver(SupporterTier.fromLevel(SupporterTierLevel.gold));
+    test(
+      'printDiagnostics() does not throw with purchased tiers present',
+      () async {
+        final fakeIap = FakeIapService();
+        await fakeIap.deliver(SupporterTier.fromLevel(SupporterTierLevel.gold));
 
-      final diagnostics = IapDiagnosticsService(fakeIap);
-      expect(() => diagnostics.printDiagnostics(), returnsNormally);
+        final diagnostics = IapDiagnosticsService(fakeIap);
+        expect(() => diagnostics.printDiagnostics(), returnsNormally);
 
-      await fakeIap.dispose();
-    });
+        await fakeIap.dispose();
+      },
+    );
 
     test('initStatus is included in diagnostics output without throwing', () {
       final fakeIap = FakeIapService();
       // initStatus is now printed; must not throw regardless of status.
-      expect(() => IapDiagnosticsService(fakeIap).printDiagnostics(),
-          returnsNormally);
+      expect(
+        () => IapDiagnosticsService(fakeIap).printDiagnostics(),
+        returnsNormally,
+      );
     });
   });
 }

@@ -63,7 +63,9 @@ void main() {
 
       await controller.decrease();
       expect(
-          controller.fontSize, afterIncrease - FontSizeController.fontSizeStep);
+        controller.fontSize,
+        afterIncrease - FontSizeController.fontSizeStep,
+      );
     });
 
     test('increase does not exceed maxFontSize', () async {
@@ -106,9 +108,7 @@ void main() {
 
     test('load restores persisted font size', () async {
       // Persist a custom font size
-      SharedPreferences.setMockInitialValues({
-        'devocional_font_size': 22.0,
-      });
+      SharedPreferences.setMockInitialValues({'devocional_font_size': 22.0});
 
       final controller2 = FontSizeController();
       await controller2.load();
@@ -167,9 +167,7 @@ void main() {
     });
 
     test('notifies listeners on load', () async {
-      SharedPreferences.setMockInitialValues({
-        'devocional_font_size': 20.0,
-      });
+      SharedPreferences.setMockInitialValues({'devocional_font_size': 20.0});
 
       int notifyCount = 0;
       controller.addListener(() => notifyCount++);
@@ -179,12 +177,18 @@ void main() {
     });
 
     test('constants have valid ranges', () {
-      expect(FontSizeController.minFontSize,
-          lessThan(FontSizeController.maxFontSize));
-      expect(FontSizeController.defaultFontSize,
-          greaterThanOrEqualTo(FontSizeController.minFontSize));
-      expect(FontSizeController.defaultFontSize,
-          lessThanOrEqualTo(FontSizeController.maxFontSize));
+      expect(
+        FontSizeController.minFontSize,
+        lessThan(FontSizeController.maxFontSize),
+      );
+      expect(
+        FontSizeController.defaultFontSize,
+        greaterThanOrEqualTo(FontSizeController.minFontSize),
+      );
+      expect(
+        FontSizeController.defaultFontSize,
+        lessThanOrEqualTo(FontSizeController.maxFontSize),
+      );
       expect(FontSizeController.fontSizeStep, greaterThan(0));
     });
   });

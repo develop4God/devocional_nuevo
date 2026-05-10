@@ -78,10 +78,7 @@ abstract class IGoogleDriveBackupService {
   Future<Map<String, dynamic>?> checkForExistingBackup();
 
   /// Restore backup from existing file on Google Drive.
-  Future<bool> restoreExistingBackup(
-    String fileId, {
-    PrayerBloc? prayerBloc,
-  });
+  Future<bool> restoreExistingBackup(String fileId, {PrayerBloc? prayerBloc});
 
   // ── Auth proxy methods ─────────────────────────────────────────────────────
 
