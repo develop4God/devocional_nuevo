@@ -85,7 +85,7 @@ class DevocionalesPage extends StatefulWidget {
 
 class _DevocionalesPageState extends State<DevocionalesPage>
     with WidgetsBindingObserver, RouteAware {
-  static const String _kLegacyGapMigrationKey = 'legacy_gap_migration_v1_done';
+  static const String _kLegacyGapMigrationKey = 'legacy_gap_migration_v2_done';
 
   final ScreenshotController screenshotController = ScreenshotController();
   final ScrollController _scrollController = ScrollController();
@@ -397,12 +397,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   /// One-time migration for users affected by the legacy unread-state bug.
   ///
-  /// The bug caused devotionals at index 0–N to remain unread while N+1 onwards
-  /// were correctly marked. Because navigation is Next-only and all users share
-  /// the same ordered list, a gap before the highest read index is a 100%
-  /// reliable bug fingerprint — no legitimate user path creates it.
+  /// The bug caused exactly one devotional entry to not be saved as read,
+  /// leaving the user stuck on that entry on every cold start.
   ///
-  /// This fills those gaps silently with a single bulk write.
+  /// Fingerprint: exactly one entry where index N-1 is read, index N is unread,
+  /// and index N+1 is read. Only that single entry is filled — no bulk writes.
   /// Runs once per install. The flag [_kLegacyGapMigrationKey] prevents re-runs.
   Future<void> _runLegacyGapMigrationIfNeeded(
     List<Devocional> devocionales,
@@ -427,34 +426,29 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
       final readSet = Set<String>.from(readDevocionalIds);
 
-      // Find the highest index that is already marked as read.
-      int highestReadIndex = -1;
-      for (int i = devocionales.length - 1; i >= 0; i--) {
-        if (readSet.contains(devocionales[i].id)) {
-          highestReadIndex = i;
-          break;
+      // Detect exactly one single-entry gap: index N-1 read, N unread, N+1 read.
+      // This is the precise fingerprint of the one-day bug — no other gap pattern
+      // is touched.
+      String? singleGapId;
+      int singleGapIndex = -1;
+      for (int i = 1; i < devocionales.length - 1; i++) {
+        final prevRead = readSet.contains(devocionales[i - 1].id);
+        final currUnread = !readSet.contains(devocionales[i].id);
+        final nextRead = readSet.contains(devocionales[i + 1].id);
+
+        if (prevRead && currUnread && nextRead) {
+          final id = devocionales[i].id;
+          if (id.isNotEmpty) {
+            singleGapId = id;
+            singleGapIndex = i;
+          }
+          break; // exactly one — stop immediately
         }
       }
 
-      if (highestReadIndex <= 0) {
+      if (singleGapId == null) {
         developer.log(
-          '🔧 [MIGRATION] highestReadIndex=$highestReadIndex — nothing to fill',
-          name: 'GapMigration',
-        );
-        return;
-      }
-
-      // Collect IDs at index < highestReadIndex that are NOT in readSet.
-      final gapIds = devocionales
-          .sublist(0, highestReadIndex)
-          .where((d) => !readSet.contains(d.id))
-          .map((d) => d.id)
-          .where((id) => id.isNotEmpty)
-          .toList();
-
-      if (gapIds.isEmpty) {
-        developer.log(
-          '🔧 [MIGRATION] No gaps found — user state is clean',
+          '🔧 [MIGRATION] No single-entry gap found — user state is clean',
           name: 'GapMigration',
         );
         unawaited(
@@ -466,14 +460,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       }
 
       developer.log(
-        '🔧 [MIGRATION] Found ${gapIds.length} gap(s) before index $highestReadIndex — filling silently',
+        '🔧 [MIGRATION] Single gap found at index $singleGapIndex — filling silently',
         name: 'GapMigration',
       );
 
-      await SpiritualStatsService().bulkMarkAsRead(gapIds);
+      await SpiritualStatsService().bulkMarkAsRead([singleGapId]);
 
       developer.log(
-        '✅ [MIGRATION] Legacy gap migration complete: ${gapIds.length} devotional(s) marked as read',
+        '✅ [MIGRATION] Legacy gap migration complete: 1 entry marked as read (index $singleGapIndex)',
         name: 'GapMigration',
       );
 
@@ -481,8 +475,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         getService<IAnalyticsService>().logCustomEvent(
           eventName: 'legacy_gap_migration_applied',
           parameters: {
-            'gaps_filled': gapIds.length,
-            'highest_read_index': highestReadIndex,
+            'gaps_filled': 1,
+            'gap_index': singleGapIndex,
           },
         ),
       );
