@@ -20,10 +20,11 @@ abstract final class StorageKeys {
   static const String showInvitationDialog = 'showInvitationDialog';
 }
 
-/// Keys for one-time startup migrations.
-/// Each key guards exactly one migration run per install.
-/// Never reuse a key — add a new constant for each new migration.
-abstract final class MigrationKeys {
-  /// Guards the V3 single-entry gap fix (Pattern A: index 0 + Pattern B: interior).
-  static const String singleGapFix = 'migration_single_gap_fix_done';
+/// Keys for one-time startup fixes.
+/// Each key guards exactly one fix run per install.
+/// Never reuse a key — add a new constant for each new fix.
+abstract final class StartupFixKeys {
+  /// Guards the read-gap fix (Pattern A: index 0 unread + Pattern B: interior).
+  /// Detects and fills single-entry gaps in the read list that break tracking.
+  static const String readGapFixDone = 'read_gap_fix_done';
 }

@@ -3,7 +3,7 @@ library;
 
 // test/unit/services/startup_migration_service_test.dart
 //
-// Unit tests for StartupMigrationService gap-detection logic (V2).
+// Unit tests for StartupMigrationService read-gap fix logic.
 // Covers leading gap (index 0) and interior gap, plus guards.
 
 import 'package:devocional_nuevo/models/devocional_model.dart';

@@ -1,10 +1,10 @@
 // lib/services/startup_migration_service.dart
 //
-// Single entry point for all one-time startup data migrations.
-// Each migration is self-guarded by its own SharedPreferences flag,
+// Single entry point for all one-time startup fixes.
+// Each fix is self-guarded by its own SharedPreferences flag,
 // idempotent, and non-blocking — a failure never prevents app startup.
 //
-// To add a future migration: add a new private method and call it from runAll().
+// To add a future fix: add a new private method and call it from runAll().
 import 'dart:async' show unawaited;
 import 'dart:developer' as developer;
 
@@ -13,9 +13,9 @@ import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/i_startup_migration_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/utils/constants/storage_keys.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:devocional_nuevo/utils/constants/storage_keys.dart';
 
 class StartupMigrationService implements IStartupMigrationService {
   const StartupMigrationService({required ISpiritualStatsService statsService})
@@ -23,25 +23,23 @@ class StartupMigrationService implements IStartupMigrationService {
 
   final ISpiritualStatsService _statsService;
 
-  /// Run all registered migrations in order.
+  /// Run all registered fixes in order.
   /// Call once from AppInitializer._initAppData() on every cold start.
-  /// Each migration is self-guarded and will no-op after its first run.
+  /// Each fix is self-guarded and will no-op after its first run.
   @override
   Future<void> runAll(
     List<Devocional> devocionales,
     List<String> readDevocionalIds,
   ) async {
-    await _migrationV3SingleGapFix(devocionales, readDevocionalIds);
-    // Future migrations go here:
-    // await _migrationV3SomethingElse();
+    await _applyReadGapFix(devocionales, readDevocionalIds);
+    // Future fixes go here:
+    // await _applyFutureFixName();
   }
 
-  // ── Migration V2 — Single-entry gap fix ───────────────────────────────────
+  // ── Read Gap Fix ──────────────────────────────────────────────────────────
   //
-  // One-time migration for users affected by the legacy unread-state bug.
-  //
-  // The bug caused exactly one devotional entry to not be saved as read,
-  // leaving the user stuck on that entry on every cold start.
+  // One-time startup fix: Detects and fills single-entry gaps in the read list.
+  // This prevents users from being stuck on an unread entry on every cold start.
   //
   // Detects two gap patterns:
   //   A) Leading gap  — index 0 unread, index 1 read (no prior neighbour).
@@ -49,25 +47,25 @@ class StartupMigrationService implements IStartupMigrationService {
   //   B) Interior gap — index N-1 read, N unread, N+1 read (both neighbours).
   //
   // Only that single entry is filled — no bulk writes.
-  // Runs once per install. The flag below prevents re-runs.
+  // Runs once per install.
 
-  Future<void> _migrationV3SingleGapFix(
+  Future<void> _applyReadGapFix(
     List<Devocional> devocionales,
     List<String> readDevocionalIds,
   ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final alreadyRan = prefs.getBool(MigrationKeys.singleGapFix) ?? false;
+      final alreadyRan = prefs.getBool(StartupFixKeys.readGapFixDone) ?? false;
       if (alreadyRan) return;
 
-      // Mark migration as done immediately — even if we find nothing to fix.
+      // Mark fix as done immediately — even if we find nothing to fix.
       // This prevents repeated prefs reads on every cold start.
-      await prefs.setBool(MigrationKeys.singleGapFix, true);
+      await prefs.setBool(StartupFixKeys.readGapFixDone, true);
 
       if (readDevocionalIds.isEmpty || devocionales.isEmpty) {
         developer.log(
-          '🔧 [MIGRATION] No read IDs — new user or clean state, skipping',
-          name: 'GapMigration',
+          '🔧 [FIX] No read IDs — new user or clean state, skipping',
+          name: 'ReadGapFix',
         );
         return;
       }
@@ -78,8 +76,8 @@ class StartupMigrationService implements IStartupMigrationService {
       int singleGapIndex = -1;
 
       // ── Pattern A: leading gap at index 0 ─────────────────────────────────
-      // The original loop started at i=1 (requires both neighbours) so index 0
-      // was structurally excluded. Check it explicitly first.
+      // Checks the first entry explicitly since the interior loop requires
+      // both prior and next entries to be read (which doesn't apply to index 0).
       if (devocionales.length >= 2) {
         final firstUnread = !readSet.contains(devocionales[0].id);
         final secondRead = readSet.contains(devocionales[1].id);
@@ -109,32 +107,32 @@ class StartupMigrationService implements IStartupMigrationService {
 
       if (singleGapId == null) {
         developer.log(
-          '🔧 [MIGRATION] No single-entry gap found — user state is clean',
-          name: 'GapMigration',
+          '🔧 [FIX] No single-entry gap found — user state is clean',
+          name: 'ReadGapFix',
         );
         unawaited(
           getService<IAnalyticsService>().logCustomEvent(
-            eventName: 'legacy_gap_migration_clean',
+            eventName: 'read_gap_fix_clean',
           ),
         );
         return;
       }
 
       developer.log(
-        '🔧 [MIGRATION] Single gap found at index $singleGapIndex — filling silently',
-        name: 'GapMigration',
+        '🔧 [FIX] Single gap found at index $singleGapIndex — filling silently',
+        name: 'ReadGapFix',
       );
 
       await _statsService.bulkMarkAsRead([singleGapId]);
 
       developer.log(
-        '✅ [MIGRATION] Legacy gap migration complete: 1 entry marked as read (index $singleGapIndex)',
-        name: 'GapMigration',
+        '✅ [FIX] Read gap fix complete: 1 entry marked as read (index $singleGapIndex)',
+        name: 'ReadGapFix',
       );
 
       unawaited(
         getService<IAnalyticsService>().logCustomEvent(
-          eventName: 'legacy_gap_migration_applied',
+          eventName: 'read_gap_fix_applied',
           parameters: {
             'gaps_filled': 1,
             'gap_index': singleGapIndex,
@@ -142,17 +140,17 @@ class StartupMigrationService implements IStartupMigrationService {
         ),
       );
     } catch (e, stack) {
-      // Migration is non-critical — log and continue. Never block app start.
+      // Fix is non-critical — log and continue. Never block app start.
       developer.log(
-        '❌ [MIGRATION] Error during gap migration: $e',
-        name: 'GapMigration',
+        '❌ [FIX] Error during read gap fix: $e',
+        name: 'ReadGapFix',
         error: e,
       );
       FirebaseCrashlytics.instance.recordError(
         e,
         stack,
         fatal: false,
-        reason: 'Legacy gap migration V2 failed',
+        reason: 'Read gap fix failed',
       );
     }
   }
