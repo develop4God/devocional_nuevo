@@ -13,9 +13,7 @@ import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/i_startup_migration_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/utils/constants/storage_keys.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class StartupMigrationService implements IStartupMigrationService {
   const StartupMigrationService({required ISpiritualStatsService statsService})
@@ -47,21 +45,16 @@ class StartupMigrationService implements IStartupMigrationService {
   //   B) Interior gap — index N-1 read, N unread, N+1 read (both neighbours).
   //
   // Only that single entry is filled — no bulk writes.
-  // Runs once per install.
+  // Runs on EVERY startup (idempotent — safe to repeat).
+  // Uses bulkMarkAsRead(), which is idempotent, so marking already-read entries
+  // is a no-op. This allows QA and users to test multiple gap scenarios across
+  // different app cold starts without data pollution.
 
   Future<void> _applyReadGapFix(
     List<Devocional> devocionales,
     List<String> readDevocionalIds,
   ) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final alreadyRan = prefs.getBool(StartupFixKeys.readGapFixDone) ?? false;
-      if (alreadyRan) return;
-
-      // Mark fix as done immediately — even if we find nothing to fix.
-      // This prevents repeated prefs reads on every cold start.
-      await prefs.setBool(StartupFixKeys.readGapFixDone, true);
-
       if (readDevocionalIds.isEmpty || devocionales.isEmpty) {
         developer.log(
           '🔧 [FIX] No read IDs — new user or clean state, skipping',

@@ -23,8 +23,15 @@ abstract final class StorageKeys {
 /// Keys for one-time startup fixes.
 /// Each key guards exactly one fix run per install.
 /// Never reuse a key — add a new constant for each new fix.
+///
+/// NOTE: readGapFixDone is deprecated and no longer actively used.
+/// The read-gap fix now runs idempotently on every startup (safe operation).
+/// This constant is retained for historical data cleanup (users who upgraded from older versions).
 abstract final class StartupFixKeys {
-  /// Guards the read-gap fix (Pattern A: index 0 unread + Pattern B: interior).
-  /// Detects and fills single-entry gaps in the read list that break tracking.
+  /// Deprecated: no longer actively used. Retained for historical data only.
+  /// The read-gap fix now runs on every startup (idempotent, safe to repeat).
+  /// See [StartupMigrationService._applyReadGapFix].
+  @Deprecated('Read gap fix now runs idempotently every startup. '
+      'This key is retained for legacy data only.')
   static const String readGapFixDone = 'read_gap_fix_done';
 }
