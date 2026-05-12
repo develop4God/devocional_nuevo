@@ -42,8 +42,12 @@ class StartupMigrationService implements IStartupMigrationService {
   // The bug caused exactly one devotional entry to not be saved as read,
   // leaving the user stuck on that entry on every cold start.
   //
-  // Fingerprint: exactly one entry where index N-1 is read, index N is unread,
-  // and index N+1 is read. Only that single entry is filled — no bulk writes.
+  // Detects two gap patterns:
+  //   A) Leading gap  — index 0 unread, index 1 read (no prior neighbour).
+  //      Fingerprint of a user who tapped "next" past the very first devotional.
+  //   B) Interior gap — index N-1 read, N unread, N+1 read (both neighbours).
+  //
+  // Only that single entry is filled — no bulk writes.
   // Runs once per install. The flag below prevents re-runs.
 
   static const String _kMigrationV2Key = 'legacy_gap_migration_v2_done';
@@ -71,23 +75,36 @@ class StartupMigrationService implements IStartupMigrationService {
 
       final readSet = Set<String>.from(readDevocionalIds);
 
-      // Detect exactly one single-entry gap: index N-1 read, N unread, N+1 read.
-      // This is the precise fingerprint of the one-day bug — no other gap pattern
-      // is touched.
       String? singleGapId;
       int singleGapIndex = -1;
-      for (int i = 1; i < devocionales.length - 1; i++) {
-        final prevRead = readSet.contains(devocionales[i - 1].id);
-        final currUnread = !readSet.contains(devocionales[i].id);
-        final nextRead = readSet.contains(devocionales[i + 1].id);
 
-        if (prevRead && currUnread && nextRead) {
-          final id = devocionales[i].id;
-          if (id.isNotEmpty) {
-            singleGapId = id;
-            singleGapIndex = i;
+      // ── Pattern A: leading gap at index 0 ─────────────────────────────────
+      // The original loop started at i=1 (requires both neighbours) so index 0
+      // was structurally excluded. Check it explicitly first.
+      if (devocionales.length >= 2) {
+        final firstUnread = !readSet.contains(devocionales[0].id);
+        final secondRead = readSet.contains(devocionales[1].id);
+        if (firstUnread && secondRead && devocionales[0].id.isNotEmpty) {
+          singleGapId = devocionales[0].id;
+          singleGapIndex = 0;
+        }
+      }
+
+      // ── Pattern B: interior gap (N-1 read, N unread, N+1 read) ───────────
+      if (singleGapId == null) {
+        for (int i = 1; i < devocionales.length - 1; i++) {
+          final prevRead = readSet.contains(devocionales[i - 1].id);
+          final currUnread = !readSet.contains(devocionales[i].id);
+          final nextRead = readSet.contains(devocionales[i + 1].id);
+
+          if (prevRead && currUnread && nextRead) {
+            final id = devocionales[i].id;
+            if (id.isNotEmpty) {
+              singleGapId = id;
+              singleGapIndex = i;
+            }
+            break; // exactly one — stop immediately
           }
-          break; // exactly one — stop immediately
         }
       }
 
