@@ -921,6 +921,88 @@ void main() {
         );
       }
     });
+
+    // ── StartupMigrationService DI registration ───────────────────────────────
+
+    test(
+      'StartupMigrationService is registered under IStartupMigrationService in ServiceLocator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('registerLazySingleton<IStartupMigrationService>'),
+          isTrue,
+          reason:
+              'StartupMigrationService must be registered under IStartupMigrationService, not the concrete type',
+        );
+
+        expect(
+          content.contains('registerLazySingleton<StartupMigrationService>'),
+          isFalse,
+          reason:
+              'StartupMigrationService must not be registered under its concrete type',
+        );
+      },
+    );
+
+    test(
+      'StartupMigrationService does not use static singleton antipattern',
+      () async {
+        final file = File('lib/services/startup_migration_service.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('static StartupMigrationService? _instance'),
+          isFalse,
+          reason:
+              'StartupMigrationService should not have static _instance field',
+        );
+
+        expect(
+          content.contains('static StartupMigrationService get instance'),
+          isFalse,
+          reason:
+              'StartupMigrationService should not have static instance getter',
+        );
+      },
+    );
+
+    test(
+      'StartupMigrationService does not instantiate SpiritualStatsService directly',
+      () async {
+        final file = File('lib/services/startup_migration_service.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('SpiritualStatsService()'),
+          isFalse,
+          reason:
+              'StartupMigrationService must not instantiate SpiritualStatsService() directly; '
+              'use the injected ISpiritualStatsService field',
+        );
+      },
+    );
+
+    test(
+      'StartupMigrationService implements IStartupMigrationService',
+      () async {
+        final file = File('lib/services/startup_migration_service.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains(
+              'class StartupMigrationService implements IStartupMigrationService'),
+          isTrue,
+          reason:
+              'StartupMigrationService must implement IStartupMigrationService interface',
+        );
+      },
+    );
   });
 }
 

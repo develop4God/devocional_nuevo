@@ -254,6 +254,7 @@ class SpiritualStatsService implements ISpiritualStatsService {
   /// - Does NOT update streak or lastActivityDate.
   /// - Does NOT fire analytics.
   /// - Idempotent: IDs already present are silently skipped.
+  @override
   Future<void> bulkMarkAsRead(List<String> ids) async {
     if (ids.isEmpty) return;
 
