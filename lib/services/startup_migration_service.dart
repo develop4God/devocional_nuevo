@@ -30,7 +30,7 @@ class StartupMigrationService implements IStartupMigrationService {
     List<Devocional> devocionales,
     List<String> readDevocionalIds,
   ) async {
-    await _migrationV2SingleGapFix(devocionales, readDevocionalIds);
+    await _migrationV3SingleGapFix(devocionales, readDevocionalIds);
     // Future migrations go here:
     // await _migrationV3SomethingElse();
   }
@@ -50,20 +50,20 @@ class StartupMigrationService implements IStartupMigrationService {
   // Only that single entry is filled — no bulk writes.
   // Runs once per install. The flag below prevents re-runs.
 
-  static const String _kMigrationV2Key = 'legacy_gap_migration_v2_done';
+  static const String _kMigrationV3Key = 'legacy_gap_migration_v3_done';
 
-  Future<void> _migrationV2SingleGapFix(
+  Future<void> _migrationV3SingleGapFix(
     List<Devocional> devocionales,
     List<String> readDevocionalIds,
   ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final alreadyRan = prefs.getBool(_kMigrationV2Key) ?? false;
+      final alreadyRan = prefs.getBool(_kMigrationV3Key) ?? false;
       if (alreadyRan) return;
 
       // Mark migration as done immediately — even if we find nothing to fix.
       // This prevents repeated prefs reads on every cold start.
-      await prefs.setBool(_kMigrationV2Key, true);
+      await prefs.setBool(_kMigrationV3Key, true);
 
       if (readDevocionalIds.isEmpty || devocionales.isEmpty) {
         developer.log(
