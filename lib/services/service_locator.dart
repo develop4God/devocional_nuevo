@@ -29,6 +29,7 @@ import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:devocional_nuevo/services/backup/i_google_drive_auth_service.dart';
 import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/i_startup_migration_service.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:devocional_nuevo/services/iap/iap_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
@@ -162,8 +163,10 @@ Future<void> setupServiceLocator() async {
   locator.registerLazySingleton<ISpiritualStatsService>(
     () => SpiritualStatsService(),
   );
-  locator.registerLazySingleton<StartupMigrationService>(
-    () => StartupMigrationService(),
+  locator.registerLazySingleton<IStartupMigrationService>(
+    () => StartupMigrationService(
+      statsService: locator.get<ISpiritualStatsService>(),
+    ),
   );
 
   // ✅ REGISTER CONNECTIVITY SERVICE (via interface)

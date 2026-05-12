@@ -10,15 +10,22 @@ import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
+import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/i_startup_migration_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class StartupMigrationService {
+class StartupMigrationService implements IStartupMigrationService {
+  const StartupMigrationService({required ISpiritualStatsService statsService})
+      : _statsService = statsService;
+
+  final ISpiritualStatsService _statsService;
+
   /// Run all registered migrations in order.
   /// Call once from AppInitializer._initAppData() on every cold start.
   /// Each migration is self-guarded and will no-op after its first run.
+  @override
   Future<void> runAll(
     List<Devocional> devocionales,
     List<String> readDevocionalIds,
@@ -102,7 +109,7 @@ class StartupMigrationService {
         name: 'GapMigration',
       );
 
-      await SpiritualStatsService().bulkMarkAsRead([singleGapId]);
+      await _statsService.bulkMarkAsRead([singleGapId]);
 
       developer.log(
         '✅ [MIGRATION] Legacy gap migration complete: 1 entry marked as read (index $singleGapIndex)',

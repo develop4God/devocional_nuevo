@@ -83,7 +83,6 @@ class DevocionalesPage extends StatefulWidget {
 
 class _DevocionalesPageState extends State<DevocionalesPage>
     with WidgetsBindingObserver, RouteAware {
-
   final ScreenshotController screenshotController = ScreenshotController();
   final ScrollController _scrollController = ScrollController();
   final DevocionalesTracking _tracking = DevocionalesTracking();
