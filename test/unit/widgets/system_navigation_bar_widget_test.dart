@@ -16,112 +16,106 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('System Navigation Bar Widget Tests', () {
-    testWidgets(
-      'App should have AnnotatedRegion with systemUiOverlayStyle',
-      (WidgetTester tester) async {
-        await tester.pumpWidget(
-          AnnotatedRegion<SystemUiOverlayStyle>(
-            value: systemUiOverlayStyle,
-            child: const MaterialApp(
-              home: Scaffold(body: Center(child: Text('Test App'))),
-            ),
+    testWidgets('App should have AnnotatedRegion with systemUiOverlayStyle', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        AnnotatedRegion<SystemUiOverlayStyle>(
+          value: systemUiOverlayStyle,
+          child: const MaterialApp(
+            home: Scaffold(body: Center(child: Text('Test App'))),
           ),
-        );
+        ),
+      );
 
-        expect(find.text('Test App'), findsOneWidget);
-      },
-    );
+      expect(find.text('Test App'), findsOneWidget);
+    });
 
-    testWidgets(
-      'System UI overlay style should persist through navigation',
-      (WidgetTester tester) async {
-        await tester.pumpWidget(
-          AnnotatedRegion<SystemUiOverlayStyle>(
-            value: systemUiOverlayStyle,
-            child: MaterialApp(
-              home: Scaffold(
-                appBar: AppBar(title: const Text('Home')),
-                body: Builder(
-                  builder: (context) => ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => Scaffold(
-                            appBar: AppBar(title: const Text('Second Page')),
-                            body: const Center(child: Text('Second Page')),
-                          ),
+    testWidgets('System UI overlay style should persist through navigation', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        AnnotatedRegion<SystemUiOverlayStyle>(
+          value: systemUiOverlayStyle,
+          child: MaterialApp(
+            home: Scaffold(
+              appBar: AppBar(title: const Text('Home')),
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => Scaffold(
+                          appBar: AppBar(title: const Text('Second Page')),
+                          body: const Center(child: Text('Second Page')),
                         ),
-                      );
-                    },
-                    child: const Text('Navigate'),
-                  ),
+                      ),
+                    );
+                  },
+                  child: const Text('Navigate'),
                 ),
               ),
             ),
           ),
-        );
+        ),
+      );
 
-        expect(find.text('Home'), findsOneWidget);
-        expect(find.text('Navigate'), findsOneWidget);
+      expect(find.text('Home'), findsOneWidget);
+      expect(find.text('Navigate'), findsOneWidget);
 
-        await tester.tap(find.text('Navigate'));
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('Navigate'));
+      await tester.pumpAndSettle();
 
-        // One in AppBar, one in body
-        expect(find.text('Second Page'), findsNWidgets(2));
-      },
-    );
+      // One in AppBar, one in body
+      expect(find.text('Second Page'), findsNWidgets(2));
+    });
 
-    testWidgets(
-      'System UI overlay style should work with theme changes',
-      (WidgetTester tester) async {
-        bool isDarkMode = false;
+    testWidgets('System UI overlay style should work with theme changes', (
+      WidgetTester tester,
+    ) async {
+      bool isDarkMode = false;
 
-        await tester.pumpWidget(
-          StatefulBuilder(
-            builder: (context, setState) {
-              return AnnotatedRegion<SystemUiOverlayStyle>(
-                value: systemUiOverlayStyle,
-                child: MaterialApp(
-                  theme: ThemeData.light(),
-                  darkTheme: ThemeData.dark(),
-                  themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
-                  home: Scaffold(
-                    appBar: AppBar(title: const Text('Theme Test')),
-                    body: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          isDarkMode = !isDarkMode;
-                        });
-                      },
-                      child: Text(
-                        isDarkMode ? 'Switch to Light' : 'Switch to Dark',
-                      ),
+      await tester.pumpWidget(
+        StatefulBuilder(
+          builder: (context, setState) {
+            return AnnotatedRegion<SystemUiOverlayStyle>(
+              value: systemUiOverlayStyle,
+              child: MaterialApp(
+                theme: ThemeData.light(),
+                darkTheme: ThemeData.dark(),
+                themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+                home: Scaffold(
+                  appBar: AppBar(title: const Text('Theme Test')),
+                  body: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        isDarkMode = !isDarkMode;
+                      });
+                    },
+                    child: Text(
+                      isDarkMode ? 'Switch to Light' : 'Switch to Dark',
                     ),
                   ),
                 ),
-              );
-            },
-          ),
-        );
+              ),
+            );
+          },
+        ),
+      );
 
-        expect(find.text('Theme Test'), findsOneWidget);
-        expect(find.text('Switch to Dark'), findsOneWidget);
+      expect(find.text('Theme Test'), findsOneWidget);
+      expect(find.text('Switch to Dark'), findsOneWidget);
 
-        await tester.tap(find.text('Switch to Dark'));
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('Switch to Dark'));
+      await tester.pumpAndSettle();
 
-        expect(find.text('Switch to Light'), findsOneWidget);
-      },
-    );
+      expect(find.text('Switch to Light'), findsOneWidget);
+    });
 
     test('System UI overlay style values are correct for all scenarios', () {
       expect(systemUiOverlayStyle.statusBarColor, Colors.transparent);
-      expect(
-        systemUiOverlayStyle.statusBarIconBrightness,
-        Brightness.light,
-      );
+      expect(systemUiOverlayStyle.statusBarIconBrightness, Brightness.light);
       expect(
         systemUiOverlayStyle.systemNavigationBarColor,
         const Color(0xFF424242),
@@ -170,10 +164,7 @@ void main() {
   group('System Navigation Bar Color Validation', () {
     test('Navigation bar color should be Material Grey 800', () {
       const expectedColor = Color(0xFF424242);
-      expect(
-        systemUiOverlayStyle.systemNavigationBarColor,
-        expectedColor,
-      );
+      expect(systemUiOverlayStyle.systemNavigationBarColor, expectedColor);
     });
 
     test('Navigation bar color should provide sufficient contrast', () {

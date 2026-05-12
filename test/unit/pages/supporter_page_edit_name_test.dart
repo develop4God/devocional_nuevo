@@ -42,10 +42,8 @@ class _DialogHarness extends StatelessWidget {
             key: const ValueKey('open_dialog'),
             onPressed: () => showDialog<void>(
               context: ctx,
-              builder: (_) => _TestDialog(
-                currentName: currentName ?? '',
-                onSave: onSave,
-              ),
+              builder: (_) =>
+                  _TestDialog(currentName: currentName ?? '', onSave: onSave),
             ),
             child: const Text('open'),
           ),
@@ -145,10 +143,12 @@ void main() {
 
   // ── 1: State — no Gold purchase ──────────────────────────────────────────
 
-  test('1 — isPurchased(gold) is false when Gold is not in purchasedLevels',
-      () {
-    expect(_loadedState().isPurchased(SupporterTierLevel.gold), isFalse);
-  });
+  test(
+    '1 — isPurchased(gold) is false when Gold is not in purchasedLevels',
+    () {
+      expect(_loadedState().isPurchased(SupporterTierLevel.gold), isFalse);
+    },
+  );
 
   // ── 2: State — Gold purchased ────────────────────────────────────────────
 
@@ -161,25 +161,25 @@ void main() {
 
   // ── 3: Bloc — EditGoldSupporterName sets isEditingGoldName ───────────────
 
-  test('3 — EditGoldSupporterName event sets isEditingGoldName to true',
-      () async {
-    final bloc = await _goldBloc();
+  test(
+    '3 — EditGoldSupporterName event sets isEditingGoldName to true',
+    () async {
+      final bloc = await _goldBloc();
 
-    bloc.add(EditGoldSupporterName());
-    await pumpEventQueue();
+      bloc.add(EditGoldSupporterName());
+      await pumpEventQueue();
 
-    final state = bloc.state as SupporterLoaded;
-    expect(state.isEditingGoldName, isTrue);
+      final state = bloc.state as SupporterLoaded;
+      expect(state.isEditingGoldName, isTrue);
 
-    await bloc.close();
-  });
+      await bloc.close();
+    },
+  );
 
   // ── 4: Widget — dialog renders when open ─────────────────────────────────
 
   testWidgets('4 — dialog shows TextField when opened', (tester) async {
-    await tester.pumpWidget(
-      _DialogHarness(currentName: null, onSave: (_) {}),
-    );
+    await tester.pumpWidget(_DialogHarness(currentName: null, onSave: (_) {}));
     await tester.tap(find.byKey(const ValueKey('open_dialog')));
     await tester.pumpAndSettle();
 
@@ -188,8 +188,9 @@ void main() {
 
   // ── 5: Widget — Save calls onSave with entered name ──────────────────────
 
-  testWidgets('5 — tapping Save calls onSave with the entered name',
-      (tester) async {
+  testWidgets('5 — tapping Save calls onSave with the entered name', (
+    tester,
+  ) async {
     String? saved;
 
     await tester.pumpWidget(
@@ -199,7 +200,9 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(
-        find.byKey(const ValueKey('gold_name_text_field')), 'María Soledad');
+      find.byKey(const ValueKey('gold_name_text_field')),
+      'María Soledad',
+    );
     await tester.tap(find.byKey(const ValueKey('save_button')));
     await tester.pumpAndSettle();
 
@@ -209,23 +212,26 @@ void main() {
 
   // ── 5b: Bloc — SaveGoldSupporterName persists name in state ──────────────
 
-  test('5b — SaveGoldSupporterName persists name in SupporterLoaded state',
-      () async {
-    final bloc = await _goldBloc();
+  test(
+    '5b — SaveGoldSupporterName persists name in SupporterLoaded state',
+    () async {
+      final bloc = await _goldBloc();
 
-    bloc.add(SaveGoldSupporterName('María Soledad'));
-    await pumpEventQueue();
+      bloc.add(SaveGoldSupporterName('María Soledad'));
+      await pumpEventQueue();
 
-    final state = bloc.state as SupporterLoaded;
-    expect(state.goldSupporterName, equals('María Soledad'));
+      final state = bloc.state as SupporterLoaded;
+      expect(state.goldSupporterName, equals('María Soledad'));
 
-    await bloc.close();
-  });
+      await bloc.close();
+    },
+  );
 
   // ── 6: Widget — Cancel dismisses without calling onSave ──────────────────
 
-  testWidgets('6 — tapping Cancel dismisses dialog without calling onSave',
-      (tester) async {
+  testWidgets('6 — tapping Cancel dismisses dialog without calling onSave', (
+    tester,
+  ) async {
     bool saveCalled = false;
 
     await tester.pumpWidget(
@@ -235,7 +241,9 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(
-        find.byKey(const ValueKey('gold_name_text_field')), 'Should not save');
+      find.byKey(const ValueKey('gold_name_text_field')),
+      'Should not save',
+    );
     await tester.tap(find.byKey(const ValueKey('cancel_button')));
     await tester.pumpAndSettle();
 

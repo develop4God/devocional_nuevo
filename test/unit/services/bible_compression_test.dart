@@ -90,48 +90,42 @@ void main() {
       expect(defaultCompressed, isNotNull);
 
       // Level 9 should compress better (smaller size)
-      expect(
-        maxCompressed.length,
-        lessThanOrEqualTo(defaultCompressed.length),
-      );
+      expect(maxCompressed.length, lessThanOrEqualTo(defaultCompressed.length));
 
       // Both should decompress correctly
       final decompressed = GZipDecoder().decodeBytes(maxCompressed);
       expect(decompressed.length, equals(testData.length));
     });
 
-    test(
-      'should maintain data integrity for realistic Bible-like content',
-      () {
-        // Simulate Bible text structure with verses (repeated to make it compressible)
-        final verses = <String>[
-          'In the beginning God created the heaven and the earth.',
-          'And the earth was without form, and void;',
-          'and darkness was upon the face of the deep.',
-          'And the Spirit of God moved upon the face of the waters.',
-        ];
+    test('should maintain data integrity for realistic Bible-like content', () {
+      // Simulate Bible text structure with verses (repeated to make it compressible)
+      final verses = <String>[
+        'In the beginning God created the heaven and the earth.',
+        'And the earth was without form, and void;',
+        'and darkness was upon the face of the deep.',
+        'And the Spirit of God moved upon the face of the waters.',
+      ];
 
-        // Repeat verses to simulate a chapter (makes it more compressible)
-        final repeatedVerses = List<String>.filled(100, verses.join('\n'));
+      // Repeat verses to simulate a chapter (makes it more compressible)
+      final repeatedVerses = List<String>.filled(100, verses.join('\n'));
 
-        // Convert to bytes (simulating database storage)
-        final textData = repeatedVerses.join('\n').codeUnits;
-        final originalData = Uint8List.fromList(textData);
+      // Convert to bytes (simulating database storage)
+      final textData = repeatedVerses.join('\n').codeUnits;
+      final originalData = Uint8List.fromList(textData);
 
-        // Compress
-        final compressed = GZipEncoder().encode(originalData, level: 9);
-        expect(compressed, isNotNull);
+      // Compress
+      final compressed = GZipEncoder().encode(originalData, level: 9);
+      expect(compressed, isNotNull);
 
-        // Should achieve good compression for repetitive text
-        expect(compressed.length, lessThan(originalData.length * 0.5));
+      // Should achieve good compression for repetitive text
+      expect(compressed.length, lessThan(originalData.length * 0.5));
 
-        // Decompress and verify
-        final decompressed = GZipDecoder().decodeBytes(compressed);
-        final recoveredText = String.fromCharCodes(decompressed);
+      // Decompress and verify
+      final decompressed = GZipDecoder().decodeBytes(compressed);
+      final recoveredText = String.fromCharCodes(decompressed);
 
-        expect(recoveredText, equals(repeatedVerses.join('\n')));
-      },
-    );
+      expect(recoveredText, equals(repeatedVerses.join('\n')));
+    });
 
     test('compressed files should be approximately 65% smaller', () {
       // Based on actual compression results from Bible databases

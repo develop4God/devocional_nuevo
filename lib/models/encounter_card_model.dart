@@ -102,7 +102,8 @@ class EncounterCard {
       narrative: json['narrative'] as String?,
       verseOverlay: json['verse_overlay'] != null
           ? EncounterVerseOverlay.fromJson(
-              json['verse_overlay'] as Map<String, dynamic>)
+              json['verse_overlay'] as Map<String, dynamic>,
+            )
           : null,
       revelationKey: json['revelation_key'] as String?,
       ambientSound: json['ambient_sound'] as String?,
@@ -114,20 +115,26 @@ class EncounterCard {
       verseText: json['verse_text'] as String?,
       reflection: json['reflection'] as String?,
       discoveryQuestions: (json['discovery_questions'] as List<dynamic>?)
-          ?.map((e) =>
-              EncounterDiscoveryQuestion.fromJson(e as Map<String, dynamic>))
+          ?.map(
+            (e) =>
+                EncounterDiscoveryQuestion.fromJson(e as Map<String, dynamic>),
+          )
           .toList(),
       prayer: json['prayer'] != null
           ? EncounterPrayer.fromJson(json['prayer'] as Map<String, dynamic>)
           : null,
       completionVerse: json['completion_verse'] != null
           ? EncounterCompletionVerse.fromJson(
-              json['completion_verse'] as Map<String, dynamic>)
+              json['completion_verse'] as Map<String, dynamic>,
+            )
           : null,
       reflectionPrompt: json['reflection_prompt'] as String?,
       scriptureConnections: (json['scripture_connections'] as List<dynamic>?)
-          ?.map((e) =>
-              EncounterScriptureConnection.fromJson(e as Map<String, dynamic>))
+          ?.map(
+            (e) => EncounterScriptureConnection.fromJson(
+              e as Map<String, dynamic>,
+            ),
+          )
           .toList(),
     );
   }
@@ -224,8 +231,10 @@ class EncounterDiscoveryQuestion {
   final String category;
   final String question;
 
-  const EncounterDiscoveryQuestion(
-      {required this.category, required this.question});
+  const EncounterDiscoveryQuestion({
+    required this.category,
+    required this.question,
+  });
 
   factory EncounterDiscoveryQuestion.fromJson(Map<String, dynamic> json) =>
       EncounterDiscoveryQuestion(
@@ -240,8 +249,10 @@ class EncounterScriptureConnection {
   final String reference;
   final String text;
 
-  const EncounterScriptureConnection(
-      {required this.reference, required this.text});
+  const EncounterScriptureConnection({
+    required this.reference,
+    required this.text,
+  });
 
   factory EncounterScriptureConnection.fromJson(Map<String, dynamic> json) =>
       EncounterScriptureConnection(

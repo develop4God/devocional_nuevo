@@ -22,8 +22,9 @@ import 'package:flutter/services.dart';
 /// - devocional://encounter_detail/{id} - Navigate to specific encounter
 class DeepLinkHandler {
   static const String scheme = 'devocional';
-  static const MethodChannel _channel =
-      MethodChannel('com.develop4god.devocional/deeplink');
+  static const MethodChannel _channel = MethodChannel(
+    'com.develop4god.devocional/deeplink',
+  );
 
   /// Holds a deep link that arrived before the navigator was ready.
   /// Flushed by [flushPendingLink] once the app is fully loaded.
@@ -38,10 +39,7 @@ class DeepLinkHandler {
 
   /// Initialize deep link handling
   Future<void> initialize() async {
-    developer.log(
-      'DeepLinkHandler initialized',
-      name: 'DeepLinkHandler',
-    );
+    developer.log('DeepLinkHandler initialized', name: 'DeepLinkHandler');
 
     // Set up method call handler for iOS and for receiving deep links while app is running
     _channel.setMethodCallHandler(_handleMethodCall);
@@ -77,7 +75,8 @@ class DeepLinkHandler {
   /// Handle method calls from iOS and Android (for deep links while app is running)
   Future<dynamic> _handleMethodCall(MethodCall call) async {
     debugPrint(
-        '🔗 [DeepLink] _handleMethodCall: method="${call.method}", args="${call.arguments}"');
+      '🔗 [DeepLink] _handleMethodCall: method="${call.method}", args="${call.arguments}"',
+    );
     if (call.method == 'handleDeepLink') {
       final String? link = call.arguments as String?;
       if (link != null) {
@@ -138,7 +137,8 @@ class DeepLinkHandler {
 
     if (uri.scheme != scheme) {
       debugPrint(
-          '🔗 [DeepLink] ❌ Invalid scheme: "${uri.scheme}", expected: "$scheme"');
+        '🔗 [DeepLink] ❌ Invalid scheme: "${uri.scheme}", expected: "$scheme"',
+      );
       developer.log(
         'Invalid scheme: ${uri.scheme}, expected: $scheme',
         name: 'DeepLinkHandler',
@@ -148,7 +148,8 @@ class DeepLinkHandler {
 
     final BuildContext? context = navigatorKey.currentContext;
     debugPrint(
-        '🔗 [DeepLink] navigatorKey.currentContext is ${context == null ? "NULL — buffering" : "READY"}');
+      '🔗 [DeepLink] navigatorKey.currentContext is ${context == null ? "NULL — buffering" : "READY"}',
+    );
     if (context == null) {
       developer.log(
         'Navigator context is null — buffering link: ${uri.toString()}',
@@ -169,16 +170,14 @@ class DeepLinkHandler {
     // URIs like "devocional://devotional/date" have path segments
     String? route = uri.host.isNotEmpty ? uri.host : null;
     debugPrint(
-        '🔗 [DeepLink] uri.host="${uri.host}", uri.pathSegments=${uri.pathSegments}');
+      '🔗 [DeepLink] uri.host="${uri.host}", uri.pathSegments=${uri.pathSegments}',
+    );
 
     if (route == null || route.isEmpty) {
       final pathSegments = uri.pathSegments;
       if (pathSegments.isEmpty) {
         debugPrint('🔗 [DeepLink] ❌ Empty route — ignoring');
-        developer.log(
-          'Empty route',
-          name: 'DeepLinkHandler',
-        );
+        developer.log('Empty route', name: 'DeepLinkHandler');
         return false;
       }
       route = pathSegments.first;
@@ -189,7 +188,10 @@ class DeepLinkHandler {
       switch (route) {
         case 'devotional':
           return await _handleDevotionalDeepLink(
-              context, uri.pathSegments, uri.queryParameters);
+            context,
+            uri.pathSegments,
+            uri.queryParameters,
+          );
         case 'progress':
           return await _handleProgressDeepLink(context);
         case 'prayers':
@@ -205,12 +207,11 @@ class DeepLinkHandler {
         case 'encounter':
         case 'encounter_detail':
           return await _handleEncounterDetailDeepLink(
-              context, uri.pathSegments);
-        default:
-          developer.log(
-            'Unknown route: $route',
-            name: 'DeepLinkHandler',
+            context,
+            uri.pathSegments,
           );
+        default:
+          developer.log('Unknown route: $route', name: 'DeepLinkHandler');
           return false;
       }
     } catch (e, stackTrace) {
@@ -251,17 +252,10 @@ class DeepLinkHandler {
         context,
       ).pushNamedAndRemoveUntil('devotional', (route) => false);
     } catch (e) {
-      developer.log(
-        'Navigation error: $e',
-        name: 'DeepLinkHandler',
-        error: e,
-      );
+      developer.log('Navigation error: $e', name: 'DeepLinkHandler', error: e);
     }
 
-    developer.log(
-      'Navigated to devotional page',
-      name: 'DeepLinkHandler',
-    );
+    developer.log('Navigated to devotional page', name: 'DeepLinkHandler');
 
     return true;
   }
@@ -274,19 +268,12 @@ class DeepLinkHandler {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
-      developer.log(
-        'Navigation error: $e',
-        name: 'DeepLinkHandler',
-        error: e,
-      );
+      developer.log('Navigation error: $e', name: 'DeepLinkHandler', error: e);
     }
 
     // Navigate to progress tab (index 1 in bottom navigation)
     // This would need to be integrated with the actual bottom navigation controller
-    developer.log(
-      'Navigated to progress page',
-      name: 'DeepLinkHandler',
-    );
+    developer.log('Navigated to progress page', name: 'DeepLinkHandler');
 
     return true;
   }
@@ -299,18 +286,11 @@ class DeepLinkHandler {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
-      developer.log(
-        'Navigation error: $e',
-        name: 'DeepLinkHandler',
-        error: e,
-      );
+      developer.log('Navigation error: $e', name: 'DeepLinkHandler', error: e);
     }
 
     // Navigate to prayers tab (index 2 in bottom navigation)
-    developer.log(
-      'Navigated to prayers page',
-      name: 'DeepLinkHandler',
-    );
+    developer.log('Navigated to prayers page', name: 'DeepLinkHandler');
 
     return true;
   }
@@ -324,23 +304,14 @@ class DeepLinkHandler {
       }
 
       // Push PrayerWallPage (don't await - allows function to return immediately)
-      final route = MaterialPageRoute(
-        builder: (_) => const PrayerWallPage(),
-      );
+      final route = MaterialPageRoute(builder: (_) => const PrayerWallPage());
       Navigator.of(context).push(route);
 
-      developer.log(
-        'Navigated to prayer wall page',
-        name: 'DeepLinkHandler',
-      );
+      developer.log('Navigated to prayer wall page', name: 'DeepLinkHandler');
 
       return true;
     } catch (e) {
-      developer.log(
-        'Navigation error: $e',
-        name: 'DeepLinkHandler',
-        error: e,
-      );
+      developer.log('Navigation error: $e', name: 'DeepLinkHandler', error: e);
       return false;
     }
   }
@@ -353,18 +324,11 @@ class DeepLinkHandler {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
-      developer.log(
-        'Navigation error: $e',
-        name: 'DeepLinkHandler',
-        error: e,
-      );
+      developer.log('Navigation error: $e', name: 'DeepLinkHandler', error: e);
     }
 
     // Navigate to testimonies tab (index 3 in bottom navigation)
-    developer.log(
-      'Navigated to testimonies page',
-      name: 'DeepLinkHandler',
-    );
+    developer.log('Navigated to testimonies page', name: 'DeepLinkHandler');
 
     return true;
   }
@@ -375,7 +339,8 @@ class DeepLinkHandler {
     debugPrint('🔗 [DeepLink] _handleSupporterDeepLink: ENTER');
     debugPrint('🔗 [DeepLink] context.mounted = ${context.mounted}');
     debugPrint(
-        '🔗 [DeepLink] navigatorKey.currentContext == context: ${navigatorKey.currentContext == context}');
+      '🔗 [DeepLink] navigatorKey.currentContext == context: ${navigatorKey.currentContext == context}',
+    );
     try {
       final nav = Navigator.of(context);
       debugPrint('🔗 [DeepLink] Navigator obtained: $nav');
@@ -385,7 +350,8 @@ class DeepLinkHandler {
         debugPrint('🔗 [DeepLink] Popping until first route...');
         nav.popUntil((route) {
           debugPrint(
-              '🔗 [DeepLink]   route=${route.settings.name}, isFirst=${route.isFirst}');
+            '🔗 [DeepLink]   route=${route.settings.name}, isFirst=${route.isFirst}',
+          );
           return route.isFirst;
         });
         debugPrint('🔗 [DeepLink] popUntil done');
@@ -396,14 +362,18 @@ class DeepLinkHandler {
         MaterialPageRoute(
           builder: (ctx) {
             debugPrint(
-                '🔗 [DeepLink] SupporterPage builder called, ctx.mounted=${ctx.mounted}');
+              '🔗 [DeepLink] SupporterPage builder called, ctx.mounted=${ctx.mounted}',
+            );
             return const SupporterPage();
           },
         ),
-      ).then((_) => debugPrint('🔗 [DeepLink] SupporterPage popped/returned'));
+      ).then(
+        (_) => debugPrint('🔗 [DeepLink] SupporterPage popped/returned'),
+      );
 
       debugPrint(
-          '🔗 [DeepLink] Navigator.push called — SupporterPage should be visible');
+        '🔗 [DeepLink] Navigator.push called — SupporterPage should be visible',
+      );
       developer.log('Navigated to supporter page', name: 'DeepLinkHandler');
       return true;
     } catch (e, st) {
@@ -420,7 +390,8 @@ class DeepLinkHandler {
     debugPrint('🔗 [DeepLink] _handleEncountersDeepLink: ENTER');
     debugPrint('🔗 [DeepLink] context.mounted = ${context.mounted}');
     debugPrint(
-        '🔗 [DeepLink] navigatorKey.currentContext == context: ${navigatorKey.currentContext == context}');
+      '🔗 [DeepLink] navigatorKey.currentContext == context: ${navigatorKey.currentContext == context}',
+    );
     try {
       final nav = Navigator.of(context);
       debugPrint('🔗 [DeepLink] Navigator obtained: $nav');
@@ -430,7 +401,8 @@ class DeepLinkHandler {
         debugPrint('🔗 [DeepLink] Popping until first route...');
         nav.popUntil((route) {
           debugPrint(
-              '🔗 [DeepLink]   route=${route.settings.name}, isFirst=${route.isFirst}');
+            '🔗 [DeepLink]   route=${route.settings.name}, isFirst=${route.isFirst}',
+          );
           return route.isFirst;
         });
         debugPrint('🔗 [DeepLink] popUntil done');
@@ -441,15 +413,18 @@ class DeepLinkHandler {
         MaterialPageRoute(
           builder: (ctx) {
             debugPrint(
-                '🔗 [DeepLink] EncountersListPage builder called, ctx.mounted=${ctx.mounted}');
+              '🔗 [DeepLink] EncountersListPage builder called, ctx.mounted=${ctx.mounted}',
+            );
             return const EncountersListPage();
           },
         ),
-      ).then((_) =>
-          debugPrint('🔗 [DeepLink] EncountersListPage popped/returned'));
+      ).then(
+        (_) => debugPrint('🔗 [DeepLink] EncountersListPage popped/returned'),
+      );
 
       debugPrint(
-          '🔗 [DeepLink] Navigator.push called — EncountersListPage should be visible');
+        '🔗 [DeepLink] Navigator.push called — EncountersListPage should be visible',
+      );
       developer.log('Navigated to encounters page', name: 'DeepLinkHandler');
       return true;
     } catch (e, st) {
@@ -491,9 +466,9 @@ class DeepLinkHandler {
 
       // Navigate to encounters list first
       // In the future, could navigate directly to encounter detail
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const EncountersListPage()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const EncountersListPage()));
 
       developer.log(
         'Navigated to encounter: $encounterId',
@@ -502,11 +477,7 @@ class DeepLinkHandler {
 
       return true;
     } catch (e) {
-      developer.log(
-        'Navigation error: $e',
-        name: 'DeepLinkHandler',
-        error: e,
-      );
+      developer.log('Navigation error: $e', name: 'DeepLinkHandler', error: e);
       return false;
     }
   }

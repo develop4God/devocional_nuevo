@@ -73,19 +73,22 @@ class BibleReaderTtsMiniplayerPresenter {
             if (state == TtsPlayerState.completed &&
                 _shouldAutoCloseOnCompletion) {
               debugPrint(
-                  '[BibleTtsMiniplayerModal] ✅ TTS Completed - Scheduling modal close');
+                '[BibleTtsMiniplayerModal] ✅ TTS Completed - Scheduling modal close',
+              );
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 // Only close if:
                 // 1. Auto-close is still enabled (user didn't explicitly close)
                 // 2. Navigator can still pop (modal is still in the stack)
                 if (_shouldAutoCloseOnCompletion && Navigator.canPop(ctx)) {
                   debugPrint(
-                      '[BibleTtsMiniplayerModal] 🔚 Closing modal via Navigator.pop()');
+                    '[BibleTtsMiniplayerModal] 🔚 Closing modal via Navigator.pop()',
+                  );
                   _shouldAutoCloseOnCompletion = false;
                   Navigator.of(ctx).pop();
                 } else {
                   debugPrint(
-                      '[BibleTtsMiniplayerModal] ⚠️ Modal already closing or user dismissed — skipping pop');
+                    '[BibleTtsMiniplayerModal] ⚠️ Modal already closing or user dismissed — skipping pop',
+                  );
                 }
               });
             }
@@ -149,8 +152,9 @@ class BibleReaderTtsMiniplayerPresenter {
                             ).languageCode;
 
                             final currentState = getCurrentState();
-                            final sampleText =
-                                BibleReaderTtsTextBuilder.build(currentState);
+                            final sampleText = BibleReaderTtsTextBuilder.build(
+                              currentState,
+                            );
                             if (sampleText.isEmpty) return;
 
                             if (state == TtsPlayerState.playing) {
@@ -162,7 +166,10 @@ class BibleReaderTtsMiniplayerPresenter {
                             if (onShowVoiceSelector != null) {
                               // Delegate to the page's single implementation.
                               await onShowVoiceSelector!(
-                                  context, languageCode, sampleText);
+                                context,
+                                languageCode,
+                                sampleText,
+                              );
                             } else {
                               // Fallback inline path (e.g. when presenter is
                               // used outside a BibleReaderPage context).

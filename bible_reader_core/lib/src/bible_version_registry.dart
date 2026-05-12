@@ -57,20 +57,14 @@ class BibleVersionRegistry {
     ], // Add German
     'ar': [
       {'name': 'كتاب الحياة', 'dbFile': 'NAV_ar.SQLite3'},
-      {
-        'name': 'فان دايك',
-        'dbFile': 'SVDA_ar.SQLite3',
-      },
+      {'name': 'فان دايك', 'dbFile': 'SVDA_ar.SQLite3'},
     ], // Added Arabic
     'fil': [
       {
         'name': 'Magandang Balita Biblia (MBB05)',
         'dbFile': 'MBB05_fil.SQLite3',
       },
-      {
-        'name': 'Ang Salita ng Dios (ASND)',
-        'dbFile': 'ASND_fil.SQLite3',
-      },
+      {'name': 'Ang Salita ng Dios (ASND)', 'dbFile': 'ASND_fil.SQLite3'},
       {'name': 'Ang Dating Biblia (ADB)', 'dbFile': 'ADB_fil.SQLite3'},
     ], // Added Filipino (fil)
   };

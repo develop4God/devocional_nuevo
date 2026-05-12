@@ -67,10 +67,7 @@ class TestAssetBundle extends CachingAssetBundle {
 ///
 /// The helper also wraps the tree in a [DefaultAssetBundle] that
 /// returns minimal Lottie JSON to prevent infinite animation tickers.
-Future<void> pumpSupporterPage(
-  WidgetTester tester,
-  SupporterBloc bloc,
-) async {
+Future<void> pumpSupporterPage(WidgetTester tester, SupporterBloc bloc) async {
   await tester.pumpWidget(
     MaterialApp(
       home: DefaultAssetBundle(

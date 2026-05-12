@@ -263,7 +263,9 @@ void main() {
     test('Edge case: Very long prayer text', () async {
       // User writes a very detailed prayer
 
-      final longPrayer = 'Senor, ' 'te pido por ' * 100;
+      final longPrayer = 'Senor, '
+              'te pido por ' *
+          100;
       bloc.add(AddPrayer(longPrayer));
       await bloc.stream.firstWhere((state) => state is PrayerLoaded);
 

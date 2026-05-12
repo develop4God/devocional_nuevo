@@ -68,7 +68,9 @@ void main() {
         final state = bloc.state as ThanksgivingLoaded;
         expect(state.thanksgivings.length, equals(1));
         expect(
-            state.thanksgivings.first.text, equals('Thank God for my family'));
+          state.thanksgivings.first.text,
+          equals('Thank God for my family'),
+        );
       });
 
       test('User adds multiple thanksgivings in sequence', () async {
@@ -233,10 +235,13 @@ void main() {
         state = bloc2.state as ThanksgivingLoaded;
         expect(state.thanksgivings.length, equals(2));
         expect(
-            state.thanksgivings.any((t) => t.text == 'Thank God for salvation'),
-            isTrue);
-        expect(state.thanksgivings.any((t) => t.text == 'Thank God for grace'),
-            isTrue);
+          state.thanksgivings.any((t) => t.text == 'Thank God for salvation'),
+          isTrue,
+        );
+        expect(
+          state.thanksgivings.any((t) => t.text == 'Thank God for grace'),
+          isTrue,
+        );
 
         await bloc2.close();
       });
@@ -284,8 +289,11 @@ void main() {
         final ids = state.thanksgivings.map((t) => t.id).toList();
         final uniqueIds = ids.toSet();
 
-        expect(uniqueIds.length, equals(ids.length),
-            reason: 'All thanksgiving IDs should be unique');
+        expect(
+          uniqueIds.length,
+          equals(ids.length),
+          reason: 'All thanksgiving IDs should be unique',
+        );
       });
 
       test('Thanksgiving dates are set correctly', () async {
@@ -302,13 +310,17 @@ void main() {
         final thanksgiving = state.thanksgivings.first;
 
         expect(
-            thanksgiving.createdDate
-                .isAfter(before.subtract(const Duration(seconds: 1))),
-            isTrue);
+          thanksgiving.createdDate.isAfter(
+            before.subtract(const Duration(seconds: 1)),
+          ),
+          isTrue,
+        );
         expect(
-            thanksgiving.createdDate
-                .isBefore(after.add(const Duration(seconds: 1))),
-            isTrue);
+          thanksgiving.createdDate.isBefore(
+            after.add(const Duration(seconds: 1)),
+          ),
+          isTrue,
+        );
       });
     });
 
@@ -327,8 +339,11 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         state = bloc.state as ThanksgivingLoaded;
-        expect(state.thanksgivings.length, equals(1),
-            reason: 'Thanksgiving should persist after refresh');
+        expect(
+          state.thanksgivings.length,
+          equals(1),
+          reason: 'Thanksgiving should persist after refresh',
+        );
       });
     });
 

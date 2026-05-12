@@ -245,6 +245,41 @@ class SpiritualStatsService implements ISpiritualStatsService {
     );
   }
 
+  /// Bulk-marks a list of devotional IDs as read in a single read+write.
+  /// Used exclusively by the legacy gap migration in DevocionalesPage.
+  ///
+  /// CONTRACT:
+  /// - Single getStats() call + single saveStats() call — no per-ID loop.
+  /// - Does NOT increment totalDevocionalesRead.
+  /// - Does NOT update streak or lastActivityDate.
+  /// - Does NOT fire analytics.
+  /// - Idempotent: IDs already present are silently skipped.
+  @override
+  Future<void> bulkMarkAsRead(List<String> ids) async {
+    if (ids.isEmpty) return;
+
+    final stats = await getStats();
+    final existing = Set<String>.from(stats.readDevocionalIds);
+    final toAdd =
+        ids.where((id) => id.isNotEmpty && !existing.contains(id)).toList();
+
+    if (toAdd.isEmpty) {
+      debugPrint(
+        '🔧 [FIX] bulkMarkAsRead: all ${ids.length} IDs already present, skipping write',
+      );
+      return;
+    }
+
+    final updatedIds = List<String>.from(stats.readDevocionalIds)
+      ..addAll(toAdd);
+    final updatedStats = stats.copyWith(readDevocionalIds: updatedIds);
+    await saveStats(updatedStats);
+
+    debugPrint(
+      '🔧 [MIGRATION] bulkMarkAsRead: marked ${toAdd.length} gap IDs as read (skipped ${ids.length - toAdd.length} already present)',
+    );
+  }
+
   /// Crear backup JSON manual
   Future<void> _createJsonBackup([SpiritualStats? stats]) async {
     try {

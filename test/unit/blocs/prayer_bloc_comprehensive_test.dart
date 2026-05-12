@@ -85,58 +85,66 @@ void main() {
         await bloc2.close();
       });
 
-      test('User adds, edits, and deletes prayer through full lifecycle',
-          () async {
-        // Load
-        bloc.add(LoadPrayers());
-        await Future.delayed(const Duration(milliseconds: 100));
+      test(
+        'User adds, edits, and deletes prayer through full lifecycle',
+        () async {
+          // Load
+          bloc.add(LoadPrayers());
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        // Add
-        bloc.add(AddPrayer('Original prayer text'));
-        await Future.delayed(const Duration(milliseconds: 100));
+          // Add
+          bloc.add(AddPrayer('Original prayer text'));
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        var state = bloc.state as PrayerLoaded;
-        final prayerId = state.prayers.first.id;
+          var state = bloc.state as PrayerLoaded;
+          final prayerId = state.prayers.first.id;
 
-        // Edit
-        bloc.add(EditPrayer(prayerId, 'Updated prayer text'));
-        await Future.delayed(const Duration(milliseconds: 100));
+          // Edit
+          bloc.add(EditPrayer(prayerId, 'Updated prayer text'));
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        state = bloc.state as PrayerLoaded;
-        expect(state.prayers.first.text, equals('Updated prayer text'));
+          state = bloc.state as PrayerLoaded;
+          expect(state.prayers.first.text, equals('Updated prayer text'));
 
-        // Mark as answered
-        bloc.add(MarkPrayerAsAnswered(prayerId));
-        await Future.delayed(const Duration(milliseconds: 100));
+          // Mark as answered
+          bloc.add(MarkPrayerAsAnswered(prayerId));
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        state = bloc.state as PrayerLoaded;
-        expect(state.prayers.first.status, equals(PrayerStatus.answered));
-        expect(state.prayers.first.answeredDate, isNotNull);
+          state = bloc.state as PrayerLoaded;
+          expect(state.prayers.first.status, equals(PrayerStatus.answered));
+          expect(state.prayers.first.answeredDate, isNotNull);
 
-        // Add comment
-        bloc.add(UpdateAnsweredComment(prayerId,
-            comment: 'God answered this prayer!'));
-        await Future.delayed(const Duration(milliseconds: 100));
+          // Add comment
+          bloc.add(
+            UpdateAnsweredComment(
+              prayerId,
+              comment: 'God answered this prayer!',
+            ),
+          );
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        state = bloc.state as PrayerLoaded;
-        expect(state.prayers.first.answeredComment,
-            equals('God answered this prayer!'));
+          state = bloc.state as PrayerLoaded;
+          expect(
+            state.prayers.first.answeredComment,
+            equals('God answered this prayer!'),
+          );
 
-        // Mark back as active
-        bloc.add(MarkPrayerAsActive(prayerId));
-        await Future.delayed(const Duration(milliseconds: 100));
+          // Mark back as active
+          bloc.add(MarkPrayerAsActive(prayerId));
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        state = bloc.state as PrayerLoaded;
-        expect(state.prayers.first.status, equals(PrayerStatus.active));
-        expect(state.prayers.first.answeredDate, isNull);
+          state = bloc.state as PrayerLoaded;
+          expect(state.prayers.first.status, equals(PrayerStatus.active));
+          expect(state.prayers.first.answeredDate, isNull);
 
-        // Delete
-        bloc.add(DeletePrayer(prayerId));
-        await Future.delayed(const Duration(milliseconds: 100));
+          // Delete
+          bloc.add(DeletePrayer(prayerId));
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        state = bloc.state as PrayerLoaded;
-        expect(state.prayers, isEmpty);
-      });
+          state = bloc.state as PrayerLoaded;
+          expect(state.prayers, isEmpty);
+        },
+      );
 
       test('User adds multiple prayers and manages them', () async {
         bloc.add(LoadPrayers());
@@ -241,8 +249,11 @@ void main() {
         final ids = state.prayers.map((p) => p.id).toList();
         final uniqueIds = ids.toSet();
 
-        expect(uniqueIds.length, equals(ids.length),
-            reason: 'All prayer IDs should be unique');
+        expect(
+          uniqueIds.length,
+          equals(ids.length),
+          reason: 'All prayer IDs should be unique',
+        );
       });
 
       test('Prayer dates are set correctly', () async {
@@ -259,12 +270,15 @@ void main() {
         final prayer = state.prayers.first;
 
         expect(
-            prayer.createdDate
-                .isAfter(before.subtract(const Duration(seconds: 1))),
-            isTrue);
+          prayer.createdDate.isAfter(
+            before.subtract(const Duration(seconds: 1)),
+          ),
+          isTrue,
+        );
         expect(
-            prayer.createdDate.isBefore(after.add(const Duration(seconds: 1))),
-            isTrue);
+          prayer.createdDate.isBefore(after.add(const Duration(seconds: 1))),
+          isTrue,
+        );
       });
     });
 
@@ -283,8 +297,11 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         state = bloc.state as PrayerLoaded;
-        expect(state.prayers.length, equals(1),
-            reason: 'Prayer should persist after refresh');
+        expect(
+          state.prayers.length,
+          equals(1),
+          reason: 'Prayer should persist after refresh',
+        );
       });
     });
 

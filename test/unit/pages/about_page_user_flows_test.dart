@@ -305,12 +305,7 @@ void main() {
 
     // SCENARIO 21: User sees organized sections
     test('user sees about content in organized sections', () {
-      const sections = [
-        'App Information',
-        'Features',
-        'Legal',
-        'Contact',
-      ];
+      const sections = ['App Information', 'Features', 'Legal', 'Contact'];
 
       expect(sections.length, greaterThanOrEqualTo(3));
       expect(sections, contains('App Information'));

@@ -29,23 +29,24 @@ void main() {
         'setSelectedLanguage("ar") must NOT fall back to "es"', () {
       final mockHttp = MockClient((request) async {
         return http.Response(
-            jsonEncode({
-              'data': {
-                'ar': {
-                  '2025-01-01': [
-                    {
-                      'id': 'dev_ar_2025_01_01',
-                      'date': '2025-01-01',
-                      'versiculo': 'يوحنا 1:1',
-                      'texto': 'فِي الْبَدْءِ كَانَ الْكَلِمَةُ',
-                      'language': 'ar',
-                      'version': 'NAV'
-                    }
-                  ]
-                }
-              }
-            }),
-            200);
+          jsonEncode({
+            'data': {
+              'ar': {
+                '2025-01-01': [
+                  {
+                    'id': 'dev_ar_2025_01_01',
+                    'date': '2025-01-01',
+                    'versiculo': 'يوحنا 1:1',
+                    'texto': 'فِي الْبَدْءِ كَانَ الْكَلِمَةُ',
+                    'language': 'ar',
+                    'version': 'NAV',
+                  },
+                ],
+              },
+            },
+          }),
+          200,
+        );
       });
 
       final mockIndexService = MockDevocionalIndexService();
@@ -95,8 +96,11 @@ void main() {
 
     test('getDevocionalesApiUrlMultilingual generates correct Arabic URL', () {
       const year = 2025;
-      final url =
-          Constants.getDevocionalesApiUrlMultilingual(year, 'ar', 'NAV');
+      final url = Constants.getDevocionalesApiUrlMultilingual(
+        year,
+        'ar',
+        'NAV',
+      );
       expect(
         url,
         equals(

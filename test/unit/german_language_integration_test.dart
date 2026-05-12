@@ -29,23 +29,24 @@ void main() {
         'setSelectedLanguage("de") must NOT fall back to "es"', () {
       final mockHttp = MockClient((request) async {
         return http.Response(
-            jsonEncode({
-              'data': {
-                'de': {
-                  '2025-01-01': [
-                    {
-                      'id': 'dev_de_2025_01_01',
-                      'date': '2025-01-01',
-                      'versiculo': 'Johannes 1:1',
-                      'texto': 'Im Anfang war das Wort',
-                      'language': 'de',
-                      'version': 'LU17'
-                    }
-                  ]
-                }
-              }
-            }),
-            200);
+          jsonEncode({
+            'data': {
+              'de': {
+                '2025-01-01': [
+                  {
+                    'id': 'dev_de_2025_01_01',
+                    'date': '2025-01-01',
+                    'versiculo': 'Johannes 1:1',
+                    'texto': 'Im Anfang war das Wort',
+                    'language': 'de',
+                    'version': 'LU17',
+                  },
+                ],
+              },
+            },
+          }),
+          200,
+        );
       });
 
       final mockIndexService = MockDevocionalIndexService();
@@ -90,8 +91,11 @@ void main() {
 
     test('getDevocionalesApiUrlMultilingual generates correct German URL', () {
       const year = 2025;
-      final url =
-          Constants.getDevocionalesApiUrlMultilingual(year, 'de', 'LU17');
+      final url = Constants.getDevocionalesApiUrlMultilingual(
+        year,
+        'de',
+        'LU17',
+      );
       expect(
         url,
         equals(

@@ -82,10 +82,7 @@ void main() {
 
       test('Rapid connectivity checks are handled', () async {
         // Simulate user rapidly checking connection (edge case)
-        final futures = List.generate(
-          5,
-          (_) => service.isConnected(),
-        );
+        final futures = List.generate(5, (_) => service.isConnected());
 
         final results = await Future.wait(futures);
         expect(results, hasLength(5));
@@ -98,16 +95,18 @@ void main() {
     group('User Scenario: Backup WiFi-Only Setting', () {
       test('WiFi-only disabled allows any connection for backup', () async {
         final wifiOnlyEnabled = false;
-        final shouldProceed =
-            await service.shouldProceedWithBackup(wifiOnlyEnabled);
+        final shouldProceed = await service.shouldProceedWithBackup(
+          wifiOnlyEnabled,
+        );
 
         expect(shouldProceed, isA<bool>());
       });
 
       test('WiFi-only enabled requires WiFi for backup', () async {
         final wifiOnlyEnabled = true;
-        final shouldProceed =
-            await service.shouldProceedWithBackup(wifiOnlyEnabled);
+        final shouldProceed = await service.shouldProceedWithBackup(
+          wifiOnlyEnabled,
+        );
 
         expect(shouldProceed, isA<bool>());
       });
@@ -126,15 +125,17 @@ void main() {
         expect(shouldProceed, isA<bool>());
       });
 
-      test('Backup decision is consistent for same WiFi-only setting',
-          () async {
-        final result1 = await service.shouldProceedWithBackup(true);
-        await Future.delayed(const Duration(milliseconds: 50));
-        final result2 = await service.shouldProceedWithBackup(true);
+      test(
+        'Backup decision is consistent for same WiFi-only setting',
+        () async {
+          final result1 = await service.shouldProceedWithBackup(true);
+          await Future.delayed(const Duration(milliseconds: 50));
+          final result2 = await service.shouldProceedWithBackup(true);
 
-        expect(result1, isA<bool>());
-        expect(result2, isA<bool>());
-      });
+          expect(result1, isA<bool>());
+          expect(result2, isA<bool>());
+        },
+      );
     });
 
     group('Connectivity Monitoring', () {
@@ -173,12 +174,14 @@ void main() {
     });
 
     group('Edge Cases and Error Handling', () {
-      test('Service handles connectivity checks before initialization',
-          () async {
-        // User checks connectivity before calling initialize
-        final isConnected = await service.isConnected();
-        expect(isConnected, isA<bool>());
-      });
+      test(
+        'Service handles connectivity checks before initialization',
+        () async {
+          // User checks connectivity before calling initialize
+          final isConnected = await service.isConnected();
+          expect(isConnected, isA<bool>());
+        },
+      );
 
       test('Service handles connectivity checks after disposal', () async {
         service.initialize();
@@ -212,19 +215,21 @@ void main() {
         }
       });
 
-      test('Service recovers from temporary connectivity check failures',
-          () async {
-        // First check
-        final result1 = await service.isConnected();
-        expect(result1, isA<bool>());
+      test(
+        'Service recovers from temporary connectivity check failures',
+        () async {
+          // First check
+          final result1 = await service.isConnected();
+          expect(result1, isA<bool>());
 
-        // Wait a bit
-        await Future.delayed(const Duration(milliseconds: 100));
+          // Wait a bit
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        // Second check should still work
-        final result2 = await service.isConnected();
-        expect(result2, isA<bool>());
-      });
+          // Second check should still work
+          final result2 = await service.isConnected();
+          expect(result2, isA<bool>());
+        },
+      );
     });
 
     group('User Scenario: App Lifecycle', () {

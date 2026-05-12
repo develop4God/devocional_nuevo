@@ -102,7 +102,8 @@ class _EncounterImageWidgetState extends State<EncounterImageWidget> {
       errorWidget: (context, url, error) {
         if (!_usePng) {
           debugPrint(
-              '⚠️ [EncounterImageWidget] AVIF failed for ${widget.encounterId} — falling back to PNG');
+            '⚠️ [EncounterImageWidget] AVIF failed for ${widget.encounterId} — falling back to PNG',
+          );
           _persistFallback();
           // Rebuild with PNG
           WidgetsBinding.instance.addPostFrameCallback((_) {

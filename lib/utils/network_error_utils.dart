@@ -42,7 +42,8 @@ bool isTransientNetworkError(Object error) {
               msg.contains('host lookup') ||
               msg.contains('errno') ||
               msg.contains(
-                  'connection abort') || // OS TCP reset (WSAECONNABORTED)
+                'connection abort',
+              ) || // OS TCP reset (WSAECONNABORTED)
               msg.contains('Software caused connection abort'))) ||
       (msg.contains('HandshakeException') &&
           !msg.contains('CERTIFICATE_VERIFY_FAILED') &&

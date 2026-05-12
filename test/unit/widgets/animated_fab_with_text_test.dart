@@ -80,8 +80,9 @@ void main() {
       expect(find.text('Add New Item'), findsOneWidget);
     });
 
-    testWidgets('shows add_circle icon in expanded state',
-        (WidgetTester tester) async {
+    testWidgets('shows add_circle icon in expanded state', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         createWidgetUnderTest(showDuration: const Duration(seconds: 3)),
       );
@@ -114,19 +115,16 @@ void main() {
     testWidgets('respects custom height', (WidgetTester tester) async {
       const customHeight = 64.0;
 
-      await tester.pumpWidget(
-        createWidgetUnderTest(height: customHeight),
-      );
+      await tester.pumpWidget(createWidgetUnderTest(height: customHeight));
       await tester.pumpAndSettle();
 
-      final sizedBox = tester.widget<SizedBox>(
-        find.byType(SizedBox).first,
-      );
+      final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox).first);
       expect(sizedBox.height, equals(customHeight));
     });
 
-    testWidgets('handles tap on expanded container',
-        (WidgetTester tester) async {
+    testWidgets('handles tap on expanded container', (
+      WidgetTester tester,
+    ) async {
       callbackInvoked = false;
 
       await tester.pumpWidget(
@@ -172,8 +170,9 @@ void main() {
       expect(find.byType(AnimatedFabWithText), findsNothing);
     });
 
-    testWidgets('animates smoothly between states',
-        (WidgetTester tester) async {
+    testWidgets('animates smoothly between states', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         createWidgetUnderTest(showDuration: const Duration(seconds: 1)),
       );
@@ -190,8 +189,9 @@ void main() {
       expect(find.byType(AnimatedFabWithText), findsOneWidget);
     });
 
-    testWidgets('works with different color schemes',
-        (WidgetTester tester) async {
+    testWidgets('works with different color schemes', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

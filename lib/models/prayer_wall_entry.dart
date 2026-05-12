@@ -3,13 +3,7 @@
 import 'package:flutter/foundation.dart';
 
 /// Status of a prayer wall entry in the moderation pipeline.
-enum PrayerWallStatus {
-  pending,
-  approved,
-  rejected,
-  needsReview,
-  pastoral,
-}
+enum PrayerWallStatus { pending, approved, rejected, needsReview, pastoral }
 
 /// Immutable data model for a Prayer Wall entry displayed on the client.
 ///

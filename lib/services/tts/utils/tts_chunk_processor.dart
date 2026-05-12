@@ -114,8 +114,10 @@ class TtsChunkProcessor {
     final int estimated =
         (safeCharCount / adjustedCharsPerSec * kTimeoutSafetyMultiplier).ceil();
 
-    final int clamped =
-        estimated.clamp(kMinChunkTimeoutSec, kMaxChunkTimeoutSec);
+    final int clamped = estimated.clamp(
+      kMinChunkTimeoutSec,
+      kMaxChunkTimeoutSec,
+    );
 
     debugPrint(
       '⏱️ [TtsChunkProcessor] chunkTimeout: $charCount chars, '

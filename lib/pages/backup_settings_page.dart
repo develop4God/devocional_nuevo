@@ -35,7 +35,7 @@ List<({IconData icon, String label, int count})> _summaryItems(
         count: summary.thanksgivingsCount,
       ),
       (
-        icon: Icons.record_voice_over,
+        icon: Icons.photo_filter_outlined,
         label: 'testimony.testimonies'.tr(),
         count: summary.testimoniesCount,
       ),
@@ -330,10 +330,7 @@ class _ShieldSuccessDialogState extends State<_ShieldSuccessDialog> {
   }
 
   /// One-line horizontal summary of non-zero item counts.
-  Widget _buildSummaryLine(
-    BuildContext context,
-    BackupContentSummary summary,
-  ) {
+  Widget _buildSummaryLine(BuildContext context, BackupContentSummary summary) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -409,10 +406,7 @@ class _ShieldSuccessDialogState extends State<_ShieldSuccessDialog> {
                   if (widget.state.contentSummary != null &&
                       !widget.state.contentSummary!.isEmpty) ...[
                     const SizedBox(height: 20),
-                    _buildSummaryLine(
-                      context,
-                      widget.state.contentSummary!,
-                    ),
+                    _buildSummaryLine(context, widget.state.contentSummary!),
                   ],
                 ],
               ),
@@ -848,10 +842,7 @@ class _BackupSettingsContent extends StatelessWidget {
                 color: colorScheme.outlineVariant.withValues(alpha: 0.4),
               ),
               const SizedBox(height: 10),
-              _buildContentSummaryChips(
-                context,
-                state.contentSummary!,
-              ),
+              _buildContentSummaryChips(context, state.contentSummary!),
             ],
           ],
         ),

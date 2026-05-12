@@ -56,7 +56,8 @@ class DevocionalesTracking {
     // Test simple: verificar que los timers funcionen
     Timer(const Duration(seconds: 2), () {
       debugPrint(
-          '[TRACKING] ✅ Timer de prueba funcionó - sistema de timers OK');
+        '[TRACKING] ✅ Timer de prueba funcionó - sistema de timers OK',
+      );
     });
 
     debugPrint('[TRACKING] ✅ DevocionalesTracking inicializado correctamente');
@@ -68,7 +69,8 @@ class DevocionalesTracking {
     debugPrint('[TRACKING] 🔄 Creando timer de evaluación de criterios...');
     _criteriaCheckTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       debugPrint(
-          '[TRACKING] ⏲️ Timer tick #${timer.tick} - evaluando criterios...');
+        '[TRACKING] ⏲️ Timer tick #${timer.tick} - evaluando criterios...',
+      );
       _checkReadingCriteria();
     });
     final isActive = _criteriaCheckTimer?.isActive ?? false;
@@ -94,7 +96,8 @@ class DevocionalesTracking {
 
     if (_context == null) {
       debugPrint(
-          '[TRACKING] ❌ DevocionalesTracking no inicializado (context null)');
+        '[TRACKING] ❌ DevocionalesTracking no inicializado (context null)',
+      );
       return;
     }
 
@@ -116,7 +119,8 @@ class DevocionalesTracking {
     startCriteriaCheckTimer();
 
     debugPrint(
-        '[TRACKING] 📖 Tracking iniciado para devocional: $devocionalId');
+      '[TRACKING] 📖 Tracking iniciado para devocional: $devocionalId',
+    );
 
     debugPrint(
       '[TRACKING] 📊 Después de start: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}',
@@ -167,9 +171,7 @@ class DevocionalesTracking {
     final readingTime = devocionalProvider.currentReadingSeconds;
     final scrollPercentage = devocionalProvider.currentScrollPercentage;
 
-    debugPrint(
-      '[TRACKING] 📖 Evaluando devocional: ${currentDevocional.id}',
-    );
+    debugPrint('[TRACKING] 📖 Evaluando devocional: ${currentDevocional.id}');
     debugPrint(
       '[TRACKING] ⏱️ Tiempo de lectura: ${readingTime}s, Scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
     );
@@ -387,7 +389,8 @@ class DevocionalesTracking {
       devocionalProvider.resumeTracking();
       startCriteriaCheckTimer();
       debugPrint(
-          '▶️ Tracking resumed for: ${devocionalProvider.currentTrackedDevocionalId}');
+        '▶️ Tracking resumed for: ${devocionalProvider.currentTrackedDevocionalId}',
+      );
     } else {
       debugPrint('⏭️ No devotional being tracked - skipping resume');
     }
