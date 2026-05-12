@@ -51,13 +51,15 @@ class DiscoveryRepository {
 
       if (cached != null) {
         debugPrint(
-            '✅ Discovery: Usando cache para $id (v$expectedVersion) [branch: $branch]');
+          '✅ Discovery: Usando cache para $id (v$expectedVersion) [branch: $branch]',
+        );
         return cached;
       }
 
       // 3. Si no hay cache o versión difiere, descargar
       debugPrint(
-          '🚀 Discovery: Descargando nueva versión para $id (v$expectedVersion) [branch: $branch]');
+        '🚀 Discovery: Descargando nueva versión para $id (v$expectedVersion) [branch: $branch]',
+      );
       String filename;
       final files = studyInfo?['files'] as Map<String, dynamic>?;
       if (files != null) {
@@ -86,8 +88,9 @@ class DiscoveryRepository {
   }
 
   /// Obtiene la lista de IDs de estudios disponibles.
-  Future<List<String>> fetchAvailableStudies(
-      {bool forceRefresh = false}) async {
+  Future<List<String>> fetchAvailableStudies({
+    bool forceRefresh = false,
+  }) async {
     try {
       final index = await _fetchIndex(forceRefresh: forceRefresh);
       final studies = index['studies'] as List<dynamic>?;
@@ -117,11 +120,13 @@ class DiscoveryRepository {
       final cachedIndex = prefs.getString(indexCacheKey);
       if (cachedIndex != null) {
         debugPrint(
-            '✅ Discovery: Index cache hit [branch: $branch] (same session, skipping network)');
+          '✅ Discovery: Index cache hit [branch: $branch] (same session, skipping network)',
+        );
         final index = jsonDecode(cachedIndex) as Map<String, dynamic>;
         final studiesCount = (index['studies'] as List?)?.length ?? 0;
         debugPrint(
-            '📚 Discovery: Cached index has $studiesCount studies [branch: $branch]');
+          '📚 Discovery: Cached index has $studiesCount studies [branch: $branch]',
+        );
         return index;
       }
     }
@@ -135,7 +140,8 @@ class DiscoveryRepository {
           : '$indexUrl?cb=$timestamp';
 
       debugPrint(
-          '🌐 Discovery: Buscando índice en la red [branch: $branch] (buster: $timestamp)...');
+        '🌐 Discovery: Buscando índice en la red [branch: $branch] (buster: $timestamp)...',
+      );
       debugPrint('📍 Discovery: URL = $cacheBusterUrl');
 
       final response = await httpClient.get(Uri.parse(cacheBusterUrl));
@@ -143,20 +149,24 @@ class DiscoveryRepository {
 
       if (response.statusCode == 200) {
         debugPrint(
-            '✅ Discovery: Response body length = ${response.body.length}');
+          '✅ Discovery: Response body length = ${response.body.length}',
+        );
         debugPrint(
-            '🔍 Discovery: First 500 chars of response: ${response.body.substring(0, response.body.length < 500 ? response.body.length : 500)}');
+          '🔍 Discovery: First 500 chars of response: ${response.body.substring(0, response.body.length < 500 ? response.body.length : 500)}',
+        );
 
         final index = jsonDecode(response.body) as Map<String, dynamic>;
         debugPrint('🔍 Discovery: Index keys = ${index.keys.toList()}');
 
         final studiesCount = (index['studies'] as List?)?.length ?? 0;
         debugPrint(
-            '📚 Discovery: Parsed $studiesCount studies from index [branch: $branch]');
+          '📚 Discovery: Parsed $studiesCount studies from index [branch: $branch]',
+        );
 
         if (studiesCount == 0) {
           debugPrint(
-              '⚠️ Discovery: index["studies"] type = ${index['studies'].runtimeType}');
+            '⚠️ Discovery: index["studies"] type = ${index['studies'].runtimeType}',
+          );
           debugPrint('⚠️ Discovery: Full index = $index');
         }
 
@@ -164,7 +174,8 @@ class DiscoveryRepository {
         await prefs.setString(indexCacheKey, response.body);
         _indexFetchedThisSession = true;
         debugPrint(
-            '💾 Discovery: Index cached successfully for branch: $branch');
+          '💾 Discovery: Index cached successfully for branch: $branch',
+        );
         return index;
       } else {
         debugPrint('❌ Discovery: Server error ${response.statusCode}');
@@ -172,26 +183,32 @@ class DiscoveryRepository {
       }
     } catch (e) {
       debugPrint(
-          '⚠️ Discovery: Error de red al buscar índice [branch: $branch], usando cache: $e');
+        '⚠️ Discovery: Error de red al buscar índice [branch: $branch], usando cache: $e',
+      );
       // CRITICAL: Buscar cache con branch incluido en la key
       final cachedIndex = prefs.getString(indexCacheKey);
       if (cachedIndex != null) {
         debugPrint(
-            '📦 Discovery: Cache encontrado para branch: $branch, parseando...');
+          '📦 Discovery: Cache encontrado para branch: $branch, parseando...',
+        );
         final index = jsonDecode(cachedIndex) as Map<String, dynamic>;
         final studiesCount = (index['studies'] as List?)?.length ?? 0;
         debugPrint(
-            '📚 Discovery: Cached index has $studiesCount studies [branch: $branch]');
+          '📚 Discovery: Cached index has $studiesCount studies [branch: $branch]',
+        );
         return index;
       }
       debugPrint(
-          '🚫 Discovery: No cache disponible para branch: $branch, relanzando error');
+        '🚫 Discovery: No cache disponible para branch: $branch, relanzando error',
+      );
       rethrow;
     }
   }
 
   Future<DiscoveryDevotional?> _loadFromCache(
-      String id, String expectedVersion) async {
+    String id,
+    String expectedVersion,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cachedJson = prefs.getString('$_cacheKeyPrefix$id');
@@ -207,15 +224,21 @@ class DiscoveryRepository {
   }
 
   Future<void> _saveToCache(
-      String id, Map<String, dynamic> json, String version) async {
+    String id,
+    Map<String, dynamic> json,
+    String version,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('$_cacheKeyPrefix$id', jsonEncode(json));
       await prefs.setString('$_cacheKeyPrefix${id}_version', version);
     } catch (e) {
       // Cache write failure is non-critical, app continues with network data
-      developer.log('Failed to save discovery cache: $e',
-          name: 'DiscoveryRepository._saveToCache', error: e);
+      developer.log(
+        'Failed to save discovery cache: $e',
+        name: 'DiscoveryRepository._saveToCache',
+        error: e,
+      );
     }
   }
 

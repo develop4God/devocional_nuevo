@@ -114,10 +114,7 @@ BibleReaderController _makeController({
   return BibleReaderController(
     allVersions: versions ?? [_makeVersion()],
     readerService: readerService ??
-        BibleReaderService(
-          dbService: fakeDb,
-          positionService: positionService,
-        ),
+        BibleReaderService(dbService: fakeDb, positionService: positionService),
     preferencesService: preferencesService ?? BiblePreferencesService(),
   );
 }
@@ -140,10 +137,7 @@ void main() {
         controller.dispose();
 
         // Adding listener after dispose must not throw
-        expect(
-          () => controller.stateStream.listen((_) {}),
-          returnsNormally,
-        );
+        expect(() => controller.stateStream.listen((_) {}), returnsNormally);
       });
 
       test('multiple dispose() calls do not throw', () async {
@@ -162,9 +156,7 @@ void main() {
       test('Spanish device gets Spanish version', () async {
         final esVersion = _makeVersion(name: 'RVR1960', languageCode: 'es');
         final arVersion = _makeVersion(name: 'NAV', languageCode: 'ar');
-        final controller = _makeController(
-          versions: [esVersion, arVersion],
-        );
+        final controller = _makeController(versions: [esVersion, arVersion]);
 
         await controller.initialize('es');
 
@@ -176,9 +168,7 @@ void main() {
       test('Arabic device gets Arabic version', () async {
         final esVersion = _makeVersion(name: 'RVR1960', languageCode: 'es');
         final arVersion = _makeVersion(name: 'NAV', languageCode: 'ar');
-        final controller = _makeController(
-          versions: [esVersion, arVersion],
-        );
+        final controller = _makeController(versions: [esVersion, arVersion]);
 
         await controller.initialize('ar');
 
@@ -260,21 +250,20 @@ void main() {
         controller.dispose();
       });
 
-      test('Previous chapter at start of Bible returns null — no crash',
-          () async {
-        final controller = _makeController();
-        await controller.initialize('es');
+      test(
+        'Previous chapter at start of Bible returns null — no crash',
+        () async {
+          final controller = _makeController();
+          await controller.initialize('es');
 
-        // Genesis chapter 1 — at Bible start
-        await controller.selectChapter(1);
+          // Genesis chapter 1 — at Bible start
+          await controller.selectChapter(1);
 
-        // Should not throw
-        expect(
-          () => controller.goToPreviousChapter(),
-          returnsNormally,
-        );
-        controller.dispose();
-      });
+          // Should not throw
+          expect(() => controller.goToPreviousChapter(), returnsNormally);
+          controller.dispose();
+        },
+      );
 
       test('selectChapter resets verse selection', () async {
         final controller = _makeController();
@@ -455,10 +444,7 @@ void main() {
 
         await controller.togglePersistentMark('Gen|1|1');
 
-        expect(
-          controller.state.persistentlyMarkedVerses,
-          contains('Gen|1|1'),
-        );
+        expect(controller.state.persistentlyMarkedVerses, contains('Gen|1|1'));
         controller.dispose();
       });
 
@@ -589,8 +575,9 @@ void main() {
           preferencesService: BiblePreferencesService(),
         );
         await controller.initialize('es');
-        final exo =
-            controller.state.books.firstWhere((b) => b['short_name'] == 'Exo');
+        final exo = controller.state.books.firstWhere(
+          (b) => b['short_name'] == 'Exo',
+        );
         await controller.selectBook(exo, chapter: 3);
         controller.dispose();
 
@@ -672,66 +659,66 @@ void main() {
       });
 
       test(
-          'Same name, different dbFileName — controller treats them as different',
-          () async {
-        // Two versions share the display name but have distinct database files.
-        // The controller must use dbFileName (not name) as the identity key.
-        final versionA = _makeVersion(
-          name: 'RVR1960',
-          dbFileName: 'rvr1960_v1.db',
-        );
-        final versionB = _makeVersion(
-          name: 'RVR1960',
-          dbFileName: 'rvr1960_v2.db',
-        );
-        final controller = _makeController(versions: [versionA, versionB]);
-        await controller.initialize('es');
+        'Same name, different dbFileName — controller treats them as different',
+        () async {
+          // Two versions share the display name but have distinct database files.
+          // The controller must use dbFileName (not name) as the identity key.
+          final versionA = _makeVersion(
+            name: 'RVR1960',
+            dbFileName: 'rvr1960_v1.db',
+          );
+          final versionB = _makeVersion(
+            name: 'RVR1960',
+            dbFileName: 'rvr1960_v2.db',
+          );
+          final controller = _makeController(versions: [versionA, versionB]);
+          await controller.initialize('es');
 
-        // Controller should have selected versionA during init
-        expect(controller.state.selectedVersion?.dbFileName, 'rvr1960_v1.db');
+          // Controller should have selected versionA during init
+          expect(controller.state.selectedVersion?.dbFileName, 'rvr1960_v1.db');
 
-        final stateBefore = controller.state;
-        await controller.switchVersion(versionB);
+          final stateBefore = controller.state;
+          await controller.switchVersion(versionB);
 
-        expect(
-          controller.state,
-          isNot(same(stateBefore)),
-          reason:
-              'Versions with different dbFileName must be treated as distinct '
-              '— switchVersion should emit new state',
-        );
-        expect(controller.state.selectedVersion?.dbFileName, 'rvr1960_v2.db');
-        controller.dispose();
-      });
+          expect(
+            controller.state,
+            isNot(same(stateBefore)),
+            reason:
+                'Versions with different dbFileName must be treated as distinct '
+                '— switchVersion should emit new state',
+          );
+          expect(controller.state.selectedVersion?.dbFileName, 'rvr1960_v2.db');
+          controller.dispose();
+        },
+      );
 
-      test('Different name, same dbFileName — controller treats them as same',
-          () async {
-        // Two version objects have different display names but identical
-        // dbFileName. The controller should consider them the same version
-        // and skip the switch entirely.
-        final versionA = _makeVersion(
-          name: 'RVR1960',
-          dbFileName: 'shared.db',
-        );
-        final versionB = _makeVersion(
-          name: 'NVI',
-          dbFileName: 'shared.db',
-        );
-        final controller = _makeController(versions: [versionA, versionB]);
-        await controller.initialize('es');
+      test(
+        'Different name, same dbFileName — controller treats them as same',
+        () async {
+          // Two version objects have different display names but identical
+          // dbFileName. The controller should consider them the same version
+          // and skip the switch entirely.
+          final versionA = _makeVersion(
+            name: 'RVR1960',
+            dbFileName: 'shared.db',
+          );
+          final versionB = _makeVersion(name: 'NVI', dbFileName: 'shared.db');
+          final controller = _makeController(versions: [versionA, versionB]);
+          await controller.initialize('es');
 
-        final stateBefore = controller.state;
-        await controller.switchVersion(versionB);
+          final stateBefore = controller.state;
+          await controller.switchVersion(versionB);
 
-        expect(
-          controller.state,
-          same(stateBefore),
-          reason:
-              'Versions with the same dbFileName must be treated as identical '
-              '— switchVersion should be a no-op',
-        );
-        controller.dispose();
-      });
+          expect(
+            controller.state,
+            same(stateBefore),
+            reason:
+                'Versions with the same dbFileName must be treated as identical '
+                '— switchVersion should be a no-op',
+          );
+          controller.dispose();
+        },
+      );
     });
 
     // ── Font controls visibility ─────────────────────────────────────────

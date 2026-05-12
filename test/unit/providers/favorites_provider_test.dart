@@ -26,10 +26,11 @@ void main() {
   // Simple mock client
   final mockHttpClient = MockClient((request) async {
     return http.Response(
-        jsonEncode({
-          "data": {"es": {}}
-        }),
-        200);
+      jsonEncode({
+        "data": {"es": {}},
+      }),
+      200,
+    );
   });
 
   setUpAll(() async {
@@ -37,25 +38,28 @@ void main() {
     SharedPreferences.setMockInitialValues({});
 
     // Mock Firebase
-    const firebaseCoreChannel =
-        MethodChannel('plugins.flutter.io/firebase_core');
+    const firebaseCoreChannel = MethodChannel(
+      'plugins.flutter.io/firebase_core',
+    );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(firebaseCoreChannel, (call) async {
       if (call.method == 'Firebase#initializeCore') {
         return [
-          {'name': '[DEFAULT]', 'options': {}, 'pluginConstants': {}}
+          {'name': '[DEFAULT]', 'options': {}, 'pluginConstants': {}},
         ];
       }
       return null;
     });
 
-    const crashlyticsChannel =
-        MethodChannel('plugins.flutter.io/firebase_crashlytics');
+    const crashlyticsChannel = MethodChannel(
+      'plugins.flutter.io/firebase_crashlytics',
+    );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(crashlyticsChannel, (_) async => null);
 
-    const remoteConfigChannel =
-        MethodChannel('plugins.flutter.io/firebase_remote_config');
+    const remoteConfigChannel = MethodChannel(
+      'plugins.flutter.io/firebase_remote_config',
+    );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(remoteConfigChannel, (call) async {
       return call.method == 'RemoteConfig#instance' ? {} : null;
@@ -71,33 +75,42 @@ void main() {
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
-    provider =
-        DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
+    provider = DevocionalProvider(
+      httpClient: mockHttpClient,
+      enableAudio: false,
+    );
     await provider.initializeData();
   });
 
   group('Real User Behavior - Favorites', () {
-    test('User rapidly taps favorite button - handles concurrent toggles',
-        () async {
-      // GIVEN: User viewing a devotional
-      const devocionalId = 'dev_123';
+    test(
+      'User rapidly taps favorite button - handles concurrent toggles',
+      () async {
+        // GIVEN: User viewing a devotional
+        const devocionalId = 'dev_123';
 
-      // WHEN: User rapidly taps favorite button multiple times (10 taps)
-      final futures =
-          List.generate(10, (_) => provider.toggleFavorite(devocionalId));
-      await Future.wait(futures);
+        // WHEN: User rapidly taps favorite button multiple times (10 taps)
+        final futures = List.generate(
+          10,
+          (_) => provider.toggleFavorite(devocionalId),
+        );
+        await Future.wait(futures);
 
-      // THEN: After even number of toggles (10), should NOT be in favorites
-      // Starting state: not favorite (0)
-      // After 10 toggles: back to not favorite
-      final prefs = await SharedPreferences.getInstance();
-      final savedIds = prefs.getString('favorite_ids');
-      if (savedIds != null) {
-        final ids = (jsonDecode(savedIds) as List).cast<String>();
-        expect(ids, isNot(contains(devocionalId)),
-            reason: 'Even number of toggles should result in not favorite');
-      }
-    });
+        // THEN: After even number of toggles (10), should NOT be in favorites
+        // Starting state: not favorite (0)
+        // After 10 toggles: back to not favorite
+        final prefs = await SharedPreferences.getInstance();
+        final savedIds = prefs.getString('favorite_ids');
+        if (savedIds != null) {
+          final ids = (jsonDecode(savedIds) as List).cast<String>();
+          expect(
+            ids,
+            isNot(contains(devocionalId)),
+            reason: 'Even number of toggles should result in not favorite',
+          );
+        }
+      },
+    );
 
     test('User cannot favorite devotional with empty ID', () async {
       // GIVEN: Invalid devotional ID
@@ -116,15 +129,20 @@ void main() {
       // This can happen from manual SharedPreferences editing or file corruption
 
       // Create a separate provider just for this test
-      final newProvider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
+      final newProvider = DevocionalProvider(
+        httpClient: mockHttpClient,
+        enableAudio: false,
+      );
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('favorite_ids', 'not-valid-json');
 
       // WHEN: Provider initializes with corrupted data
       // THEN: Should not crash, should handle gracefully
-      await expectLater(newProvider.initializeData(), completes,
-          reason: 'Should handle corrupted data without crashing');
+      await expectLater(
+        newProvider.initializeData(),
+        completes,
+        reason: 'Should handle corrupted data without crashing',
+      );
 
       newProvider.dispose();
     });

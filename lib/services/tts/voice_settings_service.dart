@@ -71,7 +71,7 @@ class VoiceSettingsService {
         'ar-SA',
         'ar-EG',
         'ar-AE',
-        'ar'
+        'ar',
       ], // Arabic - any ar-* device voice
       'fil': ['fil-PH', 'tl-PH', 'en-US'], // Filipino with English fallback
     };
@@ -421,7 +421,9 @@ class VoiceSettingsService {
   /// of user voice selection (the voice was previously only applied to the
   /// VoiceSettingsService's own internal FlutterTts instance).
   Future<void> applyVoiceToInstance(
-      FlutterTts ttsInstance, String language) async {
+    FlutterTts ttsInstance,
+    String language,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedVoice = prefs.getString('tts_voice_$language');
@@ -467,8 +469,10 @@ class VoiceSettingsService {
         '🌐 [VoiceSettings] setLanguage("$locale") → result: $langResult (language: $language)',
       );
 
-      final voiceResult =
-          await ttsInstance.setVoice({'name': voiceName, 'locale': locale});
+      final voiceResult = await ttsInstance.setVoice({
+        'name': voiceName,
+        'locale': locale,
+      });
       debugPrint(
         '🎙️ VoiceSettings: setVoice result: $voiceResult — applied "$voiceName" (locale: $locale) to controller FlutterTts for language $language',
       );

@@ -25,7 +25,8 @@ class DebugCrashlyticsSection extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Error de plataforma: ${e.message}\nIntentando método alternativo...'),
+              'Error de plataforma: ${e.message}\nIntentando método alternativo...',
+            ),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -35,8 +36,9 @@ class DebugCrashlyticsSection extends StatelessWidget {
     } catch (e) {
       debugPrint('❌ Error inesperado: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error inesperado: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error inesperado: $e')));
       }
     }
   }
@@ -92,17 +94,20 @@ class DebugCrashlyticsSection extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
               const Text(
                 'Debug mode only - not visible in production',
                 style: TextStyle(
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic,
-                    color: Colors.grey),
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],

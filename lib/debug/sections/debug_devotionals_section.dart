@@ -85,7 +85,10 @@ class DebugDevotionalsSection extends StatelessWidget {
             'Note: Devotionals will refresh automatically when branch is changed',
             textAlign: TextAlign.center,
             style: TextStyle(
-                fontSize: 12, fontStyle: FontStyle.italic, color: Colors.grey),
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+              color: Colors.grey,
+            ),
           ),
         ],
       ),

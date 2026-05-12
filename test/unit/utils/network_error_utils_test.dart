@@ -8,7 +8,8 @@ void main() {
       expect(
         isTransientNetworkError(
           const SocketException(
-              'Failed host lookup: raw.githubusercontent.com'),
+            'Failed host lookup: raw.githubusercontent.com',
+          ),
         ),
         isTrue,
       );
@@ -26,10 +27,7 @@ void main() {
     });
 
     test('returns true for connection refused', () {
-      expect(
-        isTransientNetworkError(Exception('Connection refused')),
-        isTrue,
-      );
+      expect(isTransientNetworkError(Exception('Connection refused')), isTrue);
     });
 
     test('returns true for network unreachable', () {

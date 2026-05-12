@@ -247,10 +247,7 @@ class AnalyticsService implements IAnalyticsService {
         parameters['fallback_reason'] = fallbackReason;
       }
 
-      await analytics.logEvent(
-        name: 'navigation_next',
-        parameters: parameters,
-      );
+      await analytics.logEvent(name: 'navigation_next', parameters: parameters);
       debugPrint('📊 Analytics: navigation_next event logged');
     } catch (e) {
       _logAnalyticsError('navigation_next', e);
@@ -327,10 +324,7 @@ class AnalyticsService implements IAnalyticsService {
       debugPrint('🔥 [FAB] Choice selected: $choice on $source');
       await analytics.logEvent(
         name: 'fab_choice_selected',
-        parameters: {
-          'source': source,
-          'choice': choice,
-        },
+        parameters: {'source': source, 'choice': choice},
       );
       debugPrint(
         '📊 Analytics: fab_choice_selected event logged ($choice on $source)',

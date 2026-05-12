@@ -46,18 +46,15 @@ class DevocionalesBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final Color? appBarBackgroundColor =
-        Theme.of(context).appBarTheme.backgroundColor;
+    final Color? appBarBackgroundColor = Theme.of(
+      context,
+    ).appBarTheme.backgroundColor;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildNavigationControls(context, colorScheme),
-        _buildActionButtons(
-          context,
-          appBarBackgroundColor,
-          colorScheme,
-        ),
+        _buildActionButtons(context, appBarBackgroundColor, colorScheme),
       ],
     );
   }
@@ -122,9 +119,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                           ? colorScheme.primary
                           : colorScheme.onSurface.withAlpha(97),
                       overlayColor: canNavigatePrevious
-                          ? colorScheme.primary.withAlpha(
-                              (0.1 * 255).round(),
-                            )
+                          ? colorScheme.primary.withAlpha((0.1 * 255).round())
                           : Colors.transparent,
                     ),
                   ),
@@ -173,9 +168,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                           ? colorScheme.primary
                           : colorScheme.onSurface.withAlpha(97),
                       overlayColor: canNavigateNext
-                          ? colorScheme.primary.withAlpha(
-                              (0.1 * 255).round(),
-                            )
+                          ? colorScheme.primary.withAlpha((0.1 * 255).round())
                           : Colors.transparent,
                     ),
                     child: Row(
@@ -442,7 +435,8 @@ class DevocionalesBottomBar extends StatelessWidget {
                           tooltip: 'tooltips.support'.tr(),
                           onPressed: () async {
                             debugPrint(
-                                '\u2764\ufe0f [BottomBar] Tap: supporter');
+                              '\u2764\ufe0f [BottomBar] Tap: supporter',
+                            );
                             getService<IAnalyticsService>().logBottomBarAction(
                               action: 'supporter',
                             );

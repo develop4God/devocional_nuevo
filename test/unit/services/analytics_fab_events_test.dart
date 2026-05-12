@@ -71,10 +71,7 @@ void main() {
         when(
           mockAnalytics.logEvent(
             name: 'fab_choice_selected',
-            parameters: {
-              'source': 'devocionales_page',
-              'choice': 'prayer',
-            },
+            parameters: {'source': 'devocionales_page', 'choice': 'prayer'},
           ),
         ).thenAnswer((_) async => {});
 
@@ -88,10 +85,7 @@ void main() {
         verify(
           mockAnalytics.logEvent(
             name: 'fab_choice_selected',
-            parameters: {
-              'source': 'devocionales_page',
-              'choice': 'prayer',
-            },
+            parameters: {'source': 'devocionales_page', 'choice': 'prayer'},
           ),
         ).called(1);
       });
@@ -101,10 +95,7 @@ void main() {
         when(
           mockAnalytics.logEvent(
             name: 'fab_choice_selected',
-            parameters: {
-              'source': 'prayers_page',
-              'choice': 'thanksgiving',
-            },
+            parameters: {'source': 'prayers_page', 'choice': 'thanksgiving'},
           ),
         ).thenAnswer((_) async => {});
 
@@ -118,10 +109,7 @@ void main() {
         verify(
           mockAnalytics.logEvent(
             name: 'fab_choice_selected',
-            parameters: {
-              'source': 'prayers_page',
-              'choice': 'thanksgiving',
-            },
+            parameters: {'source': 'prayers_page', 'choice': 'thanksgiving'},
           ),
         ).called(1);
       });
@@ -131,10 +119,7 @@ void main() {
         when(
           mockAnalytics.logEvent(
             name: 'fab_choice_selected',
-            parameters: {
-              'source': 'devocionales_page',
-              'choice': 'testimony',
-            },
+            parameters: {'source': 'devocionales_page', 'choice': 'testimony'},
           ),
         ).thenAnswer((_) async => {});
 
@@ -148,10 +133,7 @@ void main() {
         verify(
           mockAnalytics.logEvent(
             name: 'fab_choice_selected',
-            parameters: {
-              'source': 'devocionales_page',
-              'choice': 'testimony',
-            },
+            parameters: {'source': 'devocionales_page', 'choice': 'testimony'},
           ),
         ).called(1);
       });
@@ -163,10 +145,7 @@ void main() {
         when(
           mockAnalytics.logEvent(
             name: 'discovery_action',
-            parameters: {
-              'action': 'study_opened',
-              'study_id': 'study_123',
-            },
+            parameters: {'action': 'study_opened', 'study_id': 'study_123'},
           ),
         ).thenAnswer((_) async => {});
 
@@ -180,10 +159,7 @@ void main() {
         verify(
           mockAnalytics.logEvent(
             name: 'discovery_action',
-            parameters: {
-              'action': 'study_opened',
-              'study_id': 'study_123',
-            },
+            parameters: {'action': 'study_opened', 'study_id': 'study_123'},
           ),
         ).called(1);
       });
@@ -193,10 +169,7 @@ void main() {
         when(
           mockAnalytics.logEvent(
             name: 'discovery_action',
-            parameters: {
-              'action': 'study_completed',
-              'study_id': 'study_456',
-            },
+            parameters: {'action': 'study_completed', 'study_id': 'study_456'},
           ),
         ).thenAnswer((_) async => {});
 
@@ -210,10 +183,7 @@ void main() {
         verify(
           mockAnalytics.logEvent(
             name: 'discovery_action',
-            parameters: {
-              'action': 'study_completed',
-              'study_id': 'study_456',
-            },
+            parameters: {'action': 'study_completed', 'study_id': 'study_456'},
           ),
         ).called(1);
       });
@@ -223,10 +193,7 @@ void main() {
         when(
           mockAnalytics.logEvent(
             name: 'discovery_action',
-            parameters: {
-              'action': 'study_shared',
-              'study_id': 'study_789',
-            },
+            parameters: {'action': 'study_shared', 'study_id': 'study_789'},
           ),
         ).thenAnswer((_) async => {});
 
@@ -240,10 +207,7 @@ void main() {
         verify(
           mockAnalytics.logEvent(
             name: 'discovery_action',
-            parameters: {
-              'action': 'study_shared',
-              'study_id': 'study_789',
-            },
+            parameters: {'action': 'study_shared', 'study_id': 'study_789'},
           ),
         ).called(1);
       });
@@ -283,24 +247,18 @@ void main() {
         when(
           mockAnalytics.logEvent(
             name: 'discovery_action',
-            parameters: {
-              'action': 'toggle_grid_view',
-            },
+            parameters: {'action': 'toggle_grid_view'},
           ),
         ).thenAnswer((_) async => {});
 
         // Act
-        await analyticsService.logDiscoveryAction(
-          action: 'toggle_grid_view',
-        );
+        await analyticsService.logDiscoveryAction(action: 'toggle_grid_view');
 
         // Assert
         verify(
           mockAnalytics.logEvent(
             name: 'discovery_action',
-            parameters: {
-              'action': 'toggle_grid_view',
-            },
+            parameters: {'action': 'toggle_grid_view'},
           ),
         ).called(1);
       });
@@ -310,9 +268,7 @@ void main() {
         when(
           mockAnalytics.logEvent(
             name: 'discovery_action',
-            parameters: {
-              'action': 'toggle_carousel_view',
-            },
+            parameters: {'action': 'toggle_carousel_view'},
           ),
         ).thenAnswer((_) async => {});
 
@@ -325,9 +281,7 @@ void main() {
         verify(
           mockAnalytics.logEvent(
             name: 'discovery_action',
-            parameters: {
-              'action': 'toggle_carousel_view',
-            },
+            parameters: {'action': 'toggle_carousel_view'},
           ),
         ).called(1);
       });
@@ -350,25 +304,27 @@ void main() {
         expect(AnalyticsService.analyticsErrorCount, 1);
       });
 
-      test('should handle errors gracefully for logFabChoiceSelected',
-          () async {
-        // Arrange
-        when(
-          mockAnalytics.logEvent(
-            name: 'fab_choice_selected',
-            parameters: anyNamed('parameters'),
-          ),
-        ).thenThrow(Exception('Analytics error'));
+      test(
+        'should handle errors gracefully for logFabChoiceSelected',
+        () async {
+          // Arrange
+          when(
+            mockAnalytics.logEvent(
+              name: 'fab_choice_selected',
+              parameters: anyNamed('parameters'),
+            ),
+          ).thenThrow(Exception('Analytics error'));
 
-        // Act
-        await analyticsService.logFabChoiceSelected(
-          source: 'prayers_page',
-          choice: 'prayer',
-        );
+          // Act
+          await analyticsService.logFabChoiceSelected(
+            source: 'prayers_page',
+            choice: 'prayer',
+          );
 
-        // Assert - should not throw
-        expect(AnalyticsService.analyticsErrorCount, greaterThan(0));
-      });
+          // Assert - should not throw
+          expect(AnalyticsService.analyticsErrorCount, greaterThan(0));
+        },
+      );
 
       test('should handle errors gracefully for logDiscoveryAction', () async {
         // Arrange

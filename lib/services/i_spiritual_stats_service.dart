@@ -74,4 +74,9 @@ abstract class ISpiritualStatsService {
 
   /// Force creation of a manual backup.
   Future<bool> createManualBackup();
+
+  /// Bulk-mark a list of devotional IDs as read in a single read+write operation.
+  /// Used by one-time startup migrations. Implementations should be idempotent and
+  /// perform a single getStats()+saveStats() cycle rather than per-ID writes.
+  Future<void> bulkMarkAsRead(List<String> ids);
 }

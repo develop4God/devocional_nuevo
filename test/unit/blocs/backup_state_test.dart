@@ -122,20 +122,21 @@ void main() {
       );
 
       expect(
-          state.props,
-          equals([
-            true,
-            'daily',
-            true,
-            true,
-            const {'favorites': true},
-            now,
-            later,
-            1024,
-            true,
-            'test@example.com',
-            null, // contentSummary — nullable, not set
-          ]));
+        state.props,
+        equals([
+          true,
+          'daily',
+          true,
+          true,
+          const {'favorites': true},
+          now,
+          later,
+          1024,
+          true,
+          'test@example.com',
+          null, // contentSummary — nullable, not set
+        ]),
+      );
     });
 
     test('copyWith returns new instance with updated autoBackupEnabled', () {
@@ -222,8 +223,10 @@ void main() {
         backupOptions: const {'favorites': true, 'settings': false},
       );
 
-      expect(updated.backupOptions,
-          equals({'favorites': true, 'settings': false}));
+      expect(
+        updated.backupOptions,
+        equals({'favorites': true, 'settings': false}),
+      );
       expect(state.backupOptions, isEmpty);
     });
 
@@ -606,8 +609,10 @@ void main() {
     });
 
     test('creates state with title and message', () {
-      const state =
-          BackupSuccess('Backup Complete', 'Your data has been backed up');
+      const state = BackupSuccess(
+        'Backup Complete',
+        'Your data has been backed up',
+      );
       expect(state.title, equals('Backup Complete'));
       expect(state.message, equals('Your data has been backed up'));
     });

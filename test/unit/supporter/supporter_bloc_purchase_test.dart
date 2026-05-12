@@ -64,24 +64,25 @@ void main() {
   // ── Scenario 4: initialize throws → SupporterError ───────────────────────
 
   test(
-      'Scenario 4 — InitializeSupporter emits SupporterError when initialize throws',
-      () async {
-    final fakeIap = _ThrowingIapService(error: 'iap_init_failed');
-    final bloc = SupporterBloc(
-      iapService: fakeIap,
-      profileRepository: FakeSupporterProfileRepository(),
-    );
+    'Scenario 4 — InitializeSupporter emits SupporterError when initialize throws',
+    () async {
+      final fakeIap = _ThrowingIapService(error: 'iap_init_failed');
+      final bloc = SupporterBloc(
+        iapService: fakeIap,
+        profileRepository: FakeSupporterProfileRepository(),
+      );
 
-    bloc.add(InitializeSupporter());
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+      bloc.add(InitializeSupporter());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
-    expect(bloc.state, isA<SupporterError>());
-    final error = bloc.state as SupporterError;
-    expect(error.message, contains('iap_init_failed'));
+      expect(bloc.state, isA<SupporterError>());
+      final error = bloc.state as SupporterError;
+      expect(error.message, contains('iap_init_failed'));
 
-    await bloc.close();
-    await fakeIap.dispose();
-  });
+      await bloc.close();
+      await fakeIap.dispose();
+    },
+  );
 
   // ── Scenario 5: PurchaseTier pending → error ──────────────────────────────
 

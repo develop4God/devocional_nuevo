@@ -232,11 +232,12 @@ class _CardShellState extends State<_CardShell> {
             Column(
               children: [
                 _VisualHeader(
-                    imageUrl: widget.imageUrl,
-                    mood: widget.mood,
-                    icon: widget.icon,
-                    encounterId: widget.encounterId,
-                    imageVersion: widget.imageVersion),
+                  imageUrl: widget.imageUrl,
+                  mood: widget.mood,
+                  icon: widget.icon,
+                  encounterId: widget.encounterId,
+                  imageVersion: widget.imageVersion,
+                ),
                 Expanded(
                   child: RawScrollbar(
                     controller: _scrollController,
@@ -265,9 +266,7 @@ class _CardShellState extends State<_CardShell> {
                 bottom: 12,
                 left: 0,
                 right: 0,
-                child: Center(
-                  child: _ScrollIndicator(),
-                ),
+                child: Center(child: _ScrollIndicator()),
               ),
           ],
         ),
@@ -289,11 +288,14 @@ class _ScrollIndicatorState extends State<_ScrollIndicator>
   @override
   void initState() {
     super.initState();
-    _controller =
-        AnimationController(vsync: this, duration: const Duration(seconds: 2))
-          ..repeat();
-    _animation = Tween<double>(begin: 0, end: 10)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+    _animation = Tween<double>(
+      begin: 0,
+      end: 10,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -315,8 +317,10 @@ class _ScrollIndicatorState extends State<_ScrollIndicator>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -451,13 +455,16 @@ class ScriptureMomentCard extends StatelessWidget {
                 _DelayedEntry(
                   delay: const Duration(milliseconds: 300),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.amber.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                          color: Colors.amber.withValues(alpha: 0.4)),
+                        color: Colors.amber.withValues(alpha: 0.4),
+                      ),
                     ),
                     child: Text(
                       card.verseReference!.toUpperCase(),
@@ -698,9 +705,10 @@ class DiscoveryActivationCard extends StatelessWidget {
             child: Text(
               card.title!.toUpperCase(),
               style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900),
+                color: Colors.white,
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ),
         const SizedBox(height: 24),
@@ -758,7 +766,8 @@ class _CompletionCardState extends State<CompletionCard> {
   void _onCompleteButtonTapped() {
     if (_showCompletionMessage) {
       debugPrint(
-          '⚠️ [CompletionCard] Tap ignored — encounter already completed');
+        '⚠️ [CompletionCard] Tap ignored — encounter already completed',
+      );
       return;
     }
     debugPrint('✅ [CompletionCard] Complete button tapped — marking as done');
@@ -790,8 +799,11 @@ class _CompletionCardState extends State<CompletionCard> {
               if (_showCompletionMessage)
                 const _DelayedEntry(
                   delay: Duration(milliseconds: 300),
-                  child: Icon(Icons.verified_rounded,
-                      size: 80, color: Colors.greenAccent),
+                  child: Icon(
+                    Icons.verified_rounded,
+                    size: 80,
+                    color: Colors.greenAccent,
+                  ),
                 )
               else
                 const SizedBox(height: 80), // Placeholder space when hidden
@@ -803,9 +815,10 @@ class _CompletionCardState extends State<CompletionCard> {
                   child: Text(
                     'encounters.encounter_complete'.tr(),
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900),
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 )
@@ -818,9 +831,10 @@ class _CompletionCardState extends State<CompletionCard> {
                   child: Text(
                     '"${widget.card.completionVerse!.text}"',
                     style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                        fontStyle: FontStyle.italic),
+                      color: Colors.white70,
+                      fontSize: 16,
+                      fontStyle: FontStyle.italic,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -830,9 +844,10 @@ class _CompletionCardState extends State<CompletionCard> {
                   child: Text(
                     '— ${widget.card.completionVerse!.reference}',
                     style: const TextStyle(
-                        color: Colors.white60,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600),
+                      color: Colors.white60,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -843,9 +858,10 @@ class _CompletionCardState extends State<CompletionCard> {
                     child: Text(
                       widget.card.completionVerse!.bibleVersion!,
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.4),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500),
+                        color: Colors.white.withValues(alpha: 0.4),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -861,8 +877,11 @@ class _CompletionCardState extends State<CompletionCard> {
                     onPressed:
                         _showCompletionMessage ? null : _onCompleteButtonTapped,
                     icon: _showCompletionMessage
-                        ? const Icon(Icons.verified_rounded,
-                            color: Colors.greenAccent, size: 20)
+                        ? const Icon(
+                            Icons.verified_rounded,
+                            color: Colors.greenAccent,
+                            size: 20,
+                          )
                         : const SizedBox.shrink(),
                     label: Text(
                       _showCompletionMessage
@@ -886,7 +905,9 @@ class _CompletionCardState extends State<CompletionCard> {
                         borderRadius: BorderRadius.circular(20),
                         side: _showCompletionMessage
                             ? const BorderSide(
-                                color: Color(0xFFFFD700), width: 1.5)
+                                color: Color(0xFFFFD700),
+                                width: 1.5,
+                              )
                             : BorderSide.none,
                       ),
                     ),
@@ -930,8 +951,10 @@ class InteractiveMomentCard extends StatelessWidget {
             children: [
               _DelayedEntry(
                 delay: const Duration(milliseconds: 300),
-                child: Text(card.icon ?? '🌊',
-                    style: const TextStyle(fontSize: 64)),
+                child: Text(
+                  card.icon ?? '🌊',
+                  style: const TextStyle(fontSize: 64),
+                ),
               ),
               const SizedBox(height: 24),
               if (card.title != null)
@@ -940,9 +963,10 @@ class InteractiveMomentCard extends StatelessWidget {
                   child: Text(
                     card.title!,
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900),
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -953,7 +977,10 @@ class InteractiveMomentCard extends StatelessWidget {
                   child: Text(
                     card.reflectionPrompt!,
                     style: const TextStyle(
-                        color: Colors.white70, fontSize: 18, height: 1.5),
+                      color: Colors.white70,
+                      fontSize: 18,
+                      height: 1.5,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -1022,15 +1049,19 @@ class _ModernVerseOverlay extends StatelessWidget {
           Text(
             '"${overlay.text}"',
             style: const TextStyle(
-                color: Colors.white, fontSize: 14, fontStyle: FontStyle.italic),
+              color: Colors.white,
+              fontSize: 14,
+              fontStyle: FontStyle.italic,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             '— ${overlay.reference}',
             style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 12,
-                fontWeight: FontWeight.w700),
+              color: Colors.white70,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -1059,15 +1090,19 @@ class _ConnectionTile extends StatelessWidget {
             Text(
               sc.reference,
               style: const TextStyle(
-                  color: Colors.amber,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 12),
+                color: Colors.amber,
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               sc.text,
               style: const TextStyle(
-                  color: Colors.white70, fontSize: 13, height: 1.5),
+                color: Colors.white70,
+                fontSize: 13,
+                height: 1.5,
+              ),
             ),
           ],
         ),
@@ -1098,15 +1133,21 @@ class _QuestionTile extends StatelessWidget {
             Text(
               q.category.toUpperCase(),
               style: const TextStyle(
-                  color: Colors.amber,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.5),
+                color: Colors.amber,
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+              ),
             ),
             const SizedBox(height: 8),
-            Text(q.question,
-                style: const TextStyle(
-                    color: Colors.white, fontSize: 16, height: 1.5)),
+            Text(
+              q.question,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                height: 1.5,
+              ),
+            ),
           ],
         ),
       ),
@@ -1134,17 +1175,21 @@ class _ModernPrayerBox extends StatelessWidget {
           Text(
             (prayer.title ?? 'encounters.prayer_label'.tr()).toUpperCase(),
             style: const TextStyle(
-                color: Colors.yellow,
-                fontWeight: FontWeight.w900,
-                fontSize: 14),
+              color: Colors.yellow,
+              fontWeight: FontWeight.w900,
+              fontSize: 14,
+            ),
           ),
           const SizedBox(height: 16),
-          Text(prayer.content,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontStyle: FontStyle.italic,
-                  height: 1.7)),
+          Text(
+            prayer.content,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontStyle: FontStyle.italic,
+              height: 1.7,
+            ),
+          ),
         ],
       ),
     );
@@ -1166,8 +1211,10 @@ class _CopyrightDisclaimer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final copyrightText =
-        CopyrightUtils.getCopyrightText(language, bibleVersion);
+    final copyrightText = CopyrightUtils.getCopyrightText(
+      language,
+      bibleVersion,
+    );
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

@@ -20,18 +20,12 @@ void main() {
 
     test('Hindi should have default Bible version', () {
       expect(Constants.defaultVersionByLanguage.containsKey('hi'), isTrue);
-      expect(
-        Constants.defaultVersionByLanguage['hi'],
-        equals('HIOV'),
-      );
+      expect(Constants.defaultVersionByLanguage['hi'], equals('HIOV'));
     });
 
     test('Default Hindi version should be MASTER_VERSION', () {
       const masterVersion = 'HIOV';
-      expect(
-        Constants.defaultVersionByLanguage['hi'],
-        equals(masterVersion),
-      );
+      expect(Constants.defaultVersionByLanguage['hi'], equals(masterVersion));
     });
 
     test('Hindi language code should be MASTER_LANG', () {
@@ -50,12 +44,14 @@ void main() {
       final versions = await BibleVersionRegistry.getVersionsForLanguage('hi');
       expect(versions.length, equals(2));
 
-      final hiovVersion =
-          versions.firstWhere((v) => v.dbFileName.startsWith('HIOV'));
+      final hiovVersion = versions.firstWhere(
+        (v) => v.dbFileName.startsWith('HIOV'),
+      );
       expect(hiovVersion.name, equals('पवित्र बाइबिल (ओ.वी.)'));
 
-      final hervVersion =
-          versions.firstWhere((v) => v.dbFileName.startsWith('HERV'));
+      final hervVersion = versions.firstWhere(
+        (v) => v.dbFileName.startsWith('HERV'),
+      );
       expect(hervVersion.name, equals('पवित्र बाइबिल (HERV)'));
     });
   });

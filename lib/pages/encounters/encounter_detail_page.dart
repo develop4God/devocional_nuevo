@@ -35,8 +35,9 @@ class EncounterDetailPage extends StatefulWidget {
 }
 
 class _EncounterDetailPageState extends State<EncounterDetailPage> {
-  late final PageController _pageController =
-      PageController(viewportFraction: 0.88);
+  late final PageController _pageController = PageController(
+    viewportFraction: 0.88,
+  );
   int _currentIndex = 0;
   bool _isCelebrating = false;
   bool _hasTriggeredCompletion = false;
@@ -62,7 +63,8 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
         if (study != null && study.cards.length > 1) {
           _preloadCardImage(study.cards, 1);
           debugPrint(
-              '🔐 [Detail/${widget.entry.id}] Safety preload card[1] triggered from initState');
+            '🔐 [Detail/${widget.entry.id}] Safety preload card[1] triggered from initState',
+          );
         }
       }
     });
@@ -95,19 +97,22 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
         : null;
     if (url == null) {
       debugPrint(
-          '🖼️ [Detail/${widget.entry.id}] card[$targetIndex] — no imageUrl, skip');
+        '🖼️ [Detail/${widget.entry.id}] card[$targetIndex] — no imageUrl, skip',
+      );
       return;
     }
 
     if (_precachedUrls.contains(url)) {
       debugPrint(
-          '⚡ [Detail/${widget.entry.id}] card[$targetIndex] cache HIT — already preloaded');
+        '⚡ [Detail/${widget.entry.id}] card[$targetIndex] cache HIT — already preloaded',
+      );
       return;
     }
 
     _precachedUrls.add(url);
     debugPrint(
-        '🖼️ [Detail/${widget.entry.id}] JIT: preloading card[$targetIndex] → $url');
+      '🖼️ [Detail/${widget.entry.id}] JIT: preloading card[$targetIndex] → $url',
+    );
 
     safePrecacheImage(
       CachedNetworkImageProvider(url),
@@ -119,8 +124,11 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
         // onError parameter is the only way to intercept image-load failures.
         _precachedUrls.remove(url); // Allow retry on next swipe
       },
-    ).then((_) => debugPrint(
-        '✅ [Detail/${widget.entry.id}] card[$targetIndex] preload DONE'));
+    ).then(
+      (_) => debugPrint(
+        '✅ [Detail/${widget.entry.id}] card[$targetIndex] preload DONE',
+      ),
+    );
   }
 
   void _onCompleteEncounter() {
@@ -173,9 +181,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                   opacity: AlwaysStoppedAnimation(1.0 - value),
                   child: ScaleTransition(
                     scale: AlwaysStoppedAnimation(1.0 - (value * 0.05)),
-                    child: Container(
-                      color: Colors.transparent,
-                    ),
+                    child: Container(color: Colors.transparent),
                   ),
                 );
               },
@@ -205,15 +211,21 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                   Align(
                     alignment: Alignment.topLeft,
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_rounded,
-                          color: Colors.white70, size: 24),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_rounded,
+                        color: Colors.white70,
+                        size: 24,
+                      ),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ),
                   const Spacer(),
                   // Error UI
-                  const Icon(Icons.error_outline,
-                      size: 64, color: Colors.redAccent),
+                  const Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.redAccent,
+                  ),
                   const SizedBox(height: 24),
                   Text(
                     'encounters.study_not_found'.tr(),
@@ -237,7 +249,9 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       backgroundColor: Colors.white.withValues(alpha: 0.18),
                       foregroundColor: Colors.black.withValues(alpha: 0.7),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 16),
+                        horizontal: 32,
+                        vertical: 16,
+                      ),
                     ),
                   ),
                   const Spacer(flex: 2),
@@ -260,9 +274,10 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
           if (!_studyLoggedOnce) {
             _studyLoggedOnce = true;
             debugPrint(
-                '📚 [Detail/${widget.entry.id}] Study ready — ${cards.length} cards'
-                ' | bible: ${study.bibleVersion ?? 'n/a'}'
-                ' | lang: ${study.language ?? 'n/a'}');
+              '📚 [Detail/${widget.entry.id}] Study ready — ${cards.length} cards'
+              ' | bible: ${study.bibleVersion ?? 'n/a'}'
+              ' | lang: ${study.language ?? 'n/a'}',
+            );
           }
 
           final isLast = _currentIndex == cards.length - 1;
@@ -274,7 +289,8 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                 controller: _pageController,
                 onPageChanged: (index) {
                   debugPrint(
-                      '📖 [Detail/${widget.entry.id}] swiped → card[$index] / ${cards.length}');
+                    '📖 [Detail/${widget.entry.id}] swiped → card[$index] / ${cards.length}',
+                  );
                   setState(() => _currentIndex = index);
                   // JIT: cards already in scope — no extra context.read needed.
                   _preloadCardImage(cards, index + 1);
@@ -295,7 +311,9 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                         scale: value,
                         child: Opacity(
                           opacity: value.clamp(
-                              0.5, 1.0), // Keep peeked cards visible
+                            0.5,
+                            1.0,
+                          ), // Keep peeked cards visible
                           child: child,
                         ),
                       );
@@ -307,8 +325,9 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                         onBackToEncounters: _onCompleteEncounter,
                         bibleVersion: study.bibleVersion,
                         language: study.language,
-                        showCompletionMessage:
-                            state.isCompleted(widget.entry.id),
+                        showCompletionMessage: state.isCompleted(
+                          widget.entry.id,
+                        ),
                       ),
                     ),
                   );
@@ -343,8 +362,11 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                 top: 44,
                 left: 8,
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_rounded,
-                      color: Color(0xFFFFD700), size: 24),
+                  icon: const Icon(
+                    Icons.arrow_back_ios_rounded,
+                    color: Color(0xFFFFD700),
+                    size: 24,
+                  ),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ),
@@ -356,8 +378,10 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                 right: 0,
                 child: Center(
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [
@@ -418,9 +442,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                     if (isLast)
                       Padding(
                         padding: const EdgeInsetsDirectional.only(start: 12),
-                        child: _ExitButton(
-                          onPressed: _exitWithTransition,
-                        ),
+                        child: _ExitButton(onPressed: _exitWithTransition),
                       )
                     else
                       // Next Button (hidden on last card)
@@ -536,9 +558,7 @@ class _NavButton extends StatelessWidget {
 class _ExitButton extends StatelessWidget {
   final VoidCallback onPressed;
 
-  const _ExitButton({
-    required this.onPressed,
-  });
+  const _ExitButton({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {

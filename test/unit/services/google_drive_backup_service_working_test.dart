@@ -769,18 +769,15 @@ void main() {
 
     test('counts marked bible verses correctly', () async {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList(
-        'bible_marked_verses',
-        [
-          'Gen 1:1',
-          'Jn 3:16',
-          'Ps 23:1',
-          'Rom 8:28',
-          'Phil 4:13',
-          'Isa 40:31',
-          'Jer 29:11'
-        ],
-      );
+      await prefs.setStringList('bible_marked_verses', [
+        'Gen 1:1',
+        'Jn 3:16',
+        'Ps 23:1',
+        'Rom 8:28',
+        'Phil 4:13',
+        'Isa 40:31',
+        'Jer 29:11',
+      ]);
 
       final summary = await simulateGetBackupContentSummary();
       expect(summary.versesCount, 7);
@@ -788,10 +785,7 @@ void main() {
 
     test('counts completed encounters from getStringList', () async {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList(
-        'encounter_completed_ids',
-        ['enc_1', 'enc_2'],
-      );
+      await prefs.setStringList('encounter_completed_ids', ['enc_1', 'enc_2']);
 
       final summary = await simulateGetBackupContentSummary();
       expect(summary.encountersCount, 2);
@@ -810,11 +804,12 @@ void main() {
     test('totalItems sums all categories', () async {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
-          'prayers',
-          jsonEncode([
-            {'id': '1'},
-            {'id': '2'}
-          ]));
+        'prayers',
+        jsonEncode([
+          {'id': '1'},
+          {'id': '2'},
+        ]),
+      );
       await prefs.setStringList('bible_marked_verses', ['v1', 'v2', 'v3']);
       await prefs.setStringList('encounter_completed_ids', ['e1']);
 

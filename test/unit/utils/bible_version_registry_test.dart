@@ -34,9 +34,13 @@ void main() {
 
       expect(versions, isNotEmpty);
       expect(
-          versions.any((v) => v.name == 'Reina Valera 1960 (RVR1960)'), isTrue);
-      expect(versions.any((v) => v.name == 'Nueva Versión Internacional (NVI)'),
-          isTrue);
+        versions.any((v) => v.name == 'Reina Valera 1960 (RVR1960)'),
+        isTrue,
+      );
+      expect(
+        versions.any((v) => v.name == 'Nueva Versión Internacional (NVI)'),
+        isTrue,
+      );
       expect(versions.every((v) => v.languageCode == 'es'), isTrue);
       expect(versions.every((v) => v.language == 'Español'), isTrue);
     });
@@ -46,8 +50,10 @@ void main() {
 
       expect(versions, isNotEmpty);
       expect(versions.any((v) => v.name == 'King James Version (KJV)'), isTrue);
-      expect(versions.any((v) => v.name == 'New International Version (NIV)'),
-          isTrue);
+      expect(
+        versions.any((v) => v.name == 'New International Version (NIV)'),
+        isTrue,
+      );
       expect(versions.every((v) => v.languageCode == 'en'), isTrue);
       expect(versions.every((v) => v.language == 'English'), isTrue);
     });
@@ -56,8 +62,10 @@ void main() {
       final versions = await BibleVersionRegistry.getVersionsForLanguage('pt');
 
       expect(versions, isNotEmpty);
-      expect(versions.any((v) => v.name == 'Almeida Revista e Corrigida (ARC)'),
-          isTrue);
+      expect(
+        versions.any((v) => v.name == 'Almeida Revista e Corrigida (ARC)'),
+        isTrue,
+      );
       expect(versions.every((v) => v.languageCode == 'pt'), isTrue);
       expect(versions.every((v) => v.language == 'Português'), isTrue);
     });
@@ -67,7 +75,9 @@ void main() {
 
       expect(versions, isNotEmpty);
       expect(
-          versions.any((v) => v.name == 'Louis Segond 1910 (LSG1910)'), isTrue);
+        versions.any((v) => v.name == 'Louis Segond 1910 (LSG1910)'),
+        isTrue,
+      );
       expect(versions.every((v) => v.languageCode == 'fr'), isTrue);
       expect(versions.every((v) => v.language == 'Français'), isTrue);
     });
@@ -77,14 +87,8 @@ void main() {
 
       expect(versions, isNotEmpty);
       expect(versions.length, equals(2));
-      expect(
-        versions.any((v) => v.name == 'पवित्र बाइबिल (ओ.वी.)'),
-        isTrue,
-      );
-      expect(
-        versions.any((v) => v.name == 'पवित्र बाइबिल (HERV)'),
-        isTrue,
-      );
+      expect(versions.any((v) => v.name == 'पवित्र बाइबिल (ओ.वी.)'), isTrue);
+      expect(versions.any((v) => v.name == 'पवित्र बाइबिल (HERV)'), isTrue);
       expect(versions.every((v) => v.languageCode == 'hi'), isTrue);
       expect(versions.every((v) => v.language == 'हिन्दी'), isTrue);
     });
@@ -96,7 +100,9 @@ void main() {
       expect(versions.length, equals(2));
       expect(versions.any((v) => v.name == 'Lutherbibel 2017 (LU17)'), isTrue);
       expect(
-          versions.any((v) => v.name == 'Schlachter 2000 (SCH2000)'), isTrue);
+        versions.any((v) => v.name == 'Schlachter 2000 (SCH2000)'),
+        isTrue,
+      );
       expect(versions.every((v) => v.languageCode == 'de'), isTrue);
       expect(versions.every((v) => v.language == 'Deutsch'), isTrue);
     });
@@ -123,21 +129,29 @@ void main() {
 
       expect(versions, isNotEmpty);
       expect(
-          versions.length,
-          greaterThanOrEqualTo(
-              18)); // At least 18 versions (including Hindi, German, and Arabic)
+        versions.length,
+        greaterThanOrEqualTo(18),
+      ); // At least 18 versions (including Hindi, German, and Arabic)
       expect(
-          versions.any((v) => v.name == 'Reina Valera 1960 (RVR1960)'), isTrue);
+        versions.any((v) => v.name == 'Reina Valera 1960 (RVR1960)'),
+        isTrue,
+      );
       expect(versions.any((v) => v.name == 'King James Version (KJV)'), isTrue);
-      expect(versions.any((v) => v.name == 'Almeida Revista e Corrigida (ARC)'),
-          isTrue);
       expect(
-          versions.any((v) => v.name == 'Louis Segond 1910 (LSG1910)'), isTrue);
+        versions.any((v) => v.name == 'Almeida Revista e Corrigida (ARC)'),
+        isTrue,
+      );
+      expect(
+        versions.any((v) => v.name == 'Louis Segond 1910 (LSG1910)'),
+        isTrue,
+      );
       expect(versions.any((v) => v.name == 'Bible du Semeur (BDS)'), isTrue);
       expect(versions.any((v) => v.name == 'पवित्र बाइबिल (ओ.वी.)'), isTrue);
       expect(versions.any((v) => v.name == 'Lutherbibel 2017 (LU17)'), isTrue);
       expect(
-          versions.any((v) => v.name == 'Schlachter 2000 (SCH2000)'), isTrue);
+        versions.any((v) => v.name == 'Schlachter 2000 (SCH2000)'),
+        isTrue,
+      );
       expect(versions.any((v) => v.name == 'كتاب الحياة'), isTrue);
       expect(versions.any((v) => v.name == 'فان دايك'), isTrue);
     });

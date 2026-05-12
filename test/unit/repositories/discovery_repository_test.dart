@@ -56,16 +56,9 @@ void main() {
       'type': 'discovery',
       'date': '2026-01-15',
       'title': 'Study Version 1.0',
-      'key_verse': {
-        'reference': '2 Pedro 1:19',
-        'text': 'Test verse',
-      },
+      'key_verse': {'reference': '2 Pedro 1:19', 'text': 'Test verse'},
       'cards': [
-        {
-          'order': 1,
-          'type': 'natural_revelation',
-          'title': 'Card 1',
-        },
+        {'order': 1, 'type': 'natural_revelation', 'title': 'Card 1'},
       ],
     };
 
@@ -74,16 +67,9 @@ void main() {
       'type': 'discovery',
       'date': '2026-01-15',
       'title': 'Study Version 1.1 - Updated',
-      'key_verse': {
-        'reference': '2 Pedro 1:19',
-        'text': 'Test verse',
-      },
+      'key_verse': {'reference': '2 Pedro 1:19', 'text': 'Test verse'},
       'cards': [
-        {
-          'order': 1,
-          'type': 'natural_revelation',
-          'title': 'Card 1 Updated',
-        },
+        {'order': 1, 'type': 'natural_revelation', 'title': 'Card 1 Updated'},
       ],
     };
 
@@ -105,10 +91,12 @@ void main() {
 
       final prefs = await SharedPreferences.getInstance();
       // Cache key now includes branch (tests run with kDebugMode=false, so always 'main')
-      final cached =
-          prefs.getString('discovery_cache_${studyId}_${languageCode}_main');
-      final cachedVersion = prefs
-          .getString('discovery_cache_${studyId}_${languageCode}_main_version');
+      final cached = prefs.getString(
+        'discovery_cache_${studyId}_${languageCode}_main',
+      );
+      final cachedVersion = prefs.getString(
+        'discovery_cache_${studyId}_${languageCode}_main_version',
+      );
 
       expect(cached, isNotNull);
       expect(cachedVersion, equals(version1));
@@ -140,38 +128,44 @@ void main() {
       verify(() => mockHttpClient.get(any())).called(1);
     });
 
-    test('should invalidate cache and fetch new version when version changes',
-        () async {
-      final prefs = await SharedPreferences.getInstance();
-      // Cache key now includes branch (tests run with kDebugMode=false, so always 'main')
-      await prefs.setString(
-        'discovery_cache_${studyId}_${languageCode}_main',
-        jsonEncode(studyJsonV1),
-      );
-      await prefs.setString(
-        'discovery_cache_${studyId}_${languageCode}_main_version',
-        version1,
-      );
+    test(
+      'should invalidate cache and fetch new version when version changes',
+      () async {
+        final prefs = await SharedPreferences.getInstance();
+        // Cache key now includes branch (tests run with kDebugMode=false, so always 'main')
+        await prefs.setString(
+          'discovery_cache_${studyId}_${languageCode}_main',
+          jsonEncode(studyJsonV1),
+        );
+        await prefs.setString(
+          'discovery_cache_${studyId}_${languageCode}_main_version',
+          version1,
+        );
 
-      when(() => mockHttpClient.get(any())).thenAnswer((invocation) async {
-        final uri = invocation.positionalArguments[0] as Uri;
-        if (uri.toString().contains('index.json')) {
-          return http.Response(jsonEncode(indexV2), 200);
-        } else {
-          return http.Response(jsonEncode(studyJsonV2), 200);
-        }
-      });
+        when(() => mockHttpClient.get(any())).thenAnswer((invocation) async {
+          final uri = invocation.positionalArguments[0] as Uri;
+          if (uri.toString().contains('index.json')) {
+            return http.Response(jsonEncode(indexV2), 200);
+          } else {
+            return http.Response(jsonEncode(studyJsonV2), 200);
+          }
+        });
 
-      final study = await repository.fetchDiscoveryStudy(studyId, languageCode);
+        final study = await repository.fetchDiscoveryStudy(
+          studyId,
+          languageCode,
+        );
 
-      expect(study.reflexion, equals('Study Version 1.1 - Updated'));
-      expect(study.cards[0].title, equals('Card 1 Updated'));
+        expect(study.reflexion, equals('Study Version 1.1 - Updated'));
+        expect(study.cards[0].title, equals('Card 1 Updated'));
 
-      final cachedVersion = prefs
-          .getString('discovery_cache_${studyId}_${languageCode}_main_version');
-      expect(cachedVersion, equals(version2));
+        final cachedVersion = prefs.getString(
+          'discovery_cache_${studyId}_${languageCode}_main_version',
+        );
+        expect(cachedVersion, equals(version2));
 
-      verify(() => mockHttpClient.get(any())).called(2);
-    });
+        verify(() => mockHttpClient.get(any())).called(2);
+      },
+    );
   });
 }

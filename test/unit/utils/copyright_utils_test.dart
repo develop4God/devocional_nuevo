@@ -9,8 +9,10 @@ void main() {
     });
 
     test('returns Hindi HIOV copyright disclaimer', () {
-      final text =
-          CopyrightUtils.getCopyrightText('hi', 'पवित्र बाइबिल (ओ.वी.)');
+      final text = CopyrightUtils.getCopyrightText(
+        'hi',
+        'पवित्र बाइबिल (ओ.वी.)',
+      );
       expect(text, contains('हिन्दी ओ.वी. संस्करण'));
       expect(text, contains('HIOV'));
     });
@@ -59,8 +61,10 @@ void main() {
     });
 
     test('returns German copyright with display name', () {
-      final text =
-          CopyrightUtils.getCopyrightText('de', 'Lutherbibel 2017 (LU17)');
+      final text = CopyrightUtils.getCopyrightText(
+        'de',
+        'Lutherbibel 2017 (LU17)',
+      );
       expect(text, contains('Deutsche Bibelgesellschaft'));
     });
 
@@ -111,20 +115,26 @@ void main() {
     });
 
     test('returns Filipino copyright with display name ASND', () {
-      final text =
-          CopyrightUtils.getCopyrightText('fil', 'Ang Salita ng Dios (ASND)');
+      final text = CopyrightUtils.getCopyrightText(
+        'fil',
+        'Ang Salita ng Dios (ASND)',
+      );
       expect(text, contains('Biblica'));
     });
 
     test('returns Filipino copyright with display name MBB05', () {
       final text = CopyrightUtils.getCopyrightText(
-          'fil', 'Magandang Balita Biblia (MBB05)');
+        'fil',
+        'Magandang Balita Biblia (MBB05)',
+      );
       expect(text, contains('Philippine Bible Society'));
     });
 
     test('returns Filipino copyright with display name ADB', () {
-      final text =
-          CopyrightUtils.getCopyrightText('fil', 'Ang Dating Biblia (ADB)');
+      final text = CopyrightUtils.getCopyrightText(
+        'fil',
+        'Ang Dating Biblia (ADB)',
+      );
       expect(text, contains('Philippine Bible Society'));
     });
 

@@ -60,9 +60,11 @@ void main() async {
       });
 
       print(
-          '   ✅ Tests: ${testResults['total']} (${testResults['passing']} passing)');
+        '   ✅ Tests: ${testResults['total']} (${testResults['passing']} passing)',
+      );
       print(
-          '   ✅ Coverage: ${coverage['percent']}% (${coverage['covered']}/${coverage['total']} lines)');
+        '   ✅ Coverage: ${coverage['percent']}% (${coverage['covered']}/${coverage['total']} lines)',
+      );
     }
 
     // Update README.md
@@ -111,8 +113,10 @@ Future<Map<String, int>> runTests() async {
   // - "All tests passed! X tests"
   // - "All X tests passed!"
   // - "X tests passed"
-  final passedRegex =
-      RegExp(r'(?:All\s+)?(\d+)\s+tests?\s+passed', caseSensitive: false);
+  final passedRegex = RegExp(
+    r'(?:All\s+)?(\d+)\s+tests?\s+passed',
+    caseSensitive: false,
+  );
   final match = passedRegex.firstMatch(output);
 
   if (match != null) {
@@ -129,14 +133,16 @@ Future<Map<String, int>> runTests() async {
 /// Run tests with coverage and parse lcov.info
 Future<Map<String, dynamic>> getCoverage() async {
   // Run tests with coverage
-  final result = await Process.run(
-    'flutter',
-    ['test', '--coverage', '--no-pub'],
-  );
+  final result = await Process.run('flutter', [
+    'test',
+    '--coverage',
+    '--no-pub',
+  ]);
 
   if (result.exitCode != 0) {
     print(
-        '⚠️  Warning: Coverage generation failed (exit code: ${result.exitCode})');
+      '⚠️  Warning: Coverage generation failed (exit code: ${result.exitCode})',
+    );
     print('   Run "flutter test --coverage" manually to debug');
     return {'percent': '0.00', 'covered': 0, 'total': 0};
   }
@@ -168,11 +174,7 @@ Future<Map<String, dynamic>> getCoverage() async {
       ? (coveredLines / totalLines * 100).toStringAsFixed(2)
       : '0.00';
 
-  return {
-    'percent': percent,
-    'covered': coveredLines,
-    'total': totalLines,
-  };
+  return {'percent': percent, 'covered': coveredLines, 'total': totalLines};
 }
 
 /// Count supported languages in i18n directory
@@ -276,7 +278,8 @@ Future<void> updateReadme(Map<String, dynamic> stats) async {
     // Spanish section - handle both comma and period number formats
     content = content.replaceAllMapped(
       RegExp(
-          r'\| Cobertura de Tests \| ([\d.]+)% \(([\d.,]+)/([\d.,]+) líneas\) \|'),
+        r'\| Cobertura de Tests \| ([\d.]+)% \(([\d.,]+)/([\d.,]+) líneas\) \|',
+      ),
       (match) =>
           '| Cobertura de Tests | ${stats['coverage_percent']}% (${_formatNumber(stats['coverage_covered'])}/${_formatNumber(stats['coverage_total'])} líneas) |',
     );
@@ -291,7 +294,8 @@ Future<void> updateReadme(Map<String, dynamic> stats) async {
 
     content = content.replaceAllMapped(
       RegExp(
-          r'!\[Coverage\]\(https://img\.shields\.io/badge/Coverage-([\d.]+)%25-\w+\.svg\)'),
+        r'!\[Coverage\]\(https://img\.shields\.io/badge/Coverage-([\d.]+)%25-\w+\.svg\)',
+      ),
       (match) =>
           '![Coverage](https://img.shields.io/badge/Coverage-${stats['coverage_percent']}%25-$color.svg)',
     );
