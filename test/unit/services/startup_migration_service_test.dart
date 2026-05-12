@@ -278,11 +278,31 @@ void main() {
       expect(fakeStats.markedAsRead, isEmpty);
     });
 
-    test('no-ops on second call — already-ran flag set', () async {
+    test('idempotent: second call with same scenario no-ops (no new gap)',
+        () async {
       final devs = [_dev('d0'), _dev('d1'), _dev('d2')];
       await sut.runAll(devs, ['d1', 'd2']); // first call — fills d0
-      await sut.runAll(devs, ['d1', 'd2']); // second call — no-op
-      expect(fakeStats.markedAsRead, hasLength(1));
+      await sut.runAll(devs,
+          ['d1', 'd2', 'd0']); // second call — d0 already read, no gap found
+      expect(fakeStats.markedAsRead, hasLength(1)); // still just d0
+    });
+
+    test('multiple gaps across separate startups (QA scenario)', () async {
+      // Simulate: First startup fills one gap
+      final devs1 = [_dev('d0'), _dev('d1'), _dev('d2')];
+      await sut.runAll(devs1, ['d1', 'd2']); // d0 gap filled
+      expect(fakeStats.markedAsRead, contains('d0'));
+
+      // Reset stats and service (new app startup, new test scenario)
+      fakeStats.markedAsRead.clear();
+      await (await SharedPreferences.getInstance())
+          .remove('read_gap_fix_done'); // Clear prefs to simulate new state
+      sut = StartupMigrationService(statsService: fakeStats);
+
+      // Second startup: new gap pattern (interior gap)
+      final devs2 = [_dev('d0'), _dev('d1'), _dev('d2'), _dev('d3')];
+      await sut.runAll(devs2, ['d0', 'd2', 'd3']); // d1 interior gap filled
+      expect(fakeStats.markedAsRead, contains('d1'));
     });
   });
 }
