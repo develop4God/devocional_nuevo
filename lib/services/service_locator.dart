@@ -36,6 +36,7 @@ import 'package:devocional_nuevo/services/i_localization_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/startup_migration_service.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
@@ -160,6 +161,9 @@ Future<void> setupServiceLocator() async {
   // ✅ REGISTER SPIRITUAL STATS SERVICE (via interface)
   locator.registerLazySingleton<ISpiritualStatsService>(
     () => SpiritualStatsService(),
+  );
+  locator.registerLazySingleton<StartupMigrationService>(
+    () => StartupMigrationService(),
   );
 
   // ✅ REGISTER CONNECTIVITY SERVICE (via interface)

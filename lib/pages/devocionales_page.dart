@@ -1,5 +1,4 @@
 import 'dart:developer' as developer;
-import 'dart:async' show unawaited;
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
@@ -48,7 +47,6 @@ import 'package:lottie/lottie.dart'; // Re-agregado para animación post-splash
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../controllers/audio_controller.dart';
 import '../controllers/tts_audio_controller.dart';
@@ -85,7 +83,6 @@ class DevocionalesPage extends StatefulWidget {
 
 class _DevocionalesPageState extends State<DevocionalesPage>
     with WidgetsBindingObserver, RouteAware {
-  static const String _kLegacyGapMigrationKey = 'legacy_gap_migration_v2_done';
 
   final ScreenshotController screenshotController = ScreenshotController();
   final ScrollController _scrollController = ScrollController();
@@ -255,22 +252,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       final stats = await spiritualStatsService.getStats();
       final readDevocionalIds = stats.readDevocionalIds;
 
-      // Run one-time legacy gap migration before computing initial index.
-      // Must complete before InitializeNavigation so the bloc starts with correct state.
-      await _runLegacyGapMigrationIfNeeded(
-        devocionalProvider.devocionales,
-        readDevocionalIds,
-      );
-      if (!mounted) return;
-
-      // Refresh read IDs after migration — gaps may have been filled above.
-      final migratedStats = await spiritualStatsService.getStats();
-      final migratedReadIds = migratedStats.readDevocionalIds;
-
-      // Determine initial index using post-migration IDs
+      // Determine initial index
       final initialIndex = _calculateInitialIndex(
         devocionalProvider.devocionales,
-        migratedReadIds,
+        readDevocionalIds,
       );
 
       // Initialize navigation with full devotionals list
@@ -402,99 +387,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   ///
   /// Fingerprint: exactly one entry where index N-1 is read, index N is unread,
   /// and index N+1 is read. Only that single entry is filled — no bulk writes.
-  /// Runs once per install. The flag [_kLegacyGapMigrationKey] prevents re-runs.
-  Future<void> _runLegacyGapMigrationIfNeeded(
-    List<Devocional> devocionales,
-    List<String> readDevocionalIds,
-  ) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final alreadyRan = prefs.getBool(_kLegacyGapMigrationKey) ?? false;
-      if (alreadyRan) return;
-
-      // Mark migration as done immediately — even if we find nothing to fix.
-      // This prevents repeated prefs reads on every cold start.
-      await prefs.setBool(_kLegacyGapMigrationKey, true);
-
-      if (readDevocionalIds.isEmpty || devocionales.isEmpty) {
-        developer.log(
-          '🔧 [MIGRATION] No read IDs — new user or clean state, skipping',
-          name: 'GapMigration',
-        );
-        return;
-      }
-
-      final readSet = Set<String>.from(readDevocionalIds);
-
-      // Detect exactly one single-entry gap: index N-1 read, N unread, N+1 read.
-      // This is the precise fingerprint of the one-day bug — no other gap pattern
-      // is touched.
-      String? singleGapId;
-      int singleGapIndex = -1;
-      for (int i = 1; i < devocionales.length - 1; i++) {
-        final prevRead = readSet.contains(devocionales[i - 1].id);
-        final currUnread = !readSet.contains(devocionales[i].id);
-        final nextRead = readSet.contains(devocionales[i + 1].id);
-
-        if (prevRead && currUnread && nextRead) {
-          final id = devocionales[i].id;
-          if (id.isNotEmpty) {
-            singleGapId = id;
-            singleGapIndex = i;
-          }
-          break; // exactly one — stop immediately
-        }
-      }
-
-      if (singleGapId == null) {
-        developer.log(
-          '🔧 [MIGRATION] No single-entry gap found — user state is clean',
-          name: 'GapMigration',
-        );
-        unawaited(
-          getService<IAnalyticsService>().logCustomEvent(
-            eventName: 'legacy_gap_migration_clean',
-          ),
-        );
-        return;
-      }
-
-      developer.log(
-        '🔧 [MIGRATION] Single gap found at index $singleGapIndex — filling silently',
-        name: 'GapMigration',
-      );
-
-      await SpiritualStatsService().bulkMarkAsRead([singleGapId]);
-
-      developer.log(
-        '✅ [MIGRATION] Legacy gap migration complete: 1 entry marked as read (index $singleGapIndex)',
-        name: 'GapMigration',
-      );
-
-      unawaited(
-        getService<IAnalyticsService>().logCustomEvent(
-          eventName: 'legacy_gap_migration_applied',
-          parameters: {
-            'gaps_filled': 1,
-            'gap_index': singleGapIndex,
-          },
-        ),
-      );
-    } catch (e, stack) {
-      // Migration is non-critical — log and continue. Never block app start.
-      developer.log(
-        '❌ [MIGRATION] Error during gap migration: $e',
-        name: 'GapMigration',
-        error: e,
-      );
-      FirebaseCrashlytics.instance.recordError(
-        e,
-        stack,
-        fatal: false,
-        reason: 'Legacy gap migration failed',
-      );
-    }
-  }
 
   /// Reliably compare two devotional lists by their IDs
   /// Avoids hashCode collision bugs
