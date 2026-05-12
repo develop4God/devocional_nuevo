@@ -35,6 +35,8 @@ import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/startup_migration_service.dart';
+import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
@@ -634,10 +636,18 @@ class _AppInitializerState extends State<AppInitializer> {
   Future<void> _initAppData() async {
     if (!mounted) return;
     try {
-      await Provider.of<DevocionalProvider>(
+      final devocionalProvider = Provider.of<DevocionalProvider>(
         context,
         listen: false,
-      ).initializeData();
+      );
+      await devocionalProvider.initializeData();
+
+      // Run all one-time startup migrations after data is loaded.
+      final stats = await getService<ISpiritualStatsService>().getStats();
+      await getService<StartupMigrationService>().runAll(
+        devocionalProvider.devocionales,
+        stats.readDevocionalIds,
+      );
     } catch (e) {
       // Data initialization errors are logged for debugging
       developer.log(
