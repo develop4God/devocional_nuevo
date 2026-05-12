@@ -15,6 +15,7 @@ import 'package:devocional_nuevo/services/i_startup_migration_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:devocional_nuevo/utils/constants/storage_keys.dart';
 
 class StartupMigrationService implements IStartupMigrationService {
   const StartupMigrationService({required ISpiritualStatsService statsService})
@@ -50,20 +51,18 @@ class StartupMigrationService implements IStartupMigrationService {
   // Only that single entry is filled — no bulk writes.
   // Runs once per install. The flag below prevents re-runs.
 
-  static const String _kMigrationV3Key = 'legacy_gap_migration_v3_done';
-
   Future<void> _migrationV3SingleGapFix(
     List<Devocional> devocionales,
     List<String> readDevocionalIds,
   ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final alreadyRan = prefs.getBool(_kMigrationV3Key) ?? false;
+      final alreadyRan = prefs.getBool(MigrationKeys.singleGapFix) ?? false;
       if (alreadyRan) return;
 
       // Mark migration as done immediately — even if we find nothing to fix.
       // This prevents repeated prefs reads on every cold start.
-      await prefs.setBool(_kMigrationV3Key, true);
+      await prefs.setBool(MigrationKeys.singleGapFix, true);
 
       if (readDevocionalIds.isEmpty || devocionales.isEmpty) {
         developer.log(
