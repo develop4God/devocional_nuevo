@@ -265,7 +265,7 @@ class SpiritualStatsService implements ISpiritualStatsService {
 
     if (toAdd.isEmpty) {
       debugPrint(
-        '🔧 [MIGRATION] bulkMarkAsRead: all ${ids.length} IDs already present, skipping write',
+        '🔧 [FIX] bulkMarkAsRead: all ${ids.length} IDs already present, skipping write',
       );
       return;
     }
