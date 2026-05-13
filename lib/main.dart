@@ -535,7 +535,14 @@ class _AppInitializerState extends State<AppInitializer> {
         _kAppStartupTimeout,
         onTimeout: () => _handleStartupTimeout(stopwatch),
       );
-    } catch (e) {
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        fatal: false,
+        reason:
+            'AppInitializer startup error after ${stopwatch.elapsedMilliseconds}ms',
+      );
       developer.log(
         'Startup error after ${stopwatch.elapsedMilliseconds}ms: $e',
         name: 'AppInitializer',
@@ -545,12 +552,24 @@ class _AppInitializerState extends State<AppInitializer> {
     }
 
     stopwatch.stop();
+    FirebaseCrashlytics.instance.log(
+      'AppInitializer: startup completed in ${stopwatch.elapsedMilliseconds}ms',
+    );
     developer.log(
       '⏱️ App startup completed in ${stopwatch.elapsedMilliseconds}ms',
       name: 'AppInitializer',
     );
 
-    if (!mounted) return;
+    if (!mounted) {
+      FirebaseCrashlytics.instance.recordError(
+        Exception('AppInitializer: not mounted after init'),
+        StackTrace.current,
+        fatal: false,
+        reason:
+            'Widget unmounted before navigation could fire — likely black screen',
+      );
+      return;
+    }
     _initNonCriticalServices();
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
