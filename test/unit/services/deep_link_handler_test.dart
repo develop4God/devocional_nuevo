@@ -128,6 +128,15 @@ void main() {
         expect(result, isTrue);
       });
 
+      testWidgets('should handle backup deep link', (
+        WidgetTester tester,
+      ) async {
+        await pumpReady(tester);
+        final uri = Uri.parse('https://www.develop4god.com/backup');
+        final result = await deepLinkHandler.handleDeepLink(uri);
+        expect(result, isTrue);
+      });
+
       testWidgets('should return false when navigator context is null', (
         WidgetTester tester,
       ) async {
