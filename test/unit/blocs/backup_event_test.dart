@@ -189,11 +189,7 @@ void main() {
     });
 
     test('creates event with multiple options', () {
-      const options = {
-        'favorites': true,
-        'settings': true,
-        'progress': false,
-      };
+      const options = {'favorites': true, 'settings': true, 'progress': false};
       const event = UpdateBackupOptions(options);
       expect(event.options, equals(options));
     });

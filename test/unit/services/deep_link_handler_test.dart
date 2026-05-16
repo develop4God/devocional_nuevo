@@ -29,8 +29,9 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      testWidgets('should reject deep link with invalid scheme',
-          (WidgetTester tester) async {
+      testWidgets('should reject deep link with invalid scheme', (
+        WidgetTester tester,
+      ) async {
         await pumpReady(tester);
 
         final uri = Uri.parse('https://example.com/test');
@@ -39,8 +40,9 @@ void main() {
         expect(result, isFalse);
       });
 
-      testWidgets('should reject deep link with empty path',
-          (WidgetTester tester) async {
+      testWidgets('should reject deep link with empty path', (
+        WidgetTester tester,
+      ) async {
         await pumpReady(tester);
 
         final uri = Uri.parse('devocional://');
@@ -49,8 +51,9 @@ void main() {
         expect(result, isFalse);
       });
 
-      testWidgets('should reject deep link with unknown route',
-          (WidgetTester tester) async {
+      testWidgets('should reject deep link with unknown route', (
+        WidgetTester tester,
+      ) async {
         await pumpReady(tester);
 
         final uri = Uri.parse('devocional://unknown');
@@ -59,8 +62,9 @@ void main() {
         expect(result, isFalse);
       });
 
-      testWidgets('should handle devotional deep link',
-          (WidgetTester tester) async {
+      testWidgets('should handle devotional deep link', (
+        WidgetTester tester,
+      ) async {
         await pumpReady(tester);
 
         final uri = Uri.parse('devocional://devotional');
@@ -69,8 +73,9 @@ void main() {
         expect(result, isTrue);
       });
 
-      testWidgets('should handle progress deep link',
-          (WidgetTester tester) async {
+      testWidgets('should handle progress deep link', (
+        WidgetTester tester,
+      ) async {
         await pumpReady(tester);
 
         final uri = Uri.parse('devocional://progress');
@@ -79,8 +84,9 @@ void main() {
         expect(result, isTrue);
       });
 
-      testWidgets('should handle prayers deep link',
-          (WidgetTester tester) async {
+      testWidgets('should handle prayers deep link', (
+        WidgetTester tester,
+      ) async {
         await pumpReady(tester);
 
         final uri = Uri.parse('devocional://prayers');
@@ -89,8 +95,9 @@ void main() {
         expect(result, isTrue);
       });
 
-      testWidgets('should handle prayer_wall deep link',
-          (WidgetTester tester) async {
+      testWidgets('should handle prayer_wall deep link', (
+        WidgetTester tester,
+      ) async {
         await pumpReady(tester);
 
         final uri = Uri.parse('devocional://prayer_wall');
@@ -99,8 +106,9 @@ void main() {
         expect(result, isTrue);
       });
 
-      testWidgets('should handle testimonies deep link',
-          (WidgetTester tester) async {
+      testWidgets('should handle testimonies deep link', (
+        WidgetTester tester,
+      ) async {
         await pumpReady(tester);
 
         final uri = Uri.parse('devocional://testimonies');
@@ -109,8 +117,9 @@ void main() {
         expect(result, isTrue);
       });
 
-      testWidgets('should handle supporter deep link',
-          (WidgetTester tester) async {
+      testWidgets('should handle supporter deep link', (
+        WidgetTester tester,
+      ) async {
         await pumpReady(tester);
 
         final uri = Uri.parse('devocional://supporter');
@@ -119,8 +128,9 @@ void main() {
         expect(result, isTrue);
       });
 
-      testWidgets('should return false when navigator context is null',
-          (WidgetTester tester) async {
+      testWidgets('should return false when navigator context is null', (
+        WidgetTester tester,
+      ) async {
         // Do NOT pump a widget — navigatorKey.currentContext stays null.
 
         final uri = Uri.parse('devocional://devotional');
@@ -144,14 +154,17 @@ void main() {
         // This test simply documents the expected timeout value.  The actual
         // suppression behaviour is exercised in the behavioral integration
         // tests via the MethodChannel.
-        expect(true,
-            isTrue); // placeholder — see deep_link_navigation_user_behavior_test.dart
+        expect(
+          true,
+          isTrue,
+        ); // placeholder — see deep_link_navigation_user_behavior_test.dart
       });
     });
 
     group('Method Channel', () {
-      const MethodChannel channel =
-          MethodChannel('com.develop4god.devocional/deeplink');
+      const MethodChannel channel = MethodChannel(
+        'com.develop4god.devocional/deeplink',
+      );
 
       setUp(() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

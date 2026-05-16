@@ -29,7 +29,8 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onPrimary,
                   fontSize: textScaler.scale(
-                      Theme.of(context).textTheme.titleLarge?.fontSize ?? 20),
+                    Theme.of(context).textTheme.titleLarge?.fontSize ?? 20,
+                  ),
                 ),
             textAlign: TextAlign.center,
           ),
@@ -40,7 +41,8 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.w500,
                   fontSize: textScaler.scale(
-                      Theme.of(context).textTheme.bodyLarge?.fontSize ?? 16),
+                    Theme.of(context).textTheme.bodyLarge?.fontSize ?? 16,
+                  ),
                 ),
             textAlign: TextAlign.center,
           ),
@@ -65,12 +67,14 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                     'app.skip'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.normal,
-                          fontSize: textScaler.scale((Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.fontSize ??
-                                  16) *
-                              1.2),
+                          fontSize: textScaler.scale(
+                            (Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.fontSize ??
+                                    16) *
+                                1.2,
+                          ),
                         ),
                   ),
                 ),
@@ -95,12 +99,11 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                     child: Text(
                       'app.voice_feature_configure'.tr(),
                       style: TextStyle(
-                        fontSize: textScaler.scale((Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.fontSize ??
-                                16) *
-                            1.0),
+                        fontSize: textScaler.scale(
+                          (Theme.of(context).textTheme.titleMedium?.fontSize ??
+                                  16) *
+                              1.0,
+                        ),
                       ),
                     ),
                   ),

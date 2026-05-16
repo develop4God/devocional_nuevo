@@ -29,8 +29,9 @@ void main() {
       locator.reset();
 
       mockLocalizationService = MockLocalizationService();
-      when(() => mockLocalizationService.translate(any()))
-          .thenReturn('Mocked error message');
+      when(
+        () => mockLocalizationService.translate(any()),
+      ).thenReturn('Mocked error message');
 
       // Register the mock service in the service locator
       locator.registerSingleton<LocalizationService>(mockLocalizationService);

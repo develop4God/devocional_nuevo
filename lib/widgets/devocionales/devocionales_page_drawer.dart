@@ -58,8 +58,10 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
   }
 
   void _changeBibleVersion(BuildContext context, String newVersion) async {
-    final devocionalProvider =
-        Provider.of<DevocionalProvider>(context, listen: false);
+    final devocionalProvider = Provider.of<DevocionalProvider>(
+      context,
+      listen: false,
+    );
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -245,54 +247,53 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                               ModalRoute.of(dialogContext)?.isCurrent ?? false;
 
                           if (dialogStillOpen) {
-                            Future.delayed(
-                              const Duration(milliseconds: 400),
-                              () {
-                                // Check if context is still mounted before using it
-                                if (!dialogContext.mounted) return;
+                            Future.delayed(const Duration(milliseconds: 400),
+                                () {
+                              // Check if context is still mounted before using it
+                              if (!dialogContext.mounted) return;
 
-                                final bool dialogStillOpenNow =
-                                    ModalRoute.of(dialogContext)?.isCurrent ??
-                                        false;
-                                if (dialogStillOpenNow) {
-                                  // Close the dialog
-                                  Navigator.of(dialogContext).pop();
+                              final bool dialogStillOpenNow =
+                                  ModalRoute.of(dialogContext)?.isCurrent ??
+                                      false;
+                              if (dialogStillOpenNow) {
+                                // Close the dialog
+                                Navigator.of(dialogContext).pop();
 
-                                  // If success, also close the drawer (parent context)
-                                  if (success) {
-                                    if (parentContext.mounted) {
-                                      try {
-                                        Navigator.of(parentContext).pop();
-                                      } catch (_) {
-                                        // Ignore: parent may have been removed
-                                      }
-                                    }
-                                  }
-
-                                  // Show snackbar on the parent scaffold
+                                // If success, also close the drawer (parent context)
+                                if (success) {
                                   if (parentContext.mounted) {
                                     try {
-                                      ScaffoldMessenger.of(parentContext)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            success
-                                                ? 'drawer.download_success'.tr()
-                                                : 'drawer.download_error'.tr(),
-                                          ),
-                                          backgroundColor: success
-                                              ? colorScheme.primary
-                                              : colorScheme.error,
-                                          duration: const Duration(seconds: 4),
-                                        ),
-                                      );
+                                      Navigator.of(parentContext).pop();
                                     } catch (_) {
-                                      // If parent context no longer has a ScaffoldMessenger, ignore.
+                                      // Ignore: parent may have been removed
                                     }
                                   }
                                 }
-                              },
-                            );
+
+                                // Show snackbar on the parent scaffold
+                                if (parentContext.mounted) {
+                                  try {
+                                    ScaffoldMessenger.of(
+                                      parentContext,
+                                    ).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          success
+                                              ? 'drawer.download_success'.tr()
+                                              : 'drawer.download_error'.tr(),
+                                        ),
+                                        backgroundColor: success
+                                            ? colorScheme.primary
+                                            : colorScheme.error,
+                                        duration: const Duration(seconds: 4),
+                                      ),
+                                    );
+                                  } catch (_) {
+                                    // If parent context no longer has a ScaffoldMessenger, ignore.
+                                  }
+                                }
+                              }
+                            });
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -469,8 +470,9 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                                   }
                                 },
                                 selectedItemBuilder: (BuildContext context) {
-                                  return versions
-                                      .map<Widget>((String itemValue) {
+                                  return versions.map<Widget>((
+                                    String itemValue,
+                                  ) {
                                     return Row(
                                       children: [
                                         Flexible(
@@ -813,8 +815,9 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
 
   String _versionLabel(String versionId) {
     try {
-      final version =
-          _loadedVersions.firstWhere((v) => v.dbFileName.startsWith(versionId));
+      final version = _loadedVersions.firstWhere(
+        (v) => v.dbFileName.startsWith(versionId),
+      );
 
       // Use display name directly from registry
       return _getDisplayName(version.name, version.languageCode);

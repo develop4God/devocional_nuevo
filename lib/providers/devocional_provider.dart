@@ -204,15 +204,18 @@ class DevocionalProvider with ChangeNotifier {
       String savedLanguage =
           prefs.getString('selectedLanguage') ?? deviceLanguage;
       debugPrint(
-          '🌍 [INIT] Saved language preference: ${prefs.getString('selectedLanguage')} (raw), using: $savedLanguage');
+        '🌍 [INIT] Saved language preference: ${prefs.getString('selectedLanguage')} (raw), using: $savedLanguage',
+      );
 
       _selectedLanguage = _getSupportedLanguageWithFallback(savedLanguage);
       debugPrint(
-          '🌍 [INIT] Supported language resolved: $_selectedLanguage (from $savedLanguage)');
+        '🌍 [INIT] Supported language resolved: $_selectedLanguage (from $savedLanguage)',
+      );
 
       if (_selectedLanguage != savedLanguage) {
         debugPrint(
-            '🌍 [INIT] Language not supported, saving fallback: $_selectedLanguage');
+          '🌍 [INIT] Language not supported, saving fallback: $_selectedLanguage',
+        );
         await prefs.setString('selectedLanguage', _selectedLanguage);
       }
 
@@ -221,7 +224,8 @@ class DevocionalProvider with ChangeNotifier {
       String defaultVersion =
           Constants.defaultVersionByLanguage[_selectedLanguage] ?? 'RVR1960';
       debugPrint(
-          '🌍 [INIT] Selected language: $_selectedLanguage, default version: $defaultVersion');
+        '🌍 [INIT] Selected language: $_selectedLanguage, default version: $defaultVersion',
+      );
 
       // CRITICAL FIX: Validate that saved version is valid for current language
       // This prevents language/version mismatches (e.g., Spanish + Hindi version)
@@ -242,7 +246,8 @@ class DevocionalProvider with ChangeNotifier {
       await _loadFavorites();
       await _loadInvitationDialogPreference();
       debugPrint(
-          '🌍 [INIT] About to fetch devotionals for language: $_selectedLanguage, version: $_selectedVersion');
+        '🌍 [INIT] About to fetch devotionals for language: $_selectedLanguage, version: $_selectedVersion',
+      );
       await _fetchAllDevocionalesForLanguage();
     } catch (e) {
       _errorMessage = 'Error al inicializar los datos: $e';
@@ -529,7 +534,8 @@ class DevocionalProvider with ChangeNotifier {
     _errorMessage = null;
     _isOfflineMode = false;
     debugPrint(
-        '📚 [FETCH] Starting to fetch devotionals for language=$_selectedLanguage, version=$_selectedVersion');
+      '📚 [FETCH] Starting to fetch devotionals for language=$_selectedLanguage, version=$_selectedVersion',
+    );
     notifyListeners();
 
     try {
@@ -540,15 +546,13 @@ class DevocionalProvider with ChangeNotifier {
 
       for (final year in yearsToLoad) {
         debugPrint(
-            '📚 [FETCH] Fetching year $year for language=$_selectedLanguage, version=$_selectedVersion');
-        final List<Devocional> yearDevocionales =
-            await _devocionalRepository.fetchAll(
-          year,
-          _selectedLanguage,
-          _selectedVersion,
+          '📚 [FETCH] Fetching year $year for language=$_selectedLanguage, version=$_selectedVersion',
         );
+        final List<Devocional> yearDevocionales = await _devocionalRepository
+            .fetchAll(year, _selectedLanguage, _selectedVersion);
         debugPrint(
-            '📚 [FETCH] Year $year returned ${yearDevocionales.length} devotionals');
+          '📚 [FETCH] Year $year returned ${yearDevocionales.length} devotionals',
+        );
         allDevocionales.addAll(yearDevocionales);
       }
 
@@ -631,7 +635,8 @@ class DevocionalProvider with ChangeNotifier {
 
   /// Parses fallback language data — used when primary language has no content.
   List<Devocional> _parseFallbackLanguageData(
-      Map<String, dynamic> languageData) {
+    Map<String, dynamic> languageData,
+  ) {
     final List<Devocional> loaded = [];
     languageData.forEach((dateKey, dateValue) {
       if (dateValue is List) {
@@ -675,7 +680,9 @@ class DevocionalProvider with ChangeNotifier {
 
   // ========== LANGUAGE & VERSION SETTINGS ==========
   Future<void> setSelectedLanguage(
-      String language, BuildContext? context) async {
+    String language,
+    BuildContext? context,
+  ) async {
     String supportedLanguage = _getSupportedLanguageWithFallback(language);
 
     if (_selectedLanguage != supportedLanguage) {
@@ -784,8 +791,10 @@ class DevocionalProvider with ChangeNotifier {
             final int totalLegacy = decodedList.length;
 
             _favoriteIds = decodedList
-                .map((item) =>
-                    Devocional.fromJson(item as Map<String, dynamic>).id)
+                .map(
+                  (item) =>
+                      Devocional.fromJson(item as Map<String, dynamic>).id,
+                )
                 .where((id) => id.isNotEmpty)
                 .toSet();
 
@@ -856,9 +865,7 @@ class DevocionalProvider with ChangeNotifier {
               final analytics = getService<IAnalyticsService>();
               analytics.logCustomEvent(
                 eventName: 'favorites_migration_failure',
-                parameters: {
-                  'error': e.toString(),
-                },
+                parameters: {'error': e.toString()},
               );
             } catch (analyticsError) {
               developer.log(
@@ -901,10 +908,7 @@ class DevocionalProvider with ChangeNotifier {
         );
       }
     } catch (e) {
-      developer.log(
-        '❌FAVORITES_ERROR: Save failed: $e',
-        name: 'Favorites',
-      );
+      developer.log('❌FAVORITES_ERROR: Save failed: $e', name: 'Favorites');
       rethrow;
     }
   }
@@ -1063,7 +1067,9 @@ class DevocionalProvider with ChangeNotifier {
   /// Wraps the new toggleFavorite and shows SnackBar messages
   @Deprecated('Use toggleFavorite(String id) instead')
   void toggleFavoriteWithContext(
-      Devocional devocional, BuildContext context) async {
+    Devocional devocional,
+    BuildContext context,
+  ) async {
     if (devocional.id.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1142,15 +1148,11 @@ class DevocionalProvider with ChangeNotifier {
       debugPrint(
         '📊 [PROVIDER] Read devotional IDs restored: ${stats.readDevocionalIds.length}',
       );
-      debugPrint(
-        '📊 [PROVIDER] Read IDs: ${stats.readDevocionalIds}',
-      );
+      debugPrint('📊 [PROVIDER] Read IDs: ${stats.readDevocionalIds}');
       debugPrint(
         '📊 [PROVIDER] Total devotionals read: ${stats.totalDevocionalesRead}',
       );
-      debugPrint(
-        '📊 [PROVIDER] Current streak: ${stats.currentStreak}',
-      );
+      debugPrint('📊 [PROVIDER] Current streak: ${stats.currentStreak}');
       debugPrint(
         '📊 [PROVIDER] Favorites count in stats: ${stats.favoritesCount}',
       );
@@ -1303,15 +1305,21 @@ class DevocionalProvider with ChangeNotifier {
             onProgress(progress);
           } catch (e, st) {
             debugPrint('onProgress callback threw an error: $e');
-            FirebaseCrashlytics.instance
-                .recordError(e, st, reason: 'onProgress callback error');
+            FirebaseCrashlytics.instance.recordError(
+              e,
+              st,
+              reason: 'onProgress callback error',
+            );
           }
         });
       } catch (e, st) {
         // If scheduling the callback fails for any reason, log and continue
         debugPrint('Failed to schedule onProgress callback: $e');
-        FirebaseCrashlytics.instance.recordError(e, st,
-            reason: 'Failed to schedule onProgress callback');
+        FirebaseCrashlytics.instance.recordError(
+          e,
+          st,
+          reason: 'Failed to schedule onProgress callback',
+        );
       }
 
       if (!success) allSuccess = false;

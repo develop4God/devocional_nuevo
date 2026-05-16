@@ -76,29 +76,50 @@ void main() {
       final format = LocalizedDateFormatter.getDateFormat('fil');
       final result = format.format(testDate);
       // Filipino format: "Day, d ng Month" (e.g., "Saturday, 15 ng March")
-      expect(result, contains('15'),
-          reason: 'Filipino date should contain day number 15');
-      expect(result, contains('ng'),
-          reason: 'Filipino date should contain "ng" preposition');
+      expect(
+        result,
+        contains('15'),
+        reason: 'Filipino date should contain day number 15',
+      );
+      expect(
+        result,
+        contains('ng'),
+        reason: 'Filipino date should contain "ng" preposition',
+      );
       // Month name in Filipino (March = Marso)
-      expect(result.contains('Marso') || result.contains('March'), isTrue,
-          reason: 'Filipino date should contain month name');
+      expect(
+        result.contains('Marso') || result.contains('March'),
+        isTrue,
+        reason: 'Filipino date should contain month name',
+      );
     });
 
     test('formats specific Filipino date correctly - April 27, 2026', () {
       final format = LocalizedDateFormatter.getDateFormat('fil');
-      final aprilDate =
-          DateTime(2026, 4, 27); // This is a Monday (Lunes) in 2026
+      final aprilDate = DateTime(
+        2026,
+        4,
+        27,
+      ); // This is a Monday (Lunes) in 2026
       final result = format.format(aprilDate);
 
       // Expected format: "Lunes, 27 ng Abril"
       expect(result, contains('27'), reason: 'Should contain day 27');
-      expect(result, contains('ng'),
-          reason: 'Should contain ng preposition between day and month');
-      expect(result.contains('Abril') || result.contains('April'), isTrue,
-          reason: 'Should contain April month name');
-      expect(result.contains('Lunes') || result.contains('Monday'), isTrue,
-          reason: 'Should contain Monday weekday name');
+      expect(
+        result,
+        contains('ng'),
+        reason: 'Should contain ng preposition between day and month',
+      );
+      expect(
+        result.contains('Abril') || result.contains('April'),
+        isTrue,
+        reason: 'Should contain April month name',
+      );
+      expect(
+        result.contains('Lunes') || result.contains('Monday'),
+        isTrue,
+        reason: 'Should contain Monday weekday name',
+      );
     });
 
     test('formats Hindi dates correctly', () {
@@ -141,15 +162,21 @@ void main() {
         'de',
         'fil',
         'hi',
-        'ar'
+        'ar',
       ];
       for (final locale in locales) {
         final format = LocalizedDateFormatter.getDateFormat(locale);
-        expect(format, isA<DateFormat>(),
-            reason: 'Locale $locale should return a valid DateFormat');
+        expect(
+          format,
+          isA<DateFormat>(),
+          reason: 'Locale $locale should return a valid DateFormat',
+        );
         // Should not throw when formatting
-        expect(() => format.format(testDate), returnsNormally,
-            reason: 'Locale $locale should format without error');
+        expect(
+          () => format.format(testDate),
+          returnsNormally,
+          reason: 'Locale $locale should format without error',
+        );
       }
     });
 

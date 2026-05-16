@@ -168,14 +168,12 @@ void main() {
 
       Map<String, dynamic>? getDevotionalForDate(DateTime date) {
         try {
-          return devotionals.firstWhere(
-            (d) {
-              final devDate = d['date'] as DateTime;
-              return devDate.year == date.year &&
-                  devDate.month == date.month &&
-                  devDate.day == date.day;
-            },
-          );
+          return devotionals.firstWhere((d) {
+            final devDate = d['date'] as DateTime;
+            return devDate.year == date.year &&
+                devDate.month == date.month &&
+                devDate.day == date.day;
+          });
         } catch (e) {
           return null;
         }
@@ -200,14 +198,12 @@ void main() {
       Map<String, dynamic>? getTodaysDevotional() {
         final now = DateTime.now();
         try {
-          return devotionals.firstWhere(
-            (d) {
-              final devDate = d['date'] as DateTime;
-              return devDate.year == now.year &&
-                  devDate.month == now.month &&
-                  devDate.day == now.day;
-            },
-          );
+          return devotionals.firstWhere((d) {
+            final devDate = d['date'] as DateTime;
+            return devDate.year == now.year &&
+                devDate.month == now.month &&
+                devDate.day == now.day;
+          });
         } catch (e) {
           return null;
         }

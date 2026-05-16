@@ -24,9 +24,12 @@ class _MockIap extends Mock implements InAppPurchase {
 
   @override
   Future<ProductDetailsResponse> queryProductDetails(
-      Set<String> identifiers) async {
+    Set<String> identifiers,
+  ) async {
     return ProductDetailsResponse(
-        productDetails: [], notFoundIDs: identifiers.toList());
+      productDetails: [],
+      notFoundIDs: identifiers.toList(),
+    );
   }
 }
 
@@ -74,23 +77,26 @@ void main() {
       expect(iapInterface.initStatus, equals(IapInitStatus.notStarted));
     });
 
-    test('initStatus transitions to billingUnavailable after initialize()',
-        () async {
-      final svc = _makeService();
-      await svc.initialize();
-      expect(svc.initStatus, equals(IapInitStatus.billingUnavailable));
-      await svc.dispose();
-    });
+    test(
+      'initStatus transitions to billingUnavailable after initialize()',
+      () async {
+        final svc = _makeService();
+        await svc.initialize();
+        expect(svc.initStatus, equals(IapInitStatus.billingUnavailable));
+        await svc.dispose();
+      },
+    );
 
     test('IapInitStatus enum has all expected values', () {
       expect(
-          IapInitStatus.values,
-          containsAll([
-            IapInitStatus.notStarted,
-            IapInitStatus.success,
-            IapInitStatus.billingUnavailable,
-            IapInitStatus.loadFailed,
-          ]));
+        IapInitStatus.values,
+        containsAll([
+          IapInitStatus.notStarted,
+          IapInitStatus.success,
+          IapInitStatus.billingUnavailable,
+          IapInitStatus.loadFailed,
+        ]),
+      );
     });
   });
 }

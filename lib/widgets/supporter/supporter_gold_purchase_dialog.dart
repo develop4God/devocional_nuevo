@@ -78,7 +78,9 @@ class _SupporterGoldPurchaseDialogState
   void initState() {
     super.initState();
     _fadeCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 450));
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeIn);
     _fadeCtrl.forward();
     // Mark as pending immediately so crash-recovery banner appears if needed
@@ -187,12 +189,15 @@ class _SupporterGoldPurchaseDialogState
                       side: const BorderSide(color: _gold, width: 1.5),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                     child: Text(
                       'supporter.gold_back_confirm'.tr(),
                       style: const TextStyle(
-                          color: _gold, fontWeight: FontWeight.bold),
+                        color: _gold,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -225,9 +230,7 @@ class _SupporterGoldPurchaseDialogState
     if (!mounted) return;
     final navigator = Navigator.of(context, rootNavigator: true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      navigator.pushReplacement(
-        MaterialPageRoute(builder: (_) => page),
-      );
+      navigator.pushReplacement(MaterialPageRoute(builder: (_) => page));
     });
   }
 
@@ -381,11 +384,18 @@ class _SupporterGoldPurchaseDialogState
       mainAxisSize: MainAxisSize.min,
       children: [
         // Badge + confetti
-        Stack(alignment: Alignment.center, children: [
-          Lottie.asset('assets/lottie/confetti.json',
-              width: 180, height: 180, repeat: false),
-          _GoldCircle(emoji: widget.tier.emoji),
-        ]),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Lottie.asset(
+              'assets/lottie/confetti.json',
+              width: 180,
+              height: 180,
+              repeat: false,
+            ),
+            _GoldCircle(emoji: widget.tier.emoji),
+          ],
+        ),
         const SizedBox(height: 12),
 
         // Shimmer title - responsive with autofit
@@ -474,12 +484,17 @@ class _SupporterGoldPurchaseDialogState
               height: 1.5,
             ),
             helperMaxLines: 2,
-            prefixIcon:
-                const Icon(Icons.badge_outlined, color: _gold, size: 22),
+            prefixIcon: const Icon(
+              Icons.badge_outlined,
+              color: _gold,
+              size: 22,
+            ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide:
-                  BorderSide(color: _gold.withValues(alpha: 0.4), width: 1.5),
+              borderSide: BorderSide(
+                color: _gold.withValues(alpha: 0.4),
+                width: 1.5,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -589,12 +604,23 @@ class _SupporterGoldPurchaseDialogState
       mainAxisSize: MainAxisSize.min,
       children: [
         // Trophy + confetti
-        Stack(alignment: Alignment.center, children: [
-          Lottie.asset('assets/lottie/confetti.json',
-              width: 200, height: 200, repeat: false),
-          Lottie.asset('assets/lottie/trophy_star.json',
-              width: 110, height: 110, repeat: false),
-        ]),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Lottie.asset(
+              'assets/lottie/confetti.json',
+              width: 200,
+              height: 200,
+              repeat: false,
+            ),
+            Lottie.asset(
+              'assets/lottie/trophy_star.json',
+              width: 110,
+              height: 110,
+              repeat: false,
+            ),
+          ],
+        ),
         const SizedBox(height: 8),
 
         // Shimmer title - responsive with autofit
@@ -657,16 +683,14 @@ class _SupporterGoldPurchaseDialogState
               maxLines: 1,
               minFontSize: 12,
               maxFontSize: 15,
-              style: const TextStyle(
-                color: _gold,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(color: _gold, fontWeight: FontWeight.w700),
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               side: const BorderSide(color: _gold, width: 1.5),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
+                borderRadius: BorderRadius.circular(20),
+              ),
             ),
           ),
         ),
@@ -704,9 +728,7 @@ class _GoldCircle extends StatelessWidget {
           ),
         ],
       ),
-      child: Center(
-        child: Text(emoji, style: const TextStyle(fontSize: 40)),
-      ),
+      child: Center(child: Text(emoji, style: const TextStyle(fontSize: 40))),
     );
   }
 }
@@ -716,8 +738,11 @@ class _PetCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _PetCard(
-      {required this.pet, required this.isSelected, required this.onTap});
+  const _PetCard({
+    required this.pet,
+    required this.isSelected,
+    required this.onTap,
+  });
 
   static const _gold = Color(0xFFFFD700);
 
@@ -740,7 +765,7 @@ class _PetCard extends StatelessWidget {
                   color: _gold.withValues(alpha: 0.35),
                   blurRadius: 12,
                   spreadRadius: 1,
-                )
+                ),
               ]
             : null,
       ),

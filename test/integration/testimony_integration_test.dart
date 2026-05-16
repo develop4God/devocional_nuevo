@@ -103,9 +103,7 @@ void main() {
           isA<TestimonyLoaded>().having(
             (s) => s.testimonies[0].text,
             'text',
-            equals(
-              'God blessed me with a new job after months of searching',
-            ),
+            equals('God blessed me with a new job after months of searching'),
           ),
         ),
       );
@@ -183,9 +181,7 @@ void main() {
       state = bloc.state as TestimonyLoaded;
       expect(
         state.testimonies[0].text,
-        equals(
-          'My life changed when I accepted Christ and found true peace',
-        ),
+        equals('My life changed when I accepted Christ and found true peace'),
       );
 
       // DELETE: User removes the testimony

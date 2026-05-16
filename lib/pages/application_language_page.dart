@@ -115,8 +115,12 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
 
         // forceRefresh:false — the index is language-agnostic; serve from
         // cache when fresh to avoid an unnecessary 43 KB network round-trip.
-        discoveryBloc?.add(RefreshDiscoveryStudies(
-            languageCode: languageCode, forceRefresh: false));
+        discoveryBloc?.add(
+          RefreshDiscoveryStudies(
+            languageCode: languageCode,
+            forceRefresh: false,
+          ),
+        );
       }
 
       // Resolve the now-active version (setSelectedLanguage already persisted it).
@@ -336,20 +340,13 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       height: 40,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(
-          color: colorScheme.primary.withAlpha(180),
-          width: 2,
-        ),
+        border: Border.all(color: colorScheme.primary.withAlpha(180), width: 2),
         color: isDownloaded && languageCode == _currentLanguage
             ? colorScheme.primary.withAlpha(26)
             : Colors.transparent,
       ),
       child: Center(
-        child: Icon(
-          iconData,
-          color: colorScheme.primary,
-          size: 20,
-        ),
+        child: Icon(iconData, color: colorScheme.primary, size: 20),
       ),
     );
   }
@@ -375,7 +372,8 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
           data: ScrollbarThemeData(
             thumbColor: WidgetStateProperty.all(theme.colorScheme.primary),
             trackColor: WidgetStateProperty.all(
-                theme.colorScheme.primary.withAlpha(60)),
+              theme.colorScheme.primary.withAlpha(60),
+            ),
             thickness: WidgetStateProperty.all(10),
             radius: const Radius.circular(8),
           ),

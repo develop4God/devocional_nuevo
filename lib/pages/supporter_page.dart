@@ -59,15 +59,14 @@ class _SupporterPageState extends State<SupporterPage>
     );
     _headerAnimController.forward();
 
-    _confettiController = AnimationController(
-      duration: const Duration(seconds: 4),
-      vsync: this,
-    )..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          setState(() => _showConfetti = false);
-          _confettiController.reset();
-        }
-      });
+    _confettiController =
+        AnimationController(duration: const Duration(seconds: 4), vsync: this)
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              setState(() => _showConfetti = false);
+              _confettiController.reset();
+            }
+          });
 
     _scrollController.addListener(_scrollListener);
 
@@ -114,23 +113,25 @@ class _SupporterPageState extends State<SupporterPage>
     if (stats.unlockedAchievements.any((a) => a.id == badgeId)) return;
 
     // Find the badge definition
-    final badgeTemplate = PredefinedAchievements.supporterBadges
-        .firstWhere((a) => a.id == badgeId);
+    final badgeTemplate = PredefinedAchievements.supporterBadges.firstWhere(
+      (a) => a.id == badgeId,
+    );
 
-    final updatedAchievements =
-        List<Achievement>.from(stats.unlockedAchievements)
-          ..add(badgeTemplate.copyWith(isUnlocked: true));
+    final updatedAchievements = List<Achievement>.from(
+      stats.unlockedAchievements,
+    )..add(badgeTemplate.copyWith(isUnlocked: true));
 
-    await statsService.saveStats(stats.copyWith(
-      unlockedAchievements: updatedAchievements,
-    ));
+    await statsService.saveStats(
+      stats.copyWith(unlockedAchievements: updatedAchievements),
+    );
   }
 
   // ── Event callbacks ───────────────────────────────────────────────────────
 
   void _onPurchaseTier(SupporterTier tier) {
     debugPrint(
-        '🛒 [SupporterPage] Request purchase -> ${tier.productId} (${tier.nameKey.tr()})');
+      '🛒 [SupporterPage] Request purchase -> ${tier.productId} (${tier.nameKey.tr()})',
+    );
     context.read<SupporterBloc>().add(PurchaseTier(tier));
   }
 
@@ -141,8 +142,10 @@ class _SupporterPageState extends State<SupporterPage>
 
   // ── Success dialog ────────────────────────────────────────────────────────
 
-  void _showSuccessDialog(SupporterTier tier,
-      {TextEditingController? existingNameController}) {
+  void _showSuccessDialog(
+    SupporterTier tier, {
+    TextEditingController? existingNameController,
+  }) {
     final nameController = existingNameController ?? TextEditingController();
     final isGold = tier.level == SupporterTierLevel.gold;
 
@@ -272,10 +275,12 @@ class _SupporterPageState extends State<SupporterPage>
         listener: (context, state) {
           // Log key state transitions for easier debugging of spinner/infinite loops
           debugPrint(
-              '🔔 [SupporterPage] SupporterBloc state -> ${state.runtimeType}');
+            '🔔 [SupporterPage] SupporterBloc state -> ${state.runtimeType}',
+          );
           if (state is SupporterLoaded) {
             debugPrint(
-                '📦 [SupporterPage] purchasedLevels=${state.purchasedLevels}, purchasingProductId=${state.purchasingProductId}, isRestoring=${state.isRestoring}, error=${state.errorMessage}');
+              '📦 [SupporterPage] purchasedLevels=${state.purchasedLevels}, purchasingProductId=${state.purchasingProductId}, isRestoring=${state.isRestoring}, error=${state.errorMessage}',
+            );
             // Handle successful delivery
             if (state.justDeliveredTier != null) {
               setState(() => _showConfetti = true);
@@ -326,7 +331,10 @@ class _SupporterPageState extends State<SupporterPage>
                               _buildLoadingState(),
                             const SizedBox(height: 24),
                             _buildRestorePurchases(
-                                state, colorScheme, textTheme),
+                              state,
+                              colorScheme,
+                              textTheme,
+                            ),
                             const SizedBox(height: 16),
                             _buildDisclaimerText(colorScheme, textTheme),
                           ],
@@ -358,10 +366,13 @@ class _SupporterPageState extends State<SupporterPage>
                       child: Center(
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer
-                                .withValues(alpha: 0.95),
+                            color: colorScheme.primaryContainer.withValues(
+                              alpha: 0.95,
+                            ),
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
                               BoxShadow(
@@ -470,9 +481,7 @@ class _SupporterPageState extends State<SupporterPage>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.1),
-        ),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1)),
       ),
       child: Text(
         'supporter.ministry_message'.tr(),
@@ -557,12 +566,15 @@ class _SupporterPageState extends State<SupporterPage>
                   ? 'supporter.gold_edit_name_button'.tr()
                   : 'supporter.gold_set_name_button'.tr(),
               style: const TextStyle(
-                  color: goldColor, fontWeight: FontWeight.bold),
+                color: goldColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: goldColor),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
+                borderRadius: BorderRadius.circular(20),
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -660,7 +672,9 @@ class _GoldSetupPendingBanner extends StatelessWidget {
                       const SizedBox(height: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 5),
+                          horizontal: 12,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [_goldDark, _gold],
@@ -697,10 +711,7 @@ class _GoldSetupPendingBanner extends StatelessWidget {
 /// is dismissed — prevents the "A TextEditingController was garbage collected
 /// while still attached to a TextField" warning.
 class _GoldNameEditDialog extends StatefulWidget {
-  const _GoldNameEditDialog({
-    required this.currentName,
-    required this.onSave,
-  });
+  const _GoldNameEditDialog({required this.currentName, required this.onSave});
 
   final String currentName;
   final void Function(String name) onSave;
@@ -743,8 +754,11 @@ class _GoldNameEditDialogState extends State<_GoldNameEditDialog> {
               color: _goldColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.person_pin_rounded,
-                color: _goldColor, size: 32),
+            child: const Icon(
+              Icons.person_pin_rounded,
+              color: _goldColor,
+              size: 32,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -766,8 +780,9 @@ class _GoldNameEditDialogState extends State<_GoldNameEditDialog> {
               hintText: 'supporter.profile_name_hint'.tr(),
               prefixIcon: const Icon(Icons.badge_outlined, color: _goldColor),
               filled: true,
-              fillColor:
-                  colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              fillColor: colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.3,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
                 borderSide: BorderSide.none,
@@ -795,10 +810,13 @@ class _GoldNameEditDialogState extends State<_GoldNameEditDialog> {
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-                child: Text('app.cancel'.tr(),
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(
+                  'app.cancel'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -815,10 +833,13 @@ class _GoldNameEditDialogState extends State<_GoldNameEditDialog> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-                child: Text('app.save'.tr(),
-                    style: const TextStyle(fontWeight: FontWeight.w900)),
+                child: Text(
+                  'app.save'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
               ),
             ),
           ],

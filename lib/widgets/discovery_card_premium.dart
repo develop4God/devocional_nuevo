@@ -96,7 +96,9 @@ class DevotionalCardPremium extends StatelessWidget {
                   // 3. Content Layer (Using AutoSizeText for multi-device safety)
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 24),
+                      horizontal: 24,
+                      vertical: 24,
+                    ),
                     child: Column(
                       children: [
                         // Top Badge
@@ -127,9 +129,10 @@ class DevotionalCardPremium extends StatelessWidget {
                                     letterSpacing: -0.8,
                                     shadows: [
                                       Shadow(
-                                          color: Colors.black45,
-                                          blurRadius: 10,
-                                          offset: Offset(0, 2))
+                                        color: Colors.black45,
+                                        blurRadius: 10,
+                                        offset: Offset(0, 2),
+                                      ),
                                     ],
                                   ),
                                   maxLines: 4,
@@ -183,15 +186,20 @@ class DevotionalCardPremium extends StatelessWidget {
         color:
             isNew && !isCompleted ? null : Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
-        border:
-            Border.all(color: Colors.white.withValues(alpha: 0.3), width: 0.8),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.3),
+          width: 0.8,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (isNew && !isCompleted) ...[
-            const Icon(Icons.auto_awesome_rounded,
-                color: Colors.white, size: 12),
+            const Icon(
+              Icons.auto_awesome_rounded,
+              color: Colors.white,
+              size: 12,
+            ),
             const SizedBox(width: 6),
           ],
           Text(
@@ -229,9 +237,16 @@ class DevotionalCardPremium extends StatelessWidget {
         ),
         Text(
           topicEmoji,
-          style: const TextStyle(fontSize: 48, shadows: [
-            Shadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))
-          ]),
+          style: const TextStyle(
+            fontSize: 48,
+            shadows: [
+              Shadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -278,8 +293,11 @@ class DevotionalCardPremium extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.auto_stories_outlined,
-              color: Colors.white.withValues(alpha: 0.9), size: 14),
+          Icon(
+            Icons.auto_stories_outlined,
+            color: Colors.white.withValues(alpha: 0.9),
+            size: 14,
+          ),
           const SizedBox(width: 6),
           Text(
             'discovery.daily_bible_study'.tr(),
@@ -433,7 +451,8 @@ class DevotionalCardPremium extends StatelessWidget {
             ),
           ),
           child: const Center(
-              child: Icon(Icons.book, color: Colors.white30, size: 48)),
+            child: Icon(Icons.book, color: Colors.white30, size: 48),
+          ),
         ),
       );
     }
@@ -466,13 +485,19 @@ class DevotionalCardPremium extends StatelessWidget {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final devDate = DateTime(
-        devocional.date.year, devocional.date.month, devocional.date.day);
+      devocional.date.year,
+      devocional.date.month,
+      devocional.date.day,
+    );
 
     if (devDate == today) return 'app.today'.tr();
     DateTime displayDate = devDate;
     while (displayDate.isBefore(today)) {
-      displayDate =
-          DateTime(displayDate.year + 1, displayDate.month, displayDate.day);
+      displayDate = DateTime(
+        displayDate.year + 1,
+        displayDate.month,
+        displayDate.day,
+      );
     }
     final tomorrow = today.add(const Duration(days: 1));
     if (displayDate == tomorrow) return 'app.tomorrow'.tr();

@@ -27,26 +27,36 @@ void main() {
       mockDevocionalProvider = MockDevocionalProvider();
 
       // Default mock responses
-      when(() => mockBackupService.isAuthenticated())
-          .thenAnswer((_) async => false);
-      when(() => mockBackupService.isAutoBackupEnabled())
-          .thenAnswer((_) async => false);
-      when(() => mockBackupService.getBackupFrequency())
-          .thenAnswer((_) async => 'deactivated');
-      when(() => mockBackupService.isWifiOnlyEnabled())
-          .thenAnswer((_) async => false);
-      when(() => mockBackupService.isCompressionEnabled())
-          .thenAnswer((_) async => false);
-      when(() => mockBackupService.getBackupOptions())
-          .thenAnswer((_) async => <String, bool>{});
-      when(() => mockBackupService.getLastBackupTime())
-          .thenAnswer((_) async => null);
-      when(() => mockBackupService.getNextBackupTime())
-          .thenAnswer((_) async => null);
-      when(() => mockBackupService.getEstimatedBackupSize(any()))
-          .thenAnswer((_) async => 0);
-      when(() => mockBackupService.getUserEmail())
-          .thenAnswer((_) async => null);
+      when(
+        () => mockBackupService.isAuthenticated(),
+      ).thenAnswer((_) async => false);
+      when(
+        () => mockBackupService.isAutoBackupEnabled(),
+      ).thenAnswer((_) async => false);
+      when(
+        () => mockBackupService.getBackupFrequency(),
+      ).thenAnswer((_) async => 'deactivated');
+      when(
+        () => mockBackupService.isWifiOnlyEnabled(),
+      ).thenAnswer((_) async => false);
+      when(
+        () => mockBackupService.isCompressionEnabled(),
+      ).thenAnswer((_) async => false);
+      when(
+        () => mockBackupService.getBackupOptions(),
+      ).thenAnswer((_) async => <String, bool>{});
+      when(
+        () => mockBackupService.getLastBackupTime(),
+      ).thenAnswer((_) async => null);
+      when(
+        () => mockBackupService.getNextBackupTime(),
+      ).thenAnswer((_) async => null);
+      when(
+        () => mockBackupService.getEstimatedBackupSize(any()),
+      ).thenAnswer((_) async => 0);
+      when(
+        () => mockBackupService.getUserEmail(),
+      ).thenAnswer((_) async => null);
       when(() => mockBackupService.getBackupContentSummary()).thenAnswer(
         (_) async => const BackupContentSummary(
           prayersCount: 0,
@@ -58,16 +68,18 @@ void main() {
           versesCount: 0,
         ),
       );
-      when(() => mockDevocionalProvider.waitUntilInitialized())
-          .thenAnswer((_) async {});
+      when(
+        () => mockDevocionalProvider.waitUntilInitialized(),
+      ).thenAnswer((_) async {});
     });
 
     group('LoadBackupSettings Error Handling', () {
       blocTest<BackupBloc, BackupState>(
         'emits BackupError when loading settings fails',
         build: () {
-          when(() => mockBackupService.isAuthenticated())
-              .thenThrow(Exception('Network error'));
+          when(
+            () => mockBackupService.isAuthenticated(),
+          ).thenThrow(Exception('Network error'));
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -94,14 +106,18 @@ void main() {
       blocTest<BackupBloc, BackupState>(
         'enables auto backup and changes frequency from deactivated to daily',
         build: () {
-          when(() => mockBackupService.setAutoBackupEnabled(any()))
-              .thenAnswer((_) async {});
-          when(() => mockBackupService.getBackupFrequency())
-              .thenAnswer((_) async => 'deactivated');
-          when(() => mockBackupService.setBackupFrequency(any()))
-              .thenAnswer((_) async {});
-          when(() => mockBackupService.getNextBackupTime())
-              .thenAnswer((_) async => DateTime.now());
+          when(
+            () => mockBackupService.setAutoBackupEnabled(any()),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockBackupService.getBackupFrequency(),
+          ).thenAnswer((_) async => 'deactivated');
+          when(
+            () => mockBackupService.setBackupFrequency(any()),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockBackupService.getNextBackupTime(),
+          ).thenAnswer((_) async => DateTime.now());
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -126,12 +142,15 @@ void main() {
       blocTest<BackupBloc, BackupState>(
         'disables auto backup without changing frequency',
         build: () {
-          when(() => mockBackupService.setAutoBackupEnabled(any()))
-              .thenAnswer((_) async {});
-          when(() => mockBackupService.getBackupFrequency())
-              .thenAnswer((_) async => 'daily');
-          when(() => mockBackupService.getNextBackupTime())
-              .thenAnswer((_) async => null);
+          when(
+            () => mockBackupService.setAutoBackupEnabled(any()),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockBackupService.getBackupFrequency(),
+          ).thenAnswer((_) async => 'daily');
+          when(
+            () => mockBackupService.getNextBackupTime(),
+          ).thenAnswer((_) async => null);
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -156,12 +175,15 @@ void main() {
       blocTest<BackupBloc, BackupState>(
         'triggers LoadBackupSettings when current state is not BackupLoaded',
         build: () {
-          when(() => mockBackupService.setAutoBackupEnabled(any()))
-              .thenAnswer((_) async {});
-          when(() => mockBackupService.getBackupFrequency())
-              .thenAnswer((_) async => 'daily');
-          when(() => mockBackupService.getNextBackupTime())
-              .thenAnswer((_) async => null);
+          when(
+            () => mockBackupService.setAutoBackupEnabled(any()),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockBackupService.getBackupFrequency(),
+          ).thenAnswer((_) async => 'daily');
+          when(
+            () => mockBackupService.getNextBackupTime(),
+          ).thenAnswer((_) async => null);
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -181,8 +203,9 @@ void main() {
       blocTest<BackupBloc, BackupState>(
         'emits BackupError when toggle fails',
         build: () {
-          when(() => mockBackupService.setAutoBackupEnabled(any()))
-              .thenThrow(Exception('Service error'));
+          when(
+            () => mockBackupService.setAutoBackupEnabled(any()),
+          ).thenThrow(Exception('Service error'));
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -213,10 +236,12 @@ void main() {
         'changes frequency to deactivated and signs out',
         build: () {
           when(() => mockBackupService.signOut()).thenAnswer((_) async {});
-          when(() => mockBackupService.setBackupFrequency(any()))
-              .thenAnswer((_) async {});
-          when(() => mockBackupService.getNextBackupTime())
-              .thenAnswer((_) async => null);
+          when(
+            () => mockBackupService.setBackupFrequency(any()),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockBackupService.getNextBackupTime(),
+          ).thenAnswer((_) async => null);
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -235,8 +260,9 @@ void main() {
         act: (bloc) => bloc.add(const ChangeBackupFrequency('deactivated')),
         verify: (_) {
           verify(() => mockBackupService.signOut()).called(1);
-          verify(() => mockBackupService.setBackupFrequency('deactivated'))
-              .called(1);
+          verify(
+            () => mockBackupService.setBackupFrequency('deactivated'),
+          ).called(1);
         },
         expect: () => [
           isA<BackupLoaded>()
@@ -248,10 +274,12 @@ void main() {
       blocTest<BackupBloc, BackupState>(
         'changes frequency to weekly without signing out',
         build: () {
-          when(() => mockBackupService.setBackupFrequency(any()))
-              .thenAnswer((_) async {});
+          when(
+            () => mockBackupService.setBackupFrequency(any()),
+          ).thenAnswer((_) async {});
           when(() => mockBackupService.getNextBackupTime()).thenAnswer(
-              (_) async => DateTime.now().add(const Duration(days: 7)));
+            (_) async => DateTime.now().add(const Duration(days: 7)),
+          );
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -269,16 +297,18 @@ void main() {
         act: (bloc) => bloc.add(const ChangeBackupFrequency('weekly')),
         verify: (_) {
           verifyNever(() => mockBackupService.signOut());
-          verify(() => mockBackupService.setBackupFrequency('weekly'))
-              .called(1);
+          verify(
+            () => mockBackupService.setBackupFrequency('weekly'),
+          ).called(1);
         },
       );
 
       blocTest<BackupBloc, BackupState>(
         'emits BackupError when frequency change fails',
         build: () {
-          when(() => mockBackupService.setBackupFrequency(any()))
-              .thenThrow(Exception('Service error'));
+          when(
+            () => mockBackupService.setBackupFrequency(any()),
+          ).thenThrow(Exception('Service error'));
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -308,8 +338,9 @@ void main() {
       blocTest<BackupBloc, BackupState>(
         'enables WiFi-only backup',
         build: () {
-          when(() => mockBackupService.setWifiOnlyEnabled(any()))
-              .thenAnswer((_) async {});
+          when(
+            () => mockBackupService.setWifiOnlyEnabled(any()),
+          ).thenAnswer((_) async {});
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -340,8 +371,9 @@ void main() {
       blocTest<BackupBloc, BackupState>(
         'disables WiFi-only backup',
         build: () {
-          when(() => mockBackupService.setWifiOnlyEnabled(any()))
-              .thenAnswer((_) async {});
+          when(
+            () => mockBackupService.setWifiOnlyEnabled(any()),
+          ).thenAnswer((_) async {});
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -372,8 +404,9 @@ void main() {
       blocTest<BackupBloc, BackupState>(
         'emits BackupError when toggle fails',
         build: () {
-          when(() => mockBackupService.setWifiOnlyEnabled(any()))
-              .thenThrow(Exception('Service error'));
+          when(
+            () => mockBackupService.setWifiOnlyEnabled(any()),
+          ).thenThrow(Exception('Service error'));
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -403,8 +436,9 @@ void main() {
       blocTest<BackupBloc, BackupState>(
         'enables compression',
         build: () {
-          when(() => mockBackupService.setCompressionEnabled(any()))
-              .thenAnswer((_) async {});
+          when(
+            () => mockBackupService.setCompressionEnabled(any()),
+          ).thenAnswer((_) async {});
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -435,8 +469,9 @@ void main() {
       blocTest<BackupBloc, BackupState>(
         'disables compression',
         build: () {
-          when(() => mockBackupService.setCompressionEnabled(any()))
-              .thenAnswer((_) async {});
+          when(
+            () => mockBackupService.setCompressionEnabled(any()),
+          ).thenAnswer((_) async {});
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -453,8 +488,9 @@ void main() {
         ),
         act: (bloc) => bloc.add(const ToggleCompression(false)),
         verify: (_) {
-          verify(() => mockBackupService.setCompressionEnabled(false))
-              .called(1);
+          verify(
+            () => mockBackupService.setCompressionEnabled(false),
+          ).called(1);
         },
         expect: () => [
           isA<BackupLoaded>().having(
@@ -468,8 +504,9 @@ void main() {
       blocTest<BackupBloc, BackupState>(
         'emits BackupError when toggle fails',
         build: () {
-          when(() => mockBackupService.setCompressionEnabled(any()))
-              .thenThrow(Exception('Service error'));
+          when(
+            () => mockBackupService.setCompressionEnabled(any()),
+          ).thenThrow(Exception('Service error'));
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -499,8 +536,9 @@ void main() {
       blocTest<BackupBloc, BackupState>(
         'updates backup options successfully',
         build: () {
-          when(() => mockBackupService.setBackupOptions(any()))
-              .thenAnswer((_) async {});
+          when(
+            () => mockBackupService.setBackupOptions(any()),
+          ).thenAnswer((_) async {});
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -520,24 +558,26 @@ void main() {
         ),
         verify: (_) {
           verify(
-            () => mockBackupService
-                .setBackupOptions({'favorites': true, 'settings': false}),
+            () => mockBackupService.setBackupOptions({
+              'favorites': true,
+              'settings': false,
+            }),
           ).called(1);
         },
         expect: () => [
-          isA<BackupLoaded>().having(
-            (s) => s.backupOptions,
-            'backupOptions',
-            {'favorites': true, 'settings': false},
-          ),
+          isA<BackupLoaded>().having((s) => s.backupOptions, 'backupOptions', {
+            'favorites': true,
+            'settings': false,
+          }),
         ],
       );
 
       blocTest<BackupBloc, BackupState>(
         'emits BackupError when update fails',
         build: () {
-          when(() => mockBackupService.setBackupOptions(any()))
-              .thenThrow(Exception('Service error'));
+          when(
+            () => mockBackupService.setBackupOptions(any()),
+          ).thenThrow(Exception('Service error'));
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -568,12 +608,15 @@ void main() {
         'refreshes backup status successfully',
         build: () {
           final now = DateTime.now();
-          when(() => mockBackupService.getLastBackupTime())
-              .thenAnswer((_) async => now);
-          when(() => mockBackupService.getNextBackupTime())
-              .thenAnswer((_) async => now.add(const Duration(days: 1)));
-          when(() => mockBackupService.getEstimatedBackupSize(any()))
-              .thenAnswer((_) async => 2048);
+          when(
+            () => mockBackupService.getLastBackupTime(),
+          ).thenAnswer((_) async => now);
+          when(
+            () => mockBackupService.getNextBackupTime(),
+          ).thenAnswer((_) async => now.add(const Duration(days: 1)));
+          when(
+            () => mockBackupService.getEstimatedBackupSize(any()),
+          ).thenAnswer((_) async => 2048);
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,
@@ -591,16 +634,20 @@ void main() {
         act: (bloc) => bloc.add(const RefreshBackupStatus()),
         expect: () => [
           const BackupLoading(),
-          isA<BackupLoaded>()
-              .having((s) => s.estimatedSize, 'estimatedSize', 2048),
+          isA<BackupLoaded>().having(
+            (s) => s.estimatedSize,
+            'estimatedSize',
+            2048,
+          ),
         ],
       );
 
       blocTest<BackupBloc, BackupState>(
         'emits BackupError when refresh fails',
         build: () {
-          when(() => mockBackupService.getLastBackupTime())
-              .thenThrow(Exception('Service error'));
+          when(
+            () => mockBackupService.getLastBackupTime(),
+          ).thenThrow(Exception('Service error'));
           return BackupBloc(
             backupService: mockBackupService,
             devocionalProvider: mockDevocionalProvider,

@@ -30,8 +30,10 @@ mixin TtsControllerTestHooks on TtsAudioController {
   void setPositionForTest(Duration position) {
     // Generate synthetic text long enough to produce _fullDuration > position
     final wordsNeeded = (position.inSeconds * 2.5 + 20).ceil();
-    final syntheticText =
-        List.generate(wordsNeeded, (i) => 'palabra').join(' ');
+    final syntheticText = List.generate(
+      wordsNeeded,
+      (i) => 'palabra',
+    ).join(' ');
     setText(syntheticText); // sets _fullDuration correctly
     // Now override position — setText resets these, so set after
     currentPosition.value = position;

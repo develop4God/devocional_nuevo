@@ -99,7 +99,7 @@ class TierCard extends StatelessWidget {
                           color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
-                        )
+                        ),
                       ],
                     ),
                     child: Center(
@@ -289,10 +289,7 @@ class TierCard extends StatelessWidget {
       );
     } else {
       badgeContent = Center(
-        child: Text(
-          tier.emoji,
-          style: const TextStyle(fontSize: 42),
-        ),
+        child: Text(tier.emoji, style: const TextStyle(fontSize: 42)),
       );
     }
 
@@ -326,13 +323,12 @@ class TierCard extends StatelessWidget {
                   : () {
                       // Log the tap with emoji to help tracing purchase flow
                       debugPrint(
-                          '🛒 [SupporterPage] Tap purchase -> productId=${tier.productId}, tier=${tier.nameKey.tr()}');
+                        '🛒 [SupporterPage] Tap purchase -> productId=${tier.productId}, tier=${tier.nameKey.tr()}',
+                      );
                       onPurchase?.call();
                     },
               borderRadius: BorderRadius.circular(badgeSize / 2),
-              child: ClipOval(
-                child: badgeContent,
-              ),
+              child: ClipOval(child: badgeContent),
             ),
           ),
         ),
@@ -471,7 +467,8 @@ class TierCard extends StatelessWidget {
               ? null
               : () {
                   debugPrint(
-                      '🛒 [SupporterPage] Tap purchase button -> productId=${tier.productId}, tier=${tier.nameKey.tr()}');
+                    '🛒 [SupporterPage] Tap purchase button -> productId=${tier.productId}, tier=${tier.nameKey.tr()}',
+                  );
                   onPurchase?.call();
                 },
           borderRadius: BorderRadius.circular(20),
@@ -480,21 +477,20 @@ class TierCard extends StatelessWidget {
             child: isLoading
                 ? Center(
                     child: SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 3.5,
-                      valueColor:
-                          const AlwaysStoppedAnimation<Color>(Colors.black87),
+                      width: 28,
+                      height: 28,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3.5,
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Colors.black87,
+                        ),
+                      ),
                     ),
-                  ))
+                  )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        tier.emoji,
-                        style: const TextStyle(fontSize: 28),
-                      ),
+                      Text(tier.emoji, style: const TextStyle(fontSize: 28)),
                       const SizedBox(width: 14),
                       Expanded(
                         child: AutoSizeText(

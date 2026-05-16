@@ -45,13 +45,14 @@ void main() {
       });
 
       test(
-          'chunks joined with space reconstruct original text (no words dropped)',
-          () {
-        final original = ('Lorem ipsum dolor sit amet ' * 200).trim();
-        final chunks = processor.splitIntoChunks(original);
-        final reassembled = chunks.join(' ');
-        expect(reassembled, original);
-      });
+        'chunks joined with space reconstruct original text (no words dropped)',
+        () {
+          final original = ('Lorem ipsum dolor sit amet ' * 200).trim();
+          final chunks = processor.splitIntoChunks(original);
+          final reassembled = chunks.join(' ');
+          expect(reassembled, original);
+        },
+      );
 
       test('custom maxLength parameter is respected', () {
         const text = 'one two three four five six seven eight nine ten';
@@ -104,10 +105,14 @@ void main() {
         // clamped = 1167
         final t = processor.chunkTimeout(3500, settingsRate: 0.25);
         expect(t.inSeconds, 1167);
-        expect(t.inSeconds,
-            greaterThanOrEqualTo(TtsChunkProcessor.kMinChunkTimeoutSec));
-        expect(t.inSeconds,
-            lessThanOrEqualTo(TtsChunkProcessor.kMaxChunkTimeoutSec));
+        expect(
+          t.inSeconds,
+          greaterThanOrEqualTo(TtsChunkProcessor.kMinChunkTimeoutSec),
+        );
+        expect(
+          t.inSeconds,
+          lessThanOrEqualTo(TtsChunkProcessor.kMaxChunkTimeoutSec),
+        );
       });
 
       test('3500 chars @ settingsRate=0.75 (1.5× mini) returns 389 s', () {
@@ -125,12 +130,13 @@ void main() {
       });
 
       test(
-          '99999 chars @ settingsRate=0.5 (1.0× mini) returns ceiling (1200 s)',
-          () {
-        // adj = 12.0, est = ceil(99999/12*2) = 16667 → clamped to ceiling = 1200
-        final t = processor.chunkTimeout(99999, settingsRate: 0.5);
-        expect(t.inSeconds, TtsChunkProcessor.kMaxChunkTimeoutSec);
-      });
+        '99999 chars @ settingsRate=0.5 (1.0× mini) returns ceiling (1200 s)',
+        () {
+          // adj = 12.0, est = ceil(99999/12*2) = 16667 → clamped to ceiling = 1200
+          final t = processor.chunkTimeout(99999, settingsRate: 0.5);
+          expect(t.inSeconds, TtsChunkProcessor.kMaxChunkTimeoutSec);
+        },
+      );
 
       test('timeout grows as char count increases', () {
         final small = processor.chunkTimeout(500, settingsRate: 0.5);
@@ -144,22 +150,24 @@ void main() {
         expect(slow.inSeconds, greaterThan(fast.inSeconds));
       });
 
-      test('result is always within [kMinChunkTimeoutSec, kMaxChunkTimeoutSec]',
-          () {
-        for (final chars in [0, 1, 100, 1000, 3500, 99999, 999999]) {
-          for (final rate in [0.25, 0.5, 0.75]) {
-            final t = processor.chunkTimeout(chars, settingsRate: rate);
-            expect(
-              t.inSeconds,
-              greaterThanOrEqualTo(TtsChunkProcessor.kMinChunkTimeoutSec),
-            );
-            expect(
-              t.inSeconds,
-              lessThanOrEqualTo(TtsChunkProcessor.kMaxChunkTimeoutSec),
-            );
+      test(
+        'result is always within [kMinChunkTimeoutSec, kMaxChunkTimeoutSec]',
+        () {
+          for (final chars in [0, 1, 100, 1000, 3500, 99999, 999999]) {
+            for (final rate in [0.25, 0.5, 0.75]) {
+              final t = processor.chunkTimeout(chars, settingsRate: rate);
+              expect(
+                t.inSeconds,
+                greaterThanOrEqualTo(TtsChunkProcessor.kMinChunkTimeoutSec),
+              );
+              expect(
+                t.inSeconds,
+                lessThanOrEqualTo(TtsChunkProcessor.kMaxChunkTimeoutSec),
+              );
+            }
           }
-        }
-      });
+        },
+      );
     });
 
     // ── chunkTimeout: guard / crash-regression tests ─────────────────────────

@@ -78,7 +78,7 @@ class Constants {
     'ar': ['NAV', 'SVDA'], // Arabic versions
     'fil': [
       'MBB05',
-      'ASND'
+      'ASND',
     ], // Filipino versions (only versions with devotional content)
   };
 
@@ -167,8 +167,11 @@ class Constants {
   /// [filename] — the exact filename from the index `files` map
   ///   (e.g. `peter_water_001_es.json`). When omitted the convention
   ///   `{id}_{lang}.json` is used as a fallback.
-  static String getEncounterStudyUrl(String id, String lang,
-      {String? filename}) {
+  static String getEncounterStudyUrl(
+    String id,
+    String lang, {
+    String? filename,
+  }) {
     final branch = kDebugMode ? DebugFlags.debugEncounterBranch : 'main';
     final file = filename ?? '${id}_$lang.json';
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/encounters/$lang/$file';

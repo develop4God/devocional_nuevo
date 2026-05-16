@@ -12,11 +12,13 @@ import 'package:devocional_nuevo/blocs/theme/theme_repository.dart';
 
 class TestThemeBloc extends ThemeBloc {
   TestThemeBloc() : super(repository: ThemeRepository()) {
-    emit(ThemeLoaded(
-      themeFamily: ThemeRepository.defaultThemeFamily,
-      brightness: Brightness.light,
-      themeData: ThemeData.light(),
-    ));
+    emit(
+      ThemeLoaded(
+        themeFamily: ThemeRepository.defaultThemeFamily,
+        brightness: Brightness.light,
+        themeData: ThemeData.light(),
+      ),
+    );
   }
 }
 
@@ -26,8 +28,9 @@ void main() {
       await registerTestServicesWithFakes();
     });
 
-    testWidgets('shows a visible scrollbar, scrolls, and fades last language',
-        (WidgetTester tester) async {
+    testWidgets('shows a visible scrollbar, scrolls, and fades last language', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         BlocProvider<ThemeBloc>(
           create: (_) => TestThemeBloc(),
@@ -39,9 +42,7 @@ void main() {
                 create: (_) => createMockDevocionalProvider() as ChangeNotifier,
               ),
             ],
-            child: MaterialApp(
-              home: const ApplicationLanguagePage(),
-            ),
+            child: MaterialApp(home: const ApplicationLanguagePage()),
           ),
         ),
       );

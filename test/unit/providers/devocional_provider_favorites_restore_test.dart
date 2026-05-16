@@ -15,13 +15,18 @@ class FakeDevocionalRepository implements DevocionalRepository {
 
   @override
   Future<List<Devocional>> fetchAll(
-      int year, String language, String version) async {
+    int year,
+    String language,
+    String version,
+  ) async {
     return _items;
   }
 
   @override
   List<Devocional> filterByVersion(
-      List<Devocional> devocionales, String version) {
+    List<Devocional> devocionales,
+    String version,
+  ) {
     if (version.isEmpty) return devocionales;
     return devocionales.where((d) => d.version == version).toList();
   }
@@ -32,7 +37,10 @@ class FakeDevocionalRepository implements DevocionalRepository {
 
   @override
   Future<bool> downloadAndStoreDevocionales(
-          int year, String language, String version) async =>
+    int year,
+    String language,
+    String version,
+  ) async =>
       true;
 
   @override
@@ -40,7 +48,9 @@ class FakeDevocionalRepository implements DevocionalRepository {
 
   @override
   Future<bool> downloadCurrentYearDevocionales(
-          String language, String version) async =>
+    String language,
+    String version,
+  ) async =>
       true;
 
   @override
@@ -56,7 +66,9 @@ class FakeDevocionalRepository implements DevocionalRepository {
 
   @override
   int findFirstUnreadDevocionalIndex(
-      List<Devocional> devocionales, List<String> readDevocionalIds) {
+    List<Devocional> devocionales,
+    List<String> readDevocionalIds,
+  ) {
     return 0;
   }
 

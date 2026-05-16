@@ -14,11 +14,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../helpers/iap_mock_helper.dart';
 
 SupporterBloc _makeBloc(
-    FakeIapService fakeIap, FakeSupporterProfileRepository fakeRepo) {
-  return SupporterBloc(
-    iapService: fakeIap,
-    profileRepository: fakeRepo,
-  );
+  FakeIapService fakeIap,
+  FakeSupporterProfileRepository fakeRepo,
+) {
+  return SupporterBloc(iapService: fakeIap, profileRepository: fakeRepo);
 }
 
 void main() {
@@ -60,19 +59,22 @@ void main() {
         expect(states[1], isA<SupporterLoaded>());
       });
 
-      test('SupporterLoaded has empty purchasedLevels when nothing bought',
-          () async {
-        bloc.add(InitializeSupporter());
-        await pumpEventQueue();
+      test(
+        'SupporterLoaded has empty purchasedLevels when nothing bought',
+        () async {
+          bloc.add(InitializeSupporter());
+          await pumpEventQueue();
 
-        final state = bloc.state as SupporterLoaded;
-        expect(state.purchasedLevels, isEmpty);
-        expect(state.isBillingAvailable, isFalse);
-      });
+          final state = bloc.state as SupporterLoaded;
+          expect(state.purchasedLevels, isEmpty);
+          expect(state.isBillingAvailable, isFalse);
+        },
+      );
 
       test('SupporterLoaded reflects pre-existing purchased tiers', () async {
-        await fakeIap
-            .deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
+        await fakeIap.deliver(
+          SupporterTier.fromLevel(SupporterTierLevel.bronze),
+        );
 
         bloc.add(InitializeSupporter());
         await pumpEventQueue();
@@ -116,8 +118,11 @@ void main() {
         bloc.add(InitializeSupporter());
         await pumpEventQueue();
 
-        expect(states.any((s) => s is SupporterLoading), isTrue,
-            reason: 'BLoC re-processes the event; UI guard prevents this call');
+        expect(
+          states.any((s) => s is SupporterLoading),
+          isTrue,
+          reason: 'BLoC re-processes the event; UI guard prevents this call',
+        );
         expect(states.last, isA<SupporterLoaded>());
       });
     });
@@ -176,7 +181,8 @@ void main() {
         availBloc.add(PurchaseTier(bronze));
         await pumpEventQueue();
         availBloc.add(
-            PurchaseTier(SupporterTier.fromLevel(SupporterTierLevel.gold)));
+          PurchaseTier(SupporterTier.fromLevel(SupporterTierLevel.gold)),
+        );
         await pumpEventQueue();
 
         final state = availBloc.state as SupporterLoaded;
@@ -210,35 +216,42 @@ void main() {
       });
 
       test(
-          'purchasingProductId is cleared and no error shown when user cancels silver',
-          () async {
-        await pumpEventQueue();
+        'purchasingProductId is cleared and no error shown when user cancels silver',
+        () async {
+          await pumpEventQueue();
 
-        final silver = SupporterTier.fromLevel(SupporterTierLevel.silver);
-        cancelBloc.add(PurchaseTier(silver));
-        await pumpEventQueue();
+          final silver = SupporterTier.fromLevel(SupporterTierLevel.silver);
+          cancelBloc.add(PurchaseTier(silver));
+          await pumpEventQueue();
 
-        // Verify loading spinner is shown
-        expect(
-          (cancelBloc.state as SupporterLoaded).purchasingProductId,
-          equals(silver.productId),
-        );
+          // Verify loading spinner is shown
+          expect(
+            (cancelBloc.state as SupporterLoaded).purchasingProductId,
+            equals(silver.productId),
+          );
 
-        // User dismisses the payment sheet
-        cancelIap.cancel(silver);
-        await pumpEventQueue();
+          // User dismisses the payment sheet
+          cancelIap.cancel(silver);
+          await pumpEventQueue();
 
-        final state = cancelBloc.state as SupporterLoaded;
-        // Spinner must be gone
-        expect(state.purchasingProductId, isNull,
+          final state = cancelBloc.state as SupporterLoaded;
+          // Spinner must be gone
+          expect(
+            state.purchasingProductId,
+            isNull,
             reason:
-                'Infinite spinner: purchasingProductId must be null after cancel');
-        // No error snackbar for a user-initiated cancel
-        expect(state.errorMessage, isNull,
-            reason: 'Cancel should not show an error message');
-        // Tier is NOT purchased
-        expect(state.isPurchased(SupporterTierLevel.silver), isFalse);
-      });
+                'Infinite spinner: purchasingProductId must be null after cancel',
+          );
+          // No error snackbar for a user-initiated cancel
+          expect(
+            state.errorMessage,
+            isNull,
+            reason: 'Cancel should not show an error message',
+          );
+          // Tier is NOT purchased
+          expect(state.isPurchased(SupporterTierLevel.silver), isFalse);
+        },
+      );
 
       test('purchasingProductId is cleared when user cancels bronze', () async {
         await pumpEventQueue();
@@ -251,10 +264,16 @@ void main() {
         await pumpEventQueue();
 
         final state = cancelBloc.state as SupporterLoaded;
-        expect(state.purchasingProductId, isNull,
-            reason: 'Spinner must clear after bronze cancel');
-        expect(state.errorMessage, isNull,
-            reason: 'No error snackbar should appear on user-initiated cancel');
+        expect(
+          state.purchasingProductId,
+          isNull,
+          reason: 'Spinner must clear after bronze cancel',
+        );
+        expect(
+          state.errorMessage,
+          isNull,
+          reason: 'No error snackbar should appear on user-initiated cancel',
+        );
       });
 
       test('purchasingProductId is cleared when user cancels gold', () async {
@@ -268,10 +287,16 @@ void main() {
         await pumpEventQueue();
 
         final state = cancelBloc.state as SupporterLoaded;
-        expect(state.purchasingProductId, isNull,
-            reason: 'Spinner must clear after gold cancel');
-        expect(state.errorMessage, isNull,
-            reason: 'No error snackbar should appear on user-initiated cancel');
+        expect(
+          state.purchasingProductId,
+          isNull,
+          reason: 'Spinner must clear after gold cancel',
+        );
+        expect(
+          state.errorMessage,
+          isNull,
+          reason: 'No error snackbar should appear on user-initiated cancel',
+        );
       });
     });
 
@@ -291,7 +316,10 @@ void main() {
 
       test('purchasingProductId is cleared after delivery', () async {
         final autoIap = FakeIapService(
-            purchaseShouldSucceed: true, autoDeliver: true, isAvailable: true);
+          purchaseShouldSucceed: true,
+          autoDeliver: true,
+          isAvailable: true,
+        );
         final autoBloc = _makeBloc(autoIap, FakeSupporterProfileRepository());
         autoBloc.add(InitializeSupporter());
         await pumpEventQueue();
@@ -312,11 +340,13 @@ void main() {
         bloc.add(InitializeSupporter());
         await pumpEventQueue();
 
-        await fakeIap
-            .deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
+        await fakeIap.deliver(
+          SupporterTier.fromLevel(SupporterTierLevel.bronze),
+        );
         await pumpEventQueue();
-        await fakeIap
-            .deliver(SupporterTier.fromLevel(SupporterTierLevel.silver));
+        await fakeIap.deliver(
+          SupporterTier.fromLevel(SupporterTierLevel.silver),
+        );
         await pumpEventQueue();
 
         final state = bloc.state as SupporterLoaded;
@@ -328,20 +358,22 @@ void main() {
     // ── RestorePurchases ────────────────────────────────────────────────────
 
     group('RestorePurchases event', () {
-      test('stays SupporterLoaded during restore (no SupporterLoading emitted)',
-          () async {
-        bloc.add(InitializeSupporter());
-        await pumpEventQueue();
+      test(
+        'stays SupporterLoaded during restore (no SupporterLoading emitted)',
+        () async {
+          bloc.add(InitializeSupporter());
+          await pumpEventQueue();
 
-        final states = <SupporterState>[];
-        bloc.stream.listen(states.add);
+          final states = <SupporterState>[];
+          bloc.stream.listen(states.add);
 
-        bloc.add(RestorePurchases());
-        await pumpEventQueue();
+          bloc.add(RestorePurchases());
+          await pumpEventQueue();
 
-        expect(states.any((s) => s is SupporterLoading), isFalse);
-        expect(states.last, isA<SupporterLoaded>());
-      });
+          expect(states.any((s) => s is SupporterLoading), isFalse);
+          expect(states.last, isA<SupporterLoaded>());
+        },
+      );
 
       test('isRestoring true during restore, false after', () async {
         bloc.add(InitializeSupporter());
@@ -359,30 +391,36 @@ void main() {
         expect(states.last.isRestoring, isFalse);
       });
 
-      test('deliveries mid-restore update purchasedLevels immediately',
-          () async {
-        bloc.add(InitializeSupporter());
-        await pumpEventQueue();
+      test(
+        'deliveries mid-restore update purchasedLevels immediately',
+        () async {
+          bloc.add(InitializeSupporter());
+          await pumpEventQueue();
 
-        await fakeIap
-            .deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
-        await fakeIap
-            .deliver(SupporterTier.fromLevel(SupporterTierLevel.silver));
-        await pumpEventQueue();
+          await fakeIap.deliver(
+            SupporterTier.fromLevel(SupporterTierLevel.bronze),
+          );
+          await fakeIap.deliver(
+            SupporterTier.fromLevel(SupporterTierLevel.silver),
+          );
+          await pumpEventQueue();
 
-        fakeIap.reset();
-        fakeIap.setAvailable(false);
+          fakeIap.reset();
+          fakeIap.setAvailable(false);
 
-        await fakeIap
-            .deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
-        await fakeIap
-            .deliver(SupporterTier.fromLevel(SupporterTierLevel.silver));
-        await pumpEventQueue();
+          await fakeIap.deliver(
+            SupporterTier.fromLevel(SupporterTierLevel.bronze),
+          );
+          await fakeIap.deliver(
+            SupporterTier.fromLevel(SupporterTierLevel.silver),
+          );
+          await pumpEventQueue();
 
-        final state = bloc.state as SupporterLoaded;
-        expect(state.isPurchased(SupporterTierLevel.bronze), isTrue);
-        expect(state.isPurchased(SupporterTierLevel.silver), isTrue);
-      });
+          final state = bloc.state as SupporterLoaded;
+          expect(state.isPurchased(SupporterTierLevel.bronze), isTrue);
+          expect(state.isPurchased(SupporterTierLevel.silver), isTrue);
+        },
+      );
     });
 
     // ── SaveGoldSupporterName ───────────────────────────────────────────────
@@ -457,8 +495,9 @@ void main() {
         bloc.add(InitializeSupporter());
         await pumpEventQueue();
 
-        await fakeIap
-            .deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
+        await fakeIap.deliver(
+          SupporterTier.fromLevel(SupporterTierLevel.bronze),
+        );
         await pumpEventQueue();
 
         expect((bloc.state as SupporterLoaded).justDeliveredTier, isNotNull);
@@ -497,17 +536,19 @@ void main() {
       expect(fake.purchasedLevels, isEmpty);
     });
 
-    test('deliver() adds tier to purchasedLevels and emits on stream',
-        () async {
-      final received = <SupporterTier>[];
-      fake.onPurchaseDelivered.listen((rec) => received.add(rec.$1));
+    test(
+      'deliver() adds tier to purchasedLevels and emits on stream',
+      () async {
+        final received = <SupporterTier>[];
+        fake.onPurchaseDelivered.listen((rec) => received.add(rec.$1));
 
-      await fake.deliver(SupporterTier.fromLevel(SupporterTierLevel.gold));
-      await pumpEventQueue();
+        await fake.deliver(SupporterTier.fromLevel(SupporterTierLevel.gold));
+        await pumpEventQueue();
 
-      expect(fake.isPurchased(SupporterTierLevel.gold), isTrue);
-      expect(received, hasLength(1));
-    });
+        expect(fake.isPurchased(SupporterTierLevel.gold), isTrue);
+        expect(received, hasLength(1));
+      },
+    );
 
     test('restorePurchases() re-emits all already-purchased tiers', () async {
       await fake.deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
@@ -522,12 +563,15 @@ void main() {
       expect(received, hasLength(2));
     });
 
-    test('purchaseTier returns error when purchaseShouldSucceed=false',
-        () async {
-      fake = FakeIapService(purchaseShouldSucceed: false);
-      final result = await fake
-          .purchaseTier(SupporterTier.fromLevel(SupporterTierLevel.bronze));
-      expect(result, equals(IapResult.error));
-    });
+    test(
+      'purchaseTier returns error when purchaseShouldSucceed=false',
+      () async {
+        fake = FakeIapService(purchaseShouldSucceed: false);
+        final result = await fake.purchaseTier(
+          SupporterTier.fromLevel(SupporterTierLevel.bronze),
+        );
+        expect(result, equals(IapResult.error));
+      },
+    );
   });
 }

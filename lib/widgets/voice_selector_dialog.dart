@@ -91,7 +91,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
 
   Future<void> _loadVoices() async {
     debugPrint(
-        '[VoiceSelector] 🎤 Loading voices for language: ${widget.language}');
+      '[VoiceSelector] 🎤 Loading voices for language: ${widget.language}',
+    );
     final voices = await _voiceSettingsService.getAvailableVoicesForLanguage(
       widget.language,
     );
@@ -122,8 +123,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           'premium=${premiumVoices.length}, forced=$_shouldForceFallback',
         );
 
-        final priorities =
-            VoiceDataRegistry.getPriorityLocales(widget.language);
+        final priorities = VoiceDataRegistry.getPriorityLocales(
+          widget.language,
+        );
 
         // Group voices by locale, limit to 2 per locale
         final voicesByLocale = <String, List<Map<String, String>>>{};
@@ -164,7 +166,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     } else {
       // NO PREMIUM MAP - show all available voices
       debugPrint(
-          '[VoiceSelector] 🌐 No premium map - showing ALL ${voices.length} available voices');
+        '[VoiceSelector] 🌐 No premium map - showing ALL ${voices.length} available voices',
+      );
       fallbackVoices = voices;
     }
 
@@ -183,7 +186,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
 
       if (_voices.isEmpty) {
         debugPrint(
-            '[VoiceSelector] ⚠️ WARNING: No voices loaded! This will show empty list to user.');
+          '[VoiceSelector] ⚠️ WARNING: No voices loaded! This will show empty list to user.',
+        );
       }
     });
   }
@@ -191,9 +195,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   Future<void> _playSample(String name, String locale, int index) async {
     // Defensive check: ensure widget is still mounted before setState
     if (!mounted) {
-      debugPrint(
-        '[VoiceSelector] ⚠️ Widget not mounted, skipping _playSample',
-      );
+      debugPrint('[VoiceSelector] ⚠️ Widget not mounted, skipping _playSample');
       return;
     }
 
@@ -216,11 +218,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         '[VoiceSelector] 🔊 Playing sample: name=$name, locale=$locale, text length=${sampleText.length}',
       );
 
-      await _voiceSettingsService.playVoiceSample(
-        name,
-        locale,
-        sampleText,
-      );
+      await _voiceSettingsService.playVoiceSample(name, locale, sampleText);
       await Future.delayed(const Duration(seconds: 2));
     } catch (e, stackTrace) {
       debugPrint('[VoiceSelector] ❌ Error playing sample: $e');
@@ -540,7 +538,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                         Padding(
                                                           padding:
                                                               const EdgeInsets
-                                                                  .only(top: 4),
+                                                                  .only(
+                                                            top: 4,
+                                                          ),
                                                           child: Text(
                                                             // Show technical name and locale for debug
                                                             '[${VoiceDataRegistry.isPremiumVoice(voice["name"]!, widget.language) ? "P" : "F"}] ${voice["name"]} (${voice["locale"]})',
@@ -549,8 +549,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                               color: colorScheme
                                                                   .onSurface
                                                                   .withValues(
-                                                                      alpha:
-                                                                          0.6),
+                                                                alpha: 0.6,
+                                                              ),
                                                               fontFamily:
                                                                   'monospace',
                                                             ),
