@@ -1,0 +1,9 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.develop4god.devocional_nuevo",
+    "sha256_cert_fingerprints": ["93:C7:3A:BB:7E:8A:81:7D:9A:6A:81:F0:24:44:AA:34:E1:46:24:82:38:3F:B1:70:50:FF:45:0F:B4:45:55:76"]
+  }
+}]
+

@@ -21,7 +21,7 @@ import 'package:flutter/services.dart';
 /// - devocional://encounter/{id} - Navigate to specific encounter
 /// - devocional://encounter_detail/{id} - Navigate to specific encounter
 class DeepLinkHandler {
-  static const String scheme = 'devocional';
+  static const String scheme = 'https';
   static const MethodChannel _channel = MethodChannel(
     'com.develop4god.devocional/deeplink',
   );
@@ -135,7 +135,7 @@ class DeepLinkHandler {
       name: 'DeepLinkHandler',
     );
 
-    if (uri.scheme != scheme) {
+    if (uri.scheme != scheme && uri.scheme != 'devocional') {
       debugPrint(
         '🔗 [DeepLink] ❌ Invalid scheme: "${uri.scheme}", expected: "$scheme"',
       );
@@ -165,23 +165,32 @@ class DeepLinkHandler {
       return false;
     }
 
-    // Extract route from host or path segments
-    // URIs like "devocional://devotional" have "devotional" as the host
-    // URIs like "devocional://devotional/date" have path segments
-    String? route = uri.host.isNotEmpty ? uri.host : null;
-    debugPrint(
-      '🔗 [DeepLink] uri.host="${uri.host}", uri.pathSegments=${uri.pathSegments}',
-    );
-
-    if (route == null || route.isEmpty) {
+    // For HTTPS App Links: host is the domain, route comes from path segments.
+    // For legacy devocional:// URIs: host IS the route (kept for backward compat).
+    String? route;
+    if (uri.scheme == 'https') {
       final pathSegments = uri.pathSegments;
       if (pathSegments.isEmpty) {
-        debugPrint('🔗 [DeepLink] ❌ Empty route — ignoring');
-        developer.log('Empty route', name: 'DeepLinkHandler');
+        debugPrint('🔗 [DeepLink] ❌ Empty path — ignoring');
+        developer.log('Empty path', name: 'DeepLinkHandler');
         return false;
       }
       route = pathSegments.first;
+    } else {
+      route = uri.host.isNotEmpty ? uri.host : null;
+      if (route == null || route.isEmpty) {
+        final pathSegments = uri.pathSegments;
+        if (pathSegments.isEmpty) {
+          debugPrint('🔗 [DeepLink] ❌ Empty route — ignoring');
+          developer.log('Empty route', name: 'DeepLinkHandler');
+          return false;
+        }
+        route = pathSegments.first;
+      }
     }
+    debugPrint(
+      '🔗 [DeepLink] uri.host="${uri.host}", uri.pathSegments=${uri.pathSegments}',
+    );
 
     debugPrint('🔗 [DeepLink] Resolved route="$route" → dispatching...');
     try {

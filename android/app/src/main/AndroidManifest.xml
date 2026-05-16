@@ -65,17 +65,15 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
-            <!-- Deep link intent filter for Firebase In-App Messaging -->
-            <!-- android:autoVerify removed: custom schemes (non-https) always fail
-                 domain verification, causing Android to cold-launch the app via a new
-                 Activity instead of routing the intent to the running instance. -->
-            <intent-filter>
+            <!-- HTTPS App Links: Android verifies domain ownership via assetlinks.json
+                 and routes matching URLs directly to the running app instance without
+                 recreating MainActivity — fixes Flutter engine issue #176080 where
+                 custom scheme intents force Activity recreation and wipe the nav stack. -->
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
-                <!-- Deep link scheme for the app -->
-                <data android:scheme="devocional" />
+                <data android:scheme="https" android:host="www.develop4god.com" />
             </intent-filter>
 
             <!-- INICIO: Filtro para bucle de juego de Firebase Test Lab -->
