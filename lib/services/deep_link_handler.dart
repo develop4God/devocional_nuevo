@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/main.dart';
+import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/pages/encounters/encounters_list_page.dart';
 import 'package:devocional_nuevo/pages/prayer_wall_page.dart';
 import 'package:devocional_nuevo/pages/supporter_page.dart';
@@ -11,15 +12,18 @@ import 'package:flutter/services.dart';
 /// Deep link handler service for Firebase In-App Messaging and other deep links
 ///
 /// Supported deep link patterns:
-/// - devocional://devotional/{date} - Navigate to specific devotional
-/// - devocional://progress - Navigate to progress page
-/// - devocional://prayers - Navigate to prayers page
-/// - devocional://prayer_wall - Navigate to prayer wall page
-/// - devocional://testimonies - Navigate to testimonies page
-/// - devocional://supporter - Navigate to supporter page
-/// - devocional://encounters - Navigate to encounters list page
-/// - devocional://encounter/{id} - Navigate to specific encounter
-/// - devocional://encounter_detail/{id} - Navigate to specific encounter
+/// - https://www.develop4god.com/devotional - Navigate to devotional page
+/// - https://www.develop4god.com/progress - Navigate to progress page
+/// - https://www.develop4god.com/prayers - Navigate to prayers page
+/// - https://www.develop4god.com/prayer_wall - Navigate to prayer wall page
+/// - https://www.develop4god.com/testimonies - Navigate to testimonies page
+/// - https://www.develop4god.com/backup - Navigate to backup settings page
+/// - https://www.develop4god.com/supporter - Navigate to supporter page
+/// - https://www.develop4god.com/encounters - Navigate to encounters list page
+/// - https://www.develop4god.com/encounter/{id} - Navigate to specific encounter
+/// - https://www.develop4god.com/encounter_detail/{id} - Navigate to specific encounter
+///
+/// Legacy devocional:// scheme also supported for backward compatibility
 class DeepLinkHandler {
   static const String scheme = 'https';
   static const MethodChannel _channel = MethodChannel(
@@ -209,6 +213,8 @@ class DeepLinkHandler {
           return await _handlePrayerWallDeepLink(context);
         case 'testimonies':
           return await _handleTestimoniesDeepLink(context);
+        case 'backup':
+          return await _handleBackupDeepLink(context);
         case 'supporter':
           return await _handleSupporterDeepLink(context);
         case 'encounters':
@@ -342,8 +348,27 @@ class DeepLinkHandler {
     return true;
   }
 
+  /// Handle backup deep link
+  /// Format: https://www.develop4god.com/backup
+  Future<bool> _handleBackupDeepLink(BuildContext context) async {
+    debugPrint('🔗 [DeepLink] _handleBackupDeepLink: ENTER');
+    try {
+      final nav = Navigator.of(context);
+      nav.push(
+        MaterialPageRoute(builder: (_) => const BackupSettingsPage()),
+      );
+      developer.log('Navigated to backup page', name: 'DeepLinkHandler');
+      return true;
+    } catch (e, st) {
+      debugPrint('🔗 [DeepLink] ❌ EXCEPTION in _handleBackupDeepLink: $e');
+      debugPrint('🔗 [DeepLink] StackTrace: $st');
+      developer.log('Navigation error: $e', name: 'DeepLinkHandler', error: e);
+      return false;
+    }
+  }
+
   /// Handle supporter deep link
-  /// Format: devocional://supporter
+  /// Format: https://www.develop4god.com/supporter
   Future<bool> _handleSupporterDeepLink(BuildContext context) async {
     debugPrint('🔗 [DeepLink] _handleSupporterDeepLink: ENTER');
     debugPrint('🔗 [DeepLink] context.mounted = ${context.mounted}');
