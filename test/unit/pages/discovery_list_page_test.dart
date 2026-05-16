@@ -21,11 +21,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void setupFirebaseMocks() {
   // Mock Firebase legacy channel
-  const MethodChannel firebaseCoreChannel =
-      MethodChannel('plugins.flutter.io/firebase_core');
+  const MethodChannel firebaseCoreChannel = MethodChannel(
+    'plugins.flutter.io/firebase_core',
+  );
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-      .setMockMethodCallHandler(firebaseCoreChannel,
-          (MethodCall methodCall) async {
+      .setMockMethodCallHandler(firebaseCoreChannel, (
+    MethodCall methodCall,
+  ) async {
     switch (methodCall.method) {
       case 'Firebase#initializeCore':
         return [
@@ -38,7 +40,7 @@ void setupFirebaseMocks() {
               'projectId': 'fake-project-id',
             },
             'pluginConstants': {},
-          }
+          },
         ];
       case 'Firebase#initializeApp':
         return {
@@ -58,10 +60,12 @@ void setupFirebaseMocks() {
 
   // Mock Firebase pigeon channel for core
   const MethodChannel firebasePigeonChannel = MethodChannel(
-      'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi');
+    'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi',
+  );
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-      .setMockMethodCallHandler(firebasePigeonChannel,
-          (MethodCall methodCall) async {
+      .setMockMethodCallHandler(firebasePigeonChannel, (
+    MethodCall methodCall,
+  ) async {
     switch (methodCall.method) {
       case 'initializeCore':
         return [
@@ -74,7 +78,7 @@ void setupFirebaseMocks() {
               'projectId': 'fake-project-id',
             },
             'pluginConstants': {},
-          }
+          },
         ];
       case 'initializeApp':
         return {
@@ -146,8 +150,9 @@ void main() {
   });
 
   group('DiscoveryListPage Carousel Tests', () {
-    testWidgets('Carousel renders with fluid transition settings',
-        (WidgetTester tester) async {
+    testWidgets('Carousel renders with fluid transition settings', (
+      WidgetTester tester,
+    ) async {
       final discoveryBloc = MockDiscoveryBloc();
       final themeBloc = MockThemeBloc();
 
@@ -176,8 +181,9 @@ void main() {
       });
     });
 
-    testWidgets('Carousel uses BouncingScrollPhysics for smooth scrolling',
-        (WidgetTester tester) async {
+    testWidgets('Carousel uses BouncingScrollPhysics for smooth scrolling', (
+      WidgetTester tester,
+    ) async {
       await tester.runAsync(() async {
         final discoveryBloc = MockDiscoveryBloc();
         final themeBloc = MockThemeBloc();
@@ -206,8 +212,9 @@ void main() {
       });
     });
 
-    testWidgets('Progress dots display with minimalistic border style',
-        (WidgetTester tester) async {
+    testWidgets('Progress dots display with minimalistic border style', (
+      WidgetTester tester,
+    ) async {
       await tester.runAsync(() async {
         final discoveryBloc = MockDiscoveryBlocWithStudies();
         final themeBloc = MockThemeBloc();
@@ -239,8 +246,9 @@ void main() {
   });
 
   group('DiscoveryListPage Grid Tests', () {
-    testWidgets('Grid orders incomplete studies first, completed last',
-        (WidgetTester tester) async {
+    testWidgets('Grid orders incomplete studies first, completed last', (
+      WidgetTester tester,
+    ) async {
       await tester.runAsync(() async {
         final discoveryBloc = MockDiscoveryBlocWithMixedStudies();
         final themeBloc = MockThemeBloc();
@@ -276,8 +284,9 @@ void main() {
       });
     });
 
-    testWidgets('Grid cards display minimalistic bordered icons',
-        (WidgetTester tester) async {
+    testWidgets('Grid cards display minimalistic bordered icons', (
+      WidgetTester tester,
+    ) async {
       await tester.runAsync(() async {
         final discoveryBloc = MockDiscoveryBlocWithStudies();
         final themeBloc = MockThemeBloc();
@@ -310,8 +319,9 @@ void main() {
       });
     });
 
-    testWidgets('Completed studies show primary color checkmark with border',
-        (WidgetTester tester) async {
+    testWidgets('Completed studies show primary color checkmark with border', (
+      WidgetTester tester,
+    ) async {
       await tester.runAsync(() async {
         final discoveryBloc = MockDiscoveryBlocWithCompletedStudies();
         final themeBloc = MockThemeBloc();
@@ -349,8 +359,9 @@ void main() {
   });
 
   group('DiscoveryListPage Navigation Tests', () {
-    testWidgets('Tapping carousel card navigates to detail page',
-        (WidgetTester tester) async {
+    testWidgets('Tapping carousel card navigates to detail page', (
+      WidgetTester tester,
+    ) async {
       await tester.runAsync(() async {
         final discoveryBloc = MockDiscoveryBlocWithStudies();
         final themeBloc = MockThemeBloc();
@@ -379,8 +390,9 @@ void main() {
       });
     });
 
-    testWidgets('Grid toggle button switches between carousel and grid view',
-        (WidgetTester tester) async {
+    testWidgets('Grid toggle button switches between carousel and grid view', (
+      WidgetTester tester,
+    ) async {
       await tester.runAsync(() async {
         final discoveryBloc = MockDiscoveryBlocWithStudies();
         final themeBloc = MockThemeBloc();
@@ -418,8 +430,9 @@ void main() {
   });
 
   group('DiscoveryListPage State Tests', () {
-    testWidgets('Shows loading indicator when loading',
-        (WidgetTester tester) async {
+    testWidgets('Shows loading indicator when loading', (
+      WidgetTester tester,
+    ) async {
       await tester.runAsync(() async {
         final discoveryBloc = MockDiscoveryBlocLoading();
         final themeBloc = MockThemeBloc();
@@ -447,8 +460,9 @@ void main() {
       });
     });
 
-    testWidgets('Shows error message when error occurs',
-        (WidgetTester tester) async {
+    testWidgets('Shows error message when error occurs', (
+      WidgetTester tester,
+    ) async {
       await tester.runAsync(() async {
         final discoveryBloc = MockDiscoveryBlocError();
         final themeBloc = MockThemeBloc();
@@ -527,18 +541,10 @@ class MockDiscoveryBlocWithStudies extends Fake implements DiscoveryBloc {
   Stream<DiscoveryState> get stream => Stream.value(
         DiscoveryLoaded(
           availableStudyIds: ['study_1'],
-          studyTitles: {
-            'study_1': 'Study 1',
-          },
-          studySubtitles: {
-            'study_1': 'Subtitle 1',
-          },
-          studyEmojis: {
-            'study_1': '📖',
-          },
-          studyReadingMinutes: {
-            'study_1': 5,
-          },
+          studyTitles: {'study_1': 'Study 1'},
+          studySubtitles: {'study_1': 'Subtitle 1'},
+          studyEmojis: {'study_1': '📖'},
+          studyReadingMinutes: {'study_1': 5},
           completedStudies: {},
           favoriteStudyIds: {},
           loadedStudies: {},
@@ -549,18 +555,10 @@ class MockDiscoveryBlocWithStudies extends Fake implements DiscoveryBloc {
   @override
   DiscoveryState get state => DiscoveryLoaded(
         availableStudyIds: ['study_1'],
-        studyTitles: {
-          'study_1': 'Study 1',
-        },
-        studySubtitles: {
-          'study_1': 'Subtitle 1',
-        },
-        studyEmojis: {
-          'study_1': '📖',
-        },
-        studyReadingMinutes: {
-          'study_1': 5,
-        },
+        studyTitles: {'study_1': 'Study 1'},
+        studySubtitles: {'study_1': 'Subtitle 1'},
+        studyEmojis: {'study_1': '📖'},
+        studyReadingMinutes: {'study_1': 5},
         completedStudies: {},
         favoriteStudyIds: {},
         loadedStudies: {},
@@ -643,10 +641,7 @@ class MockDiscoveryBlocWithCompletedStudies extends Fake
           studySubtitles: {},
           studyEmojis: {},
           studyReadingMinutes: {},
-          completedStudies: {
-            'study_1': true,
-            'study_2': true,
-          },
+          completedStudies: {'study_1': true, 'study_2': true},
           favoriteStudyIds: {},
           loadedStudies: {},
           languageCode: 'en',
@@ -663,10 +658,7 @@ class MockDiscoveryBlocWithCompletedStudies extends Fake
         studySubtitles: {},
         studyEmojis: {},
         studyReadingMinutes: {},
-        completedStudies: {
-          'study_1': true,
-          'study_2': true,
-        },
+        completedStudies: {'study_1': true, 'study_2': true},
         favoriteStudyIds: {},
         loadedStudies: {},
         languageCode: 'en',
@@ -708,8 +700,10 @@ class TestAnalyticsService extends AnalyticsService {
   TestAnalyticsService() : super(analytics: null);
 
   @override
-  Future<void> logDiscoveryAction(
-      {required String action, String? studyId}) async {
+  Future<void> logDiscoveryAction({
+    required String action,
+    String? studyId,
+  }) async {
     // no-op in tests
     return;
   }
@@ -728,12 +722,16 @@ class TestAnalyticsService extends AnalyticsService {
   }) async {}
 
   @override
-  Future<void> logCustomEvent(
-      {required String eventName, Map<String, Object>? parameters}) async {}
+  Future<void> logCustomEvent({
+    required String eventName,
+    Map<String, Object>? parameters,
+  }) async {}
 
   @override
-  Future<void> setUserProperty(
-      {required String name, required String value}) async {}
+  Future<void> setUserProperty({
+    required String name,
+    required String value,
+  }) async {}
 
   @override
   Future<void> setUserId(String? userId) async {}
@@ -748,23 +746,27 @@ class TestAnalyticsService extends AnalyticsService {
   Future<void> logAppInit({Map<String, Object>? parameters}) async {}
 
   @override
-  Future<void> logNavigationNext(
-      {required int currentIndex,
-      required int totalDevocionales,
-      required String viaBloc,
-      String? fallbackReason}) async {}
+  Future<void> logNavigationNext({
+    required int currentIndex,
+    required int totalDevocionales,
+    required String viaBloc,
+    String? fallbackReason,
+  }) async {}
 
   @override
-  Future<void> logNavigationPrevious(
-      {required int currentIndex,
-      required int totalDevocionales,
-      required String viaBloc,
-      String? fallbackReason}) async {}
+  Future<void> logNavigationPrevious({
+    required int currentIndex,
+    required int totalDevocionales,
+    required String viaBloc,
+    String? fallbackReason,
+  }) async {}
 
   @override
   Future<void> logFabTapped({required String source}) async {}
 
   @override
-  Future<void> logFabChoiceSelected(
-      {required String source, required String choice}) async {}
+  Future<void> logFabChoiceSelected({
+    required String source,
+    required String choice,
+  }) async {}
 }

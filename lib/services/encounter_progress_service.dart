@@ -17,7 +17,8 @@ class EncounterProgressService implements IEncounterProgressService {
       final list =
           prefs.getStringList(IEncounterProgressService.completedIdsKey) ?? [];
       debugPrint(
-          '✅ [EncounterProgress] Loaded ${list.length} completed encounter(s)');
+        '✅ [EncounterProgress] Loaded ${list.length} completed encounter(s)',
+      );
       return list.toSet();
     } catch (e) {
       debugPrint('❌ [EncounterProgress] Error loading completed IDs: $e');
@@ -36,9 +37,12 @@ class EncounterProgressService implements IEncounterProgressService {
       if (existing.contains(encounterId)) return; // already saved
       existing.add(encounterId);
       await prefs.setStringList(
-          IEncounterProgressService.completedIdsKey, existing.toList());
+        IEncounterProgressService.completedIdsKey,
+        existing.toList(),
+      );
       debugPrint(
-          '✅ [EncounterProgress] Encounter marked as completed: $encounterId');
+        '✅ [EncounterProgress] Encounter marked as completed: $encounterId',
+      );
     } catch (e) {
       debugPrint('❌ [EncounterProgress] Error saving completion: $e');
     }
@@ -61,9 +65,12 @@ class EncounterProgressService implements IEncounterProgressService {
               .toSet();
       existing.remove(encounterId);
       await prefs.setStringList(
-          IEncounterProgressService.completedIdsKey, existing.toList());
+        IEncounterProgressService.completedIdsKey,
+        existing.toList(),
+      );
       debugPrint(
-          '♻️ [EncounterProgress] Progress reset for encounter: $encounterId');
+        '♻️ [EncounterProgress] Progress reset for encounter: $encounterId',
+      );
     } catch (e) {
       debugPrint('❌ [EncounterProgress] Error resetting progress: $e');
     }

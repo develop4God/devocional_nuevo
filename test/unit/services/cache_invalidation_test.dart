@@ -45,8 +45,9 @@ void main() {
 
     // AC1 — index fetched on every init
     test('returns parsed index on HTTP 200', () async {
-      when(() => mockClient.get(any()))
-          .thenAnswer((_) async => http.Response(json.encode(validIndex), 200));
+      when(
+        () => mockClient.get(any()),
+      ).thenAnswer((_) async => http.Response(json.encode(validIndex), 200));
 
       final result = await service.fetchIndex();
 
@@ -57,8 +58,9 @@ void main() {
 
     // AC4 — offline / index unreachable
     test('returns null on HTTP 404', () async {
-      when(() => mockClient.get(any()))
-          .thenAnswer((_) async => http.Response('Not Found', 404));
+      when(
+        () => mockClient.get(any()),
+      ).thenAnswer((_) async => http.Response('Not Found', 404));
 
       final result = await service.fetchIndex();
       expect(result, isNull);
@@ -66,8 +68,9 @@ void main() {
 
     // AC4 — network exception
     test('returns null on network exception', () async {
-      when(() => mockClient.get(any()))
-          .thenThrow(const SocketException('no internet'));
+      when(
+        () => mockClient.get(any()),
+      ).thenThrow(const SocketException('no internet'));
 
       final result = await service.fetchIndex();
       expect(result, isNull);
@@ -80,8 +83,9 @@ void main() {
         'updated_at': '2027-01-01',
         'files': {},
       };
-      when(() => mockClient.get(any())).thenAnswer(
-          (_) async => http.Response(json.encode(futureIndex), 200));
+      when(
+        () => mockClient.get(any()),
+      ).thenAnswer((_) async => http.Response(json.encode(futureIndex), 200));
 
       final result = await service.fetchIndex();
       expect(result, isNull);
@@ -170,14 +174,16 @@ void main() {
     });
 
     // es/RVR1960 backward compat filename
-    test('sidecar path derived correctly for es backward-compat filename',
-        () async {
-      final path = contentPath('devocional_2025_es.json');
-      await service.writeMetadata(path, '2026-03-03');
+    test(
+      'sidecar path derived correctly for es backward-compat filename',
+      () async {
+        final path = contentPath('devocional_2025_es.json');
+        await service.writeMetadata(path, '2026-03-03');
 
-      final sidecarPath = contentPath('devocional_2025_es.meta.json');
-      expect(await File(sidecarPath).exists(), isTrue);
-    });
+        final sidecarPath = contentPath('devocional_2025_es.meta.json');
+        expect(await File(sidecarPath).exists(), isTrue);
+      },
+    );
 
     // Overwrite sidecar updates date
     test('writeMetadata overwrites existing sidecar with new date', () async {
@@ -190,14 +196,16 @@ void main() {
     });
 
     // Corrupt sidecar → null, no crash
-    test('readManifestDate returns null for corrupt sidecar without throwing',
-        () async {
-      final path = contentPath('devocional_2025_es_NVI.json');
-      final sidecarPath = '${path.substring(0, path.length - 5)}.meta.json';
-      await File(sidecarPath).writeAsString('NOT_VALID_JSON{{{');
+    test(
+      'readManifestDate returns null for corrupt sidecar without throwing',
+      () async {
+        final path = contentPath('devocional_2025_es_NVI.json');
+        final sidecarPath = '${path.substring(0, path.length - 5)}.meta.json';
+        await File(sidecarPath).writeAsString('NOT_VALID_JSON{{{');
 
-      final result = await service.readManifestDate(path);
-      expect(result, isNull);
-    });
+        final result = await service.readManifestDate(path);
+        expect(result, isNull);
+      },
+    );
   });
 }

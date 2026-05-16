@@ -50,7 +50,8 @@ class DiscoveryFavoritesService {
       final key = _getFavoritesKey(languageCode);
       await prefsInstance.setString(key, json.encode(ids.toList()));
       debugPrint(
-          '⭐ Discovery Favorite toggled for $studyId ($languageCode): $wasAdded');
+        '⭐ Discovery Favorite toggled for $studyId ($languageCode): $wasAdded',
+      );
       return wasAdded;
     } catch (e) {
       debugPrint('Error toggling discovery favorite: $e');

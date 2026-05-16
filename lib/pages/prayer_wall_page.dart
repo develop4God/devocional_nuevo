@@ -45,11 +45,14 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PrayerWallBloc>().add(
-          LoadPrayerWall(userLanguage: _userLanguage, authorHash: _authorHash));
+            LoadPrayerWall(
+                userLanguage: _userLanguage, authorHash: _authorHash),
+          );
 
       getService<IAnalyticsService>().logCustomEvent(
-          eventName: 'prayer_wall_viewed',
-          parameters: {'language': _userLanguage});
+        eventName: 'prayer_wall_viewed',
+        parameters: {'language': _userLanguage},
+      );
     });
   }
 
@@ -97,9 +100,9 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
-              context
-                  .read<PrayerWallBloc>()
-                  .add(ReportPrayer(prayerId: prayerId));
+              context.read<PrayerWallBloc>().add(
+                    ReportPrayer(prayerId: prayerId),
+                  );
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('prayer_wall.report_thanks'.tr()),
@@ -107,8 +110,9 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
                 ),
               );
               getService<IAnalyticsService>().logCustomEvent(
-                  eventName: 'prayer_reported',
-                  parameters: {'prayerId': prayerId});
+                eventName: 'prayer_reported',
+                parameters: {'prayerId': prayerId},
+              );
             },
             child: Text('prayer_wall.report'.tr()),
           ),
@@ -129,8 +133,9 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
               parameters: {'prayerId': state.prayerId},
             );
           } else if (state is PastoralResponseTriggered) {
-            getService<IAnalyticsService>()
-                .logCustomEvent(eventName: 'pastoral_sheet_shown');
+            getService<IAnalyticsService>().logCustomEvent(
+              eventName: 'pastoral_sheet_shown',
+            );
             PastoralSupportSheet.show(context);
           } else if (state is PrayerWallError) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -155,12 +160,13 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
                 userLanguage: _userLanguage,
                 authorHash: _authorHash,
                 onPrayTap: (id) {
-                  context
-                      .read<PrayerWallBloc>()
-                      .add(TapPrayerHand(prayerId: id));
+                  context.read<PrayerWallBloc>().add(
+                        TapPrayerHand(prayerId: id),
+                      );
                   getService<IAnalyticsService>().logCustomEvent(
-                      eventName: 'prayer_hand_tapped',
-                      parameters: {'prayerId': id});
+                    eventName: 'prayer_hand_tapped',
+                    parameters: {'prayerId': id},
+                  );
                 },
                 onReport: (id) => _showReportConfirmation(context, id),
               );
@@ -210,9 +216,9 @@ class _LoadedWall extends StatelessWidget {
 
     return RefreshIndicator(
       onRefresh: () async {
-        context
-            .read<PrayerWallBloc>()
-            .add(RefreshPrayerWall(userLanguage: userLanguage));
+        context.read<PrayerWallBloc>().add(
+              RefreshPrayerWall(userLanguage: userLanguage),
+            );
         // Wait for the refresh to complete
         await Future.delayed(const Duration(milliseconds: 500));
       },
@@ -230,9 +236,7 @@ class _LoadedWall extends StatelessWidget {
 
           // Section 1: Same-language prayers
           if (hasSameLang) ...[
-            _SectionHeader(
-              label: 'prayer_wall.section_mine'.tr(),
-            ),
+            _SectionHeader(label: 'prayer_wall.section_mine'.tr()),
             ...state.sameLanguagePrayers.map(
               (p) => PrayerWallCard(
                 key: ValueKey(p.id),
@@ -245,9 +249,7 @@ class _LoadedWall extends StatelessWidget {
 
           // Section 2: Cross-language prayers
           if (hasOtherLang) ...[
-            _SectionHeader(
-              label: 'prayer_wall.section_others'.tr(),
-            ),
+            _SectionHeader(label: 'prayer_wall.section_others'.tr()),
             ...state.otherLanguagePrayers.map(
               (p) => PrayerWallCard(
                 key: ValueKey(p.id),
@@ -275,10 +277,9 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
       child: Text(
         label,
-        style: Theme.of(context)
-            .textTheme
-            .titleSmall
-            ?.copyWith(fontWeight: FontWeight.w600),
+        style: Theme.of(
+          context,
+        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -301,8 +302,9 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'prayer_wall.empty_title'.tr(),
-              style:
-                  textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),

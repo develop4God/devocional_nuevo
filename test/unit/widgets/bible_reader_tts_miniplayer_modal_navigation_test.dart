@@ -46,8 +46,10 @@ void main() {
 
         // Inspect enough source after the method declaration to cover the
         // full body (~2 000 characters is well beyond the ~40-line method).
-        final methodSection =
-            pageSource.substring(methodStart, methodStart + 2000);
+        final methodSection = pageSource.substring(
+          methodStart,
+          methodStart + 2000,
+        );
 
         expect(
           methodSection.contains('Navigator.pop(context)'),
@@ -65,8 +67,10 @@ void main() {
         final methodStart = pageSource.indexOf('void _handleTtsStateChange()');
         expect(methodStart, greaterThan(0));
 
-        final methodSection =
-            pageSource.substring(methodStart, methodStart + 2000);
+        final methodSection = pageSource.substring(
+          methodStart,
+          methodStart + 2000,
+        );
 
         expect(
           methodSection.contains('resetModalState()'),
@@ -79,30 +83,27 @@ void main() {
     );
 
     test(
-      'Presenter showMiniplayerModal uses the modal context (ctx) — not the '
-      'page context — to close the bottom sheet',
-      () {
-        final methodStart =
-            presenterSource.indexOf('void showMiniplayerModal(');
-        expect(
-          methodStart,
-          greaterThan(0),
-          reason: 'showMiniplayerModal must exist in '
-              'bible_reader_tts_miniplayer_presenter.dart',
-        );
+        'Presenter showMiniplayerModal uses the modal context (ctx) — not the '
+        'page context — to close the bottom sheet', () {
+      final methodStart = presenterSource.indexOf('void showMiniplayerModal(');
+      expect(
+        methodStart,
+        greaterThan(0),
+        reason: 'showMiniplayerModal must exist in '
+            'bible_reader_tts_miniplayer_presenter.dart',
+      );
 
-        final methodSection = presenterSource.substring(methodStart);
+      final methodSection = presenterSource.substring(methodStart);
 
-        // The builder's context variable is `ctx`; closing must use it.
-        expect(
-          methodSection.contains('Navigator.of(ctx).pop()'),
-          isTrue,
-          reason: 'showMiniplayerModal must close via Navigator.of(ctx).pop() '
-              'using the modal builder context (ctx), not the page context, '
-              'to dismiss only the bottom sheet.',
-        );
-      },
-    );
+      // The builder's context variable is `ctx`; closing must use it.
+      expect(
+        methodSection.contains('Navigator.of(ctx).pop()'),
+        isTrue,
+        reason: 'showMiniplayerModal must close via Navigator.of(ctx).pop() '
+            'using the modal builder context (ctx), not the page context, '
+            'to dismiss only the bottom sheet.',
+      );
+    });
 
     test(
       'isShowing flag is reset via whenComplete callback after modal closes',

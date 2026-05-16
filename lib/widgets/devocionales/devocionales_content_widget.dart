@@ -73,7 +73,7 @@ class DevocionalesContentWidget extends StatelessWidget {
                     },
                     selectedPet: petService.selectedPet,
                     selectedTheme: (
-                      colors: [colorScheme.primary, colorScheme.tertiary]
+                      colors: [colorScheme.primary, colorScheme.tertiary],
                     ),
                     profileName: goldName,
                   );

@@ -56,19 +56,22 @@ class DevocionalTtsMiniplayerPresenter {
             if (state == TtsPlayerState.completed &&
                 _shouldAutoCloseOnCompletion) {
               debugPrint(
-                  '[TtsMiniplayerModal] ✅ TTS Completed - Scheduling modal close');
+                '[TtsMiniplayerModal] ✅ TTS Completed - Scheduling modal close',
+              );
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 // Only close if:
                 // 1. Auto-close is still enabled (user didn't explicitly close)
                 // 2. Navigator can still pop (modal is still in the stack)
                 if (_shouldAutoCloseOnCompletion && Navigator.canPop(ctx)) {
                   debugPrint(
-                      '[TtsMiniplayerModal] 🔚 Closing modal via Navigator.pop()');
+                    '[TtsMiniplayerModal] 🔚 Closing modal via Navigator.pop()',
+                  );
                   _shouldAutoCloseOnCompletion = false;
                   Navigator.of(ctx).pop();
                 } else {
                   debugPrint(
-                      '[TtsMiniplayerModal] ⚠️ Modal already closing or user dismissed — skipping pop');
+                    '[TtsMiniplayerModal] ⚠️ Modal already closing or user dismissed — skipping pop',
+                  );
                 }
               });
             }

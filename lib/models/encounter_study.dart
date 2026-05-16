@@ -47,15 +47,18 @@ class EncounterStudy {
       meta: json['meta'] as Map<String, dynamic>?,
       keyVerse: json['key_verse'] != null
           ? EncounterKeyVerse.fromJson(
-              json['key_verse'] as Map<String, dynamic>)
+              json['key_verse'] as Map<String, dynamic>,
+            )
           : null,
       cards: (json['cards'] as List<dynamic>?)
-              ?.map((e) => EncounterCard.fromJson(
-                    e as Map<String, dynamic>,
-                    encounterId: encounterId,
-                    imageVersion:
-                        imageVersion, // NEW — thread down from EncounterStudy.fromJson parameter
-                  ))
+              ?.map(
+                (e) => EncounterCard.fromJson(
+                  e as Map<String, dynamic>,
+                  encounterId: encounterId,
+                  imageVersion:
+                      imageVersion, // NEW — thread down from EncounterStudy.fromJson parameter
+                ),
+              )
               .toList() ??
           [],
     );

@@ -52,20 +52,14 @@ class DiscoverySectionCard extends StatelessWidget {
           ],
           if (section.icono != null) ...[
             Center(
-              child: Text(
-                section.icono!,
-                style: const TextStyle(fontSize: 48),
-              ),
+              child: Text(section.icono!, style: const TextStyle(fontSize: 48)),
             ),
             const SizedBox(height: 16),
           ],
           if (section.titulo != null) ...[
             Text(
               section.titulo!,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
           ],
@@ -90,10 +84,7 @@ class _ScripturePassageCard extends StatelessWidget {
   final ScripturePassage pasaje;
   final bool isDark;
 
-  const _ScripturePassageCard({
-    required this.pasaje,
-    required this.isDark,
-  });
+  const _ScripturePassageCard({required this.pasaje, required this.isDark});
 
   @override
   Widget build(BuildContext context) {

@@ -56,8 +56,9 @@ void main() {
       'plugins.flutter.io/firebase_core',
     );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(firebaseCoreChannel,
-            (MethodCall methodCall) async {
+        .setMockMethodCallHandler(firebaseCoreChannel, (
+      MethodCall methodCall,
+    ) async {
       switch (methodCall.method) {
         case 'Firebase#initializeCore':
           return [
@@ -70,7 +71,7 @@ void main() {
                 'projectId': 'fake-project-id',
               },
               'pluginConstants': {},
-            }
+            },
           ];
         case 'Firebase#initializeApp':
           return {
@@ -93,8 +94,9 @@ void main() {
       'plugins.flutter.io/firebase_crashlytics',
     );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(crashlyticsChannel,
-            (MethodCall methodCall) async {
+        .setMockMethodCallHandler(crashlyticsChannel, (
+      MethodCall methodCall,
+    ) async {
       switch (methodCall.method) {
         case 'Crashlytics#checkForUnsentReports':
           return false;
@@ -173,10 +175,12 @@ void main() {
     mockIndexService = _MockDevocionalIndexService();
     mockMetadataService = _MockCacheMetadataService();
     when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => null);
-    when(() => mockMetadataService.readManifestDate(any()))
-        .thenAnswer((_) async => null);
-    when(() => mockMetadataService.writeMetadata(any(), any()))
-        .thenAnswer((_) async {});
+    when(
+      () => mockMetadataService.readManifestDate(any()),
+    ).thenAnswer((_) async => null);
+    when(
+      () => mockMetadataService.writeMetadata(any(), any()),
+    ).thenAnswer((_) async {});
     provider = DevocionalProvider(
       devocionalIndexService: mockIndexService,
       cacheMetadataService: mockMetadataService,
@@ -392,10 +396,12 @@ void main() {
       mockIndexService = _MockDevocionalIndexService();
       mockMetadataService = _MockCacheMetadataService();
       when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => mockMetadataService.readManifestDate(any()))
-          .thenAnswer((_) async => null);
-      when(() => mockMetadataService.writeMetadata(any(), any()))
-          .thenAnswer((_) async {});
+      when(
+        () => mockMetadataService.readManifestDate(any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => mockMetadataService.writeMetadata(any(), any()),
+      ).thenAnswer((_) async {});
       provider = DevocionalProvider(
         devocionalIndexService: mockIndexService,
         cacheMetadataService: mockMetadataService,
@@ -457,10 +463,12 @@ void main() {
       final localIndexService = _MockDevocionalIndexService();
       final localMetadataService = _MockCacheMetadataService();
       when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => localMetadataService.readManifestDate(any()))
-          .thenAnswer((_) async => null);
-      when(() => localMetadataService.writeMetadata(any(), any()))
-          .thenAnswer((_) async {});
+      when(
+        () => localMetadataService.readManifestDate(any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => localMetadataService.writeMetadata(any(), any()),
+      ).thenAnswer((_) async {});
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
@@ -502,10 +510,12 @@ void main() {
       final localIndexService = _MockDevocionalIndexService();
       final localMetadataService = _MockCacheMetadataService();
       when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => localMetadataService.readManifestDate(any()))
-          .thenAnswer((_) async => null);
-      when(() => localMetadataService.writeMetadata(any(), any()))
-          .thenAnswer((_) async {});
+      when(
+        () => localMetadataService.readManifestDate(any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => localMetadataService.writeMetadata(any(), any()),
+      ).thenAnswer((_) async {});
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
@@ -513,16 +523,22 @@ void main() {
       await newProvider.initializeData();
 
       // Verify favorite IDs are loaded
-      expect(newProvider.isFavorite(testDevocional1), isTrue,
-          reason: 'Favorite status should be maintained');
+      expect(
+        newProvider.isFavorite(testDevocional1),
+        isTrue,
+        reason: 'Favorite status should be maintained',
+      );
 
       // Switch language
       newProvider.setSelectedLanguage('en', null);
       await Future.delayed(const Duration(milliseconds: 300));
 
       // Verify favorite IDs are still maintained
-      expect(newProvider.isFavorite(testDevocional1), isTrue,
-          reason: 'Favorite IDs should persist after language switch');
+      expect(
+        newProvider.isFavorite(testDevocional1),
+        isTrue,
+        reason: 'Favorite IDs should persist after language switch',
+      );
 
       newProvider.dispose();
     });
@@ -539,10 +555,12 @@ void main() {
       final localIndexService = _MockDevocionalIndexService();
       final localMetadataService = _MockCacheMetadataService();
       when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => localMetadataService.readManifestDate(any()))
-          .thenAnswer((_) async => null);
-      when(() => localMetadataService.writeMetadata(any(), any()))
-          .thenAnswer((_) async {});
+      when(
+        () => localMetadataService.readManifestDate(any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => localMetadataService.writeMetadata(any(), any()),
+      ).thenAnswer((_) async {});
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
@@ -550,8 +568,11 @@ void main() {
       await newProvider.initializeData();
 
       // Should handle error and initialize with empty set
-      expect(newProvider.favoriteDevocionales, isEmpty,
-          reason: 'Should handle corrupted JSON gracefully');
+      expect(
+        newProvider.favoriteDevocionales,
+        isEmpty,
+        reason: 'Should handle corrupted JSON gracefully',
+      );
 
       newProvider.dispose();
     });
@@ -568,10 +589,12 @@ void main() {
       final localIndexService = _MockDevocionalIndexService();
       final localMetadataService = _MockCacheMetadataService();
       when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => localMetadataService.readManifestDate(any()))
-          .thenAnswer((_) async => null);
-      when(() => localMetadataService.writeMetadata(any(), any()))
-          .thenAnswer((_) async {});
+      when(
+        () => localMetadataService.readManifestDate(any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => localMetadataService.writeMetadata(any(), any()),
+      ).thenAnswer((_) async {});
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
@@ -579,8 +602,11 @@ void main() {
       await newProvider.initializeData();
 
       // Should handle error and initialize with empty set
-      expect(newProvider.favoriteDevocionales, isEmpty,
-          reason: 'Should handle corrupted legacy JSON gracefully');
+      expect(
+        newProvider.favoriteDevocionales,
+        isEmpty,
+        reason: 'Should handle corrupted legacy JSON gracefully',
+      );
 
       newProvider.dispose();
     });
@@ -597,10 +623,12 @@ void main() {
       final localIndexService = _MockDevocionalIndexService();
       final localMetadataService = _MockCacheMetadataService();
       when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => localMetadataService.readManifestDate(any()))
-          .thenAnswer((_) async => null);
-      when(() => localMetadataService.writeMetadata(any(), any()))
-          .thenAnswer((_) async {});
+      when(
+        () => localMetadataService.readManifestDate(any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => localMetadataService.writeMetadata(any(), any()),
+      ).thenAnswer((_) async {});
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
@@ -611,8 +639,11 @@ void main() {
 
       // Even though devotionals may not match (due to API issues in test),
       // the sync should have been called without errors
-      expect(newProvider.favoriteDevocionales, isA<List<Devocional>>(),
-          reason: 'Sync should produce a valid list');
+      expect(
+        newProvider.favoriteDevocionales,
+        isA<List<Devocional>>(),
+        reason: 'Sync should produce a valid list',
+      );
 
       newProvider.dispose();
     });

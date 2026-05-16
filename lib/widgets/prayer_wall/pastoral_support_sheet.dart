@@ -117,10 +117,7 @@ class _CrisisResourcesList extends StatelessWidget {
                       decoration: TextDecoration.underline,
                     ),
                   ),
-                  Text(
-                    r.description,
-                    style: const TextStyle(fontSize: 12),
-                  ),
+                  Text(r.description, style: const TextStyle(fontSize: 12)),
                 ],
               ),
             ),
@@ -135,6 +132,9 @@ class _CrisisResource {
   final String name;
   final String description;
   final String urlScheme;
-  const _CrisisResource(
-      {required this.name, required this.description, required this.urlScheme});
+  const _CrisisResource({
+    required this.name,
+    required this.description,
+    required this.urlScheme,
+  });
 }

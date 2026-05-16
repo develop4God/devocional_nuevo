@@ -34,11 +34,7 @@ void main() {
 
     // SCENARIO 2: User progresses through study sections
     test('user can complete study sections', () {
-      final study = {
-        'id': 1,
-        'totalSections': 10,
-        'completedSections': 0,
-      };
+      final study = {'id': 1, 'totalSections': 10, 'completedSections': 0};
 
       void completeSection() {
         final completed = study['completedSections'] as int;
@@ -100,11 +96,7 @@ void main() {
 
     // SCENARIO 5: User bookmarks/favorites a study
     test('user can favorite a discovery study', () {
-      final study = {
-        'id': 1,
-        'title': 'Acts Study',
-        'isFavorite': false,
-      };
+      final study = {'id': 1, 'title': 'Acts Study', 'isFavorite': false};
 
       void toggleFavorite() {
         study['isFavorite'] = !(study['isFavorite'] as bool);
@@ -155,11 +147,7 @@ void main() {
 
     // SCENARIO 8: User resumes incomplete study
     test('user can resume study from last completed section', () {
-      final study = {
-        'id': 1,
-        'totalSections': 10,
-        'lastCompletedSection': 3,
-      };
+      final study = {'id': 1, 'totalSections': 10, 'lastCompletedSection': 3};
 
       int getNextSectionToRead() {
         return (study['lastCompletedSection'] as int) + 1;

@@ -46,10 +46,7 @@ void main() {
       });
 
       test('color scheme onSurface is black87', () {
-        expect(
-          lightTheme.colorScheme.onSurface,
-          equals(Colors.black87),
-        );
+        expect(lightTheme.colorScheme.onSurface, equals(Colors.black87));
       });
 
       test('elevated button background is grey[600]', () {
@@ -102,10 +99,7 @@ void main() {
       });
 
       test('color scheme surface is dark', () {
-        expect(
-          darkTheme.colorScheme.surface,
-          equals(const Color(0xFF2A2A2A)),
-        );
+        expect(darkTheme.colorScheme.surface, equals(const Color(0xFF2A2A2A)));
       });
 
       test('color scheme onSurface is white', () {
@@ -165,10 +159,7 @@ void main() {
 
       test('Cyan AppBar color unchanged', () {
         final cyanLight = appThemeFamilies['Cyan']!['light']!;
-        expect(
-          cyanLight.appBarTheme.backgroundColor,
-          equals(Colors.cyan),
-        );
+        expect(cyanLight.appBarTheme.backgroundColor, equals(Colors.cyan));
       });
     });
   });

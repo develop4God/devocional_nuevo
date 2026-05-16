@@ -41,9 +41,7 @@ class AddEntryChoiceModal extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             'devotionals.choose_option'.tr(),
-            style: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 24),
           Row(

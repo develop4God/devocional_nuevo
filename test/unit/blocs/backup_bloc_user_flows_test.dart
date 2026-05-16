@@ -469,15 +469,9 @@ void main() {
 
     // SCENARIO 28: User handles backup conflicts
     test('user handles conflicting backups', () {
-      final localBackup = {
-        'lastModified': DateTime(2024, 1, 15),
-        'version': 1,
-      };
+      final localBackup = {'lastModified': DateTime(2024, 1, 15), 'version': 1};
 
-      final cloudBackup = {
-        'lastModified': DateTime(2024, 1, 14),
-        'version': 2,
-      };
+      final cloudBackup = {'lastModified': DateTime(2024, 1, 14), 'version': 2};
 
       Map<String, dynamic> resolveConflict(
         Map<String, dynamic> local,

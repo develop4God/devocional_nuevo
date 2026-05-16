@@ -25,10 +25,7 @@ import '../../blocs/theme/theme_state.dart';
 class DiscoveryDetailPage extends StatefulWidget {
   final String studyId;
 
-  const DiscoveryDetailPage({
-    required this.studyId,
-    super.key,
-  });
+  const DiscoveryDetailPage({required this.studyId, super.key});
 
   @override
   State<DiscoveryDetailPage> createState() => _DiscoveryDetailPageState();
@@ -38,8 +35,9 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   int _currentSectionIndex = 0;
 
   // Reduced fraction to 0.88 to make the "peeking" of next/prev cards much more obvious
-  late final PageController _pageController =
-      PageController(viewportFraction: 0.88);
+  late final PageController _pageController = PageController(
+    viewportFraction: 0.88,
+  );
   bool _isCelebrating = false;
   bool _hasTriggeredCompletion = false;
 
@@ -94,9 +92,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themeState.systemUiOverlayStyle,
       child: Scaffold(
-        appBar: CustomAppBar(
-          titleText: 'discovery.discovery_studies'.tr(),
-        ),
+        appBar: CustomAppBar(titleText: 'discovery.discovery_studies'.tr()),
         body: BlocBuilder<DiscoveryBloc, DiscoveryState>(
           builder: (context, state) {
             if (state is DiscoveryLoading || state is DiscoveryStudyLoading) {
@@ -171,26 +167,35 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                                 if (_pageController.position.haveDimensions) {
                                   value = _pageController.page! - index;
                                   // Subtle scale and fade for cards as they move away from center
-                                  value = (1 - (value.abs() * 0.12))
-                                      .clamp(0.0, 1.0);
+                                  value = (1 - (value.abs() * 0.12)).clamp(
+                                    0.0,
+                                    1.0,
+                                  );
                                 }
                                 return Transform.scale(
                                   scale: value,
                                   child: Opacity(
                                     opacity: value.clamp(
-                                        0.5, 1.0), // Keep peeked cards visible
+                                      0.5,
+                                      1.0,
+                                    ), // Keep peeked cards visible
                                     child: child,
                                   ),
                                 );
                               },
                               child: _buildContentForIndex(
-                                  study, index, isDark, isAlreadyCompleted),
+                                study,
+                                index,
+                                isDark,
+                                isAlreadyCompleted,
+                              ),
                             );
                           },
                         ),
                       ),
                       SizedBox(
-                          height: MediaQuery.of(context).padding.bottom + 20),
+                        height: MediaQuery.of(context).padding.bottom + 20,
+                      ),
                     ],
                   ),
                   Positioned(
@@ -205,10 +210,12 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              theme.scaffoldBackgroundColor
-                                  .withValues(alpha: 0),
-                              theme.scaffoldBackgroundColor
-                                  .withValues(alpha: 0.8),
+                              theme.scaffoldBackgroundColor.withValues(
+                                alpha: 0,
+                              ),
+                              theme.scaffoldBackgroundColor.withValues(
+                                alpha: 0.8,
+                              ),
                               theme.scaffoldBackgroundColor,
                             ],
                           ),
@@ -237,8 +244,12 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  Widget _buildContentForIndex(DiscoveryDevotional study, int index,
-      bool isDark, bool isAlreadyCompleted) {
+  Widget _buildContentForIndex(
+    DiscoveryDevotional study,
+    int index,
+    bool isDark,
+    bool isAlreadyCompleted,
+  ) {
     if (_hasKeyVerseCard(study) && index == 0) {
       return _buildKeyVerseCardPage(study, Theme.of(context));
     }
@@ -248,11 +259,19 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     final isFirstPage = index == 0;
 
     return _buildAnimatedCard(
-        study, contentIndex, isDark, isLast, isAlreadyCompleted, isFirstPage);
+      study,
+      contentIndex,
+      isDark,
+      isLast,
+      isAlreadyCompleted,
+      isFirstPage,
+    );
   }
 
   Widget _buildSegmentedProgressBar(
-      DiscoveryDevotional study, ThemeData theme) {
+    DiscoveryDevotional study,
+    ThemeData theme,
+  ) {
     final totalPages = _getTotalPages(study);
 
     return Container(
@@ -333,10 +352,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              KeyVerseCard(
-                keyVerse: study.keyVerse!,
-                version: study.version,
-              ),
+              KeyVerseCard(keyVerse: study.keyVerse!, version: study.version),
               const SizedBox(height: 32),
               _buildNavigationButtons(true, false),
               const SizedBox(height: 20),
@@ -347,8 +363,14 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  Widget _buildAnimatedCard(DiscoveryDevotional study, int contentIndex,
-      bool isDark, bool isLast, bool isAlreadyCompleted, bool isFirstPage) {
+  Widget _buildAnimatedCard(
+    DiscoveryDevotional study,
+    int contentIndex,
+    bool isDark,
+    bool isLast,
+    bool isAlreadyCompleted,
+    bool isFirstPage,
+  ) {
     final isFirst = isFirstPage;
 
     return Container(
@@ -360,18 +382,34 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
         shadowColor: Colors.black.withValues(alpha: 0.08),
         clipBehavior: Clip.antiAlias,
         child: study.cards.isNotEmpty
-            ? _buildCardContent(study.cards[contentIndex], study, isDark,
-                isLast, isAlreadyCompleted, isFirst)
+            ? _buildCardContent(
+                study.cards[contentIndex],
+                study,
+                isDark,
+                isLast,
+                isAlreadyCompleted,
+                isFirst,
+              )
             : study.secciones != null && study.secciones!.isNotEmpty
-                ? _buildSectionCardWithButtons(study,
-                    study.secciones![contentIndex], isDark, isFirst, isLast)
+                ? _buildSectionCardWithButtons(
+                    study,
+                    study.secciones![contentIndex],
+                    isDark,
+                    isFirst,
+                    isLast,
+                  )
                 : const SizedBox.shrink(),
       ),
     );
   }
 
-  Widget _buildSectionCardWithButtons(DiscoveryDevotional study,
-      DiscoverySection section, bool isDark, bool isFirst, bool isLast) {
+  Widget _buildSectionCardWithButtons(
+    DiscoveryDevotional study,
+    DiscoverySection section,
+    bool isDark,
+    bool isFirst,
+    bool isLast,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -510,8 +548,14 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  Widget _buildCardContent(DiscoveryCard card, DiscoveryDevotional study,
-      bool isDark, bool isLast, bool isAlreadyCompleted, bool isFirst) {
+  Widget _buildCardContent(
+    DiscoveryCard card,
+    DiscoveryDevotional study,
+    bool isDark,
+    bool isLast,
+    bool isAlreadyCompleted,
+    bool isFirst,
+  ) {
     final theme = Theme.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
@@ -524,8 +568,10 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           ],
           Text(
             card.title,
-            style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
           ),
           if (card.subtitle != null) ...[
             const SizedBox(height: 6),
@@ -542,8 +588,9 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             Text(
               card.content!,
               style: theme.textTheme.bodyLarge?.copyWith(
-                  height: 1.6,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.9)),
+                height: 1.6,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
+              ),
             ),
           if (card.revelationKey != null) ...[
             const SizedBox(height: 32),
@@ -563,8 +610,11 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.lightbulb_rounded,
-                      size: 28, color: Colors.white),
+                  const Icon(
+                    Icons.lightbulb_rounded,
+                    size: 28,
+                    color: Colors.white,
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
@@ -583,8 +633,9 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           ],
           if (card.scriptureConnections != null) ...[
             const SizedBox(height: 32),
-            ...card.scriptureConnections!
-                .map((scripture) => _buildScriptureTile(scripture, theme)),
+            ...card.scriptureConnections!.map(
+              (scripture) => _buildScriptureTile(scripture, theme),
+            ),
           ],
           if (card.greekWords != null) ...[
             const SizedBox(height: 32),
@@ -592,12 +643,14 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           ],
           if (card.discoveryQuestions != null) ...[
             const SizedBox(height: 32),
-            Text('discovery.reflection_questions'.tr(),
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+            Text(
+              'discovery.reflection_questions'.tr(),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+            ),
             const SizedBox(height: 16),
-            ...card.discoveryQuestions!
-                .map((q) => _buildQuestionTile(q, theme)),
+            ...card.discoveryQuestions!.map(
+              (q) => _buildQuestionTile(q, theme),
+            ),
           ],
           if (card.prayer != null) ...[
             const SizedBox(height: 32),
@@ -638,7 +691,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                           ? theme.colorScheme.primary
                           : Colors.white,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28)),
+                        borderRadius: BorderRadius.circular(28),
+                      ),
                     ),
                   ),
                 ),
@@ -664,16 +718,20 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(20),
-        border:
-            Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.1),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(s.reference,
-              style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  color: theme.colorScheme.primary)),
+          Text(
+            s.reference,
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              color: theme.colorScheme.primary,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(s.text, style: const TextStyle(height: 1.5)),
         ],
@@ -695,33 +753,39 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           Row(
             children: [
               Flexible(
-                child: Text(word.word,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                      color: theme.colorScheme.onSecondaryContainer,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis),
+                child: Text(
+                  word.word,
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    color: theme.colorScheme.onSecondaryContainer,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               if (word.transliteration != null) ...[
                 const SizedBox(width: 8),
                 Flexible(
-                  child: Text('(${word.transliteration})',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.primary),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis),
+                  child: Text(
+                    '(${word.transliteration})',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.primary,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ],
           ),
           const SizedBox(height: 12),
-          Text('${'discovery.meaning'.tr()}: ${word.meaning}',
-              style:
-                  const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+          Text(
+            '${'discovery.meaning'.tr()}: ${word.meaning}',
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+          ),
           const SizedBox(height: 8),
           Text('${'discovery.revelation'.tr()}: ${word.revelation}'),
         ],
@@ -740,12 +804,15 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(q.category.toUpperCase(),
-              style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  color: theme.colorScheme.primary,
-                  letterSpacing: 1)),
+          Text(
+            q.category.toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: theme.colorScheme.primary,
+              letterSpacing: 1,
+            ),
+          ),
           const SizedBox(height: 4),
           Text(q.question, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
@@ -764,11 +831,10 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('discovery.activation_prayer'.tr(),
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-              )),
+          Text(
+            'discovery.activation_prayer'.tr(),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+          ),
           const SizedBox(height: 12),
           Text(p.content, style: const TextStyle(height: 1.6)),
         ],
@@ -786,9 +852,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.dividerColor.withValues(alpha: 0.15),
-        ),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.15)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
