@@ -37,32 +37,57 @@ import 'package:shared_preferences/shared_preferences.dart' as _i5;
 // ignore_for_file: invalid_use_of_internal_member
 
 class _FakeClient_0 extends _i1.SmartFake implements _i2.Client {
-  _FakeClient_0(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeClient_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 class _FakeDiscoveryDevotional_1 extends _i1.SmartFake
     implements _i3.DiscoveryDevotional {
-  _FakeDiscoveryDevotional_1(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeDiscoveryDevotional_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 class _FakeDiscoveryProgress_2 extends _i1.SmartFake
     implements _i4.DiscoveryProgress {
-  _FakeDiscoveryProgress_2(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeDiscoveryProgress_2(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 class _FakeSharedPreferences_3 extends _i1.SmartFake
     implements _i5.SharedPreferences {
-  _FakeSharedPreferences_3(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeSharedPreferences_3(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 class _FakeAudioController_4 extends _i1.SmartFake
     implements _i6.AudioController {
-  _FakeAudioController_4(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeAudioController_4(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 /// A class which mocks [DiscoveryRepository].
@@ -77,7 +102,10 @@ class MockDiscoveryRepository extends _i1.Mock
   @override
   _i2.Client get httpClient => (super.noSuchMethod(
         Invocation.getter(#httpClient),
-        returnValue: _FakeClient_0(this, Invocation.getter(#httpClient)),
+        returnValue: _FakeClient_0(
+          this,
+          Invocation.getter(#httpClient),
+        ),
       ) as _i2.Client);
 
   @override
@@ -89,39 +117,48 @@ class MockDiscoveryRepository extends _i1.Mock
       (super.noSuchMethod(
         Invocation.method(
           #fetchDiscoveryStudy,
-          [id, languageCode],
+          [
+            id,
+            languageCode,
+          ],
           {#prefetchedIndex: prefetchedIndex},
         ),
         returnValue: _i8.Future<_i3.DiscoveryDevotional>.value(
-          _FakeDiscoveryDevotional_1(
-            this,
-            Invocation.method(
-              #fetchDiscoveryStudy,
-              [id, languageCode],
-              {#prefetchedIndex: prefetchedIndex},
-            ),
+            _FakeDiscoveryDevotional_1(
+          this,
+          Invocation.method(
+            #fetchDiscoveryStudy,
+            [
+              id,
+              languageCode,
+            ],
+            {#prefetchedIndex: prefetchedIndex},
           ),
-        ),
+        )),
       ) as _i8.Future<_i3.DiscoveryDevotional>);
 
   @override
-  _i8.Future<List<String>> fetchAvailableStudies({
-    bool? forceRefresh = false,
-  }) =>
+  _i8.Future<List<String>> fetchAvailableStudies(
+          {bool? forceRefresh = false}) =>
       (super.noSuchMethod(
-        Invocation.method(#fetchAvailableStudies, [], {
-          #forceRefresh: forceRefresh,
-        }),
+        Invocation.method(
+          #fetchAvailableStudies,
+          [],
+          {#forceRefresh: forceRefresh},
+        ),
         returnValue: _i8.Future<List<String>>.value(<String>[]),
       ) as _i8.Future<List<String>>);
 
   @override
   _i8.Future<Map<String, dynamic>> fetchIndex({bool? forceRefresh = false}) =>
       (super.noSuchMethod(
-        Invocation.method(#fetchIndex, [], {#forceRefresh: forceRefresh}),
-        returnValue: _i8.Future<Map<String, dynamic>>.value(
-          <String, dynamic>{},
+        Invocation.method(
+          #fetchIndex,
+          [],
+          {#forceRefresh: forceRefresh},
         ),
+        returnValue:
+            _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i8.Future<Map<String, dynamic>>);
 }
 
@@ -140,13 +177,24 @@ class MockDiscoveryProgressTracker extends _i1.Mock
     String? languageCode,
   ]) =>
       (super.noSuchMethod(
-        Invocation.method(#getProgress, [studyId, languageCode]),
-        returnValue: _i8.Future<_i4.DiscoveryProgress>.value(
-          _FakeDiscoveryProgress_2(
-            this,
-            Invocation.method(#getProgress, [studyId, languageCode]),
-          ),
+        Invocation.method(
+          #getProgress,
+          [
+            studyId,
+            languageCode,
+          ],
         ),
+        returnValue:
+            _i8.Future<_i4.DiscoveryProgress>.value(_FakeDiscoveryProgress_2(
+          this,
+          Invocation.method(
+            #getProgress,
+            [
+              studyId,
+              languageCode,
+            ],
+          ),
+        )),
       ) as _i8.Future<_i4.DiscoveryProgress>);
 
   @override
@@ -156,11 +204,14 @@ class MockDiscoveryProgressTracker extends _i1.Mock
     String? languageCode,
   ]) =>
       (super.noSuchMethod(
-        Invocation.method(#markSectionCompleted, [
-          studyId,
-          sectionIndex,
-          languageCode,
-        ]),
+        Invocation.method(
+          #markSectionCompleted,
+          [
+            studyId,
+            sectionIndex,
+            languageCode,
+          ],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
@@ -173,20 +224,32 @@ class MockDiscoveryProgressTracker extends _i1.Mock
     String? languageCode,
   ]) =>
       (super.noSuchMethod(
-        Invocation.method(#answerQuestion, [
-          studyId,
-          questionIndex,
-          answer,
-          languageCode,
-        ]),
+        Invocation.method(
+          #answerQuestion,
+          [
+            studyId,
+            questionIndex,
+            answer,
+            languageCode,
+          ],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
 
   @override
-  _i8.Future<void> completeStudy(String? studyId, [String? languageCode]) =>
+  _i8.Future<void> completeStudy(
+    String? studyId, [
+    String? languageCode,
+  ]) =>
       (super.noSuchMethod(
-        Invocation.method(#completeStudy, [studyId, languageCode]),
+        Invocation.method(
+          #completeStudy,
+          [
+            studyId,
+            languageCode,
+          ],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
@@ -197,7 +260,13 @@ class MockDiscoveryProgressTracker extends _i1.Mock
     String? languageCode,
   ]) =>
       (super.noSuchMethod(
-        Invocation.method(#resetStudyProgress, [studyId, languageCode]),
+        Invocation.method(
+          #resetStudyProgress,
+          [
+            studyId,
+            languageCode,
+          ],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
@@ -209,17 +278,23 @@ class MockDiscoveryProgressTracker extends _i1.Mock
     String? languageCode,
   ]) =>
       (super.noSuchMethod(
-        Invocation.method(#getCompletionPercentage, [
-          studyId,
-          totalSections,
-          languageCode,
-        ]),
+        Invocation.method(
+          #getCompletionPercentage,
+          [
+            studyId,
+            totalSections,
+            languageCode,
+          ],
+        ),
         returnValue: _i8.Future<double>.value(0.0),
       ) as _i8.Future<double>);
 
   @override
   _i8.Future<void> clearAllProgress() => (super.noSuchMethod(
-        Invocation.method(#clearAllProgress, []),
+        Invocation.method(
+          #clearAllProgress,
+          [],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
@@ -237,22 +312,36 @@ class MockDiscoveryFavoritesService extends _i1.Mock
   @override
   _i8.Future<_i5.SharedPreferences> get prefs => (super.noSuchMethod(
         Invocation.getter(#prefs),
-        returnValue: _i8.Future<_i5.SharedPreferences>.value(
-          _FakeSharedPreferences_3(this, Invocation.getter(#prefs)),
-        ),
+        returnValue:
+            _i8.Future<_i5.SharedPreferences>.value(_FakeSharedPreferences_3(
+          this,
+          Invocation.getter(#prefs),
+        )),
       ) as _i8.Future<_i5.SharedPreferences>);
 
   @override
   _i8.Future<Set<String>> loadFavoriteIds([String? languageCode]) =>
       (super.noSuchMethod(
-        Invocation.method(#loadFavoriteIds, [languageCode]),
+        Invocation.method(
+          #loadFavoriteIds,
+          [languageCode],
+        ),
         returnValue: _i8.Future<Set<String>>.value(<String>{}),
       ) as _i8.Future<Set<String>>);
 
   @override
-  _i8.Future<bool> toggleFavorite(String? studyId, [String? languageCode]) =>
+  _i8.Future<bool> toggleFavorite(
+    String? studyId, [
+    String? languageCode,
+  ]) =>
       (super.noSuchMethod(
-        Invocation.method(#toggleFavorite, [studyId, languageCode]),
+        Invocation.method(
+          #toggleFavorite,
+          [
+            studyId,
+            languageCode,
+          ],
+        ),
         returnValue: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 }
@@ -273,9 +362,10 @@ class MockDevocionalProvider extends _i1.Mock
       ) as List<_i11.Devocional>);
 
   @override
-  bool get isLoading =>
-      (super.noSuchMethod(Invocation.getter(#isLoading), returnValue: false)
-          as bool);
+  bool get isLoading => (super.noSuchMethod(
+        Invocation.getter(#isLoading),
+        returnValue: false,
+      ) as bool);
 
   @override
   bool get isSwitchingVersion => (super.noSuchMethod(
@@ -302,6 +392,12 @@ class MockDevocionalProvider extends _i1.Mock
       ) as String);
 
   @override
+  Set<String> get favoriteIds => (super.noSuchMethod(
+        Invocation.getter(#favoriteIds),
+        returnValue: <String>{},
+      ) as Set<String>);
+
+  @override
   List<_i11.Devocional> get favoriteDevocionales => (super.noSuchMethod(
         Invocation.getter(#favoriteDevocionales),
         returnValue: <_i11.Devocional>[],
@@ -314,14 +410,16 @@ class MockDevocionalProvider extends _i1.Mock
       ) as bool);
 
   @override
-  bool get isDownloading =>
-      (super.noSuchMethod(Invocation.getter(#isDownloading), returnValue: false)
-          as bool);
+  bool get isDownloading => (super.noSuchMethod(
+        Invocation.getter(#isDownloading),
+        returnValue: false,
+      ) as bool);
 
   @override
-  bool get isOfflineMode =>
-      (super.noSuchMethod(Invocation.getter(#isOfflineMode), returnValue: false)
-          as bool);
+  bool get isOfflineMode => (super.noSuchMethod(
+        Invocation.getter(#isOfflineMode),
+        returnValue: false,
+      ) as bool);
 
   @override
   _i6.AudioController get audioController => (super.noSuchMethod(
@@ -339,9 +437,10 @@ class MockDevocionalProvider extends _i1.Mock
       ) as bool);
 
   @override
-  bool get isAudioPaused =>
-      (super.noSuchMethod(Invocation.getter(#isAudioPaused), returnValue: false)
-          as bool);
+  bool get isAudioPaused => (super.noSuchMethod(
+        Invocation.getter(#isAudioPaused),
+        returnValue: false,
+      ) as bool);
 
   @override
   int get currentReadingSeconds => (super.noSuchMethod(
@@ -354,6 +453,12 @@ class MockDevocionalProvider extends _i1.Mock
         Invocation.getter(#currentScrollPercentage),
         returnValue: 0.0,
       ) as double);
+
+  @override
+  Set<String> get lastRestoredReadIds => (super.noSuchMethod(
+        Invocation.getter(#lastRestoredReadIds),
+        returnValue: <String>{},
+      ) as Set<String>);
 
   @override
   List<String> get supportedLanguages => (super.noSuchMethod(
@@ -370,29 +475,62 @@ class MockDevocionalProvider extends _i1.Mock
   @override
   _i2.Client get httpClient => (super.noSuchMethod(
         Invocation.getter(#httpClient),
-        returnValue: _FakeClient_0(this, Invocation.getter(#httpClient)),
+        returnValue: _FakeClient_0(
+          this,
+          Invocation.getter(#httpClient),
+        ),
       ) as _i2.Client);
 
   @override
-  bool get hasListeners =>
-      (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
-          as bool);
+  bool get hasListeners => (super.noSuchMethod(
+        Invocation.getter(#hasListeners),
+        returnValue: false,
+      ) as bool);
 
   @override
   bool isDevocionalPlaying(String? devocionalId) => (super.noSuchMethod(
-        Invocation.method(#isDevocionalPlaying, [devocionalId]),
+        Invocation.method(
+          #isDevocionalPlaying,
+          [devocionalId],
+        ),
         returnValue: false,
       ) as bool);
 
   @override
   List<String> getVersionsForLanguage(String? language) => (super.noSuchMethod(
-        Invocation.method(#getVersionsForLanguage, [language]),
+        Invocation.method(
+          #getVersionsForLanguage,
+          [language],
+        ),
         returnValue: <String>[],
       ) as List<String>);
 
   @override
   _i8.Future<void> initializeData() => (super.noSuchMethod(
-        Invocation.method(#initializeData, []),
+        Invocation.method(
+          #initializeData,
+          [],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> waitUntilLoaded() => (super.noSuchMethod(
+        Invocation.method(
+          #waitUntilLoaded,
+          [],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> waitUntilInitialized() => (super.noSuchMethod(
+        Invocation.method(
+          #waitUntilInitialized,
+          [],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
@@ -400,28 +538,40 @@ class MockDevocionalProvider extends _i1.Mock
   @override
   _i8.Future<void> playDevotional(_i11.Devocional? devocional) =>
       (super.noSuchMethod(
-        Invocation.method(#playDevotional, [devocional]),
+        Invocation.method(
+          #playDevotional,
+          [devocional],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
 
   @override
   _i8.Future<void> pauseAudio() => (super.noSuchMethod(
-        Invocation.method(#pauseAudio, []),
+        Invocation.method(
+          #pauseAudio,
+          [],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
 
   @override
   _i8.Future<void> resumeAudio() => (super.noSuchMethod(
-        Invocation.method(#resumeAudio, []),
+        Invocation.method(
+          #resumeAudio,
+          [],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
 
   @override
   _i8.Future<void> stopAudio() => (super.noSuchMethod(
-        Invocation.method(#stopAudio, []),
+        Invocation.method(
+          #stopAudio,
+          [],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
@@ -429,33 +579,59 @@ class MockDevocionalProvider extends _i1.Mock
   @override
   _i8.Future<void> toggleAudioPlayPause(_i11.Devocional? devocional) =>
       (super.noSuchMethod(
-        Invocation.method(#toggleAudioPlayPause, [devocional]),
+        Invocation.method(
+          #toggleAudioPlayPause,
+          [devocional],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
 
   @override
   _i8.Future<List<String>> getAvailableLanguages() => (super.noSuchMethod(
-        Invocation.method(#getAvailableLanguages, []),
+        Invocation.method(
+          #getAvailableLanguages,
+          [],
+        ),
         returnValue: _i8.Future<List<String>>.value(<String>[]),
       ) as _i8.Future<List<String>>);
 
   @override
   _i8.Future<List<String>> getAvailableVoices() => (super.noSuchMethod(
-        Invocation.method(#getAvailableVoices, []),
+        Invocation.method(
+          #getAvailableVoices,
+          [],
+        ),
         returnValue: _i8.Future<List<String>>.value(<String>[]),
       ) as _i8.Future<List<String>>);
 
   @override
   _i8.Future<List<String>> getVoicesForLanguage(String? language) =>
       (super.noSuchMethod(
-        Invocation.method(#getVoicesForLanguage, [language]),
+        Invocation.method(
+          #getVoicesForLanguage,
+          [language],
+        ),
         returnValue: _i8.Future<List<String>>.value(<String>[]),
       ) as _i8.Future<List<String>>);
 
   @override
+  _i8.Future<void> assignDefaultVoiceForLanguage(String? languageCode) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #assignDefaultVoiceForLanguage,
+          [languageCode],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
   _i8.Future<void> setTtsLanguage(String? language) => (super.noSuchMethod(
-        Invocation.method(#setTtsLanguage, [language]),
+        Invocation.method(
+          #setTtsLanguage,
+          [language],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
@@ -463,14 +639,20 @@ class MockDevocionalProvider extends _i1.Mock
   @override
   _i8.Future<void> setTtsVoice(Map<String, String>? voice) =>
       (super.noSuchMethod(
-        Invocation.method(#setTtsVoice, [voice]),
+        Invocation.method(
+          #setTtsVoice,
+          [voice],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
 
   @override
   _i8.Future<void> setTtsSpeechRate(double? rate) => (super.noSuchMethod(
-        Invocation.method(#setTtsSpeechRate, [rate]),
+        Invocation.method(
+          #setTtsSpeechRate,
+          [rate],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
@@ -491,20 +673,29 @@ class MockDevocionalProvider extends _i1.Mock
 
   @override
   void pauseTracking() => super.noSuchMethod(
-        Invocation.method(#pauseTracking, []),
+        Invocation.method(
+          #pauseTracking,
+          [],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
   void resumeTracking() => super.noSuchMethod(
-        Invocation.method(#resumeTracking, []),
+        Invocation.method(
+          #resumeTracking,
+          [],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
   _i8.Future<void> recordDevocionalRead(String? devocionalId) =>
       (super.noSuchMethod(
-        Invocation.method(#recordDevocionalRead, [devocionalId]),
+        Invocation.method(
+          #recordDevocionalRead,
+          [devocionalId],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
@@ -516,21 +707,25 @@ class MockDevocionalProvider extends _i1.Mock
     _i13.BuildContext? context,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(#recordDevocionalHeard, [
-          devocionalId,
-          listenedPercentage,
-          context,
-        ]),
-        returnValue: _i8.Future<String>.value(
-          _i12.dummyValue<String>(
-            this,
-            Invocation.method(#recordDevocionalHeard, [
+        Invocation.method(
+          #recordDevocionalHeard,
+          [
+            devocionalId,
+            listenedPercentage,
+            context,
+          ],
+        ),
+        returnValue: _i8.Future<String>.value(_i12.dummyValue<String>(
+          this,
+          Invocation.method(
+            #recordDevocionalHeard,
+            [
               devocionalId,
               listenedPercentage,
               context,
-            ]),
+            ],
           ),
-        ),
+        )),
       ) as _i8.Future<String>);
 
   @override
@@ -539,41 +734,72 @@ class MockDevocionalProvider extends _i1.Mock
     _i13.BuildContext? context,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(#setSelectedLanguage, [language, context]),
+        Invocation.method(
+          #setSelectedLanguage,
+          [
+            language,
+            context,
+          ],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
 
   @override
   _i8.Future<void> setSelectedVersion(String? version) => (super.noSuchMethod(
-        Invocation.method(#setSelectedVersion, [version]),
+        Invocation.method(
+          #setSelectedVersion,
+          [version],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> refreshDevocionals() => (super.noSuchMethod(
+        Invocation.method(
+          #refreshDevocionals,
+          [],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
 
   @override
   _i8.Future<void> saveFavorites() => (super.noSuchMethod(
-        Invocation.method(#saveFavorites, []),
+        Invocation.method(
+          #saveFavorites,
+          [],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
 
   @override
   _i8.Future<void> addFavoriteId(String? id) => (super.noSuchMethod(
-        Invocation.method(#addFavoriteId, [id]),
+        Invocation.method(
+          #addFavoriteId,
+          [id],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
 
   @override
   bool isFavorite(_i11.Devocional? devocional) => (super.noSuchMethod(
-        Invocation.method(#isFavorite, [devocional]),
+        Invocation.method(
+          #isFavorite,
+          [devocional],
+        ),
         returnValue: false,
       ) as bool);
 
   @override
   _i8.Future<bool> toggleFavorite(String? id) => (super.noSuchMethod(
-        Invocation.method(#toggleFavorite, [id]),
+        Invocation.method(
+          #toggleFavorite,
+          [id],
+        ),
         returnValue: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 
@@ -583,13 +809,42 @@ class MockDevocionalProvider extends _i1.Mock
     _i13.BuildContext? context,
   ) =>
       super.noSuchMethod(
-        Invocation.method(#toggleFavoriteWithContext, [devocional, context]),
+        Invocation.method(
+          #toggleFavoriteWithContext,
+          [
+            devocional,
+            context,
+          ],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
   _i8.Future<void> reloadFavoritesFromStorage() => (super.noSuchMethod(
-        Invocation.method(#reloadFavoritesFromStorage, []),
+        Invocation.method(
+          #reloadFavoritesFromStorage,
+          [],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> reloadSpiritualStatsFromStorage() => (super.noSuchMethod(
+        Invocation.method(
+          #reloadSpiritualStatsFromStorage,
+          [],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> reloadVersionFromStorage() => (super.noSuchMethod(
+        Invocation.method(
+          #reloadVersionFromStorage,
+          [],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
@@ -597,7 +852,10 @@ class MockDevocionalProvider extends _i1.Mock
   @override
   _i8.Future<void> setInvitationDialogVisibility(bool? shouldShow) =>
       (super.noSuchMethod(
-        Invocation.method(#setInvitationDialogVisibility, [shouldShow]),
+        Invocation.method(
+          #setInvitationDialogVisibility,
+          [shouldShow],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
@@ -609,40 +867,62 @@ class MockDevocionalProvider extends _i1.Mock
     String? version,
   ]) =>
       (super.noSuchMethod(
-        Invocation.method(#hasLocalFile, [year, language, version]),
+        Invocation.method(
+          #hasLocalFile,
+          [
+            year,
+            language,
+            version,
+          ],
+        ),
         returnValue: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 
   @override
   _i8.Future<bool> downloadAndStoreDevocionales(int? year) =>
       (super.noSuchMethod(
-        Invocation.method(#downloadAndStoreDevocionales, [year]),
+        Invocation.method(
+          #downloadAndStoreDevocionales,
+          [year],
+        ),
         returnValue: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 
   @override
   _i8.Future<void> clearOldLocalFiles() => (super.noSuchMethod(
-        Invocation.method(#clearOldLocalFiles, []),
+        Invocation.method(
+          #clearOldLocalFiles,
+          [],
+        ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
 
   @override
   bool isLanguageSupported(String? language) => (super.noSuchMethod(
-        Invocation.method(#isLanguageSupported, [language]),
+        Invocation.method(
+          #isLanguageSupported,
+          [language],
+        ),
         returnValue: false,
       ) as bool);
 
   @override
   _i8.Future<bool> downloadCurrentYearDevocionales() => (super.noSuchMethod(
-        Invocation.method(#downloadCurrentYearDevocionales, []),
+        Invocation.method(
+          #downloadCurrentYearDevocionales,
+          [],
+        ),
         returnValue: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 
   @override
   _i8.Future<bool> downloadDevocionalesForYear(int? year) =>
       (super.noSuchMethod(
-        Invocation.method(#downloadDevocionalesForYear, [year]),
+        Invocation.method(
+          #downloadDevocionalesForYear,
+          [year],
+        ),
         returnValue: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 
@@ -653,80 +933,116 @@ class MockDevocionalProvider extends _i1.Mock
     int? endYear = 2026,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(#downloadDevocionalesWithProgress, [], {
-          #onProgress: onProgress,
-          #startYear: startYear,
-          #endYear: endYear,
-        }),
+        Invocation.method(
+          #downloadDevocionalesWithProgress,
+          [],
+          {
+            #onProgress: onProgress,
+            #startYear: startYear,
+            #endYear: endYear,
+          },
+        ),
         returnValue: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 
   @override
   _i8.Future<bool> hasCurrentYearLocalData() => (super.noSuchMethod(
-        Invocation.method(#hasCurrentYearLocalData, []),
+        Invocation.method(
+          #hasCurrentYearLocalData,
+          [],
+        ),
         returnValue: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 
   @override
   _i8.Future<bool> hasTargetYearsLocalData() => (super.noSuchMethod(
-        Invocation.method(#hasTargetYearsLocalData, []),
+        Invocation.method(
+          #hasTargetYearsLocalData,
+          [],
+        ),
         returnValue: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 
   @override
   void clearDownloadStatus() => super.noSuchMethod(
-        Invocation.method(#clearDownloadStatus, []),
+        Invocation.method(
+          #clearDownloadStatus,
+          [],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
   void forceUIUpdate() => super.noSuchMethod(
-        Invocation.method(#forceUIUpdate, []),
+        Invocation.method(
+          #forceUIUpdate,
+          [],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
   void dispose() => super.noSuchMethod(
-        Invocation.method(#dispose, []),
+        Invocation.method(
+          #dispose,
+          [],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
   void stop() => super.noSuchMethod(
-        Invocation.method(#stop, []),
+        Invocation.method(
+          #stop,
+          [],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
   void speakDevocional(String? s) => super.noSuchMethod(
-        Invocation.method(#speakDevocional, [s]),
+        Invocation.method(
+          #speakDevocional,
+          [s],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
   _i8.Future<List<_i11.Devocional>> getDevocionalesNoLeidos() =>
       (super.noSuchMethod(
-        Invocation.method(#getDevocionalesNoLeidos, []),
-        returnValue: _i8.Future<List<_i11.Devocional>>.value(
-          <_i11.Devocional>[],
+        Invocation.method(
+          #getDevocionalesNoLeidos,
+          [],
         ),
+        returnValue:
+            _i8.Future<List<_i11.Devocional>>.value(<_i11.Devocional>[]),
       ) as _i8.Future<List<_i11.Devocional>>);
 
   @override
   void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
-        Invocation.method(#addListener, [listener]),
+        Invocation.method(
+          #addListener,
+          [listener],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
   void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
-        Invocation.method(#removeListener, [listener]),
+        Invocation.method(
+          #removeListener,
+          [listener],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
   void notifyListeners() => super.noSuchMethod(
-        Invocation.method(#notifyListeners, []),
+        Invocation.method(
+          #notifyListeners,
+          [],
+        ),
         returnValueForMissingStub: null,
       );
 }

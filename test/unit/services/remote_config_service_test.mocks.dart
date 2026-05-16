@@ -28,25 +28,45 @@ import 'package:mockito/src/dummies.dart' as _i6;
 // ignore_for_file: invalid_use_of_internal_member
 
 class _FakeFirebaseApp_0 extends _i1.SmartFake implements _i2.FirebaseApp {
-  _FakeFirebaseApp_0(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeFirebaseApp_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 class _FakeDateTime_1 extends _i1.SmartFake implements DateTime {
-  _FakeDateTime_1(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeDateTime_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 class _FakeRemoteConfigSettings_2 extends _i1.SmartFake
     implements _i3.RemoteConfigSettings {
-  _FakeRemoteConfigSettings_2(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeRemoteConfigSettings_2(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 class _FakeRemoteConfigValue_3 extends _i1.SmartFake
     implements _i3.RemoteConfigValue {
-  _FakeRemoteConfigValue_3(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeRemoteConfigValue_3(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 /// A class which mocks [FirebaseRemoteConfig].
@@ -61,7 +81,10 @@ class MockFirebaseRemoteConfig extends _i1.Mock
   @override
   _i2.FirebaseApp get app => (super.noSuchMethod(
         Invocation.getter(#app),
-        returnValue: _FakeFirebaseApp_0(this, Invocation.getter(#app)),
+        returnValue: _FakeFirebaseApp_0(
+          this,
+          Invocation.getter(#app),
+        ),
       ) as _i2.FirebaseApp);
 
   @override
@@ -102,77 +125,116 @@ class MockFirebaseRemoteConfig extends _i1.Mock
 
   @override
   _i5.Future<bool> activate() => (super.noSuchMethod(
-        Invocation.method(#activate, []),
+        Invocation.method(
+          #activate,
+          [],
+        ),
         returnValue: _i5.Future<bool>.value(false),
       ) as _i5.Future<bool>);
 
   @override
   _i5.Future<void> ensureInitialized() => (super.noSuchMethod(
-        Invocation.method(#ensureInitialized, []),
+        Invocation.method(
+          #ensureInitialized,
+          [],
+        ),
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
 
   @override
   _i5.Future<void> fetch() => (super.noSuchMethod(
-        Invocation.method(#fetch, []),
+        Invocation.method(
+          #fetch,
+          [],
+        ),
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
 
   @override
   _i5.Future<bool> fetchAndActivate() => (super.noSuchMethod(
-        Invocation.method(#fetchAndActivate, []),
+        Invocation.method(
+          #fetchAndActivate,
+          [],
+        ),
         returnValue: _i5.Future<bool>.value(false),
       ) as _i5.Future<bool>);
 
   @override
   Map<String, _i3.RemoteConfigValue> getAll() => (super.noSuchMethod(
-        Invocation.method(#getAll, []),
+        Invocation.method(
+          #getAll,
+          [],
+        ),
         returnValue: <String, _i3.RemoteConfigValue>{},
       ) as Map<String, _i3.RemoteConfigValue>);
 
   @override
   bool getBool(String? key) => (super.noSuchMethod(
-        Invocation.method(#getBool, [key]),
+        Invocation.method(
+          #getBool,
+          [key],
+        ),
         returnValue: false,
       ) as bool);
 
   @override
-  int getInt(String? key) =>
-      (super.noSuchMethod(Invocation.method(#getInt, [key]), returnValue: 0)
-          as int);
+  int getInt(String? key) => (super.noSuchMethod(
+        Invocation.method(
+          #getInt,
+          [key],
+        ),
+        returnValue: 0,
+      ) as int);
 
   @override
   double getDouble(String? key) => (super.noSuchMethod(
-        Invocation.method(#getDouble, [key]),
+        Invocation.method(
+          #getDouble,
+          [key],
+        ),
         returnValue: 0.0,
       ) as double);
 
   @override
   String getString(String? key) => (super.noSuchMethod(
-        Invocation.method(#getString, [key]),
+        Invocation.method(
+          #getString,
+          [key],
+        ),
         returnValue: _i6.dummyValue<String>(
           this,
-          Invocation.method(#getString, [key]),
+          Invocation.method(
+            #getString,
+            [key],
+          ),
         ),
       ) as String);
 
   @override
   _i3.RemoteConfigValue getValue(String? key) => (super.noSuchMethod(
-        Invocation.method(#getValue, [key]),
+        Invocation.method(
+          #getValue,
+          [key],
+        ),
         returnValue: _FakeRemoteConfigValue_3(
           this,
-          Invocation.method(#getValue, [key]),
+          Invocation.method(
+            #getValue,
+            [key],
+          ),
         ),
       ) as _i3.RemoteConfigValue);
 
   @override
   _i5.Future<void> setConfigSettings(
-    _i3.RemoteConfigSettings? remoteConfigSettings,
-  ) =>
+          _i3.RemoteConfigSettings? remoteConfigSettings) =>
       (super.noSuchMethod(
-        Invocation.method(#setConfigSettings, [remoteConfigSettings]),
+        Invocation.method(
+          #setConfigSettings,
+          [remoteConfigSettings],
+        ),
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
@@ -180,7 +242,10 @@ class MockFirebaseRemoteConfig extends _i1.Mock
   @override
   _i5.Future<void> setDefaults(Map<String, dynamic>? defaultParameters) =>
       (super.noSuchMethod(
-        Invocation.method(#setDefaults, [defaultParameters]),
+        Invocation.method(
+          #setDefaults,
+          [defaultParameters],
+        ),
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
@@ -188,7 +253,10 @@ class MockFirebaseRemoteConfig extends _i1.Mock
   @override
   _i5.Future<void> setCustomSignals(Map<String, Object?>? customSignals) =>
       (super.noSuchMethod(
-        Invocation.method(#setCustomSignals, [customSignals]),
+        Invocation.method(
+          #setCustomSignals,
+          [customSignals],
+        ),
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
