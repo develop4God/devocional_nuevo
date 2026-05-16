@@ -42,7 +42,8 @@ class PrayerWallRepository implements IPrayerWallRepository {
             return PrayerWallEntry.fromJson(data);
           } catch (e) {
             debugPrint(
-                '❌ [PrayerWallRepository] Parse error for ${doc.id}: $e');
+              '❌ [PrayerWallRepository] Parse error for ${doc.id}: $e',
+            );
             return null;
           }
         })
@@ -61,9 +62,7 @@ class PrayerWallRepository implements IPrayerWallRepository {
   }
 
   @override
-  Stream<PrayerWallEntry?> watchMyPendingPrayer({
-    required String authorHash,
-  }) {
+  Stream<PrayerWallEntry?> watchMyPendingPrayer({required String authorHash}) {
     return _firestore
         .collection(_collection)
         .where('authorId', isEqualTo: authorHash)
@@ -79,7 +78,9 @@ class PrayerWallRepository implements IPrayerWallRepository {
         data['prayerId'] = doc.id;
         return PrayerWallEntry.fromJson(data);
       } catch (e) {
-        debugPrint('❌ [PrayerWallRepository] Error parsing pending prayer: $e');
+        debugPrint(
+          '❌ [PrayerWallRepository] Error parsing pending prayer: $e',
+        );
         return null;
       }
     });
@@ -149,9 +150,7 @@ class PrayerWallRepository implements IPrayerWallRepository {
           (snapshot.data()?['reportCount'] as num?)?.toInt() ?? 0;
       final newReportCount = reportCount + 1;
 
-      final updates = <String, dynamic>{
-        'reportCount': newReportCount,
-      };
+      final updates = <String, dynamic>{'reportCount': newReportCount};
 
       // After 3 reports → move to needs_review automatically
       if (newReportCount >= 3) {

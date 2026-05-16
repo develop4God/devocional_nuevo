@@ -5,7 +5,7 @@ import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,10 +41,12 @@ class EncounterRepository {
     if (!forceRefresh && _indexFetchedThisSession) {
       final cachedIndex = prefs.getString(_indexCacheKey);
       if (cachedIndex != null) {
-        final entries =
-            _parseIndex(jsonDecode(cachedIndex) as Map<String, dynamic>);
+        final entries = _parseIndex(
+          jsonDecode(cachedIndex) as Map<String, dynamic>,
+        );
         debugPrint(
-            '✅ Encounter: Index cache hit (same session, skipping network)');
+          '✅ Encounter: Index cache hit (same session, skipping network)',
+        );
         debugPrint('📚 Encounter: Cached index has ${entries.length} entries');
         return entries;
       }
@@ -56,14 +58,16 @@ class EncounterRepository {
       final cacheBusterUrl = '$url?cb=$timestamp';
 
       debugPrint(
-          '🌐 Encounter: Fetching index — session flag was ${_indexFetchedThisSession ? "true but no cache" : "false"}');
+        '🌐 Encounter: Fetching index — session flag was ${_indexFetchedThisSession ? "true but no cache" : "false"}',
+      );
       debugPrint('📍 Encounter: URL = $cacheBusterUrl');
       final response = await httpClient
           .get(Uri.parse(cacheBusterUrl))
           .timeout(_networkTimeout);
 
       debugPrint(
-          '📡 Encounter: Index response status = ${response.statusCode}');
+        '📡 Encounter: Index response status = ${response.statusCode}',
+      );
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
@@ -87,14 +91,17 @@ class EncounterRepository {
       final cached = prefs.getString(_indexCacheKey);
       if (cached != null) {
         try {
-          final entries =
-              _parseIndex(jsonDecode(cached) as Map<String, dynamic>);
+          final entries = _parseIndex(
+            jsonDecode(cached) as Map<String, dynamic>,
+          );
           debugPrint(
-              '📦 Encounter: Using cached index after network failure — ${entries.length} entries');
+            '📦 Encounter: Using cached index after network failure — ${entries.length} entries',
+          );
           return entries;
         } catch (_) {
           debugPrint(
-              '💥 Encounter: Cached index corrupt — no fallback available');
+            '💥 Encounter: Cached index corrupt — no fallback available',
+          );
         }
       }
 
@@ -133,7 +140,11 @@ class EncounterRepository {
     // 1. Check SharedPreferences cache (skipped when fallback is disabled)
     if (Constants.enableEncounterFallback) {
       final cached = await _loadStudyFromCache(
-          id, lang, entry?.version, entry?.imageVersion);
+        id,
+        lang,
+        entry?.version,
+        entry?.imageVersion,
+      );
       if (cached != null) return cached;
     }
 
@@ -182,7 +193,8 @@ class EncounterRepository {
     // Try English fallback once (no recursion)
     if (lang != 'en') {
       debugPrint(
-          '⚠️ Encounter: $lang not found for $id, trying English fallback');
+        '⚠️ Encounter: $lang not found for $id, trying English fallback',
+      );
       // Derive the English filename by replacing the lang segment.
       // Handles both peter_water_es_001.json → peter_water_en_001.json
       // and the legacy {id}_{lang}.json → {id}_en.json patterns.
@@ -192,8 +204,11 @@ class EncounterRepository {
             ? filename.replaceFirst('_${lang}_', '_en_')
             : filename.replaceAll('_$lang.json', '_en.json');
       }
-      final enUrl =
-          Constants.getEncounterStudyUrl(id, 'en', filename: enFilename);
+      final enUrl = Constants.getEncounterStudyUrl(
+        id,
+        'en',
+        filename: enFilename,
+      );
       final enResponse =
           await httpClient.get(Uri.parse(enUrl)).timeout(_networkTimeout);
       if (enResponse.statusCode == 200) {
@@ -205,7 +220,8 @@ class EncounterRepository {
     }
 
     throw Exception(
-        'Failed to load encounter study $id: ${response.statusCode}');
+      'Failed to load encounter study $id: ${response.statusCode}',
+    );
   }
 
   Future<EncounterStudy?> _loadStudyFromCache(
@@ -222,14 +238,16 @@ class EncounterRepository {
 
       if (cached == null) {
         debugPrint(
-            '📭 Encounter: No cache for $id ($lang) — first install or cleared');
+          '📭 Encounter: No cache for $id ($lang) — first install or cleared',
+        );
         return null;
       }
 
       // Version check — only when expectedVersion is provided
       if (expectedVersion != null) {
-        final cachedVersion =
-            prefs.getString('$contentKey$_studyVersionSuffix');
+        final cachedVersion = prefs.getString(
+          '$contentKey$_studyVersionSuffix',
+        );
         if (cachedVersion != expectedVersion) {
           debugPrint(
             '🔄 Encounter: Stale cache for $id ($lang) '
@@ -246,8 +264,10 @@ class EncounterRepository {
             imageVersion, // keyed on image_version, not content version
       );
     } catch (e) {
-      developer.log('Failed to load encounter study from cache: $e',
-          name: 'EncounterRepository._loadStudyFromCache');
+      developer.log(
+        'Failed to load encounter study from cache: $e',
+        name: 'EncounterRepository._loadStudyFromCache',
+      );
     }
     return null;
   }
@@ -267,8 +287,10 @@ class EncounterRepository {
       }
       debugPrint('💾 Encounter: Saved $id ($lang) v$version to cache');
     } catch (e) {
-      developer.log('Failed to save encounter study to cache: $e',
-          name: 'EncounterRepository._saveStudyToCache');
+      developer.log(
+        'Failed to save encounter study to cache: $e',
+        name: 'EncounterRepository._saveStudyToCache',
+      );
     }
   }
 }

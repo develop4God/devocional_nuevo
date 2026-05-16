@@ -2,7 +2,7 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 
 void main() {
   group('Constants Configuration Validation', () {
@@ -257,8 +257,9 @@ void main() {
 
         expect(
           entry.key.length,
-          equals(2),
-          reason: 'Language code should be 2 characters (ISO 639-1)',
+          anyOf(equals(2), equals(3)),
+          reason:
+              'Language code should be 2 or 3 characters (ISO 639-1 or ISO 639-2)',
         );
       }
     });

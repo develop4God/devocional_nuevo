@@ -4,6 +4,10 @@ library;
 // test/critical_coverage/google_drive_backup_service_working_test.dart
 // High-value tests for GoogleDriveBackupService business logic
 
+import 'dart:convert';
+
+import 'package:devocional_nuevo/models/backup_content_summary.dart';
+import 'package:devocional_nuevo/utils/constants/backup_keys_constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -237,7 +241,7 @@ void main() {
         'data': {
           'prayers': [],
           'thanksgivings': [],
-          'spiritual_stats': {},
+          BackupKeys.spiritualStats: {},
           'settings': {},
         },
       };
@@ -249,7 +253,7 @@ void main() {
       final data = backupData['data'] as Map<String, dynamic>;
       expect(data.containsKey('prayers'), isTrue);
       expect(data.containsKey('thanksgivings'), isTrue);
-      expect(data.containsKey('spiritual_stats'), isTrue);
+      expect(data.containsKey(BackupKeys.spiritualStats), isTrue);
       expect(data.containsKey('settings'), isTrue);
     });
 
@@ -679,6 +683,165 @@ void main() {
         )['reason'],
         equals('backoff'),
       );
+    });
+  });
+
+  // ── BackupContentSummary — SharedPreferences counting ──────────────────────
+
+  group('BackupContentSummary — SharedPreferences counting logic', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
+
+    /// Simulate the counting logic from GoogleDriveBackupService.getBackupContentSummary()
+    Future<BackupContentSummary> simulateGetBackupContentSummary() async {
+      final prefs = await SharedPreferences.getInstance();
+
+      int prayersCount = 0;
+      final prayersJson = prefs.getString('prayers');
+      if (prayersJson != null) {
+        prayersCount = (jsonDecode(prayersJson) as List<dynamic>).length;
+      }
+
+      int thanksgivingsCount = 0;
+      final thanksgivingsJson = prefs.getString('thanksgivings');
+      if (thanksgivingsJson != null) {
+        thanksgivingsCount =
+            (jsonDecode(thanksgivingsJson) as List<dynamic>).length;
+      }
+
+      int testimoniesCount = 0;
+      final testimoniesJson = prefs.getString('testimonies');
+      if (testimoniesJson != null) {
+        testimoniesCount =
+            (jsonDecode(testimoniesJson) as List<dynamic>).length;
+      }
+
+      int favoritesCount = 0;
+      final favoritesJson = prefs.getString('favorite_ids');
+      if (favoritesJson != null) {
+        favoritesCount = (jsonDecode(favoritesJson) as List<dynamic>).length;
+      }
+
+      final encountersCount =
+          (prefs.getStringList('encounter_completed_ids') ?? []).length;
+
+      final discoveryCount = prefs
+          .getKeys()
+          .where((k) => k.startsWith('discovery_progress_'))
+          .length;
+
+      final versesCount =
+          (prefs.getStringList('bible_marked_verses') ?? []).length;
+
+      return BackupContentSummary(
+        prayersCount: prayersCount,
+        thanksgivingsCount: thanksgivingsCount,
+        testimoniesCount: testimoniesCount,
+        favoritesCount: favoritesCount,
+        encountersCount: encountersCount,
+        discoveryCount: discoveryCount,
+        versesCount: versesCount,
+      );
+    }
+
+    test('returns empty summary when SharedPreferences has no data', () async {
+      final summary = await simulateGetBackupContentSummary();
+      expect(summary.isEmpty, isTrue);
+      expect(summary.totalItems, 0);
+    });
+
+    test('counts prayers correctly from SharedPreferences', () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'prayers',
+        jsonEncode([
+          {'id': '1', 'text': 'p1'},
+          {'id': '2', 'text': 'p2'},
+          {'id': '3', 'text': 'p3'},
+        ]),
+      );
+
+      final summary = await simulateGetBackupContentSummary();
+      expect(summary.prayersCount, 3);
+      expect(summary.isEmpty, isFalse);
+    });
+
+    test('counts marked bible verses correctly', () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('bible_marked_verses', [
+        'Gen 1:1',
+        'Jn 3:16',
+        'Ps 23:1',
+        'Rom 8:28',
+        'Phil 4:13',
+        'Isa 40:31',
+        'Jer 29:11',
+      ]);
+
+      final summary = await simulateGetBackupContentSummary();
+      expect(summary.versesCount, 7);
+    });
+
+    test('counts completed encounters from getStringList', () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('encounter_completed_ids', ['enc_1', 'enc_2']);
+
+      final summary = await simulateGetBackupContentSummary();
+      expect(summary.encountersCount, 2);
+    });
+
+    test('counts discovery progress prefixed keys', () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('discovery_progress_study_a', '{}');
+      await prefs.setString('discovery_progress_study_b', '{}');
+      await prefs.setString('other_key', 'not_counted');
+
+      final summary = await simulateGetBackupContentSummary();
+      expect(summary.discoveryCount, 2);
+    });
+
+    test('totalItems sums all categories', () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'prayers',
+        jsonEncode([
+          {'id': '1'},
+          {'id': '2'},
+        ]),
+      );
+      await prefs.setStringList('bible_marked_verses', ['v1', 'v2', 'v3']);
+      await prefs.setStringList('encounter_completed_ids', ['e1']);
+
+      final summary = await simulateGetBackupContentSummary();
+      // 2 prayers + 3 verses + 1 encounter = 6
+      expect(summary.totalItems, 6);
+      expect(summary.prayersCount, 2);
+      expect(summary.versesCount, 3);
+      expect(summary.encountersCount, 1);
+    });
+
+    test('BackupContentSummary is a value object — same counts are equal', () {
+      const a = BackupContentSummary(
+        prayersCount: 5,
+        thanksgivingsCount: 3,
+        testimoniesCount: 2,
+        favoritesCount: 7,
+        encountersCount: 1,
+        discoveryCount: 4,
+        versesCount: 6,
+      );
+      const b = BackupContentSummary(
+        prayersCount: 5,
+        thanksgivingsCount: 3,
+        testimoniesCount: 2,
+        favoritesCount: 7,
+        encountersCount: 1,
+        discoveryCount: 4,
+        versesCount: 6,
+      );
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
     });
   });
 }

@@ -5,13 +5,24 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('VoiceDataRegistry', () {
     group('supportedLanguages', () {
-      test('includes all 9 supported languages', () {
+      test('includes all 10 supported languages', () {
         final languages = VoiceDataRegistry.supportedLanguages;
         expect(
-            languages,
-            containsAll(
-                ['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar']));
-        expect(languages.length, 9);
+          languages,
+          containsAll([
+            'es',
+            'en',
+            'pt',
+            'fr',
+            'ja',
+            'zh',
+            'hi',
+            'de',
+            'ar',
+            'fil',
+          ]),
+        );
+        expect(languages.length, 10);
       });
     });
 
@@ -43,8 +54,11 @@ void main() {
         final hindiVoices = VoiceDataRegistry.hindiVoices;
         expect(hindiVoices, isNotEmpty);
         for (final entry in hindiVoices.entries) {
-          expect(entry.value.emoji, '🇮🇳',
-              reason: 'Hindi voice ${entry.key} should use India flag');
+          expect(
+            entry.value.emoji,
+            '🇮🇳',
+            reason: 'Hindi voice ${entry.key} should use India flag',
+          );
         }
       });
     });
@@ -105,10 +119,7 @@ void main() {
       });
 
       test('returns null for unknown voice', () {
-        expect(
-          VoiceDataRegistry.getVoiceMetadata('nonexistent', 'en'),
-          isNull,
-        );
+        expect(VoiceDataRegistry.getVoiceMetadata('nonexistent', 'en'), isNull);
       });
 
       test('returns Hindi metadata with Devanagari descriptions', () {
@@ -198,7 +209,7 @@ void main() {
         final validIcons = [
           Icons.man_3_outlined,
           Icons.woman_outlined,
-          Icons.person
+          Icons.person,
         ];
         for (final lang in VoiceDataRegistry.supportedLanguages) {
           final map = VoiceDataRegistry.getVoiceMap(lang)!;

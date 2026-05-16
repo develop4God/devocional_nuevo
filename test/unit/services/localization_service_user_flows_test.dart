@@ -30,29 +30,41 @@ void main() {
     });
 
     group('Supported Locales Configuration', () {
-      test('supports exactly 9 languages as per app requirements', () {
-        // User expects app to support Spanish, English, Portuguese, French, Japanese, Chinese, Hindi, German, Arabic
-        expect(LocalizationService.supportedLocales, hasLength(9));
+      test('supports exactly 10 languages as per app requirements', () {
+        // User expects app to support Spanish, English, Portuguese, French, Japanese, Chinese, Hindi, German, Arabic, Tagalog
+        expect(LocalizationService.supportedLocales, hasLength(10));
 
         final languageCodes = LocalizationService.supportedLocales.map(
           (l) => l.languageCode,
         );
         expect(
           languageCodes,
-          containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh', 'hi', 'de', 'ar']),
+          containsAll([
+            'es',
+            'en',
+            'pt',
+            'fr',
+            'ja',
+            'zh',
+            'hi',
+            'de',
+            'ar',
+            'fil',
+          ]),
         );
       });
 
-      test('default locale is Spanish', () {
-        // App is primarily for Spanish-speaking users
-        expect(LocalizationService.defaultLocale.languageCode, equals('es'));
+      test('default locale is English', () {
+        // App defaults to English
+        expect(LocalizationService.defaultLocale.languageCode, equals('en'));
       });
 
       test('all supported locales have correct structure', () {
         for (final locale in LocalizationService.supportedLocales) {
           // Each locale should have a valid language code
           expect(locale.languageCode, isNotEmpty);
-          expect(locale.languageCode.length, equals(2)); // ISO 639-1 codes
+          // Support both ISO 639-1 (2 chars: es, en) and ISO 639-2 (3 chars: fil)
+          expect(locale.languageCode.length, isIn([2, 3]));
         }
       });
     });
@@ -63,8 +75,8 @@ void main() {
         // This is critical for correct pronunciation
         // Note: We test the mapping logic without actually changing locale
         final service = LocalizationService();
-        // Default is Spanish
-        expect(service.getTtsLocale(), equals('es-ES'));
+        // Default is English
+        expect(service.getTtsLocale(), equals('en-US'));
       });
 
       test('TTS locale format is correct for all languages', () {
@@ -169,9 +181,9 @@ void main() {
     });
 
     group('Current Locale Management', () {
-      test('initial locale is default (Spanish)', () {
+      test('initial locale is default (English)', () {
         final service = LocalizationService();
-        expect(service.currentLocale.languageCode, equals('es'));
+        expect(service.currentLocale.languageCode, equals('en'));
       });
 
       test('locale getter returns correct value', () {

@@ -37,10 +37,7 @@ void main() {
         'subtitle': 'De Balaam a los Magos',
         'content': 'La profecía de Balaam',
         'scripture_connections': [
-          {
-            'reference': 'Números 24:17',
-            'text': 'Saldrá ESTRELLA de Jacob',
-          },
+          {'reference': 'Números 24:17', 'text': 'Saldrá ESTRELLA de Jacob'},
           {
             'reference': 'Mateo 2:2',
             'text': 'Hemos visto su estrella en el oriente',
@@ -54,10 +51,7 @@ void main() {
       expect(card.order, equals(2));
       expect(card.type, equals('historical_thread'));
       expect(card.scriptureConnections, hasLength(2));
-      expect(
-        card.scriptureConnections![0].reference,
-        equals('Números 24:17'),
-      );
+      expect(card.scriptureConnections![0].reference, equals('Números 24:17'));
       expect(
         card.scriptureConnections![1].text,
         equals('Hemos visto su estrella en el oriente'),
@@ -121,49 +115,48 @@ void main() {
       expect(card.order, equals(4));
       expect(card.type, equals('prophetic_promise'));
       expect(card.scriptureAnchor, isNotNull);
-      expect(
-        card.scriptureAnchor!.reference,
-        equals('Apocalipsis 22:16'),
-      );
+      expect(card.scriptureAnchor!.reference, equals('Apocalipsis 22:16'));
       expect(
         card.identityStatement,
         equals('No eres alguien que espera la luz'),
       );
     });
 
-    test('should create discovery_activation card with questions and prayer',
-        () {
-      final json = {
-        'order': 5,
-        'type': 'discovery_activation',
-        'icon': '🧘',
-        'title': 'Descubrimiento Personal',
-        'discovery_questions': [
-          {
-            'category': 'Situación',
-            'question': '¿En qué área de tu vida sientes oscuridad?',
+    test(
+      'should create discovery_activation card with questions and prayer',
+      () {
+        final json = {
+          'order': 5,
+          'type': 'discovery_activation',
+          'icon': '🧘',
+          'title': 'Descubrimiento Personal',
+          'discovery_questions': [
+            {
+              'category': 'Situación',
+              'question': '¿En qué área de tu vida sientes oscuridad?',
+            },
+            {
+              'category': 'Dirección',
+              'question': '¿Qué sucede cuando dejas de mirar la Palabra?',
+            },
+          ],
+          'prayer': {
+            'title': 'Oración de Sellado',
+            'content': 'Señor Jesús, mi Logos y mi Estrella de la Mañana...',
           },
-          {
-            'category': 'Dirección',
-            'question': '¿Qué sucede cuando dejas de mirar la Palabra?',
-          },
-        ],
-        'prayer': {
-          'title': 'Oración de Sellado',
-          'content': 'Señor Jesús, mi Logos y mi Estrella de la Mañana...',
-        },
-      };
+        };
 
-      final card = DiscoveryCard.fromJson(json);
+        final card = DiscoveryCard.fromJson(json);
 
-      expect(card.order, equals(5));
-      expect(card.type, equals('discovery_activation'));
-      expect(card.discoveryQuestions, hasLength(2));
-      expect(card.discoveryQuestions![0].category, equals('Situación'));
-      expect(card.prayer, isNotNull);
-      expect(card.prayer!.title, equals('Oración de Sellado'));
-      expect(card.prayer!.content, contains('Señor Jesús'));
-    });
+        expect(card.order, equals(5));
+        expect(card.type, equals('discovery_activation'));
+        expect(card.discoveryQuestions, hasLength(2));
+        expect(card.discoveryQuestions![0].category, equals('Situación'));
+        expect(card.prayer, isNotNull);
+        expect(card.prayer!.title, equals('Oración de Sellado'));
+        expect(card.prayer!.content, contains('Señor Jesús'));
+      },
+    );
 
     test('should serialize card to JSON correctly', () {
       final card = DiscoveryCard(
@@ -188,10 +181,7 @@ void main() {
     });
 
     test('should handle missing optional fields gracefully', () {
-      final json = {
-        'order': 1,
-        'title': 'Minimal Card',
-      };
+      final json = {'order': 1, 'title': 'Minimal Card'};
 
       final card = DiscoveryCard.fromJson(json);
 
@@ -286,9 +276,7 @@ void main() {
       final prayerWithTitle = Prayer.fromJson(jsonWithTitle);
       expect(prayerWithTitle.title, equals('Oración Final'));
 
-      final jsonWithoutTitle = {
-        'content': 'Señor, gracias...',
-      };
+      final jsonWithoutTitle = {'content': 'Señor, gracias...'};
 
       final prayerWithoutTitle = Prayer.fromJson(jsonWithoutTitle);
       expect(prayerWithoutTitle.title, isNull);

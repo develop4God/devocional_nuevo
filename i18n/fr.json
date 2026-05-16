@@ -202,7 +202,7 @@
   },
   "application_language": {
     "title": "Langue de l'Application",
-    "description": "Sélectionnez et téléchargez the langue que vous souhaitez utiliser pour l'application. Chaque langue comprend l'interface, les méditations, les versets et the lecteur audio.",
+    "description": "Sélectionnez et téléchargez la langue que vous souhaitez utiliser pour l'application. Chaque langue comprend l'interface, les méditations, les versets et le lecteur audio. La progression et les statistiques sont enregistrées par langue.",
     "current_language": "Langue actuelle",
     "download_failed": "Échec du téléchargement du contenu linguistique. Veuillez réessayer.",
     "downloading": "Téléchargement...",
@@ -467,6 +467,8 @@
     "favorite_devotionals": "Méditations favorites",
     "favorite_devotionals_size": "25 éléments, ~50 Ko",
     "saved_prayers": "Prières enregistrées",
+    "saved_verses": "Versets enregistrés",
+    "read_devotionals": "Dévotionnels lus",
     "saved_prayers_size": "10 éléments, ~15 Ko",
     "storage_management": "Gérer le stockage",
     "google_drive_storage": "Stockage Google Drive",
@@ -519,7 +521,13 @@
     "more_options": "Plus d'options",
     "optimization": "Optimisation",
     "account_management": "Gestion du Compte",
-    "logout_google_drive": "Se déconnecter de Google Drive"
+    "logout_google_drive": "Se déconnecter de Google Drive",
+    "signing_in_title": "Connexion à Google Drive",
+    "signing_in_subtitle": "Vérification de votre identité pour protéger votre progression spirituelle...",
+    "restoring_title": "Restauration de vos données",
+    "restoring_subtitle": "Nous avons trouvé une sauvegarde dans votre Google Drive et restaurons votre progression spirituelle...",
+    "protected_title": "Vos données sont protégées !",
+    "protected_subtitle": "Votre progression spirituelle est sauvegardée en toute sécurité dans votre Google Drive personnel."
   },
   "review": {
     "title": "Merci pour votre constance 🙏",

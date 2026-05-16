@@ -95,6 +95,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   late final DevocionalNavigationHelper _navigationHelper;
   AudioController? _audioController;
   bool _routeSubscribed = false;
+  // True when DevocionalesPage IS the top-most route (nothing pushed on top).
+  // Used to guard lifecycle-based tracking so we don't resume tracking while
+  // SupporterPage or any other modal is visible above us.
+  bool _isTopRoute = true;
   int _currentStreak = 0;
   late Future<int> _streakFuture;
 
@@ -119,8 +123,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   @override
   void initState() {
     super.initState();
-    // Flush any deep link that arrived before the navigator was ready
+    // Flush any deep link that was buffered while the navigator was not yet ready.
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       getService<DeepLinkHandler>().flushPendingLink();
     });
     _ttsAudioController = TtsAudioController(
@@ -129,7 +134,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       chunkProcessor: getService<TtsChunkProcessor>(),
     );
     _ttsMiniplayerPresenter = DevocionalTtsMiniplayerPresenter(
-        ttsAudioController: _ttsAudioController);
+      ttsAudioController: _ttsAudioController,
+    );
     _navigationHelper = DevocionalNavigationHelper(
       getBloc: () => _navigationBloc!,
       getAudioController: () => _audioController,
@@ -175,8 +181,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   Future<void> _initializeNavigationBloc() async {
     // Prevent multiple simultaneous initialization attempts
     if (_initState == _PageInitializationState.loading) {
-      developer
-          .log('Initialization already in progress, skipping duplicate call');
+      developer.log(
+        'Initialization already in progress, skipping duplicate call',
+      );
       return;
     }
 
@@ -194,9 +201,33 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         listen: false,
       );
 
-      // Wait for devotionals to load if needed
-      if (!devocionalProvider.isLoading &&
-          devocionalProvider.devocionales.isEmpty) {
+      // Case A: Provider is already loading (e.g. triggered by AppInitializer).
+      // Wait for the isLoading→false transition via event instead of polling.
+      if (devocionalProvider.isLoading) {
+        debugPrint(
+          '[DEVOCIONALES_PAGE] ⏳ Provider is loading, waiting for completion...',
+        );
+        await devocionalProvider.waitUntilLoaded();
+        if (!mounted) return;
+        debugPrint(
+          '[DEVOCIONALES_PAGE] ✅ Provider loading finished '
+          '(isEmpty=${devocionalProvider.devocionales.isEmpty})',
+        );
+      } else if (devocionalProvider.devocionales.isEmpty) {
+        // Case B: Provider is idle and empty — trigger loading now.
+        await devocionalProvider.initializeData();
+        if (!mounted) return;
+      }
+
+      // Retry once if still empty (transient network failure on cold start).
+      if (devocionalProvider.devocionales.isEmpty &&
+          !devocionalProvider.isLoading) {
+        debugPrint(
+          '[DEVOCIONALES_PAGE] ⚠️ No devotionals after first attempt, '
+          'retrying in 2s...',
+        );
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
         await devocionalProvider.initializeData();
         if (!mounted) return;
       }
@@ -246,8 +277,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
         // Show notification if fallback language was used
         if (devocionalProvider.errorMessage != null &&
-            devocionalProvider.errorMessage!
-                .contains('not available in selected language')) {
+            devocionalProvider.errorMessage!.contains(
+              'not available in selected language',
+            )) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -277,7 +309,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           initialIndex < devocionalProvider.devocionales.length) {
         final initialDevocional = devocionalProvider.devocionales[initialIndex];
         debugPrint(
-            '[DEVOCIONALES_PAGE] 🚀 Starting tracking for initial devotional: ${initialDevocional.id}');
+          '[DEVOCIONALES_PAGE] 🚀 Starting tracking for initial devotional: ${initialDevocional.id}',
+        );
         _tracking.clearAutoCompletedExcept(initialDevocional.id);
         _tracking.startDevocionalTracking(
           initialDevocional.id,
@@ -286,7 +319,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       }
 
       developer.log(
-          'Navigation BLoC initialized successfully at index: $initialIndex');
+        'Navigation BLoC initialized successfully at index: $initialIndex',
+      );
     } catch (error, stackTrace) {
       // Log raw error for debugging
       developer.log('Failed to initialize BLoC: $error');
@@ -345,6 +379,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
   }
 
+  /// One-time migration for users affected by the legacy unread-state bug.
+  ///
+  /// The bug caused exactly one devotional entry to not be saved as read,
+  /// leaving the user stuck on that entry on every cold start.
+  ///
+  /// Fingerprint: exactly one entry where index N-1 is read, index N is unread,
+  /// and index N+1 is read. Only that single entry is filled — no bulk writes.
+
   /// Reliably compare two devotional lists by their IDs
   /// Avoids hashCode collision bugs
   bool _areDevocionalListsEqual(
@@ -402,8 +444,18 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     } else if (state == AppLifecycleState.resumed) {
       debugPrint('🔄 App resumed - refreshing state');
 
-      // Resume tracking
-      _tracking.resumeTracking();
+      // Only resume tracking if DevocionalesPage is the top-most route.
+      // When another page (e.g. SupporterPage) is pushed on top, the
+      // lifecycle observer still fires for DevocionalesPage, but we must NOT
+      // restart tracking — that would incorrectly count reading time while
+      // the user is on a different screen.
+      if (_isTopRoute) {
+        _tracking.resumeTracking();
+      } else {
+        debugPrint(
+          '🔄 App resumed but DevocionalesPage is NOT top route — skipping tracking resume',
+        );
+      }
 
       // Check for updates
       UpdateService.checkForUpdate();
@@ -433,42 +485,54 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   void didPush() {
+    _isTopRoute = true;
     // Only resume if there's actually something being tracked
     // Otherwise we'll start an empty criteria timer
     debugPrint(
-        '📄 DevocionalesPage pushed → checking if tracking should resume');
-    final devocionalProvider =
-        Provider.of<DevocionalProvider>(context, listen: false);
+      '📄 DevocionalesPage pushed → checking if tracking should resume',
+    );
+    final devocionalProvider = Provider.of<DevocionalProvider>(
+      context,
+      listen: false,
+    );
     if (devocionalProvider.currentTrackedDevocionalId != null) {
       _tracking.resumeTracking();
       debugPrint(
-          '📄 Tracking resumed for: ${devocionalProvider.currentTrackedDevocionalId}');
+        '📄 Tracking resumed for: ${devocionalProvider.currentTrackedDevocionalId}',
+      );
     } else {
       debugPrint(
-          '📄 No active tracking to resume - waiting for BLoC to initialize');
+        '📄 No active tracking to resume - waiting for BLoC to initialize',
+      );
     }
   }
 
   @override
   void didPopNext() {
+    _isTopRoute = true;
     // Refresh streak when returning to this page (e.g., from ProgressPage)
     _streakFuture = _loadStreak();
 
     // Only resume if there's actually something being tracked
-    final devocionalProvider =
-        Provider.of<DevocionalProvider>(context, listen: false);
+    final devocionalProvider = Provider.of<DevocionalProvider>(
+      context,
+      listen: false,
+    );
     if (devocionalProvider.currentTrackedDevocionalId != null) {
       _tracking.resumeTracking();
       debugPrint(
-          '📄 DevocionalesPage popped next → tracking resumed & streak refreshed');
+        '📄 DevocionalesPage popped next → tracking resumed & streak refreshed',
+      );
     } else {
       debugPrint(
-          '📄 DevocionalesPage popped next → no tracking to resume, streak refreshed');
+        '📄 DevocionalesPage popped next → no tracking to resume, streak refreshed',
+      );
     }
   }
 
   @override
   void didPushNext() {
+    _isTopRoute = false;
     _tracking.pauseTracking();
     debugPrint('📄 DevocionalesPage didPushNext → tracking PAUSED');
     if (_audioController != null && _audioController!.isActive) {
@@ -525,8 +589,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   Future<void> _shareAsText(Devocional devocional) async {
-    final devotionalText =
-        DevotionalShareHelper.generarTextoParaCompartir(devocional);
+    final devotionalText = DevotionalShareHelper.generarTextoParaCompartir(
+      devocional,
+    );
 
     await SharePlus.instance.share(ShareParams(text: devotionalText));
   }
@@ -802,7 +867,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     (_lastProcessedDevocionales == null ||
                         _lastProcessedDevocionales!.length != newList.length ||
                         !_areDevocionalListsEqual(
-                            _lastProcessedDevocionales!, newList));
+                          _lastProcessedDevocionales!,
+                          newList,
+                        ));
 
             if (listsAreDifferent) {
               // Schedule update after this build completes (only once per change)
@@ -844,10 +911,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           bloc: _navigationBloc!,
           listener: (context, state) {
             debugPrint(
-                '[DEVOCIONALES_PAGE] 🔔 BlocListener triggered - state: ${state.runtimeType}');
+              '[DEVOCIONALES_PAGE] 🔔 BlocListener triggered - state: ${state.runtimeType}',
+            );
             if (state is NavigationReady) {
               debugPrint(
-                  '[DEVOCIONALES_PAGE] ✅ NavigationReady - starting tracking for: ${state.currentDevocional.id}');
+                '[DEVOCIONALES_PAGE] ✅ NavigationReady - starting tracking for: ${state.currentDevocional.id}',
+              );
               // Start tracking when navigation state changes
               _tracking.clearAutoCompletedExcept(state.currentDevocional.id);
               _tracking.startDevocionalTracking(
@@ -856,7 +925,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               );
             } else {
               debugPrint(
-                  '[DEVOCIONALES_PAGE] ⏭️ State is not NavigationReady, skipping tracking');
+                '[DEVOCIONALES_PAGE] ⏭️ State is not NavigationReady, skipping tracking',
+              );
             }
           },
           child: BlocBuilder<DevocionalesNavigationBloc,
@@ -1085,7 +1155,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             '🎵 [Modal] Opening modal on state: $s (immediate feedback)',
           );
           _ttsMiniplayerPresenter.showMiniplayerModal(
-              context, _getCurrentDevocional);
+            context,
+            _getCurrentDevocional,
+          );
         });
       }
 

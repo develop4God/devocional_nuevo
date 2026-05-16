@@ -69,8 +69,9 @@ class _FavoritesPageState extends State<FavoritesPage>
                 indicatorColor: colorScheme.primary,
                 labelColor: colorScheme.primary,
                 // Changed alpha from 0.6 to 0.3 for a lighter, less dark gray
-                unselectedLabelColor:
-                    colorScheme.onSurface.withValues(alpha: 0.3),
+                unselectedLabelColor: colorScheme.onSurface.withValues(
+                  alpha: 0.3,
+                ),
                 indicatorWeight: 3,
                 tabs: [
                   Tab(
@@ -83,7 +84,9 @@ class _FavoritesPageState extends State<FavoritesPage>
                         Text(
                           'navigation.devotional'.tr(),
                           style: const TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.bold),
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -98,7 +101,9 @@ class _FavoritesPageState extends State<FavoritesPage>
                         Text(
                           'discovery.discovery_studies'.tr(),
                           style: const TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.bold),
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -130,9 +135,11 @@ class _FavoritesPageState extends State<FavoritesPage>
         if (favoriteDevocionales.isEmpty) {
           return _buildEmptyState(
             context,
-            icon: Icon(Icons.favorite_border_rounded,
-                size: 72,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+            icon: Icon(
+              Icons.favorite_border_rounded,
+              size: 72,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+            ),
             title: 'favorites.empty_title'.tr(),
             message: 'favorites.empty_description'.tr(),
           );
@@ -144,7 +151,11 @@ class _FavoritesPageState extends State<FavoritesPage>
           itemBuilder: (context, index) {
             final devocional = favoriteDevocionales[index];
             return _buildDevotionalCard(
-                context, devocional, devocionalProvider, theme);
+              context,
+              devocional,
+              devocionalProvider,
+              theme,
+            );
           },
         );
       },
@@ -181,9 +192,11 @@ class _FavoritesPageState extends State<FavoritesPage>
           if (favoritedIds.isEmpty) {
             return _buildEmptyState(
               context,
-              icon: Icon(Icons.star_outline_rounded,
-                  size: 72,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+              icon: Icon(
+                Icons.star_outline_rounded,
+                size: 72,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+              ),
               title: 'discovery.no_favorites_title'.tr(),
               message: 'discovery.no_favorites_description'.tr(),
             );
@@ -200,7 +213,13 @@ class _FavoritesPageState extends State<FavoritesPage>
               final isCompleted = state.completedStudies[id] ?? false;
 
               return _buildMinimalistStudyRow(
-                  context, id, title, emoji, isCompleted, theme);
+                context,
+                id,
+                title,
+                emoji,
+                isCompleted,
+                theme,
+              );
             },
           );
         }
@@ -209,8 +228,11 @@ class _FavoritesPageState extends State<FavoritesPage>
         if (state is DiscoveryError) {
           return _buildEmptyState(
             context,
-            icon: Icon(Icons.error_outline,
-                size: 72, color: theme.colorScheme.error),
+            icon: Icon(
+              Icons.error_outline,
+              size: 72,
+              color: theme.colorScheme.error,
+            ),
             title: 'discovery.error'.tr(),
             message: state.message,
           );
@@ -222,8 +244,12 @@ class _FavoritesPageState extends State<FavoritesPage>
     );
   }
 
-  Widget _buildDevotionalCard(BuildContext context, Devocional devocional,
-      DevocionalProvider provider, ThemeData theme) {
+  Widget _buildDevotionalCard(
+    BuildContext context,
+    Devocional devocional,
+    DevocionalProvider provider,
+    ThemeData theme,
+  ) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       elevation: 0,
@@ -234,10 +260,12 @@ class _FavoritesPageState extends State<FavoritesPage>
       ),
       child: InkWell(
         onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (c) =>
-                    DevocionalesPage(initialDevocionalId: devocional.id))),
+          context,
+          MaterialPageRoute(
+            builder: (c) =>
+                DevocionalesPage(initialDevocionalId: devocional.id),
+          ),
+        ),
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -249,11 +277,11 @@ class _FavoritesPageState extends State<FavoritesPage>
                   children: [
                     Text(
                       DateFormat(
-                              'EEEE, d MMMM yyyy',
-                              getService<LocalizationService>()
-                                  .currentLocale
-                                  .languageCode)
-                          .format(devocional.date),
+                        'EEEE, d MMMM yyyy',
+                        getService<LocalizationService>()
+                            .currentLocale
+                            .languageCode,
+                      ).format(devocional.date),
                       style: TextStyle(
                         color: theme.colorScheme.primary,
                         fontWeight: FontWeight.w800,
@@ -276,8 +304,10 @@ class _FavoritesPageState extends State<FavoritesPage>
                 ),
               ),
               IconButton(
-                icon:
-                    const Icon(Icons.favorite_rounded, color: Colors.redAccent),
+                icon: const Icon(
+                  Icons.favorite_rounded,
+                  color: Colors.redAccent,
+                ),
                 onPressed: () => provider.toggleFavorite(devocional.id),
               ),
             ],
@@ -287,8 +317,14 @@ class _FavoritesPageState extends State<FavoritesPage>
     );
   }
 
-  Widget _buildMinimalistStudyRow(BuildContext context, String id, String title,
-      String emoji, bool isCompleted, ThemeData theme) {
+  Widget _buildMinimalistStudyRow(
+    BuildContext context,
+    String id,
+    String title,
+    String emoji,
+    bool isCompleted,
+    ThemeData theme,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -299,13 +335,13 @@ class _FavoritesPageState extends State<FavoritesPage>
         onTap: () {
           final languageCode =
               context.read<DevocionalProvider>().selectedLanguage;
-          context
-              .read<DiscoveryBloc>()
-              .add(LoadDiscoveryStudy(id, languageCode: languageCode));
+          context.read<DiscoveryBloc>().add(
+                LoadDiscoveryStudy(id, languageCode: languageCode),
+              );
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (c) => DiscoveryDetailPage(studyId: id)));
+            context,
+            MaterialPageRoute(builder: (c) => DiscoveryDetailPage(studyId: id)),
+          );
         },
         borderRadius: BorderRadius.circular(24),
         child: Padding(
@@ -343,16 +379,20 @@ class _FavoritesPageState extends State<FavoritesPage>
                         padding: const EdgeInsets.only(top: 4),
                         child: Row(
                           children: [
-                            const Icon(Icons.verified_rounded,
-                                size: 14, color: Colors.green),
+                            const Icon(
+                              Icons.verified_rounded,
+                              size: 14,
+                              color: Colors.green,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'discovery.completed'.tr().toUpperCase(),
                               style: const TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.green,
-                                  letterSpacing: 1),
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.green,
+                                letterSpacing: 1,
+                              ),
                             ),
                           ],
                         ),
@@ -361,11 +401,14 @@ class _FavoritesPageState extends State<FavoritesPage>
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.star_rounded,
-                    color: Colors.amber, size: 30),
-                onPressed: () => context
-                    .read<DiscoveryBloc>()
-                    .add(ToggleDiscoveryFavorite(id)),
+                icon: const Icon(
+                  Icons.star_rounded,
+                  color: Colors.amber,
+                  size: 30,
+                ),
+                onPressed: () => context.read<DiscoveryBloc>().add(
+                      ToggleDiscoveryFavorite(id),
+                    ),
               ),
             ],
           ),
@@ -374,8 +417,12 @@ class _FavoritesPageState extends State<FavoritesPage>
     );
   }
 
-  Widget _buildEmptyState(BuildContext context,
-      {required Widget icon, required String title, required String message}) {
+  Widget _buildEmptyState(
+    BuildContext context, {
+    required Widget icon,
+    required String title,
+    required String message,
+  }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;

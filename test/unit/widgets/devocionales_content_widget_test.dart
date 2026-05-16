@@ -113,8 +113,9 @@ void main() {
       );
     }
 
-    testWidgets('renders all main sections including new header',
-        (tester) async {
+    testWidgets('renders all main sections including new header', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWidget());
       expect(find.text('Juan 3:16'), findsOneWidget);
       expect(find.text('Reflexión de prueba'), findsOneWidget);
@@ -135,16 +136,18 @@ void main() {
       expect(verseCopied, isTrue);
     });
 
-    testWidgets('calls onFavoriteToggle and onShare when header buttons tapped',
-        (tester) async {
-      await tester.pumpWidget(buildWidget());
+    testWidgets(
+      'calls onFavoriteToggle and onShare when header buttons tapped',
+      (tester) async {
+        await tester.pumpWidget(buildWidget());
 
-      await tester.tap(find.byIcon(Icons.favorite_border_rounded));
-      expect(favoriteToggled, isTrue);
+        await tester.tap(find.byIcon(Icons.favorite_border_rounded));
+        expect(favoriteToggled, isTrue);
 
-      await tester.tap(find.byIcon(Icons.share_rounded));
-      expect(shared, isTrue);
-    });
+        await tester.tap(find.byIcon(Icons.share_rounded));
+        expect(shared, isTrue);
+      },
+    );
 
     testWidgets('calls onStreakBadgeTap when streak badge tapped', (
       tester,

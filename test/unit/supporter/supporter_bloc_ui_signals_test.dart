@@ -89,8 +89,11 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 50));
 
     var state = bloc.state as SupporterLoaded;
-    expect(state.justDeliveredTier, isNotNull,
-        reason: 'justDeliveredTier must be set after delivery');
+    expect(
+      state.justDeliveredTier,
+      isNotNull,
+      reason: 'justDeliveredTier must be set after delivery',
+    );
 
     // Now dispatch SaveGoldSupporterName — this is what happens inside
     // onConfirm in supporter_page.dart while the Gold dialog is open.
@@ -101,9 +104,12 @@ void main() {
     expect(state.goldSupporterName, equals('Test Supporter'));
     // CRITICAL: justDeliveredTier must be null after SaveGoldSupporterName.
     // If it is still non-null, the BlocListener will open a second dialog.
-    expect(state.justDeliveredTier, isNull,
-        reason: 'SaveGoldSupporterName must clear justDeliveredTier to prevent '
-            'BlocListener from re-opening the Gold success dialog');
+    expect(
+      state.justDeliveredTier,
+      isNull,
+      reason: 'SaveGoldSupporterName must clear justDeliveredTier to prevent '
+          'BlocListener from re-opening the Gold success dialog',
+    );
 
     await bloc.close();
     await fakeIap.dispose();
@@ -180,8 +186,11 @@ void main() {
       // StreamController may be closed — that's acceptable.
     }
 
-    expect(statesAfterClose, isEmpty,
-        reason: 'No state updates expected after bloc.close()');
+    expect(
+      statesAfterClose,
+      isEmpty,
+      reason: 'No state updates expected after bloc.close()',
+    );
     expect(bloc.isClosed, isTrue);
 
     await fakeIap.dispose();

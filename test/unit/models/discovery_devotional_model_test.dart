@@ -49,7 +49,7 @@ void main() {
             'icono': '🔭',
             'titulo': 'La Estrella Matutina',
             'contenido': 'Venus brilla antes del amanecer...',
-          }
+          },
         ],
         'preguntas_discovery': ['¿Qué observas?', '¿Qué te enseña?'],
         'oracion': 'Señor, ilumina nuestro camino...',
@@ -139,11 +139,7 @@ void main() {
           DiscoverySection(tipo: 'scripture', pasajes: []),
           DiscoverySection(tipo: 'natural', contenido: 'Test 2'),
         ],
-        preguntasDiscovery: [
-          '¿Pregunta 1?',
-          '¿Pregunta 2?',
-          '¿Pregunta 3?',
-        ],
+        preguntasDiscovery: ['¿Pregunta 1?', '¿Pregunta 2?', '¿Pregunta 3?'],
         versiculoClave: 'Test',
       );
 
@@ -222,9 +218,7 @@ void main() {
           },
         ],
         'tags': ['luz', 'esperanza', 'cristo'],
-        'metadata': {
-          'total_word_count': 850,
-        },
+        'metadata': {'total_word_count': 850},
       };
 
       final devotional = DiscoveryDevotional.fromJson(json);
@@ -265,34 +259,36 @@ void main() {
       expect(devotional.totalQuestions, equals(1));
     });
 
-    test('should maintain backward compatibility with old secciones format',
-        () {
-      final json = {
-        'id': 'old-format-001',
-        'fecha': '2026-01-15',
-        'titulo': 'Old Format Study',
-        'versiculo_clave': 'Juan 1:1',
-        'secciones': [
-          {
-            'tipo': 'natural',
-            'titulo': 'Old Section',
-            'contenido': 'Old content',
-          },
-        ],
-        'preguntas_discovery': ['¿Pregunta antigua?'],
-        'oracion': 'Oración antigua',
-      };
+    test(
+      'should maintain backward compatibility with old secciones format',
+      () {
+        final json = {
+          'id': 'old-format-001',
+          'fecha': '2026-01-15',
+          'titulo': 'Old Format Study',
+          'versiculo_clave': 'Juan 1:1',
+          'secciones': [
+            {
+              'tipo': 'natural',
+              'titulo': 'Old Section',
+              'contenido': 'Old content',
+            },
+          ],
+          'preguntas_discovery': ['¿Pregunta antigua?'],
+          'oracion': 'Oración antigua',
+        };
 
-      final devotional = DiscoveryDevotional.fromJson(json);
+        final devotional = DiscoveryDevotional.fromJson(json);
 
-      // Should parse as old format
-      expect(devotional.cards, isEmpty);
-      expect(devotional.secciones, hasLength(1));
-      expect(devotional.secciones![0].tipo, equals('natural'));
-      expect(devotional.preguntasDiscovery, hasLength(1));
-      expect(devotional.versiculoClave, equals('Juan 1:1'));
-      expect(devotional.oracion, equals('Oración antigua'));
-    });
+        // Should parse as old format
+        expect(devotional.cards, isEmpty);
+        expect(devotional.secciones, hasLength(1));
+        expect(devotional.secciones![0].tipo, equals('natural'));
+        expect(devotional.preguntasDiscovery, hasLength(1));
+        expect(devotional.versiculoClave, equals('Juan 1:1'));
+        expect(devotional.oracion, equals('Oración antigua'));
+      },
+    );
 
     test('should serialize new format to JSON correctly', () {
       final devotional = DiscoveryDevotional(
@@ -304,10 +300,7 @@ void main() {
         date: DateTime(2026, 1, 15),
         subtitle: 'Test Subtitle',
         estimatedReadingMinutes: 5,
-        keyVerse: KeyVerse(
-          reference: 'Juan 1:1',
-          text: 'En el principio',
-        ),
+        keyVerse: KeyVerse(reference: 'Juan 1:1', text: 'En el principio'),
         cards: [
           DiscoveryCard(
             order: 1,
@@ -370,11 +363,7 @@ void main() {
               'Y habiendo dicho estas cosas, viéndolo ellos, fue alzado, y le recibió una nube que le ocultó de sus ojos.',
         },
         'cards': [
-          {
-            'order': 1,
-            'type': 'natural_revelation',
-            'title': 'Test Card',
-          },
+          {'order': 1, 'type': 'natural_revelation', 'title': 'Test Card'},
         ],
       };
 
@@ -388,8 +377,10 @@ void main() {
       // Verify other fields
       expect(devotional.id, equals('ascension_victory_001'));
       expect(devotional.reflexion, equals('La Ascensión Victoriosa'));
-      expect(devotional.subtitle,
-          equals('Cuando el Rey conquista el trono y envía el Espíritu'));
+      expect(
+        devotional.subtitle,
+        equals('Cuando el Rey conquista el trono y envía el Espíritu'),
+      );
       expect(devotional.estimatedReadingMinutes, equals(7));
       expect(devotional.cards, hasLength(1));
     });
@@ -408,11 +399,7 @@ void main() {
           text: 'Porque de tal manera amó Dios al mundo...',
         ),
         cards: [
-          DiscoveryCard(
-            order: 1,
-            type: 'natural_revelation',
-            title: 'Test',
-          ),
+          DiscoveryCard(order: 1, type: 'natural_revelation', title: 'Test'),
         ],
       );
 

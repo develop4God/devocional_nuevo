@@ -13,8 +13,10 @@ class AddThanksgivingModal extends StatefulWidget {
   const AddThanksgivingModal({super.key, this.thanksgivingToEdit});
 
   /// Static method to show the modal in a clean way
-  static Future<void> show(BuildContext context,
-      {Thanksgiving? thanksgivingToEdit}) {
+  static Future<void> show(
+    BuildContext context, {
+    Thanksgiving? thanksgivingToEdit,
+  }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,

@@ -1,6 +1,8 @@
 // lib/blocs/backup_state.dart
 import 'package:equatable/equatable.dart';
 
+import '../models/backup_content_summary.dart';
+
 /// States for Google Drive backup functionality
 abstract class BackupState extends Equatable {
   const BackupState();
@@ -29,9 +31,11 @@ class BackupLoaded extends BackupState {
   final DateTime? lastBackupTime;
   final DateTime? nextBackupTime;
   final int estimatedSize;
-  final Map<String, dynamic> storageInfo;
   final bool isAuthenticated;
   final String? userEmail;
+
+  /// Item-count summary for the backup payload. Null until first load.
+  final BackupContentSummary? contentSummary;
 
   const BackupLoaded({
     required this.autoBackupEnabled,
@@ -42,9 +46,9 @@ class BackupLoaded extends BackupState {
     this.lastBackupTime,
     this.nextBackupTime,
     required this.estimatedSize,
-    required this.storageInfo,
     required this.isAuthenticated,
     this.userEmail,
+    this.contentSummary,
   });
 
   @override
@@ -57,9 +61,9 @@ class BackupLoaded extends BackupState {
         lastBackupTime,
         nextBackupTime,
         estimatedSize,
-        storageInfo,
         isAuthenticated,
         userEmail,
+        contentSummary,
       ];
 
   /// Create a copy with updated values
@@ -72,9 +76,9 @@ class BackupLoaded extends BackupState {
     DateTime? lastBackupTime,
     DateTime? nextBackupTime,
     int? estimatedSize,
-    Map<String, dynamic>? storageInfo,
     bool? isAuthenticated,
     String? userEmail,
+    BackupContentSummary? contentSummary,
   }) {
     return BackupLoaded(
       autoBackupEnabled: autoBackupEnabled ?? this.autoBackupEnabled,
@@ -85,9 +89,9 @@ class BackupLoaded extends BackupState {
       lastBackupTime: lastBackupTime ?? this.lastBackupTime,
       nextBackupTime: nextBackupTime ?? this.nextBackupTime,
       estimatedSize: estimatedSize ?? this.estimatedSize,
-      storageInfo: storageInfo ?? this.storageInfo,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       userEmail: userEmail ?? this.userEmail,
+      contentSummary: contentSummary ?? this.contentSummary,
     );
   }
 }
@@ -107,6 +111,11 @@ class BackupCreated extends BackupState {
   List<Object?> get props => [timestamp];
 }
 
+/// Signing in to Google Drive state
+class BackupSigningIn extends BackupState {
+  const BackupSigningIn();
+}
+
 /// Restoring backup state
 class BackupRestoring extends BackupState {
   const BackupRestoring();
@@ -114,7 +123,11 @@ class BackupRestoring extends BackupState {
 
 /// Backup restored successfully
 class BackupRestored extends BackupState {
-  const BackupRestored();
+  final String? restoredVersion;
+  const BackupRestored({this.restoredVersion});
+
+  @override
+  List<Object?> get props => [restoredVersion];
 }
 
 /// Error state
@@ -137,8 +150,11 @@ class BackupSuccess extends BackupState {
   final String title;
   final String message;
 
-  const BackupSuccess(this.title, this.message);
+  /// Optional content summary shown in the success overlay.
+  final BackupContentSummary? contentSummary;
+
+  const BackupSuccess(this.title, this.message, {this.contentSummary});
 
   @override
-  List<Object?> get props => [title, message];
+  List<Object?> get props => [title, message, contentSummary];
 }

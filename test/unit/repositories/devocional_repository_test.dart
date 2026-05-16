@@ -4,7 +4,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:devocional_nuevo/constants/devocional_years.dart';
+import 'package:devocional_nuevo/utils/constants/devocional_years.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
@@ -79,13 +79,16 @@ void main() {
 
     // Default stubs: index unreachable (offline), no sidecar
     when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => null);
-    when(() => mockIndexService.getFileDate(any(), any(), any(), any()))
-        .thenReturn(null);
+    when(
+      () => mockIndexService.getFileDate(any(), any(), any(), any()),
+    ).thenReturn(null);
     when(() => mockIndexService.extractAvailableYears(any())).thenReturn([]);
-    when(() => mockMetadataService.readManifestDate(any()))
-        .thenAnswer((_) async => null);
-    when(() => mockMetadataService.writeMetadata(any(), any()))
-        .thenAnswer((_) async {});
+    when(
+      () => mockMetadataService.readManifestDate(any()),
+    ).thenAnswer((_) async => null);
+    when(
+      () => mockMetadataService.writeMetadata(any(), any()),
+    ).thenAnswer((_) async {});
 
     repository = DevocionalRepositoryImpl(
       httpClient: mockHttpClient,
@@ -110,8 +113,9 @@ void main() {
 
   group('fetchAll — HTTP 200', () {
     test('returns parsed List<Devocional> from HTTP 200 response', () async {
-      final responseBody =
-          json.encode(_buildApiResponse(language: 'es', version: 'RVR1960'));
+      final responseBody = json.encode(
+        _buildApiResponse(language: 'es', version: 'RVR1960'),
+      );
 
       when(() => mockHttpClient.get(any())).thenAnswer(
         (_) async => http.Response.bytes(
@@ -134,12 +138,14 @@ void main() {
     test('falls back to local storage when HTTP throws', () async {
       // Write a local file first
       final file = File('$testDir/devocionales/devocional_2025_es.json');
-      final localContent =
-          json.encode(_buildApiResponse(language: 'es', version: 'RVR1960'));
+      final localContent = json.encode(
+        _buildApiResponse(language: 'es', version: 'RVR1960'),
+      );
       await file.writeAsString(localContent);
 
-      when(() => mockHttpClient.get(any()))
-          .thenThrow(Exception('Network error'));
+      when(
+        () => mockHttpClient.get(any()),
+      ).thenThrow(Exception('Network error'));
 
       final result = await repository.fetchAll(2025, 'es', 'RVR1960');
 
@@ -148,8 +154,9 @@ void main() {
     });
 
     test('returns empty list when both HTTP and local storage fail', () async {
-      when(() => mockHttpClient.get(any()))
-          .thenThrow(Exception('Network error'));
+      when(
+        () => mockHttpClient.get(any()),
+      ).thenThrow(Exception('Network error'));
 
       // No local file exists — using a year that won't have a cached file
       final result = await repository.fetchAll(2099, 'es', 'RVR1960');
@@ -158,8 +165,9 @@ void main() {
     });
 
     test('returns empty list on HTTP non-200 with no local cache', () async {
-      when(() => mockHttpClient.get(any()))
-          .thenAnswer((_) async => http.Response('Not Found', 404));
+      when(
+        () => mockHttpClient.get(any()),
+      ).thenAnswer((_) async => http.Response('Not Found', 404));
 
       final result = await repository.fetchAll(2099, 'en', 'NIV');
 
@@ -253,18 +261,19 @@ void main() {
 
   group('downloadAndStoreDevocionales', () {
     test('saves file to local storage on HTTP 200 success', () async {
-      final responseBody =
-          json.encode(_buildApiResponse(language: 'es', version: 'RVR1960'));
-
-      when(() => mockHttpClient.get(any())).thenAnswer(
-        (_) async => http.Response.bytes(
-          utf8.encode(responseBody),
-          200,
-        ),
+      final responseBody = json.encode(
+        _buildApiResponse(language: 'es', version: 'RVR1960'),
       );
 
-      final result =
-          await repository.downloadAndStoreDevocionales(2025, 'es', 'RVR1960');
+      when(() => mockHttpClient.get(any())).thenAnswer(
+        (_) async => http.Response.bytes(utf8.encode(responseBody), 200),
+      );
+
+      final result = await repository.downloadAndStoreDevocionales(
+        2025,
+        'es',
+        'RVR1960',
+      );
 
       expect(result, isTrue);
 
@@ -273,21 +282,29 @@ void main() {
     });
 
     test('returns false and does not write on HTTP 404', () async {
-      when(() => mockHttpClient.get(any()))
-          .thenAnswer((_) async => http.Response('Not Found', 404));
+      when(
+        () => mockHttpClient.get(any()),
+      ).thenAnswer((_) async => http.Response('Not Found', 404));
 
-      final result =
-          await repository.downloadAndStoreDevocionales(2099, 'es', 'RVR1960');
+      final result = await repository.downloadAndStoreDevocionales(
+        2099,
+        'es',
+        'RVR1960',
+      );
 
       expect(result, isFalse);
     });
 
     test('returns false on HTTP 500 error', () async {
-      when(() => mockHttpClient.get(any()))
-          .thenAnswer((_) async => http.Response('Server Error', 500));
+      when(
+        () => mockHttpClient.get(any()),
+      ).thenAnswer((_) async => http.Response('Server Error', 500));
 
-      final result =
-          await repository.downloadAndStoreDevocionales(2099, 'es', 'RVR1960');
+      final result = await repository.downloadAndStoreDevocionales(
+        2099,
+        'es',
+        'RVR1960',
+      );
 
       expect(result, isFalse);
     });
@@ -304,8 +321,9 @@ void main() {
 
     test('is true after fetchAll when index is unreachable', () async {
       when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => mockHttpClient.get(any()))
-          .thenThrow(Exception('Network error'));
+      when(
+        () => mockHttpClient.get(any()),
+      ).thenThrow(Exception('Network error'));
 
       await repository.fetchAll(2099, 'es', 'RVR1960');
 
@@ -314,8 +332,9 @@ void main() {
 
     test('is false after resetCache', () async {
       when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => mockHttpClient.get(any()))
-          .thenThrow(Exception('Network error'));
+      when(
+        () => mockHttpClient.get(any()),
+      ).thenThrow(Exception('Network error'));
 
       await repository.fetchAll(2099, 'es', 'RVR1960');
       repository.resetCache();
@@ -330,10 +349,7 @@ void main() {
 
   group('findFirstUnreadDevocionalIndex', () {
     test('returns 0 for empty list', () {
-      expect(
-        repository.findFirstUnreadDevocionalIndex([], ['id1']),
-        0,
-      );
+      expect(repository.findFirstUnreadDevocionalIndex([], ['id1']), 0);
     });
 
     test('returns index of first unread devotional', () {
@@ -418,8 +434,9 @@ void main() {
       };
 
       when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => index);
-      when(() => mockIndexService.extractAvailableYears(any()))
-          .thenReturn([2025, 2026, 2027]);
+      when(
+        () => mockIndexService.extractAvailableYears(any()),
+      ).thenReturn([2025, 2026, 2027]);
 
       // Reset cache so the new stub is used
       repository.resetCache();
@@ -428,16 +445,20 @@ void main() {
       expect(result, [2025, 2026, 2027]);
     });
 
-    test('falls back to DevocionalYears.availableYears when index is null',
-        () async {
-      when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => null);
-      when(() => mockIndexService.extractAvailableYears(any())).thenReturn([]);
+    test(
+      'falls back to DevocionalYears.availableYears when index is null',
+      () async {
+        when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => null);
+        when(
+          () => mockIndexService.extractAvailableYears(any()),
+        ).thenReturn([]);
 
-      repository.resetCache();
-      final result = await repository.getAvailableYears();
+        repository.resetCache();
+        final result = await repository.getAvailableYears();
 
-      expect(result, DevocionalYears.availableYears);
-    });
+        expect(result, DevocionalYears.availableYears);
+      },
+    );
 
     test('falls back when index returns empty year list', () async {
       final index = {'schema_version': 1, 'files': <String, dynamic>{}};
@@ -462,8 +483,9 @@ void main() {
       };
 
       when(() => mockIndexService.fetchIndex()).thenAnswer((_) async => index);
-      when(() => mockIndexService.extractAvailableYears(any()))
-          .thenReturn([2025, 2026]);
+      when(
+        () => mockIndexService.extractAvailableYears(any()),
+      ).thenReturn([2025, 2026]);
 
       repository.resetCache();
       final result = await repository.getAvailableYears();
@@ -481,8 +503,9 @@ void main() {
 
   group('All tests use mocked http.Client', () {
     test('no real network calls are made', () async {
-      when(() => mockHttpClient.get(any()))
-          .thenAnswer((_) async => http.Response('{"data":{}}', 200));
+      when(
+        () => mockHttpClient.get(any()),
+      ).thenAnswer((_) async => http.Response('{"data":{}}', 200));
 
       // Force an API fetch (no local file for year 2099)
       await repository.fetchAll(2099, 'es', 'RVR1960');

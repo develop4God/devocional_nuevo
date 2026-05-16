@@ -202,7 +202,7 @@
   },
   "application_language": {
     "title": "アプリケーション言語",
-    "description": "アプリケーションで使用したい言語を選択してダウンロードしてください。各言語には、インターフェース、デボーション、聖句、音声リーダーが含まれています。",
+    "description": "アプリケーションで使用したい言語を選択してダウンロードしてください。各言語には、インターフェース、デボーション、聖句、音声リーダーが含まれています。進捗と統計は言語ごとに保存されます。",
     "current_language": "現在の言語",
     "download_failed": "言語コンテンツのダウンロードに失敗しました。再試行してください。",
     "downloading": "ダウンロード中...",
@@ -467,6 +467,8 @@
     "favorite_devotionals": "お気に入りデボーション",
     "favorite_devotionals_size": "25アイテム、~50 KB",
     "saved_prayers": "保存された祈り",
+    "saved_verses": "保存された聖句",
+    "read_devotionals": "読んだデボーショナル",
     "saved_prayers_size": "10アイテム、~15 KB",
     "storage_management": "ストレージ管理",
     "google_drive_storage": "Google Driveストレージ",
@@ -519,7 +521,13 @@
     "more_options": "その他のオプション",
     "optimization": "最適化",
     "account_management": "アカウント管理",
-    "logout_google_drive": "Google Driveからログアウト"
+    "logout_google_drive": "Google Driveからログアウト",
+    "signing_in_title": "Google Driveに接続中",
+    "signing_in_subtitle": "あなたの霊的な進歩を守るために本人確認を行っています...",
+    "restoring_title": "データを復元中",
+    "restoring_subtitle": "Google Driveにバックアップが見つかりました。霊的な進歩を取り戻しています...",
+    "protected_title": "データが保護されました！",
+    "protected_subtitle": "あなたの霊的な進歩は、個人のGoogle Driveに安全に保存されています。"
   },
   "review": {
     "title": "あなたの継続に感謝します 🙏",

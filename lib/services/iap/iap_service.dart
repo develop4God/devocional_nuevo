@@ -52,11 +52,12 @@ class IapService implements IIapService {
   final StreamController<String> _cancelledController =
       StreamController<String>.broadcast();
 
-  final StreamController<SupporterTier> _deliveredController =
-      StreamController<SupporterTier>.broadcast();
+  final StreamController<(SupporterTier, bool)> _deliveredController =
+      StreamController<(SupporterTier, bool)>.broadcast();
 
   @override
-  Stream<SupporterTier> get onPurchaseDelivered => _deliveredController.stream;
+  Stream<(SupporterTier, bool)> get onPurchaseDelivered =>
+      _deliveredController.stream;
 
   @override
   Stream<String> get onPurchaseError => _errorController.stream;
@@ -149,8 +150,11 @@ class IapService implements IIapService {
 
   @override
   Future<IapResult> purchaseTier(SupporterTier tier) async {
-    if (!_isAvailable) {
-      debugPrint('⚠️ [IapService] Billing unavailable');
+    // Re-check live availability instead of relying on cached flag
+    final available = await _iap.isAvailable();
+    if (!available) {
+      _isAvailable = false;
+      debugPrint('⚠️ [IapService] Billing unavailable at purchase time');
       return IapResult.error;
     }
 
@@ -165,7 +169,8 @@ class IapService implements IIapService {
       final started = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
       if (!started) {
         debugPrint(
-            '⚠️ [IapService] Purchase not started for ${tier.productId}');
+          '⚠️ [IapService] Purchase not started for ${tier.productId}',
+        );
         return IapResult.error;
       }
       return IapResult.pending;
@@ -190,6 +195,7 @@ class IapService implements IIapService {
     // Set _disposed BEFORE cancelling the subscription so any in-flight
     // _handlePurchase callback is silently dropped.
     _disposed = true;
+    _isAvailable = false;
     await _purchaseSubscription?.cancel();
     _purchaseSubscription = null;
     // Guard each controller individually: if one close() throws or is already
@@ -224,7 +230,10 @@ class IapService implements IIapService {
   void forceReinitialize() {
     if (!kDebugMode) return;
     debugPrint('🔄 [IapService] Forcing re-initialization');
+    _purchaseSubscription?.cancel();
+    _purchaseSubscription = null;
     _isInitialized = false;
+    _isAvailable = false;
     _purchasedLevels.clear();
     _deliveredProductIds.clear();
     _initStatus = IapInitStatus.notStarted;
@@ -239,7 +248,8 @@ class IapService implements IIapService {
 
       if (response.error != null) {
         debugPrint(
-            '⚠️ [IapService] Product query error: ${response.error!.message}');
+          '⚠️ [IapService] Product query error: ${response.error!.message}',
+        );
       }
 
       for (final product in response.productDetails) {
@@ -249,7 +259,8 @@ class IapService implements IIapService {
 
       if (response.notFoundIDs.isNotEmpty) {
         debugPrint(
-            '⚠️ [IapService] Products not found: ${response.notFoundIDs}');
+          '⚠️ [IapService] Products not found: ${response.notFoundIDs}',
+        );
       }
     } catch (e) {
       debugPrint('❌ [IapService] Error loading products: $e');
@@ -259,7 +270,9 @@ class IapService implements IIapService {
 
   void _onPurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) {
     for (final purchase in purchaseDetailsList) {
-      _handlePurchase(purchase);
+      _handlePurchase(purchase).catchError((Object e) {
+        debugPrint('❌ [IapService] Unhandled purchase handler error: $e');
+      });
     }
   }
 
@@ -267,7 +280,8 @@ class IapService implements IIapService {
     // Guard: ignore events that arrive after dispose() was called.
     if (_disposed) {
       debugPrint(
-          '⚠️ [IapService] Ignoring purchase update after dispose: ${purchase.productID}');
+        '⚠️ [IapService] Ignoring purchase update after dispose: ${purchase.productID}',
+      );
       return;
     }
 
@@ -293,14 +307,18 @@ class IapService implements IIapService {
       // badge without paying.  If revenue grows, add server-side receipt
       // validation here (Google Play Developer API / Apple App Store Server
       // Notifications) before calling _deliverProduct().
-      await _deliverProduct(purchase.productID);
+      await _deliverProduct(
+        purchase.productID,
+        isRestore: purchase.status == PurchaseStatus.restored,
+      );
     } else if (purchase.status == PurchaseStatus.canceled) {
       // User dismissed / backed out of the payment sheet (back button, system
       // navigation, or explicit cancel).  Emit to the cancelled stream so
       // SupporterBloc clears purchasingProductId and stops the infinite
       // spinner on the tier card — without showing an error snackbar.
       debugPrint(
-          '🚫 [IapService] Purchase cancelled by user: ${purchase.productID}');
+        '🚫 [IapService] Purchase cancelled by user: ${purchase.productID}',
+      );
       if (!_cancelledController.isClosed) {
         _cancelledController.add(purchase.productID);
       }
@@ -314,8 +332,10 @@ class IapService implements IIapService {
       final errorCode = int.tryParse(purchase.error?.code ?? '');
       final isCancelledOnIos = errorCode == kSkErrorPaymentCancelled;
 
-      debugPrint('❌ [IapService] Purchase error: ${purchase.error} '
-          '(isCancelledOnIos=$isCancelledOnIos)');
+      debugPrint(
+        '❌ [IapService] Purchase error: ${purchase.error} '
+        '(isCancelledOnIos=$isCancelledOnIos)',
+      );
 
       if (isCancelledOnIos) {
         if (!_cancelledController.isClosed) {
@@ -336,7 +356,10 @@ class IapService implements IIapService {
     }
   }
 
-  Future<void> _deliverProduct(String productId) async {
+  Future<void> _deliverProduct(
+    String productId, {
+    required bool isRestore,
+  }) async {
     final tier = SupporterTier.fromProductId(productId);
     if (tier == null) {
       debugPrint('⚠️ [IapService] Unknown productId delivered: $productId');
@@ -346,7 +369,8 @@ class IapService implements IIapService {
     // Skip if already delivered (deduplication for restore calls)
     if (_deliveredProductIds.contains(productId)) {
       debugPrint(
-          '⏭️ [IapService] Skipping duplicate delivery: $productId (already delivered)');
+        '⏭️ [IapService] Skipping duplicate delivery: $productId (already delivered)',
+      );
       return;
     }
 
@@ -356,7 +380,7 @@ class IapService implements IIapService {
 
     // Notify listeners via broadcast stream (guarded against closed controller)
     if (!_deliveredController.isClosed) {
-      _deliveredController.add(tier);
+      _deliveredController.add((tier, isRestore));
     }
 
     debugPrint('✅ [IapService] Delivered: $productId (${tier.level})');

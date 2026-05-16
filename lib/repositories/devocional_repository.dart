@@ -59,10 +59,7 @@ abstract class DevocionalRepository {
   ///
   /// Tries version fallback if primary download fails for a year.
   /// Returns true when all years succeeded.
-  Future<bool> downloadCurrentYearDevocionales(
-    String language,
-    String version,
-  );
+  Future<bool> downloadCurrentYearDevocionales(String language, String version);
 
   /// Returns true when a local cache file exists for the current year.
   Future<bool> hasCurrentYearLocalData(String language, String version);

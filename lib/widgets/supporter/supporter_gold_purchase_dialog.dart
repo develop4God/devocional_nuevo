@@ -78,7 +78,9 @@ class _SupporterGoldPurchaseDialogState
   void initState() {
     super.initState();
     _fadeCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 450));
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeIn);
     _fadeCtrl.forward();
     // Mark as pending immediately so crash-recovery banner appears if needed
@@ -187,12 +189,15 @@ class _SupporterGoldPurchaseDialogState
                       side: const BorderSide(color: _gold, width: 1.5),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                     child: Text(
                       'supporter.gold_back_confirm'.tr(),
                       style: const TextStyle(
-                          color: _gold, fontWeight: FontWeight.bold),
+                        color: _gold,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -225,9 +230,7 @@ class _SupporterGoldPurchaseDialogState
     if (!mounted) return;
     final navigator = Navigator.of(context, rootNavigator: true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      navigator.pushReplacement(
-        MaterialPageRoute(builder: (_) => page),
-      );
+      navigator.pushReplacement(MaterialPageRoute(builder: (_) => page));
     });
   }
 
@@ -272,70 +275,33 @@ class _SupporterGoldPurchaseDialogState
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // ── Header with step indicator and back button ──────────
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Stack(
+                      alignment: Alignment.center,
                       children: [
-                        // Back button (only on pet phase — name is first, confirmation is done)
+                        // Center the step indicator
+                        _buildStepIndicator(),
+
+                        // Back button — positioned left (only on pet phase)
                         if (_phase == _GoldPhase.pet)
-                          SizedBox(
-                            width: 36,
-                            height: 36,
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () => _advanceTo(_GoldPhase.name),
-                                borderRadius: BorderRadius.circular(18),
-                                child: const Icon(
-                                  Icons.arrow_back_ios_new,
-                                  color: _gold,
-                                  size: 18,
+                          Positioned(
+                            left: 0,
+                            child: SizedBox(
+                              width: 36,
+                              height: 36,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () => _advanceTo(_GoldPhase.name),
+                                  borderRadius: BorderRadius.circular(18),
+                                  child: const Icon(
+                                    Icons.arrow_back_ios_new,
+                                    color: _gold,
+                                    size: 18,
+                                  ),
                                 ),
                               ),
                             ),
-                          )
-                        else
-                          const SizedBox(width: 36),
-
-                        // Step indicator — i18n keys, hidden on confirmation
-                        if (_phase == _GoldPhase.name)
-                          AutoSizeText(
-                            'supporter.gold_step_name'.tr(),
-                            style: const TextStyle(
-                              color: _gold,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                            maxLines: 1,
-                            minFontSize: 11,
-                            maxFontSize: 13,
-                          )
-                        else if (_phase == _GoldPhase.pet)
-                          AutoSizeText(
-                            'supporter.gold_step_pet'.tr(),
-                            style: const TextStyle(
-                              color: _gold,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                            maxLines: 1,
-                            minFontSize: 11,
-                            maxFontSize: 13,
-                          )
-                        else
-                          AutoSizeText(
-                            'onboarding.onboarding_complete_title'.tr(),
-                            style: const TextStyle(
-                              color: _gold,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                            maxLines: 1,
-                            minFontSize: 11,
-                            maxFontSize: 13,
                           ),
-
-                        // Placeholder for alignment
-                        const SizedBox(width: 36),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -366,6 +332,50 @@ class _SupporterGoldPurchaseDialogState
     }
   }
 
+  Widget _buildStepIndicator() {
+    switch (_phase) {
+      case _GoldPhase.name:
+        return AutoSizeText(
+          'supporter.gold_step_name'.tr(),
+          style: const TextStyle(
+            color: _gold,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+          maxLines: 1,
+          minFontSize: 11,
+          maxFontSize: 13,
+          textAlign: TextAlign.center,
+        );
+      case _GoldPhase.pet:
+        return AutoSizeText(
+          'supporter.gold_step_pet'.tr(),
+          style: const TextStyle(
+            color: _gold,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+          maxLines: 1,
+          minFontSize: 11,
+          maxFontSize: 13,
+          textAlign: TextAlign.center,
+        );
+      case _GoldPhase.confirmation:
+        return AutoSizeText(
+          'onboarding.onboarding_complete_title'.tr(),
+          style: const TextStyle(
+            color: _gold,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+          maxLines: 1,
+          minFontSize: 11,
+          maxFontSize: 13,
+          textAlign: TextAlign.center,
+        );
+    }
+  }
+
   // ── Phase 0: Name ─────────────────────────────────────────────────────────
 
   Widget _buildNamePhase() {
@@ -374,11 +384,18 @@ class _SupporterGoldPurchaseDialogState
       mainAxisSize: MainAxisSize.min,
       children: [
         // Badge + confetti
-        Stack(alignment: Alignment.center, children: [
-          Lottie.asset('assets/lottie/confetti.json',
-              width: 180, height: 180, repeat: false),
-          _GoldCircle(emoji: widget.tier.emoji),
-        ]),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Lottie.asset(
+              'assets/lottie/confetti.json',
+              width: 180,
+              height: 180,
+              repeat: false,
+            ),
+            _GoldCircle(emoji: widget.tier.emoji),
+          ],
+        ),
         const SizedBox(height: 12),
 
         // Shimmer title - responsive with autofit
@@ -467,12 +484,17 @@ class _SupporterGoldPurchaseDialogState
               height: 1.5,
             ),
             helperMaxLines: 2,
-            prefixIcon:
-                const Icon(Icons.badge_outlined, color: _gold, size: 22),
+            prefixIcon: const Icon(
+              Icons.badge_outlined,
+              color: _gold,
+              size: 22,
+            ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide:
-                  BorderSide(color: _gold.withValues(alpha: 0.4), width: 1.5),
+              borderSide: BorderSide(
+                color: _gold.withValues(alpha: 0.4),
+                width: 1.5,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -582,12 +604,23 @@ class _SupporterGoldPurchaseDialogState
       mainAxisSize: MainAxisSize.min,
       children: [
         // Trophy + confetti
-        Stack(alignment: Alignment.center, children: [
-          Lottie.asset('assets/lottie/confetti.json',
-              width: 200, height: 200, repeat: false),
-          Lottie.asset('assets/lottie/trophy_star.json',
-              width: 110, height: 110, repeat: false),
-        ]),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Lottie.asset(
+              'assets/lottie/confetti.json',
+              width: 200,
+              height: 200,
+              repeat: false,
+            ),
+            Lottie.asset(
+              'assets/lottie/trophy_star.json',
+              width: 110,
+              height: 110,
+              repeat: false,
+            ),
+          ],
+        ),
         const SizedBox(height: 8),
 
         // Shimmer title - responsive with autofit
@@ -650,16 +683,14 @@ class _SupporterGoldPurchaseDialogState
               maxLines: 1,
               minFontSize: 12,
               maxFontSize: 15,
-              style: const TextStyle(
-                color: _gold,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(color: _gold, fontWeight: FontWeight.w700),
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               side: const BorderSide(color: _gold, width: 1.5),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
+                borderRadius: BorderRadius.circular(20),
+              ),
             ),
           ),
         ),
@@ -697,9 +728,7 @@ class _GoldCircle extends StatelessWidget {
           ),
         ],
       ),
-      child: Center(
-        child: Text(emoji, style: const TextStyle(fontSize: 40)),
-      ),
+      child: Center(child: Text(emoji, style: const TextStyle(fontSize: 40))),
     );
   }
 }
@@ -709,8 +738,11 @@ class _PetCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _PetCard(
-      {required this.pet, required this.isSelected, required this.onTap});
+  const _PetCard({
+    required this.pet,
+    required this.isSelected,
+    required this.onTap,
+  });
 
   static const _gold = Color(0xFFFFD700);
 
@@ -733,7 +765,7 @@ class _PetCard extends StatelessWidget {
                   color: _gold.withValues(alpha: 0.35),
                   blurRadius: 12,
                   spreadRadius: 1,
-                )
+                ),
               ]
             : null,
       ),

@@ -7,7 +7,14 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../models/supporter_tier.dart';
 
 /// Result of a purchase initiation call.
-enum IapResult { success, cancelled, error, pending }
+enum IapResult {
+  /// Reserved for future use — currently unused.
+  /// purchaseTier() returns [pending] on successful launch initiation.
+  success,
+  cancelled,
+  error,
+  pending,
+}
 
 /// Describes the outcome of [IIapService.initialize].
 enum IapInitStatus {
@@ -29,9 +36,11 @@ enum IapInitStatus {
 /// Depend on this interface (not the concrete class) for
 /// Dependency Inversion and easy test mocking.
 abstract class IIapService {
-  /// Broadcast stream that emits a [SupporterTier] each time a
-  /// product is successfully delivered (purchased or restored).
-  Stream<SupporterTier> get onPurchaseDelivered;
+  /// Broadcast stream that emits a record `(SupporterTier, bool)` each time a
+  /// product is successfully delivered. The tuple contains the delivered
+  /// `SupporterTier` and a boolean `isRestore` which is `true` when the
+  /// delivery originated from a restore operation.
+  Stream<(SupporterTier, bool)> get onPurchaseDelivered;
 
   /// Broadcast stream that emits a product ID when a purchase fails at store level.
   Stream<String> get onPurchaseError;

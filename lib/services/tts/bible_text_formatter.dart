@@ -21,6 +21,13 @@ class BibleTextFormatter {
     // Remove C0 control characters except common whitespace (tab/newline/carriage)
     out = out.replaceAll(RegExp(r"[\x00-\x08\x0B\x0C\x0E-\x1F]"), '');
 
+    // Remove Unicode "Enclosed Alphanumerics" (U+2460–U+24FF): circled numbers
+    // (①②③…), circled uppercase letters (Ⓐ–Ⓩ), and circled lowercase letters
+    // (ⓐ–ⓩ). These are used as inline footnote markers in Bible databases
+    // (e.g. MBB05 "Sinabi ⓐ ng Diyos" → "Sinabi ng Diyos") and should be
+    // stripped before TTS across ALL Bible versions and languages.
+    out = out.replaceAll(RegExp(r'[\u2460-\u24FF]'), '');
+
     // Also trim and normalize multiple whitespace to single spaces for stable matching
     out = out.replaceAll(RegExp(r"\s+"), ' ').trim();
     return out;
@@ -54,6 +61,8 @@ class BibleTextFormatter {
         return _formatBibleBookHindi(reference);
       case 'ar':
         return _formatBibleBookArabic(reference);
+      case 'fil':
+        return _formatBibleBookFilipino(reference);
       default:
         debugPrint(
           '[BibleTextFormatter] Unknown language "$language", using Spanish as default',
@@ -241,6 +250,31 @@ class BibleTextFormatter {
     });
   }
 
+  /// Formato para libros bíblicos en tagalo (con ordinales para 1, 2, 3)
+  static String _formatBibleBookFilipino(String reference) {
+    // Filipino uses ordinals for numbered books (1 Juan -> Una Juan)
+    // Pattern to match digit + Tagalog book name (Latin with diacritics)
+    final exp = RegExp(
+      r'(?:^|\s)([123])\s+([A-Za-záéíóúñÁÉÍÓÚÑ]+)',
+      caseSensitive: false,
+    );
+    final ordinals = {
+      '1': 'Una', // First (Una)
+      '2': 'Pangalawa', // Second (Pangalawa)
+      '3': 'Pangatlo', // Third (Pangatlo)
+    };
+
+    return reference.replaceAllMapped(exp, (match) {
+      final matchText = match.group(0) ?? '';
+      final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
+      final number = match.group(1) ?? '';
+      final bookName = match.group(2) ?? '';
+      if (number.isEmpty || bookName.isEmpty) return matchText;
+      final ordinal = ordinals[number] ?? number;
+      return '$prefix$ordinal $bookName';
+    });
+  }
+
   /// Get Bible version expansions based on language
   static Map<String, String> getBibleVersionExpansions(String language) {
     switch (language) {
@@ -269,6 +303,8 @@ class BibleTextFormatter {
           'LU17': 'Lutherbibel zweitausendsiebzehn',
           'SCH2000': 'Schlachter zweitausend',
         };
+      case 'ja':
+        return {'新改訳2003': '新改訳にせんさんねん', 'リビングバイブル': 'リビングバイブル'};
       case 'zh':
         return {'和合本1919': '和合本一九一九', '新译本': '新译本'};
       case 'hi':
@@ -282,9 +318,12 @@ class BibleTextFormatter {
           'OV': 'पुराना संस्करण',
         };
       case 'ar':
+        return {'NAV': 'كتاب الحياة', 'SVDA': 'الكتاب المقدس — فان دايك'};
+      case 'fil':
         return {
-          'NAV': 'كتاب الحياة',
-          'SVDA': 'الكتاب المقدس — فان دايك',
+          'MBB05': 'Magandang Balita Biblia',
+          'ASND': 'Ang Salita ng Dios',
+          'ADB': 'Ang Dating Biblia',
         };
       default:
         return {'RVR1960': 'Reina Valera mil novecientos sesenta'};
@@ -335,6 +374,8 @@ class BibleTextFormatter {
       // Hindi: capítulo=अध्याय (adhyāya), versículo=पद (pada)
       'ar': 'الإصحاح|الآية',
       // Arabic: capítulo=الإصحاح (chapter), versículo=الآية (verse)
+      'fil': 'kabanata|talata',
+      // Filipino: capítulo=kabanata, versículo=talata
     };
 
     final words = referenceWords[language] ?? 'capítulo|versículo';
@@ -397,7 +438,9 @@ class BibleTextFormatter {
                                     ? 'से'
                                     : language == 'ar'
                                         ? 'إلى'
-                                        : 'al';
+                                        : language == 'fil'
+                                            ? 'hanggang'
+                                            : 'al';
         result += ' $toWord $verseEnd';
       }
       return result;

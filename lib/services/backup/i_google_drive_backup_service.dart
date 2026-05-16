@@ -4,8 +4,9 @@
 // Depend on this interface (not the concrete class) for
 // Dependency Inversion and easy test mocking.
 
-import '../blocs/prayer_bloc.dart';
-import '../providers/devocional_provider.dart';
+import '../../blocs/prayer_bloc.dart';
+import '../../models/backup_content_summary.dart';
+import '../../providers/devocional_provider.dart';
 
 /// Frequency constant — backup runs daily (app startup check).
 const String kBackupFrequencyDaily = 'daily';
@@ -59,16 +60,16 @@ abstract class IGoogleDriveBackupService {
   /// Get estimated backup size in bytes.
   Future<int> getEstimatedBackupSize(DevocionalProvider? provider);
 
-  /// Get storage usage info from Google Drive API.
-  Future<Map<String, dynamic>> getStorageInfo();
+  /// Get a summary of content item counts currently stored locally.
+  ///
+  /// Reads the same SharedPreferences keys used by [createBackup], so the
+  /// counts reflect exactly what will be included in the next backup.
+  Future<BackupContentSummary> getBackupContentSummary();
 
   // ── Backup / Restore ───────────────────────────────────────────────────────
 
   /// Create a backup on Google Drive.
   Future<bool> createBackup(DevocionalProvider? provider);
-
-  /// Restore the most recent backup from Google Drive.
-  Future<bool> restoreBackup();
 
   /// Check whether an automatic backup should be created now.
   Future<bool> shouldCreateAutoBackup();
@@ -77,11 +78,7 @@ abstract class IGoogleDriveBackupService {
   Future<Map<String, dynamic>?> checkForExistingBackup();
 
   /// Restore backup from existing file on Google Drive.
-  Future<bool> restoreExistingBackup(
-    String fileId, {
-    DevocionalProvider? devocionalProvider,
-    PrayerBloc? prayerBloc,
-  });
+  Future<bool> restoreExistingBackup(String fileId, {PrayerBloc? prayerBloc});
 
   // ── Auth proxy methods ─────────────────────────────────────────────────────
 

@@ -1,4 +1,4 @@
-import 'package:devocional_nuevo/utils/theme_constants.dart';
+import 'package:devocional_nuevo/utils/constants/theme_constants.dart';
 import 'package:flutter/material.dart';
 
 typedef ThemeChangedCallback = void Function(String selectedTheme);

@@ -209,11 +209,7 @@ void main() {
     // SCENARIO 15: User can reset settings to defaults
     test('user can reset settings to defaults', () {
       Map<String, dynamic> resetToDefaults() {
-        return {
-          'language': 'en',
-          'ttsEnabled': false,
-          'ttsPitch': 1.0,
-        };
+        return {'language': 'en', 'ttsEnabled': false, 'ttsPitch': 1.0};
       }
 
       final reset = resetToDefaults();

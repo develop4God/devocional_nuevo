@@ -235,8 +235,10 @@ void main() {
         expect(find.byType(VoiceSelectorDialog), findsNothing);
         // AND: Controller should be in playing state (or loading)
         expect(
-          [TtsPlayerState.loading, TtsPlayerState.playing]
-              .contains(controller.state.value),
+          [
+            TtsPlayerState.loading,
+            TtsPlayerState.playing,
+          ].contains(controller.state.value),
           isTrue,
         );
       });

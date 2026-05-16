@@ -16,9 +16,14 @@ class MainActivity : FlutterActivity() {
     private val GENERAL_CHANNEL = "com.devocional_nuevo.test_channel"
     private val DEEP_LINK_CHANNEL = "com.develop4god.devocional/deeplink"
 
-    // Store initial deep link
+    // Store initial deep link (cold-start, read via getInitialLink channel call)
     private var initialLink: String? = null
-    
+
+    // Deep link received during a warm start (onNewIntent) that must be
+    // dispatched to Flutter only after the activity is fully resumed, so that
+    // the Flutter engine is in "resumed" state when Navigator.push() fires.
+    private var pendingWarmLink: String? = null
+
     // Store FlutterEngine reference for sending deep links while app is running
     private var deepLinkChannel: MethodChannel? = null
 
@@ -105,11 +110,27 @@ class MainActivity : FlutterActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleIntent(intent)
-        
-        // Send deep link to Dart side immediately if app is already running
-        if (initialLink != null && deepLinkChannel != null) {
-            deepLinkChannel?.invokeMethod("onDeepLinkReceived", initialLink)
+
+        // Save the warm-start link as pending instead of dispatching immediately.
+        // When onNewIntent fires the activity (and Flutter engine) are still in
+        // "paused" state — e.g. the FIAM overlay is in the process of closing.
+        // Dispatching here means Navigator.push() runs while Flutter cannot
+        // render frames, which causes the pushed page to be invisible until the
+        // next full rebuild overwrites it.
+        // Dispatch in onResume() instead, where Flutter is guaranteed to be in
+        // "resumed" state and frames are active.
+        if (initialLink != null) {
+            pendingWarmLink = initialLink
             initialLink = null
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Dispatch any warm-start deep link now that the Flutter engine is in
+        // "resumed" state and Navigator transitions will render correctly.
+        val link = pendingWarmLink ?: return
+        pendingWarmLink = null
+        deepLinkChannel?.invokeMethod("onDeepLinkReceived", link)
     }
 }

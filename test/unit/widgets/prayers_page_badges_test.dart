@@ -46,8 +46,9 @@ void main() {
     mockThemeBloc = MockThemeBloc();
 
     // Default testimony state
-    when(() => mockTestimonyBloc.state)
-        .thenReturn(TestimonyLoaded(testimonies: []));
+    when(
+      () => mockTestimonyBloc.state,
+    ).thenReturn(TestimonyLoaded(testimonies: []));
     when(() => mockTestimonyBloc.stream).thenAnswer((_) => Stream.empty());
 
     // Default theme state

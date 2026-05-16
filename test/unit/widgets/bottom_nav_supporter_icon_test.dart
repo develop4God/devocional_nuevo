@@ -90,8 +90,10 @@ void main() {
         'supporter',
       ];
 
-      expect(iconOrder.indexOf('supporter'),
-          greaterThan(iconOrder.indexOf('settings')));
+      expect(
+        iconOrder.indexOf('supporter'),
+        greaterThan(iconOrder.indexOf('settings')),
+      );
       expect(iconOrder.last, equals('supporter'));
     });
 

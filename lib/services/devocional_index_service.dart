@@ -3,7 +3,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:http/http.dart' as http;
 
 /// Single responsibility: fetch and parse the devotional index.json,

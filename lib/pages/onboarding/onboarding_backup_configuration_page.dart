@@ -10,7 +10,7 @@ import '../../blocs/onboarding/onboarding_event.dart';
 import '../../blocs/prayer_bloc.dart';
 import '../../extensions/string_extensions.dart';
 import '../../providers/devocional_provider.dart';
-import '../../services/i_google_drive_backup_service.dart';
+import '../../services/backup/i_google_drive_backup_service.dart';
 import '../../services/service_locator.dart';
 import '../../widgets/backup_settings_content.dart';
 

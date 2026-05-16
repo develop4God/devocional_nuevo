@@ -19,8 +19,10 @@ void main() {
     });
 
     test('selectedAsset returns fallback when not initialized', () {
-      expect(controller.selectedAsset,
-          PostSplashAnimationController.fallbackAsset);
+      expect(
+        controller.selectedAsset,
+        PostSplashAnimationController.fallbackAsset,
+      );
     });
 
     test('initialize shows animation', () {
@@ -56,8 +58,10 @@ void main() {
 
     test('lottieAssets contains expected animation files', () {
       expect(PostSplashAnimationController.lottieAssets.length, 6);
-      expect(PostSplashAnimationController.lottieAssets,
-          contains('assets/lottie/happy_bird.json'));
+      expect(
+        PostSplashAnimationController.lottieAssets,
+        contains('assets/lottie/happy_bird.json'),
+      );
     });
 
     test('animationWidth has reasonable value', () {
@@ -65,8 +69,10 @@ void main() {
     });
 
     test('animationDuration is 7 seconds', () {
-      expect(PostSplashAnimationController.animationDuration,
-          const Duration(seconds: 7));
+      expect(
+        PostSplashAnimationController.animationDuration,
+        const Duration(seconds: 7),
+      );
     });
 
     test('reset() allows showing animation again', () {

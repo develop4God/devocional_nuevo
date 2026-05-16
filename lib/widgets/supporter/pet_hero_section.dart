@@ -37,9 +37,9 @@ class PetHeroSection extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: (selectedTheme.colors as List<Color>)
-                  .first
-                  .withValues(alpha: 0.3),
+              color: (selectedTheme.colors as List<Color>).first.withValues(
+                    alpha: 0.3,
+                  ),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),

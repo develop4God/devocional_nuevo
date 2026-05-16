@@ -202,7 +202,7 @@
   },
   "application_language": {
     "title": "لغة التطبيق",
-    "description": "اختر وحمّل اللغة التي تريد استخدامها للتطبيق. تتضمن كل لغة الواجهة والتأملات والآيات والقارئ الصوتي.",
+    "description": "اختر وحمّل اللغة التي تريد استخدامها للتطبيق. تتضمن كل لغة الواجهة والتأملات والآيات والقارئ الصوتي. يتم حفظ التقدم والإحصائيات بشكل منفصل لكل لغة.",
     "current_language": "اللغة الحالية",
     "download_failed": "خطأ في تحميل محتوى اللغة. يُرجى المحاولة مرة أخرى.",
     "downloading": "جارٍ التحميل...",
@@ -467,6 +467,8 @@
     "favorite_devotionals": "التأملات المفضلة",
     "favorite_devotionals_size": "25 عنصرًا، ~50 كيلوبايت",
     "saved_prayers": "الصلوات المحفوظة",
+    "saved_verses": "آيات محفوظة",
+    "read_devotionals": "التأملات المقروءة",
     "saved_prayers_size": "10 عناصر، ~15 كيلوبايت",
     "storage_management": "إدارة التخزين",
     "google_drive_storage": "مساحة تخزين Google Drive",
@@ -519,7 +521,13 @@
     "more_options": "خيارات إضافية",
     "optimization": "التحسين",
     "account_management": "إدارة الحساب",
-    "logout_google_drive": "تسجيل الخروج من Google Drive"
+    "logout_google_drive": "تسجيل الخروج من Google Drive",
+    "signing_in_title": "الاتصال بـ Google Drive",
+    "signing_in_subtitle": "جارٍ التحقق من هويتك لحماية تقدمك الروحي...",
+    "restoring_title": "استعادة بياناتك",
+    "restoring_subtitle": "وجدنا نسخة احتياطية في Google Drive الخاص بك ونستعيد تقدمك الروحي...",
+    "protected_title": "بياناتك محمية!",
+    "protected_subtitle": "يتم حفظ تقدمك الروحي بأمان في Google Drive الشخصي الخاص بك."
   },
   "review": {
     "title": "شكرًا على مواظبتك 🙏",
