@@ -10,7 +10,7 @@ import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart'; // for TtsState
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
@@ -130,10 +130,12 @@ void main() {
     final localMetadataService = _MockCacheMetadataService();
     final localRepository = _MockDevocionalRepository();
     when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-    when(() => localMetadataService.readManifestDate(any()))
-        .thenAnswer((_) async => null);
-    when(() => localMetadataService.writeMetadata(any(), any()))
-        .thenAnswer((_) async {});
+    when(
+      () => localMetadataService.readManifestDate(any()),
+    ).thenAnswer((_) async => null);
+    when(
+      () => localMetadataService.writeMetadata(any(), any()),
+    ).thenAnswer((_) async {});
     final provider = DevocionalProvider(
       devocionalIndexService: localIndexService,
       cacheMetadataService: localMetadataService,
@@ -158,53 +160,57 @@ void main() {
     expect(schemaVersion, equals(Constants.favoritesSchemaVersion));
   });
 
-  test('migrates legacy favorites to favorite_ids and sets schema version',
-      () async {
-    // Create a legacy-style favorites list (array of serialized devotionals)
-    final legacyDev = Devocional(
-      id: 'legacy-id',
-      versiculo: '',
-      reflexion: '',
-      paraMeditar: <ParaMeditar>[],
-      oracion: '',
-      date: DateTime.now(),
-      version: 'RVR1960',
-    );
+  test(
+    'migrates legacy favorites to favorite_ids and sets schema version',
+    () async {
+      // Create a legacy-style favorites list (array of serialized devotionals)
+      final legacyDev = Devocional(
+        id: 'legacy-id',
+        versiculo: '',
+        reflexion: '',
+        paraMeditar: <ParaMeditar>[],
+        oracion: '',
+        date: DateTime.now(),
+        version: 'RVR1960',
+      );
 
-    final legacyJson = jsonEncode([legacyDev.toJson()]);
+      final legacyJson = jsonEncode([legacyDev.toJson()]);
 
-    // Seed SharedPreferences with the legacy key
-    SharedPreferences.setMockInitialValues({'favorites': legacyJson});
+      // Seed SharedPreferences with the legacy key
+      SharedPreferences.setMockInitialValues({'favorites': legacyJson});
 
-    final localIndexService = _MockDevocionalIndexService();
-    final localMetadataService = _MockCacheMetadataService();
-    final localRepository = _MockDevocionalRepository();
-    when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
-    when(() => localMetadataService.readManifestDate(any()))
-        .thenAnswer((_) async => null);
-    when(() => localMetadataService.writeMetadata(any(), any()))
-        .thenAnswer((_) async {});
-    final provider = DevocionalProvider(
-      devocionalIndexService: localIndexService,
-      cacheMetadataService: localMetadataService,
-      devocionalRepository: localRepository,
-    );
+      final localIndexService = _MockDevocionalIndexService();
+      final localMetadataService = _MockCacheMetadataService();
+      final localRepository = _MockDevocionalRepository();
+      when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
+      when(
+        () => localMetadataService.readManifestDate(any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => localMetadataService.writeMetadata(any(), any()),
+      ).thenAnswer((_) async {});
+      final provider = DevocionalProvider(
+        devocionalIndexService: localIndexService,
+        cacheMetadataService: localMetadataService,
+        devocionalRepository: localRepository,
+      );
 
-    // Trigger reload/migration
-    await provider.reloadFavoritesFromStorage();
+      // Trigger reload/migration
+      await provider.reloadFavoritesFromStorage();
 
-    // Allow async writes to complete
-    await Future.delayed(const Duration(milliseconds: 50));
+      // Allow async writes to complete
+      await Future.delayed(const Duration(milliseconds: 50));
 
-    final prefs = await SharedPreferences.getInstance();
-    final favIdsJson = prefs.getString('favorite_ids');
-    expect(favIdsJson, isNotNull);
+      final prefs = await SharedPreferences.getInstance();
+      final favIdsJson = prefs.getString('favorite_ids');
+      expect(favIdsJson, isNotNull);
 
-    final List<dynamic> decoded =
-        favIdsJson == null ? [] : (jsonDecode(favIdsJson) as List<dynamic>);
-    expect(decoded, contains('legacy-id'));
+      final List<dynamic> decoded =
+          favIdsJson == null ? [] : (jsonDecode(favIdsJson) as List<dynamic>);
+      expect(decoded, contains('legacy-id'));
 
-    final int? schemaVersion = prefs.getInt('favorites_schema_version');
-    expect(schemaVersion, equals(Constants.favoritesSchemaVersion));
-  });
+      final int? schemaVersion = prefs.getInt('favorites_schema_version');
+      expect(schemaVersion, equals(Constants.favoritesSchemaVersion));
+    },
+  );
 }

@@ -85,24 +85,26 @@ void main() {
       expect(controller.currentPosition.value, Duration.zero);
     });
 
-    test('Modal should close when TTS completes (state transition test)',
-        () async {
-      // This tests the state transition that triggers modal closure
-      bool modalClosed = false;
+    test(
+      'Modal should close when TTS completes (state transition test)',
+      () async {
+        // This tests the state transition that triggers modal closure
+        bool modalClosed = false;
 
-      // Listen for completed state
-      controller.state.addListener(() {
-        if (controller.state.value == TtsPlayerState.completed) {
-          modalClosed = true;
-        }
-      });
+        // Listen for completed state
+        controller.state.addListener(() {
+          if (controller.state.value == TtsPlayerState.completed) {
+            modalClosed = true;
+          }
+        });
 
-      // Simulate completion
-      (controller as TtsControllerTestHooks).completePlayback();
+        // Simulate completion
+        (controller as TtsControllerTestHooks).completePlayback();
 
-      // Verify listener was triggered
-      expect(modalClosed, isTrue);
-    });
+        // Verify listener was triggered
+        expect(modalClosed, isTrue);
+      },
+    );
 
     test(
       'Modal should close when TTS goes to idle (manual stop scenario)',

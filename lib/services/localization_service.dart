@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'i_localization_service.dart';
 
 /// Service for managing app localization and translations.
 ///
@@ -19,7 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// final localizationService = getService<LocalizationService>();
 /// await localizationService.initialize();
 /// ```
-class LocalizationService {
+class LocalizationService implements ILocalizationService {
   /// Default constructor for DI registration.
   /// The Service Locator will create and manage the singleton instance.
   LocalizationService();
@@ -35,14 +36,16 @@ class LocalizationService {
     Locale('hi', ''), // Hindi
     Locale('de', ''), // German
     Locale('ar', ''), // Arabic
+    Locale('fil', ''), // Filipino
   ];
 
   // Default locale
-  static const Locale defaultLocale = Locale('es', '');
+  static const Locale defaultLocale = Locale('en', '');
 
   // Current locale
   Locale _currentLocale = defaultLocale;
 
+  @override
   Locale get currentLocale => _currentLocale;
 
   // Translation cache - stores loaded translations by language code to avoid
@@ -160,6 +163,7 @@ class LocalizationService {
   }
 
   /// Change current locale
+  @override
   Future<void> changeLocale(Locale locale) async {
     if (!supportedLocales.contains(locale)) {
       return;
@@ -176,6 +180,7 @@ class LocalizationService {
   }
 
   /// Get translation for given key
+  @override
   String translate(String key, [Map<String, dynamic>? params]) {
     final keys = key.split('.');
     dynamic value = _translations;
@@ -223,6 +228,8 @@ class LocalizationService {
         return 'de-DE';
       case 'ar':
         return 'ar-SA';
+      case 'fil':
+        return 'fil-PH';
       default:
         return 'es-ES';
     }
@@ -249,6 +256,8 @@ class LocalizationService {
         return 'Deutsch';
       case 'ar':
         return 'العربية';
+      case 'fil':
+        return 'Tagalog';
       default:
         return languageCode;
     }
@@ -285,6 +294,8 @@ class LocalizationService {
         return DateFormat('EEEE, d. MMMM', 'de');
       case 'ar':
         return DateFormat('EEEE، d MMMM', 'ar');
+      case 'fil':
+        return DateFormat('EEEE, MMMM d', 'fil');
       default:
         return DateFormat('EEEE, MMMM d', 'en');
     }

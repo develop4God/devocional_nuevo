@@ -68,10 +68,9 @@ void main() {
     });
 
     test('returns false when widget is not mounted after audio stop', () async {
-      bloc.add(InitializeNavigation(
-        initialIndex: 0,
-        devocionales: testDevocionales,
-      ));
+      bloc.add(
+        InitializeNavigation(initialIndex: 0, devocionales: testDevocionales),
+      );
       await Future.delayed(const Duration(milliseconds: 50));
 
       expect(bloc.state, isA<NavigationReady>());
@@ -83,54 +82,60 @@ void main() {
       expect(result, isFalse);
     });
 
-    test('calls onPostNavigation callback after successful next navigation',
-        () async {
-      bloc.add(InitializeNavigation(
-        initialIndex: 0,
-        devocionales: testDevocionales,
-      ));
-      await Future.delayed(const Duration(milliseconds: 50));
+    test(
+      'calls onPostNavigation callback after successful next navigation',
+      () async {
+        bloc.add(
+          InitializeNavigation(initialIndex: 0, devocionales: testDevocionales),
+        );
+        await Future.delayed(const Duration(milliseconds: 50));
 
-      bool callbackCalled = false;
+        bool callbackCalled = false;
 
-      await helper.navigate(
-        direction: DevocionalNavigationDirection.next,
-        isMounted: () => true,
-        onPostNavigation: () {
-          callbackCalled = true;
-        },
-      );
+        await helper.navigate(
+          direction: DevocionalNavigationDirection.next,
+          isMounted: () => true,
+          onPostNavigation: () {
+            callbackCalled = true;
+          },
+        );
 
-      expect(callbackCalled, isTrue);
-    });
+        expect(callbackCalled, isTrue);
+      },
+    );
 
-    test('calls onPostNavigation callback after successful previous navigation',
-        () async {
-      bloc.add(InitializeNavigation(
-        initialIndex: 2,
-        devocionales: testDevocionales,
-      ));
-      await Future.delayed(const Duration(milliseconds: 50));
+    test(
+      'calls onPostNavigation callback after successful previous navigation',
+      () async {
+        bloc.add(
+          InitializeNavigation(initialIndex: 2, devocionales: testDevocionales),
+        );
+        await Future.delayed(const Duration(milliseconds: 50));
 
-      bool callbackCalled = false;
+        bool callbackCalled = false;
 
-      await helper.navigate(
-        direction: DevocionalNavigationDirection.previous,
-        isMounted: () => true,
-        onPostNavigation: () {
-          callbackCalled = true;
-        },
-      );
+        await helper.navigate(
+          direction: DevocionalNavigationDirection.previous,
+          isMounted: () => true,
+          onPostNavigation: () {
+            callbackCalled = true;
+          },
+        );
 
-      expect(callbackCalled, isTrue);
-    });
+        expect(callbackCalled, isTrue);
+      },
+    );
 
     test('DevocionalNavigationDirection has next and previous values', () {
       expect(DevocionalNavigationDirection.values.length, 2);
-      expect(DevocionalNavigationDirection.values,
-          contains(DevocionalNavigationDirection.next));
-      expect(DevocionalNavigationDirection.values,
-          contains(DevocionalNavigationDirection.previous));
+      expect(
+        DevocionalNavigationDirection.values,
+        contains(DevocionalNavigationDirection.next),
+      );
+      expect(
+        DevocionalNavigationDirection.values,
+        contains(DevocionalNavigationDirection.previous),
+      );
     });
   });
 }

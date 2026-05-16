@@ -11,12 +11,13 @@ void main() {
       expect(SupporterTier.tiers.length, equals(3));
       final levels = SupporterTier.tiers.map((t) => t.level).toList();
       expect(
-          levels,
-          containsAll([
-            SupporterTierLevel.bronze,
-            SupporterTierLevel.silver,
-            SupporterTierLevel.gold,
-          ]));
+        levels,
+        containsAll([
+          SupporterTierLevel.bronze,
+          SupporterTierLevel.silver,
+          SupporterTierLevel.gold,
+        ]),
+      );
     });
 
     test('each tier has a unique product ID', () {

@@ -28,12 +28,17 @@ class _FakeDevocionalRepository extends Fake implements DevocionalRepository {
 
   @override
   Future<List<Devocional>> fetchAll(
-          int year, String language, String version) async =>
+    int year,
+    String language,
+    String version,
+  ) async =>
       [];
 
   @override
   List<Devocional> filterByVersion(
-          List<Devocional> devocionales, String version) =>
+    List<Devocional> devocionales,
+    String version,
+  ) =>
       devocionales;
 
   @override
@@ -42,7 +47,10 @@ class _FakeDevocionalRepository extends Fake implements DevocionalRepository {
 
   @override
   Future<bool> downloadAndStoreDevocionales(
-          int year, String language, String version) async =>
+    int year,
+    String language,
+    String version,
+  ) async =>
       false;
 
   @override
@@ -53,7 +61,9 @@ class _FakeDevocionalRepository extends Fake implements DevocionalRepository {
 
   @override
   Future<bool> downloadCurrentYearDevocionales(
-          String language, String version) async =>
+    String language,
+    String version,
+  ) async =>
       false;
 
   @override

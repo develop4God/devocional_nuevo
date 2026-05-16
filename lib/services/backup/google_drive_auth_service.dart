@@ -8,33 +8,24 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'i_google_drive_auth_service.dart';
 
-/// Service for managing Google Drive authentication
+/// Service for managing Google Drive authentication.
+///
+/// Lifecycle is managed entirely by [ServiceLocator] via
+/// `registerLazySingleton<IGoogleDriveAuthService>`.
+/// Do NOT instantiate directly outside `service_locator.dart`.
 class GoogleDriveAuthService implements IGoogleDriveAuthService {
-  static GoogleDriveAuthService? _singletonInstance;
-
-  /// Use this factory to always get the same instance (singleton).
-  factory GoogleDriveAuthService() {
-    if (_singletonInstance != null) {
-      debugPrint(
-        "⚠️ [DEBUG] Duplicate GoogleDriveAuthService instantiation prevented. Singleton returned.",
-      );
-      return _singletonInstance!;
-    }
-    _singletonInstance = GoogleDriveAuthService._internal();
-    return _singletonInstance!;
-  }
-
-  // Private constructor for singleton
-  GoogleDriveAuthService._internal() {
+  /// Constructor — [prefs] injected by the ServiceLocator.
+  GoogleDriveAuthService({required SharedPreferences prefs}) : _prefs = prefs {
     debugPrint('🔧 [DEBUG] GoogleDriveAuthService constructor iniciado');
     _googleSignIn = GoogleSignIn(scopes: _scopes);
     debugPrint('🔧 [DEBUG] GoogleSignIn inicializado con scopes: $_scopes');
     debugPrint('🔧 [DEBUG] GoogleSignIn clientId: ${_googleSignIn?.clientId}');
   }
 
+  final SharedPreferences _prefs;
+
   static const List<String> _scopes = [
     'https://www.googleapis.com/auth/drive.file',
-    'https://www.googleapis.com/auth/drive',
   ];
 
   static const String _isSignedInKey = 'google_drive_signed_in';
@@ -49,8 +40,7 @@ class GoogleDriveAuthService implements IGoogleDriveAuthService {
   @override
   Future<bool> isSignedIn() async {
     debugPrint('🔍 [DEBUG] Verificando si usuario está signed in...');
-    final prefs = await SharedPreferences.getInstance();
-    final isSignedIn = prefs.getBool(_isSignedInKey) ?? false;
+    final isSignedIn = _prefs.getBool(_isSignedInKey) ?? false;
     debugPrint('🔍 [DEBUG] Estado guardado en SharedPreferences: $isSignedIn');
     debugPrint('🔍 [DEBUG] isSignedIn resultado final: $isSignedIn');
     return isSignedIn;
@@ -102,9 +92,8 @@ class GoogleDriveAuthService implements IGoogleDriveAuthService {
 
         // Save sign-in state
         debugPrint('🔑 [DEBUG] Guardando estado en SharedPreferences...');
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool(_isSignedInKey, true);
-        await prefs.setString(_userEmailKey, _currentUser!.email);
+        await _prefs.setBool(_isSignedInKey, true);
+        await _prefs.setString(_userEmailKey, _currentUser!.email);
         debugPrint('🔑 [DEBUG] Estado guardado en SharedPreferences');
 
         debugPrint(
@@ -182,8 +171,7 @@ class GoogleDriveAuthService implements IGoogleDriveAuthService {
       return _currentUser!.email;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final email = prefs.getString(_userEmailKey);
+    final email = _prefs.getString(_userEmailKey);
     debugPrint('👤 [DEBUG] Email desde SharedPreferences: $email');
     return email;
   }
@@ -197,11 +185,19 @@ class GoogleDriveAuthService implements IGoogleDriveAuthService {
       debugPrint('🔐 [DEBUG] AuthClient ya existe');
       return _authClient;
     }
-    // ← NUEVA PROTECCIÓN: Si ya está recreando, esperar
+    // ← NUEVA PROTECCIÓN: Si ya está recreando, esperar con límite de intentos
     if (_isRecreatingAuthClient) {
       debugPrint('🔐 [DEBUG] Recreación ya en progreso, esperando...');
-      await Future.delayed(const Duration(milliseconds: 50));
-      return getAuthClient(); // Reintentar después de esperar
+      int attempts = 0;
+      while (_isRecreatingAuthClient && attempts < 10) {
+        await Future.delayed(const Duration(milliseconds: 50));
+        attempts++;
+      }
+      if (_isRecreatingAuthClient) {
+        debugPrint('❌ [DEBUG] Timeout esperando recreación de AuthClient');
+        return null; // hard exit — never recurse
+      }
+      return _authClient; // return whatever was set by the concurrent call
     }
 
     debugPrint(
@@ -265,9 +261,8 @@ class GoogleDriveAuthService implements IGoogleDriveAuthService {
   /// Clear sign-in state
   Future<void> _clearSignInState() async {
     debugPrint('🧹 [DEBUG] Limpiando sign-in state...');
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_isSignedInKey);
-    await prefs.remove(_userEmailKey);
+    await _prefs.remove(_isSignedInKey);
+    await _prefs.remove(_userEmailKey);
     debugPrint('🧹 [DEBUG] Sign-in state limpiado');
   }
 

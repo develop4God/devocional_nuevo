@@ -47,32 +47,36 @@ void main() {
       expect(find.byType(DiscoverySectionCard), findsOneWidget);
     });
 
-    testWidgets('displays section title when provided',
-        (WidgetTester tester) async {
+    testWidgets('displays section title when provided', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
       expect(find.text('Test Title'), findsOneWidget);
     });
 
-    testWidgets('displays section content when provided',
-        (WidgetTester tester) async {
+    testWidgets('displays section content when provided', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
       expect(find.text('Test content for the section'), findsOneWidget);
     });
 
-    testWidgets('displays section icon when provided',
-        (WidgetTester tester) async {
+    testWidgets('displays section icon when provided', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
       expect(find.text('📖'), findsOneWidget);
     });
 
-    testWidgets('displays versiculo clave when provided',
-        (WidgetTester tester) async {
+    testWidgets('displays versiculo clave when provided', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         createWidgetUnderTest(versiculoClave: 'John 3:16'),
       );
@@ -82,8 +86,9 @@ void main() {
       expect(find.byIcon(Icons.menu_book), findsOneWidget);
     });
 
-    testWidgets('hides versiculo clave when not provided',
-        (WidgetTester tester) async {
+    testWidgets('hides versiculo clave when not provided', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -100,9 +105,7 @@ void main() {
         pasajes: null,
       );
 
-      await tester.pumpWidget(
-        createWidgetUnderTest(section: sectionNoTitle),
-      );
+      await tester.pumpWidget(createWidgetUnderTest(section: sectionNoTitle));
       await tester.pumpAndSettle();
 
       expect(find.text('Content only'), findsOneWidget);
@@ -117,16 +120,15 @@ void main() {
         pasajes: null,
       );
 
-      await tester.pumpWidget(
-        createWidgetUnderTest(section: sectionNoIcon),
-      );
+      await tester.pumpWidget(createWidgetUnderTest(section: sectionNoIcon));
       await tester.pumpAndSettle();
 
       expect(find.text('Title only'), findsOneWidget);
     });
 
-    testWidgets('displays scripture passages when provided',
-        (WidgetTester tester) async {
+    testWidgets('displays scripture passages when provided', (
+      WidgetTester tester,
+    ) async {
       final sectionWithPassage = DiscoverySection(
         tipo: 'scripture',
         titulo: 'Scripture Section',
@@ -151,8 +153,9 @@ void main() {
       expect(find.text('Application text'), findsOneWidget);
     });
 
-    testWidgets('displays multiple scripture passages',
-        (WidgetTester tester) async {
+    testWidgets('displays multiple scripture passages', (
+      WidgetTester tester,
+    ) async {
       final sectionWithPassages = DiscoverySection(
         tipo: 'scripture',
         titulo: 'Multiple Passages',

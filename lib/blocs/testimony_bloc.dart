@@ -54,11 +54,7 @@ class TestimonyBloc extends Bloc<TestimonyEvent, TestimonyState> {
         final errorMessage = getService<LocalizationService>().translate(
           'testimony.enter_testimony_text_error',
         );
-        emit(
-          currentState.copyWith(
-            errorMessage: errorMessage,
-          ),
-        );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       return;
     }
@@ -88,11 +84,7 @@ class TestimonyBloc extends Bloc<TestimonyEvent, TestimonyState> {
         final errorMessage = getService<LocalizationService>().translate(
           'errors.testimony_add_error',
         );
-        emit(
-          currentState.copyWith(
-            errorMessage: errorMessage,
-          ),
-        );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       debugPrint('Error adding testimony: $e');
     }
@@ -109,11 +101,7 @@ class TestimonyBloc extends Bloc<TestimonyEvent, TestimonyState> {
         final errorMessage = getService<LocalizationService>().translate(
           'testimony.enter_testimony_text_error',
         );
-        emit(
-          currentState.copyWith(
-            errorMessage: errorMessage,
-          ),
-        );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       return;
     }
@@ -122,9 +110,7 @@ class TestimonyBloc extends Bloc<TestimonyEvent, TestimonyState> {
       final currentState = state;
       if (currentState is! TestimonyLoaded) return;
 
-      final updatedTestimonies = currentState.testimonies.map((
-        testimony,
-      ) {
+      final updatedTestimonies = currentState.testimonies.map((testimony) {
         if (testimony.id == event.testimonyId) {
           return testimony.copyWith(text: event.newText.trim());
         }
@@ -144,11 +130,7 @@ class TestimonyBloc extends Bloc<TestimonyEvent, TestimonyState> {
         final errorMessage = getService<LocalizationService>().translate(
           'errors.testimony_edit_error',
         );
-        emit(
-          currentState.copyWith(
-            errorMessage: errorMessage,
-          ),
-        );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       debugPrint('Error editing testimony: $e');
     }
@@ -175,11 +157,7 @@ class TestimonyBloc extends Bloc<TestimonyEvent, TestimonyState> {
         final errorMessage = getService<LocalizationService>().translate(
           'errors.testimony_delete_error',
         );
-        emit(
-          currentState.copyWith(
-            errorMessage: errorMessage,
-          ),
-        );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       debugPrint('Error deleting testimony: $e');
     }
@@ -237,9 +215,7 @@ class TestimonyBloc extends Bloc<TestimonyEvent, TestimonyState> {
   }
 
   /// Saves testimonies to SharedPreferences and creates backup
-  Future<void> _saveTestimoniesToStorage(
-    List<Testimony> testimonies,
-  ) async {
+  Future<void> _saveTestimoniesToStorage(List<Testimony> testimonies) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String testimoniesJson = json.encode(
@@ -255,9 +231,7 @@ class TestimonyBloc extends Bloc<TestimonyEvent, TestimonyState> {
   }
 
   /// Creates a backup of testimonies to JSON file
-  Future<void> _backupTestimoniesToFile(
-    List<Testimony> testimonies,
-  ) async {
+  Future<void> _backupTestimoniesToFile(List<Testimony> testimonies) async {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/testimonies.json');

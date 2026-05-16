@@ -213,7 +213,8 @@ class _AboutPageState extends State<AboutPage> {
                           _FeatureItem(text: 'about.feature_themes'.tr()),
                           _FeatureItem(text: 'about.feature_dark_light'.tr()),
                           _FeatureItem(
-                              text: 'about.feature_notifications'.tr()),
+                            text: 'about.feature_notifications'.tr(),
+                          ),
                         ],
                       ),
                     ),
@@ -271,8 +272,10 @@ class _AboutPageState extends State<AboutPage> {
                       Padding(
                         padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
                         child: ElevatedButton.icon(
-                          icon:
-                              const Icon(Icons.bug_report, color: Colors.white),
+                          icon: const Icon(
+                            Icons.bug_report,
+                            color: Colors.white,
+                          ),
                           label: const Text('Debug Tools'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red.shade700,

@@ -207,9 +207,13 @@ void main() {
       final expansions = BibleTextFormatter.getBibleVersionExpansions('hi');
       // Full Devanagari names from database
       expect(
-          expansions['पवित्र बाइबिल (ओ.वी.)'], 'पवित्र बाइबिल पुराना संस्करण');
+        expansions['पवित्र बाइबिल (ओ.वी.)'],
+        'पवित्र बाइबिल पुराना संस्करण',
+      );
       expect(
-          expansions['पवित्र बाइबिल'], 'पवित्र बाइबिल हिंदी आसान पठन संस्करण');
+        expansions['पवित्र बाइबिल'],
+        'पवित्र बाइबिल हिंदी आसान पठन संस्करण',
+      );
       // Abbreviations for constants usage
       expect(expansions['HIOV'], 'पवित्र बाइबिल पुराना संस्करण');
       expect(expansions['HERV'], 'पवित्र बाइबिल हिंदी आसान पठन संस्करण');
@@ -395,35 +399,41 @@ void main() {
       });
 
       test(
-          'text with no Bible reference is returned unchanged for language=$lang',
-          () {
-        const text = 'This is plain text without any numbered book reference';
-        final result = BibleTextFormatter.formatBibleBook(text, lang);
-        // Non-matching text must pass through; no partial corruption allowed.
-        expect(result, isNotEmpty);
-        // Result must not introduce leading/trailing spaces from a misfire.
-        expect(result.trimLeft(), result,
-            reason: 'Guard must not produce leading whitespace on non-match');
-      });
+        'text with no Bible reference is returned unchanged for language=$lang',
+        () {
+          const text = 'This is plain text without any numbered book reference';
+          final result = BibleTextFormatter.formatBibleBook(text, lang);
+          // Non-matching text must pass through; no partial corruption allowed.
+          expect(result, isNotEmpty);
+          // Result must not introduce leading/trailing spaces from a misfire.
+          expect(
+            result.trimLeft(),
+            result,
+            reason: 'Guard must not produce leading whitespace on non-match',
+          );
+        },
+      );
     }
 
     test(
-        'valid Spanish reference produces correct ordinal (guard does not interfere)',
-        () {
-      expect(
-        BibleTextFormatter.formatBibleBook('1 Corintios', 'es'),
-        'Primera de Corintios',
-      );
-    });
+      'valid Spanish reference produces correct ordinal (guard does not interfere)',
+      () {
+        expect(
+          BibleTextFormatter.formatBibleBook('1 Corintios', 'es'),
+          'Primera de Corintios',
+        );
+      },
+    );
 
     test(
-        'valid English reference produces correct ordinal (guard does not interfere)',
-        () {
-      expect(
-        BibleTextFormatter.formatBibleBook('2 Timothy', 'en'),
-        'Second Timothy',
-      );
-    });
+      'valid English reference produces correct ordinal (guard does not interfere)',
+      () {
+        expect(
+          BibleTextFormatter.formatBibleBook('2 Timothy', 'en'),
+          'Second Timothy',
+        );
+      },
+    );
 
     test('formatBibleReferences: empty string does not throw', () {
       expect(
@@ -434,11 +444,12 @@ void main() {
     });
 
     test(
-        'formatBibleReferences: text with no reference passes through unchanged',
-        () {
-      const text = 'Solo texto sin referencia bíblica';
-      expect(BibleTextFormatter.formatBibleReferences(text, 'es'), text);
-    });
+      'formatBibleReferences: text with no reference passes through unchanged',
+      () {
+        const text = 'Solo texto sin referencia bíblica';
+        expect(BibleTextFormatter.formatBibleReferences(text, 'es'), text);
+      },
+    );
   });
 
   // ── Per-language smoke tests ──────────────────────────────────────────────
@@ -499,22 +510,21 @@ void main() {
       expect(result, contains('Lutherbibel'));
     });
 
-    test('Chinese: book name preserved + chapter:verse + version expansion',
-        () {
-      final result = BibleTextFormatter.normalizeTtsText(
-        '约翰福音 3:16 和合本1919',
-        'zh',
-      );
-      expect(result, contains('约翰福音'));
-      expect(result, contains('章'));
-      expect(result, contains('和合本一九一九'));
-    });
+    test(
+      'Chinese: book name preserved + chapter:verse + version expansion',
+      () {
+        final result = BibleTextFormatter.normalizeTtsText(
+          '约翰福音 3:16 和合本1919',
+          'zh',
+        );
+        expect(result, contains('约翰福音'));
+        expect(result, contains('章'));
+        expect(result, contains('和合本一九一九'));
+      },
+    );
 
     test('Japanese: book name preserved + chapter:verse (no ordinals)', () {
-      final result = BibleTextFormatter.normalizeTtsText(
-        'ヨハネ 3:16',
-        'ja',
-      );
+      final result = BibleTextFormatter.normalizeTtsText('ヨハネ 3:16', 'ja');
       expect(result, contains('ヨハネ'));
       expect(result, contains('章'));
     });
@@ -538,13 +548,147 @@ void main() {
       expect(result, contains('كتاب الحياة'));
     });
 
-    test('unknown language falls back to Spanish pipeline without crashing',
-        () {
+    test('Tagalog: ordinal + chapter:verse + version expansion', () {
       final result = BibleTextFormatter.normalizeTtsText(
-        '1 Pedro 3:16',
-        'xx',
+        '1 Juan 3:16 ASND',
+        'fil',
       );
-      expect(result, contains('Primera de Pedro'));
+      expect(result, contains('Una Juan'));
+      expect(result, contains('kabanata'));
+      expect(result, contains('Ang Salita ng Dios'));
     });
+
+    test(
+      'unknown language falls back to Spanish pipeline without crashing',
+      () {
+        final result = BibleTextFormatter.normalizeTtsText(
+          '1 Pedro 3:16',
+          'xx',
+        );
+        expect(result, contains('Primera de Pedro'));
+      },
+    );
+  });
+
+  group('BibleTextFormatter - Tagalog Ordinals', () {
+    test('formats 1 Juan as Una Juan', () {
+      final result = BibleTextFormatter.formatBibleBook('1 Juan', 'fil');
+      expect(result, 'Una Juan');
+    });
+
+    test('formats 2 Pedro as Pangalawa Pedro', () {
+      final result = BibleTextFormatter.formatBibleBook('2 Pedro', 'fil');
+      expect(result, 'Pangalawa Pedro');
+    });
+
+    test('formats 3 Juan as Pangatlo Juan', () {
+      final result = BibleTextFormatter.formatBibleBook('3 Juan', 'fil');
+      expect(result, 'Pangatlo Juan');
+    });
+
+    test('leaves non-numbered books unchanged', () {
+      final result = BibleTextFormatter.formatBibleBook('Genesis', 'fil');
+      expect(result, 'Genesis');
+    });
+
+    test('handles book in middle of text', () {
+      final result = BibleTextFormatter.formatBibleBook(
+        'Basahin ang 2 Corinto ngayon',
+        'fil',
+      );
+      expect(result, contains('Pangalawa Corinto'));
+    });
+  });
+
+  group('BibleTextFormatter - Tagalog Bible References', () {
+    test('formats Tagalog chapter:verse reference with kabanata/talata', () {
+      final result = BibleTextFormatter.formatBibleReferences(
+        'Juan 3:16',
+        'fil',
+      );
+      expect(result, contains('kabanata'));
+      expect(result, contains('talata'));
+    });
+
+    test('formats Tagalog verse range with hanggang', () {
+      final result = BibleTextFormatter.formatBibleReferences(
+        'Juan 3:16-17',
+        'fil',
+      );
+      expect(result, contains('hanggang'));
+    });
+  });
+
+  group('BibleTextFormatter - Tagalog Version Expansions', () {
+    test('MBB05 expands to Magandang Balita Biblia', () {
+      final expansions = BibleTextFormatter.getBibleVersionExpansions('fil');
+      expect(expansions['MBB05'], 'Magandang Balita Biblia');
+    });
+
+    test('ASND expands to Ang Salita ng Dios', () {
+      final expansions = BibleTextFormatter.getBibleVersionExpansions('fil');
+      expect(expansions['ASND'], 'Ang Salita ng Dios');
+    });
+
+    test('ADB expands to Ang Dating Biblia', () {
+      final expansions = BibleTextFormatter.getBibleVersionExpansions('fil');
+      expect(expansions['ADB'], 'Ang Dating Biblia');
+    });
+  });
+
+  group('BibleTextFormatter - Footnote Marker Sanitization', () {
+    test(
+      'removes circled lowercase letter footnote markers (ⓐ, ⓑ) for fil',
+      () {
+        // MBB05 uses ⓐ, ⓑ etc. as inline footnote markers
+        final result = BibleTextFormatter.normalizeTtsText(
+          'Sinabi ⓐ ng Diyos: "Magkaroon ng liwanag ⓑ."',
+          'fil',
+          'MBB05',
+        );
+        expect(result, isNot(contains('ⓐ')));
+        expect(result, isNot(contains('ⓑ')));
+        expect(result, contains('Sinabi'));
+        expect(result, contains('ng Diyos'));
+      },
+    );
+
+    test(
+      'removes circled letter markers for all languages (universal sanitization)',
+      () {
+        // Verify footnote stripping works for any language, not only fil
+        final result = BibleTextFormatter.normalizeTtsText(
+          'God ⓐ said: "Let there be light ⓑ."',
+          'en',
+          'KJV',
+        );
+        expect(result, isNot(contains('ⓐ')));
+        expect(result, isNot(contains('ⓑ')));
+      },
+    );
+
+    test('removes circled number markers ①②③', () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        'Verse ① contains a note ② about this passage ③.',
+        'es',
+        'RVR1960',
+      );
+      expect(result, isNot(contains('①')));
+      expect(result, isNot(contains('②')));
+      expect(result, isNot(contains('③')));
+    });
+
+    test(
+      'normalizes extra whitespace after removing consecutive footnote markers',
+      () {
+        final result = BibleTextFormatter.normalizeTtsText(
+          'Sinabi  ⓐ  ng  Diyos',
+          'fil',
+          'MBB05',
+        );
+        // Should not have multiple spaces after removal
+        expect(result, isNot(contains('  ')));
+      },
+    );
   });
 }

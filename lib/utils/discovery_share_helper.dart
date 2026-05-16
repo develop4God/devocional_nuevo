@@ -75,7 +75,8 @@ https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo
     // Bible Study title with emoji and translation key
     final emoji = study.emoji ?? '📖';
     buffer.writeln(
-        '$emoji *${_translateKey('discovery.daily_bible_study', fallback: 'Estudio Bíblico Diario')}*');
+      '$emoji *${_translateKey('discovery.daily_bible_study', fallback: 'Estudio Bíblico Diario')}*',
+    );
     if (study.subtitle != null && study.subtitle!.isNotEmpty) {
       buffer.writeln('_${study.subtitle}_');
     }
@@ -100,7 +101,8 @@ https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo
       // Revelation key
       if (firstCard.revelationKey != null) {
         buffer.writeln(
-            '💡 *${_translateKey('discovery.revelation', fallback: 'Revelación')}:*');
+          '💡 *${_translateKey('discovery.revelation', fallback: 'Revelación')}:*',
+        );
         buffer.writeln(firstCard.revelationKey);
         buffer.writeln();
       }
@@ -109,7 +111,8 @@ https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo
     // First discovery question
     if (firstQuestion != null) {
       buffer.writeln(
-          '❓ *${_translateKey('discovery.reflection_questions', fallback: 'Preguntas de Reflexión')}:*');
+        '❓ *${_translateKey('discovery.reflection_questions', fallback: 'Preguntas de Reflexión')}:*',
+      );
       buffer.writeln(firstQuestion);
       buffer.writeln();
     }
@@ -117,31 +120,46 @@ https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo
     // App download link
     buffer.writeln('━━━━━━━━━━━━━━━━');
     buffer.writeln(
-        '🔥 *${_translateKey('discovery.share_footer_title', fallback: 'Esto es solo el comienzo...')}*');
-    buffer.writeln();
-    buffer.writeln(_translateKey(
-      'discovery.share_footer_complete_study',
-      fallback: 'El estudio completo incluye:',
-    ));
-    buffer.writeln(
-        '✓ ${_translateKey('discovery.share_footer_greek_analysis', fallback: 'Análisis de palabras en griego original')}');
-    buffer.writeln(
-        '✓ ${_translateKey('discovery.share_footer_historical_context', fallback: 'Contexto histórico profundo')}');
-    buffer.writeln(
-        '✓ ${_translateKey('discovery.share_footer_biblical_connections', fallback: 'Conexiones bíblicas reveladoras')}');
-    buffer.writeln(
-        '✓ ${_translateKey('discovery.share_footer_activation_questions', fallback: 'Preguntas de activación personal')}');
+      '🔥 *${_translateKey('discovery.share_footer_title', fallback: 'Esto es solo el comienzo...')}*',
+    );
     buffer.writeln();
     buffer.writeln(
-        '📲 *${_translateKey('discovery.share_footer_download', fallback: 'Descarga: Devocionales Cristianos')}*');
-    buffer.writeln(_translateKey(
-      'discovery.share_footer_benefits',
-      fallback: '100% gratis | Sin anuncios | Uso offline',
-    ));
+      _translateKey(
+        'discovery.share_footer_complete_study',
+        fallback: 'El estudio completo incluye:',
+      ),
+    );
     buffer.writeln(
-        'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo');
-    buffer.write(_translateKey('discovery.share_footer_developer',
-        fallback: 'Develop4God'));
+      '✓ ${_translateKey('discovery.share_footer_greek_analysis', fallback: 'Análisis de palabras en griego original')}',
+    );
+    buffer.writeln(
+      '✓ ${_translateKey('discovery.share_footer_historical_context', fallback: 'Contexto histórico profundo')}',
+    );
+    buffer.writeln(
+      '✓ ${_translateKey('discovery.share_footer_biblical_connections', fallback: 'Conexiones bíblicas reveladoras')}',
+    );
+    buffer.writeln(
+      '✓ ${_translateKey('discovery.share_footer_activation_questions', fallback: 'Preguntas de activación personal')}',
+    );
+    buffer.writeln();
+    buffer.writeln(
+      '📲 *${_translateKey('discovery.share_footer_download', fallback: 'Descarga: Devocionales Cristianos')}*',
+    );
+    buffer.writeln(
+      _translateKey(
+        'discovery.share_footer_benefits',
+        fallback: '100% gratis | Sin anuncios | Uso offline',
+      ),
+    );
+    buffer.writeln(
+      'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo',
+    );
+    buffer.write(
+      _translateKey(
+        'discovery.share_footer_developer',
+        fallback: 'Develop4God',
+      ),
+    );
 
     return buffer.toString();
   }
@@ -151,7 +169,8 @@ https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo
     final buffer = StringBuffer();
     final emoji = study.emoji ?? '📖';
     buffer.writeln(
-        '$emoji *${_translateKey('discovery.daily_bible_study', fallback: 'ESTUDIO BÍBLICO DIARIO').toUpperCase()} DISCOVERY: ${study.versiculo.toUpperCase()}*');
+      '$emoji *${_translateKey('discovery.daily_bible_study', fallback: 'ESTUDIO BÍBLICO DIARIO').toUpperCase()} DISCOVERY: ${study.versiculo.toUpperCase()}*',
+    );
     buffer.writeln();
 
     if (study.keyVerse != null) {
@@ -188,7 +207,8 @@ https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo
       if (card.scriptureConnections != null &&
           card.scriptureConnections!.isNotEmpty) {
         buffer.writeln(
-            '📖 *${_translateKey('discovery.scripture_connections', fallback: 'Conexiones Bíblicas')}:*');
+          '📖 *${_translateKey('discovery.scripture_connections', fallback: 'Conexiones Bíblicas')}:*',
+        );
         for (var connection in card.scriptureConnections!) {
           buffer.writeln('*${connection.reference}*');
           buffer.writeln('"${connection.text}"');
@@ -199,10 +219,12 @@ https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo
       // Greek words
       if (card.greekWords != null && card.greekWords!.isNotEmpty) {
         buffer.writeln(
-            '🔤 *${_translateKey('discovery.greek_words', fallback: 'Palabras Griegas')}:*');
+          '🔤 *${_translateKey('discovery.greek_words', fallback: 'Palabras Griegas')}:*',
+        );
         for (var word in card.greekWords!) {
           buffer.writeln(
-              '• *${word.word}* (${word.transliteration ?? word.word}): ${word.meaning}');
+            '• *${word.word}* (${word.transliteration ?? word.word}): ${word.meaning}',
+          );
         }
         buffer.writeln();
       }
@@ -210,7 +232,8 @@ https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo
       // Revelation key
       if (card.revelationKey != null) {
         buffer.writeln(
-            '💡 *${_translateKey('discovery.revelation', fallback: 'Revelación')}:*');
+          '💡 *${_translateKey('discovery.revelation', fallback: 'Revelación')}:*',
+        );
         buffer.writeln(card.revelationKey);
         buffer.writeln();
       }
@@ -226,7 +249,8 @@ https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo
         discoveryCard.discoveryQuestions!.isNotEmpty) {
       buffer.writeln('━━━━━━━━━━━━━━━━');
       buffer.writeln(
-          '🙏 *${_translateKey('discovery.reflection_questions', fallback: 'PREGUNTAS DE REFLEXIÓN').toUpperCase()}:*');
+        '🙏 *${_translateKey('discovery.reflection_questions', fallback: 'PREGUNTAS DE REFLEXIÓN').toUpperCase()}:*',
+      );
       buffer.writeln();
 
       int i = 1;
@@ -241,7 +265,8 @@ https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo
     if (discoveryCard.prayer != null) {
       buffer.writeln('━━━━━━━━━━━━━━━━');
       buffer.writeln(
-          '🙏 *${discoveryCard.prayer!.title ?? _translateKey('discovery.activation_prayer', fallback: 'ORACIÓN DE ACTIVACIÓN')}*');
+        '🙏 *${discoveryCard.prayer!.title ?? _translateKey('discovery.activation_prayer', fallback: 'ORACIÓN DE ACTIVACIÓN')}*',
+      );
       buffer.writeln();
       buffer.writeln(discoveryCard.prayer!.content);
       buffer.writeln();
@@ -250,31 +275,46 @@ https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo
     // Footer
     buffer.writeln('━━━━━━━━━━━━━━━━');
     buffer.writeln(
-        '🔥 *${_translateKey('discovery.share_footer_title', fallback: 'Esto es solo el comienzo...')}*');
-    buffer.writeln();
-    buffer.writeln(_translateKey(
-      'discovery.share_footer_complete_study',
-      fallback: 'El estudio completo incluye:',
-    ));
-    buffer.writeln(
-        '✓ ${_translateKey('discovery.share_footer_greek_analysis', fallback: 'Análisis de palabras en griego original')}');
-    buffer.writeln(
-        '✓ ${_translateKey('discovery.share_footer_historical_context', fallback: 'Contexto histórico profundo')}');
-    buffer.writeln(
-        '✓ ${_translateKey('discovery.share_footer_biblical_connections', fallback: 'Conexiones bíblicas reveladoras')}');
-    buffer.writeln(
-        '✓ ${_translateKey('discovery.share_footer_activation_questions', fallback: 'Preguntas de activación personal')}');
+      '🔥 *${_translateKey('discovery.share_footer_title', fallback: 'Esto es solo el comienzo...')}*',
+    );
     buffer.writeln();
     buffer.writeln(
-        '📲 *${_translateKey('discovery.share_footer_download', fallback: 'Descarga: Devocionales Cristianos')}*');
-    buffer.writeln(_translateKey(
-      'discovery.share_footer_benefits',
-      fallback: '100% gratis | Sin anuncios | Uso offline',
-    ));
+      _translateKey(
+        'discovery.share_footer_complete_study',
+        fallback: 'El estudio completo incluye:',
+      ),
+    );
     buffer.writeln(
-        'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo');
-    buffer.write(_translateKey('discovery.share_footer_developer',
-        fallback: 'Develop4God'));
+      '✓ ${_translateKey('discovery.share_footer_greek_analysis', fallback: 'Análisis de palabras en griego original')}',
+    );
+    buffer.writeln(
+      '✓ ${_translateKey('discovery.share_footer_historical_context', fallback: 'Contexto histórico profundo')}',
+    );
+    buffer.writeln(
+      '✓ ${_translateKey('discovery.share_footer_biblical_connections', fallback: 'Conexiones bíblicas reveladoras')}',
+    );
+    buffer.writeln(
+      '✓ ${_translateKey('discovery.share_footer_activation_questions', fallback: 'Preguntas de activación personal')}',
+    );
+    buffer.writeln();
+    buffer.writeln(
+      '📲 *${_translateKey('discovery.share_footer_download', fallback: 'Descarga: Devocionales Cristianos')}*',
+    );
+    buffer.writeln(
+      _translateKey(
+        'discovery.share_footer_benefits',
+        fallback: '100% gratis | Sin anuncios | Uso offline',
+      ),
+    );
+    buffer.writeln(
+      'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo',
+    );
+    buffer.write(
+      _translateKey(
+        'discovery.share_footer_developer',
+        fallback: 'Develop4God',
+      ),
+    );
 
     return buffer.toString();
   }

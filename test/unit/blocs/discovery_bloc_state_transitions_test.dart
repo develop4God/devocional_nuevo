@@ -47,9 +47,11 @@ void main() {
               .having((s) => s.loadedStudies, 'loadedStudies', isEmpty),
         ],
         verify: (_) {
-          verify(testBase.mockRepository
-                  .fetchIndex(forceRefresh: anyNamed('forceRefresh')))
-              .called(1);
+          verify(
+            testBase.mockRepository.fetchIndex(
+              forceRefresh: anyNamed('forceRefresh'),
+            ),
+          ).called(1);
         },
       );
 
@@ -71,11 +73,16 @@ void main() {
         expect: () => [
           isA<DiscoveryLoading>(),
           isA<DiscoveryLoaded>()
-              .having((s) => s.availableStudyIds, 'availableStudyIds',
-                  ['study-1', 'study-2'])
+              .having((s) => s.availableStudyIds, 'availableStudyIds', [
+                'study-1',
+                'study-2',
+              ])
               .having((s) => s.studyTitles['study-1'], 'first title', 'Study 1')
               .having(
-                  (s) => s.studyTitles['study-2'], 'second title', 'Study 2'),
+                (s) => s.studyTitles['study-2'],
+                'second title',
+                'Study 2',
+              ),
         ],
       );
 
@@ -92,8 +99,11 @@ void main() {
         act: (bloc) => bloc.add(LoadDiscoveryStudies()),
         expect: () => [
           isA<DiscoveryLoading>(),
-          isA<DiscoveryError>()
-              .having((s) => s.message, 'message', contains('Network error')),
+          isA<DiscoveryError>().having(
+            (s) => s.message,
+            'message',
+            contains('Network error'),
+          ),
         ],
       );
     });
@@ -120,10 +130,7 @@ void main() {
           );
         },
         act: (bloc) => bloc.add(LoadDiscoveryStudies()),
-        expect: () => [
-          isA<DiscoveryLoading>(),
-          isA<DiscoveryLoaded>(),
-        ],
+        expect: () => [isA<DiscoveryLoading>(), isA<DiscoveryLoaded>()],
       );
     });
 
@@ -131,9 +138,11 @@ void main() {
       test('can recover from error state by retrying', () async {
         // Build bloc with mocked repository that fails once then succeeds
         int callCount = 0;
-        when(testBase.mockRepository
-                .fetchIndex(forceRefresh: anyNamed('forceRefresh')))
-            .thenAnswer((_) async {
+        when(
+          testBase.mockRepository.fetchIndex(
+            forceRefresh: anyNamed('forceRefresh'),
+          ),
+        ).thenAnswer((_) async {
           if (callCount == 0) {
             callCount++;
             throw Exception('Network error');
@@ -154,16 +163,22 @@ void main() {
         bloc.add(LoadDiscoveryStudies());
 
         // Wait until we observe DiscoveryError
-        await expectLater(bloc.stream, emitsThrough(isA<DiscoveryError>()),
-            reason: 'Should emit DiscoveryError after failed fetch');
+        await expectLater(
+          bloc.stream,
+          emitsThrough(isA<DiscoveryError>()),
+          reason: 'Should emit DiscoveryError after failed fetch',
+        );
 
         // Reconfigure mock to succeed and trigger retry
         testBase.mockEmptyIndexFetch();
         bloc.add(LoadDiscoveryStudies());
 
         // Wait until we observe a loaded state
-        await expectLater(bloc.stream, emitsThrough(isA<DiscoveryLoaded>()),
-            reason: 'Should emit DiscoveryLoaded after retry');
+        await expectLater(
+          bloc.stream,
+          emitsThrough(isA<DiscoveryLoaded>()),
+          reason: 'Should emit DiscoveryLoaded after retry',
+        );
 
         await sub.cancel();
         await bloc.close();
@@ -173,9 +188,12 @@ void main() {
             states.indexWhere((s) => s is DiscoveryError) >= 0 &&
                 states.indexWhere((s) => s is DiscoveryLoaded) >
                     states.indexWhere((s) => s is DiscoveryError);
-        expect(hasErrorThenLoaded, isTrue,
-            reason:
-                'States should include DiscoveryError followed by DiscoveryLoaded');
+        expect(
+          hasErrorThenLoaded,
+          isTrue,
+          reason:
+              'States should include DiscoveryError followed by DiscoveryLoaded',
+        );
       });
     });
 
@@ -201,8 +219,11 @@ void main() {
         ),
         act: (bloc) => bloc.add(ClearDiscoveryError()),
         expect: () => [
-          isA<DiscoveryLoaded>()
-              .having((s) => s.errorMessage, 'errorMessage', isNull),
+          isA<DiscoveryLoaded>().having(
+            (s) => s.errorMessage,
+            'errorMessage',
+            isNull,
+          ),
         ],
       );
     });

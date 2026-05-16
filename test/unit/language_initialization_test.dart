@@ -1,7 +1,7 @@
 @Tags(['unit', 'utils'])
 library;
 
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -13,20 +13,13 @@ void main() {
         false,
         reason: 'Onboarding feature should be disabled',
       );
-      expect(
-        Constants.enableBackupFeature,
-        false,
-        reason: 'Backup feature should be disabled',
-      );
     });
 
     test('Feature flags should be compile-time constants', () {
       // Verify these are compile-time constants (const)
       const onboardingEnabled = Constants.enableOnboardingFeature;
-      const backupEnabled = Constants.enableBackupFeature;
 
       expect(onboardingEnabled, false);
-      expect(backupEnabled, false);
     });
   });
 }

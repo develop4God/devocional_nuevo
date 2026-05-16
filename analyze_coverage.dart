@@ -39,17 +39,19 @@ void main() async {
   }).toList();
 
   // Filter for files in lib/ and sort by number of uncovered lines descending
-  final topUncovered = statsList
-      .where((s) => s['file'].toString().startsWith('lib/'))
-      .toList()
-    ..sort((a, b) => (b['uncovered'] as int).compareTo(a['uncovered'] as int));
+  final topUncovered =
+      statsList.where((s) => s['file'].toString().startsWith('lib/')).toList()
+        ..sort(
+          (a, b) => (b['uncovered'] as int).compareTo(a['uncovered'] as int),
+        );
 
   stdout.writeln('Top 5 files with most uncovered lines:');
   for (var i = 0; i < 5 && i < topUncovered.length; i++) {
     final s = topUncovered[i];
     final percentage = (s['percentage'] as double);
     stdout.writeln(
-        '${s['file']}: ${s['uncovered']} uncovered lines (${percentage.toStringAsFixed(1)}% coverage, ${s['total']} total lines)');
+      '${s['file']}: ${s['uncovered']} uncovered lines (${percentage.toStringAsFixed(1)}% coverage, ${s['total']} total lines)',
+    );
   }
 }
 

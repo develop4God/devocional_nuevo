@@ -116,10 +116,7 @@ class _SubmitPrayerModalState extends State<SubmitPrayerModal> {
                     : (v) => setState(() => _isAnonymous = v),
               ),
               const SizedBox(width: 8),
-              Text(
-                'prayer_wall.anonymous'.tr(),
-                style: textTheme.bodyMedium,
-              ),
+              Text('prayer_wall.anonymous'.tr(), style: textTheme.bodyMedium),
             ],
           ),
 

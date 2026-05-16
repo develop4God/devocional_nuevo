@@ -4,47 +4,45 @@ import 'package:devocional_nuevo/utils/image_precache_utils.dart';
 
 void main() {
   group('safePrecacheImage', () {
-    testWidgets(
-      'completes without throwing when onError fires',
-      (tester) async {
-        await tester.pumpWidget(const MaterialApp(home: SizedBox()));
-        final context = tester.element(find.byType(SizedBox));
+    testWidgets('completes without throwing when onError fires', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      final context = tester.element(find.byType(SizedBox));
 
-        // A provider that always fails
-        final failingProvider = _AlwaysFailImageProvider();
+      // A provider that always fails
+      final failingProvider = _AlwaysFailImageProvider();
 
-        bool errorCallbackCalled = false;
+      bool errorCallbackCalled = false;
 
-        await expectLater(
-          safePrecacheImage(
-            failingProvider,
-            context,
-            debugTag: 'test',
-            onNetworkError: (_, __) => errorCallbackCalled = true,
-          ),
-          completes, // must NOT throw
-        );
+      await expectLater(
+        safePrecacheImage(
+          failingProvider,
+          context,
+          debugTag: 'test',
+          onNetworkError: (_, __) => errorCallbackCalled = true,
+        ),
+        completes, // must NOT throw
+      );
 
-        expect(errorCallbackCalled, isTrue);
-      },
-    );
+      expect(errorCallbackCalled, isTrue);
+    });
 
-    testWidgets(
-      'onNetworkError is optional — no throw when omitted',
-      (tester) async {
-        await tester.pumpWidget(const MaterialApp(home: SizedBox()));
-        final context = tester.element(find.byType(SizedBox));
+    testWidgets('onNetworkError is optional — no throw when omitted', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      final context = tester.element(find.byType(SizedBox));
 
-        await expectLater(
-          safePrecacheImage(
-            _AlwaysFailImageProvider(),
-            context,
-            debugTag: 'test-no-callback',
-          ),
-          completes,
-        );
-      },
-    );
+      await expectLater(
+        safePrecacheImage(
+          _AlwaysFailImageProvider(),
+          context,
+          debugTag: 'test-no-callback',
+        ),
+        completes,
+      );
+    });
   });
 }
 
@@ -56,11 +54,11 @@ class _AlwaysFailImageProvider extends ImageProvider<_AlwaysFailImageProvider> {
 
   @override
   ImageStreamCompleter loadImage(
-      _AlwaysFailImageProvider key, ImageDecoderCallback decode) {
+    _AlwaysFailImageProvider key,
+    ImageDecoderCallback decode,
+  ) {
     return OneFrameImageStreamCompleter(
-      Future.error(
-        Exception('Simulated DNS failure: Failed host lookup'),
-      ),
+      Future.error(Exception('Simulated DNS failure: Failed host lookup')),
     );
   }
 }

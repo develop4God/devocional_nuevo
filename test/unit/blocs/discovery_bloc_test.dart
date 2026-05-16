@@ -63,18 +63,20 @@ void main() {
     mockFavoritesService = MockDiscoveryFavoritesService();
 
     // Default stub for loadFavoriteIds - takes optional languageCode parameter
-    when(() => mockFavoritesService.loadFavoriteIds(any()))
-        .thenAnswer((_) async => <String>{});
+    when(
+      () => mockFavoritesService.loadFavoriteIds(any()),
+    ).thenAnswer((_) async => <String>{});
 
     // Default stub for getProgress - return uncompleted progress
     // Fixed: getProgress takes 2 parameters (studyId, languageCode)
-    when(() => mockProgressTracker.getProgress(any(), any()))
-        .thenAnswer((_) async => DiscoveryProgress(
-              studyId: 'test',
-              completedSections: [],
-              answeredQuestions: {},
-              isCompleted: false,
-            ));
+    when(() => mockProgressTracker.getProgress(any(), any())).thenAnswer(
+      (_) async => DiscoveryProgress(
+        studyId: 'test',
+        completedSections: [],
+        answeredQuestions: {},
+        isCompleted: false,
+      ),
+    );
 
     bloc = DiscoveryBloc(
       repository: mockRepository,
@@ -83,19 +85,20 @@ void main() {
     );
 
     // IMPORTANT: This catch-all stub must be last, after any test-specific stubs
-    when(() => mockRepository.fetchDiscoveryStudy(any(), any()))
-        .thenAnswer((invocation) async => DiscoveryDevotional(
-              id: 'dummy',
-              versiculo: 'Dummy verse',
-              reflexion: 'Dummy title',
-              paraMeditar: [],
-              oracion: 'Dummy prayer',
-              date: DateTime(2026, 1, 1),
-              cards: [],
-              secciones: [],
-              preguntasDiscovery: [],
-              versiculoClave: 'Dummy key verse',
-            ));
+    when(() => mockRepository.fetchDiscoveryStudy(any(), any())).thenAnswer(
+      (invocation) async => DiscoveryDevotional(
+        id: 'dummy',
+        versiculo: 'Dummy verse',
+        reflexion: 'Dummy title',
+        paraMeditar: [],
+        oracion: 'Dummy prayer',
+        date: DateTime(2026, 1, 1),
+        cards: [],
+        secciones: [],
+        preguntasDiscovery: [],
+        versiculoClave: 'Dummy key verse',
+      ),
+    );
   });
 
   tearDown(() {
@@ -135,9 +138,11 @@ void main() {
       blocTest<DiscoveryBloc, DiscoveryState>(
         'emits [DiscoveryLoading, DiscoveryLoaded] when studies load successfully',
         build: () {
-          when(() => mockRepository.fetchIndex(
-                  forceRefresh: any(named: 'forceRefresh')))
-              .thenAnswer((_) async => mockIndex);
+          when(
+            () => mockRepository.fetchIndex(
+              forceRefresh: any(named: 'forceRefresh'),
+            ),
+          ).thenAnswer((_) async => mockIndex);
           return bloc;
         },
         act: (bloc) => bloc.add(LoadDiscoveryStudies()),
@@ -148,24 +153,32 @@ void main() {
               .having((s) => s.loadedStudies, 'loadedStudies', isEmpty),
         ],
         verify: (_) {
-          verify(() => mockRepository.fetchIndex(
-              forceRefresh: any(named: 'forceRefresh'))).called(1);
+          verify(
+            () => mockRepository.fetchIndex(
+              forceRefresh: any(named: 'forceRefresh'),
+            ),
+          ).called(1);
         },
       );
 
       blocTest<DiscoveryBloc, DiscoveryState>(
         'emits [DiscoveryLoading, DiscoveryError] when loading fails',
         build: () {
-          when(() => mockRepository.fetchIndex(
-                  forceRefresh: any(named: 'forceRefresh')))
-              .thenThrow(Exception('Network error'));
+          when(
+            () => mockRepository.fetchIndex(
+              forceRefresh: any(named: 'forceRefresh'),
+            ),
+          ).thenThrow(Exception('Network error'));
           return bloc;
         },
         act: (bloc) => bloc.add(LoadDiscoveryStudies()),
         expect: () => [
           isA<DiscoveryLoading>(),
-          isA<DiscoveryError>()
-              .having((s) => s.message, 'message', contains('Network error')),
+          isA<DiscoveryError>().having(
+            (s) => s.message,
+            'message',
+            contains('Network error'),
+          ),
         ],
       );
     });
@@ -190,38 +203,53 @@ void main() {
       blocTest<DiscoveryBloc, DiscoveryState>(
         'emits [DiscoveryStudyLoading, DiscoveryLoaded] when study loads successfully',
         build: () {
-          when(() => mockRepository.fetchDiscoveryStudy(studyId, any()))
-              .thenAnswer((_) async => study);
+          when(
+            () => mockRepository.fetchDiscoveryStudy(studyId, any()),
+          ).thenAnswer((_) async => study);
           return bloc;
         },
         act: (bloc) => bloc.add(LoadDiscoveryStudy(studyId)),
         expect: () => [
-          isA<DiscoveryStudyLoading>()
-              .having((s) => s.studyId, 'studyId', studyId),
+          isA<DiscoveryStudyLoading>().having(
+            (s) => s.studyId,
+            'studyId',
+            studyId,
+          ),
           isA<DiscoveryLoaded>()
-              .having((s) => s.loadedStudies.containsKey(studyId),
-                  'contains study', true)
-              .having((s) => s.loadedStudies[studyId], 'loaded study',
-                  equals(study)),
+              .having(
+                (s) => s.loadedStudies.containsKey(studyId),
+                'contains study',
+                true,
+              )
+              .having(
+                (s) => s.loadedStudies[studyId],
+                'loaded study',
+                equals(study),
+              ),
         ],
         verify: (_) {
-          verify(() => mockRepository.fetchDiscoveryStudy(studyId, 'es'))
-              .called(1);
+          verify(
+            () => mockRepository.fetchDiscoveryStudy(studyId, 'es'),
+          ).called(1);
         },
       );
 
       blocTest<DiscoveryBloc, DiscoveryState>(
         'emits error when study loading fails',
         build: () {
-          when(() => mockRepository.fetchDiscoveryStudy(studyId, any()))
-              .thenThrow(Exception('Study not found'));
+          when(
+            () => mockRepository.fetchDiscoveryStudy(studyId, any()),
+          ).thenThrow(Exception('Study not found'));
           return bloc;
         },
         act: (bloc) => bloc.add(LoadDiscoveryStudy(studyId)),
         expect: () => [
           isA<DiscoveryStudyLoading>(),
-          isA<DiscoveryError>()
-              .having((s) => s.message, 'message', contains('Study not found')),
+          isA<DiscoveryError>().having(
+            (s) => s.message,
+            'message',
+            contains('Study not found'),
+          ),
         ],
       );
     });
@@ -234,9 +262,13 @@ void main() {
         'calls progressTracker.markSectionCompleted',
         build: () {
           // Fixed: markSectionCompleted takes optional languageCode parameter
-          when(() => mockProgressTracker.markSectionCompleted(
-                  studyId, sectionIndex, any()))
-              .thenAnswer((_) async => Future.value());
+          when(
+            () => mockProgressTracker.markSectionCompleted(
+              studyId,
+              sectionIndex,
+              any(),
+            ),
+          ).thenAnswer((_) async => Future.value());
           return bloc;
         },
         seed: () => DiscoveryLoaded(
@@ -252,8 +284,13 @@ void main() {
         ),
         act: (bloc) => bloc.add(MarkSectionCompleted(studyId, sectionIndex)),
         verify: (_) {
-          verify(() => mockProgressTracker.markSectionCompleted(
-              studyId, sectionIndex, any())).called(1);
+          verify(
+            () => mockProgressTracker.markSectionCompleted(
+              studyId,
+              sectionIndex,
+              any(),
+            ),
+          ).called(1);
         },
       );
     });
@@ -267,9 +304,14 @@ void main() {
         'calls progressTracker.answerQuestion',
         build: () {
           // Fixed: answerQuestion takes optional languageCode parameter
-          when(() => mockProgressTracker.answerQuestion(
-                  studyId, questionIndex, answer, any()))
-              .thenAnswer((_) async => Future.value());
+          when(
+            () => mockProgressTracker.answerQuestion(
+              studyId,
+              questionIndex,
+              answer,
+              any(),
+            ),
+          ).thenAnswer((_) async => Future.value());
           return bloc;
         },
         seed: () => DiscoveryLoaded(
@@ -286,8 +328,14 @@ void main() {
         act: (bloc) =>
             bloc.add(AnswerDiscoveryQuestion(studyId, questionIndex, answer)),
         verify: (_) {
-          verify(() => mockProgressTracker.answerQuestion(
-              studyId, questionIndex, answer, any())).called(1);
+          verify(
+            () => mockProgressTracker.answerQuestion(
+              studyId,
+              questionIndex,
+              answer,
+              any(),
+            ),
+          ).called(1);
         },
       );
     });
@@ -299,8 +347,9 @@ void main() {
         'calls progressTracker.completeStudy',
         build: () {
           // Fixed: completeStudy takes optional languageCode parameter
-          when(() => mockProgressTracker.completeStudy(studyId, any()))
-              .thenAnswer((_) async => Future.value());
+          when(
+            () => mockProgressTracker.completeStudy(studyId, any()),
+          ).thenAnswer((_) async => Future.value());
           return bloc;
         },
         seed: () => DiscoveryLoaded(
@@ -316,8 +365,9 @@ void main() {
         ),
         act: (bloc) => bloc.add(CompleteDiscoveryStudy(studyId)),
         verify: (_) {
-          verify(() => mockProgressTracker.completeStudy(studyId, any()))
-              .called(1);
+          verify(
+            () => mockProgressTracker.completeStudy(studyId, any()),
+          ).called(1);
         },
       );
     });
@@ -359,8 +409,9 @@ void main() {
       blocTest<DiscoveryBloc, DiscoveryState>(
         'refreshes available studies list',
         build: () {
-          when(() => mockRepository.fetchIndex(forceRefresh: true))
-              .thenAnswer((_) async => mockIndex);
+          when(
+            () => mockRepository.fetchIndex(forceRefresh: true),
+          ).thenAnswer((_) async => mockIndex);
           return bloc;
         },
         seed: () => DiscoveryLoaded(
@@ -377,7 +428,10 @@ void main() {
         act: (bloc) => bloc.add(RefreshDiscoveryStudies()),
         expect: () => [
           isA<DiscoveryLoaded>().having(
-              (s) => s.availableStudyIds, 'availableStudyIds', studyIds),
+            (s) => s.availableStudyIds,
+            'availableStudyIds',
+            studyIds,
+          ),
         ],
       );
     });
@@ -400,8 +454,11 @@ void main() {
         ),
         act: (bloc) => bloc.add(ClearDiscoveryError()),
         expect: () => [
-          isA<DiscoveryLoaded>()
-              .having((s) => s.errorMessage, 'errorMessage', isNull),
+          isA<DiscoveryLoaded>().having(
+            (s) => s.errorMessage,
+            'errorMessage',
+            isNull,
+          ),
         ],
       );
     });

@@ -24,11 +24,11 @@ class MockDevocionalRepository extends Mock implements DevocionalRepository {}
 
 void main() {
   test(
-      'Provider supports Chinese language (zh) and exposes it in supportedLanguages',
-      () {
-    final mockHttp = MockClient((request) async {
-      // Minimal valid payload so provider parsing won't fail if used later
-      return http.Response(
+    'Provider supports Chinese language (zh) and exposes it in supportedLanguages',
+    () {
+      final mockHttp = MockClient((request) async {
+        // Minimal valid payload so provider parsing won't fail if used later
+        return http.Response(
           jsonEncode({
             'data': {
               'zh': {
@@ -39,28 +39,30 @@ void main() {
                     'versiculo': '约翰 1:1',
                     'texto': '测试文本',
                     'language': 'zh',
-                    'version': 'KJV'
-                  }
-                ]
-              }
-            }
+                    'version': 'KJV',
+                  },
+                ],
+              },
+            },
           }),
-          200);
-    });
+          200,
+        );
+      });
 
-    // Create mock services to bypass service locator dependency
-    final mockIndexService = MockDevocionalIndexService();
-    final mockCacheService = MockCacheMetadataService();
-    final mockRepository = MockDevocionalRepository();
+      // Create mock services to bypass service locator dependency
+      final mockIndexService = MockDevocionalIndexService();
+      final mockCacheService = MockCacheMetadataService();
+      final mockRepository = MockDevocionalRepository();
 
-    final provider = DevocionalProvider(
-      httpClient: mockHttp,
-      enableAudio: false,
-      devocionalIndexService: mockIndexService,
-      cacheMetadataService: mockCacheService,
-      devocionalRepository: mockRepository,
-    );
+      final provider = DevocionalProvider(
+        httpClient: mockHttp,
+        enableAudio: false,
+        devocionalIndexService: mockIndexService,
+        cacheMetadataService: mockCacheService,
+        devocionalRepository: mockRepository,
+      );
 
-    expect(provider.supportedLanguages, contains('zh'));
-  });
+      expect(provider.supportedLanguages, contains('zh'));
+    },
+  );
 }

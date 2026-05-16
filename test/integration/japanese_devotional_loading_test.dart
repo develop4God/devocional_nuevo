@@ -3,7 +3,7 @@ library;
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

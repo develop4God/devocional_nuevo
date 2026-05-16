@@ -15,7 +15,10 @@ import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dar
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/services/remote_config_service.dart';
+import 'package:devocional_nuevo/pages/backup_settings_page.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
+import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -47,6 +50,8 @@ class _SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<_SettingsView> {
   late final VoiceSettingsService _voiceSettingsService =
       getService<VoiceSettingsService>();
+  late final RemoteConfigService _remoteConfigService =
+      getService<RemoteConfigService>();
   late final SupporterPetService _petService =
       getService<SupporterPetService>();
   late final ISupporterProfileRepository _profileRepo =
@@ -88,7 +93,8 @@ class _SettingsViewState extends State<_SettingsView> {
       // Fallback: load directly from SharedPreferences (e.g. BLoC not yet initialized)
       _profileRepo.loadProfileName().then((name) {
         debugPrint(
-            '📱 [SettingsPage] Loaded name from SharedPreferences: "$name"');
+          '📱 [SettingsPage] Loaded name from SharedPreferences: "$name"',
+        );
         if (mounted) {
           setState(() {
             _nameController.text = name ?? '';
@@ -228,12 +234,15 @@ class _SettingsViewState extends State<_SettingsView> {
                 alignment: Alignment.topRight,
                 child: OutlinedButton.icon(
                   onPressed: () async {
-                    final Uri url =
-                        Uri.parse('https://www.develop4god.com/apoyanos');
+                    final Uri url = Uri.parse(
+                      'https://www.develop4god.com/apoyanos',
+                    );
                     try {
                       if (await canLaunchUrl(url)) {
-                        await launchUrl(url,
-                            mode: LaunchMode.externalApplication);
+                        await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        );
                       } else {
                         if (mounted) {
                           _showErrorSnackBar('settings.cannot_open_url'.tr());
@@ -249,7 +258,8 @@ class _SettingsViewState extends State<_SettingsView> {
                     foregroundColor: colorScheme.onSurface,
                     side: BorderSide(color: colorScheme.primary, width: 2.0),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0)),
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
                   ),
                   icon: const Icon(Icons.volunteer_activism),
                   label: Text(
@@ -283,7 +293,8 @@ class _SettingsViewState extends State<_SettingsView> {
                     final name = state.goldSupporterName ?? '';
                     if (_nameController.text != name) {
                       debugPrint(
-                          '🔄 [SettingsPage] BLoC state updated — syncing name field: "$name"');
+                        '🔄 [SettingsPage] BLoC state updated — syncing name field: "$name"',
+                      );
                       setState(() {
                         _nameController.text = name;
                         _initialName = name;
@@ -294,11 +305,13 @@ class _SettingsViewState extends State<_SettingsView> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.3),
+                    color: colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.3,
+                    ),
                     borderRadius: BorderRadius.circular(24),
-                    border:
-                        Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: Colors.amber.withValues(alpha: 0.3),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.05),
@@ -318,8 +331,11 @@ class _SettingsViewState extends State<_SettingsView> {
                               color: Colors.amber.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(Icons.person_pin,
-                                color: Colors.amber.shade700, size: 20),
+                            child: Icon(
+                              Icons.person_pin,
+                              color: Colors.amber.shade700,
+                              size: 20,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Text(
@@ -366,22 +382,28 @@ class _SettingsViewState extends State<_SettingsView> {
                                       fillColor: colorScheme.surface,
                                       contentPadding:
                                           const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 14),
+                                        horizontal: 16,
+                                        vertical: 14,
+                                      ),
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(16),
                                         borderSide: BorderSide(
-                                            color: Colors.amber.shade300,
-                                            width: 1),
+                                          color: Colors.amber.shade300,
+                                          width: 1,
+                                        ),
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(16),
                                         borderSide: BorderSide(
-                                            color: Colors.amber.shade700,
-                                            width: 2),
-                                      ),
-                                      prefixIcon: Icon(Icons.badge_outlined,
                                           color: Colors.amber.shade700,
-                                          size: 20),
+                                          width: 2,
+                                        ),
+                                      ),
+                                      prefixIcon: Icon(
+                                        Icons.badge_outlined,
+                                        color: Colors.amber.shade700,
+                                        size: 20,
+                                      ),
                                     ),
                                     onChanged: (_) => setState(() {}),
                                   ),
@@ -405,8 +427,9 @@ class _SettingsViewState extends State<_SettingsView> {
                                                 Colors.amber.shade600,
                                             foregroundColor: Colors.black87,
                                             shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12)),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
                                           ),
                                           child: _isSavingName
                                               ? const SizedBox(
@@ -414,13 +437,14 @@ class _SettingsViewState extends State<_SettingsView> {
                                                   width: 18,
                                                   child:
                                                       CircularProgressIndicator(
-                                                          strokeWidth: 2),
+                                                    strokeWidth: 2,
+                                                  ),
                                                 )
                                               : Text(
                                                   'app.save'.tr(),
                                                   style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                         ),
                                       ),
@@ -434,25 +458,31 @@ class _SettingsViewState extends State<_SettingsView> {
                                 child: Container(
                                   width: double.infinity,
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 14),
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: colorScheme.surface
-                                        .withValues(alpha: 0.2),
+                                    color: colorScheme.surface.withValues(
+                                      alpha: 0.2,
+                                    ),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
                                       color: _nameSavedSuccess
                                           ? Colors.green.withValues(alpha: 0.3)
-                                          : colorScheme.outline
-                                              .withValues(alpha: 0.1),
+                                          : colorScheme.outline.withValues(
+                                              alpha: 0.1,
+                                            ),
                                     ),
                                   ),
                                   child: Row(
                                     children: [
-                                      Icon(Icons.badge_outlined,
-                                          color: _nameSavedSuccess
-                                              ? Colors.green
-                                              : Colors.amber.shade700,
-                                          size: 20),
+                                      Icon(
+                                        Icons.badge_outlined,
+                                        color: _nameSavedSuccess
+                                            ? Colors.green
+                                            : Colors.amber.shade700,
+                                        size: 20,
+                                      ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Text(
@@ -471,13 +501,18 @@ class _SettingsViewState extends State<_SettingsView> {
                                         ),
                                       ),
                                       if (_nameSavedSuccess)
-                                        const Icon(Icons.check_circle_rounded,
-                                            color: Colors.green, size: 18)
+                                        const Icon(
+                                          Icons.check_circle_rounded,
+                                          color: Colors.green,
+                                          size: 18,
+                                        )
                                       else
-                                        Icon(Icons.edit_rounded,
-                                            color: colorScheme.onSurfaceVariant
-                                                .withValues(alpha: 0.3),
-                                            size: 16),
+                                        Icon(
+                                          Icons.edit_rounded,
+                                          color: colorScheme.onSurfaceVariant
+                                              .withValues(alpha: 0.3),
+                                          size: 16,
+                                        ),
                                     ],
                                   ),
                                 ),
@@ -488,8 +523,9 @@ class _SettingsViewState extends State<_SettingsView> {
                         Text(
                           'supporter.profile_name_helper'.tr(),
                           style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant
-                                .withValues(alpha: 0.7),
+                            color: colorScheme.onSurfaceVariant.withValues(
+                              alpha: 0.7,
+                            ),
                           ),
                         ),
                       const SizedBox(height: 20),
@@ -502,8 +538,9 @@ class _SettingsViewState extends State<_SettingsView> {
                         child: SwitchListTile(
                           title: Text(
                             'supporter.show_pet_header'.tr(),
-                            style: textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           subtitle: Text(
                             '${'supporter.pet_currently_selected'.tr()}: ${_petService.selectedPet.nameKey.tr()} ${_petService.selectedPet.emoji}',
@@ -514,16 +551,17 @@ class _SettingsViewState extends State<_SettingsView> {
                             await _petService.setShowPetHeader(value);
                             setState(() {});
                           },
-                          thumbColor: WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
-                              if (states.contains(WidgetState.selected)) {
-                                return Colors.amber.shade700;
-                              }
-                              return Colors.grey;
-                            },
+                          thumbColor: WidgetStateProperty.resolveWith<Color>((
+                            Set<WidgetState> states,
+                          ) {
+                            if (states.contains(WidgetState.selected)) {
+                              return Colors.amber.shade700;
+                            }
+                            return Colors.grey;
+                          }),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
                           ),
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 12),
                         ),
                       ),
                     ],
@@ -541,9 +579,11 @@ class _SettingsViewState extends State<_SettingsView> {
                       localizationProvider.currentLocale.languageCode] ??
                   localizationProvider.currentLocale.languageCode,
               onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const ApplicationLanguagePage())),
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ApplicationLanguagePage(),
+                ),
+              ),
               colorScheme: colorScheme,
               textTheme: textTheme,
             ),
@@ -554,8 +594,10 @@ class _SettingsViewState extends State<_SettingsView> {
             _buildSettingTile(
               icon: Icons.contact_support_rounded,
               title: 'settings.contact_us'.tr(),
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const ContactPage())),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ContactPage()),
+              ),
               colorScheme: colorScheme,
               textTheme: textTheme,
             ),
@@ -566,11 +608,33 @@ class _SettingsViewState extends State<_SettingsView> {
             _buildSettingTile(
               icon: Icons.info_outline_rounded,
               title: 'settings.about_app'.tr(),
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const AboutPage())),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AboutPage()),
+              ),
               colorScheme: colorScheme,
               textTheme: textTheme,
             ),
+
+            // Google Drive Backup
+            if (_remoteConfigService.showBackupSection)
+              _buildSettingTile(
+                icon: Icons.backup_rounded,
+                title: 'backup.title'.tr(),
+                bubbleId: 'settings_backup_new',
+                onTap: () async {
+                  await BubbleUtils.markAsShown('settings_backup_new');
+                  if (!context.mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const BackupSettingsPage(),
+                    ),
+                  );
+                },
+                colorScheme: colorScheme,
+                textTheme: textTheme,
+              ),
 
             const SizedBox(height: 20),
           ],
@@ -590,6 +654,7 @@ class _SettingsViewState extends State<_SettingsView> {
     required IconData icon,
     required String title,
     String? subtitle,
+    String? bubbleId,
     required VoidCallback onTap,
     required ColorScheme colorScheme,
     required TextTheme textTheme,
@@ -619,12 +684,19 @@ class _SettingsViewState extends State<_SettingsView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
-                      ),
+                    Builder(
+                      builder: (context) {
+                        final titleText = Text(
+                          title,
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface,
+                          ),
+                        );
+                        return bubbleId != null
+                            ? titleText.newBubbleWithId(bubbleId)
+                            : titleText;
+                      },
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 4),
@@ -638,8 +710,10 @@ class _SettingsViewState extends State<_SettingsView> {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded,
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
             ],
           ),
         ),

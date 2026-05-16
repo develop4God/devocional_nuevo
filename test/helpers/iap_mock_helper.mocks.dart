@@ -34,10 +34,11 @@ class MockIIapService extends _i1.Mock implements _i2.IIapService {
   }
 
   @override
-  _i3.Stream<_i4.SupporterTier> get onPurchaseDelivered => (super.noSuchMethod(
+  _i3.Stream<(_i4.SupporterTier, bool)> get onPurchaseDelivered =>
+      (super.noSuchMethod(
         Invocation.getter(#onPurchaseDelivered),
-        returnValue: _i3.Stream<_i4.SupporterTier>.empty(),
-      ) as _i3.Stream<_i4.SupporterTier>);
+        returnValue: _i3.Stream<(_i4.SupporterTier, bool)>.empty(),
+      ) as _i3.Stream<(_i4.SupporterTier, bool)>);
 
   @override
   _i3.Stream<String> get onPurchaseError => (super.noSuchMethod(
@@ -52,10 +53,9 @@ class MockIIapService extends _i1.Mock implements _i2.IIapService {
       ) as _i3.Stream<String>);
 
   @override
-  bool get isAvailable => (super.noSuchMethod(
-        Invocation.getter(#isAvailable),
-        returnValue: false,
-      ) as bool);
+  bool get isAvailable =>
+      (super.noSuchMethod(Invocation.getter(#isAvailable), returnValue: false)
+          as bool);
 
   @override
   Set<_i4.SupporterTierLevel> get purchasedLevels => (super.noSuchMethod(
@@ -71,26 +71,18 @@ class MockIIapService extends _i1.Mock implements _i2.IIapService {
 
   @override
   bool isPurchased(_i4.SupporterTierLevel? level) => (super.noSuchMethod(
-        Invocation.method(
-          #isPurchased,
-          [level],
-        ),
+        Invocation.method(#isPurchased, [level]),
         returnValue: false,
       ) as bool);
 
   @override
   _i5.ProductDetails? getProduct(String? productId) =>
-      (super.noSuchMethod(Invocation.method(
-        #getProduct,
-        [productId],
-      )) as _i5.ProductDetails?);
+      (super.noSuchMethod(Invocation.method(#getProduct, [productId]))
+          as _i5.ProductDetails?);
 
   @override
   _i3.Future<void> initialize() => (super.noSuchMethod(
-        Invocation.method(
-          #initialize,
-          [],
-        ),
+        Invocation.method(#initialize, []),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
@@ -98,39 +90,27 @@ class MockIIapService extends _i1.Mock implements _i2.IIapService {
   @override
   _i3.Future<_i2.IapResult> purchaseTier(_i4.SupporterTier? tier) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #purchaseTier,
-          [tier],
-        ),
+        Invocation.method(#purchaseTier, [tier]),
         returnValue: _i3.Future<_i2.IapResult>.value(_i2.IapResult.success),
       ) as _i3.Future<_i2.IapResult>);
 
   @override
   _i3.Future<void> restorePurchases() => (super.noSuchMethod(
-        Invocation.method(
-          #restorePurchases,
-          [],
-        ),
+        Invocation.method(#restorePurchases, []),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
 
   @override
   _i3.Future<void> dispose() => (super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
-        ),
+        Invocation.method(#dispose, []),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
 
   @override
   void forceReinitialize() => super.noSuchMethod(
-        Invocation.method(
-          #forceReinitialize,
-          [],
-        ),
+        Invocation.method(#forceReinitialize, []),
         returnValueForMissingStub: null,
       );
 }
