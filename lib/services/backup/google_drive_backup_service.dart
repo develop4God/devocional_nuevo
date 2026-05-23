@@ -563,11 +563,15 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         await driveApi.files.create(createFile, uploadMedia: media);
       }
 
-      // Step 5: Sync merged result back to local so UI reflects true merged state
+      // Step 5: Sync non-stats merged data back to local (prayers, favorites, etc.)
+      // NOTE: spiritual_stats are intentionally excluded — device is source of truth
+      // for readDevocionalIds and streak. Restore happens only on explicit user restore.
       if (remotePayload != null && _validateBackupData(remotePayload)) {
         try {
-          await _statsService.restoreStats(finalPayload);
-          debugPrint('[BACKUP] Local state synced to merged result');
+          final payloadWithoutStats = Map<String, dynamic>.from(finalPayload)
+            ..remove(BackupKeys.spiritualStats);
+          await _statsService.restoreStats(payloadWithoutStats);
+          debugPrint('[BACKUP] Local non-stats data synced to merged result');
         } catch (e) {
           debugPrint(
             '[BACKUP] Warning: could not sync merged state locally: $e',
@@ -620,11 +624,9 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       try {
         final stats = await _statsService.getAllStats();
         debugPrint('[BACKUP] 🔍 SPIRITUAL STATS: ${json.encode(stats)}');
-        backupData[BackupKeys.spiritualStats] = stats;
-
-        // Extract nested stats map for clear logging
         final innerStats =
             (stats['stats'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+        backupData[BackupKeys.spiritualStats] = innerStats;
         final readDevocionalIds =
             (innerStats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
         debugPrint('[BACKUP] Included spiritual stats:');
