@@ -1010,29 +1010,23 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         try {
           final stats = data[BackupKeys.spiritualStats] as Map<String, dynamic>;
           await _statsService.restoreStats(stats);
-
-          final innerStats = (stats['stats'] as Map<String, dynamic>?) ?? {};
-          final readDevocionalIds =
-              (innerStats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
+          final restored = await _statsService.getStats();
           debugPrint('[RESTORE] ✅ Restored spiritual stats');
           debugPrint(
-            '[RESTORE]   - Total devotionals read: ${innerStats['totalDevocionalesRead'] ?? 0}',
+            '[RESTORE]   - Total devotionals read: ${restored.totalDevocionalesRead}',
           );
           debugPrint(
-            '[RESTORE]   - Completed devotional IDs: $readDevocionalIds',
+            '[RESTORE]   - Completed devotional IDs: ${restored.readDevocionalIds.length}',
           );
           debugPrint(
-            '[RESTORE]   - Current streak: ${innerStats['currentStreak'] ?? 0}',
+            '[RESTORE]   - Current streak: ${restored.currentStreak}',
           );
           debugPrint(
-            '[RESTORE]   - Longest streak: ${innerStats['longestStreak'] ?? 0}',
+            '[RESTORE]   - Longest streak: ${restored.longestStreak}',
           );
           debugPrint(
-            '[RESTORE]   - Favorites count: ${innerStats['favoritesCount'] ?? 0}',
+            '[RESTORE]   - Favorites count: ${restored.favoritesCount}',
           );
-
-          // (removed: downstream verify of SharedPreferences write —
-          //  restoreStats() throws on failure; key internals belong to SpiritualStatsService)
         } catch (e) {
           debugPrint('[RESTORE] ❌ Error restoring spiritual stats: $e');
         }
