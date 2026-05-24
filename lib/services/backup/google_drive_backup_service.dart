@@ -1010,23 +1010,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         try {
           final stats = data[BackupKeys.spiritualStats] as Map<String, dynamic>;
           await _statsService.restoreStats(stats);
-          final restored = await _statsService.getStats();
           debugPrint('[RESTORE] ✅ Restored spiritual stats');
-          debugPrint(
-            '[RESTORE]   - Total devotionals read: ${restored.totalDevocionalesRead}',
-          );
-          debugPrint(
-            '[RESTORE]   - Completed devotional IDs: ${restored.readDevocionalIds.length}',
-          );
-          debugPrint(
-            '[RESTORE]   - Current streak: ${restored.currentStreak}',
-          );
-          debugPrint(
-            '[RESTORE]   - Longest streak: ${restored.longestStreak}',
-          );
-          debugPrint(
-            '[RESTORE]   - Favorites count: ${restored.favoritesCount}',
-          );
         } catch (e) {
           debugPrint('[RESTORE] ❌ Error restoring spiritual stats: $e');
         }
