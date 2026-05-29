@@ -656,13 +656,18 @@ class SpiritualStatsService implements ISpiritualStatsService {
   @override
   Future<void> restoreStats(Map<String, dynamic> backupData) async {
     try {
-      // Backup format stores flat SpiritualStats fields directly (no 'stats' wrapper).
-      // Legacy format (exportStatsAsJson) wraps under 'stats' key — support both.
-      final Map<String, dynamic>? statsData = backupData.containsKey('stats')
-          ? backupData['stats'] as Map<String, dynamic>?
-          : backupData.containsKey('totalDevocionalesRead')
-              ? backupData
-              : null;
+      // Support multiple backup formats:
+      // 1. Merged format: 'spiritual_stats' key (from backup merge)
+      // 2. Legacy format: 'stats' key (from exportStatsAsJson)
+      // 3. Flat format: direct fields like 'totalDevocionalesRead'
+      final Map<String, dynamic>? statsData =
+          backupData.containsKey('spiritual_stats')
+              ? backupData['spiritual_stats'] as Map<String, dynamic>?
+              : backupData.containsKey('stats')
+                  ? backupData['stats'] as Map<String, dynamic>?
+                  : backupData.containsKey('totalDevocionalesRead')
+                      ? backupData
+                      : null;
 
       if (statsData != null) {
         final stats = SpiritualStats.fromJson(statsData);

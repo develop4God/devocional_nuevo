@@ -563,15 +563,17 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         await driveApi.files.create(createFile, uploadMedia: media);
       }
 
-      // Step 5: Sync non-stats merged data back to local (prayers, favorites, etc.)
-      // NOTE: spiritual_stats are intentionally excluded — device is source of truth
-      // for readDevocionalIds and streak. Restore happens only on explicit user restore.
+      // Step 5: Sync merged data back to local (including spiritual stats + read_dates)
+      // When we merge with remote backup, the merged stats represent the unified truth
+      // across devices. We must sync this back to local to keep streak values consistent.
       if (remotePayload != null && _validateBackupData(remotePayload)) {
         try {
-          final payloadWithoutStats = Map<String, dynamic>.from(finalPayload)
-            ..remove(BackupKeys.spiritualStats);
-          await _statsService.restoreStats(payloadWithoutStats);
-          debugPrint('[BACKUP] Local non-stats data synced to merged result');
+          // Include spiritualStats AND read_dates in sync-back to preserve merged streak
+          final payloadWithStats = Map<String, dynamic>.from(finalPayload);
+          await _statsService.restoreStats(payloadWithStats);
+          debugPrint(
+            '[BACKUP] ✅ Local data synced to merged result (including spiritual stats)',
+          );
         } catch (e) {
           debugPrint(
             '[BACKUP] Warning: could not sync merged state locally: $e',
