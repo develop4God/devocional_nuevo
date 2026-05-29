@@ -180,7 +180,8 @@ void main() {
 
         // Act: Simulate Device B receiving the merged backup sync-back
         await statsService.saveStats(deviceBStats); // Start with Device B state
-        await statsService.restoreStats(mergedBackupPayload); // Sync merged data
+        await statsService
+            .restoreStats(mergedBackupPayload); // Sync merged data
 
         // Assert: Device B should now have max streak of 5 from Device A
         final syncedStats = await statsService.getStats();
