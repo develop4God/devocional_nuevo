@@ -27,21 +27,25 @@ void main() {
       expect(stats.readDevocionalIds, isEmpty);
     });
 
-    test('should record devotional read and update stats when criteria met',
-        () async {
-      final devocionalId = 'dev1';
-      final statsBefore = await statsService.getStats();
-      expect(statsBefore.readDevocionalIds.contains(devocionalId), isFalse);
-      await statsService.recordDevocionalRead(
-        devocionalId: devocionalId,
-        readingTimeSeconds: 65, // >= 60s
-        scrollPercentage: 0.85, // >= 0.8
-      );
-      final statsAfter = await statsService.getStats();
-      expect(statsAfter.readDevocionalIds.contains(devocionalId), isTrue);
-      expect(statsAfter.totalDevocionalesRead,
-          statsBefore.totalDevocionalesRead + 1);
-    });
+    test(
+      'should record devotional read and update stats when criteria met',
+      () async {
+        final devocionalId = 'dev1';
+        final statsBefore = await statsService.getStats();
+        expect(statsBefore.readDevocionalIds.contains(devocionalId), isFalse);
+        await statsService.recordDevocionalRead(
+          devocionalId: devocionalId,
+          readingTimeSeconds: 65, // >= 60s
+          scrollPercentage: 0.85, // >= 0.8
+        );
+        final statsAfter = await statsService.getStats();
+        expect(statsAfter.readDevocionalIds.contains(devocionalId), isTrue);
+        expect(
+          statsAfter.totalDevocionalesRead,
+          statsBefore.totalDevocionalesRead + 1,
+        );
+      },
+    );
 
     test('should not record devotional read if criteria not met', () async {
       final devocionalId = 'dev3';
@@ -70,8 +74,9 @@ void main() {
       );
       final statsTwice = await statsService.getStats();
       expect(
-          statsTwice.readDevocionalIds.where((id) => id == devocionalId).length,
-          1);
+        statsTwice.readDevocionalIds.where((id) => id == devocionalId).length,
+        1,
+      );
       expect(statsTwice.totalDevocionalesRead, statsOnce.totalDevocionalesRead);
     });
   });

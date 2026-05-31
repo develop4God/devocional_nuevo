@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:devocional_nuevo/debug/debug_flags.dart';
+import 'package:devocional_nuevo/services/tts/voice_data_registry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
@@ -13,24 +14,39 @@ class DebugTtsSection extends StatefulWidget {
 }
 
 class _DebugTtsSectionState extends State<DebugTtsSection> {
-  String _explorerLang = 'ar';
+  late String _explorerLang;
   List<Map<String, dynamic>> _explorerVoices = [];
   Map<String, String> _explorerGenders = {};
   int? _explorerPlayingIndex;
   bool _explorerLoading = false;
   final FlutterTts _explorerTts = FlutterTts();
 
-  static const _languages = [
-    'ar',
-    'de',
-    'es',
-    'en',
-    'fr',
-    'pt',
-    'ja',
-    'zh',
-    'hi'
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Use the first supported language from the registry, or default to 'en'
+    _explorerLang = VoiceDataRegistry.supportedLanguages.isNotEmpty
+        ? VoiceDataRegistry.supportedLanguages.first
+        : 'en';
+  }
+
+  /// Get all possible locale prefixes for a given language code.
+  /// Handles language aliases (e.g., 'fil' -> ['fil', 'tl'] for Tagalog/Filipino).
+  List<String> _getLocaleAliasesForLanguage(String lang) {
+    final Map<String, List<String>> languageAliases = {
+      'fil': ['fil', 'tl'], // Filipino = Tagalog
+    };
+    return languageAliases[lang] ?? [lang];
+  }
+
+  /// Check if a voice locale matches the language code or its aliases.
+  bool _voiceMatchesLanguage(String voiceLocale, String languageCode) {
+    final aliases = _getLocaleAliasesForLanguage(languageCode);
+    final voiceLowerCase = voiceLocale.toLowerCase();
+    return aliases.any(
+      (alias) => voiceLowerCase.startsWith(alias.toLowerCase()),
+    );
+  }
 
   Future<void> _loadAllVoices(String lang) async {
     setState(() => _explorerLoading = true);
@@ -38,27 +54,32 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
     if (raw is List) {
       final filtered = raw
           .cast<Map>()
-          .where((v) => (v['locale'] as String? ?? '')
-              .toLowerCase()
-              .startsWith(lang.toLowerCase()))
-          .map((v) => {
-                'name': v['name'] as String? ?? '',
-                'locale': v['locale'] as String? ?? ''
-              })
+          .where(
+            (v) => _voiceMatchesLanguage(v['locale'] as String? ?? '', lang),
+          )
+          .map(
+            (v) => {
+              'name': v['name'] as String? ?? '',
+              'locale': v['locale'] as String? ?? '',
+            },
+          )
           .toList();
       setState(() {
         _explorerVoices = filtered;
         _explorerLoading = false;
       });
       debugPrint(
-          '[VoiceExplorer] Found ${filtered.length} voices for lang=$lang');
+        '[VoiceExplorer] Found ${filtered.length} voices for lang=$lang',
+      );
     }
   }
 
   Future<void> _playSample(String name, String locale, int index) async {
     setState(() => _explorerPlayingIndex = index);
     await _explorerTts.setVoice({'name': name, 'locale': locale});
-    await _explorerTts.speak('مرحبا، هذا صوت تجريبي. كيفك؟');
+    // Use localized sample text for the language
+    final sampleText = VoiceDataRegistry.getSampleText(_explorerLang);
+    await _explorerTts.speak(sampleText);
     setState(() => _explorerPlayingIndex = null);
   }
 
@@ -68,19 +89,20 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
   }
 
   void _exportToLogcat(BuildContext context) {
-    final buffer =
-        StringBuffer('[VoiceExplorer] ── EXPORT for $_explorerLang ──\n');
+    final buffer = StringBuffer(
+      '[VoiceExplorer] ── EXPORT for $_explorerLang ──\n',
+    );
     for (final v in _explorerVoices) {
       final name = v['name'] as String;
       final locale = v['locale'] as String;
       final gender = _explorerGenders[name] ?? 'unknown';
-      final icon = gender == 'male'
+      final genderIcon = gender == 'male'
           ? 'Icons.man_3_outlined'
           : gender == 'female'
               ? 'Icons.woman_outlined'
               : 'Icons.record_voice_over_outlined';
       buffer.writeln(
-        "  '$name': VoiceMetadata(emoji: '🇩🇪', description: '$gender $locale', genderIcon: $icon),",
+        "  '$name': VoiceMetadata(emoji: '', description: '$gender $locale', genderIcon: $genderIcon),",
       );
     }
     debugPrint(buffer.toString());
@@ -113,9 +135,11 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
                 setLocal(() => DebugFlags.forceFallbackForTesting = value);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(value
-                        ? '🎤 TTS Fallback enabled - voices will use fallback locales'
-                        : '🎤 TTS Fallback disabled - voices will use premium only'),
+                    content: Text(
+                      value
+                          ? '🎤 TTS Fallback enabled - voices will use fallback locales'
+                          : '🎤 TTS Fallback disabled - voices will use premium only',
+                    ),
                     duration: const Duration(seconds: 2),
                   ),
                 );
@@ -140,8 +164,10 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
                     const SizedBox(width: 8),
                     const Text(
                       '🔬 TTS Voice Explorer',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     const Spacer(),
                     TextButton(
@@ -159,7 +185,7 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
                 // Language chips
                 Wrap(
                   spacing: 6,
-                  children: _languages.map((lang) {
+                  children: VoiceDataRegistry.supportedLanguages.map((lang) {
                     return ChoiceChip(
                       label: Text(lang),
                       selected: _explorerLang == lang,
@@ -242,9 +268,10 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
                 onPressed:
                     isPlaying ? null : () => _playSample(name, locale, i),
               ),
-              title: Text(name,
-                  style:
-                      const TextStyle(fontSize: 12, fontFamily: 'monospace')),
+              title: Text(
+                name,
+                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+              ),
               subtitle: Text(locale, style: const TextStyle(fontSize: 11)),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -290,8 +317,9 @@ class _DebugTtsSectionState extends State<DebugTtsSection> {
                   icon: const Icon(Icons.copy),
                   label: const Text('Export VoiceMetadata to logcat'),
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white),
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ],
             ),

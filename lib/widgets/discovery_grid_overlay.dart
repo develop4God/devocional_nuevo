@@ -94,9 +94,7 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
                 children: [
                   _buildHeader(colorScheme),
                   _buildFilterBar(colorScheme),
-                  Expanded(
-                    child: _buildGrid(colorScheme),
-                  ),
+                  Expanded(child: _buildGrid(colorScheme)),
                 ],
               ),
             ),
@@ -121,8 +119,11 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.close_rounded,
-                color: colorScheme.onSurface, size: 28),
+            icon: Icon(
+              Icons.close_rounded,
+              color: colorScheme.onSurface,
+              size: 28,
+            ),
             onPressed: widget.onClose,
           ),
         ],
@@ -142,11 +143,20 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
         child: Row(
           children: [
             _buildFilterButton(
-                StudyFilter.all, 'discovery.all'.tr(), colorScheme),
+              StudyFilter.all,
+              'discovery.all'.tr(),
+              colorScheme,
+            ),
             _buildFilterButton(
-                StudyFilter.pending, 'discovery.pending'.tr(), colorScheme),
+              StudyFilter.pending,
+              'discovery.pending'.tr(),
+              colorScheme,
+            ),
             _buildFilterButton(
-                StudyFilter.completed, 'discovery.completed'.tr(), colorScheme),
+              StudyFilter.completed,
+              'discovery.completed'.tr(),
+              colorScheme,
+            ),
           ],
         ),
       ),
@@ -154,7 +164,10 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
   }
 
   Widget _buildFilterButton(
-      StudyFilter filter, String label, ColorScheme colorScheme) {
+    StudyFilter filter,
+    String label,
+    ColorScheme colorScheme,
+  ) {
     final isActive = _activeFilter == filter;
     return Expanded(
       child: GestureDetector(
@@ -168,9 +181,10 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
             boxShadow: isActive
                 ? [
                     BoxShadow(
-                        color: colorScheme.shadow.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2))
+                      color: colorScheme.shadow.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
                   ]
                 : null,
           ),
@@ -198,14 +212,18 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off_rounded,
-                color: colorScheme.onSurface.withValues(alpha: 0.3), size: 64),
+            Icon(
+              Icons.search_off_rounded,
+              color: colorScheme.onSurface.withValues(alpha: 0.3),
+              size: 64,
+            ),
             const SizedBox(height: 16),
             Text(
               'discovery.no_studies_found'.tr(),
               style: TextStyle(
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
-                  fontSize: 16),
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
+                fontSize: 16,
+              ),
             ),
           ],
         ),
@@ -294,12 +312,13 @@ class _StudyGridCard extends StatelessWidget {
                         colors: isActive
                             ? [
                                 colorScheme.primary.withValues(alpha: 0.2),
-                                colorScheme.primary.withValues(alpha: 0.05)
+                                colorScheme.primary.withValues(alpha: 0.05),
                               ]
                             : [
-                                colorScheme.surfaceContainerHighest
-                                    .withValues(alpha: 0.5),
-                                colorScheme.surfaceContainer
+                                colorScheme.surfaceContainerHighest.withValues(
+                                  alpha: 0.5,
+                                ),
+                                colorScheme.surfaceContainer,
                               ],
                       ),
                     ),
@@ -307,7 +326,9 @@ class _StudyGridCard extends StatelessWidget {
                       child: Text(
                         emoji ?? '📖',
                         style: TextStyle(
-                            fontSize: 40, color: colorScheme.onSurface),
+                          fontSize: 40,
+                          color: colorScheme.onSurface,
+                        ),
                       ),
                     ),
                   ),
@@ -315,8 +336,10 @@ class _StudyGridCard extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -335,30 +358,38 @@ class _StudyGridCard extends StatelessWidget {
                         if (isCompleted)
                           Row(
                             children: [
-                              const Icon(Icons.check_circle_rounded,
-                                  size: 14, color: Colors.greenAccent),
+                              const Icon(
+                                Icons.check_circle_rounded,
+                                size: 14,
+                                color: Colors.greenAccent,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 'discovery.completed'.tr().toUpperCase(),
                                 style: TextStyle(
-                                    color: colorScheme.secondary,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold),
+                                  color: colorScheme.secondary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ],
                           )
                         else if (isActive)
                           Row(
                             children: [
-                              Icon(Icons.play_circle_fill_rounded,
-                                  size: 14, color: colorScheme.primary),
+                              Icon(
+                                Icons.play_circle_fill_rounded,
+                                size: 14,
+                                color: colorScheme.primary,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 'discovery.current'.tr().toUpperCase(),
                                 style: TextStyle(
-                                    color: colorScheme.primary,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold),
+                                  color: colorScheme.primary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ],
                           ),
@@ -378,8 +409,11 @@ class _StudyGridCard extends StatelessWidget {
                     color: colorScheme.secondary,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.check,
-                      color: colorScheme.onSecondary, size: 10),
+                  child: Icon(
+                    Icons.check,
+                    color: colorScheme.onSecondary,
+                    size: 10,
+                  ),
                 ),
               ),
           ],

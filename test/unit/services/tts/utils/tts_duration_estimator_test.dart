@@ -11,24 +11,25 @@ void main() {
     // ── Arabic (AR) WPM tests ────────────────────────────────────────────────
     group('Arabic (ar) — 100 WPM', () {
       test(
-          'Arabic text produces longer duration than same word count in Spanish',
-          () {
-        const arabicText = 'مرحبا بك في التطبيق الجديد';
-        const spanishText = 'Hola bienvenido a la nueva aplicación';
+        'Arabic text produces longer duration than same word count in Spanish',
+        () {
+          const arabicText = 'مرحبا بك في التطبيق الجديد';
+          const spanishText = 'Hola bienvenido a la nueva aplicación';
 
-        // Count words in each (Arabic has 5 words, Spanish has 6)
-        final arWords = arabicText.trim().split(RegExp(r'\s+')).length;
-        final esWords = spanishText.trim().split(RegExp(r'\s+')).length;
+          // Count words in each (Arabic has 5 words, Spanish has 6)
+          final arWords = arabicText.trim().split(RegExp(r'\s+')).length;
+          final esWords = spanishText.trim().split(RegExp(r'\s+')).length;
 
-        final arDuration = TtsDurationEstimator.estimate(arabicText, 'ar');
-        final esDuration = TtsDurationEstimator.estimate(spanishText, 'es');
+          final arDuration = TtsDurationEstimator.estimate(arabicText, 'ar');
+          final esDuration = TtsDurationEstimator.estimate(spanishText, 'es');
 
-        debugPrint('AR: $arWords words @ 100 WPM → ${arDuration.inSeconds}s');
-        debugPrint('ES: $esWords words @ 150 WPM → ${esDuration.inSeconds}s');
+          debugPrint('AR: $arWords words @ 100 WPM → ${arDuration.inSeconds}s');
+          debugPrint('ES: $esWords words @ 150 WPM → ${esDuration.inSeconds}s');
 
-        // Arabic at 100 WPM should take longer than Spanish at 150 WPM
-        expect(arDuration.inSeconds, greaterThan(esDuration.inSeconds));
-      });
+          // Arabic at 100 WPM should take longer than Spanish at 150 WPM
+          expect(arDuration.inSeconds, greaterThan(esDuration.inSeconds));
+        },
+      );
 
       test('10 words in Arabic at 80 WPM = 8 seconds', () {
         // 10 words / (80 WPM / 60) = 10 / 1.333... = 7.5 → rounds to 8 seconds
@@ -128,10 +129,14 @@ void main() {
       test('whitespace is stripped for Japanese character count', () {
         final japaneseWithSpaces = '日本 語 の テキスト'; // spaces between chars
         final japaneseNoSpaces = '日本語のテキスト';
-        final durationWithSpaces =
-            TtsDurationEstimator.estimate(japaneseWithSpaces, 'ja');
-        final durationNoSpaces =
-            TtsDurationEstimator.estimate(japaneseNoSpaces, 'ja');
+        final durationWithSpaces = TtsDurationEstimator.estimate(
+          japaneseWithSpaces,
+          'ja',
+        );
+        final durationNoSpaces = TtsDurationEstimator.estimate(
+          japaneseNoSpaces,
+          'ja',
+        );
         // Both should produce the same duration since spaces are removed
         expect(durationWithSpaces.inSeconds, durationNoSpaces.inSeconds);
       });
@@ -169,12 +174,14 @@ void main() {
         expect(duration.inSeconds, 0);
       });
 
-      test('single word in Spanish produces 0 seconds (< 1 second rounds down)',
-          () {
-        final duration = TtsDurationEstimator.estimate('palabra', 'es');
-        // 1 word / 2.5 = 0.4 → rounds to 0
-        expect(duration.inSeconds, 0);
-      });
+      test(
+        'single word in Spanish produces 0 seconds (< 1 second rounds down)',
+        () {
+          final duration = TtsDurationEstimator.estimate('palabra', 'es');
+          // 1 word / 2.5 = 0.4 → rounds to 0
+          expect(duration.inSeconds, 0);
+        },
+      );
 
       test('single word in Arabic produces 0 seconds', () {
         final duration = TtsDurationEstimator.estimate('كلمة', 'ar');
@@ -213,21 +220,22 @@ void main() {
       });
 
       test(
-          'Arabic Quranic verse produces longer duration than equivalent Spanish',
-          () {
-        // Psalm 23 equivalent lengths — using shorter Spanish to show the difference
-        const arabicVerse =
-            'الرب راعي فلا يعوزني شيء في مراع خضر يربضني على مياه الراحة';
-        // Shorter Spanish verse for comparison
-        const spanishVerse = 'El Señor es mi pastor';
+        'Arabic Quranic verse produces longer duration than equivalent Spanish',
+        () {
+          // Psalm 23 equivalent lengths — using shorter Spanish to show the difference
+          const arabicVerse =
+              'الرب راعي فلا يعوزني شيء في مراع خضر يربضني على مياه الراحة';
+          // Shorter Spanish verse for comparison
+          const spanishVerse = 'El Señor es mi pastor';
 
-        final arDuration = TtsDurationEstimator.estimate(arabicVerse, 'ar');
-        final esDuration = TtsDurationEstimator.estimate(spanishVerse, 'es');
+          final arDuration = TtsDurationEstimator.estimate(arabicVerse, 'ar');
+          final esDuration = TtsDurationEstimator.estimate(spanishVerse, 'es');
 
-        // Arabic: 12 words @ 100 WPM = 7 seconds
-        // Spanish: 4 words @ 150 WPM = 1.6 → 2 seconds
-        expect(arDuration.inSeconds, greaterThan(esDuration.inSeconds));
-      });
+          // Arabic: 12 words @ 100 WPM = 7 seconds
+          // Spanish: 4 words @ 150 WPM = 1.6 → 2 seconds
+          expect(arDuration.inSeconds, greaterThan(esDuration.inSeconds));
+        },
+      );
 
       test('Japanese scripture produces reasonable duration', () {
         const japaneseText = '心を尽くし、精神を尽くし、思いを尽くし、力を尽くして、あなたの神である主を愛しなさい。';

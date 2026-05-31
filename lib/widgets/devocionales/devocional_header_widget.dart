@@ -92,8 +92,9 @@ class DevocionalHeaderWidget extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  getService<IAnalyticsService>()
-                      .logBottomBarAction(action: 'favorite');
+                  getService<IAnalyticsService>().logBottomBarAction(
+                    action: 'favorite',
+                  );
                   HapticFeedback.mediumImpact();
                   onFavoriteToggle();
                 },
@@ -110,8 +111,9 @@ class DevocionalHeaderWidget extends StatelessWidget {
                   size: 24,
                 ),
                 onPressed: () {
-                  getService<IAnalyticsService>()
-                      .logBottomBarAction(action: 'share');
+                  getService<IAnalyticsService>().logBottomBarAction(
+                    action: 'share',
+                  );
                   HapticFeedback.lightImpact();
                   onShare();
                 },

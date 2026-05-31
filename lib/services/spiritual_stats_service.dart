@@ -17,35 +17,7 @@ class SpiritualStatsService implements ISpiritualStatsService {
 
   // Configuración para JSON backup
   static const String _jsonBackupEnabledKey = 'json_backup_enabled';
-  static const String _autoBackupEnabledKey = 'auto_backup_enabled';
-  static const String _lastBackupTimeKey = 'last_backup_time';
   static const String _jsonBackupFilename = 'spiritual_stats_backup.json';
-
-  // Configuración de auto-backup
-  static const int _autoBackupIntervalHours = 24; // Cada 24 horas
-  static const int _maxBackupFiles = 7; // Mantener 7 backups rotativos
-
-  /// Configurar backup automático (habilitado por defecto para mejor UX)
-  @override
-  Future<void> setAutoBackupEnabled(bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_autoBackupEnabledKey, enabled);
-
-    if (enabled) {
-      // Crear backup inicial
-      await _createAutoBackup();
-    }
-
-    debugPrint('Auto-backup ${enabled ? "enabled" : "disabled"}');
-  }
-
-  /// Verificar si auto-backup está habilitado
-  @override
-  Future<bool> isAutoBackupEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    // Por defecto habilitado para mejor experiencia de usuario
-    return prefs.getBool(_autoBackupEnabledKey) ?? true;
-  }
 
   /// NUEVO: Habilitar/deshabilitar backup JSON manual
   @override
@@ -110,17 +82,6 @@ class SpiritualStatsService implements ISpiritualStatsService {
         return SpiritualStats.fromJson(data);
       } catch (e) {
         debugPrint('Error parsing spiritual stats: $e');
-
-        // Intentar recuperar desde auto-backup primero
-        if (await isAutoBackupEnabled()) {
-          debugPrint('Intentando recuperar desde auto-backup...');
-          final backupStats = await _restoreFromAutoBackup();
-          if (backupStats != null) {
-            await saveStats(backupStats);
-            return backupStats;
-          }
-        }
-
         // Intentar recuperar desde JSON backup manual
         if (await isJsonBackupEnabled()) {
           debugPrint('Intentando recuperar desde JSON backup manual...');
@@ -142,148 +103,9 @@ class SpiritualStatsService implements ISpiritualStatsService {
     final prefs = await SharedPreferences.getInstance();
     final String statsJson = json.encode(stats.toJson());
     await prefs.setString(_statsKey, statsJson);
-
-    // Auto-backup inteligente (solo cuando es necesario)
-    if (await isAutoBackupEnabled()) {
-      await _checkAndCreateAutoBackup(stats);
-    }
-
     // Backup JSON manual si está habilitado
     if (await isJsonBackupEnabled()) {
       await _createJsonBackup(stats);
-    }
-  }
-
-  /// NUEVO: Verificar si es necesario crear auto-backup
-  Future<void> _checkAndCreateAutoBackup(SpiritualStats stats) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final lastBackupTime = prefs.getInt(_lastBackupTimeKey) ?? 0;
-      final currentTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      final hoursSinceLastBackup = (currentTime - lastBackupTime) / 3600;
-
-      // Solo crear backup si han pasado las horas configuradas
-      if (hoursSinceLastBackup >= _autoBackupIntervalHours) {
-        await _createAutoBackup(stats);
-        await prefs.setInt(_lastBackupTimeKey, currentTime);
-        debugPrint(
-          'Auto-backup created (${hoursSinceLastBackup.toStringAsFixed(1)} hours since last)',
-        );
-      }
-    } catch (e) {
-      debugPrint('Error in auto-backup check: $e');
-    }
-  }
-
-  /// NUEVO: Crear auto-backup con rotación
-  Future<void> _createAutoBackup([SpiritualStats? stats]) async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      stats ??= await getStats();
-
-      // Crear backup con timestamp
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final filename = 'spiritual_stats_auto_$timestamp.json';
-      final file = File('${directory.path}/$filename');
-
-      final backupData = {
-        'version': '1.0.0',
-        'backup_type': 'auto',
-        'created_at': DateTime.now().toIso8601String(),
-        'stats': stats.toJson(),
-        'read_dates': await _getReadDatesAsStrings(),
-        'preferences': await _getPreferences(),
-      };
-
-      await file.writeAsString(
-        const JsonEncoder.withIndent('  ').convert(backupData),
-      );
-
-      // Limpiar backups antiguos
-      await _cleanupOldBackups();
-
-      debugPrint('Auto-backup created: $filename');
-    } catch (e) {
-      debugPrint('Error creating auto-backup: $e');
-    }
-  }
-
-  /// NUEVO: Limpiar backups antiguos (mantener solo los más recientes)
-  Future<void> _cleanupOldBackups() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final files = directory
-          .listSync()
-          .where(
-            (entity) =>
-                entity is File && entity.path.contains('spiritual_stats_auto_'),
-          )
-          .cast<File>()
-          .toList();
-
-      if (files.length > _maxBackupFiles) {
-        // Ordenar por fecha de modificación (más reciente primero)
-        files.sort(
-          (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
-        );
-
-        // Eliminar los más antiguos
-        for (int i = _maxBackupFiles; i < files.length; i++) {
-          await files[i].delete();
-          debugPrint('Deleted old backup: ${files[i].path}');
-        }
-      }
-    } catch (e) {
-      debugPrint('Error cleaning up old backups: $e');
-    }
-  }
-
-  /// NUEVO: Restaurar desde el auto-backup más reciente
-  Future<SpiritualStats?> _restoreFromAutoBackup() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final files = directory
-          .listSync()
-          .where(
-            (entity) =>
-                entity is File && entity.path.contains('spiritual_stats_auto_'),
-          )
-          .cast<File>()
-          .toList();
-
-      if (files.isEmpty) {
-        debugPrint('No auto-backup files found');
-        return null;
-      }
-
-      // Obtener el más reciente
-      files.sort(
-        (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
-      );
-      final mostRecentFile = files.first;
-
-      final jsonString = await mostRecentFile.readAsString();
-      final backupData = json.decode(jsonString);
-
-      debugPrint('Restoring from auto-backup: ${mostRecentFile.path}');
-
-      final stats = SpiritualStats.fromJson(backupData['stats']);
-
-      if (backupData['read_dates'] != null) {
-        await _restoreReadDates(List<String>.from(backupData['read_dates']));
-      }
-
-      if (backupData['preferences'] != null) {
-        await _restorePreferences(
-          Map<String, dynamic>.from(backupData['preferences']),
-        );
-      }
-
-      debugPrint('Successfully restored from auto-backup');
-      return stats;
-    } catch (e) {
-      debugPrint('Error restoring from auto-backup: $e');
-      return null;
     }
   }
 
@@ -423,6 +245,41 @@ class SpiritualStatsService implements ISpiritualStatsService {
     );
   }
 
+  /// Bulk-marks a list of devotional IDs as read in a single read+write.
+  /// Used exclusively by the legacy gap migration in DevocionalesPage.
+  ///
+  /// CONTRACT:
+  /// - Single getStats() call + single saveStats() call — no per-ID loop.
+  /// - Does NOT increment totalDevocionalesRead.
+  /// - Does NOT update streak or lastActivityDate.
+  /// - Does NOT fire analytics.
+  /// - Idempotent: IDs already present are silently skipped.
+  @override
+  Future<void> bulkMarkAsRead(List<String> ids) async {
+    if (ids.isEmpty) return;
+
+    final stats = await getStats();
+    final existing = Set<String>.from(stats.readDevocionalIds);
+    final toAdd =
+        ids.where((id) => id.isNotEmpty && !existing.contains(id)).toList();
+
+    if (toAdd.isEmpty) {
+      debugPrint(
+        '🔧 [FIX] bulkMarkAsRead: all ${ids.length} IDs already present, skipping write',
+      );
+      return;
+    }
+
+    final updatedIds = List<String>.from(stats.readDevocionalIds)
+      ..addAll(toAdd);
+    final updatedStats = stats.copyWith(readDevocionalIds: updatedIds);
+    await saveStats(updatedStats);
+
+    debugPrint(
+      '🔧 [MIGRATION] bulkMarkAsRead: marked ${toAdd.length} gap IDs as read (skipped ${ids.length - toAdd.length} already present)',
+    );
+  }
+
   /// Crear backup JSON manual
   Future<void> _createJsonBackup([SpiritualStats? stats]) async {
     try {
@@ -492,36 +349,13 @@ class SpiritualStatsService implements ISpiritualStatsService {
   Future<Map<String, dynamic>> getBackupInfo() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
-      final autoBackups = directory
-          .listSync()
-          .where(
-            (entity) =>
-                entity is File && entity.path.contains('spiritual_stats_auto_'),
-          )
-          .cast<File>()
-          .length;
-
       final manualBackupExists = await File(
         '${directory.path}/$_jsonBackupFilename',
       ).exists();
 
-      final prefs = await SharedPreferences.getInstance();
-      final lastAutoBackup = prefs.getInt(_lastBackupTimeKey);
-
       return {
-        'auto_backup_enabled': await isAutoBackupEnabled(),
         'manual_backup_enabled': await isJsonBackupEnabled(),
-        'auto_backups_count': autoBackups,
         'manual_backup_exists': manualBackupExists,
-        'last_auto_backup': lastAutoBackup != null
-            ? DateTime.fromMillisecondsSinceEpoch(lastAutoBackup * 1000)
-            : null,
-        'next_auto_backup':
-            lastAutoBackup != null && await isAutoBackupEnabled()
-                ? DateTime.fromMillisecondsSinceEpoch(
-                    (lastAutoBackup + _autoBackupIntervalHours * 3600) * 1000,
-                  )
-                : null,
       };
     } catch (e) {
       debugPrint('Error getting backup info: $e');
@@ -822,15 +656,31 @@ class SpiritualStatsService implements ISpiritualStatsService {
   @override
   Future<void> restoreStats(Map<String, dynamic> backupData) async {
     try {
-      if (backupData.containsKey('stats')) {
-        final statsData = backupData['stats'] as Map<String, dynamic>;
+      // Support multiple backup formats:
+      // 1. Merged format: 'spiritual_stats' key (from backup merge)
+      // 2. Legacy format: 'stats' key (from exportStatsAsJson)
+      // 3. Flat format: direct fields like 'totalDevocionalesRead'
+      final Map<String, dynamic>? statsData =
+          backupData.containsKey('spiritual_stats')
+              ? backupData['spiritual_stats'] as Map<String, dynamic>?
+              : backupData.containsKey('stats')
+                  ? backupData['stats'] as Map<String, dynamic>?
+                  : backupData.containsKey('totalDevocionalesRead')
+                      ? backupData
+                      : null;
+
+      if (statsData != null) {
         final stats = SpiritualStats.fromJson(statsData);
-
-        // Save the restored stats
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_statsKey, json.encode(stats.toJson()));
-
-        debugPrint('Restored spiritual stats from backup');
+        await saveStats(stats);
+        debugPrint(
+          '[RESTORE] Restored spiritual stats: '
+          '${stats.totalDevocionalesRead} total read, '
+          '${stats.readDevocionalIds.length} IDs, '
+          'streak ${stats.currentStreak}, longest ${stats.longestStreak}',
+        );
+      } else {
+        debugPrint(
+            '[RESTORE] ⚠️ restoreStats: no recognizable stats structure found');
       }
 
       if (backupData.containsKey('read_dates')) {
@@ -838,14 +688,12 @@ class SpiritualStatsService implements ISpiritualStatsService {
         final readDates = readDatesData
             .map((dateStr) => DateTime.parse(dateStr as String))
             .toList();
-
-        // Save the restored read dates
         await _saveReadDates(readDates);
-
-        debugPrint('Restored ${readDates.length} read dates from backup');
+        debugPrint(
+            '[RESTORE] Restored ${readDates.length} read dates from backup');
       }
     } catch (e) {
-      debugPrint('Error restoring stats from backup: $e');
+      debugPrint('[RESTORE] Error restoring stats from backup: $e');
       rethrow;
     }
   }

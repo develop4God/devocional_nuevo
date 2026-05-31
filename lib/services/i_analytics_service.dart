@@ -30,10 +30,7 @@ abstract class IAnalyticsService {
   });
 
   /// Set user property
-  Future<void> setUserProperty({
-    required String name,
-    required String value,
-  });
+  Future<void> setUserProperty({required String name, required String value});
 
   /// Set user ID
   Future<void> setUserId(String? userId);
@@ -87,10 +84,7 @@ abstract class IAnalyticsService {
   /// Log Discovery page actions
   ///
   /// Event name: `discovery_action`
-  Future<void> logDiscoveryAction({
-    required String action,
-    String? studyId,
-  });
+  Future<void> logDiscoveryAction({required String action, String? studyId});
 
   /// Log Encounter page actions
   ///
@@ -104,11 +98,7 @@ abstract class IAnalyticsService {
   /// Log Bible Reader page open event
   ///
   /// Event name: `bible_open`
-  Future<void> logBibleOpen({
-    String? translation,
-    String? book,
-    int? chapter,
-  });
+  Future<void> logBibleOpen({String? translation, String? book, int? chapter});
 
   /// Log TTS Bible Play button press event
   ///

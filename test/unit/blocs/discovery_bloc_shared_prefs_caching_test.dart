@@ -53,14 +53,20 @@ void main() {
 
       // Second call should return the same cached instance
       final prefs2 = await bloc.prefs;
-      expect(identical(prefs1, prefs2), isTrue,
-          reason:
-              'SharedPreferences should return the same cached instance on subsequent calls');
+      expect(
+        identical(prefs1, prefs2),
+        isTrue,
+        reason:
+            'SharedPreferences should return the same cached instance on subsequent calls',
+      );
 
       // Third call should still return the cached instance
       final prefs3 = await bloc.prefs;
-      expect(identical(prefs1, prefs3), isTrue,
-          reason: 'Cached instance should persist across multiple calls');
+      expect(
+        identical(prefs1, prefs3),
+        isTrue,
+        reason: 'Cached instance should persist across multiple calls',
+      );
     });
 
     test('SharedPreferences caching reduces async overhead', () async {
@@ -79,9 +85,12 @@ void main() {
       final cachedCallsTime = stopwatch2.elapsedMicroseconds;
 
       // Cached calls should be significantly faster
-      expect(cachedCallsTime < firstCallTime, isTrue,
-          reason:
-              'Cached SharedPreferences calls should be faster than initial call');
+      expect(
+        cachedCallsTime < firstCallTime,
+        isTrue,
+        reason:
+            'Cached SharedPreferences calls should be faster than initial call',
+      );
     });
 
     test('DiscoveryFavoritesService has SharedPreferences caching', () async {
@@ -93,25 +102,30 @@ void main() {
 
       // Second call should return the same cached instance
       final prefs2 = await service.prefs;
-      expect(identical(prefs1, prefs2), isTrue,
-          reason: 'DiscoveryFavoritesService should cache SharedPreferences');
+      expect(
+        identical(prefs1, prefs2),
+        isTrue,
+        reason: 'DiscoveryFavoritesService should cache SharedPreferences',
+      );
     });
 
-    test('cached SharedPreferences works correctly with real operations',
-        () async {
-      final prefsInstance = await bloc.prefs;
+    test(
+      'cached SharedPreferences works correctly with real operations',
+      () async {
+        final prefsInstance = await bloc.prefs;
 
-      // Perform operations using the cached instance
-      await prefsInstance.setBool('test_key', true);
-      final value1 = prefsInstance.getBool('test_key');
-      expect(value1, isTrue);
+        // Perform operations using the cached instance
+        await prefsInstance.setBool('test_key', true);
+        final value1 = prefsInstance.getBool('test_key');
+        expect(value1, isTrue);
 
-      // Access cached instance again and verify data persists
-      final prefsInstance2 = await bloc.prefs;
-      final value2 = prefsInstance2.getBool('test_key');
-      expect(value2, isTrue);
-      expect(identical(prefsInstance, prefsInstance2), isTrue);
-    });
+        // Access cached instance again and verify data persists
+        final prefsInstance2 = await bloc.prefs;
+        final value2 = prefsInstance2.getBool('test_key');
+        expect(value2, isTrue);
+        expect(identical(prefsInstance, prefsInstance2), isTrue);
+      },
+    );
 
     test('different BLoC instances have separate caches', () async {
       final bloc2 = DiscoveryBloc(
@@ -128,8 +142,11 @@ void main() {
       expect(prefs2, isNotNull);
 
       // Should be the same singleton instance from SharedPreferences
-      expect(identical(prefs1, prefs2), isTrue,
-          reason: 'SharedPreferences.getInstance() returns the same singleton');
+      expect(
+        identical(prefs1, prefs2),
+        isTrue,
+        reason: 'SharedPreferences.getInstance() returns the same singleton',
+      );
 
       await bloc2.close();
     });

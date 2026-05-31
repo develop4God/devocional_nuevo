@@ -1,7 +1,7 @@
 @Tags(['unit', 'utils'])
 library;
 
-import 'package:devocional_nuevo/utils/analytics_constants.dart';
+import 'package:devocional_nuevo/utils/constants/analytics_constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

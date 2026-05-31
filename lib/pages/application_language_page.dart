@@ -5,7 +5,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -115,8 +115,12 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
 
         // forceRefresh:false — the index is language-agnostic; serve from
         // cache when fresh to avoid an unnecessary 43 KB network round-trip.
-        discoveryBloc?.add(RefreshDiscoveryStudies(
-            languageCode: languageCode, forceRefresh: false));
+        discoveryBloc?.add(
+          RefreshDiscoveryStudies(
+            languageCode: languageCode,
+            forceRefresh: false,
+          ),
+        );
       }
 
       // Resolve the now-active version (setSelectedLanguage already persisted it).
@@ -180,150 +184,10 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
   ) async {
     try {
       debugPrint('🎵 Auto-assigning best voice for language: $languageCode');
-
-      // Get available voices for this language
-      final voices = await provider.getVoicesForLanguage(languageCode);
-      debugPrint('🎵 Available voices for $languageCode: ${voices.length}');
-
-      if (voices.isNotEmpty) {
-        // Find the best voice: prioritize US locales, then female voices
-        String? bestVoice;
-        String? bestVoiceName;
-        String? bestVoiceLocale;
-
-        // Look for US voices first
-        for (final voice in voices) {
-          if (voice.contains('-US') || voice.contains('(en-US)')) {
-            bestVoice = voice;
-            break;
-          }
-        }
-
-        // If no US voice found, look for female voices
-        if (bestVoice == null) {
-          for (final voice in voices) {
-            final lowerVoice = voice.toLowerCase();
-            if (lowerVoice.contains('female') ||
-                lowerVoice.contains('♀') ||
-                _isLikelyFemaleVoice(lowerVoice)) {
-              bestVoice = voice;
-              break;
-            }
-          }
-        }
-
-        // If still no voice found, just use the first one
-        bestVoice ??= voices.first;
-
-        debugPrint('🎵 Raw best voice selected: "$bestVoice"');
-
-        // Parse voice name and locale
-        if (bestVoice.contains(' (') && bestVoice.contains(')')) {
-          final parts = bestVoice.split(' (');
-          bestVoiceName = parts[0];
-          final localeWithGender = parts[1].replaceAll(')', '');
-          // Extract locale (remove gender info)
-          final localeParts = localeWithGender.split(' ');
-          bestVoiceLocale =
-              localeParts.last; // Get the last part which should be locale
-          debugPrint(
-            '🎵 Parsed from format "name (locale)": name="$bestVoiceName", locale="$bestVoiceLocale"',
-          );
-        } else {
-          bestVoiceName = bestVoice;
-          bestVoiceLocale = _getDefaultLocaleForLanguage(languageCode);
-          debugPrint(
-            '🎵 No standard format, using full string: name="$bestVoiceName", locale="$bestVoiceLocale"',
-          );
-        }
-
-        debugPrint(
-          '🎵 Selected best voice: $bestVoiceName with locale: $bestVoiceLocale',
-        );
-
-        // ✅ VALIDATION: Ensure voice name and locale are not empty
-        if (bestVoiceName.trim().isEmpty || bestVoiceLocale.trim().isEmpty) {
-          debugPrint(
-            '⚠️ Invalid voice parsed for $languageCode (name: "$bestVoiceName", locale: "$bestVoiceLocale"). Skipping auto-assignment.',
-          );
-          return;
-        }
-
-        // Set the voice
-        final voiceName = bestVoiceName;
-        final voiceLocale = bestVoiceLocale;
-
-        await provider.setTtsVoice({'name': voiceName, 'locale': voiceLocale});
-
-        // Save the voice preference
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('tts_voice_$languageCode', bestVoice);
-
-        debugPrint(
-          '✅ Auto-assigned voice: $bestVoice for language $languageCode',
-        );
-      }
+      await provider.assignDefaultVoiceForLanguage(languageCode);
+      debugPrint('✅ Auto-assigned voice for language: $languageCode');
     } catch (e) {
       debugPrint('⚠️ Error auto-assigning voice for $languageCode: $e');
-      // Don't throw - voice assignment failure shouldn't block language change
-    }
-  }
-
-  bool _isLikelyFemaleVoice(String voiceName) {
-    final femaleNames = [
-      'samantha',
-      'karen',
-      'moira',
-      'tessa',
-      'fiona',
-      'anna',
-      'maria',
-      'lucia',
-      'sophia',
-      'isabella',
-      'helena',
-      'alice',
-      'emma',
-      'olivia',
-      'susan',
-      'victoria',
-      'catherine',
-      'audrey',
-      'zoe',
-      'ava',
-      'kate',
-      'sara',
-      'laura',
-    ];
-
-    for (final name in femaleNames) {
-      if (voiceName.contains(name)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  String _getDefaultLocaleForLanguage(String languageCode) {
-    switch (languageCode) {
-      case 'es':
-        return 'es-ES';
-      case 'en':
-        return 'en-US';
-      case 'pt':
-        return 'pt-BR';
-      case 'fr':
-        return 'fr-FR';
-      case 'ja':
-        return 'ja-JP';
-      case 'zh':
-        return 'zh-CN';
-      case 'hi':
-        return 'hi-IN';
-      case 'de':
-        return 'de-DE';
-      default:
-        return '$languageCode-${languageCode.toUpperCase()}';
     }
   }
 
@@ -476,20 +340,13 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       height: 40,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(
-          color: colorScheme.primary.withAlpha(180),
-          width: 2,
-        ),
+        border: Border.all(color: colorScheme.primary.withAlpha(180), width: 2),
         color: isDownloaded && languageCode == _currentLanguage
             ? colorScheme.primary.withAlpha(26)
             : Colors.transparent,
       ),
       child: Center(
-        child: Icon(
-          iconData,
-          color: colorScheme.primary,
-          size: 20,
-        ),
+        child: Icon(iconData, color: colorScheme.primary, size: 20),
       ),
     );
   }
@@ -499,27 +356,50 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     final theme = Theme.of(context);
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
+    // Build the language items with no opacity fade on the last item
+    final languageEntries = Constants.supportedLanguages.entries.toList();
+    final languageItems = <Widget>[];
+    for (final entry in languageEntries) {
+      languageItems.add(_buildLanguageItem(entry.key, entry.value));
+    }
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themeState.systemUiOverlayStyle,
       child: Scaffold(
         appBar: CustomAppBar(titleText: 'application_language.title'.tr()),
         backgroundColor: theme.colorScheme.surface,
-        body: ListView(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'application_language.description'.tr(),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
+        body: ScrollbarTheme(
+          data: ScrollbarThemeData(
+            thumbColor: WidgetStateProperty.all(theme.colorScheme.primary),
+            trackColor: WidgetStateProperty.all(
+              theme.colorScheme.primary.withAlpha(60),
             ),
-            ...Constants.supportedLanguages.entries.map((entry) {
-              return _buildLanguageItem(entry.key, entry.value);
-            }),
-            const SizedBox(height: 20),
-          ],
+            thickness: WidgetStateProperty.all(10),
+            radius: const Radius.circular(8),
+          ),
+          child: Scrollbar(
+            thumbVisibility: true,
+            thickness: 10,
+            radius: const Radius.circular(8),
+            interactive: true,
+            trackVisibility: true,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'application_language.description'.tr(),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                ...languageItems,
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
         ),
       ),
     );

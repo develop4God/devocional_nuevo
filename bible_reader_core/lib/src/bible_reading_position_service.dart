@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'bible_canon_filter.dart';
 
 class BibleReadingPositionService {
   static const String _keyBook = 'bible_last_book';
@@ -44,10 +45,19 @@ class BibleReadingPositionService {
       return null;
     }
 
+    // If a previously saved position points to a deuterocanonical book
+    // (possible for LU17/MBB05 users before the canon filter was added),
+    // reset silently to Genesis ch.1 rather than crashing navigation.
+    final safeBookNumber =
+        BibleCanonFilter.isCanonical(bookNumber) ? bookNumber : 10;
+    final safeBookName =
+        BibleCanonFilter.isCanonical(bookNumber) ? bookName : 'Genesis';
+    final safeChapter = BibleCanonFilter.isCanonical(bookNumber) ? chapter : 1;
+
     return {
-      'bookName': bookName,
-      'bookNumber': bookNumber,
-      'chapter': chapter,
+      'bookName': safeBookName,
+      'bookNumber': safeBookNumber,
+      'chapter': safeChapter,
       'verse': verse ?? 1,
       'version': version,
       'languageCode': languageCode,

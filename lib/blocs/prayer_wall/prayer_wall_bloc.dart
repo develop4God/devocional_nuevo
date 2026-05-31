@@ -6,7 +6,7 @@ import 'package:devocional_nuevo/blocs/prayer_wall/prayer_wall_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_wall/prayer_wall_state.dart';
 import 'package:devocional_nuevo/models/prayer_wall_entry.dart';
 import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -52,10 +52,12 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
       final otherLanguage =
           prayers.where((p) => p.language != _userLanguage).toList();
 
-      emit(PrayerWallLoaded(
-        sameLanguagePrayers: sameLanguage,
-        otherLanguagePrayers: otherLanguage,
-      ));
+      emit(
+        PrayerWallLoaded(
+          sameLanguagePrayers: sameLanguage,
+          otherLanguagePrayers: otherLanguage,
+        ),
+      );
 
       // Subscribe to the author's own pending prayer so the BLoC reflects
       // server-side status changes (e.g. approved, pastoral) in real time.
@@ -96,15 +98,19 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
 
       final current = state;
       if (current is PrayerWallLoaded) {
-        emit(current.copyWith(
-          sameLanguagePrayers: sameLanguage,
-          otherLanguagePrayers: otherLanguage,
-        ));
+        emit(
+          current.copyWith(
+            sameLanguagePrayers: sameLanguage,
+            otherLanguagePrayers: otherLanguage,
+          ),
+        );
       } else {
-        emit(PrayerWallLoaded(
-          sameLanguagePrayers: sameLanguage,
-          otherLanguagePrayers: otherLanguage,
-        ));
+        emit(
+          PrayerWallLoaded(
+            sameLanguagePrayers: sameLanguage,
+            otherLanguagePrayers: otherLanguage,
+          ),
+        );
       }
     } catch (e) {
       debugPrint('❌ [PrayerWallBloc] Refresh error: $e');
@@ -131,10 +137,12 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
         emit(current.copyWith(clearPending: true));
         return;
       }
-      emit(current.copyWith(
-        myPendingPrayer: event.entry,
-        clearPending: event.entry == null,
-      ));
+      emit(
+        current.copyWith(
+          myPendingPrayer: event.entry,
+          clearPending: event.entry == null,
+        ),
+      );
     }
   }
 
@@ -173,11 +181,13 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
       if (current is PrayerWallLoaded) {
         emit(current.copyWith(myPendingPrayer: pending));
       } else {
-        emit(PrayerWallLoaded(
-          sameLanguagePrayers: const [],
-          otherLanguagePrayers: const [],
-          myPendingPrayer: pending,
-        ));
+        emit(
+          PrayerWallLoaded(
+            sameLanguagePrayers: const [],
+            otherLanguagePrayers: const [],
+            myPendingPrayer: pending,
+          ),
+        );
       }
     } catch (e) {
       debugPrint('❌ [PrayerWallBloc] Submit error: $e');
@@ -192,14 +202,20 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
     // Optimistic update
     final current = state;
     if (current is PrayerWallLoaded) {
-      final updatedSame =
-          _incrementPrayCount(current.sameLanguagePrayers, event.prayerId);
-      final updatedOther =
-          _incrementPrayCount(current.otherLanguagePrayers, event.prayerId);
-      emit(current.copyWith(
-        sameLanguagePrayers: updatedSame,
-        otherLanguagePrayers: updatedOther,
-      ));
+      final updatedSame = _incrementPrayCount(
+        current.sameLanguagePrayers,
+        event.prayerId,
+      );
+      final updatedOther = _incrementPrayCount(
+        current.otherLanguagePrayers,
+        event.prayerId,
+      );
+      emit(
+        current.copyWith(
+          sameLanguagePrayers: updatedSame,
+          otherLanguagePrayers: updatedOther,
+        ),
+      );
     }
 
     try {
@@ -239,10 +255,13 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
   }
 
   List<PrayerWallEntry> _incrementPrayCount(
-      List<PrayerWallEntry> prayers, String prayerId) {
+    List<PrayerWallEntry> prayers,
+    String prayerId,
+  ) {
     return prayers
-        .map((p) =>
-            p.id == prayerId ? p.copyWith(prayCount: p.prayCount + 1) : p)
+        .map(
+          (p) => p.id == prayerId ? p.copyWith(prayCount: p.prayCount + 1) : p,
+        )
         .toList();
   }
 

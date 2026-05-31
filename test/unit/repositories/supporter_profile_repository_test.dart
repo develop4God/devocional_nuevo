@@ -40,12 +40,14 @@ void main() {
       expect(await repo.loadProfileName(), equals('Updated Name'));
     });
 
-    test('saves are persisted in SharedPreferences under correct key',
-        () async {
-      await repo.saveProfileName('María José');
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('profile_display_name'), equals('María José'));
-    });
+    test(
+      'saves are persisted in SharedPreferences under correct key',
+      () async {
+        await repo.saveProfileName('María José');
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString('profile_display_name'), equals('María José'));
+      },
+    );
 
     test('loadProfileName() reads from pre-seeded SharedPreferences', () async {
       SharedPreferences.setMockInitialValues({

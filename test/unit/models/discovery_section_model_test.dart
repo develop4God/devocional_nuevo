@@ -29,10 +29,7 @@ void main() {
         aplicacion: 'Cristo es nuestra esperanza...',
       );
 
-      final section = DiscoverySection(
-        tipo: 'scripture',
-        pasajes: [passage],
-      );
+      final section = DiscoverySection(tipo: 'scripture', pasajes: [passage]);
 
       expect(section.tipo, equals('scripture'));
       expect(section.isScripture, isTrue);
@@ -65,10 +62,7 @@ void main() {
         aplicacion: 'El amor de Dios es incondicional',
       );
 
-      final section = DiscoverySection(
-        tipo: 'scripture',
-        pasajes: [passage],
-      );
+      final section = DiscoverySection(tipo: 'scripture', pasajes: [passage]);
 
       final json = section.toJson();
       final sectionFromJson = DiscoverySection.fromJson(json);

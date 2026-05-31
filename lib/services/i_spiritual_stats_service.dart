@@ -45,12 +45,6 @@ abstract class ISpiritualStatsService {
   /// Restore stats from backup data.
   Future<void> restoreStats(Map<String, dynamic> backupData);
 
-  /// Check if auto-backup is enabled.
-  Future<bool> isAutoBackupEnabled();
-
-  /// Enable/disable auto-backup.
-  Future<void> setAutoBackupEnabled(bool enabled);
-
   /// Check if JSON backup is enabled.
   Future<bool> isJsonBackupEnabled();
 
@@ -80,4 +74,9 @@ abstract class ISpiritualStatsService {
 
   /// Force creation of a manual backup.
   Future<bool> createManualBackup();
+
+  /// Bulk-mark a list of devotional IDs as read in a single read+write operation.
+  /// Used by one-time startup migrations. Implementations should be idempotent and
+  /// perform a single getStats()+saveStats() cycle rather than per-ID writes.
+  Future<void> bulkMarkAsRead(List<String> ids);
 }

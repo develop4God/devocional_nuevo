@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 
-import 'i_connectivity_service.dart';
+import '../i_connectivity_service.dart';
 
 /// Service for managing network connectivity status
 class ConnectivityService implements IConnectivityService {

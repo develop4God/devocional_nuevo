@@ -202,7 +202,7 @@
   },
   "application_language": {
     "title": "ऐप की भाषा",
-    "description": "वह भाषा चुनें और डाउनलोड करें जिसे आप ऐप के लिए उपयोग करना चाहते हैं। प्रत्येक भाषा में इंटरफ़ेस, भक्तियाँ, पद और ऑडियो रीडर शामिल हैं।",
+    "description": "वह भाषा चुनें और डाउनलोड करें जिसे आप ऐप के लिए उपयोग करना चाहते हैं। प्रत्येक भाषा में इंटरफ़ेस, भक्तियाँ, पद और ऑडियो रीडर शामिल हैं। प्रगति और आँकड़े प्रत्येक भाषा के लिए अलग सहेजे जाते हैं।",
     "current_language": "वर्तमान भाषा",
     "download_failed": "भाषा सामग्री डाउनलोड करने में विफल। कृपया पुनः प्रयास करें।",
     "downloading": "डाउनलोड हो रहा है...",
@@ -467,6 +467,8 @@
     "favorite_devotionals": "पसंदीदा भक्तियाँ",
     "favorite_devotionals_size": "25 आइटम, ~50 KB",
     "saved_prayers": "सहेजी गई प्रार्थनाएँ",
+    "saved_verses": "सहेजी गई आयतें",
+    "read_devotionals": "पढ़े गए भक्ति",
     "saved_prayers_size": "10 आइटम, ~15 KB",
     "storage_management": "स्टोरेज प्रबंधित करें",
     "google_drive_storage": "Google Drive स्टोरेज",
@@ -519,7 +521,13 @@
     "more_options": "अधिक विकल्प",
     "optimization": "अनुकूलन",
     "account_management": "खाता प्रबंधन",
-    "logout_google_drive": "Google Drive से साइन आउट करें"
+    "logout_google_drive": "Google Drive से साइन आउट करें",
+    "signing_in_title": "Google Drive से कनेक्ट हो रहे हैं",
+    "signing_in_subtitle": "आपकी पहचान सत्यापित की जा रही है ताकि आपकी आध्यात्मिक प्रगति सुरक्षित रहे...",
+    "restoring_title": "आपका डेटा पुनर्स्थापित किया जा रहा है",
+    "restoring_subtitle": "हमें आपके Google Drive में एक बैकअप मिला और हम आपकी आध्यात्मिक प्रगति वापस ला रहे हैं...",
+    "protected_title": "आपका डेटा सुरक्षित है!",
+    "protected_subtitle": "आपकी आध्यात्मिक प्रगति आपके व्यक्तिगत Google Drive में सुरक्षित रूप से संग्रहीत है।"
   },
   "review": {
     "title": "ऐप को रेट करें",

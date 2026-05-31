@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'bible_canon_filter.dart';
 
 class BibleDbService {
   late Database _db;
@@ -31,7 +33,17 @@ class BibleDbService {
 
   // Get all books
   Future<List<Map<String, dynamic>>> getAllBooks() async {
-    return await _db.query('books');
+    final books = await _db.query('books');
+    final filtered = BibleCanonFilter.filterCanonical(books);
+    assert(() {
+      debugPrint(
+        '[BibleCanonFilter] getAllBooks: ${books.length} raw → '
+        '${filtered.length} canonical | '
+        'removed: ${books.length - filtered.length}',
+      );
+      return true;
+    }());
+    return filtered;
   }
 
   // Get the maximum chapter number for a book
@@ -164,7 +176,8 @@ class BibleDbService {
       [searchTerm.toLowerCase(), searchTerm.toLowerCase()],
     );
 
-    if (results.isNotEmpty) {
+    if (results.isNotEmpty &&
+        BibleCanonFilter.isCanonical(results.first['book_number'] as int)) {
       return results.first;
     }
 
@@ -179,7 +192,8 @@ class BibleDbService {
       ['${searchTerm.toLowerCase()}%', '${searchTerm.toLowerCase()}%'],
     );
 
-    if (results.isNotEmpty) {
+    if (results.isNotEmpty &&
+        BibleCanonFilter.isCanonical(results.first['book_number'] as int)) {
       return results.first;
     }
 
@@ -194,7 +208,11 @@ class BibleDbService {
       ['%${searchTerm.toLowerCase()}%', '%${searchTerm.toLowerCase()}%'],
     );
 
-    return results.isNotEmpty ? results.first : null;
+    if (results.isNotEmpty &&
+        BibleCanonFilter.isCanonical(results.first['book_number'] as int)) {
+      return results.first;
+    }
+    return null;
   }
 
   // Get a specific verse
@@ -211,5 +229,49 @@ class BibleDbService {
     );
 
     return results.isNotEmpty ? results.first : null;
+  }
+
+  /// Get section titles (pericopes) for a chapter from the stories table
+  /// Returns list of titles with their associated verse numbers
+  /// Filters out cross-reference entries (titles containing parentheses or `<x>` tags)
+  /// Orders by order_if_several for verses with multiple titles
+  /// Returns empty list if stories table doesn't exist
+  Future<List<Map<String, dynamic>>> getSectionTitles({
+    required int bookNumber,
+    required int chapter,
+  }) async {
+    try {
+      // Check if stories table exists
+      final tables = await _db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='stories'",
+      );
+
+      if (tables.isEmpty) {
+        return [];
+      }
+
+      // Query stories table with filters per spec:
+      // - Filter out cross-reference entries (title LIKE '(%')
+      // - Filter out entries with <x> tags (cross-ref leak safety net)
+      // - Order by verse then order_if_several for multi-title verses
+      final results = await _db.rawQuery(
+        '''
+        SELECT verse, title, order_if_several
+        FROM stories
+        WHERE book_number = ?
+          AND chapter = ?
+          AND title NOT LIKE '(%'
+          AND title NOT LIKE '%<x>%'
+        ORDER BY verse ASC, order_if_several ASC
+        ''',
+        [bookNumber, chapter],
+      );
+
+      return results;
+    } catch (e) {
+      // Table doesn't exist or query failed - return empty list
+      debugPrint('[BibleDbService] getSectionTitles failed: $e');
+      return [];
+    }
   }
 }

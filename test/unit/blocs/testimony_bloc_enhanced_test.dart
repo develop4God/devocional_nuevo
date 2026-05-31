@@ -31,8 +31,9 @@ void main() {
       locator.reset();
 
       mockLocalizationService = MockLocalizationService();
-      when(() => mockLocalizationService.translate(any()))
-          .thenReturn('Mocked error message');
+      when(
+        () => mockLocalizationService.translate(any()),
+      ).thenReturn('Mocked error message');
 
       locator.registerSingleton<LocalizationService>(mockLocalizationService);
 
@@ -45,17 +46,19 @@ void main() {
     });
 
     group('Concurrent Operations', () {
-      test('handles multiple LoadTestimonies events in rapid succession',
-          () async {
-        bloc.add(LoadTestimonies());
-        bloc.add(LoadTestimonies());
-        bloc.add(LoadTestimonies());
+      test(
+        'handles multiple LoadTestimonies events in rapid succession',
+        () async {
+          bloc.add(LoadTestimonies());
+          bloc.add(LoadTestimonies());
+          bloc.add(LoadTestimonies());
 
-        await Future.delayed(const Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        // Should handle gracefully and end in loaded state
-        expect(bloc.state, isA<TestimonyLoaded>());
-      });
+          // Should handle gracefully and end in loaded state
+          expect(bloc.state, isA<TestimonyLoaded>());
+        },
+      );
 
       test('handles refresh while loading', () async {
         bloc.add(LoadTestimonies());
@@ -319,21 +322,9 @@ void main() {
 
       test('preserves testimony order in state', () {
         final testimonies = [
-          Testimony(
-            id: 'first',
-            text: 'First',
-            createdDate: DateTime.now(),
-          ),
-          Testimony(
-            id: 'second',
-            text: 'Second',
-            createdDate: DateTime.now(),
-          ),
-          Testimony(
-            id: 'third',
-            text: 'Third',
-            createdDate: DateTime.now(),
-          ),
+          Testimony(id: 'first', text: 'First', createdDate: DateTime.now()),
+          Testimony(id: 'second', text: 'Second', createdDate: DateTime.now()),
+          Testimony(id: 'third', text: 'Third', createdDate: DateTime.now()),
         ];
 
         final state = TestimonyLoaded(testimonies: testimonies);
@@ -365,10 +356,7 @@ void main() {
         final state = TestimonyLoaded(testimonies: testimonies);
 
         expect(state.testimonies.length, equals(3));
-        expect(
-          state.testimonies.map((t) => t.id).toSet().length,
-          equals(3),
-        );
+        expect(state.testimonies.map((t) => t.id).toSet().length, equals(3));
       });
     });
 
@@ -430,16 +418,8 @@ void main() {
     group('State Persistence Verification', () {
       test('state preserves all testimony properties', () {
         final testimonies = [
-          Testimony(
-            id: '1',
-            text: 'T1',
-            createdDate: DateTime.now(),
-          ),
-          Testimony(
-            id: '2',
-            text: 'T2',
-            createdDate: DateTime.now(),
-          ),
+          Testimony(id: '1', text: 'T1', createdDate: DateTime.now()),
+          Testimony(id: '2', text: 'T2', createdDate: DateTime.now()),
         ];
 
         final state = TestimonyLoaded(testimonies: testimonies);
@@ -553,11 +533,7 @@ void main() {
       });
 
       test('handles malformed JSON gracefully', () {
-        final json = {
-          'id': null,
-          'text': null,
-          'createdDate': 'invalid-date',
-        };
+        final json = {'id': null, 'text': null, 'createdDate': 'invalid-date'};
 
         final testimony = Testimony.fromJson(json);
 

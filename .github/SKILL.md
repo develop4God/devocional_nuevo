@@ -31,6 +31,14 @@ Before writing a single line:
 
 **Never apply a diff to a file you haven't read.** Stale assumptions produce broken code.
 
+### Think Before Coding
+
+Before starting implementation:
+- **State your assumptions explicitly.** If uncertain about scope or intent, say so.
+- **If multiple valid interpretations exist, present them** — don't pick one silently and code it.
+- **If a simpler approach exists that still meets all quality gates, say so.** Push back when warranted.
+- **If something is unclear, stop.** Name what's confusing. Ask. Do not guess.
+
 ---
 
 ## Step 1 — Apply the Task
@@ -43,11 +51,41 @@ Follow the delegation block exactly:
 - Do NOT change method signatures beyond what is specified
 - If anything is ambiguous or contradicts what you see in the file — **stop and flag it**. Do not guess.
 
+### Surgical Changes — Touch Only What You Must
+
+- Do NOT improve adjacent comments, formatting, or style in unchanged methods.
+- Do NOT refactor pre-existing dead code or unrelated patterns — mention them in **Flags for Architect** instead.
+- **Remove** imports/variables/functions that **YOUR** changes made unused.
+- Do NOT remove pre-existing dead code unless the task explicitly asks for it.
+- **Test:** every changed line must trace directly to the user's request. If it doesn't, remove it.
+
+### ⚠️ Simplicity Rule (with project override)
+
+- Minimum code that solves the problem — no speculative features, no flexibility that wasn't requested.
+- No abstractions for code that is only used once — unless required by DI compliance.
+- Ask yourself: *"Would a senior engineer say this is overcomplicated?"* If yes, simplify.
+- **EXCEPTION — do not simplify away:** BLoC events/states, service interfaces, and `ServiceLocator` registration. These ARE required structural overhead for DI compliance and testability. They are intentional, not over-engineering.
+
 ---
 
 ## Step 2 — Mandatory Quality Gates
 
 Run these in order after every change, before reporting done. All four must pass. No exceptions.
+
+### Define Success Criteria First
+
+Before running any gate, transform the task into verifiable goals:
+- `"Add validation"` → `"Write tests for invalid inputs, then make them pass"`
+- `"Fix the bug"` → `"Write a test that reproduces it, then make it pass"`
+- `"Refactor X"` → `"Ensure tests pass before AND after"`
+
+For multi-step tasks, state a brief plan before starting:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
 ### Gate 1 — Format
 ```bash

@@ -98,8 +98,11 @@ void main() {
 
       expect(result, [2025, 2026, 2027]);
       for (int i = 0; i < result.length - 1; i++) {
-        expect(result[i] < result[i + 1], isTrue,
-            reason: 'years must be sorted ascending');
+        expect(
+          result[i] < result[i + 1],
+          isTrue,
+          reason: 'years must be sorted ascending',
+        );
       }
     });
 

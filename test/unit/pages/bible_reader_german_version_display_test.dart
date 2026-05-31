@@ -14,7 +14,7 @@ library;
 // Fix: 'de' added to the Latin-script branch so the suffix is stripped first.
 
 import 'package:bible_reader_core/bible_reader_core.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Mirrors the _getDisplayName logic from BibleReaderPage.
@@ -61,35 +61,53 @@ void main() {
         dbFileName: 'LU17_de.SQLite3',
       );
 
-      expect(getDisplayName(version.name, version.languageCode),
-          equals('Lutherbibel 2017'),
-          reason: 'getDisplayName must strip the (LU17) suffix for German');
-
-      expect(Constants.versionAbbreviation(version), equals('LU17'),
-          reason: 'versionAbbreviation must return LU17 from dbFileName');
-
-      expect(versionPickerLabel(version), equals('Lutherbibel 2017 · LU17'),
-          reason: 'Picker label must NOT contain duplicate abbreviation');
-    });
-
-    test('SCH2000 picker label is "Schlachter 2000 · SCH2000" (no duplicate)',
-        () {
-      final version = _makeVersion(
-        name: 'Schlachter 2000 (SCH2000)',
-        languageCode: 'de',
-        dbFileName: 'SCH2000_de.SQLite3',
+      expect(
+        getDisplayName(version.name, version.languageCode),
+        equals('Lutherbibel 2017'),
+        reason: 'getDisplayName must strip the (LU17) suffix for German',
       );
 
-      expect(getDisplayName(version.name, version.languageCode),
-          equals('Schlachter 2000'),
-          reason: 'getDisplayName must strip the (SCH2000) suffix for German');
+      expect(
+        Constants.versionAbbreviation(version),
+        equals('LU17'),
+        reason: 'versionAbbreviation must return LU17 from dbFileName',
+      );
 
-      expect(Constants.versionAbbreviation(version), equals('SCH2000'),
-          reason: 'versionAbbreviation must return SCH2000 from dbFileName');
-
-      expect(versionPickerLabel(version), equals('Schlachter 2000 · SCH2000'),
-          reason: 'Picker label must NOT contain duplicate abbreviation');
+      expect(
+        versionPickerLabel(version),
+        equals('Lutherbibel 2017 · LU17'),
+        reason: 'Picker label must NOT contain duplicate abbreviation',
+      );
     });
+
+    test(
+      'SCH2000 picker label is "Schlachter 2000 · SCH2000" (no duplicate)',
+      () {
+        final version = _makeVersion(
+          name: 'Schlachter 2000 (SCH2000)',
+          languageCode: 'de',
+          dbFileName: 'SCH2000_de.SQLite3',
+        );
+
+        expect(
+          getDisplayName(version.name, version.languageCode),
+          equals('Schlachter 2000'),
+          reason: 'getDisplayName must strip the (SCH2000) suffix for German',
+        );
+
+        expect(
+          Constants.versionAbbreviation(version),
+          equals('SCH2000'),
+          reason: 'versionAbbreviation must return SCH2000 from dbFileName',
+        );
+
+        expect(
+          versionPickerLabel(version),
+          equals('Schlachter 2000 · SCH2000'),
+          reason: 'Picker label must NOT contain duplicate abbreviation',
+        );
+      },
+    );
 
     // ── Regression: other Latin-script languages must still work ──────────
 
@@ -100,7 +118,9 @@ void main() {
         dbFileName: 'RVR1960_es.SQLite3',
       );
       expect(
-          versionPickerLabel(version), equals('Reina Valera 1960 · RVR1960'));
+        versionPickerLabel(version),
+        equals('Reina Valera 1960 · RVR1960'),
+      );
     });
 
     test('English KJV picker label remains correct', () {
@@ -119,7 +139,9 @@ void main() {
         dbFileName: 'LSG1910_fr.SQLite3',
       );
       expect(
-          versionPickerLabel(version), equals('Louis Segond 1910 · LSG1910'));
+        versionPickerLabel(version),
+        equals('Louis Segond 1910 · LSG1910'),
+      );
     });
 
     // ── Native-script languages must NOT be touched ────────────────────────
@@ -131,10 +153,16 @@ void main() {
         dbFileName: 'SK2003_ja.SQLite3',
       );
       // versionAbbreviation returns '' for ja
-      expect(Constants.versionAbbreviation(version), equals(''),
-          reason: 'Japanese must return empty abbreviation');
-      expect(versionPickerLabel(version), equals('新改訳2003'),
-          reason: 'Japanese name must be used as-is');
+      expect(
+        Constants.versionAbbreviation(version),
+        equals(''),
+        reason: 'Japanese must return empty abbreviation',
+      );
+      expect(
+        versionPickerLabel(version),
+        equals('新改訳2003'),
+        reason: 'Japanese name must be used as-is',
+      );
     });
   });
 }

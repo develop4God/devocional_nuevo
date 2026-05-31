@@ -147,27 +147,29 @@ void main() {
     });
 
     group('CRITICAL: Pause Before Voice Change', () {
-      test('User opens voice selector while playing - must pause first',
-          () async {
-        controller.setText('Versiculo para probar cambio de voz.');
-        await controller.play();
-        await Future.delayed(const Duration(milliseconds: 500));
-        expect(controller.state.value, TtsPlayerState.playing);
+      test(
+        'User opens voice selector while playing - must pause first',
+        () async {
+          controller.setText('Versiculo para probar cambio de voz.');
+          await controller.play();
+          await Future.delayed(const Duration(milliseconds: 500));
+          expect(controller.state.value, TtsPlayerState.playing);
 
-        // CRITICAL: Must pause BEFORE opening voice selector
-        await controller.pause();
+          // CRITICAL: Must pause BEFORE opening voice selector
+          await controller.pause();
 
-        expect(
-          controller.state.value,
-          TtsPlayerState.paused,
-          reason:
-              'MUST pause before opening voice selector to avoid playback conflicts',
-        );
+          expect(
+            controller.state.value,
+            TtsPlayerState.paused,
+            reason:
+                'MUST pause before opening voice selector to avoid playback conflicts',
+          );
 
-        // Simulate voice selector being open
-        await Future.delayed(const Duration(milliseconds: 500));
-        expect(controller.state.value, TtsPlayerState.paused);
-      });
+          // Simulate voice selector being open
+          await Future.delayed(const Duration(milliseconds: 500));
+          expect(controller.state.value, TtsPlayerState.paused);
+        },
+      );
 
       test('Voice change from idle state - no pause needed', () async {
         controller.setText('Text for voice change from idle');
@@ -184,8 +186,9 @@ void main() {
       test(
         'User plays, changes speed (pauses), resumes, changes voice (pauses), resumes',
         () async {
-          controller
-              .setText('Reflexion completa con cambios de configuracion.');
+          controller.setText(
+            'Reflexion completa con cambios de configuracion.',
+          );
           await controller.play();
           await Future.delayed(const Duration(milliseconds: 500));
           expect(controller.state.value, TtsPlayerState.playing);
@@ -256,7 +259,7 @@ void main() {
           isIn([
             TtsPlayerState.loading,
             TtsPlayerState.playing,
-            TtsPlayerState.idle
+            TtsPlayerState.idle,
           ]),
           reason:
               'Mock TTS resolves synchronously — loading state may be skipped',
@@ -273,47 +276,45 @@ void main() {
         );
       });
 
-      test(
-        'Speed change while loading - should pause first if needed',
-        () async {
-          controller.setText('Content for loading speed change');
-          final playFuture = controller.play();
+      test('Speed change while loading - should pause first if needed',
+          () async {
+        controller.setText('Content for loading speed change');
+        final playFuture = controller.play();
 
-          // NOTE: In test environment the mock TTS engine resolves synchronously,
-          // so 'loading' may be ephemeral — state can already be 'playing' by
-          // the time this assertion runs. Both are valid at this point.
-          expect(
-            controller.state.value,
-            isIn([
-              TtsPlayerState.loading,
-              TtsPlayerState.playing,
-              TtsPlayerState.idle
-            ]),
-            reason:
-                'Mock TTS resolves synchronously — loading state may be skipped',
-          );
+        // NOTE: In test environment the mock TTS engine resolves synchronously,
+        // so 'loading' may be ephemeral — state can already be 'playing' by
+        // the time this assertion runs. Both are valid at this point.
+        expect(
+          controller.state.value,
+          isIn([
+            TtsPlayerState.loading,
+            TtsPlayerState.playing,
+            TtsPlayerState.idle,
+          ]),
+          reason:
+              'Mock TTS resolves synchronously — loading state may be skipped',
+        );
 
-          // Defensive: pause before changing speed when loading or playing
-          if (controller.state.value == TtsPlayerState.playing ||
-              controller.state.value == TtsPlayerState.loading) {
-            await controller.pause();
-          }
+        // Defensive: pause before changing speed when loading or playing
+        if (controller.state.value == TtsPlayerState.playing ||
+            controller.state.value == TtsPlayerState.loading) {
+          await controller.pause();
+        }
 
-          await playFuture;
-          await Future.delayed(const Duration(milliseconds: 200));
+        await playFuture;
+        await Future.delayed(const Duration(milliseconds: 200));
 
-          await controller.cyclePlaybackRate();
+        await controller.cyclePlaybackRate();
 
-          expect(
-            controller.state.value,
-            isIn([
-              TtsPlayerState.paused,
-              TtsPlayerState.idle,
-              TtsPlayerState.playing,
-            ]),
-          );
-        },
-      );
+        expect(
+          controller.state.value,
+          isIn([
+            TtsPlayerState.paused,
+            TtsPlayerState.idle,
+            TtsPlayerState.playing,
+          ]),
+        );
+      });
 
       test('Double pause - should be idempotent', () async {
         controller.setText('Content for double pause test');

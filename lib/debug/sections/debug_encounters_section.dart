@@ -3,7 +3,7 @@ import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/debug/debug_flags.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,8 +29,9 @@ class DebugEncountersSection extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content:
-                Text('✅ Encounter welcome reset — will show on next visit'),
+            content: Text(
+              '✅ Encounter welcome reset — will show on next visit',
+            ),
             duration: Duration(seconds: 2),
           ),
         );
@@ -39,9 +40,9 @@ class DebugEncountersSection extends StatelessWidget {
     } catch (e) {
       debugPrint('Error resetting encounter welcome: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -58,16 +59,17 @@ class DebugEncountersSection extends StatelessWidget {
             duration: Duration(seconds: 2),
           ),
         );
-        context
-            .read<EncounterBloc>()
-            .add(LoadEncounterIndex(forceRefresh: true));
+        context.read<EncounterBloc>().add(
+              LoadEncounterIndex(forceRefresh: true),
+            );
       }
       debugPrint('🔄 All encounters restored to incomplete');
     } catch (e) {
       debugPrint('❌ Error restoring encounters: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -132,8 +134,10 @@ class DebugEncountersSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Use Cache Fallback',
-                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Use Cache Fallback',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                       Text(
                         Constants.enableEncounterFallback
                             ? '✅ ON — network errors use cached data'
@@ -160,9 +164,11 @@ class DebugEncountersSection extends StatelessWidget {
                     setLocal(() => Constants.enableEncounterFallback = val);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(val
-                            ? '✅ Fallback ENABLED'
-                            : '🚫 Fallback DISABLED — real network only'),
+                        content: Text(
+                          val
+                              ? '✅ Fallback ENABLED'
+                              : '🚫 Fallback DISABLED — real network only',
+                        ),
                         duration: const Duration(seconds: 2),
                       ),
                     );
@@ -178,18 +184,21 @@ class DebugEncountersSection extends StatelessWidget {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () {
-                context
-                    .read<EncounterBloc>()
-                    .add(LoadEncounterIndex(forceRefresh: true));
+                context.read<EncounterBloc>().add(
+                      LoadEncounterIndex(forceRefresh: true),
+                    );
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('🔄 Encounters index reloaded')),
                 );
               },
               icon: const Icon(Icons.refresh, color: Colors.teal),
-              label: const Text('Force Reload Index',
-                  style: TextStyle(color: Colors.teal)),
+              label: const Text(
+                'Force Reload Index',
+                style: TextStyle(color: Colors.teal),
+              ),
               style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.teal)),
+                side: const BorderSide(color: Colors.teal),
+              ),
             ),
           ),
           const SizedBox(height: 6),
@@ -198,9 +207,10 @@ class DebugEncountersSection extends StatelessWidget {
             'If URL returns 404, fix path in GitHub repo.\n'
             'Toggle back ON to use bundled asset while debugging.',
             style: TextStyle(
-                fontSize: 11,
-                color: Colors.black54,
-                fontStyle: FontStyle.italic),
+              fontSize: 11,
+              color: Colors.black54,
+              fontStyle: FontStyle.italic,
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -210,19 +220,23 @@ class DebugEncountersSection extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => _resetEncounterWelcome(context),
               icon: const Icon(Icons.refresh, color: Colors.teal),
-              label: const Text('Reset Welcome Screen',
-                  style: TextStyle(color: Colors.teal)),
+              label: const Text(
+                'Reset Welcome Screen',
+                style: TextStyle(color: Colors.teal),
+              ),
               style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.teal)),
+                side: const BorderSide(color: Colors.teal),
+              ),
             ),
           ),
           const SizedBox(height: 6),
           const Text(
             'Reset the encounter welcome dialog so it displays again\non the next visit to the Encounters tab.',
             style: TextStyle(
-                fontSize: 11,
-                color: Colors.black54,
-                fontStyle: FontStyle.italic),
+              fontSize: 11,
+              color: Colors.black54,
+              fontStyle: FontStyle.italic,
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -232,10 +246,13 @@ class DebugEncountersSection extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => _restoreEncounters(context),
               icon: const Icon(Icons.restore, color: Colors.amber),
-              label: const Text('Restore All Encounters',
-                  style: TextStyle(color: Colors.amber)),
+              label: const Text(
+                'Restore All Encounters',
+                style: TextStyle(color: Colors.amber),
+              ),
               style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.amber)),
+                side: const BorderSide(color: Colors.amber),
+              ),
             ),
           ),
           const SizedBox(height: 6),
@@ -244,9 +261,10 @@ class DebugEncountersSection extends StatelessWidget {
             'All encounters will be marked incomplete &\n'
             'available to replay. [DEBUG ONLY]',
             style: TextStyle(
-                fontSize: 11,
-                color: Colors.black54,
-                fontStyle: FontStyle.italic),
+              fontSize: 11,
+              color: Colors.black54,
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ],
       ),

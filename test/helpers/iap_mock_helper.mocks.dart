@@ -34,10 +34,11 @@ class MockIIapService extends _i1.Mock implements _i2.IIapService {
   }
 
   @override
-  _i3.Stream<_i4.SupporterTier> get onPurchaseDelivered => (super.noSuchMethod(
+  _i3.Stream<(_i4.SupporterTier, bool)> get onPurchaseDelivered =>
+      (super.noSuchMethod(
         Invocation.getter(#onPurchaseDelivered),
-        returnValue: _i3.Stream<_i4.SupporterTier>.empty(),
-      ) as _i3.Stream<_i4.SupporterTier>);
+        returnValue: _i3.Stream<(_i4.SupporterTier, bool)>.empty(),
+      ) as _i3.Stream<(_i4.SupporterTier, bool)>);
 
   @override
   _i3.Stream<String> get onPurchaseError => (super.noSuchMethod(

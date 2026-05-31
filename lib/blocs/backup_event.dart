@@ -69,16 +69,6 @@ class CreateManualBackup extends BackupEvent {
   const CreateManualBackup();
 }
 
-/// Restore from backup
-class RestoreFromBackup extends BackupEvent {
-  const RestoreFromBackup();
-}
-
-/// Load storage information
-class LoadStorageInfo extends BackupEvent {
-  const LoadStorageInfo();
-}
-
 /// Refresh backup status
 class RefreshBackupStatus extends BackupEvent {
   const RefreshBackupStatus();
@@ -96,5 +86,9 @@ class SignOutFromGoogleDrive extends BackupEvent {
 
 /// Check for startup backup (24h+ elapsed)
 class CheckStartupBackup extends BackupEvent {
-  const CheckStartupBackup();
+  const CheckStartupBackup({this.forceBypass = false});
+  final bool forceBypass;
+
+  @override
+  List<Object?> get props => [forceBypass];
 }

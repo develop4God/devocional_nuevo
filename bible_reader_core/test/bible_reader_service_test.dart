@@ -9,6 +9,7 @@ class MockBibleDbService extends BibleDbService {
   Map<int, int> mockMaxChapters = {};
   Map<String, dynamic>? mockFoundBook;
   List<Map<String, dynamic>> mockSearchResults = [];
+  List<Map<String, dynamic>> mockSectionTitles = [];
 
   @override
   Future<int> getMaxChapter(int bookNumber) async {
@@ -23,6 +24,14 @@ class MockBibleDbService extends BibleDbService {
   @override
   Future<List<Map<String, dynamic>>> searchVerses(String searchQuery) async {
     return mockSearchResults;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getSectionTitles({
+    required int bookNumber,
+    required int chapter,
+  }) async {
+    return mockSectionTitles;
   }
 }
 
@@ -46,7 +55,7 @@ void main() {
       test('should save reading position', () async {
         await service.saveReadingPosition(
           bookName: 'Genesis',
-          bookNumber: 1,
+          bookNumber: 10,
           chapter: 5,
           verse: 10,
           version: 'RVR1960',
@@ -57,7 +66,7 @@ void main() {
 
         expect(position, isNotNull);
         expect(position!['bookName'], equals('Genesis'));
-        expect(position['bookNumber'], equals(1));
+        expect(position['bookNumber'], equals(10));
         expect(position['chapter'], equals(5));
         expect(position['verse'], equals(10));
         expect(position['version'], equals('RVR1960'));
@@ -73,7 +82,7 @@ void main() {
       test('should clear saved position', () async {
         await service.saveReadingPosition(
           bookName: 'Genesis',
-          bookNumber: 1,
+          bookNumber: 10,
           chapter: 1,
           version: 'RVR1960',
           languageCode: 'es',
@@ -88,7 +97,7 @@ void main() {
       test('should use default verse value of 1 when not provided', () async {
         await service.saveReadingPosition(
           bookName: 'Exodus',
-          bookNumber: 2,
+          bookNumber: 20,
           chapter: 20,
           version: 'KJV',
           languageCode: 'en',
@@ -277,18 +286,18 @@ void main() {
 
       test('should detect valid Bible reference and navigate', () async {
         mockDbService.mockFoundBook = {
-          'book_number': 43,
+          'book_number': 500,
           'short_name': 'Juan',
           'long_name': 'Juan',
         };
-        mockDbService.mockMaxChapters[43] = 21;
+        mockDbService.mockMaxChapters[500] = 21;
 
         final result = await service.searchWithReferenceDetection('Juan 3:16');
 
         expect(result['isReference'], isTrue);
         expect(result['navigationTarget'], isNotNull);
         final target = result['navigationTarget'] as Map<String, dynamic>;
-        expect(target['bookNumber'], equals(43));
+        expect(target['bookNumber'], equals(500));
         expect(target['bookName'], equals('Juan'));
         expect(target['chapter'], equals(3));
         expect(target['verse'], equals(16));
@@ -296,10 +305,10 @@ void main() {
 
       test('should detect reference without verse', () async {
         mockDbService.mockFoundBook = {
-          'book_number': 1,
+          'book_number': 10,
           'short_name': 'Genesis',
         };
-        mockDbService.mockMaxChapters[1] = 50;
+        mockDbService.mockMaxChapters[10] = 50;
 
         final result = await service.searchWithReferenceDetection('Genesis 1');
 
@@ -323,8 +332,11 @@ void main() {
       });
 
       test('should fall back to text search for invalid chapter', () async {
-        mockDbService.mockFoundBook = {'book_number': 43, 'short_name': 'Juan'};
-        mockDbService.mockMaxChapters[43] = 21;
+        mockDbService.mockFoundBook = {
+          'book_number': 500,
+          'short_name': 'Juan',
+        };
+        mockDbService.mockMaxChapters[500] = 21;
         mockDbService.mockSearchResults = [];
 
         final result = await service.searchWithReferenceDetection('Juan 999:1');

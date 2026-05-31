@@ -64,24 +64,31 @@ class DiscoveryBottomNavBar extends StatelessWidget {
                     key: const Key('bottom_appbar_prayers_icon'),
                     tooltip: 'Mis oraciones',
                     onPressed: onPrayers,
-                    icon: const Icon(Icons.local_fire_department_outlined,
-                        color: Colors.white, size: 35),
+                    icon: const Icon(
+                      Icons.local_fire_department_outlined,
+                      color: Colors.white,
+                      size: 35,
+                    ),
                   ),
                   IconButton(
                     key: const Key('bottom_appbar_bible_icon'),
                     tooltip: 'Biblia',
                     onPressed: () async {
                       final devocionalProvider =
-                          Provider.of<DevocionalProvider>(context,
-                              listen: false);
+                          Provider.of<DevocionalProvider>(
+                        context,
+                        listen: false,
+                      );
                       final appLanguage = devocionalProvider.selectedLanguage;
                       List<BibleVersion> versions =
                           await BibleVersionRegistry.getVersionsForLanguage(
-                              appLanguage);
+                        appLanguage,
+                      );
                       if (versions.isEmpty) {
                         versions =
                             await BibleVersionRegistry.getVersionsForLanguage(
-                                'es');
+                          'es',
+                        );
                       }
                       if (versions.isEmpty) {
                         versions = await BibleVersionRegistry.getAllVersions();
@@ -90,14 +97,15 @@ class DiscoveryBottomNavBar extends StatelessWidget {
                       Navigator.push(
                         context,
                         PageTransitions.fadeSlide(
-                          BibleReaderPage(
-                            versions: versions,
-                          ),
+                          BibleReaderPage(versions: versions),
                         ),
                       );
                     },
-                    icon: const Icon(Icons.auto_stories_outlined,
-                        color: Colors.white, size: 32),
+                    icon: const Icon(
+                      Icons.auto_stories_outlined,
+                      color: Colors.white,
+                      size: 32,
+                    ),
                   ),
                   IconButton(
                     key: const Key('bottom_appbar_progress_icon'),
@@ -106,11 +114,15 @@ class DiscoveryBottomNavBar extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const ProgressPage()),
+                          builder: (context) => const ProgressPage(),
+                        ),
                       );
                     },
-                    icon: Icon(Icons.emoji_events_outlined,
-                        color: appBarForegroundColor, size: 30),
+                    icon: Icon(
+                      Icons.emoji_events_outlined,
+                      color: appBarForegroundColor,
+                      size: 30,
+                    ),
                   ),
                   IconButton(
                     key: const Key('bottom_appbar_settings_icon'),
@@ -119,11 +131,15 @@ class DiscoveryBottomNavBar extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const SettingsPage()),
+                          builder: (context) => const SettingsPage(),
+                        ),
                       );
                     },
-                    icon: Icon(Icons.app_settings_alt_outlined,
-                        color: appBarForegroundColor, size: 30),
+                    icon: Icon(
+                      Icons.app_settings_alt_outlined,
+                      color: appBarForegroundColor,
+                      size: 30,
+                    ),
                   ),
                   // Support/Donate (Conditional - Remote Config)
                   if (getService<RemoteConfigService>().featureSupporter)
@@ -134,11 +150,15 @@ class DiscoveryBottomNavBar extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const SupporterPage()),
+                            builder: (context) => const SupporterPage(),
+                          ),
                         );
                       },
-                      icon: Icon(Icons.volunteer_activism,
-                          color: appBarForegroundColor, size: 32),
+                      icon: Icon(
+                        Icons.volunteer_activism,
+                        color: appBarForegroundColor,
+                        size: 32,
+                      ),
                     ),
                 ],
               ),
@@ -343,11 +363,7 @@ class _ActionButton extends StatelessWidget {
                                   color: colorScheme.primary,
                                 ),
                               )
-                            : Icon(
-                                icon,
-                                color: colorScheme.primary,
-                                size: 22,
-                              ),
+                            : Icon(icon, color: colorScheme.primary, size: 22),
                       ),
                     )
                   : Icon(

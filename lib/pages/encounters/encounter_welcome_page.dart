@@ -48,13 +48,13 @@ class _EncounterWelcomePageState extends State<EncounterWelcomePage>
       curve: const Interval(0.4, 0.85, curve: Curves.easeIn),
     );
 
-    _contentSlide = Tween<Offset>(
-      begin: const Offset(0, 0.08),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.4, 1.0, curve: Curves.easeOutCubic),
-    ));
+    _contentSlide =
+        Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.4, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
 
     _controller.forward();
   }
@@ -228,15 +228,17 @@ class _EncounterWelcomePageState extends State<EncounterWelcomePage>
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFFFD700)
-                                  .withValues(alpha: 0.6),
+                              color: const Color(
+                                0xFFFFD700,
+                              ).withValues(alpha: 0.6),
                               blurRadius: 24,
                               spreadRadius: 2,
                               offset: const Offset(0, 8),
                             ),
                             BoxShadow(
-                              color: const Color(0xFFFFD700)
-                                  .withValues(alpha: 0.3),
+                              color: const Color(
+                                0xFFFFD700,
+                              ).withValues(alpha: 0.3),
                               blurRadius: 12,
                               spreadRadius: 4,
                             ),
@@ -290,11 +292,7 @@ class _Orb extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         boxShadow: [
-          BoxShadow(
-            color: color,
-            blurRadius: size / 2,
-            spreadRadius: 20,
-          ),
+          BoxShadow(color: color, blurRadius: size / 2, spreadRadius: 20),
         ],
       ),
     );

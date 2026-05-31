@@ -8,9 +8,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 class DiscoveryProgressTracker {
   static const String _progressKeyPrefix = 'discovery_progress_';
 
+  /// Public alias — use this when referencing the prefix outside this class.
+  static const String progressKeyPrefix = _progressKeyPrefix;
+
   /// Get progress for a specific study
-  Future<DiscoveryProgress> getProgress(String studyId,
-      [String? languageCode]) async {
+  Future<DiscoveryProgress> getProgress(
+    String studyId, [
+    String? languageCode,
+  ]) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       // ✅ Use languageCode in key to keep progress separate per language
@@ -30,8 +35,11 @@ class DiscoveryProgressTracker {
   }
 
   /// Mark a section as completed
-  Future<void> markSectionCompleted(String studyId, int sectionIndex,
-      [String? languageCode]) async {
+  Future<void> markSectionCompleted(
+    String studyId,
+    int sectionIndex, [
+    String? languageCode,
+  ]) async {
     try {
       final progress = await getProgress(studyId, languageCode);
       if (!progress.completedSections.contains(sectionIndex)) {
@@ -84,14 +92,17 @@ class DiscoveryProgressTracker {
   }
 
   /// NEW: Clears progress for a specific study so user can "do it again"
-  Future<void> resetStudyProgress(String studyId,
-      [String? languageCode]) async {
+  Future<void> resetStudyProgress(
+    String studyId, [
+    String? languageCode,
+  ]) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final key = _getStudyKey(studyId, languageCode);
       await prefs.remove(key);
       debugPrint(
-          '♻️ Discovery: Progress reset for study $studyId ($languageCode)');
+        '♻️ Discovery: Progress reset for study $studyId ($languageCode)',
+      );
     } catch (e) {
       debugPrint('Error resetting study progress: $e');
     }

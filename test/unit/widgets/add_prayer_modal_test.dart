@@ -64,16 +64,18 @@ void main() {
       expect(find.byIcon(Icons.close), findsOneWidget);
     });
 
-    testWidgets('displays text field for prayer input',
-        (WidgetTester tester) async {
+    testWidgets('displays text field for prayer input', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
       expect(find.byType(TextField), findsOneWidget);
     });
 
-    testWidgets('displays cancel and create buttons',
-        (WidgetTester tester) async {
+    testWidgets('displays cancel and create buttons', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -81,8 +83,9 @@ void main() {
       expect(find.byType(ElevatedButton), findsOneWidget);
     });
 
-    testWidgets('displays edit icon when editing prayer',
-        (WidgetTester tester) async {
+    testWidgets('displays edit icon when editing prayer', (
+      WidgetTester tester,
+    ) async {
       final existingPrayer = Prayer(
         id: 'test_123',
         text: 'Existing prayer text',
@@ -98,16 +101,18 @@ void main() {
       expect(find.byIcon(Icons.edit), findsOneWidget);
     });
 
-    testWidgets('displays add icon when creating new prayer',
-        (WidgetTester tester) async {
+    testWidgets('displays add icon when creating new prayer', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.add_circle_outline), findsOneWidget);
     });
 
-    testWidgets('populates text field when editing',
-        (WidgetTester tester) async {
+    testWidgets('populates text field when editing', (
+      WidgetTester tester,
+    ) async {
       final existingPrayer = Prayer(
         id: 'test_123',
         text: 'Existing prayer text',
@@ -123,8 +128,9 @@ void main() {
       expect(find.text('Existing prayer text'), findsOneWidget);
     });
 
-    testWidgets('closes modal when close button is tapped',
-        (WidgetTester tester) async {
+    testWidgets('closes modal when close button is tapped', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -135,8 +141,9 @@ void main() {
       expect(find.byType(AddPrayerModal), findsNothing);
     });
 
-    testWidgets('closes modal when cancel button is tapped',
-        (WidgetTester tester) async {
+    testWidgets('closes modal when cancel button is tapped', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -147,8 +154,9 @@ void main() {
       expect(find.byType(AddPrayerModal), findsNothing);
     });
 
-    testWidgets('shows error when submitting empty text',
-        (WidgetTester tester) async {
+    testWidgets('shows error when submitting empty text', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -160,8 +168,9 @@ void main() {
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
     });
 
-    testWidgets('shows error when text is too short',
-        (WidgetTester tester) async {
+    testWidgets('shows error when text is too short', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -188,8 +197,9 @@ void main() {
       expect(find.text(validText), findsOneWidget);
     });
 
-    testWidgets('text field has correct max length',
-        (WidgetTester tester) async {
+    testWidgets('text field has correct max length', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -212,8 +222,9 @@ void main() {
       expect(find.byIcon(Icons.lightbulb_outline), findsOneWidget);
     });
 
-    testWidgets('handles long prayer text gracefully',
-        (WidgetTester tester) async {
+    testWidgets('handles long prayer text gracefully', (
+      WidgetTester tester,
+    ) async {
       final longText = 'Dear Lord, ' * 50; // Long prayer text
 
       await tester.pumpWidget(createWidgetUnderTest());
@@ -226,8 +237,9 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
     });
 
-    testWidgets('submit button changes state when processing',
-        (WidgetTester tester) async {
+    testWidgets('submit button changes state when processing', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -244,8 +256,9 @@ void main() {
       expect(find.byType(AddPrayerModal), findsAny);
     });
 
-    testWidgets('auto-focuses on text field when opened',
-        (WidgetTester tester) async {
+    testWidgets('auto-focuses on text field when opened', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -253,8 +266,9 @@ void main() {
       expect(textField.focusNode, isNotNull);
     });
 
-    testWidgets('displays different content when editing vs creating',
-        (WidgetTester tester) async {
+    testWidgets('displays different content when editing vs creating', (
+      WidgetTester tester,
+    ) async {
       // Test creating mode
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();

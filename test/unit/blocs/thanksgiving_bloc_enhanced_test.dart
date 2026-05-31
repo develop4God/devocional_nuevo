@@ -27,17 +27,19 @@ void main() {
     });
 
     group('Concurrent Operations', () {
-      test('handles multiple LoadThanksgivings events in rapid succession',
-          () async {
-        bloc.add(LoadThanksgivings());
-        bloc.add(LoadThanksgivings());
-        bloc.add(LoadThanksgivings());
+      test(
+        'handles multiple LoadThanksgivings events in rapid succession',
+        () async {
+          bloc.add(LoadThanksgivings());
+          bloc.add(LoadThanksgivings());
+          bloc.add(LoadThanksgivings());
 
-        await Future.delayed(const Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        // Should handle gracefully and end in loaded state
-        expect(bloc.state, isA<ThanksgivingLoaded>());
-      });
+          // Should handle gracefully and end in loaded state
+          expect(bloc.state, isA<ThanksgivingLoaded>());
+        },
+      );
 
       test('handles refresh while loading', () async {
         bloc.add(LoadThanksgivings());
@@ -255,21 +257,13 @@ void main() {
 
       test('preserves thanksgiving order in state', () {
         final thanksgivings = [
-          Thanksgiving(
-            id: 'first',
-            text: 'First',
-            createdDate: DateTime.now(),
-          ),
+          Thanksgiving(id: 'first', text: 'First', createdDate: DateTime.now()),
           Thanksgiving(
             id: 'second',
             text: 'Second',
             createdDate: DateTime.now(),
           ),
-          Thanksgiving(
-            id: 'third',
-            text: 'Third',
-            createdDate: DateTime.now(),
-          ),
+          Thanksgiving(id: 'third', text: 'Third', createdDate: DateTime.now()),
         ];
 
         final state = ThanksgivingLoaded(thanksgivings: thanksgivings);
@@ -307,20 +301,22 @@ void main() {
         expect(restored.createdDate.year, equals(1970));
       });
 
-      test('copyWith with all null parameters returns identical thanksgiving',
-          () {
-        final original = Thanksgiving(
-          id: 'original',
-          text: 'Original text',
-          createdDate: DateTime(2025, 1, 1),
-        );
+      test(
+        'copyWith with all null parameters returns identical thanksgiving',
+        () {
+          final original = Thanksgiving(
+            id: 'original',
+            text: 'Original text',
+            createdDate: DateTime(2025, 1, 1),
+          );
 
-        final copy = original.copyWith();
+          final copy = original.copyWith();
 
-        expect(copy.id, equals(original.id));
-        expect(copy.text, equals(original.text));
-        expect(copy.createdDate, equals(original.createdDate));
-      });
+          expect(copy.id, equals(original.id));
+          expect(copy.text, equals(original.text));
+          expect(copy.createdDate, equals(original.createdDate));
+        },
+      );
 
       test('handles thanksgiving with same text but different IDs', () {
         final thanks1 = Thanksgiving(
@@ -343,16 +339,8 @@ void main() {
     group('State Persistence Verification', () {
       test('state preserves all thanksgiving properties', () {
         final thanksgivings = [
-          Thanksgiving(
-            id: '1',
-            text: 'T1',
-            createdDate: DateTime.now(),
-          ),
-          Thanksgiving(
-            id: '2',
-            text: 'T2',
-            createdDate: DateTime.now(),
-          ),
+          Thanksgiving(id: '1', text: 'T1', createdDate: DateTime.now()),
+          Thanksgiving(id: '2', text: 'T2', createdDate: DateTime.now()),
         ];
 
         final state = ThanksgivingLoaded(thanksgivings: thanksgivings);
@@ -449,11 +437,7 @@ void main() {
       });
 
       test('handles malformed JSON gracefully', () {
-        final json = {
-          'id': null,
-          'text': null,
-          'createdDate': 'invalid-date',
-        };
+        final json = {'id': null, 'text': null, 'createdDate': 'invalid-date'};
 
         final thanksgiving = Thanksgiving.fromJson(json);
 

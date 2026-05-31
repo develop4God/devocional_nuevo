@@ -322,10 +322,12 @@ class _ProgressPageState extends State<ProgressPage>
           Builder(
             builder: (context) {
               if (hasBronze && hasSilver) {
-                final bronzeBadge = supporterBadges
-                    .firstWhere((b) => b.id == 'supporter_bronze');
-                final silverBadge = supporterBadges
-                    .firstWhere((b) => b.id == 'supporter_silver');
+                final bronzeBadge = supporterBadges.firstWhere(
+                  (b) => b.id == 'supporter_bronze',
+                );
+                final silverBadge = supporterBadges.firstWhere(
+                  (b) => b.id == 'supporter_silver',
+                );
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -362,8 +364,9 @@ class _ProgressPageState extends State<ProgressPage>
                   ],
                 );
               } else if (hasBronze) {
-                final bronzeBadge = supporterBadges
-                    .firstWhere((b) => b.id == 'supporter_bronze');
+                final bronzeBadge = supporterBadges.firstWhere(
+                  (b) => b.id == 'supporter_bronze',
+                );
                 return Center(
                   child: Column(
                     children: [
@@ -381,8 +384,9 @@ class _ProgressPageState extends State<ProgressPage>
                   ),
                 );
               } else if (hasSilver) {
-                final silverBadge = supporterBadges
-                    .firstWhere((b) => b.id == 'supporter_silver');
+                final silverBadge = supporterBadges.firstWhere(
+                  (b) => b.id == 'supporter_silver',
+                );
                 return Center(
                   child: Column(
                     children: [
