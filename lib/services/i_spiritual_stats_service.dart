@@ -72,6 +72,9 @@ abstract class ISpiritualStatsService {
   /// Update favorites count.
   Future<SpiritualStats> updateFavoritesCount(int favoritesCount);
 
+  /// Update answered prayers count in spiritual statistics.
+  Future<SpiritualStats> updateAnsweredPrayersCount(int answeredPrayersCount);
+
   /// Force creation of a manual backup.
   Future<bool> createManualBackup();
 

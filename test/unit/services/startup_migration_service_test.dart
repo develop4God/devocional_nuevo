@@ -180,6 +180,12 @@ class _FakeStatsService implements ISpiritualStatsService {
       SpiritualStats();
 
   @override
+  Future<SpiritualStats> updateAnsweredPrayersCount(
+    int answeredPrayersCount,
+  ) async =>
+      SpiritualStats();
+
+  @override
   Future<bool> createManualBackup() async => false;
 
   @override

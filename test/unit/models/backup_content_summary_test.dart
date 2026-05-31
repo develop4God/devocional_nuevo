@@ -21,6 +21,7 @@ void main() {
         discoveryCount: 1,
         versesCount: 7,
         readDevocionalesCount: 0,
+        answeredPrayersCount: 6,
       );
 
   const BackupContentSummary empty = BackupContentSummary(
@@ -120,8 +121,8 @@ void main() {
     });
 
     test('returns sum of all counters', () {
-      // 5+3+2+10+4+1+7 = 32
-      expect(filled().totalItems, equals(32));
+      // 5+3+2+10+4+1+7+0+6 = 38
+      expect(filled().totalItems, equals(38));
     });
 
     test('single-item summary has totalItems of 1', () {
@@ -141,7 +142,7 @@ void main() {
 
   // ---------------------------------------------------------------------------
   group('BackupContentSummary — props contract (Equatable)', () {
-    test('props contains all 8 fields in declaration order', () {
+    test('props contains all 9 fields in declaration order', () {
       final s = filled();
       expect(
         s.props,
@@ -154,6 +155,7 @@ void main() {
           s.discoveryCount,
           s.versesCount,
           s.readDevocionalesCount,
+          s.answeredPrayersCount,
         ]),
       );
     });
@@ -171,6 +173,7 @@ void main() {
       expect(s.discoveryCount, 1);
       expect(s.versesCount, 7);
       expect(s.readDevocionalesCount, 0);
+      expect(s.answeredPrayersCount, 6);
     });
   });
 }
