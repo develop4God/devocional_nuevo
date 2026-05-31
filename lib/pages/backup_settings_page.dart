@@ -30,6 +30,11 @@ List<({IconData icon, String label, int count})> _summaryItems(
         count: summary.prayersCount,
       ),
       (
+        icon: Icons.check_circle_outline,
+        label: 'prayer.answered_prayers'.tr(),
+        count: summary.answeredPrayersCount,
+      ),
+      (
         icon: Icons.sentiment_very_satisfied,
         label: 'thanksgiving.thanksgivings'.tr(),
         count: summary.thanksgivingsCount,

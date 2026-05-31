@@ -14,6 +14,7 @@ class Prayer {
   final PrayerStatus status;
   final DateTime? answeredDate;
   final String? answeredComment;
+  final DateTime lastModifiedDate;
 
   Prayer({
     required this.id,
@@ -22,7 +23,8 @@ class Prayer {
     required this.status,
     this.answeredDate,
     this.answeredComment,
-  });
+    DateTime? lastModifiedDate,
+  }) : lastModifiedDate = lastModifiedDate ?? createdDate;
 
   /// Constructor factory para crear una instancia de [Prayer] desde un JSON.
   factory Prayer.fromJson(Map<String, dynamic> json) {
@@ -54,6 +56,19 @@ class Prayer {
       }
     }
 
+    DateTime? parsedLastModifiedDate;
+    final String? lastModifiedDateString = json['lastModifiedDate'] as String?;
+    if (lastModifiedDateString != null && lastModifiedDateString.isNotEmpty) {
+      try {
+        parsedLastModifiedDate = DateTime.parse(lastModifiedDateString);
+      } catch (e) {
+        debugPrint(
+          'Error parsing last modified date: $lastModifiedDateString. Error: $e',
+        );
+        parsedLastModifiedDate = null;
+      }
+    }
+
     return Prayer(
       id: json['id'] as String? ?? UniqueKey().hashCode.toString(),
       text: json['text'] as String? ?? '',
@@ -61,6 +76,7 @@ class Prayer {
       status: PrayerStatus.fromString(json['status'] as String? ?? 'active'),
       answeredDate: parsedAnsweredDate,
       answeredComment: json['answeredComment'] as String?,
+      lastModifiedDate: parsedLastModifiedDate ?? parsedCreatedDate,
     );
   }
 
@@ -73,6 +89,7 @@ class Prayer {
       'status': status.toString(),
       'answeredDate': answeredDate?.toIso8601String(),
       'answeredComment': answeredComment,
+      'lastModifiedDate': lastModifiedDate.toIso8601String(),
     };
   }
 
@@ -84,8 +101,10 @@ class Prayer {
     PrayerStatus? status,
     DateTime? answeredDate,
     String? answeredComment,
+    DateTime? lastModifiedDate,
     bool clearAnsweredDate = false,
     bool clearAnsweredComment = false,
+    bool updateModifiedDate = true,
   }) {
     return Prayer(
       id: id ?? this.id,
@@ -97,6 +116,9 @@ class Prayer {
       answeredComment: clearAnsweredComment
           ? null
           : (answeredComment ?? this.answeredComment),
+      lastModifiedDate: updateModifiedDate
+          ? (lastModifiedDate ?? DateTime.now())
+          : this.lastModifiedDate,
     );
   }
 

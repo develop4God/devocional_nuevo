@@ -9,8 +9,14 @@ class Testimony {
   final String id;
   final String text;
   final DateTime createdDate;
+  final DateTime lastModifiedDate;
 
-  Testimony({required this.id, required this.text, required this.createdDate});
+  Testimony({
+    required this.id,
+    required this.text,
+    required this.createdDate,
+    DateTime? lastModifiedDate,
+  }) : lastModifiedDate = lastModifiedDate ?? createdDate;
 
   /// Constructor factory para crear una instancia de [Testimony] desde un JSON.
   factory Testimony.fromJson(Map<String, dynamic> json) {
@@ -29,10 +35,24 @@ class Testimony {
       parsedCreatedDate = DateTime.now();
     }
 
+    DateTime? parsedLastModifiedDate;
+    final String? lastModifiedDateString = json['lastModifiedDate'] as String?;
+    if (lastModifiedDateString != null && lastModifiedDateString.isNotEmpty) {
+      try {
+        parsedLastModifiedDate = DateTime.parse(lastModifiedDateString);
+      } catch (e) {
+        debugPrint(
+          'Error parsing last modified date: $lastModifiedDateString. Error: $e',
+        );
+        parsedLastModifiedDate = null;
+      }
+    }
+
     return Testimony(
       id: json['id'] as String? ?? UniqueKey().hashCode.toString(),
       text: json['text'] as String? ?? '',
       createdDate: parsedCreatedDate,
+      lastModifiedDate: parsedLastModifiedDate ?? parsedCreatedDate,
     );
   }
 
@@ -42,15 +62,25 @@ class Testimony {
       'id': id,
       'text': text,
       'createdDate': createdDate.toIso8601String(),
+      'lastModifiedDate': lastModifiedDate.toIso8601String(),
     };
   }
 
   /// Crea una copia del testimonio con los campos especificados actualizados.
-  Testimony copyWith({String? id, String? text, DateTime? createdDate}) {
+  Testimony copyWith({
+    String? id,
+    String? text,
+    DateTime? createdDate,
+    DateTime? lastModifiedDate,
+    bool updateModifiedDate = true,
+  }) {
     return Testimony(
       id: id ?? this.id,
       text: text ?? this.text,
       createdDate: createdDate ?? this.createdDate,
+      lastModifiedDate: updateModifiedDate
+          ? (lastModifiedDate ?? DateTime.now())
+          : this.lastModifiedDate,
     );
   }
 

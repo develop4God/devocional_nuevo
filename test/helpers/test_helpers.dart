@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/auth_service.dart';
+import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -301,4 +303,88 @@ class MockPathProviderPlatform extends PathProviderPlatform {
   Future<String?> getTemporaryPath() async {
     return Directory.systemTemp.path;
   }
+}
+
+/// Fake [ISpiritualStatsService] for tests that need a [PrayerBloc].
+/// All methods are no-ops or return empty defaults.
+class FakeSpiritualStatsService implements ISpiritualStatsService {
+  @override
+  Future<SpiritualStats> getStats() async => SpiritualStats();
+
+  @override
+  Future<void> saveStats(SpiritualStats stats) async {}
+
+  @override
+  Future<SpiritualStats> recordDevocionalRead({
+    required String devocionalId,
+    int? favoritesCount,
+    int readingTimeSeconds = 0,
+    double scrollPercentage = 0.0,
+  }) async =>
+      SpiritualStats();
+
+  @override
+  Future<SpiritualStats> recordDevocionalHeard({
+    required String devocionalId,
+    required double listenedPercentage,
+    int? favoritesCount,
+  }) async =>
+      SpiritualStats();
+
+  @override
+  Future<SpiritualStats> recordDevocionalCompletado({
+    required String devocionalId,
+    int readingTimeSeconds = 0,
+    double scrollPercentage = 0.0,
+    double listenedPercentage = 0.0,
+    int? favoritesCount,
+    String source = 'unknown',
+  }) async =>
+      SpiritualStats();
+
+  @override
+  Future<Map<String, dynamic>> getAllStats() async => {};
+
+  @override
+  Future<void> restoreStats(Map<String, dynamic> backupData) async {}
+
+  @override
+  Future<bool> isJsonBackupEnabled() async => false;
+
+  @override
+  Future<void> setJsonBackupEnabled(bool enabled) async {}
+
+  @override
+  Future<bool> hasDevocionalBeenRead(String devocionalId) async => false;
+
+  @override
+  Future<List<DateTime>> getReadDatesForVisualization() async => [];
+
+  @override
+  Future<void> resetStats() async {}
+
+  @override
+  Future<String?> exportStatsAsJson() async => null;
+
+  @override
+  Future<bool> importStatsFromJson(String jsonString) async => false;
+
+  @override
+  Future<String?> getBackupFilePath() async => null;
+
+  @override
+  Future<SpiritualStats> updateFavoritesCount(int favoritesCount) async =>
+      SpiritualStats();
+
+  @override
+  Future<SpiritualStats> updateAnsweredPrayersCount(
+    int answeredPrayersCount,
+  ) async =>
+      SpiritualStats();
+
+  @override
+  Future<bool> createManualBackup() async => false;
+
+  @override
+  Future<void> bulkMarkAsRead(List<String> ids) async {}
 }

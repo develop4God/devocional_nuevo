@@ -14,6 +14,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../helpers/test_helpers.dart';
+
 void main() {
   group('PrayerBloc - Comprehensive Real User Behavior Tests', () {
     late PrayerBloc bloc;
@@ -43,7 +45,7 @@ void main() {
         },
       );
 
-      bloc = PrayerBloc();
+      bloc = PrayerBloc(statsService: FakeSpiritualStatsService());
     });
 
     tearDown(() async {
@@ -73,7 +75,7 @@ void main() {
         // Close and create new bloc (simulating app restart)
         await bloc.close();
 
-        final bloc2 = PrayerBloc();
+        final bloc2 = PrayerBloc(statsService: FakeSpiritualStatsService());
         bloc2.add(LoadPrayers());
         await Future.delayed(const Duration(milliseconds: 100));
 
@@ -307,7 +309,7 @@ void main() {
 
     group('Initial State', () {
       test('Bloc starts in initial state', () {
-        final newBloc = PrayerBloc();
+        final newBloc = PrayerBloc(statsService: FakeSpiritualStatsService());
         expect(newBloc.state, isA<PrayerInitial>());
         newBloc.close();
       });
@@ -362,7 +364,7 @@ void main() {
         await bloc.close();
 
         // Session 2: Reload
-        final bloc2 = PrayerBloc();
+        final bloc2 = PrayerBloc(statsService: FakeSpiritualStatsService());
         bloc2.add(LoadPrayers());
         await Future.delayed(const Duration(milliseconds: 100));
 

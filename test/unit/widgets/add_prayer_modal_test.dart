@@ -24,7 +24,7 @@ void main() {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
       registerTestServices();
-      bloc = PrayerBloc();
+      bloc = PrayerBloc(statsService: FakeSpiritualStatsService());
     });
 
     tearDown(() {

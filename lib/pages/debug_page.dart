@@ -1,13 +1,16 @@
 // ignore_for_file: public_member_api_docs
 import 'dart:convert';
 
+import 'package:devocional_nuevo/debug/i_debug_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/debug/sections/debug_bulk_add_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_crashlytics_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_devotionals_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_discovery_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_encounters_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_iap_section.dart';
+import 'package:devocional_nuevo/debug/sections/debug_streak_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_tts_section.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/debug/debug_backup_section.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +31,11 @@ class DebugPage extends StatefulWidget {
 class _DebugPageState extends State<DebugPage> {
   List<String> _branches = ['main', 'dev'];
   bool _loadingBranches = false;
+
+  // Resolved once at composition time — debug page acts as a local
+  // composition root (kDebugMode only, never shipped to production).
+  late final IDebugSpiritualStatsService _statsService =
+      getService<IDebugSpiritualStatsService>();
 
   @override
   void initState() {
@@ -97,6 +105,10 @@ class _DebugPageState extends State<DebugPage> {
             const SizedBox(height: 32),
             // ── Backup debug tools ──
             if (kDebugMode) const DebugBackupSection(),
+            const SizedBox(height: 32),
+
+            // ── Streak debug ──
+            DebugStreakSection(statsService: _statsService),
             const SizedBox(height: 32),
 
             // ── Bulk add test data ──
