@@ -16,6 +16,7 @@ class SpiritualStats {
   final List<Achievement> unlockedAchievements;
   final int favoritesCount;
   final List<String> readDevocionalIds; // Track unique IDs of read devotionals
+  final int answeredPrayersCount;
 
   SpiritualStats({
     this.totalDevocionalesRead = 0,
@@ -25,6 +26,7 @@ class SpiritualStats {
     this.unlockedAchievements = const [],
     this.favoritesCount = 0,
     this.readDevocionalIds = const [],
+    this.answeredPrayersCount = 0,
   });
 
   factory SpiritualStats.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,7 @@ class SpiritualStats {
               ?.map((id) => id.toString())
               .toList() ??
           [],
+      answeredPrayersCount: json['answeredPrayersCount'] ?? 0,
     );
   }
 
@@ -59,6 +62,7 @@ class SpiritualStats {
           unlockedAchievements.map((a) => a.toJson()).toList(),
       'favoritesCount': favoritesCount,
       'readDevocionalIds': readDevocionalIds,
+      'answeredPrayersCount': answeredPrayersCount,
     };
   }
 
@@ -70,6 +74,7 @@ class SpiritualStats {
     List<Achievement>? unlockedAchievements,
     int? favoritesCount,
     List<String>? readDevocionalIds,
+    int? answeredPrayersCount,
   }) {
     return SpiritualStats(
       totalDevocionalesRead:
@@ -80,6 +85,7 @@ class SpiritualStats {
       unlockedAchievements: unlockedAchievements ?? this.unlockedAchievements,
       favoritesCount: favoritesCount ?? this.favoritesCount,
       readDevocionalIds: readDevocionalIds ?? this.readDevocionalIds,
+      answeredPrayersCount: answeredPrayersCount ?? this.answeredPrayersCount,
     );
   }
 
@@ -122,6 +128,8 @@ class SpiritualStats {
       unlockedAchievements: mergedAchievements,
       favoritesCount: max(local.favoritesCount, remote.favoritesCount),
       readDevocionalIds: mergedIds,
+      answeredPrayersCount:
+          max(local.answeredPrayersCount, remote.answeredPrayersCount),
     );
   }
 }
