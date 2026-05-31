@@ -66,7 +66,6 @@ void main() {
           encountersCount: 0,
           discoveryCount: 0,
           versesCount: 0,
-
           readDevocionalesCount: 0,
           answeredPrayersCount: 0,
         ),
