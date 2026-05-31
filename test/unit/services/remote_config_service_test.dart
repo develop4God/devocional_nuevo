@@ -107,6 +107,16 @@ void main() {
         verify(mockRemoteConfig.getBool('feature_supporter')).called(1);
       });
 
+      test('should return default true for show_backup_section', () {
+        when(mockRemoteConfig.getBool('show_backup_section')).thenReturn(true);
+        expect(service.showBackupSection, true);
+      });
+
+      test('should return false when show_backup_section is disabled', () {
+        when(mockRemoteConfig.getBool('show_backup_section')).thenReturn(false);
+        expect(service.showBackupSection, false);
+      });
+
       test('should handle getBool errors and return false', () {
         when(
           mockRemoteConfig.getBool('feature_legacy'),

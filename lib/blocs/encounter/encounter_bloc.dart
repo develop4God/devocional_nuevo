@@ -7,7 +7,7 @@ import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -45,14 +45,16 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
     emit(EncounterLoading());
 
     try {
-      final index =
-          await repository.fetchIndex(forceRefresh: event.forceRefresh);
+      final index = await repository.fetchIndex(
+        forceRefresh: event.forceRefresh,
+      );
       debugPrint('🔵 [EncounterBloc] Index loaded: ${index.length} entries');
 
       // Load persisted completed IDs from SharedPreferences
       final completedIds = await progressService.loadCompletedIds();
       debugPrint(
-          '✅ [EncounterBloc] Restored ${completedIds.length} completed encounter(s) from storage');
+        '✅ [EncounterBloc] Restored ${completedIds.length} completed encounter(s) from storage',
+      );
 
       emit(EncounterLoaded(index: index, completedIds: completedIds));
 
@@ -85,7 +87,8 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
         );
 
         debugPrint(
-            '🖼️ [EncounterBloc] BG: preloading images for ${first.id} [$lang]…');
+          '🖼️ [EncounterBloc] BG: preloading images for ${first.id} [$lang]…',
+        );
 
         final filename =
             first.files[lang] ?? first.files['en'] ?? '${first.id}_$lang.json';
@@ -107,7 +110,8 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
             .toSet();
 
         debugPrint(
-            '🖼️ [EncounterBloc] BG: warming disk cache for ${imageUrls.length} images…');
+          '🖼️ [EncounterBloc] BG: warming disk cache for ${imageUrls.length} images…',
+        );
 
         int cached = 0;
         for (final url in imageUrls) {
@@ -121,7 +125,8 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
         }
 
         debugPrint(
-            '✅ [EncounterBloc] BG: pre-cached $cached/${imageUrls.length} images for ${first.id}');
+          '✅ [EncounterBloc] BG: pre-cached $cached/${imageUrls.length} images for ${first.id}',
+        );
       } catch (e) {
         // Background preload is non-critical — log and swallow
         debugPrint('⚠️ [EncounterBloc] BG image preload failed: $e');
@@ -140,7 +145,8 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
     if (currentState is EncounterLoaded) {
       if (currentState.isStudyLoaded(event.id)) {
         debugPrint(
-            '✅ [EncounterBloc] Cache hit for ${event.id} — skipping fetch');
+          '✅ [EncounterBloc] Cache hit for ${event.id} — skipping fetch',
+        );
         return; // Already loaded, do nothing
       }
     }
@@ -168,11 +174,13 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
 
       final newState = state;
       if (newState is EncounterLoaded) {
-        final updatedStudies =
-            Map<String, EncounterStudy>.from(newState.loadedStudies);
+        final updatedStudies = Map<String, EncounterStudy>.from(
+          newState.loadedStudies,
+        );
         updatedStudies[event.id] = study;
         emit(
-            newState.copyWith(loadedStudies: updatedStudies, clearError: true));
+          newState.copyWith(loadedStudies: updatedStudies, clearError: true),
+        );
       } else {
         // Fallback if state changed
         emit(
@@ -206,7 +214,8 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
       updated.add(event.id);
       emit(currentState.copyWith(completedIds: updated));
       debugPrint(
-          '✅ [EncounterBloc] Encounter completed and saved: ${event.id}');
+        '✅ [EncounterBloc] Encounter completed and saved: ${event.id}',
+      );
 
       // Background: prefetch next encounter in the user's language.
       // Fail fast if language is unknown — don't silently default to 'es'.
@@ -214,11 +223,15 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
       final lang = completedStudy?.language;
       if (lang == null) {
         debugPrint(
-            '⚠️ [EncounterBloc] BG: No language found for ${event.id} — skipping prefetch');
+          '⚠️ [EncounterBloc] BG: No language found for ${event.id} — skipping prefetch',
+        );
         return;
       }
       _prefetchNextEncounterImages(
-          currentState.index, currentState.completedIds, lang);
+        currentState.index,
+        currentState.completedIds,
+        lang,
+      );
     }
   }
 
@@ -254,12 +267,14 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
 
         if (nextEntry == null) {
           debugPrint(
-              '📭 [EncounterBloc] BG: No next encounter to prefetch (all completed or locked)');
+            '📭 [EncounterBloc] BG: No next encounter to prefetch (all completed or locked)',
+          );
           return;
         }
 
         debugPrint(
-            '🎯 [EncounterBloc] BG: Prefetching next encounter ${nextEntry.id}…');
+          '🎯 [EncounterBloc] BG: Prefetching next encounter ${nextEntry.id}…',
+        );
 
         // Fetch the study JSON (also cached to disk via repository)
         final study = await repository.fetchStudy(
@@ -308,7 +323,8 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
         }
 
         debugPrint(
-            '✅ [EncounterBloc] BG: Prefetched ${nextEntry.id} — cached $cached/${bases.length} images');
+          '✅ [EncounterBloc] BG: Prefetched ${nextEntry.id} — cached $cached/${bases.length} images',
+        );
       } catch (e) {
         // Background prefetch is non-critical — log and swallow
         debugPrint('⚠️ [EncounterBloc] BG: Prefetch failed — $e');

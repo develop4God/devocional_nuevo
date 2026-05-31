@@ -44,8 +44,10 @@ class SupporterPet extends Equatable {
   ];
 
   static SupporterPet getById(String id) {
-    return allPets.firstWhere((pet) => pet.id == id,
-        orElse: () => allPets.first);
+    return allPets.firstWhere(
+      (pet) => pet.id == id,
+      orElse: () => allPets.first,
+    );
   }
 
   @override

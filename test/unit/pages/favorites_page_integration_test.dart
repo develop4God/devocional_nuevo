@@ -34,7 +34,8 @@ void main() {
           default:
             if (kDebugMode) {
               print(
-                  'Mocked path_provider: Unexpected method \\${methodCall.method}');
+                'Mocked path_provider: Unexpected method \\${methodCall.method}',
+              );
             }
             return '/mock_unknown';
         }
@@ -59,7 +60,10 @@ void main() {
       const MethodChannel('com.ryanheise.audio_session'),
       (call) async {
         if (call.method == 'getConfiguration') {
-          return {'androidAudioAttributes': 1, 'androidAudioFocusGainType': 1};
+          return {
+            'androidAudioAttributes': 1,
+            'androidAudioFocusGainType': 1,
+          };
         }
         return null;
       },

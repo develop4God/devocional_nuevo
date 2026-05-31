@@ -15,24 +15,29 @@ import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dar
 import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
-import 'package:devocional_nuevo/services/connectivity_service.dart';
+import 'package:devocional_nuevo/services/backup/connectivity_service.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart'; // NEW
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/encounter_progress_service.dart';
-import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
-import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/backup/google_drive_auth_service.dart';
+import 'package:devocional_nuevo/services/backup/google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/backup/i_backup_settings_service.dart';
+import 'package:devocional_nuevo/services/backup/backup_settings_service.dart';
 import 'package:devocional_nuevo/services/i_connectivity_service.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
-import 'package:devocional_nuevo/services/i_google_drive_auth_service.dart';
-import 'package:devocional_nuevo/services/i_google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/backup/i_google_drive_auth_service.dart';
+import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/i_startup_migration_service.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:devocional_nuevo/services/iap/iap_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/i_localization_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/startup_migration_service.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
@@ -77,7 +82,8 @@ class ServiceLocator {
       return _factories[T]!() as T;
     }
     throw StateError(
-        'Service ${T.toString()} not registered. Did you forget to call setupServiceLocator() in main()?');
+      'Service ${T.toString()} not registered. Did you forget to call setupServiceLocator() in main()?',
+    );
   }
 
   bool isRegistered<T>() =>
@@ -102,22 +108,27 @@ Future<void> setupServiceLocator() async {
 
   locator.registerLazySingleton<IAuthService>(() => FirebaseAuthService());
 
-  locator
-      .registerLazySingleton<LocalizationService>(() => LocalizationService());
+  locator.registerLazySingleton<LocalizationService>(
+    () => LocalizationService(),
+  );
+  locator.registerSingleton<ILocalizationService>(
+    locator.get<LocalizationService>(),
+  );
   locator.registerLazySingleton<VoiceSettingsService>(
-      () => VoiceSettingsService());
+    () => VoiceSettingsService(),
+  );
   locator.registerLazySingleton<TtsChunkProcessor>(() => TtsChunkProcessor());
   locator.registerLazySingleton<ITtsService>(() => TtsService());
   locator.registerLazySingleton<IAnalyticsService>(() => AnalyticsService());
-  locator
-      .registerLazySingleton<NotificationService>(NotificationService.create);
-  locator
-      .registerLazySingleton<RemoteConfigService>(RemoteConfigService.create);
+  locator.registerLazySingleton<NotificationService>(
+    NotificationService.create,
+  );
+  locator.registerLazySingleton<RemoteConfigService>(
+    RemoteConfigService.create,
+  );
   locator.registerLazySingleton<http.Client>(() => http.Client());
 
-  locator.registerLazySingleton<BaseCacheManager>(
-    () => DefaultCacheManager(),
-  );
+  locator.registerLazySingleton<BaseCacheManager>(() => DefaultCacheManager());
 
   locator.registerLazySingleton<DiscoveryRepository>(
     () => DiscoveryRepository(httpClient: locator.get<http.Client>()),
@@ -132,42 +143,60 @@ Future<void> setupServiceLocator() async {
   );
 
   locator.registerLazySingleton<DiscoveryProgressTracker>(
-      () => DiscoveryProgressTracker());
+    () => DiscoveryProgressTracker(),
+  );
 
   // ✅ REGISTER DISCOVERY FAVORITES SERVICE
   locator.registerLazySingleton<DiscoveryFavoritesService>(
-      () => DiscoveryFavoritesService());
+    () => DiscoveryFavoritesService(),
+  );
 
   // ✅ REGISTER IAP SERVICE
   locator.registerLazySingleton<IIapService>(() => IapService());
 
   // ✅ REGISTER SUPPORTER PROFILE REPOSITORY (via interface — DIP)
   locator.registerLazySingleton<ISupporterProfileRepository>(
-      () => SupporterProfileRepository());
+    () => SupporterProfileRepository(),
+  );
 
   // ✅ REGISTER SPIRITUAL STATS SERVICE (via interface)
   locator.registerLazySingleton<ISpiritualStatsService>(
-      () => SpiritualStatsService());
+    () => SpiritualStatsService(),
+  );
+  locator.registerLazySingleton<IStartupMigrationService>(
+    () => StartupMigrationService(
+      statsService: locator.get<ISpiritualStatsService>(),
+    ),
+  );
 
   // ✅ REGISTER CONNECTIVITY SERVICE (via interface)
-  locator
-      .registerLazySingleton<IConnectivityService>(() => ConnectivityService());
+  locator.registerLazySingleton<IConnectivityService>(
+    () => ConnectivityService(),
+  );
 
   // ✅ REGISTER GOOGLE DRIVE AUTH SERVICE (via interface)
   locator.registerLazySingleton<IGoogleDriveAuthService>(
-      () => GoogleDriveAuthService());
+    () => GoogleDriveAuthService(prefs: locator.get<SharedPreferences>()),
+  );
 
   // ✅ REGISTER GOOGLE DRIVE BACKUP SERVICE (via interface)
+  locator.registerLazySingleton<IBackupSettingsService>(
+    () => BackupSettingsService(),
+  );
+
   locator.registerLazySingleton<IGoogleDriveBackupService>(
     () => GoogleDriveBackupService(
       authService: locator.get<IGoogleDriveAuthService>(),
       connectivityService: locator.get<IConnectivityService>(),
       statsService: locator.get<ISpiritualStatsService>(),
+      localizationService: locator.get<ILocalizationService>(),
+      settingsService: locator.get<IBackupSettingsService>(),
     ),
   );
 
   locator.registerLazySingleton<SupporterPetService>(
-      () => SupporterPetService(locator.get<SharedPreferences>()));
+    () => SupporterPetService(locator.get<SharedPreferences>()),
+  );
 
   // ✅ REGISTER DEEP LINK HANDLER
   locator.registerLazySingleton<DeepLinkHandler>(() => DeepLinkHandler());
@@ -187,9 +216,7 @@ Future<void> setupServiceLocator() async {
 
   // ✅ REGISTER DEVOCIONAL REPOSITORY (via interface — DIP)
   locator.registerLazySingleton<DevocionalRepository>(
-    () => DevocionalRepositoryImpl(
-      httpClient: locator.get<http.Client>(),
-    ),
+    () => DevocionalRepositoryImpl(httpClient: locator.get<http.Client>()),
   );
 }
 

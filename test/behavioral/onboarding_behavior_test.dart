@@ -38,12 +38,15 @@ void main() {
     mockThemeBloc = MockThemeBloc();
     mockBackupBloc = MockBackupBloc();
 
-    when(() => mockOnboardingService.isOnboardingComplete())
-        .thenAnswer((_) async => false);
-    when(() => mockOnboardingService.setOnboardingInProgress(any()))
-        .thenAnswer((_) async {});
-    when(() => mockOnboardingService.setOnboardingComplete())
-        .thenAnswer((_) async {});
+    when(
+      () => mockOnboardingService.isOnboardingComplete(),
+    ).thenAnswer((_) async => false);
+    when(
+      () => mockOnboardingService.setOnboardingInProgress(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockOnboardingService.setOnboardingComplete(),
+    ).thenAnswer((_) async {});
 
     // Provide a default state for BackupBloc to avoid "Null is not a subtype of BackupState"
     when(() => mockBackupBloc.state).thenReturn(const BackupInitial());
@@ -66,12 +69,16 @@ void main() {
       act: (bloc) => bloc.add(const InitializeOnboarding()),
       expect: () => [
         isA<OnboardingLoading>(),
-        isA<OnboardingStepActive>()
-            .having((s) => s.currentStepIndex, 'stepIndex', 0),
+        isA<OnboardingStepActive>().having(
+          (s) => s.currentStepIndex,
+          'stepIndex',
+          0,
+        ),
       ],
       verify: (_) {
-        verify(() => mockOnboardingService.setOnboardingInProgress(true))
-            .called(1);
+        verify(
+          () => mockOnboardingService.setOnboardingInProgress(true),
+        ).called(1);
       },
     );
 
@@ -85,13 +92,20 @@ void main() {
         stepConfiguration: const {},
         canProgress: true,
         canGoBack: false,
-        progress: OnboardingProgress.fromStepCompletion(
-            const [true, false, false, false]),
+        progress: OnboardingProgress.fromStepCompletion(const [
+          true,
+          false,
+          false,
+          false,
+        ]),
       ),
       act: (bloc) => bloc.add(const ProgressToStep(1)),
       expect: () => [
-        isA<OnboardingStepActive>()
-            .having((s) => s.currentStepIndex, 'stepIndex', 1),
+        isA<OnboardingStepActive>().having(
+          (s) => s.currentStepIndex,
+          'stepIndex',
+          1,
+        ),
       ],
     );
 
@@ -105,21 +119,30 @@ void main() {
         stepConfiguration: const {},
         canProgress: true,
         canGoBack: true,
-        progress: OnboardingProgress.fromStepCompletion(
-            const [true, true, false, false]),
+        progress: OnboardingProgress.fromStepCompletion(const [
+          true,
+          true,
+          false,
+          false,
+        ]),
       ),
       act: (bloc) => bloc.add(const SelectTheme('Blue')),
       expect: () => [
-        isA<OnboardingConfiguring>().having((s) => s.configurationType, 'type',
-            OnboardingConfigurationType.themeSelection),
+        isA<OnboardingConfiguring>().having(
+          (s) => s.configurationType,
+          'type',
+          OnboardingConfigurationType.themeSelection,
+        ),
         isA<OnboardingStepActive>().having(
-            (s) => s.userSelections['selectedThemeFamily'],
-            'themeFamily',
-            'Blue'),
+          (s) => s.userSelections['selectedThemeFamily'],
+          'themeFamily',
+          'Blue',
+        ),
       ],
       verify: (_) {
-        verify(() => mockThemeBloc.add(any(that: isA<ChangeThemeFamily>())))
-            .called(1);
+        verify(
+          () => mockThemeBloc.add(any(that: isA<ChangeThemeFamily>())),
+        ).called(1);
       },
     );
 
@@ -131,19 +154,20 @@ void main() {
         currentStep: OnboardingSteps.defaultSteps[3],
         userSelections: const {
           'selectedThemeFamily': 'Blue',
-          'backupEnabled': true
+          'backupEnabled': true,
         },
         stepConfiguration: const {},
         canProgress: true,
         canGoBack: true,
-        progress: OnboardingProgress.fromStepCompletion(
-            const [true, true, true, true]),
+        progress: OnboardingProgress.fromStepCompletion(const [
+          true,
+          true,
+          true,
+          true,
+        ]),
       ),
       act: (bloc) => bloc.add(const CompleteOnboarding()),
-      expect: () => [
-        isA<OnboardingLoading>(),
-        isA<OnboardingCompleted>(),
-      ],
+      expect: () => [isA<OnboardingLoading>(), isA<OnboardingCompleted>()],
       verify: (_) {
         verify(() => mockOnboardingService.setOnboardingComplete()).called(1);
       },
@@ -159,13 +183,20 @@ void main() {
         stepConfiguration: const {},
         canProgress: true,
         canGoBack: true,
-        progress: OnboardingProgress.fromStepCompletion(
-            const [true, true, true, false]),
+        progress: OnboardingProgress.fromStepCompletion(const [
+          true,
+          true,
+          true,
+          false,
+        ]),
       ),
       act: (bloc) => bloc.add(const SkipBackupForNow()),
       expect: () => [
         isA<OnboardingStepActive>().having(
-            (s) => s.userSelections['backupSkipped'], 'backupSkipped', true),
+          (s) => s.userSelections['backupSkipped'],
+          'backupSkipped',
+          true,
+        ),
       ],
     );
 
@@ -180,13 +211,20 @@ void main() {
           stepConfiguration: const {},
           canProgress: true,
           canGoBack: true,
-          progress: OnboardingProgress.fromStepCompletion(
-              const [true, true, false, false]),
+          progress: OnboardingProgress.fromStepCompletion(const [
+            true,
+            true,
+            false,
+            false,
+          ]),
         ),
         act: (bloc) => bloc.add(const GoToPreviousStep()),
         expect: () => [
-          isA<OnboardingStepActive>()
-              .having((s) => s.currentStepIndex, 'stepIndex', 0),
+          isA<OnboardingStepActive>().having(
+            (s) => s.currentStepIndex,
+            'stepIndex',
+            0,
+          ),
         ],
       );
 
@@ -201,13 +239,20 @@ void main() {
           stepConfiguration: const {},
           canProgress: true,
           canGoBack: true,
-          progress: OnboardingProgress.fromStepCompletion(
-              const [true, true, false, false]),
+          progress: OnboardingProgress.fromStepCompletion(const [
+            true,
+            true,
+            false,
+            false,
+          ]),
         ),
         act: (bloc) => bloc.add(const SkipCurrentStep()),
         expect: () => [
-          isA<OnboardingStepActive>()
-              .having((s) => s.currentStepIndex, 'stepIndex', 2),
+          isA<OnboardingStepActive>().having(
+            (s) => s.currentStepIndex,
+            'stepIndex',
+            2,
+          ),
         ],
       );
     });

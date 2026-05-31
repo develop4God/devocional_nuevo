@@ -1,7 +1,8 @@
+import 'dart:async' show TimeoutException;
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
-import 'package:devocional_nuevo/blocs/backup_event.dart';
+import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
@@ -28,18 +29,19 @@ import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
-import 'package:devocional_nuevo/services/i_google_drive_backup_service.dart';
-import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/i_startup_migration_service.dart';
+import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/network_error_utils.dart';
-import 'package:devocional_nuevo/utils/theme_constants.dart';
+import 'package:devocional_nuevo/utils/constants/theme_constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -83,8 +85,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     // available in this isolate), ensure NotificationService is at least
     // registered so we can show notifications.
     final locator = ServiceLocator();
-    locator
-        .registerLazySingleton<NotificationService>(NotificationService.create);
+    locator.registerLazySingleton<NotificationService>(
+      NotificationService.create,
+    );
   }
 
   tzdata.initializeTimeZones();
@@ -124,13 +127,7 @@ void main() async {
         error: details.exception,
         stackTrace: details.stack,
       );
-      FirebaseCrashlytics.instance.recordError(
-        details.exception,
-        details.stack,
-        fatal: false,
-        reason: 'Transient network error — not an app bug',
-      );
-      return;
+      return; // just return, never touch Crashlytics
     }
     FirebaseCrashlytics.instance.recordFlutterFatalError(details);
   };
@@ -172,8 +169,11 @@ void main() async {
     await remoteConfigService.initialize();
   } catch (e) {
     // Remote config is non-critical, app continues without it
-    developer.log('Remote config initialization failed: $e',
-        name: 'main', error: e);
+    developer.log(
+      'Remote config initialization failed: $e',
+      name: 'main',
+      error: e,
+    );
   }
 
   // Initialize deep link handler
@@ -182,8 +182,11 @@ void main() async {
     await deepLinkHandler.initialize();
   } catch (e) {
     // Deep link handler is non-critical, app continues without it
-    developer.log('Deep link handler initialization failed: $e',
-        name: 'main', error: e);
+    developer.log(
+      'Deep link handler initialization failed: $e',
+      name: 'main',
+      error: e,
+    );
   }
 
   SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
@@ -224,10 +227,15 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => AudioController(getService<ITtsService>()),
         ),
+        BlocProvider(create: (context) => DevocionalesNavigationBloc()),
         BlocProvider(
+          lazy: false,
           create: (context) => BackupBloc(
             backupService: getService<IGoogleDriveBackupService>(),
             devocionalProvider: context.read<DevocionalProvider>(),
+            discoveryBloc: context.read<DiscoveryBloc>(),
+            encounterBloc: context.read<EncounterBloc>(),
+            navigationBloc: context.read<DevocionalesNavigationBloc>(),
           ),
         ),
         BlocProvider(
@@ -285,8 +293,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       getService<http.Client>().close();
     } catch (e) {
       // HTTP client cleanup is non-critical during disposal
-      developer.log('HTTP client cleanup failed: $e',
-          name: 'dispose', error: e);
+      developer.log(
+        'HTTP client cleanup failed: $e',
+        name: 'dispose',
+        error: e,
+      );
     }
     super.dispose();
   }
@@ -316,8 +327,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         }
       }
     } catch (e) {
-      developer.log('Error checking stale session: $e',
-          name: 'MyApp', error: e);
+      developer.log(
+        'Error checking stale session: $e',
+        name: 'MyApp',
+        error: e,
+      );
     }
   }
 
@@ -345,11 +359,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           name: 'MyApp',
         );
       } catch (e) {
-        developer.log(
-          'Error saving pause time: $e',
-          name: 'MyApp',
-          error: e,
-        );
+        developer.log('Error saving pause time: $e', name: 'MyApp', error: e);
       }
     } else if (state == AppLifecycleState.resumed) {
       developer.log('▶️ App resumed', name: 'MyApp');
@@ -385,8 +395,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           developer.log('✅ No saved pause time - fresh start', name: 'MyApp');
         }
       } catch (e) {
-        developer.log('Error restoring pause time: $e',
-            name: 'MyApp', error: e);
+        developer.log(
+          'Error restoring pause time: $e',
+          name: 'MyApp',
+          error: e,
+        );
       }
 
       _lastPausedTime = null;
@@ -396,12 +409,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   /// 🎯 DON'T restart navigation - just refresh data (community best practice)
   void _handleStaleSession() {
     if (!mounted) return;
-
-    // Refresh the initialization to reload all data
-    setState(() {
-      _initializationFuture = _initializeApp();
-    });
-
+    // Refresh data only — do NOT re-initialize LocalizationProvider.
+    // Re-running _initializeApp() causes FutureBuilder to flash ConnectionState.waiting → black screen.
+    Provider.of<DevocionalProvider>(
+      context,
+      listen: false,
+    ).refreshDevocionals();
     developer.log('🔄 Data refreshed due to stale session', name: 'MyApp');
   }
 
@@ -414,8 +427,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   Future<bool> _initializeApp() async {
     try {
-      final localizationProvider =
-          Provider.of<LocalizationProvider>(context, listen: false);
+      final localizationProvider = Provider.of<LocalizationProvider>(
+        context,
+        listen: false,
+      );
       await localizationProvider.initialize();
       if (!mounted) return false;
 
@@ -458,10 +473,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 if (snapshot.hasData && snapshot.data == true) {
                   return OnboardingFlow(
                     onComplete: () {
-                      Navigator.of(context).pushReplacement(PageRouteBuilder(
+                      Navigator.of(context).pushReplacement(
+                        PageRouteBuilder(
                           pageBuilder: (context, a, b) =>
                               const AppInitializer(),
-                          transitionDuration: Duration.zero));
+                          transitionDuration: Duration.zero,
+                        ),
+                      );
                     },
                   );
                 }
@@ -491,6 +509,14 @@ class AppInitializer extends StatefulWidget {
 }
 
 class _AppInitializerState extends State<AppInitializer> {
+  // Minimum time SplashScreen is visible — matches AnimationController duration
+  static const Duration _kMinSplashDisplay = Duration(milliseconds: 1500);
+
+  // Startup watchdog ceiling:
+  // Firebase cold start P99 (~3s) + network round trip P99 (~5s) + buffer (4s)
+  // Calibrate from Stopwatch telemetry after first production run.
+  static const Duration _kAppStartupTimeout = Duration(seconds: 12);
+
   @override
   void initState() {
     super.initState();
@@ -498,14 +524,74 @@ class _AppInitializerState extends State<AppInitializer> {
   }
 
   Future<void> _initializeInBackground() async {
-    await Future.delayed(const Duration(milliseconds: 3000));
-    await _initCriticalServices();
-    await _initAppData();
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(PageRouteBuilder(
-        pageBuilder: (context, a, b) => const DevocionalesPage(),
-        transitionDuration: const Duration(milliseconds: 300)));
+    final stopwatch = Stopwatch()..start();
+
+    try {
+      await Future.wait([
+        _initCriticalServices(),
+        _initAppData(),
+        Future.delayed(_kMinSplashDisplay),
+      ]).timeout(
+        _kAppStartupTimeout,
+        onTimeout: () => _handleStartupTimeout(stopwatch),
+      );
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        fatal: false,
+        reason:
+            'AppInitializer startup error after ${stopwatch.elapsedMilliseconds}ms',
+      );
+      developer.log(
+        'Startup error after ${stopwatch.elapsedMilliseconds}ms: $e',
+        name: 'AppInitializer',
+        error: e,
+      );
+      // Never leave the user on a black screen — navigate with whatever state is ready
+    }
+
+    stopwatch.stop();
+    FirebaseCrashlytics.instance.log(
+      'AppInitializer: startup completed in ${stopwatch.elapsedMilliseconds}ms',
+    );
+    developer.log(
+      '⏱️ App startup completed in ${stopwatch.elapsedMilliseconds}ms',
+      name: 'AppInitializer',
+    );
+
+    if (!mounted) {
+      FirebaseCrashlytics.instance.recordError(
+        Exception('AppInitializer: not mounted after init'),
+        StackTrace.current,
+        fatal: false,
+        reason:
+            'Widget unmounted before navigation could fire — likely black screen',
+      );
+      return;
+    }
     _initNonCriticalServices();
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, a, b) => const DevocionalesPage(),
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+    );
+  }
+
+  List<dynamic> _handleStartupTimeout(Stopwatch stopwatch) {
+    developer.log(
+      'Startup timeout after ${stopwatch.elapsedMilliseconds}ms',
+      name: 'AppInitializer',
+    );
+    FirebaseCrashlytics.instance.recordError(
+      TimeoutException('App startup timeout'),
+      StackTrace.current,
+      fatal: false,
+      reason: 'App startup exceeded ${_kAppStartupTimeout.inSeconds}s',
+    );
+    // Proceed — navigate with whatever state is ready
+    return [];
   }
 
   Future<void> _initCriticalServices() async {
@@ -514,15 +600,21 @@ class _AppInitializerState extends State<AppInitializer> {
       if (auth.currentUser == null) await auth.signInAnonymously();
     } catch (e) {
       // Anonymous auth is non-critical, app works without it
-      developer.log('Anonymous auth failed: $e',
-          name: '_initializeApp', error: e);
+      developer.log(
+        'Anonymous auth failed: $e',
+        name: '_initializeApp',
+        error: e,
+      );
     }
     try {
       tzdata.initializeTimeZones();
     } catch (e) {
       // Timezone initialization already has UTC fallback
-      developer.log('Timezone initialization failed: $e',
-          name: '_initializeApp', error: e);
+      developer.log(
+        'Timezone initialization failed: $e',
+        name: '_initializeApp',
+        error: e,
+      );
     }
   }
 
@@ -530,15 +622,18 @@ class _AppInitializerState extends State<AppInitializer> {
     Future.delayed(const Duration(seconds: 1), () async {
       try {
         if (!mounted) return;
-        final languageCode =
-            Provider.of<LocalizationProvider>(context, listen: false)
-                .currentLocale
-                .languageCode;
+        final languageCode = Provider.of<LocalizationProvider>(
+          context,
+          listen: false,
+        ).currentLocale.languageCode;
         await getService<ITtsService>().initializeTtsOnAppStart(languageCode);
       } catch (e) {
         // TTS is non-critical, app works without it
-        developer.log('TTS initialization failed: $e',
-            name: '_initNonCriticalServices', error: e);
+        developer.log(
+          'TTS initialization failed: $e',
+          name: '_initNonCriticalServices',
+          error: e,
+        );
       }
     });
 
@@ -548,40 +643,37 @@ class _AppInitializerState extends State<AppInitializer> {
         if (!kDebugMode) await FirebaseMessaging.instance.requestPermission();
       } catch (e) {
         // Notification permissions are non-critical
-        developer.log('Notification initialization failed: $e',
-            name: '_initNonCriticalServices', error: e);
+        developer.log(
+          'Notification initialization failed: $e',
+          name: '_initNonCriticalServices',
+          error: e,
+        );
       }
     });
-
-    if (Constants.enableBackupFeature) {
-      Future.delayed(const Duration(seconds: 3), () async {
-        try {
-          if (!mounted) return;
-          final spiritualStatsService = getService<ISpiritualStatsService>();
-          await spiritualStatsService.getStats();
-          if (!await spiritualStatsService.isAutoBackupEnabled()) {
-            await spiritualStatsService.setAutoBackupEnabled(true);
-          }
-          if (!mounted) return;
-          context.read<BackupBloc>().add(const CheckStartupBackup());
-        } catch (e) {
-          // Backup is non-critical, app works without it
-          developer.log('Backup initialization failed: $e',
-              name: '_initNonCriticalServices', error: e);
-        }
-      });
-    }
   }
 
   Future<void> _initAppData() async {
     if (!mounted) return;
     try {
-      await Provider.of<DevocionalProvider>(context, listen: false)
-          .initializeData();
+      final devocionalProvider = Provider.of<DevocionalProvider>(
+        context,
+        listen: false,
+      );
+      await devocionalProvider.initializeData();
+
+      // Run all one-time startup migrations after data is loaded.
+      final stats = await getService<ISpiritualStatsService>().getStats();
+      await getService<IStartupMigrationService>().runAll(
+        devocionalProvider.devocionales,
+        stats.readDevocionalIds,
+      );
     } catch (e) {
       // Data initialization errors are logged for debugging
-      developer.log('DevocionalProvider initialization failed: $e',
-          name: '_initAppData', error: e);
+      developer.log(
+        'DevocionalProvider initialization failed: $e',
+        name: '_initAppData',
+        error: e,
+      );
     }
   }
 

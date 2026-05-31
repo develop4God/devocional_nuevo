@@ -273,34 +273,36 @@ void main() {
     });
 
     group('Scenario 4: Speed Cycling Edge Cases', () {
-      test('User cycles through all speeds: 1.0x -> 1.5x -> 2.0x -> 1.0x',
-          () async {
-        controller.setText('Test text');
-        await Future.delayed(const Duration(milliseconds: 100));
+      test(
+        'User cycles through all speeds: 1.0x -> 1.5x -> 2.0x -> 1.0x',
+        () async {
+          controller.setText('Test text');
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        final baseDuration = controller.totalDuration.value;
+          final baseDuration = controller.totalDuration.value;
 
-        // Start at 1.0x
-        expect(controller.playbackRate.value, equals(1.0));
+          // Start at 1.0x
+          expect(controller.playbackRate.value, equals(1.0));
 
-        // Cycle to 1.5x
-        await controller.cyclePlaybackRate();
-        await Future.delayed(const Duration(milliseconds: 100));
-        expect(controller.playbackRate.value, equals(1.5));
-        expect(controller.totalDuration.value, equals(baseDuration));
+          // Cycle to 1.5x
+          await controller.cyclePlaybackRate();
+          await Future.delayed(const Duration(milliseconds: 100));
+          expect(controller.playbackRate.value, equals(1.5));
+          expect(controller.totalDuration.value, equals(baseDuration));
 
-        // Cycle to 0.5x (the actual next speed)
-        await controller.cyclePlaybackRate();
-        await Future.delayed(const Duration(milliseconds: 100));
-        expect(controller.playbackRate.value, equals(0.5));
-        expect(controller.totalDuration.value, equals(baseDuration));
+          // Cycle to 0.5x (the actual next speed)
+          await controller.cyclePlaybackRate();
+          await Future.delayed(const Duration(milliseconds: 100));
+          expect(controller.playbackRate.value, equals(0.5));
+          expect(controller.totalDuration.value, equals(baseDuration));
 
-        // Cycle back to 1.0x
-        await controller.cyclePlaybackRate();
-        await Future.delayed(const Duration(milliseconds: 100));
-        expect(controller.playbackRate.value, equals(1.0));
-        expect(controller.totalDuration.value, equals(baseDuration));
-      });
+          // Cycle back to 1.0x
+          await controller.cyclePlaybackRate();
+          await Future.delayed(const Duration(milliseconds: 100));
+          expect(controller.playbackRate.value, equals(1.0));
+          expect(controller.totalDuration.value, equals(baseDuration));
+        },
+      );
 
       test('Speed changes persist during pause/resume', () async {
         controller.setText('Test text for speed persistence');

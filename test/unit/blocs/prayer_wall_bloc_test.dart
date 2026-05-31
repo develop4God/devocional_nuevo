@@ -55,10 +55,12 @@ void main() {
         final en2 = _makeEntry(id: 'en2', language: 'en');
         final es1 = _makeEntry(id: 'es1', language: 'es');
 
-        when(() => repo.fetchApprovedPrayers(
-              userLanguage: 'en',
-              limit: any(named: 'limit'),
-            )).thenAnswer((_) async => [en1, en2, es1]);
+        when(
+          () => repo.fetchApprovedPrayers(
+            userLanguage: 'en',
+            limit: any(named: 'limit'),
+          ),
+        ).thenAnswer((_) async => [en1, en2, es1]);
 
         return PrayerWallBloc(repository: repo);
       },
@@ -78,10 +80,12 @@ void main() {
         final en1 = _makeEntry(id: 'en1', language: 'en');
         final en2 = _makeEntry(id: 'en2', language: 'en');
 
-        when(() => repo.fetchApprovedPrayers(
-              userLanguage: 'en',
-              limit: any(named: 'limit'),
-            )).thenAnswer((_) async => [en1, en2]);
+        when(
+          () => repo.fetchApprovedPrayers(
+            userLanguage: 'en',
+            limit: any(named: 'limit'),
+          ),
+        ).thenAnswer((_) async => [en1, en2]);
 
         return PrayerWallBloc(repository: repo);
       },
@@ -101,31 +105,41 @@ void main() {
     blocTest<PrayerWallBloc, PrayerWallState>(
       'SubmitPrayer emits PrayerSubmitting then PrayerSubmitted',
       build: () {
-        when(() => repo.submitPrayer(
-              originalText: any(named: 'originalText'),
-              language: any(named: 'language'),
-              isAnonymous: any(named: 'isAnonymous'),
-              authorHash: any(named: 'authorHash'),
-            )).thenAnswer((_) async => 'new_prayer_id');
+        when(
+          () => repo.submitPrayer(
+            originalText: any(named: 'originalText'),
+            language: any(named: 'language'),
+            isAnonymous: any(named: 'isAnonymous'),
+            authorHash: any(named: 'authorHash'),
+          ),
+        ).thenAnswer((_) async => 'new_prayer_id');
         return PrayerWallBloc(repository: repo);
       },
       seed: () => PrayerWallLoaded(
         sameLanguagePrayers: const [],
         otherLanguagePrayers: const [],
       ),
-      act: (bloc) => bloc.add(SubmitPrayer(
-        text: 'Please pray for my family',
-        language: 'en',
-        isAnonymous: true,
-        authorHash: 'hash123',
-      )),
+      act: (bloc) => bloc.add(
+        SubmitPrayer(
+          text: 'Please pray for my family',
+          language: 'en',
+          isAnonymous: true,
+          authorHash: 'hash123',
+        ),
+      ),
       wait: const Duration(milliseconds: 100),
       expect: () => [
         isA<PrayerSubmitting>(),
-        isA<PrayerSubmitted>()
-            .having((s) => s.prayerId, 'prayerId', 'new_prayer_id'),
-        isA<PrayerWallLoaded>()
-            .having((s) => s.myPendingPrayer, 'has pending', isNotNull),
+        isA<PrayerSubmitted>().having(
+          (s) => s.prayerId,
+          'prayerId',
+          'new_prayer_id',
+        ),
+        isA<PrayerWallLoaded>().having(
+          (s) => s.myPendingPrayer,
+          'has pending',
+          isNotNull,
+        ),
       ],
     );
 
@@ -138,20 +152,23 @@ void main() {
         sameLanguagePrayers: const [],
         otherLanguagePrayers: const [],
       ),
-      act: (bloc) => bloc.add(SubmitPrayer(
-        text: '   ',
-        language: 'en',
-        isAnonymous: true,
-        authorHash: 'hash123',
-      )),
+      act: (bloc) => bloc.add(
+        SubmitPrayer(
+          text: '   ',
+          language: 'en',
+          isAnonymous: true,
+          authorHash: 'hash123',
+        ),
+      ),
       expect: () => [],
     );
 
     blocTest<PrayerWallBloc, PrayerWallState>(
       'TapPrayerHand optimistically increments prayCount',
       build: () {
-        when(() => repo.tapPrayHand(prayerId: any(named: 'prayerId')))
-            .thenAnswer((_) async {});
+        when(
+          () => repo.tapPrayHand(prayerId: any(named: 'prayerId')),
+        ).thenAnswer((_) async {});
         return PrayerWallBloc(repository: repo);
       },
       seed: () => PrayerWallLoaded(
@@ -172,8 +189,9 @@ void main() {
     blocTest<PrayerWallBloc, PrayerWallState>(
       'ReportPrayer calls repository without changing state',
       build: () {
-        when(() => repo.reportPrayer(prayerId: any(named: 'prayerId')))
-            .thenAnswer((_) async {});
+        when(
+          () => repo.reportPrayer(prayerId: any(named: 'prayerId')),
+        ).thenAnswer((_) async {});
         return PrayerWallBloc(repository: repo);
       },
       seed: () => PrayerWallLoaded(
@@ -191,10 +209,12 @@ void main() {
     blocTest<PrayerWallBloc, PrayerWallState>(
       'DeletePrayer clears myPendingPrayer in state',
       build: () {
-        when(() => repo.deletePrayer(
-              prayerId: any(named: 'prayerId'),
-              authorHash: any(named: 'authorHash'),
-            )).thenAnswer((_) async {});
+        when(
+          () => repo.deletePrayer(
+            prayerId: any(named: 'prayerId'),
+            authorHash: any(named: 'authorHash'),
+          ),
+        ).thenAnswer((_) async {});
         return PrayerWallBloc(repository: repo);
       },
       seed: () => PrayerWallLoaded(
@@ -206,37 +226,41 @@ void main() {
           bloc.add(DeletePrayer(prayerId: 'prayer1', authorHash: 'h')),
       wait: const Duration(milliseconds: 100),
       expect: () => [
-        isA<PrayerWallLoaded>()
-            .having((s) => s.myPendingPrayer, 'no pending', isNull),
+        isA<PrayerWallLoaded>().having(
+          (s) => s.myPendingPrayer,
+          'no pending',
+          isNull,
+        ),
       ],
     );
 
     blocTest<PrayerWallBloc, PrayerWallState>(
       'SubmitPrayer emits PrayerWallError on repository failure',
       build: () {
-        when(() => repo.submitPrayer(
-              originalText: any(named: 'originalText'),
-              language: any(named: 'language'),
-              isAnonymous: any(named: 'isAnonymous'),
-              authorHash: any(named: 'authorHash'),
-            )).thenThrow(Exception('Firestore error'));
+        when(
+          () => repo.submitPrayer(
+            originalText: any(named: 'originalText'),
+            language: any(named: 'language'),
+            isAnonymous: any(named: 'isAnonymous'),
+            authorHash: any(named: 'authorHash'),
+          ),
+        ).thenThrow(Exception('Firestore error'));
         return PrayerWallBloc(repository: repo);
       },
       seed: () => PrayerWallLoaded(
         sameLanguagePrayers: const [],
         otherLanguagePrayers: const [],
       ),
-      act: (bloc) => bloc.add(SubmitPrayer(
-        text: 'Please pray for me',
-        language: 'en',
-        isAnonymous: true,
-        authorHash: 'hash123',
-      )),
+      act: (bloc) => bloc.add(
+        SubmitPrayer(
+          text: 'Please pray for me',
+          language: 'en',
+          isAnonymous: true,
+          authorHash: 'hash123',
+        ),
+      ),
       wait: const Duration(milliseconds: 100),
-      expect: () => [
-        isA<PrayerSubmitting>(),
-        isA<PrayerWallError>(),
-      ],
+      expect: () => [isA<PrayerSubmitting>(), isA<PrayerWallError>()],
     );
 
     blocTest<PrayerWallBloc, PrayerWallState>(
@@ -248,14 +272,17 @@ void main() {
         sameLanguagePrayers: const [],
         otherLanguagePrayers: const [],
       ),
-      act: (bloc) => bloc.add(PrayerWallPendingUpdated(
-        _makeEntry(status: PrayerWallStatus.pastoral),
-      )),
+      act: (bloc) => bloc.add(
+        PrayerWallPendingUpdated(_makeEntry(status: PrayerWallStatus.pastoral)),
+      ),
       wait: const Duration(milliseconds: 100),
       expect: () => [
         isA<PastoralResponseTriggered>(),
-        isA<PrayerWallLoaded>()
-            .having((s) => s.myPendingPrayer, 'cleared pending', isNull),
+        isA<PrayerWallLoaded>().having(
+          (s) => s.myPendingPrayer,
+          'cleared pending',
+          isNull,
+        ),
       ],
     );
 
@@ -272,8 +299,11 @@ void main() {
       act: (bloc) => bloc.add(PrayerWallPendingUpdated(null)),
       wait: const Duration(milliseconds: 100),
       expect: () => [
-        isA<PrayerWallLoaded>()
-            .having((s) => s.myPendingPrayer, 'cleared', isNull),
+        isA<PrayerWallLoaded>().having(
+          (s) => s.myPendingPrayer,
+          'cleared',
+          isNull,
+        ),
       ],
     );
 
@@ -286,16 +316,21 @@ void main() {
         sameLanguagePrayers: const [],
         otherLanguagePrayers: const [],
       ),
-      act: (bloc) => bloc.add(PrayerWallPendingUpdated(
-        _makeEntry(id: 'approved1', status: PrayerWallStatus.approved),
-      )),
+      act: (bloc) => bloc.add(
+        PrayerWallPendingUpdated(
+          _makeEntry(id: 'approved1', status: PrayerWallStatus.approved),
+        ),
+      ),
       wait: const Duration(milliseconds: 100),
       expect: () => [
         isA<PrayerWallLoaded>()
             .having((s) => s.myPendingPrayer, 'updated', isNotNull)
             .having((s) => s.myPendingPrayer?.id, 'correct id', 'approved1')
-            .having((s) => s.myPendingPrayer?.status, 'status',
-                PrayerWallStatus.approved),
+            .having(
+              (s) => s.myPendingPrayer?.status,
+              'status',
+              PrayerWallStatus.approved,
+            ),
       ],
     );
   });

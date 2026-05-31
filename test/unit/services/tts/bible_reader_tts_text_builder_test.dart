@@ -152,8 +152,10 @@ void main() {
           selectedChapter: 1,
         );
 
-        final result =
-            BibleReaderTtsTextBuilder.buildFromSelectedVerses(state, {});
+        final result = BibleReaderTtsTextBuilder.buildFromSelectedVerses(
+          state,
+          {},
+        );
         expect(result, isEmpty);
       });
 

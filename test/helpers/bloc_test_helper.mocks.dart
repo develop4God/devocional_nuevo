@@ -392,6 +392,12 @@ class MockDevocionalProvider extends _i1.Mock
       ) as String);
 
   @override
+  Set<String> get favoriteIds => (super.noSuchMethod(
+        Invocation.getter(#favoriteIds),
+        returnValue: <String>{},
+      ) as Set<String>);
+
+  @override
   List<_i11.Devocional> get favoriteDevocionales => (super.noSuchMethod(
         Invocation.getter(#favoriteDevocionales),
         returnValue: <_i11.Devocional>[],
@@ -449,6 +455,12 @@ class MockDevocionalProvider extends _i1.Mock
       ) as double);
 
   @override
+  Set<String> get lastRestoredReadIds => (super.noSuchMethod(
+        Invocation.getter(#lastRestoredReadIds),
+        returnValue: <String>{},
+      ) as Set<String>);
+
+  @override
   List<String> get supportedLanguages => (super.noSuchMethod(
         Invocation.getter(#supportedLanguages),
         returnValue: <String>[],
@@ -497,6 +509,26 @@ class MockDevocionalProvider extends _i1.Mock
   _i8.Future<void> initializeData() => (super.noSuchMethod(
         Invocation.method(
           #initializeData,
+          [],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> waitUntilLoaded() => (super.noSuchMethod(
+        Invocation.method(
+          #waitUntilLoaded,
+          [],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> waitUntilInitialized() => (super.noSuchMethod(
+        Invocation.method(
+          #waitUntilInitialized,
           [],
         ),
         returnValue: _i8.Future<void>.value(),
@@ -582,6 +614,17 @@ class MockDevocionalProvider extends _i1.Mock
         ),
         returnValue: _i8.Future<List<String>>.value(<String>[]),
       ) as _i8.Future<List<String>>);
+
+  @override
+  _i8.Future<void> assignDefaultVoiceForLanguage(String? languageCode) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #assignDefaultVoiceForLanguage,
+          [languageCode],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
 
   @override
   _i8.Future<void> setTtsLanguage(String? language) => (super.noSuchMethod(
@@ -713,6 +756,16 @@ class MockDevocionalProvider extends _i1.Mock
       ) as _i8.Future<void>);
 
   @override
+  _i8.Future<void> refreshDevocionals() => (super.noSuchMethod(
+        Invocation.method(
+          #refreshDevocionals,
+          [],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
   _i8.Future<void> saveFavorites() => (super.noSuchMethod(
         Invocation.method(
           #saveFavorites,
@@ -770,6 +823,26 @@ class MockDevocionalProvider extends _i1.Mock
   _i8.Future<void> reloadFavoritesFromStorage() => (super.noSuchMethod(
         Invocation.method(
           #reloadFavoritesFromStorage,
+          [],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> reloadSpiritualStatsFromStorage() => (super.noSuchMethod(
+        Invocation.method(
+          #reloadSpiritualStatsFromStorage,
+          [],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> reloadVersionFromStorage() => (super.noSuchMethod(
+        Invocation.method(
+          #reloadVersionFromStorage,
           [],
         ),
         returnValue: _i8.Future<void>.value(),

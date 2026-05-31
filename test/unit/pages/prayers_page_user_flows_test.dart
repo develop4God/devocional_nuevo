@@ -336,9 +336,11 @@ void main() {
         if (query.isEmpty) return allPrayers;
 
         return allPrayers
-            .where((p) => (p['text'] as String)
-                .toLowerCase()
-                .contains(query.toLowerCase()))
+            .where(
+              (p) => (p['text'] as String).toLowerCase().contains(
+                    query.toLowerCase(),
+                  ),
+            )
             .toList();
       }
 

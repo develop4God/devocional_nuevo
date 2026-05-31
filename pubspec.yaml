@@ -3,7 +3,7 @@
 name: devocional_nuevo
 description: A new Flutter project.
 publish_to: 'none'
-version: 1.10.2+92
+version: 1.10.2+93
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -16,6 +16,7 @@ dependencies:
   package_info_plus: ^8.0.2
   flutter_native_splash: ^2.3.1
   url_launcher: ^6.3.1
+  app_links: ^6.1.0
   http: ^1.1.0
   shared_preferences: ^2.5.3
   screenshot: ^3.0.0
@@ -30,7 +31,7 @@ dependencies:
   in_app_update: ^4.2.3
   in_app_review: ^2.0.8
   google_fonts: ^6.3.0
-  lottie: ^3.1.0
+  lottie: ^3.3.3
   shimmer: ^3.0.0
   sqflite: ^2.3.0
   path: ^1.9.0
@@ -80,6 +81,7 @@ dependencies:
   in_app_purchase: ^3.2.0
   crypto: ^3.0.3
   collection: ^1.19.1
+  firebase_app_installations: ^0.3.0+4
 
 dev_dependencies:
   flutter_test:

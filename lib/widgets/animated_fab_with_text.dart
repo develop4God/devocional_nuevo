@@ -95,9 +95,7 @@ class _AnimatedFabWithTextState extends State<AnimatedFabWithText>
                       onTap: widget.onPressed,
                       borderRadius: BorderRadius.circular(widget.height / 2),
                       child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 20,
-                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 20),
                         child: AnimatedOpacity(
                           opacity: _showText ? 1.0 : 0.0,
                           duration: const Duration(milliseconds: 400),

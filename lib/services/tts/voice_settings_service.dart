@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'voice_data_registry.dart';
+
 /// Voice Settings Service - Manages TTS voice selection and preferences.
 ///
 /// This service is registered as a lazy singleton in the Service Locator.
@@ -69,8 +71,9 @@ class VoiceSettingsService {
         'ar-SA',
         'ar-EG',
         'ar-AE',
-        'ar'
+        'ar',
       ], // Arabic - any ar-* device voice
+      'fil': ['fil-PH', 'tl-PH', 'en-US'], // Filipino with English fallback
     };
     final locales = preferredLocales[language] ?? [language];
 
@@ -158,6 +161,10 @@ class VoiceSettingsService {
           'ar-xa-x-ard-local', // Male voice Arabic 2
           'ar-xa-x-arz-local', // Female voice Arabic 1
           'ar-xa-x-arz-network', // Female voice Arabic 2
+        ],
+        'fil': [
+          ...?VoiceDataRegistry.getVoiceMap('fil')?.keys,
+          'fil-PH-language', // Fallback — any fil-PH device voice
         ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];
@@ -414,7 +421,9 @@ class VoiceSettingsService {
   /// of user voice selection (the voice was previously only applied to the
   /// VoiceSettingsService's own internal FlutterTts instance).
   Future<void> applyVoiceToInstance(
-      FlutterTts ttsInstance, String language) async {
+    FlutterTts ttsInstance,
+    String language,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedVoice = prefs.getString('tts_voice_$language');
@@ -460,8 +469,10 @@ class VoiceSettingsService {
         '🌐 [VoiceSettings] setLanguage("$locale") → result: $langResult (language: $language)',
       );
 
-      final voiceResult =
-          await ttsInstance.setVoice({'name': voiceName, 'locale': locale});
+      final voiceResult = await ttsInstance.setVoice({
+        'name': voiceName,
+        'locale': locale,
+      });
       debugPrint(
         '🎙️ VoiceSettings: setVoice result: $voiceResult — applied "$voiceName" (locale: $locale) to controller FlutterTts for language $language',
       );
@@ -474,8 +485,18 @@ class VoiceSettingsService {
 
   /// ✅ METODO PRINCIPAL MEJORADO PARA NOMBRES USER-FRIENDLY
   String _getFriendlyVoiceName(String technicalName, String locale) {
-    // 1. Verificar mapeo amigable con emoji y nombre
     final language = locale.split('-').first;
+
+    // 0. Check VoiceDataRegistry first (SOT for premium voices)
+    final registryMetadata = VoiceDataRegistry.getVoiceMetadata(
+      technicalName,
+      language,
+    );
+    if (registryMetadata != null) {
+      return '${registryMetadata.emoji} ${registryMetadata.description}';
+    }
+
+    // 1. Fallback: friendlyVoiceMap for non-registry languages
     final map = friendlyVoiceMap[language];
     if (map != null && map.containsKey(technicalName)) {
       return map[technicalName] ?? technicalName;
@@ -576,6 +597,9 @@ class VoiceSettingsService {
           break;
         case 'ar':
           friendlyName = 'الصوت الافتراضي';
+          break;
+        case 'fil':
+          friendlyName = 'Default na Tinig';
           break;
         default:
           friendlyName = 'Default Voice';
@@ -773,6 +797,8 @@ class VoiceSettingsService {
         return 'hi-IN';
       case 'ar':
         return 'ar';
+      case 'fil':
+        return 'fil-PH';
       default:
         return 'es-ES';
     }

@@ -58,13 +58,19 @@ void main() {
 
       // Check with base language (en)
       final favorites = await favoritesService.loadFavoriteIds('en');
-      expect(favorites.contains(studyId), isTrue,
-          reason: 'Language codes should be normalized to base language');
+      expect(
+        favorites.contains(studyId),
+        isTrue,
+        reason: 'Language codes should be normalized to base language',
+      );
 
       // Check with different region (en-GB)
       final favoritesGB = await favoritesService.loadFavoriteIds('en-GB');
-      expect(favoritesGB.contains(studyId), isTrue,
-          reason: 'Different regions of same language should share favorites');
+      expect(
+        favoritesGB.contains(studyId),
+        isTrue,
+        reason: 'Different regions of same language should share favorites',
+      );
     });
 
     test('progress isolated by language', () async {
@@ -77,8 +83,11 @@ void main() {
 
       // Check Spanish progress (should not be completed)
       final esProgress = await progressTracker.getProgress(studyId, 'es');
-      expect(esProgress.isCompleted, isFalse,
-          reason: 'Progress should be isolated by language');
+      expect(
+        esProgress.isCompleted,
+        isFalse,
+        reason: 'Progress should be isolated by language',
+      );
 
       // Mark section completed in Spanish
       await progressTracker.markSectionCompleted(studyId, 0, 'es');
@@ -87,8 +96,11 @@ void main() {
 
       // English progress should have no sections completed
       final enProgressAfter = await progressTracker.getProgress(studyId, 'en');
-      expect(enProgressAfter.completedSections.isEmpty, isTrue,
-          reason: 'Only study completion was tracked, not sections');
+      expect(
+        enProgressAfter.completedSections.isEmpty,
+        isTrue,
+        reason: 'Only study completion was tracked, not sections',
+      );
     });
 
     test('first download only once per language', () async {

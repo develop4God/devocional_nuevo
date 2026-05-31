@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/debug/sections/debug_discovery_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_encounters_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_iap_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_tts_section.dart';
+import 'package:devocional_nuevo/widgets/debug/debug_backup_section.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -39,13 +40,15 @@ class _DebugPageState extends State<DebugPage> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://api.github.com/repos/develop4God/Devocionales-json/branches'),
+          'https://api.github.com/repos/develop4God/Devocionales-json/branches',
+        ),
         headers: {'Accept': 'application/vnd.github.v3+json'},
       );
       if (response.statusCode == 200) {
         final List branches = jsonDecode(response.body);
-        setState(() =>
-            _branches = branches.map((b) => b['name'] as String).toList());
+        setState(
+          () => _branches = branches.map((b) => b['name'] as String).toList(),
+        );
       } else if (response.statusCode == 403) {
         debugPrint('⚠️ GitHub rate limit hit, using fallback branches');
       } else {
@@ -91,6 +94,9 @@ class _DebugPageState extends State<DebugPage> {
 
             // ── Crashlytics + Backup + Review ──
             const DebugCrashlyticsSection(),
+            const SizedBox(height: 32),
+            // ── Backup debug tools ──
+            if (kDebugMode) const DebugBackupSection(),
             const SizedBox(height: 32),
 
             // ── Bulk add test data ──

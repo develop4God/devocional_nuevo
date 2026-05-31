@@ -118,8 +118,11 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.close_rounded,
-                color: colorScheme.onSurface, size: 28),
+            icon: Icon(
+              Icons.close_rounded,
+              color: colorScheme.onSurface,
+              size: 28,
+            ),
             onPressed: widget.onClose,
           ),
         ],
@@ -139,11 +142,20 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
         child: Row(
           children: [
             _filterButton(
-                EncounterFilter.all, 'encounters.all'.tr(), colorScheme),
-            _filterButton(EncounterFilter.pending, 'encounters.pending'.tr(),
-                colorScheme),
-            _filterButton(EncounterFilter.completed,
-                'encounters.badge_completed'.tr(), colorScheme),
+              EncounterFilter.all,
+              'encounters.all'.tr(),
+              colorScheme,
+            ),
+            _filterButton(
+              EncounterFilter.pending,
+              'encounters.pending'.tr(),
+              colorScheme,
+            ),
+            _filterButton(
+              EncounterFilter.completed,
+              'encounters.badge_completed'.tr(),
+              colorScheme,
+            ),
           ],
         ),
       ),
@@ -151,7 +163,10 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
   }
 
   Widget _filterButton(
-      EncounterFilter filter, String label, ColorScheme colorScheme) {
+    EncounterFilter filter,
+    String label,
+    ColorScheme colorScheme,
+  ) {
     final isActive = _activeFilter == filter;
     return Expanded(
       child: GestureDetector(
@@ -165,9 +180,10 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
             boxShadow: isActive
                 ? [
                     BoxShadow(
-                        color: colorScheme.shadow.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2))
+                      color: colorScheme.shadow.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
                   ]
                 : null,
           ),
@@ -195,14 +211,18 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off_rounded,
-                color: colorScheme.onSurface.withValues(alpha: 0.3), size: 64),
+            Icon(
+              Icons.search_off_rounded,
+              color: colorScheme.onSurface.withValues(alpha: 0.3),
+              size: 64,
+            ),
             const SizedBox(height: 16),
             Text(
               'encounters.no_encounters_found'.tr(),
               style: TextStyle(
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
-                  fontSize: 16),
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
+                fontSize: 16,
+              ),
             ),
           ],
         ),
@@ -356,30 +376,38 @@ class _EncounterGridCard extends StatelessWidget {
                   if (isCompleted)
                     Row(
                       children: [
-                        const Icon(Icons.check_circle_rounded,
-                            size: 12, color: Colors.greenAccent),
+                        const Icon(
+                          Icons.check_circle_rounded,
+                          size: 12,
+                          color: Colors.greenAccent,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'encounters.badge_completed'.tr().toUpperCase(),
                           style: const TextStyle(
-                              color: Colors.greenAccent,
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold),
+                            color: Colors.greenAccent,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     )
                   else if (isActive)
                     Row(
                       children: [
-                        Icon(Icons.play_circle_fill_rounded,
-                            size: 12, color: colorScheme.primary),
+                        Icon(
+                          Icons.play_circle_fill_rounded,
+                          size: 12,
+                          color: colorScheme.primary,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'encounters.current'.tr().toUpperCase(),
                           style: TextStyle(
-                              color: colorScheme.primary,
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold),
+                            color: colorScheme.primary,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -450,8 +478,9 @@ class _EncounterGridCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'encounters.complete_to_unlock'
-                          .tr({'title': prerequisiteTitle}),
+                      'encounters.complete_to_unlock'.tr({
+                        'title': prerequisiteTitle,
+                      }),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white,

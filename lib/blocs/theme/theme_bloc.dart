@@ -1,7 +1,7 @@
 // lib/blocs/theme/theme_bloc.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:devocional_nuevo/utils/theme_constants.dart';
+import 'package:devocional_nuevo/utils/constants/theme_constants.dart';
 import 'theme_event.dart';
 import 'theme_state.dart';
 import 'theme_repository.dart';

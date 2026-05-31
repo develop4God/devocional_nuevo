@@ -68,40 +68,44 @@ void main() {
     });
 
     testWidgets(
-        'download button shows sync icon and is disabled while downloading',
-        (WidgetTester tester) async {
-      bool tapped = false;
+      'download button shows sync icon and is disabled while downloading',
+      (WidgetTester tester) async {
+        bool tapped = false;
 
-      await tester.pumpWidget(
-        createWidgetUnderTest(
-          isDownloaded: false,
-          isDownloading: true,
-          onDownload: () {
-            tapped = true;
-          },
-        ),
-      );
-      await _pumpForStableFrame(tester);
+        await tester.pumpWidget(
+          createWidgetUnderTest(
+            isDownloaded: false,
+            isDownloading: true,
+            onDownload: () {
+              tapped = true;
+            },
+          ),
+        );
+        await _pumpForStableFrame(tester);
 
-      // We expect the download action to be visually in the first position.
-      // Rather than relying on the exact icon, which may vary slightly by
-      // platform/theme, we verify that tapping that first action does not
-      // trigger the onDownload callback while isDownloading is true.
-      final rowFinder = find.byType(Row).first;
+        // We expect the download action to be visually in the first position.
+        // Rather than relying on the exact icon, which may vary slightly by
+        // platform/theme, we verify that tapping that first action does not
+        // trigger the onDownload callback while isDownloading is true.
+        final rowFinder = find.byType(Row).first;
 
-      // Tap near the left side where the first action button is laid out.
-      final rowRect = tester.getRect(rowFinder);
-      final tapOffset = Offset(
-          rowRect.left + rowRect.width * 0.1, rowRect.top + rowRect.height / 2);
+        // Tap near the left side where the first action button is laid out.
+        final rowRect = tester.getRect(rowFinder);
+        final tapOffset = Offset(
+          rowRect.left + rowRect.width * 0.1,
+          rowRect.top + rowRect.height / 2,
+        );
 
-      await tester.tapAt(tapOffset);
-      await _pumpForStableFrame(tester);
+        await tester.tapAt(tapOffset);
+        await _pumpForStableFrame(tester);
 
-      expect(tapped, isFalse);
-    });
+        expect(tapped, isFalse);
+      },
+    );
 
-    testWidgets('shows completed download icon when isDownloaded is true',
-        (WidgetTester tester) async {
+    testWidgets('shows completed download icon when isDownloaded is true', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest(isDownloaded: true));
       await _pumpForStableFrame(tester);
 
@@ -109,8 +113,9 @@ void main() {
       expect(find.byIcon(Icons.file_download_outlined), findsNothing);
     });
 
-    testWidgets('uses provided labels and allows download label to wrap',
-        (WidgetTester tester) async {
+    testWidgets('uses provided labels and allows download label to wrap', (
+      WidgetTester tester,
+    ) async {
       const longDownloadLabel = 'Download study for offline mode';
 
       await tester.pumpWidget(
@@ -132,8 +137,9 @@ void main() {
       expect(find.text('Next'), findsOneWidget);
     });
 
-    testWidgets('invokes callbacks for non-download actions',
-        (WidgetTester tester) async {
+    testWidgets('invokes callbacks for non-download actions', (
+      WidgetTester tester,
+    ) async {
       bool shareTapped = false;
       bool favoritesTapped = false;
       bool readTapped = false;

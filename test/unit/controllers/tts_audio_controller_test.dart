@@ -25,7 +25,8 @@ void main() {
       // Ensure VoiceSettingsService is registered (defensive)
       if (!ServiceLocator().isRegistered<VoiceSettingsService>()) {
         ServiceLocator().registerLazySingleton<VoiceSettingsService>(
-            () => VoiceSettingsService());
+          () => VoiceSettingsService(),
+        );
       }
       // Mock SharedPreferences
       SharedPreferences.setMockInitialValues({});
@@ -273,10 +274,10 @@ void main() {
       await controller.pause();
       // When multibyte ratio triggers workaround, state should be idle (from stop())
       // Otherwise should be paused
-      expect(
-        [TtsPlayerState.paused, TtsPlayerState.idle],
-        contains(controller.state.value),
-      );
+      expect([
+        TtsPlayerState.paused,
+        TtsPlayerState.idle,
+      ], contains(controller.state.value));
       debugPrint('Emoji test completed: ${controller.state.value}');
     });
 
@@ -287,10 +288,10 @@ void main() {
       controller.setText(text);
       await controller.play();
       await controller.pause();
-      expect(
-        [TtsPlayerState.paused, TtsPlayerState.idle],
-        contains(controller.state.value),
-      );
+      expect([
+        TtsPlayerState.paused,
+        TtsPlayerState.idle,
+      ], contains(controller.state.value));
       debugPrint('Spanish accents test completed: ${controller.state.value}');
     });
 
@@ -298,12 +299,13 @@ void main() {
       controller.setText('耶稣说："虚心的人有福了，因为天国是他们的。"');
       await controller.play();
       await controller.pause();
-      expect(
-        [TtsPlayerState.paused, TtsPlayerState.idle],
-        contains(controller.state.value),
-      );
+      expect([
+        TtsPlayerState.paused,
+        TtsPlayerState.idle,
+      ], contains(controller.state.value));
       debugPrint(
-          'Chinese characters test completed: ${controller.state.value}');
+        'Chinese characters test completed: ${controller.state.value}',
+      );
     });
 
     test('user flow: play→pause→resume with multibyte text', () async {
@@ -314,10 +316,10 @@ void main() {
       expect(controller.state.value, TtsPlayerState.playing);
 
       await controller.pause();
-      expect(
-        [TtsPlayerState.paused, TtsPlayerState.idle],
-        contains(controller.state.value),
-      );
+      expect([
+        TtsPlayerState.paused,
+        TtsPlayerState.idle,
+      ], contains(controller.state.value));
 
       // Resume using play()
       await controller.play();
@@ -331,10 +333,10 @@ void main() {
       controller.setText(text);
       await controller.play();
       await controller.pause();
-      expect(
-        [TtsPlayerState.paused, TtsPlayerState.idle],
-        contains(controller.state.value),
-      );
+      expect([
+        TtsPlayerState.paused,
+        TtsPlayerState.idle,
+      ], contains(controller.state.value));
       debugPrint(
         'Mixed encoding test completed: ${controller.state.value}, text length: ${text.length}',
       );
@@ -353,7 +355,8 @@ void main() {
       // to preserve position for resume
       expect(controller.state.value, TtsPlayerState.paused);
       debugPrint(
-          'Multibyte detection test: state is ${controller.state.value} (position preserved)');
+        'Multibyte detection test: state is ${controller.state.value} (position preserved)',
+      );
     });
 
     test('multibyte detection does not activate for ASCII text', () async {
@@ -395,7 +398,9 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-              const MethodChannel('flutter_tts'), (call) async => 1);
+        const MethodChannel('flutter_tts'),
+        (call) async => 1,
+      );
     });
 
     tearDown(() {
@@ -413,14 +418,16 @@ void main() {
       expect(controller.state.value, TtsPlayerState.idle);
     });
 
-    test('controller defaults to an internal processor when none is provided',
-        () {
-      controller = TtsAudioController(
-        flutterTts: FlutterTts(),
-        voiceSettingsService: VoiceSettingsService(),
-      );
-      expect(controller.state.value, TtsPlayerState.idle);
-    });
+    test(
+      'controller defaults to an internal processor when none is provided',
+      () {
+        controller = TtsAudioController(
+          flutterTts: FlutterTts(),
+          voiceSettingsService: VoiceSettingsService(),
+        );
+        expect(controller.state.value, TtsPlayerState.idle);
+      },
+    );
 
     test('play() with long text (multi-chunk) reaches playing state', () async {
       // 800×"word " is > 3500 chars — forces _processor.splitIntoChunks()
@@ -447,7 +454,9 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-              const MethodChannel('flutter_tts'), (call) async => 1);
+        const MethodChannel('flutter_tts'),
+        (call) async => 1,
+      );
       controller = TtsAudioController(
         flutterTts: FlutterTts(),
         voiceSettingsService: VoiceSettingsService(),

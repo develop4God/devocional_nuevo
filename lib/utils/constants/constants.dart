@@ -36,13 +36,14 @@ class Constants {
   static const Map<String, String> supportedLanguages = {
     'es': 'Español',
     'en': 'English',
-    'pt': 'Português',
-    'fr': 'Français',
-    'ja': '日本語', // Habilitar japonés
-    'zh': '中文', // Habilitar chino
-    'hi': 'हिन्दी', // Habilitar hindi
     'de': 'Deutsch', // Habilitar alemán
     'ar': 'العربية', // Habilitar árabe
+    'fil': 'Filipino', // Habilitar filipino
+    'pt': 'Português',
+    'fr': 'Français',
+    'hi': 'हिन्दी', // Habilitar hindi
+    'ja': '日本語', // Habilitar japonés
+    'zh': '中文', // Habilitar chino
   };
 
   // Banderas emoji para cada idioma
@@ -56,6 +57,7 @@ class Constants {
     'hi': '🇮🇳',
     'de': '🇩🇪',
     'ar': '🇸🇦',
+    'fil': '🇵🇭',
   };
 
   /// Obtiene el emoji de la bandera para un idioma
@@ -74,6 +76,10 @@ class Constants {
     'hi': ['HIOV', 'HERV'], // Hindi versions
     'de': ['LU17', 'SCH2000'], // German versions
     'ar': ['NAV', 'SVDA'], // Arabic versions
+    'fil': [
+      'MBB05',
+      'ASND',
+    ], // Filipino versions (only versions with devotional content)
   };
 
   // Versión de Biblia por defecto por idioma
@@ -87,12 +93,7 @@ class Constants {
     'hi': 'HIOV', // Default Hindi version
     'de': 'LU17', // Default German version
     'ar': 'NAV', // Default Arabic version
-  };
-
-  // Nombres japoneses para versiones de la Biblia (deprecated - versions now use Japanese names directly)
-  static const Map<String, String> bibleJapaneseNames = {
-    '新改訳2003': '新改訳2003', // Shinkaiyaku 2003
-    'リビングバイブル': 'リビングバイブル', // Living Bible
+    'fil': 'MBB05', // Default Filipino version (Magandang Balita Biblia 2005)
   };
 
   /// PREFERENCIAS (SharedPreferences KEYS)
@@ -114,7 +115,6 @@ class Constants {
   static const bool enableOnboardingFeature = false;
 
   /// Feature flag to disable backup initialization (not available to users)
-  static const bool enableBackupFeature = false;
 
   /// Feature flag for Discovery Studies feature
   static const bool enableDiscoveryFeature = true;
@@ -167,8 +167,11 @@ class Constants {
   /// [filename] — the exact filename from the index `files` map
   ///   (e.g. `peter_water_001_es.json`). When omitted the convention
   ///   `{id}_{lang}.json` is used as a fallback.
-  static String getEncounterStudyUrl(String id, String lang,
-      {String? filename}) {
+  static String getEncounterStudyUrl(
+    String id,
+    String lang, {
+    String? filename,
+  }) {
     final branch = kDebugMode ? DebugFlags.debugEncounterBranch : 'main';
     final file = filename ?? '${id}_$lang.json';
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/encounters/$lang/$file';
@@ -208,7 +211,11 @@ class Constants {
     if (version.languageCode == 'ja' ||
         version.languageCode == 'zh' ||
         version.languageCode == 'hi' ||
-        version.languageCode == 'ar') {
+        version.languageCode == 'ar' ||
+        version.languageCode == 'fil') {
+      // For languages whose version names are self-describing (native-script or
+      // already include the code in the name), return '' so _versionPickerLabel
+      // does not append a duplicate code suffix.
       return '';
     }
     final parts = version.dbFileName.split('_');
@@ -225,6 +232,11 @@ class FavoritesSchema {
   static const int currentVersion = 2;
   static const String versionKey = 'favorites_schema_version';
   static const String migratedAtKey = 'favorites_migrated_at';
+}
+
+/// Backup schedule constants
+class BackupSchedule {
+  static const int intervalHours = 24;
 }
 
 // Servicio de navegación global

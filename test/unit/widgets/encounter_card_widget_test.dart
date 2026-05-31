@@ -49,7 +49,7 @@ void _setupFirebaseMocks() {
               'projectId': 'fake-project-id',
             },
             'pluginConstants': {},
-          }
+          },
         ];
       case 'Firebase#initializeApp':
         return {
@@ -68,7 +68,8 @@ void _setupFirebaseMocks() {
   });
 
   const pigeonChannel = MethodChannel(
-      'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi');
+    'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi',
+  );
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(pigeonChannel, (call) async {
     switch (call.method) {
@@ -83,7 +84,7 @@ void _setupFirebaseMocks() {
               'projectId': 'fake-project-id',
             },
             'pluginConstants': {},
-          }
+          },
         ];
       case 'initializeApp':
         return {
@@ -155,8 +156,11 @@ class _TestAnalyticsService extends AnalyticsService {
   _TestAnalyticsService() : super(analytics: null);
 
   @override
-  Future<void> logEncounterAction(
-      {required String action, String? encounterId, int? cardOrder}) async {}
+  Future<void> logEncounterAction({
+    required String action,
+    String? encounterId,
+    int? cardOrder,
+  }) async {}
 
   @override
   Future<void> logBottomBarAction({required String action}) async {}
@@ -165,21 +169,26 @@ class _TestAnalyticsService extends AnalyticsService {
   Future<void> logTtsPlay() async {}
 
   @override
-  Future<void> logDevocionalComplete(
-      {required String devocionalId,
-      required String campaignTag,
-      String source = 'read',
-      int? readingTimeSeconds,
-      double? scrollPercentage,
-      double? listenedPercentage}) async {}
+  Future<void> logDevocionalComplete({
+    required String devocionalId,
+    required String campaignTag,
+    String source = 'read',
+    int? readingTimeSeconds,
+    double? scrollPercentage,
+    double? listenedPercentage,
+  }) async {}
 
   @override
-  Future<void> logCustomEvent(
-      {required String eventName, Map<String, Object>? parameters}) async {}
+  Future<void> logCustomEvent({
+    required String eventName,
+    Map<String, Object>? parameters,
+  }) async {}
 
   @override
-  Future<void> setUserProperty(
-      {required String name, required String value}) async {}
+  Future<void> setUserProperty({
+    required String name,
+    required String value,
+  }) async {}
 
   @override
   Future<void> setUserId(String? userId) async {}
@@ -191,29 +200,35 @@ class _TestAnalyticsService extends AnalyticsService {
   Future<void> logAppInit({Map<String, Object>? parameters}) async {}
 
   @override
-  Future<void> logNavigationNext(
-      {required int currentIndex,
-      required int totalDevocionales,
-      required String viaBloc,
-      String? fallbackReason}) async {}
+  Future<void> logNavigationNext({
+    required int currentIndex,
+    required int totalDevocionales,
+    required String viaBloc,
+    String? fallbackReason,
+  }) async {}
 
   @override
-  Future<void> logNavigationPrevious(
-      {required int currentIndex,
-      required int totalDevocionales,
-      required String viaBloc,
-      String? fallbackReason}) async {}
+  Future<void> logNavigationPrevious({
+    required int currentIndex,
+    required int totalDevocionales,
+    required String viaBloc,
+    String? fallbackReason,
+  }) async {}
 
   @override
   Future<void> logFabTapped({required String source}) async {}
 
   @override
-  Future<void> logFabChoiceSelected(
-      {required String source, required String choice}) async {}
+  Future<void> logFabChoiceSelected({
+    required String source,
+    required String choice,
+  }) async {}
 
   @override
-  Future<void> logDiscoveryAction(
-      {required String action, String? studyId}) async {}
+  Future<void> logDiscoveryAction({
+    required String action,
+    String? studyId,
+  }) async {}
 }
 
 // ─── NavigatorObserver to detect pushes ──────────────────────────────────────
@@ -333,9 +348,11 @@ void main() {
       // imageUrl intentionally omitted (null)
     );
 
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(body: CinematicSceneCard(card: card)),
-    ));
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: CinematicSceneCard(card: card)),
+      ),
+    );
     // Wait for animations: 300ms delay + 600ms duration
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
@@ -346,8 +363,9 @@ void main() {
 
   // ── Test 2: CompletionCard back button calls onBackToEncounters ─────────────
 
-  testWidgets('CompletionCard back button calls onBackToEncounters',
-      (tester) async {
+  testWidgets('CompletionCard back button calls onBackToEncounters', (
+    tester,
+  ) async {
     var called = false;
     const card = EncounterCard(
       order: 1,
@@ -360,14 +378,16 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: CompletionCard(
-          card: card,
-          onBackToEncounters: () => called = true,
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CompletionCard(
+            card: card,
+            onBackToEncounters: () => called = true,
+          ),
         ),
       ),
-    ));
+    );
     // Wait for animations: button has 600ms delay + 600ms animation
     for (var i = 0; i < 12; i++) {
       await tester.pump(const Duration(milliseconds: 200));
@@ -463,8 +483,9 @@ void main() {
 
   // ── Test 5: InteractiveMomentCard renders title and reflection prompt ─────────
 
-  testWidgets('InteractiveMomentCard renders title and reflection prompt',
-      (tester) async {
+  testWidgets('InteractiveMomentCard renders title and reflection prompt', (
+    tester,
+  ) async {
     const card = EncounterCard(
       order: 9,
       type: 'interactive_moment',
@@ -474,9 +495,11 @@ void main() {
           'Take a moment to name the wind and waves in your life.',
     );
 
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(body: InteractiveMomentCard(card: card)),
-    ));
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: InteractiveMomentCard(card: card)),
+      ),
+    );
     // Wait for animations
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
@@ -499,11 +522,11 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: CompletionCard(card: card),
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: CompletionCard(card: card)),
       ),
-    ));
+    );
     // Wait for animations: 600ms delay + 600ms duration
     await tester.pump(const Duration(milliseconds: 1300));
 
@@ -514,8 +537,9 @@ void main() {
 
   // ── Test 7: EncounterDetailPage shows retry when study cannot be loaded ──────
 
-  testWidgets('detail page shows retry button when study is null',
-      (tester) async {
+  testWidgets('detail page shows retry button when study is null', (
+    tester,
+  ) async {
     await tester.runAsync(() async {
       final entry = _makeEntry();
       // State is EncounterLoaded but study is NOT in loadedStudies map
@@ -542,8 +566,9 @@ void main() {
 
   // ── Test 8: list page does not re-dispatch LoadEncounterIndex if already loaded
 
-  testWidgets('list page does not re-dispatch index load when already loaded',
-      (tester) async {
+  testWidgets('list page does not re-dispatch index load when already loaded', (
+    tester,
+  ) async {
     await tester.runAsync(() async {
       final entry = _makeEntry();
       final events = <EncounterEvent>[];
@@ -639,8 +664,9 @@ void main() {
 
   // ── Test 11: list page toggles to grid overlay on toggle button tap ──────────
 
-  testWidgets('list page toggles grid overlay on grid button tap',
-      (tester) async {
+  testWidgets('list page toggles grid overlay on grid button tap', (
+    tester,
+  ) async {
     await tester.runAsync(() async {
       final entry = _makeEntry();
       final mockBloc = _MockEncounterBloc(EncounterLoaded(index: [entry]));
@@ -667,16 +693,19 @@ void main() {
 
       // Tap the grid toggle button (smoke test - just verify it's tappable)
       // Animation behavior in tests is unreliable, so we just verify the button exists and is tappable
-      await tester.tap(find.byIcon(Icons.grid_view_rounded),
-          warnIfMissed: false);
+      await tester.tap(
+        find.byIcon(Icons.grid_view_rounded),
+        warnIfMissed: false,
+      );
       // Don't pump after - the toggle is difficult to test reliably in widget tests
     });
   });
 
   // ── Test 12: detail page shows back arrow instead of close icon ──────────────
 
-  testWidgets('detail page shows back arrow instead of close icon',
-      (tester) async {
+  testWidgets('detail page shows back arrow instead of close icon', (
+    tester,
+  ) async {
     await tester.runAsync(() async {
       final study = _makeStudy3Cards();
       final entry = _makeEntry();
@@ -714,9 +743,7 @@ void main() {
         id: 'test_001',
         language: 'en',
         bibleVersion: 'KJV',
-        cards: [
-          EncounterCard(order: 1, type: 'completion', title: 'Done'),
-        ],
+        cards: [EncounterCard(order: 1, type: 'completion', title: 'Done')],
       );
       final entry = _makeEntry();
       final loadedState = EncounterLoaded(
@@ -741,31 +768,30 @@ void main() {
       // Complete button text should be visible (i18n key 'encounters.complete')
       // In test locale it defaults to the key value 'encounters.complete' or the
       // English value 'COMPLETE' — we search for the icon instead for robustness.
-      expect(find.byIcon(Icons.check_circle_outline_rounded),
-          findsAtLeastNWidgets(1));
+      expect(
+        find.byIcon(Icons.check_circle_outline_rounded),
+        findsAtLeastNWidgets(1),
+      );
     });
   });
 
   // ── Test 14: detail page dispatches CompleteEncounter on complete tap ────────
 
   testWidgets('detail page dispatches CompleteEncounter event on complete tap',
-      (tester) async {
+      (
+    tester,
+  ) async {
     await tester.runAsync(() async {
       const study = EncounterStudy(
         id: 'test_001',
         language: 'en',
         bibleVersion: 'KJV',
-        cards: [
-          EncounterCard(order: 1, type: 'completion', title: 'Done'),
-        ],
+        cards: [EncounterCard(order: 1, type: 'completion', title: 'Done')],
       );
       final entry = _makeEntry();
       final events = <EncounterEvent>[];
       final mockBloc = _EventCapturingMockBloc(
-        EncounterLoaded(
-          index: [entry],
-          loadedStudies: {'test_001': study},
-        ),
+        EncounterLoaded(index: [entry], loadedStudies: {'test_001': study}),
         events,
       );
 
@@ -788,9 +814,7 @@ void main() {
       }
 
       // Tap the complete button (now it's ElevatedButton from CompletionCard)
-      final completeBtn = find.byWidgetPredicate(
-        (w) => w is ElevatedButton,
-      );
+      final completeBtn = find.byWidgetPredicate((w) => w is ElevatedButton);
       expect(completeBtn, findsAtLeastNWidgets(1));
       await tester.tap(completeBtn.first);
       await tester.pump();
@@ -809,36 +833,40 @@ void main() {
   // ── Test 15: CompletionCard shows study-level copyright disclaimer ───────────
 
   testWidgets(
-      'CompletionCard shows study-level copyright disclaimer when bibleVersion provided',
-      (tester) async {
-    const card = EncounterCard(
-      order: 11,
-      type: 'completion',
-      title: 'Complete',
-    );
+    'CompletionCard shows study-level copyright disclaimer when bibleVersion provided',
+    (tester) async {
+      const card = EncounterCard(
+        order: 11,
+        type: 'completion',
+        title: 'Complete',
+      );
 
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: CompletionCard(
-          card: card,
-          bibleVersion: 'KJV',
-          language: 'en',
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: CompletionCard(
+              card: card,
+              bibleVersion: 'KJV',
+              language: 'en',
+            ),
+          ),
         ),
-      ),
-    ));
+      );
 
-    // Advance through all delayed animations (max delay 700ms + 600ms duration)
-    await tester.pump(const Duration(milliseconds: 1400));
+      // Advance through all delayed animations (max delay 700ms + 600ms duration)
+      await tester.pump(const Duration(milliseconds: 1400));
 
-    // Copyright disclaimer should show King James info
-    expect(find.textContaining('King James'), findsOneWidget);
-    expect(find.byIcon(Icons.info_outline), findsOneWidget);
-  });
+      // Copyright disclaimer should show King James info
+      expect(find.textContaining('King James'), findsOneWidget);
+      expect(find.byIcon(Icons.info_outline), findsOneWidget);
+    },
+  );
 
   // ── Test 16: EncounterGridOverlay shows filter tabs ──────────────────────────
 
-  testWidgets('EncounterGridOverlay shows All/Pending/Completed filter tabs',
-      (tester) async {
+  testWidgets('EncounterGridOverlay shows All/Pending/Completed filter tabs', (
+    tester,
+  ) async {
     final entry = _makeEntry();
     final state = EncounterLoaded(index: [entry]);
     final controller = AnimationController(
@@ -877,16 +905,14 @@ void main() {
 
   // ── Test 17: grid overlay shows lock icon for locked published encounter ──────
 
-  testWidgets('grid overlay shows lock icon for locked published encounter',
-      (tester) async {
+  testWidgets('grid overlay shows lock icon for locked published encounter', (
+    tester,
+  ) async {
     // Two published entries: peter (first, always unlocked) and bart (second,
     // locked because peter is not yet completed).
     final peter = _makeEntry(id: 'peter_001', title: 'Peter');
     final bart = _makeEntry(id: 'bart_001', title: 'Bartimaeus');
-    final state = EncounterLoaded(
-      index: [peter, bart],
-      completedIds: const {},
-    );
+    final state = EncounterLoaded(index: [peter, bart], completedIds: const {});
     final controller = AnimationController(
       vsync: tester,
       value: 1.0,
@@ -922,101 +948,101 @@ void main() {
   // ── Test 18: grid overlay locked encounter does NOT call onEncounterSelected ──
 
   testWidgets(
-      'grid overlay locked encounter does not trigger onEncounterSelected',
-      (tester) async {
-    final peter = _makeEntry(id: 'peter_001', title: 'Peter');
-    final bart = _makeEntry(id: 'bart_001', title: 'Bartimaeus');
-    final state = EncounterLoaded(
-      index: [peter, bart],
-      completedIds: const {},
-    );
-    var tappedId = '';
-    final controller = AnimationController(
-      vsync: tester,
-      value: 1.0,
-      duration: const Duration(milliseconds: 300),
-    );
-
-    try {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: EncounterGridOverlay(
-              state: state,
-              entries: [peter, bart],
-              currentIndex: 0,
-              lang: 'en',
-              onEncounterSelected: (entry, _) => tappedId = entry.id,
-              onClose: () {},
-              animation: controller,
-            ),
-          ),
-        ),
+    'grid overlay locked encounter does not trigger onEncounterSelected',
+    (tester) async {
+      final peter = _makeEntry(id: 'peter_001', title: 'Peter');
+      final bart = _makeEntry(id: 'bart_001', title: 'Bartimaeus');
+      final state = EncounterLoaded(
+        index: [peter, bart],
+        completedIds: const {},
+      );
+      var tappedId = '';
+      final controller = AnimationController(
+        vsync: tester,
+        value: 1.0,
+        duration: const Duration(milliseconds: 300),
       );
 
-      await tester.pump();
+      try {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: EncounterGridOverlay(
+                state: state,
+                entries: [peter, bart],
+                currentIndex: 0,
+                lang: 'en',
+                onEncounterSelected: (entry, _) => tappedId = entry.id,
+                onClose: () {},
+                animation: controller,
+              ),
+            ),
+          ),
+        );
 
-      // Tap on the locked encounter's title area.
-      await tester.tap(find.text('Bartimaeus'), warnIfMissed: false);
-      await tester.pump();
+        await tester.pump();
 
-      // onEncounterSelected must NOT have been called for the locked entry.
-      expect(tappedId, isNot(equals('bart_001')));
-    } finally {
-      controller.dispose();
-    }
-  });
+        // Tap on the locked encounter's title area.
+        await tester.tap(find.text('Bartimaeus'), warnIfMissed: false);
+        await tester.pump();
+
+        // onEncounterSelected must NOT have been called for the locked entry.
+        expect(tappedId, isNot(equals('bart_001')));
+      } finally {
+        controller.dispose();
+      }
+    },
+  );
 
   // ── Test 19: grid overlay first (unlocked) encounter calls onEncounterSelected
 
   testWidgets(
-      'grid overlay unlocked first encounter calls onEncounterSelected on tap',
-      (tester) async {
-    final peter = _makeEntry(id: 'peter_001', title: 'Peter');
-    final state = EncounterLoaded(
-      index: [peter],
-      completedIds: const {},
-    );
-    var tappedId = '';
-    final controller = AnimationController(
-      vsync: tester,
-      value: 1.0,
-      duration: const Duration(milliseconds: 300),
-    );
-
-    try {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: EncounterGridOverlay(
-              state: state,
-              entries: [peter],
-              currentIndex: 0,
-              lang: 'en',
-              onEncounterSelected: (entry, _) => tappedId = entry.id,
-              onClose: () {},
-              animation: controller,
-            ),
-          ),
-        ),
+    'grid overlay unlocked first encounter calls onEncounterSelected on tap',
+    (tester) async {
+      final peter = _makeEntry(id: 'peter_001', title: 'Peter');
+      final state = EncounterLoaded(index: [peter], completedIds: const {});
+      var tappedId = '';
+      final controller = AnimationController(
+        vsync: tester,
+        value: 1.0,
+        duration: const Duration(milliseconds: 300),
       );
 
-      await tester.pump();
+      try {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: EncounterGridOverlay(
+                state: state,
+                entries: [peter],
+                currentIndex: 0,
+                lang: 'en',
+                onEncounterSelected: (entry, _) => tappedId = entry.id,
+                onClose: () {},
+                animation: controller,
+              ),
+            ),
+          ),
+        );
 
-      // The first encounter is always unlocked — tap its title.
-      await tester.tap(find.text('Peter'), warnIfMissed: false);
-      await tester.pump();
+        await tester.pump();
 
-      expect(tappedId, equals('peter_001'));
-    } finally {
-      controller.dispose();
-    }
-  });
+        // The first encounter is always unlocked — tap its title.
+        await tester.tap(find.text('Peter'), warnIfMissed: false);
+        await tester.pump();
+
+        expect(tappedId, equals('peter_001'));
+      } finally {
+        controller.dispose();
+      }
+    },
+  );
 
   // ── Test 20: list page shows lock icon for locked published encounter ─────────
 
-  testWidgets('list page shows lock icon for locked published encounter',
-      (tester) async {
+  testWidgets('list page shows lock icon for locked published encounter', (
+    tester,
+  ) async {
     // Set welcome seen so the list page is not replaced by the welcome page.
     SharedPreferences.setMockInitialValues({'encounter_welcome_seen': true});
 
@@ -1025,10 +1051,7 @@ void main() {
       final bart = _makeEntry(id: 'bart_001', title: 'Bartimaeus');
       // Neither completed → bart (second) is locked.
       final mockBloc = _MockEncounterBloc(
-        EncounterLoaded(
-          index: [peter, bart],
-          completedIds: const {},
-        ),
+        EncounterLoaded(index: [peter, bart], completedIds: const {}),
       );
 
       setPhoneViewport(tester);
@@ -1055,8 +1078,9 @@ void main() {
 
   // ── Test 21: list page locked encounter does not navigate on tap ──────────────
 
-  testWidgets('list page locked encounter does not navigate when tapped',
-      (tester) async {
+  testWidgets('list page locked encounter does not navigate when tapped', (
+    tester,
+  ) async {
     // Set welcome seen so the list page is not replaced by the welcome page.
     SharedPreferences.setMockInitialValues({'encounter_welcome_seen': true});
 
@@ -1064,10 +1088,7 @@ void main() {
       final peter = _makeEntry(id: 'peter_001', title: 'Peter');
       final bart = _makeEntry(id: 'bart_001', title: 'Bartimaeus');
       final mockBloc = _MockEncounterBloc(
-        EncounterLoaded(
-          index: [peter, bart],
-          completedIds: const {},
-        ),
+        EncounterLoaded(index: [peter, bart], completedIds: const {}),
       );
       final navObserver = _NavObserver();
 

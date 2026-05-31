@@ -65,8 +65,9 @@ class AppGradientBottomSheet extends StatelessWidget {
     // Incorporar el espacio inferior en el padding del container para que
     // el gradiente se pinte hasta el final mientras el contenido queda
     // separado del sistema (keyboard/nav).
-    final EdgeInsetsGeometry effectivePadding =
-        padding.add(EdgeInsets.only(bottom: effectiveBottom));
+    final EdgeInsetsGeometry effectivePadding = padding.add(
+      EdgeInsets.only(bottom: effectiveBottom),
+    );
 
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -85,8 +86,9 @@ class AppGradientBottomSheet extends StatelessWidget {
             end: Alignment.bottomRight,
           ),
           // Solo esquinas superiores redondeadas para que parezca un bottom sheet
-          borderRadius:
-              BorderRadius.vertical(top: Radius.circular(borderRadius)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(borderRadius),
+          ),
           border: Border.all(color: bColor, width: borderWidth),
           boxShadow: [
             BoxShadow(

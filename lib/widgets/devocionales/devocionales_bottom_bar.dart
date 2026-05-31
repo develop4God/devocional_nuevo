@@ -10,8 +10,8 @@ import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/utils/bubble_constants.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,18 +46,15 @@ class DevocionalesBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final Color? appBarBackgroundColor =
-        Theme.of(context).appBarTheme.backgroundColor;
+    final Color? appBarBackgroundColor = Theme.of(
+      context,
+    ).appBarTheme.backgroundColor;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildNavigationControls(context, colorScheme),
-        _buildActionButtons(
-          context,
-          appBarBackgroundColor,
-          colorScheme,
-        ),
+        _buildActionButtons(context, appBarBackgroundColor, colorScheme),
       ],
     );
   }
@@ -122,9 +119,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                           ? colorScheme.primary
                           : colorScheme.onSurface.withAlpha(97),
                       overlayColor: canNavigatePrevious
-                          ? colorScheme.primary.withAlpha(
-                              (0.1 * 255).round(),
-                            )
+                          ? colorScheme.primary.withAlpha((0.1 * 255).round())
                           : Colors.transparent,
                     ),
                   ),
@@ -173,9 +168,7 @@ class DevocionalesBottomBar extends StatelessWidget {
                           ? colorScheme.primary
                           : colorScheme.onSurface.withAlpha(97),
                       overlayColor: canNavigateNext
-                          ? colorScheme.primary.withAlpha(
-                              (0.1 * 255).round(),
-                            )
+                          ? colorScheme.primary.withAlpha((0.1 * 255).round())
                           : Colors.transparent,
                     ),
                     child: Row(
@@ -333,72 +326,26 @@ class DevocionalesBottomBar extends StatelessWidget {
                 ),
               // 4. Encounters (NEW)
               if (Constants.enableEncountersFeature)
-                FutureBuilder<bool>(
-                  future: BubbleUtils.shouldShowBubble(
-                    BubbleUtils.getIconBubbleId(
-                      Icons.location_history_outlined,
-                      'new',
-                      semanticLabel: 'encounters_bottom_bar',
-                    ),
-                  ),
-                  builder: (context, snapshot) {
-                    final showBubble = snapshot.data ?? false;
-                    return Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        IconButton(
-                          key: const Key('bottom_appbar_encounters_icon'),
-                          tooltip: 'Encounters',
-                          onPressed: () async {
-                            getService<IAnalyticsService>().logBottomBarAction(
-                              action: 'encounters',
-                            );
-                            await BubbleUtils.markAsShown(
-                              BubbleUtils.getIconBubbleId(
-                                Icons.location_history_outlined,
-                                'new',
-                                semanticLabel: 'encounters_bottom_bar',
-                              ),
-                            );
-                            if (!context.mounted) return;
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const EncountersListPage(),
-                              ),
-                            );
-                          },
-                          icon: Icon(
-                            Icons.location_history_outlined,
-                            color: colorScheme.onPrimary,
-                            size: 32,
-                          ),
-                        ),
-                        if (showBubble)
-                          Positioned(
-                            top: BubbleConstants.iconBadgeTop,
-                            right: BubbleConstants.iconBadgeRight,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: BubbleConstants.newFeatureColor,
-                                borderRadius: BorderRadius.circular(
-                                  BubbleConstants.iconBadgeRadius,
-                                ),
-                                boxShadow: BubbleConstants.bubbleShadow,
-                              ),
-                              child: Text(
-                                'bubble_constants.new_feature'.tr(),
-                                style: BubbleConstants.iconBadgeTextStyle,
-                              ),
-                            ),
-                          ),
-                      ],
+                IconButton(
+                  key: const Key('bottom_appbar_encounters_icon'),
+                  tooltip: 'Encounters',
+                  onPressed: () {
+                    getService<IAnalyticsService>().logBottomBarAction(
+                      action: 'encounters',
+                    );
+                    if (!context.mounted) return;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const EncountersListPage(),
+                      ),
                     );
                   },
+                  icon: Icon(
+                    Icons.location_history_outlined,
+                    color: colorScheme.onPrimary,
+                    size: 32,
+                  ),
                 ),
               // 5. Spiritual Stats/Progress
               IconButton(
@@ -488,7 +435,8 @@ class DevocionalesBottomBar extends StatelessWidget {
                           tooltip: 'tooltips.support'.tr(),
                           onPressed: () async {
                             debugPrint(
-                                '\u2764\ufe0f [BottomBar] Tap: supporter');
+                              '\u2764\ufe0f [BottomBar] Tap: supporter',
+                            );
                             getService<IAnalyticsService>().logBottomBarAction(
                               action: 'supporter',
                             );

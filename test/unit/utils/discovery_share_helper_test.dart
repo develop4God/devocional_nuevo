@@ -112,8 +112,10 @@ void main() {
 
       // Verify app link (structure) — don't assert exact localized literal
       expect(shareText, contains('📲 *'));
-      expect(shareText,
-          contains(RegExp(r'Descarg(?:a|ar):?', caseSensitive: false)));
+      expect(
+        shareText,
+        contains(RegExp(r'Descarg(?:a|ar):?', caseSensitive: false)),
+      );
       expect(shareText, contains('play.google.com/store/apps/details?id=com'));
 
       // Verify metadata not asserted here because production doesn't include tags
@@ -127,8 +129,10 @@ void main() {
       );
 
       // Verify header includes title and study name (be tolerant to minor localization changes)
-      expect(shareText,
-          allOf(contains('ESTUDIO'), contains('LA ESTRELLA DE LA MAÑANA')));
+      expect(
+        shareText,
+        allOf(contains('ESTUDIO'), contains('LA ESTRELLA DE LA MAÑANA')),
+      );
       // Key verse reference should appear somewhere; allow flexible match
       expect(shareText, contains('2 Pedro 1:19'));
 
@@ -151,8 +155,10 @@ void main() {
 
       // Verify footer (structure) — flexible localization check
       expect(shareText, contains('📲 *'));
-      expect(shareText,
-          contains(RegExp(r'Descarg(?:a|ar):?', caseSensitive: false)));
+      expect(
+        shareText,
+        contains(RegExp(r'Descarg(?:a|ar):?', caseSensitive: false)),
+      );
     });
 
     test('should handle study without optional fields', () {
@@ -185,8 +191,9 @@ void main() {
     });
 
     test('should extract key points from content', () {
-      final extracted =
-          DiscoveryShareHelper.generarTextoParaCompartir(testStudy);
+      final extracted = DiscoveryShareHelper.generarTextoParaCompartir(
+        testStudy,
+      );
 
       // Should extract first 3 bullet points
       expect(extracted, isNotEmpty);

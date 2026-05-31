@@ -13,8 +13,8 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_reader_tts_text_builder.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
-import 'package:devocional_nuevo/utils/bubble_constants.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_book_selector_dialog.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_chapter_grid_selector.dart';
@@ -521,8 +521,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     if (ttsText.isNotEmpty) {
       // Normalize through BibleTextFormatter for proper book name pronunciation
       final version = state.selectedVersion?.name ?? '';
-      final normalized =
-          BibleTextFormatter.normalizeTtsText(ttsText, languageCode, version);
+      final normalized = BibleTextFormatter.normalizeTtsText(
+        ttsText,
+        languageCode,
+        version,
+      );
       _ttsAudioController.setText(normalized, languageCode: languageCode);
       debugPrint(
         '[BibleReader TTS] Texto configurado: ${normalized.length} caracteres, idioma: $languageCode',
@@ -548,7 +551,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     if (!hasSaved) {
       debugPrint(
-          '[BibleReader TTS] Mostrando diálogo de configuración de voz...');
+        '[BibleReader TTS] Mostrando diálogo de configuración de voz...',
+      );
       await showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
@@ -565,12 +569,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
               onConfigure: () async {
                 Navigator.of(ctx).pop();
                 if (!mounted) return;
-                await _showBibleVoiceSelector(context, languageCode,
-                    BibleReaderTtsTextBuilder.build(state));
+                await _showBibleVoiceSelector(
+                  context,
+                  languageCode,
+                  BibleReaderTtsTextBuilder.build(state),
+                );
               },
               onContinue: () async {
                 debugPrint(
-                    '[BibleReader TTS] Usuario continuó sin configurar voz');
+                  '[BibleReader TTS] Usuario continuó sin configurar voz',
+                );
                 Navigator.of(ctx).pop();
                 await voiceService.setUserSavedVoice(languageCode);
                 if (ttsState != TtsPlayerState.loading) {
@@ -578,12 +586,14 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                   if (ttsState == TtsPlayerState.idle ||
                       ttsState == TtsPlayerState.completed) {
                     debugPrint(
-                        '[BibleReader TTS] Configurando texto para primera reproducción');
+                      '[BibleReader TTS] Configurando texto para primera reproducción',
+                    );
                     _updateTtsText(state);
                   } else if (ttsState == TtsPlayerState.paused) {
                     // Don't reset text when resuming from pause
                     debugPrint(
-                        '[BibleReader TTS] Reanudando desde pausa (sin reset)');
+                      '[BibleReader TTS] Reanudando desde pausa (sin reset)',
+                    );
                   }
                   _ttsAudioController.play();
                 }
@@ -604,7 +614,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     } else if (ttsState != TtsPlayerState.loading) {
       if (ttsState == TtsPlayerState.completed) {
         debugPrint(
-            '[BibleReader TTS] 🔄 Completed, reseteando antes de play()');
+          '[BibleReader TTS] 🔄 Completed, reseteando antes de play()',
+        );
         await _ttsAudioController.stop();
         // Only set text when completed (will be starting fresh from beginning)
         debugPrint('[BibleReader TTS] Reseteando texto después de completion');
@@ -614,7 +625,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         // setText() resets accumulatedPosition to zero, causing skip to next chunk.
         // Just resume from current position using play() alone.
         debugPrint(
-            '[BibleReader TTS] ⏸️→▶️ Reanudando desde posición guardada (sin reset de texto)');
+          '[BibleReader TTS] ⏸️→▶️ Reanudando desde posición guardada (sin reset de texto)',
+        );
       } else if (ttsState == TtsPlayerState.idle) {
         // First time playing (idle state)
         debugPrint('[BibleReader TTS] 🚀 Primer play, configurando texto');
@@ -677,9 +689,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           _ttsAudioController.flutterTts,
           language,
         );
-        debugPrint(
-          '[BibleReader TTS] Voice re-applied after selector closed',
-        );
+        debugPrint('[BibleReader TTS] Voice re-applied after selector closed');
       } catch (e) {
         debugPrint(
           '[BibleReader TTS] applyVoiceToInstance after selector failed: $e',
@@ -762,13 +772,14 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       Text(
                         _versionLabel(state.selectedVersion!),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimary
-                                  .withValues(alpha: 0.85),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimary.withValues(alpha: 0.85),
                               fontSize: 13,
                               fontWeight: FontWeight.w400,
                             ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                   ],
                 ),
@@ -800,9 +811,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       ),
                       tooltip: 'bible.select_version'.tr(),
                       onSelected: (version) async {
-                        final scaffoldMessenger = ScaffoldMessenger.of(
-                          context,
-                        );
+                        final scaffoldMessenger = ScaffoldMessenger.of(context);
                         final colorScheme = Theme.of(context).colorScheme;
                         await _controller.switchVersion(version);
                         if (!mounted) return;
@@ -812,17 +821,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                               'bible.loading_version'.tr({
                                 'version': version.name,
                               }),
-                              style: TextStyle(
-                                color: colorScheme.onSecondary,
-                              ),
+                              style: TextStyle(color: colorScheme.onSecondary),
                             ),
                             backgroundColor: colorScheme.secondary,
                             duration: const Duration(seconds: 1),
                           ),
                         );
                       },
-                      itemBuilder: (context) =>
-                          state.availableVersions.map((version) {
+                      itemBuilder: (context) => state.availableVersions.map((
+                        version,
+                      ) {
                         return PopupMenuItem<BibleVersion>(
                           value: version,
                           child: Row(
@@ -831,15 +839,18 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   state.selectedVersion?.dbFileName)
                                 Icon(
                                   Icons.check,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary,
+                                  color: Theme.of(context).colorScheme.primary,
                                   size: 20,
                                 )
                               else
                                 const SizedBox(width: 20),
                               const SizedBox(width: 8),
-                              Text(_versionPickerLabel(version)),
+                              Flexible(
+                                child: Text(
+                                  _versionPickerLabel(version),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ],
                           ),
                         );
@@ -1055,64 +1066,100 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   final isPersistentlyMarked = state
                                       .persistentlyMarkedVerses
                                       .contains(key);
-                                  return GestureDetector(
-                                    onTap: () => _onVerseTap(verseNumber),
-                                    onLongPress: () =>
-                                        _controller.togglePersistentMark(key),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 8,
-                                        horizontal: 4,
-                                      ),
-                                      decoration: isSelected
-                                          ? BoxDecoration(
-                                              color: colorScheme
-                                                  .primaryContainer
-                                                  .withValues(alpha: 0.3),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              border: Border.all(
-                                                color: colorScheme.primary,
-                                                width: 2,
-                                              ),
-                                            )
-                                          : null,
-                                      child: RichText(
-                                        text: TextSpan(
-                                          style: TextStyle(
-                                            fontSize: state.fontSize,
-                                            color: colorScheme.onSurface,
-                                            height: 1.6,
+
+                                  // Get section titles for this verse
+                                  final titlesForVerse = state.sectionTitles
+                                      .where(
+                                        (title) =>
+                                            title['verse'] == verseNumber,
+                                      )
+                                      .toList();
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Display section titles if any
+                                      ...titlesForVerse.map(
+                                        (title) => Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 16,
+                                            bottom: 8,
                                           ),
-                                          children: [
-                                            TextSpan(
-                                              text: "${verse['verse']} ",
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: colorScheme.primary,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: _cleanVerseText(
-                                                verse['text'],
-                                              ),
-                                              style: isPersistentlyMarked
-                                                  ? TextStyle(
-                                                      backgroundColor:
-                                                          colorScheme.secondary
-                                                              .withValues(
-                                                        alpha: 0.25,
-                                                      ),
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    )
-                                                  : null,
-                                            ),
-                                          ],
+                                          child: Text(
+                                            title['title'] as String,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: colorScheme.primary,
+                                                ),
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                      // Verse content
+                                      GestureDetector(
+                                        onTap: () => _onVerseTap(verseNumber),
+                                        onLongPress: () => _controller
+                                            .togglePersistentMark(key),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 8,
+                                            horizontal: 4,
+                                          ),
+                                          decoration: isSelected
+                                              ? BoxDecoration(
+                                                  color: colorScheme
+                                                      .primaryContainer
+                                                      .withValues(alpha: 0.3),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: colorScheme.primary,
+                                                    width: 2,
+                                                  ),
+                                                )
+                                              : null,
+                                          child: RichText(
+                                            text: TextSpan(
+                                              style: TextStyle(
+                                                fontSize: state.fontSize,
+                                                color: colorScheme.onSurface,
+                                                height: 1.6,
+                                              ),
+                                              children: [
+                                                TextSpan(
+                                                  text: "${verse['verse']} ",
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: colorScheme.primary,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: _cleanVerseText(
+                                                    verse['text'],
+                                                  ),
+                                                  style: isPersistentlyMarked
+                                                      ? TextStyle(
+                                                          backgroundColor:
+                                                              colorScheme
+                                                                  .secondary
+                                                                  .withValues(
+                                                            alpha: 0.25,
+                                                          ),
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        )
+                                                      : null,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   );
                                 },
                               ),
@@ -1168,8 +1215,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             // Botón de capítulo expandido para tablets y pantallas grandes
                             Expanded(
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                ),
                                 child: SizedBox(
                                   height: 44,
                                   child: ElevatedButton(

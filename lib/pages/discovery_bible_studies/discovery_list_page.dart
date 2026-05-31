@@ -49,9 +49,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   void initState() {
     super.initState();
     final languageCode = context.read<DevocionalProvider>().selectedLanguage;
-    context
-        .read<DiscoveryBloc>()
-        .add(LoadDiscoveryStudies(languageCode: languageCode));
+    context.read<DiscoveryBloc>().add(
+          LoadDiscoveryStudies(languageCode: languageCode),
+        );
 
     _gridAnimationController = AnimationController(
       vsync: this,
@@ -128,9 +128,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           }
         },
         child: Scaffold(
-          appBar: CustomAppBar(
-            titleText: 'discovery.discovery_studies'.tr(),
-          ),
+          appBar: CustomAppBar(titleText: 'discovery.discovery_studies'.tr()),
           body: BlocListener<DiscoveryBloc, DiscoveryState>(
             listener: (context, state) {
               if (state is DiscoveryLoaded) {
@@ -141,11 +139,13 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                   if (currentFavoriteIds.length >
                       _previousFavoriteIds!.length) {
                     _showFeedbackSnackBar(
-                        'devotionals_page.added_to_favorites'.tr());
+                      'devotionals_page.added_to_favorites'.tr(),
+                    );
                   } else if (currentFavoriteIds.length <
                       _previousFavoriteIds!.length) {
                     _showFeedbackSnackBar(
-                        'devotionals_page.removed_from_favorites'.tr());
+                      'devotionals_page.removed_from_favorites'.tr(),
+                    );
                   }
                 }
 
@@ -226,9 +226,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                                 _showGridOverlay
                                     ? Icons.view_carousel_rounded
                                     : Icons.grid_view_rounded,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
                                 size: 24,
                               ),
                             ),
@@ -289,45 +289,42 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
             // Sliding is controlled by Swiper
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: List.generate(
-                count,
-                (index) {
-                  final int distance = (index - _currentIndex).abs();
+              children: List.generate(count, (index) {
+                final int distance = (index - _currentIndex).abs();
 
-                  // Adaptive scale based on distance from current index (Instagram-style)
-                  double scale = 1.0;
-                  if (distance == 1) {
-                    scale = 0.85;
-                  } else if (distance == 2) {
-                    scale = 0.65;
-                  } else if (distance >= 3) {
-                    scale = 0.45;
-                  }
+                // Adaptive scale based on distance from current index (Instagram-style)
+                double scale = 1.0;
+                if (distance == 1) {
+                  scale = 0.85;
+                } else if (distance == 2) {
+                  scale = 0.65;
+                } else if (distance >= 3) {
+                  scale = 0.45;
+                }
 
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: EdgeInsets.symmetric(horizontal: dotSpacing / 2),
-                    width: index == _currentIndex
-                        ? activeDotWidth
-                        : baseDotSize * scale,
-                    height: baseDotSize * scale,
-                    decoration: BoxDecoration(
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: EdgeInsets.symmetric(horizontal: dotSpacing / 2),
+                  width: index == _currentIndex
+                      ? activeDotWidth
+                      : baseDotSize * scale,
+                  height: baseDotSize * scale,
+                  decoration: BoxDecoration(
+                    color: index == _currentIndex
+                        ? colorScheme.primary
+                        : colorScheme.primary.withValues(
+                            alpha: _inactiveDotsAlpha * scale,
+                          ),
+                    borderRadius: BorderRadius.circular(baseDotSize / 2),
+                    border: Border.all(
                       color: index == _currentIndex
                           ? colorScheme.primary
-                          : colorScheme.primary
-                              .withValues(alpha: _inactiveDotsAlpha * scale),
-                      borderRadius: BorderRadius.circular(baseDotSize / 2),
-                      border: Border.all(
-                        color: index == _currentIndex
-                            ? colorScheme.primary
-                            : colorScheme.outline
-                                .withValues(alpha: 0.5 * scale),
-                        width: 1.2 * scale,
-                      ),
+                          : colorScheme.outline.withValues(alpha: 0.5 * scale),
+                      width: 1.2 * scale,
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              }),
             ),
           ),
         ),
@@ -336,7 +333,10 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   }
 
   Widget _buildCarousel(
-      BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
+    BuildContext context,
+    DiscoveryLoaded state,
+    List<String> studyIds,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Swiper(
@@ -446,17 +446,19 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           children: [
             Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
                 final languageCode =
                     context.read<DevocionalProvider>().selectedLanguage;
-                context
-                    .read<DiscoveryBloc>()
-                    .add(LoadDiscoveryStudies(languageCode: languageCode));
+                context.read<DiscoveryBloc>().add(
+                      LoadDiscoveryStudies(languageCode: languageCode),
+                    );
               },
               icon: const Icon(Icons.refresh),
               label: Text('app.retry'.tr()),
@@ -476,9 +478,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           children: [
             Icon(Icons.explore_outlined, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
-            Text('discovery.no_studies_available'.tr(),
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              'discovery.no_studies_available'.tr(),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
           ],
         ),
       ),
@@ -493,13 +497,13 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     );
 
     final languageCode = context.read<DevocionalProvider>().selectedLanguage;
-    context
-        .read<DiscoveryBloc>()
-        .add(LoadDiscoveryStudy(studyId, languageCode: languageCode));
+    context.read<DiscoveryBloc>().add(
+          LoadDiscoveryStudy(studyId, languageCode: languageCode),
+        );
     Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => DiscoveryDetailPage(studyId: studyId)));
+      context,
+      MaterialPageRoute(builder: (_) => DiscoveryDetailPage(studyId: studyId)),
+    );
   }
 
   Devocional _createMockDevocional(String studyId, {String? emoji}) {
@@ -520,8 +524,10 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     return studyId
         .replaceAll('_', ' ')
         .split(' ')
-        .map((word) =>
-            word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '')
+        .map(
+          (word) =>
+              word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '',
+        )
         .join(' ');
   }
 
@@ -564,15 +570,12 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     );
 
     final languageCode = context.read<DevocionalProvider>().selectedLanguage;
-    context
-        .read<DiscoveryBloc>()
-        .add(LoadDiscoveryStudy(studyId, languageCode: languageCode));
+    context.read<DiscoveryBloc>().add(
+          LoadDiscoveryStudy(studyId, languageCode: languageCode),
+        );
   }
 
-  Future<void> _handleShareStudy(
-    DiscoveryLoaded state,
-    String studyId,
-  ) async {
+  Future<void> _handleShareStudy(DiscoveryLoaded state, String studyId) async {
     // Log analytics event
     getService<IAnalyticsService>().logDiscoveryAction(
       action: 'study_shared',
@@ -585,9 +588,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     if (study == null) {
       final languageCode = context.read<DevocionalProvider>().selectedLanguage;
       _showFeedbackSnackBar('discovery.loading_studies'.tr());
-      context
-          .read<DiscoveryBloc>()
-          .add(LoadDiscoveryStudy(studyId, languageCode: languageCode));
+      context.read<DiscoveryBloc>().add(
+            LoadDiscoveryStudy(studyId, languageCode: languageCode),
+          );
       int attempts = 0;
       while (attempts < 10) {
         await Future.delayed(const Duration(milliseconds: 300));

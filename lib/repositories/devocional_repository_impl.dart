@@ -4,11 +4,11 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 
-import 'package:devocional_nuevo/constants/devocional_years.dart';
+import 'package:devocional_nuevo/utils/constants/devocional_years.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
 import 'package:devocional_nuevo/services/devocional_index_service.dart';
-import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -100,8 +100,9 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
             year.toString(),
           );
 
-    final String? sidecarDate =
-        await _cacheMetadataService.readManifestDate(filePath);
+    final String? sidecarDate = await _cacheMetadataService.readManifestDate(
+      filePath,
+    );
 
     final bool isStale = (indexDate != null) &&
         (sidecarDate == null || sidecarDate != indexDate);
@@ -121,8 +122,11 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
         '✅ [CACHE] Fresh: ${year}_${language}_$version — using local cache',
         name: 'DevocionalCache',
       );
-      final Map<String, dynamic>? localData =
-          await _loadFromLocalStorage(year, language, version);
+      final Map<String, dynamic>? localData = await _loadFromLocalStorage(
+        year,
+        language,
+        version,
+      );
       if (localData != null) {
         return _extractDevocionalesFromData(localData, language);
       }
@@ -153,8 +157,11 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
             '⚠️ Failed to load year $year from API: ${response.statusCode}',
           );
           if (hasLocal) {
-            final Map<String, dynamic>? localData =
-                await _loadFromLocalStorage(year, language, version);
+            final Map<String, dynamic>? localData = await _loadFromLocalStorage(
+              year,
+              language,
+              version,
+            );
             if (localData != null) {
               return _extractDevocionalesFromData(localData, language);
             }
@@ -163,8 +170,11 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
       } catch (e) {
         debugPrint('⚠️ Error loading year $year: $e');
         if (hasLocal) {
-          final Map<String, dynamic>? localData =
-              await _loadFromLocalStorage(year, language, version);
+          final Map<String, dynamic>? localData = await _loadFromLocalStorage(
+            year,
+            language,
+            version,
+          );
           if (localData != null) {
             return _extractDevocionalesFromData(localData, language);
           }
@@ -332,12 +342,8 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
       final response = await _httpClient.get(Uri.parse(url));
 
       if (response.statusCode == 404) {
-        debugPrint(
-          '❌ File not found (404): $language $version year $year',
-        );
-        throw Exception(
-          'File not available for $language $version year $year',
-        );
+        debugPrint('❌ File not found (404): $language $version year $year');
+        throw Exception('File not available for $language $version year $year');
       } else if (response.statusCode != 200) {
         debugPrint(
           '❌ HTTP Error ${response.statusCode}: ${response.reasonPhrase}',
@@ -347,8 +353,9 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
         );
       }
 
-      final Map<String, dynamic> jsonData =
-          json.decode(utf8.decode(response.bodyBytes));
+      final Map<String, dynamic> jsonData = json.decode(
+        utf8.decode(response.bodyBytes),
+      );
 
       if (jsonData['data'] == null) {
         throw Exception('Invalid JSON structure: missing "data" field');
@@ -391,12 +398,18 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
     bool allSuccess = true;
 
     for (final year in yearsToDownload) {
-      bool success =
-          await downloadAndStoreDevocionales(year, language, version);
+      bool success = await downloadAndStoreDevocionales(
+        year,
+        language,
+        version,
+      );
 
       if (!success) {
-        final fallbackVersion =
-            await _tryVersionFallback(year, language, version);
+        final fallbackVersion = await _tryVersionFallback(
+          year,
+          language,
+          version,
+        );
         success = fallbackVersion != null;
       }
 
@@ -458,14 +471,10 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
     String language,
     String currentVersion,
   ) async {
-    debugPrint(
-      '🔄 Trying version fallback for $language $currentVersion',
-    );
+    debugPrint('🔄 Trying version fallback for $language $currentVersion');
 
     final availableVersions = Constants.bibleVersionsByLanguage[language] ?? [];
-    debugPrint(
-      '🔄 Available versions for $language: $availableVersions',
-    );
+    debugPrint('🔄 Available versions for $language: $availableVersions');
 
     final defaultVersion = Constants.defaultVersionByLanguage[language];
     final versionsToTry = <String>[];
@@ -484,8 +493,11 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
 
     for (final version in versionsToTry) {
       debugPrint('🔄 Trying fallback version: $version');
-      final success =
-          await downloadAndStoreDevocionales(year, language, version);
+      final success = await downloadAndStoreDevocionales(
+        year,
+        language,
+        version,
+      );
       if (success) {
         debugPrint('✅ Fallback successful with version: $version');
         return version;

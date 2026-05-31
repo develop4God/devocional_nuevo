@@ -202,7 +202,7 @@
   },
   "application_language": {
     "title": "Application Language",
-    "description": "Select and download the language you want to use for the application. Each language includes interface, devotionals, verses, and audio reader.",
+    "description": "Select and download the language you want to use for the application. Each language includes interface, devotionals, verses, and audio reader. Progress and stats are saved separately for each language.",
     "current_language": "Current language",
     "download_failed": "Error downloading language content. Please try again.",
     "downloading": "Downloading...",
@@ -467,6 +467,8 @@
     "favorite_devotionals": "Favorite devotionals",
     "favorite_devotionals_size": "25 items, ~50 KB",
     "saved_prayers": "Saved prayers",
+    "saved_verses": "Saved verses",
+    "read_devotionals": "Devotionals read",
     "saved_prayers_size": "10 items, ~15 KB",
     "storage_management": "Manage storage",
     "google_drive_storage": "Google Drive Storage",
@@ -519,7 +521,13 @@
     "more_options": "More options",
     "optimization": "Optimization",
     "account_management": "Account Management",
-    "logout_google_drive": "Sign out from Google Drive"
+    "logout_google_drive": "Sign out from Google Drive",
+    "signing_in_title": "Connecting to Google Drive",
+    "signing_in_subtitle": "Verifying your identity to keep your spiritual progress safe...",
+    "restoring_title": "Restoring your data",
+    "restoring_subtitle": "We found a backup in your Google Drive and are bringing back your spiritual progress...",
+    "protected_title": "Your data is protected!",
+    "protected_subtitle": "Your spiritual progress is safely stored in your personal Google Drive."
   },
   "review": {
     "title": "Thank you for your consistency 🙏",

@@ -58,14 +58,10 @@ class DiscoveryCard {
       content: json['content'] as String?,
       revelationKey: json['revelation_key'] as String?,
       scriptureConnections: (json['scripture_connections'] as List<dynamic>?)
-          ?.map(
-            (e) => ScriptureConnection.fromJson(e as Map<String, dynamic>),
-          )
+          ?.map((e) => ScriptureConnection.fromJson(e as Map<String, dynamic>))
           .toList(),
       greekWords: (json['greek_words'] as List<dynamic>?)
-          ?.map(
-            (e) => GreekWord.fromJson(e as Map<String, dynamic>),
-          )
+          ?.map((e) => GreekWord.fromJson(e as Map<String, dynamic>))
           .toList(),
       scriptureAnchor: json['scripture_anchor'] != null
           ? ScriptureAnchor.fromJson(
@@ -74,9 +70,7 @@ class DiscoveryCard {
           : null,
       identityStatement: json['identity_statement'] as String?,
       discoveryQuestions: (json['discovery_questions'] as List<dynamic>?)
-          ?.map(
-            (e) => DiscoveryQuestion.fromJson(e as Map<String, dynamic>),
-          )
+          ?.map((e) => DiscoveryQuestion.fromJson(e as Map<String, dynamic>))
           .toList(),
       prayer: json['prayer'] != null
           ? Prayer.fromJson(json['prayer'] as Map<String, dynamic>)
@@ -121,10 +115,7 @@ class ScriptureConnection {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'reference': reference,
-      'text': text,
-    };
+    return {'reference': reference, 'text': text};
   }
 }
 
@@ -188,10 +179,7 @@ class ScriptureAnchor {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'reference': reference,
-      'text': text,
-    };
+    return {'reference': reference, 'text': text};
   }
 }
 
@@ -210,10 +198,7 @@ class DiscoveryQuestion {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'category': category,
-      'question': question,
-    };
+    return {'category': category, 'question': question};
   }
 }
 
@@ -232,10 +217,7 @@ class Prayer {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'title': title,
-      'content': content,
-    };
+    return {'title': title, 'content': content};
   }
 }
 
@@ -254,9 +236,6 @@ class KeyVerse {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'reference': reference,
-      'text': text,
-    };
+    return {'reference': reference, 'text': text};
   }
 }

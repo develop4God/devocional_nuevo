@@ -28,7 +28,8 @@ class DiscoverySection {
       contenido: json['contenido'] as String?,
       pasajes: (json['pasajes'] as List<dynamic>?)
           ?.map(
-              (item) => ScripturePassage.fromJson(item as Map<String, dynamic>))
+            (item) => ScripturePassage.fromJson(item as Map<String, dynamic>),
+          )
           .toList(),
     );
   }
@@ -74,10 +75,6 @@ class ScripturePassage {
 
   /// Metodo toJson para serializar a JSON.
   Map<String, dynamic> toJson() {
-    return {
-      'referencia': referencia,
-      'texto': texto,
-      'aplicacion': aplicacion,
-    };
+    return {'referencia': referencia, 'texto': texto, 'aplicacion': aplicacion};
   }
 }
