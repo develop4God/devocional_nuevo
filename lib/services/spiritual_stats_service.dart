@@ -656,15 +656,31 @@ class SpiritualStatsService implements ISpiritualStatsService {
   @override
   Future<void> restoreStats(Map<String, dynamic> backupData) async {
     try {
-      if (backupData.containsKey('stats')) {
-        final statsData = backupData['stats'] as Map<String, dynamic>;
+      // Support multiple backup formats:
+      // 1. Merged format: 'spiritual_stats' key (from backup merge)
+      // 2. Legacy format: 'stats' key (from exportStatsAsJson)
+      // 3. Flat format: direct fields like 'totalDevocionalesRead'
+      final Map<String, dynamic>? statsData =
+          backupData.containsKey('spiritual_stats')
+              ? backupData['spiritual_stats'] as Map<String, dynamic>?
+              : backupData.containsKey('stats')
+                  ? backupData['stats'] as Map<String, dynamic>?
+                  : backupData.containsKey('totalDevocionalesRead')
+                      ? backupData
+                      : null;
+
+      if (statsData != null) {
         final stats = SpiritualStats.fromJson(statsData);
-
-        // Save the restored stats
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_statsKey, json.encode(stats.toJson()));
-
-        debugPrint('Restored spiritual stats from backup');
+        await saveStats(stats);
+        debugPrint(
+          '[RESTORE] Restored spiritual stats: '
+          '${stats.totalDevocionalesRead} total read, '
+          '${stats.readDevocionalIds.length} IDs, '
+          'streak ${stats.currentStreak}, longest ${stats.longestStreak}',
+        );
+      } else {
+        debugPrint(
+            '[RESTORE] ⚠️ restoreStats: no recognizable stats structure found');
       }
 
       if (backupData.containsKey('read_dates')) {
@@ -672,14 +688,12 @@ class SpiritualStatsService implements ISpiritualStatsService {
         final readDates = readDatesData
             .map((dateStr) => DateTime.parse(dateStr as String))
             .toList();
-
-        // Save the restored read dates
         await _saveReadDates(readDates);
-
-        debugPrint('Restored ${readDates.length} read dates from backup');
+        debugPrint(
+            '[RESTORE] Restored ${readDates.length} read dates from backup');
       }
     } catch (e) {
-      debugPrint('Error restoring stats from backup: $e');
+      debugPrint('[RESTORE] Error restoring stats from backup: $e');
       rethrow;
     }
   }
