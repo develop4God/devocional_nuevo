@@ -197,7 +197,11 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => LocalizationProvider()),
         ChangeNotifierProvider(create: (context) => DevocionalProvider()),
-        BlocProvider(create: (context) => PrayerBloc()),
+        BlocProvider(
+          create: (context) => PrayerBloc(
+            statsService: getService<ISpiritualStatsService>(),
+          ),
+        ),
         BlocProvider(create: (context) => ThanksgivingBloc()),
         BlocProvider(create: (context) => TestimonyBloc()),
         if (Constants.enableDiscoveryFeature)

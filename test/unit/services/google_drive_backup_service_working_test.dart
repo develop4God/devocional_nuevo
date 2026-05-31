@@ -742,6 +742,8 @@ void main() {
         encountersCount: encountersCount,
         discoveryCount: discoveryCount,
         versesCount: versesCount,
+        readDevocionalesCount: 0,
+        answeredPrayersCount: 0,
       );
     }
 
@@ -830,6 +832,8 @@ void main() {
         encountersCount: 1,
         discoveryCount: 4,
         versesCount: 6,
+        readDevocionalesCount: 0,
+        answeredPrayersCount: 0,
       );
       const b = BackupContentSummary(
         prayersCount: 5,
@@ -839,6 +843,8 @@ void main() {
         encountersCount: 1,
         discoveryCount: 4,
         versesCount: 6,
+        readDevocionalesCount: 0,
+        answeredPrayersCount: 0,
       );
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));

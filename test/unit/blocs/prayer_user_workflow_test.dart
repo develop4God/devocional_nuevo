@@ -25,7 +25,7 @@ void main() {
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       await registerTestServices();
-      bloc = PrayerBloc();
+      bloc = PrayerBloc(statsService: FakeSpiritualStatsService());
     });
 
     tearDown(() {
@@ -155,7 +155,7 @@ void main() {
 
       // Simulate app restart
       await bloc.close();
-      final newBloc = PrayerBloc();
+      final newBloc = PrayerBloc(statsService: FakeSpiritualStatsService());
       newBloc.add(LoadPrayers());
 
       await expectLater(

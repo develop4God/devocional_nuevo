@@ -32,7 +32,8 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: BlocProvider<PrayerBloc>(
-            create: (_) => PrayerBloc(),
+            create: (_) =>
+                PrayerBloc(statsService: FakeSpiritualStatsService()),
             child: AnswerPrayerModal(prayer: prayer),
           ),
         ),
