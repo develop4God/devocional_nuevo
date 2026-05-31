@@ -563,11 +563,17 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         await driveApi.files.create(createFile, uploadMedia: media);
       }
 
-      // Step 5: Sync merged result back to local so UI reflects true merged state
+      // Step 5: Sync merged data back to local (including spiritual stats + read_dates)
+      // When we merge with remote backup, the merged stats represent the unified truth
+      // across devices. We must sync this back to local to keep streak values consistent.
       if (remotePayload != null && _validateBackupData(remotePayload)) {
         try {
-          await _statsService.restoreStats(finalPayload);
-          debugPrint('[BACKUP] Local state synced to merged result');
+          // Include spiritualStats AND read_dates in sync-back to preserve merged streak
+          final payloadWithStats = Map<String, dynamic>.from(finalPayload);
+          await _statsService.restoreStats(payloadWithStats);
+          debugPrint(
+            '[BACKUP] ✅ Local data synced to merged result (including spiritual stats)',
+          );
         } catch (e) {
           debugPrint(
             '[BACKUP] Warning: could not sync merged state locally: $e',
@@ -620,11 +626,9 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       try {
         final stats = await _statsService.getAllStats();
         debugPrint('[BACKUP] 🔍 SPIRITUAL STATS: ${json.encode(stats)}');
-        backupData[BackupKeys.spiritualStats] = stats;
-
-        // Extract nested stats map for clear logging
         final innerStats =
             (stats['stats'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+        backupData[BackupKeys.spiritualStats] = innerStats;
         final readDevocionalIds =
             (innerStats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
         debugPrint('[BACKUP] Included spiritual stats:');
@@ -1008,29 +1012,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         try {
           final stats = data[BackupKeys.spiritualStats] as Map<String, dynamic>;
           await _statsService.restoreStats(stats);
-
-          final innerStats = (stats['stats'] as Map<String, dynamic>?) ?? {};
-          final readDevocionalIds =
-              (innerStats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
           debugPrint('[RESTORE] ✅ Restored spiritual stats');
-          debugPrint(
-            '[RESTORE]   - Total devotionals read: ${innerStats['totalDevocionalesRead'] ?? 0}',
-          );
-          debugPrint(
-            '[RESTORE]   - Completed devotional IDs: $readDevocionalIds',
-          );
-          debugPrint(
-            '[RESTORE]   - Current streak: ${innerStats['currentStreak'] ?? 0}',
-          );
-          debugPrint(
-            '[RESTORE]   - Longest streak: ${innerStats['longestStreak'] ?? 0}',
-          );
-          debugPrint(
-            '[RESTORE]   - Favorites count: ${innerStats['favoritesCount'] ?? 0}',
-          );
-
-          // (removed: downstream verify of SharedPreferences write —
-          //  restoreStats() throws on failure; key internals belong to SpiritualStatsService)
         } catch (e) {
           debugPrint('[RESTORE] ❌ Error restoring spiritual stats: $e');
         }
