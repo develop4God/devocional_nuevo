@@ -63,6 +63,20 @@ def get_stats(payload: dict) -> dict:
     return ss
 
 
+# ── Answered prayers extraction ──────────────────────────────────────────────
+def get_answered_prayers(payload: dict) -> list:
+    """
+    Returns answered prayers from either:
+      1. Top-level 'answered_prayers' key (legacy format), or
+      2. Items inside 'saved_prayers' with status == 'answered' (current format).
+    """
+    top_level = payload.get('answered_prayers')
+    if isinstance(top_level, list) and top_level:
+        return top_level
+    # Current format: answered prayers live inside saved_prayers
+    return [p for p in payload.get('saved_prayers', []) if isinstance(p, dict) and p.get('status') == 'answered']
+
+
 # ── Section printers ─────────────────────────────────────────────────────────
 def print_header(path: Path, compressed: bool, size_bytes: int):
     fmt = green("gzip compressed") if compressed else yellow("plain JSON")
@@ -122,14 +136,22 @@ OBJ_SECTIONS = [
     ('discovery_favorites',  '🔖', 'Discovery favorites'),
 ]
 
+def _section_items(key: str, payload: dict) -> list:
+    """Return the effective item list for a section key, handling derived sections."""
+    if key == 'answered_prayers':
+        return get_answered_prayers(payload)
+    v = payload.get(key, [])
+    return v if isinstance(v, list) else []
+
+
 def print_sections(payload: dict, verbose: bool = False):
     print(f"\n{bold('📦 Content counts')}")
     for key, icon, label in LIST_SECTIONS:
-        v = payload.get(key, [])
-        count = len(v) if isinstance(v, list) else 0
+        v = _section_items(key, payload)
+        count = len(v)
         bar = green(f"{count:>4} items") if count > 0 else dim(f"{count:>4} items")
         print(f"  {icon}  {label:<38} {bar}")
-        if verbose and count > 0 and isinstance(v, list):
+        if verbose and count > 0:
             for i, item in enumerate(v[:5]):
                 if isinstance(item, dict):
                     preview = item.get('id') or item.get('title') or item.get('text', '')[:60]
@@ -170,8 +192,7 @@ def flatten_for_diff(payload: dict) -> dict:
     ss = get_stats(payload)
     flat = {}
     for k, _, _ in LIST_SECTIONS:
-        v = payload.get(k, [])
-        flat[k] = len(v) if isinstance(v, list) else 0
+        flat[k] = len(_section_items(k, payload))
     for k, _, _ in OBJ_SECTIONS:
         v = payload.get(k, {})
         flat[k] = len(v) if isinstance(v, dict) else 0
