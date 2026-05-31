@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:devocional_nuevo/models/prayer_model.dart';
+import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,11 @@ import 'prayer_event.dart';
 import 'prayer_state.dart';
 
 class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
-  PrayerBloc() : super(PrayerInitial()) {
+  final ISpiritualStatsService _statsService;
+
+  PrayerBloc({required ISpiritualStatsService statsService})
+      : _statsService = statsService,
+        super(PrayerInitial()) {
     on<LoadPrayers>(_onLoadPrayers);
     on<AddPrayer>(_onAddPrayer);
     on<EditPrayer>(_onEditPrayer);
@@ -36,6 +41,10 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
 
     try {
       final prayers = await _loadPrayersFromStorage();
+      // Sync answered prayers count with spiritual stats
+      final answeredCount =
+          prayers.where((p) => p.status == PrayerStatus.answered).length;
+      await _statsService.updateAnsweredPrayersCount(answeredCount);
       emit(PrayerLoaded(prayers: prayers));
     } catch (e) {
       final errorMessage = getService<LocalizationService>().translate(
@@ -146,6 +155,9 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
           .toList();
 
       await _savePrayersToStorage(updatedPrayers);
+      final answeredCount =
+          updatedPrayers.where((p) => p.status == PrayerStatus.answered).length;
+      await _statsService.updateAnsweredPrayersCount(answeredCount);
       emit(currentState.copyWith(prayers: updatedPrayers));
     } catch (e) {
       final currentState = state;
@@ -182,6 +194,9 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
 
       _sortPrayers(updatedPrayers);
       await _savePrayersToStorage(updatedPrayers);
+      final answeredCount =
+          updatedPrayers.where((p) => p.status == PrayerStatus.answered).length;
+      await _statsService.updateAnsweredPrayersCount(answeredCount);
       emit(currentState.copyWith(prayers: updatedPrayers));
     } catch (e) {
       final currentState = state;
@@ -218,6 +233,9 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
 
       _sortPrayers(updatedPrayers);
       await _savePrayersToStorage(updatedPrayers);
+      final answeredCount =
+          updatedPrayers.where((p) => p.status == PrayerStatus.answered).length;
+      await _statsService.updateAnsweredPrayersCount(answeredCount);
       emit(currentState.copyWith(prayers: updatedPrayers));
     } catch (e) {
       final currentState = state;
@@ -270,6 +288,10 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
   ) async {
     try {
       final prayers = await _loadPrayersFromStorage();
+      // Sync answered prayers count with spiritual stats
+      final answeredCount =
+          prayers.where((p) => p.status == PrayerStatus.answered).length;
+      await _statsService.updateAnsweredPrayersCount(answeredCount);
       final currentState = state;
       if (currentState is PrayerLoaded) {
         emit(currentState.copyWith(prayers: prayers));
