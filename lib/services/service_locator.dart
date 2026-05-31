@@ -2,6 +2,7 @@
 /// Service Locator for Dependency Injection
 library;
 
+import 'package:devocional_nuevo/debug/i_debug_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
@@ -159,10 +160,13 @@ Future<void> setupServiceLocator() async {
     () => SupporterProfileRepository(),
   );
 
-  // ✅ REGISTER SPIRITUAL STATS SERVICE (via interface)
-  locator.registerLazySingleton<ISpiritualStatsService>(
-    () => SpiritualStatsService(),
-  );
+  // ✅ REGISTER SPIRITUAL STATS SERVICE
+  // Concrete instance created once; registered under both interfaces so
+  // production code (ISpiritualStatsService) and debug widgets
+  // (IDebugSpiritualStatsService) share the same singleton — no cast required.
+  final statsService = SpiritualStatsService();
+  locator.registerSingleton<ISpiritualStatsService>(statsService);
+  locator.registerSingleton<IDebugSpiritualStatsService>(statsService);
   locator.registerLazySingleton<IStartupMigrationService>(
     () => StartupMigrationService(
       statsService: locator.get<ISpiritualStatsService>(),

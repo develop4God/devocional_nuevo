@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../debug/i_debug_spiritual_stats_service.dart';
 import '../models/spiritual_stats_model.dart';
-import 'i_spiritual_stats_service.dart';
 
-class SpiritualStatsService implements ISpiritualStatsService {
+class SpiritualStatsService implements IDebugSpiritualStatsService {
   static const String _statsKey = 'spiritual_stats';
   static const String _readDatesKey = 'read_dates';
   static const String _lastReadDevocionalKey = 'last_read_devocional';
@@ -638,6 +638,52 @@ class SpiritualStatsService implements ISpiritualStatsService {
   @override
   Future<List<DateTime>> getReadDatesForVisualization() async {
     return await _getReadDates();
+  }
+
+  // ── [DEBUG ONLY] ──────────────────────────────────────────────────────────
+
+  /// Adds one synthetic read-date to extend the current streak by 1.
+  ///
+  /// Finds the date that is (currentStreak) days before today — which is the
+  /// day immediately preceding the oldest date in the active streak — and
+  /// inserts it into the read-dates list.  Idempotent: if that date is already
+  /// present the streak is already covering it and a further-back date is used.
+  @override
+  Future<SpiritualStats> addStreakDay() async {
+    final stats = await getStats();
+    final readDates = await _getReadDates();
+
+    final today = DateTime.now();
+    final todayOnly = DateTime(today.year, today.month, today.day);
+
+    // The day we need to add is: today - currentStreak days.
+    // If currentStreak == 0 we start with "today"; if already present we push back.
+    int daysBack = stats.currentStreak;
+    DateTime candidate = todayOnly.subtract(Duration(days: daysBack));
+
+    // Make sure the candidate isn't already present (defensive).
+    while (readDates.any((d) =>
+        d.year == candidate.year &&
+        d.month == candidate.month &&
+        d.day == candidate.day)) {
+      daysBack++;
+      candidate = todayOnly.subtract(Duration(days: daysBack));
+    }
+
+    readDates.add(candidate);
+    await _saveReadDates(readDates);
+    debugPrint(
+        '🔧 [DEBUG] addStreakDay: added $candidate (daysBack=$daysBack)');
+
+    final newStreak = _calculateCurrentStreak(readDates);
+    final updatedStats = stats.copyWith(
+      currentStreak: newStreak,
+      longestStreak:
+          newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
+    );
+    await saveStats(updatedStats);
+    debugPrint('🔧 [DEBUG] addStreakDay: new streak = $newStreak');
+    return updatedStats;
   }
 
   @override
