@@ -30,6 +30,11 @@ List<({IconData icon, String label, int count})> _summaryItems(
         count: summary.prayersCount,
       ),
       (
+        icon: Icons.check_circle_outline,
+        label: 'prayer.answered_prayers'.tr(),
+        count: summary.answeredPrayersCount,
+      ),
+      (
         icon: Icons.sentiment_very_satisfied,
         label: 'thanksgiving.thanksgivings'.tr(),
         count: summary.thanksgivingsCount,
@@ -63,11 +68,6 @@ List<({IconData icon, String label, int count})> _summaryItems(
         icon: Icons.bookmark,
         label: 'backup.saved_verses'.tr(),
         count: summary.versesCount,
-      ),
-      (
-        icon: Icons.check_circle_outline,
-        label: 'prayer.answered_prayers'.tr(),
-        count: summary.answeredPrayersCount,
       ),
     ].where((e) => e.count > 0).toList();
 
