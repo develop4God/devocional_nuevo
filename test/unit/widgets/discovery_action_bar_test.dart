@@ -34,7 +34,7 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       registerTestServices();
 
-      prayerBloc = PrayerBloc();
+      prayerBloc = PrayerBloc(statsService: FakeSpiritualStatsService());
     });
 
     tearDown(() async {

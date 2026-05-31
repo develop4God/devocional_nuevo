@@ -11,6 +11,8 @@ import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_state.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 
+import '../../helpers/test_helpers.dart';
+
 void main() {
   group('PrayerBloc Critical Coverage Tests', () {
     late PrayerBloc prayerBloc;
@@ -39,7 +41,7 @@ void main() {
         },
       );
 
-      prayerBloc = PrayerBloc();
+      prayerBloc = PrayerBloc(statsService: FakeSpiritualStatsService());
     });
 
     tearDown(() {

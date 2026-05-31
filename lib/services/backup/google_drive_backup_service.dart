@@ -693,16 +693,6 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         final innerStats =
             (stats['stats'] as Map<String, dynamic>?) ?? <String, dynamic>{};
 
-        // Add answered prayers count from SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        final prayersJson = prefs.getString('prayers') ?? '[]';
-        final prayersList = json.decode(prayersJson) as List<dynamic>;
-        final answeredCount = prayersList.where((p) {
-          final prayer = p as Map<String, dynamic>;
-          return prayer['status'] == 'PrayerStatus.answered';
-        }).length;
-        innerStats['answeredPrayersCount'] = answeredCount;
-
         backupData[BackupKeys.spiritualStats] = innerStats;
         final readDevocionalIds =
             (innerStats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
