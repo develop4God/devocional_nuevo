@@ -222,11 +222,13 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
 
       // Read devotionals (from spiritualStats blob)
       int readDevocionalesCount = 0;
+      int answeredPrayersCount = 0;
       final statsJson = prefs.getString('spiritual_stats');
       if (statsJson != null) {
         final statsMap = json.decode(statsJson) as Map<String, dynamic>?;
         readDevocionalesCount =
             (statsMap?['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
+        answeredPrayersCount = statsMap?['answeredPrayersCount'] ?? 0;
       }
 
       debugPrint(
@@ -234,7 +236,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         'thanks:$thanksgivingsCount testimonies:$testimoniesCount '
         'favorites:$favoritesCount encounters:$encountersCount '
         'discovery:$discoveryCount verses:$versesCount '
-        'readDevocionales:$readDevocionalesCount',
+        'readDevocionales:$readDevocionalesCount '
+        'answeredPrayers:$answeredPrayersCount',
       );
 
       return BackupContentSummary(
@@ -246,6 +249,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         discoveryCount: discoveryCount,
         versesCount: versesCount,
         readDevocionalesCount: readDevocionalesCount,
+        answeredPrayersCount: answeredPrayersCount,
       );
     } catch (e) {
       debugPrint('[BACKUP] Error getting content summary: $e');
@@ -257,6 +261,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         encountersCount: 0,
         discoveryCount: 0,
         versesCount: 0,
+        answeredPrayersCount: 0,
       );
     }
   }
@@ -333,6 +338,20 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     }
   }
 
+  /// Helper method to parse DateTime from JSON string
+  DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is String && value.isNotEmpty) {
+      try {
+        return DateTime.parse(value);
+      } catch (e) {
+        debugPrint('[BACKUP] Error parsing date: $value. Error: $e');
+        return null;
+      }
+    }
+    return null;
+  }
+
   /// Merge local and remote backup payloads.
   /// Returns final merged payload ready for upload.
   Map<String, dynamic> _mergePayloads(
@@ -385,32 +404,77 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       favoritesCount: mergedFavs.length,
     );
 
-    // --- Prayers merge (union by id) ---
-    final mergedPrayers = {
-      for (final p in [
-        ...(local[BackupKeys.savedPrayers] as List<dynamic>?) ?? [],
-        ...(remote[BackupKeys.savedPrayers] as List<dynamic>?) ?? [],
-      ].whereType<Map<String, dynamic>>())
-        if (p.containsKey('id')) p['id'].toString(): p,
-    }.values.toList();
+    // --- Prayers merge (union by id, keeping newer version based on lastModifiedDate) ---
+    final prayersById = <String, Map<String, dynamic>>{};
+    for (final p in [
+      ...(remote[BackupKeys.savedPrayers] as List<dynamic>?) ?? [],
+      ...(local[BackupKeys.savedPrayers] as List<dynamic>?) ?? [],
+    ].whereType<Map<String, dynamic>>()) {
+      if (p.containsKey('id')) {
+        final id = p['id'].toString();
+        final existing = prayersById[id];
+        if (existing == null) {
+          prayersById[id] = p;
+        } else {
+          // Compare lastModifiedDate and keep newer version
+          final existingDate = _parseDateTime(existing['lastModifiedDate']);
+          final currentDate = _parseDateTime(p['lastModifiedDate']);
+          if (currentDate != null &&
+              (existingDate == null || currentDate.isAfter(existingDate))) {
+            prayersById[id] = p;
+          }
+        }
+      }
+    }
+    final mergedPrayers = prayersById.values.toList();
 
-    // --- Thanksgivings merge (union by id) ---
-    final mergedThanksgivings = {
-      for (final p in [
-        ...(local[BackupKeys.savedThanksgivings] as List<dynamic>?) ?? [],
-        ...(remote[BackupKeys.savedThanksgivings] as List<dynamic>?) ?? [],
-      ].whereType<Map<String, dynamic>>())
-        if (p.containsKey('id')) p['id'].toString(): p,
-    }.values.toList();
+    // --- Thanksgivings merge (union by id, keeping newer version based on lastModifiedDate) ---
+    final thanksgivingsById = <String, Map<String, dynamic>>{};
+    for (final p in [
+      ...(remote[BackupKeys.savedThanksgivings] as List<dynamic>?) ?? [],
+      ...(local[BackupKeys.savedThanksgivings] as List<dynamic>?) ?? [],
+    ].whereType<Map<String, dynamic>>()) {
+      if (p.containsKey('id')) {
+        final id = p['id'].toString();
+        final existing = thanksgivingsById[id];
+        if (existing == null) {
+          thanksgivingsById[id] = p;
+        } else {
+          // Compare lastModifiedDate and keep newer version
+          final existingDate = _parseDateTime(existing['lastModifiedDate']);
+          final currentDate = _parseDateTime(p['lastModifiedDate']);
+          if (currentDate != null &&
+              (existingDate == null || currentDate.isAfter(existingDate))) {
+            thanksgivingsById[id] = p;
+          }
+        }
+      }
+    }
+    final mergedThanksgivings = thanksgivingsById.values.toList();
 
-    // --- Testimonies merge (union by id) ---
-    final mergedTestimonies = {
-      for (final p in [
-        ...(local[BackupKeys.testimonies] as List<dynamic>?) ?? [],
-        ...(remote[BackupKeys.testimonies] as List<dynamic>?) ?? [],
-      ].whereType<Map<String, dynamic>>())
-        if (p.containsKey('id')) p['id'].toString(): p,
-    }.values.toList();
+    // --- Testimonies merge (union by id, keeping newer version based on lastModifiedDate) ---
+    final testimoniesById = <String, Map<String, dynamic>>{};
+    for (final p in [
+      ...(remote[BackupKeys.testimonies] as List<dynamic>?) ?? [],
+      ...(local[BackupKeys.testimonies] as List<dynamic>?) ?? [],
+    ].whereType<Map<String, dynamic>>()) {
+      if (p.containsKey('id')) {
+        final id = p['id'].toString();
+        final existing = testimoniesById[id];
+        if (existing == null) {
+          testimoniesById[id] = p;
+        } else {
+          // Compare lastModifiedDate and keep newer version
+          final existingDate = _parseDateTime(existing['lastModifiedDate']);
+          final currentDate = _parseDateTime(p['lastModifiedDate']);
+          if (currentDate != null &&
+              (existingDate == null || currentDate.isAfter(existingDate))) {
+            testimoniesById[id] = p;
+          }
+        }
+      }
+    }
+    final mergedTestimonies = testimoniesById.values.toList();
 
     // --- Completed encounters merge (union) ---
     final localEncounters =
@@ -628,6 +692,17 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         debugPrint('[BACKUP] 🔍 SPIRITUAL STATS: ${json.encode(stats)}');
         final innerStats =
             (stats['stats'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+
+        // Add answered prayers count from SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        final prayersJson = prefs.getString('prayers') ?? '[]';
+        final prayersList = json.decode(prayersJson) as List<dynamic>;
+        final answeredCount = prayersList.where((p) {
+          final prayer = p as Map<String, dynamic>;
+          return prayer['status'] == 'PrayerStatus.answered';
+        }).length;
+        innerStats['answeredPrayersCount'] = answeredCount;
+
         backupData[BackupKeys.spiritualStats] = innerStats;
         final readDevocionalIds =
             (innerStats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
@@ -644,6 +719,9 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         );
         debugPrint(
           '[BACKUP]   - Favorites count: ${innerStats['favoritesCount'] ?? 0}',
+        );
+        debugPrint(
+          '[BACKUP]   - Answered prayers count: ${innerStats['answeredPrayersCount'] ?? 0}',
         );
       } catch (e) {
         debugPrint('[BACKUP] ❌ Error getting spiritual stats: $e');
