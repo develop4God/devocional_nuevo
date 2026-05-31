@@ -385,6 +385,17 @@ class SpiritualStatsService implements ISpiritualStatsService {
     return updatedStats;
   }
 
+  /// Update answered prayers count in spiritual statistics
+  Future<SpiritualStats> updateAnsweredPrayersCount(
+      int answeredPrayersCount) async {
+    final stats = await getStats();
+    final updatedStats =
+        stats.copyWith(answeredPrayersCount: answeredPrayersCount);
+    await saveStats(updatedStats);
+    debugPrint('✅ [STATS] answeredPrayersCount updated: $answeredPrayersCount');
+    return updatedStats;
+  }
+
   Future<List<String>> _getReadDatesAsStrings() async {
     final readDates = await _getReadDates();
     return readDates

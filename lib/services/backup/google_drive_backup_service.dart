@@ -222,11 +222,13 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
 
       // Read devotionals (from spiritualStats blob)
       int readDevocionalesCount = 0;
+      int answeredPrayersCount = 0;
       final statsJson = prefs.getString('spiritual_stats');
       if (statsJson != null) {
         final statsMap = json.decode(statsJson) as Map<String, dynamic>?;
         readDevocionalesCount =
             (statsMap?['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
+        answeredPrayersCount = statsMap?['answeredPrayersCount'] ?? 0;
       }
 
       debugPrint(
@@ -234,7 +236,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         'thanks:$thanksgivingsCount testimonies:$testimoniesCount '
         'favorites:$favoritesCount encounters:$encountersCount '
         'discovery:$discoveryCount verses:$versesCount '
-        'readDevocionales:$readDevocionalesCount',
+        'readDevocionales:$readDevocionalesCount '
+        'answeredPrayers:$answeredPrayersCount',
       );
 
       return BackupContentSummary(
@@ -246,6 +249,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         discoveryCount: discoveryCount,
         versesCount: versesCount,
         readDevocionalesCount: readDevocionalesCount,
+        answeredPrayersCount: answeredPrayersCount,
       );
     } catch (e) {
       debugPrint('[BACKUP] Error getting content summary: $e');
@@ -257,6 +261,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         encountersCount: 0,
         discoveryCount: 0,
         versesCount: 0,
+        answeredPrayersCount: 0,
       );
     }
   }
@@ -628,6 +633,17 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         debugPrint('[BACKUP] 🔍 SPIRITUAL STATS: ${json.encode(stats)}');
         final innerStats =
             (stats['stats'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+
+        // Add answered prayers count from SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        final prayersJson = prefs.getString('prayers') ?? '[]';
+        final prayersList = json.decode(prayersJson) as List<dynamic>;
+        final answeredCount = prayersList.where((p) {
+          final prayer = p as Map<String, dynamic>;
+          return prayer['status'] == 'PrayerStatus.answered';
+        }).length;
+        innerStats['answeredPrayersCount'] = answeredCount;
+
         backupData[BackupKeys.spiritualStats] = innerStats;
         final readDevocionalIds =
             (innerStats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
@@ -644,6 +660,9 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         );
         debugPrint(
           '[BACKUP]   - Favorites count: ${innerStats['favoritesCount'] ?? 0}',
+        );
+        debugPrint(
+          '[BACKUP]   - Answered prayers count: ${innerStats['answeredPrayersCount'] ?? 0}',
         );
       } catch (e) {
         debugPrint('[BACKUP] ❌ Error getting spiritual stats: $e');
