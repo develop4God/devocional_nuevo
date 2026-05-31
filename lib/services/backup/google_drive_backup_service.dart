@@ -338,6 +338,20 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     }
   }
 
+  /// Helper method to parse DateTime from JSON string
+  DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is String && value.isNotEmpty) {
+      try {
+        return DateTime.parse(value);
+      } catch (e) {
+        debugPrint('[BACKUP] Error parsing date: $value. Error: $e');
+        return null;
+      }
+    }
+    return null;
+  }
+
   /// Merge local and remote backup payloads.
   /// Returns final merged payload ready for upload.
   Map<String, dynamic> _mergePayloads(
@@ -390,32 +404,77 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       favoritesCount: mergedFavs.length,
     );
 
-    // --- Prayers merge (union by id) ---
-    final mergedPrayers = {
-      for (final p in [
-        ...(local[BackupKeys.savedPrayers] as List<dynamic>?) ?? [],
-        ...(remote[BackupKeys.savedPrayers] as List<dynamic>?) ?? [],
-      ].whereType<Map<String, dynamic>>())
-        if (p.containsKey('id')) p['id'].toString(): p,
-    }.values.toList();
+    // --- Prayers merge (union by id, keeping newer version based on lastModifiedDate) ---
+    final prayersById = <String, Map<String, dynamic>>{};
+    for (final p in [
+      ...(remote[BackupKeys.savedPrayers] as List<dynamic>?) ?? [],
+      ...(local[BackupKeys.savedPrayers] as List<dynamic>?) ?? [],
+    ].whereType<Map<String, dynamic>>()) {
+      if (p.containsKey('id')) {
+        final id = p['id'].toString();
+        final existing = prayersById[id];
+        if (existing == null) {
+          prayersById[id] = p;
+        } else {
+          // Compare lastModifiedDate and keep newer version
+          final existingDate = _parseDateTime(existing['lastModifiedDate']);
+          final currentDate = _parseDateTime(p['lastModifiedDate']);
+          if (currentDate != null &&
+              (existingDate == null || currentDate.isAfter(existingDate))) {
+            prayersById[id] = p;
+          }
+        }
+      }
+    }
+    final mergedPrayers = prayersById.values.toList();
 
-    // --- Thanksgivings merge (union by id) ---
-    final mergedThanksgivings = {
-      for (final p in [
-        ...(local[BackupKeys.savedThanksgivings] as List<dynamic>?) ?? [],
-        ...(remote[BackupKeys.savedThanksgivings] as List<dynamic>?) ?? [],
-      ].whereType<Map<String, dynamic>>())
-        if (p.containsKey('id')) p['id'].toString(): p,
-    }.values.toList();
+    // --- Thanksgivings merge (union by id, keeping newer version based on lastModifiedDate) ---
+    final thanksgivingsById = <String, Map<String, dynamic>>{};
+    for (final p in [
+      ...(remote[BackupKeys.savedThanksgivings] as List<dynamic>?) ?? [],
+      ...(local[BackupKeys.savedThanksgivings] as List<dynamic>?) ?? [],
+    ].whereType<Map<String, dynamic>>()) {
+      if (p.containsKey('id')) {
+        final id = p['id'].toString();
+        final existing = thanksgivingsById[id];
+        if (existing == null) {
+          thanksgivingsById[id] = p;
+        } else {
+          // Compare lastModifiedDate and keep newer version
+          final existingDate = _parseDateTime(existing['lastModifiedDate']);
+          final currentDate = _parseDateTime(p['lastModifiedDate']);
+          if (currentDate != null &&
+              (existingDate == null || currentDate.isAfter(existingDate))) {
+            thanksgivingsById[id] = p;
+          }
+        }
+      }
+    }
+    final mergedThanksgivings = thanksgivingsById.values.toList();
 
-    // --- Testimonies merge (union by id) ---
-    final mergedTestimonies = {
-      for (final p in [
-        ...(local[BackupKeys.testimonies] as List<dynamic>?) ?? [],
-        ...(remote[BackupKeys.testimonies] as List<dynamic>?) ?? [],
-      ].whereType<Map<String, dynamic>>())
-        if (p.containsKey('id')) p['id'].toString(): p,
-    }.values.toList();
+    // --- Testimonies merge (union by id, keeping newer version based on lastModifiedDate) ---
+    final testimoniesById = <String, Map<String, dynamic>>{};
+    for (final p in [
+      ...(remote[BackupKeys.testimonies] as List<dynamic>?) ?? [],
+      ...(local[BackupKeys.testimonies] as List<dynamic>?) ?? [],
+    ].whereType<Map<String, dynamic>>()) {
+      if (p.containsKey('id')) {
+        final id = p['id'].toString();
+        final existing = testimoniesById[id];
+        if (existing == null) {
+          testimoniesById[id] = p;
+        } else {
+          // Compare lastModifiedDate and keep newer version
+          final existingDate = _parseDateTime(existing['lastModifiedDate']);
+          final currentDate = _parseDateTime(p['lastModifiedDate']);
+          if (currentDate != null &&
+              (existingDate == null || currentDate.isAfter(existingDate))) {
+            testimoniesById[id] = p;
+          }
+        }
+      }
+    }
+    final mergedTestimonies = testimoniesById.values.toList();
 
     // --- Completed encounters merge (union) ---
     final localEncounters =
