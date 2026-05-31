@@ -64,6 +64,11 @@ List<({IconData icon, String label, int count})> _summaryItems(
         label: 'backup.saved_verses'.tr(),
         count: summary.versesCount,
       ),
+      (
+        icon: Icons.check_circle_outline,
+        label: 'prayer.answered_prayers'.tr(),
+        count: summary.answeredPrayersCount,
+      ),
     ].where((e) => e.count > 0).toList();
 
 /// BackupSettingsPage with simplified progressive UI
