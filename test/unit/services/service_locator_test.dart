@@ -51,7 +51,7 @@ void main() {
 
       test('registerFactory creates new instance each time', () {
         ServiceLocator().registerFactory<VoiceSettingsService>(
-              () => VoiceSettingsService(),
+          () => VoiceSettingsService(),
         );
 
         final instance1 = getService<VoiceSettingsService>();
@@ -66,7 +66,7 @@ void main() {
       test('Accessing unregistered service throws StateError', () {
         // VoiceSettingsService not registered
         expect(
-              () => getService<VoiceSettingsService>(),
+          () => getService<VoiceSettingsService>(),
           throwsA(isA<StateError>()),
         );
       });
@@ -87,7 +87,7 @@ void main() {
 
       test('isRegistered returns true after registration', () {
         ServiceLocator().registerLazySingleton<VoiceSettingsService>(
-              () => VoiceSettingsService(),
+          () => VoiceSettingsService(),
         );
         expect(ServiceLocator().isRegistered<VoiceSettingsService>(), isTrue);
       });
@@ -108,7 +108,7 @@ void main() {
 
       test('reset clears all factories', () {
         ServiceLocator().registerFactory<VoiceSettingsService>(
-              () => VoiceSettingsService(),
+          () => VoiceSettingsService(),
         );
 
         expect(ServiceLocator().isRegistered<VoiceSettingsService>(), isTrue);
@@ -178,83 +178,83 @@ void main() {
 
     group('Service Locator - Interface Registrations', () {
       test('Service locator file imports and registers all required services',
-              () async {
-            // This test validates that the service locator has the proper
-            // registrations by checking the actual setupServiceLocator() code
+          () async {
+        // This test validates that the service locator has the proper
+        // registrations by checking the actual setupServiceLocator() code
 
-            // Read the service locator file
-            final serviceLocatorFile = File('lib/services/service_locator.dart');
-            final content = await serviceLocatorFile.readAsString();
+        // Read the service locator file
+        final serviceLocatorFile = File('lib/services/service_locator.dart');
+        final content = await serviceLocatorFile.readAsString();
 
-            // Verify all required service registrations exist
-            expect(
-              content.contains('registerLazySingleton<IGoogleDriveAuthService>'),
-              isTrue,
-              reason:
+        // Verify all required service registrations exist
+        expect(
+          content.contains('registerLazySingleton<IGoogleDriveAuthService>'),
+          isTrue,
+          reason:
               'IGoogleDriveAuthService should be registered in service locator',
-            );
+        );
 
-            expect(
-              content.contains('registerLazySingleton<IConnectivityService>'),
-              isTrue,
-              reason:
+        expect(
+          content.contains('registerLazySingleton<IConnectivityService>'),
+          isTrue,
+          reason:
               'IConnectivityService should be registered in service locator',
-            );
+        );
 
-            expect(
-              content.contains('registerSingleton<ISpiritualStatsService>') &&
-                  content
-                      .contains('registerSingleton<IDebugSpiritualStatsService>'),
-              isTrue,
-              reason:
+        expect(
+          content.contains('registerSingleton<ISpiritualStatsService>') &&
+              content
+                  .contains('registerSingleton<IDebugSpiritualStatsService>'),
+          isTrue,
+          reason:
               'ISpiritualStatsService and IDebugSpiritualStatsService should be registered in service locator',
-            );
+        );
 
-            expect(
-              content.contains('registerLazySingleton<IGoogleDriveBackupService>'),
-              isTrue,
-              reason:
+        expect(
+          content.contains('registerLazySingleton<IGoogleDriveBackupService>'),
+          isTrue,
+          reason:
               'IGoogleDriveBackupService should be registered in service locator',
-            );
+        );
 
-            expect(
-              content.contains('registerLazySingleton<SupporterPetService>'),
-              isTrue,
-              reason: 'SupporterPetService should be registered in service locator',
-            );
+        expect(
+          content.contains('registerLazySingleton<SupporterPetService>'),
+          isTrue,
+          reason: 'SupporterPetService should be registered in service locator',
+        );
 
-            // Verify proper DI - services get dependencies from locator
-            expect(
-              content.contains('locator.get<IGoogleDriveAuthService>()') ||
-                  content.contains('getService<IGoogleDriveAuthService>()'),
-              isTrue,
-              reason:
+        // Verify proper DI - services get dependencies from locator
+        expect(
+          content.contains('locator.get<IGoogleDriveAuthService>()') ||
+              content.contains('getService<IGoogleDriveAuthService>()'),
+          isTrue,
+          reason:
               'GoogleDriveBackupService should resolve IGoogleDriveAuthService via DI',
-            );
+        );
 
-            expect(
-              content.contains('locator.get<IConnectivityService>()') ||
-                  content.contains('getService<IConnectivityService>()'),
-              isTrue,
-              reason:
+        expect(
+          content.contains('locator.get<IConnectivityService>()') ||
+              content.contains('getService<IConnectivityService>()'),
+          isTrue,
+          reason:
               'GoogleDriveBackupService should resolve IConnectivityService via DI',
-            );
+        );
 
-            expect(
-              content.contains('locator.get<ISpiritualStatsService>()') ||
-                  content.contains('getService<ISpiritualStatsService>()'),
-              isTrue,
-              reason:
+        expect(
+          content.contains('locator.get<ISpiritualStatsService>()') ||
+              content.contains('getService<ISpiritualStatsService>()'),
+          isTrue,
+          reason:
               'GoogleDriveBackupService should resolve ISpiritualStatsService via DI',
-            );
+        );
 
-            expect(
-              content.contains('locator.get<SharedPreferences>()') ||
-                  content.contains('getService<SharedPreferences>()'),
-              isTrue,
-              reason: 'SupporterPetService should resolve SharedPreferences via DI',
-            );
-          });
+        expect(
+          content.contains('locator.get<SharedPreferences>()') ||
+              content.contains('getService<SharedPreferences>()'),
+          isTrue,
+          reason: 'SupporterPetService should resolve SharedPreferences via DI',
+        );
+      });
 
       test('Main.dart uses DI for BackupBloc', () async {
         // Read the main.dart file
@@ -266,7 +266,7 @@ void main() {
           content.contains('getService<IGoogleDriveBackupService>()'),
           isTrue,
           reason:
-          'BackupBloc should use getService for IGoogleDriveBackupService',
+              'BackupBloc should use getService for IGoogleDriveBackupService',
         );
 
         // Verify no inline instantiation of these services
@@ -274,28 +274,28 @@ void main() {
           content.contains('GoogleDriveBackupService('),
           isFalse,
           reason:
-          'Should not directly instantiate GoogleDriveBackupService in main.dart',
+              'Should not directly instantiate GoogleDriveBackupService in main.dart',
         );
 
         expect(
           content.contains('GoogleDriveAuthService('),
           isFalse,
           reason:
-          'Should not directly instantiate GoogleDriveAuthService in main.dart',
+              'Should not directly instantiate GoogleDriveAuthService in main.dart',
         );
 
         expect(
           content.contains('ConnectivityService('),
           isFalse,
           reason:
-          'Should not directly instantiate ConnectivityService in main.dart',
+              'Should not directly instantiate ConnectivityService in main.dart',
         );
 
         expect(
           content.contains('SpiritualStatsService('),
           isFalse,
           reason:
-          'Should not directly instantiate SpiritualStatsService in main.dart',
+              'Should not directly instantiate SpiritualStatsService in main.dart',
         );
       });
     });
