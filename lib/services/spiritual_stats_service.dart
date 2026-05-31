@@ -386,6 +386,7 @@ class SpiritualStatsService implements ISpiritualStatsService {
   }
 
   /// Update answered prayers count in spiritual statistics
+  @override
   Future<SpiritualStats> updateAnsweredPrayersCount(
       int answeredPrayersCount) async {
     final stats = await getStats();
