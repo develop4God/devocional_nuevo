@@ -485,9 +485,12 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: BlocProvider<EncounterBloc>.value(
-            value: mockBloc,
-            child: EncounterDetailPage(entry: entry, lang: 'en'),
+          home: ChangeNotifierProvider(
+            create: (_) => DevocionalProvider(),
+            child: BlocProvider<EncounterBloc>.value(
+              value: mockBloc,
+              child: EncounterDetailPage(entry: entry, lang: 'en'),
+            ),
           ),
         ),
       );
@@ -572,9 +575,12 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: BlocProvider<EncounterBloc>.value(
-            value: mockBloc,
-            child: EncounterDetailPage(entry: entry, lang: 'en'),
+          home: ChangeNotifierProvider(
+            create: (_) => DevocionalProvider(),
+            child: BlocProvider<EncounterBloc>.value(
+              value: mockBloc,
+              child: EncounterDetailPage(entry: entry, lang: 'en'),
+            ),
           ),
         ),
       );
@@ -742,9 +748,12 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: BlocProvider<EncounterBloc>.value(
-            value: mockBloc,
-            child: EncounterDetailPage(entry: entry, lang: 'en'),
+          home: ChangeNotifierProvider(
+            create: (_) => DevocionalProvider(),
+            child: BlocProvider<EncounterBloc>.value(
+              value: mockBloc,
+              child: EncounterDetailPage(entry: entry, lang: 'en'),
+            ),
           ),
         ),
       );
@@ -779,9 +788,12 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: BlocProvider<EncounterBloc>.value(
-            value: mockBloc,
-            child: EncounterDetailPage(entry: entry, lang: 'en'),
+          home: ChangeNotifierProvider(
+            create: (_) => DevocionalProvider(),
+            child: BlocProvider<EncounterBloc>.value(
+              value: mockBloc,
+              child: EncounterDetailPage(entry: entry, lang: 'en'),
+            ),
           ),
         ),
       );
@@ -822,9 +834,12 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: BlocProvider<EncounterBloc>.value(
-            value: mockBloc,
-            child: EncounterDetailPage(entry: entry, lang: 'en'),
+          home: ChangeNotifierProvider(
+            create: (_) => DevocionalProvider(),
+            child: BlocProvider<EncounterBloc>.value(
+              value: mockBloc,
+              child: EncounterDetailPage(entry: entry, lang: 'en'),
+            ),
           ),
         ),
       );
@@ -865,12 +880,15 @@ void main() {
       );
 
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: CompletionCard(
-              card: card,
-              bibleVersion: 'KJV',
-              language: 'en',
+        ChangeNotifierProvider(
+          create: (_) => DevocionalProvider(),
+          child: const MaterialApp(
+            home: Scaffold(
+              body: CompletionCard(
+                card: card,
+                bibleVersion: 'KJV',
+                language: 'en',
+              ),
             ),
           ),
         ),
