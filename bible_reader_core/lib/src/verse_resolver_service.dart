@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'bible_db_service.dart';
 import 'bible_reference_parser.dart';
 import 'bible_text_normalizer.dart';
@@ -20,20 +22,39 @@ class VerseResolverService implements IVerseResolverService {
           break;
         }
       }
-      if (match == null) return null;
+      if (match == null) {
+        debugPrint(
+            '📵 [VerseResolver] no DB match for versionCode: $versionCode');
+        return null;
+      }
 
       match.service ??= BibleDbService();
       await match.service!.initDb(match.assetPath, match.dbFileName);
 
-      final parsed = BibleReferenceParser.parse(reference);
-      if (parsed == null) return null;
+      final normalizedRef = reference.replaceAll(RegExp(r'-\d+$'), '');
+      debugPrint(
+          '🔍 [VerseResolver] reference: "$reference" → normalized: "$normalizedRef"');
+
+      final parsed = BibleReferenceParser.parse(normalizedRef);
+      if (parsed == null) {
+        debugPrint('❌ [VerseResolver] parse failed for ref: "$normalizedRef"');
+        return null;
+      }
       final verseNumber = parsed['verse'] as int?;
-      if (verseNumber == null) return null;
+      if (verseNumber == null) {
+        debugPrint(
+            '❌ [VerseResolver] no verse number in ref: "$normalizedRef"');
+        return null;
+      }
 
       final book = await match.service!.findBookByName(
         parsed['bookName'] as String,
       );
-      if (book == null) return null;
+      if (book == null) {
+        debugPrint(
+            '📕 [VerseResolver] book not found: "${parsed['bookName']}"');
+        return null;
+      }
 
       final row = await match.service!.getVerse(
         bookNumber: book['book_number'] as int,
@@ -41,6 +62,9 @@ class VerseResolverService implements IVerseResolverService {
         verse: verseNumber,
       );
       final raw = row?['text'] as String?;
+      debugPrint(raw != null
+          ? '✅ [VerseResolver] resolved "$reference" → "${raw.substring(0, raw.length.clamp(0, 40))}…"'
+          : '⚠️ [VerseResolver] verse row not found for "$normalizedRef"');
       return raw == null ? null : BibleTextNormalizer.clean(raw);
     } catch (_) {
       return null;
