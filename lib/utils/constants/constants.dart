@@ -67,8 +67,8 @@ class Constants {
 
   // Versiones de la Biblia disponibles por idioma
   static const Map<String, List<String>> bibleVersionsByLanguage = {
-    'es': ['RVR1960', 'NVI'],
-    'en': ['KJV', 'NIV'],
+    'es': ['RVR1960', 'NVI', 'NTV'],
+    'en': ['KJV', 'NIV', 'ESV'],
     'pt': ['ARC', 'NVI'],
     'fr': ['LSG1910', 'TOB'],
     'ja': ['新改訳2003', 'リビングバイブル'], // Japanese versions

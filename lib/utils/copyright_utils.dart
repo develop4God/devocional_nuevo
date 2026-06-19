@@ -24,6 +24,12 @@ class CopyrightUtils {
             'El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
         'NVI':
             'El texto bíblico Nueva Versión Internacional® © 1999 Biblica, Inc. Todos los derechos reservados.',
+        'NTV':
+            'El texto bíblico Nueva Traducción Viviente® © 2010 Tyndale House Foundation. Todos los derechos reservados.',
+        'NTV_es.SQLite3':
+            'El texto bíblico Nueva Traducción Viviente® © 2010 Tyndale House Foundation. Todos los derechos reservados.',
+        'Nueva Traducción Viviente (NTV)':
+            'El texto bíblico Nueva Traducción Viviente® © 2010 Tyndale House Foundation. Todos los derechos reservados.',
         'default':
             'El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
       },
@@ -31,6 +37,12 @@ class CopyrightUtils {
         'KJV': 'The biblical text King James Version® Public Domain.',
         'NIV':
             'The biblical text New International Version® © 2011 Biblica, Inc. All rights reserved.',
+        'ESV':
+            'The Holy Bible, English Standard Version® © 2001, 2007, 2011 Crossway, a publishing ministry of Good News Publishers. All rights reserved.',
+        'ESV_en.SQLite3':
+            'The Holy Bible, English Standard Version® © 2001, 2007, 2011 Crossway, a publishing ministry of Good News Publishers. All rights reserved.',
+        'English Standard Version (ESV)':
+            'The Holy Bible, English Standard Version® © 2001, 2007, 2011 Crossway, a publishing ministry of Good News Publishers. All rights reserved.',
         'default': 'The biblical text King James Version® Public Domain.',
       },
       'pt': {
