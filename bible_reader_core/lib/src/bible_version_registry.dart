@@ -24,10 +24,12 @@ class BibleVersionRegistry {
     'es': [
       {'name': 'Reina Valera 1960 (RVR1960)', 'dbFile': 'RVR1960_es.SQLite3'},
       {'name': 'Nueva Versión Internacional (NVI)', 'dbFile': 'NVI_es.SQLite3'},
+      {'name': 'Nueva Traducción Viviente (NTV)', 'dbFile': 'NTV_es.SQLite3'},
     ],
     'en': [
       {'name': 'King James Version (KJV)', 'dbFile': 'KJV_en.SQLite3'},
       {'name': 'New International Version (NIV)', 'dbFile': 'NIV_en.SQLite3'},
+      {'name': 'English Standard Version (ESV)', 'dbFile': 'ESV_en.SQLite3'},
     ],
     'pt': [
       {'name': 'Almeida Revista e Corrigida (ARC)', 'dbFile': 'ARC_pt.SQLite3'},
