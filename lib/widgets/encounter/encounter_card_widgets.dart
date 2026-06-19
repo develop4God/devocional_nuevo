@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
+import 'package:devocional_nuevo/widgets/encounter/resolved_verse_text.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -481,8 +482,9 @@ class ScriptureMomentCard extends StatelessWidget {
                 const SizedBox(height: 24),
                 _DelayedEntry(
                   delay: const Duration(milliseconds: 400),
-                  child: Text(
-                    card.verseText!,
+                  child: ResolvedVerseText(
+                    reference: card.verseReference ?? '',
+                    fallbackText: card.verseText!,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
@@ -828,8 +830,10 @@ class _CompletionCardState extends State<CompletionCard> {
                 const SizedBox(height: 24),
                 _DelayedEntry(
                   delay: const Duration(milliseconds: 500),
-                  child: Text(
-                    '"${widget.card.completionVerse!.text}"',
+                  child: ResolvedVerseText(
+                    reference: widget.card.completionVerse!.reference,
+                    fallbackText: widget.card.completionVerse!.text,
+                    quoted: true,
                     style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 16,
@@ -1046,8 +1050,10 @@ class _ModernVerseOverlay extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '"${overlay.text}"',
+          ResolvedVerseText(
+            reference: overlay.reference,
+            fallbackText: overlay.text,
+            quoted: true,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
@@ -1096,8 +1102,9 @@ class _ConnectionTile extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              sc.text,
+            ResolvedVerseText(
+              reference: sc.reference,
+              fallbackText: sc.text,
               style: const TextStyle(
                 color: Colors.white70,
                 fontSize: 13,
