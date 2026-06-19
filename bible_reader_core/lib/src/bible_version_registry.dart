@@ -29,6 +29,7 @@ class BibleVersionRegistry {
     'en': [
       {'name': 'King James Version (KJV)', 'dbFile': 'KJV_en.SQLite3'},
       {'name': 'New International Version (NIV)', 'dbFile': 'NIV_en.SQLite3'},
+      {'name': 'English Standard Version (ESV)', 'dbFile': 'ESV_en.SQLite3'},
     ],
     'pt': [
       {'name': 'Almeida Revista e Corrigida (ARC)', 'dbFile': 'ARC_pt.SQLite3'},

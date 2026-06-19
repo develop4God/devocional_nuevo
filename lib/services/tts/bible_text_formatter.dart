@@ -288,6 +288,7 @@ class BibleTextFormatter {
         return {
           'KJV': 'King James Version',
           'NIV': 'New International Version',
+          'ESV': 'English Standard Version',
         };
       case 'pt':
         return {
