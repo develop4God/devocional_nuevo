@@ -24,6 +24,12 @@ class CopyrightUtils {
             'El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
         'NVI':
             'El texto bíblico Nueva Versión Internacional® © 1999 Biblica, Inc. Todos los derechos reservados.',
+        'NTV':
+            'El texto bíblico Nueva Traducción Viviente® © 2010 Tyndale House Foundation. Todos los derechos reservados.',
+        'NTV_es.SQLite3':
+            'El texto bíblico Nueva Traducción Viviente® © 2010 Tyndale House Foundation. Todos los derechos reservados.',
+        'Nueva Traducción Viviente (NTV)':
+            'El texto bíblico Nueva Traducción Viviente® © 2010 Tyndale House Foundation. Todos los derechos reservados.',
         'default':
             'El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
       },
