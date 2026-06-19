@@ -81,7 +81,8 @@ class _TestableVerseResolver extends VerseResolverService {
         chapter: parsed['chapter'] as int,
         verse: verseNumber,
       );
-      return row?['text'] as String?;
+      final raw = row?['text'] as String?;
+      return raw == null ? null : BibleTextNormalizer.clean(raw);
     } catch (_) {
       return null;
     }

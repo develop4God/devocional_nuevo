@@ -1,5 +1,6 @@
 import 'bible_db_service.dart';
 import 'bible_reference_parser.dart';
+import 'bible_text_normalizer.dart';
 import 'bible_version.dart';
 import 'bible_version_registry.dart';
 import 'i_verse_resolver_service.dart';
@@ -39,7 +40,8 @@ class VerseResolverService implements IVerseResolverService {
         chapter: parsed['chapter'] as int,
         verse: verseNumber,
       );
-      return row?['text'] as String?;
+      final raw = row?['text'] as String?;
+      return raw == null ? null : BibleTextNormalizer.clean(raw);
     } catch (_) {
       return null;
     }
