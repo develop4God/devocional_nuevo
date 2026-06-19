@@ -9,6 +9,7 @@ library;
 //  3. coming_soon tile does not navigate on tap
 //  4. Progress bar renders one segment per card
 
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
@@ -233,6 +234,15 @@ class _TestAnalyticsService extends AnalyticsService {
 
 // ─── NavigatorObserver to detect pushes ──────────────────────────────────────
 
+class _FakeVerseResolverService implements IVerseResolverService {
+  @override
+  Future<String?> resolveVerseText({
+    required String reference,
+    required String versionCode,
+  }) async =>
+      null;
+}
+
 class _NavObserver extends NavigatorObserver {
   final pushes = <String>[];
 
@@ -324,6 +334,12 @@ void main() {
       locator.unregister<AnalyticsService>();
     }
     locator.registerSingleton<AnalyticsService>(_TestAnalyticsService());
+    if (locator.isRegistered<IVerseResolverService>()) {
+      locator.unregister<IVerseResolverService>();
+    }
+    locator.registerSingleton<IVerseResolverService>(
+      _FakeVerseResolverService(),
+    );
   });
 
   setUp(() async {
@@ -366,46 +382,49 @@ void main() {
   testWidgets('CompletionCard back button calls onBackToEncounters', (
     tester,
   ) async {
-    var called = false;
-    const card = EncounterCard(
-      order: 1,
-      type: 'completion',
-      title: 'Well Done',
-      completionVerse: EncounterCompletionVerse(
-        reference: 'Matt 14:33',
-        text: 'Truly you are the Son of God.',
-        bibleVersion: 'KJV',
-      ),
-    );
+    await tester.runAsync(() async {
+      var called = false;
+      const card = EncounterCard(
+        order: 1,
+        type: 'completion',
+        title: 'Well Done',
+        completionVerse: EncounterCompletionVerse(
+          reference: 'Matt 14:33',
+          text: 'Truly you are the Son of God.',
+          bibleVersion: 'KJV',
+        ),
+      );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: CompletionCard(
-            card: card,
-            onBackToEncounters: () => called = true,
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => DevocionalProvider(),
+          child: MaterialApp(
+            home: Scaffold(
+              body: CompletionCard(
+                card: card,
+                onBackToEncounters: () => called = true,
+              ),
+            ),
           ),
         ),
-      ),
-    );
-    // Wait for animations: button has 600ms delay + 600ms animation
-    for (var i = 0; i < 12; i++) {
-      await tester.pump(const Duration(milliseconds: 200));
-    }
+      );
+      await tester.pump();
 
-    // Find button - now it's ElevatedButton.icon, but we can find by predicate
-    final buttonFinder = find.byWidgetPredicate(
-      (widget) => widget is ElevatedButton,
-    );
-    expect(buttonFinder, findsOneWidget);
+      // Find button
+      final buttonFinder = find.byWidgetPredicate(
+        (widget) => widget is ElevatedButton,
+      );
+      expect(buttonFinder, findsOneWidget);
 
-    await tester.tap(buttonFinder);
-    await tester.pump();
+      await tester.tap(buttonFinder);
+      await tester.pump();
 
-    // Wait for the delayed callback (500ms)
-    await tester.pump(const Duration(milliseconds: 600));
+      // Wait for the delayed callback (500ms) using real time in runAsync
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      await tester.pump();
 
-    expect(called, isTrue);
+      expect(called, isTrue);
+    });
   });
 
   // ── Test 3: coming_soon tile does not navigate on tap ───────────────────────
@@ -511,28 +530,32 @@ void main() {
   // ── Test 6: CompletionCard shows bible version disclaimer ────────────────────
 
   testWidgets('CompletionCard shows bible version disclaimer', (tester) async {
-    const card = EncounterCard(
-      order: 11,
-      type: 'completion',
-      title: 'You Walked the Water',
-      completionVerse: EncounterCompletionVerse(
-        reference: 'Matthew 14:33',
-        text: 'Truly you are the Son of God.',
-        bibleVersion: 'KJV',
-      ),
-    );
+    await tester.runAsync(() async {
+      const card = EncounterCard(
+        order: 11,
+        type: 'completion',
+        title: 'You Walked the Water',
+        completionVerse: EncounterCompletionVerse(
+          reference: 'Matthew 14:33',
+          text: 'Truly you are the Son of God.',
+          bibleVersion: 'KJV',
+        ),
+      );
 
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(body: CompletionCard(card: card)),
-      ),
-    );
-    // Wait for animations: 600ms delay + 600ms duration
-    await tester.pump(const Duration(milliseconds: 1300));
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => DevocionalProvider(),
+          child: const MaterialApp(
+            home: Scaffold(body: CompletionCard(card: card)),
+          ),
+        ),
+      );
+      await tester.pump();
 
-    expect(find.text('KJV'), findsOneWidget);
-    expect(find.text('"Truly you are the Son of God."'), findsOneWidget);
-    expect(find.text('— Matthew 14:33'), findsOneWidget);
+      expect(find.text('KJV'), findsOneWidget);
+      expect(find.text('"Truly you are the Son of God."'), findsOneWidget);
+      expect(find.text('— Matthew 14:33'), findsOneWidget);
+    });
   });
 
   // ── Test 7: EncounterDetailPage shows retry when study cannot be loaded ──────
