@@ -627,8 +627,6 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         await driveApi.files.create(createFile, uploadMedia: media);
       }
 
-
-
       await _settingsService.setLastBackupTime(DateTime.now());
       debugPrint(
         '✅ Merged backup uploaded — local IDs: '
