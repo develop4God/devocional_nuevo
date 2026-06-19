@@ -282,11 +282,13 @@ class BibleTextFormatter {
         return {
           'RVR1960': 'Reina Valera mil novecientos sesenta',
           'NVI': 'Nueva Versión Internacional',
+          'NTV': 'Nueva Traducción Viviente',
         };
       case 'en':
         return {
           'KJV': 'King James Version',
           'NIV': 'New International Version',
+          'ESV': 'English Standard Version',
         };
       case 'pt':
         return {
