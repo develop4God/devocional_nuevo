@@ -66,7 +66,9 @@ class VerseResolverService implements IVerseResolverService {
           ? '✅ [VerseResolver] resolved "$reference" → "${raw.substring(0, raw.length.clamp(0, 40))}…"'
           : '⚠️ [VerseResolver] verse row not found for "$normalizedRef"');
       return raw == null ? null : BibleTextNormalizer.clean(raw);
-    } catch (_) {
+    } catch (e, stack) {
+      debugPrint('💥 [VerseResolver] exception: $e');
+      debugPrint('💥 [VerseResolver] stack: $stack');
       return null;
     }
   }
