@@ -24,6 +24,7 @@ class BibleVersionRegistry {
     'es': [
       {'name': 'Reina Valera 1960 (RVR1960)', 'dbFile': 'RVR1960_es.SQLite3'},
       {'name': 'Nueva Versión Internacional (NVI)', 'dbFile': 'NVI_es.SQLite3'},
+      {'name': 'Nueva Traducción Viviente (NTV)', 'dbFile': 'NTV_es.SQLite3'},
     ],
     'en': [
       {'name': 'King James Version (KJV)', 'dbFile': 'KJV_en.SQLite3'},
