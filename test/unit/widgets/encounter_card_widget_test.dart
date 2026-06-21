@@ -549,11 +549,13 @@ void main() {
         ChangeNotifierProvider(
           create: (_) => DevocionalProvider(),
           child: const MaterialApp(
-            home: Scaffold(body: CompletionCard(card: card)),
+            home: Scaffold(
+              body: CompletionCard(card: card, bibleVersion: 'KJV'),
+            ),
           ),
         ),
       );
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1400));
 
       expect(find.text('KJV'), findsOneWidget);
       expect(find.text('"Truly you are the Son of God."'), findsOneWidget);
