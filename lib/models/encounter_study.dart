@@ -1,5 +1,6 @@
 // lib/models/encounter_study.dart
 
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 
 /// Model for an individual encounter study JSON file.
@@ -12,7 +13,7 @@ class EncounterStudy {
   final String? version;
   final int? estimatedReadingMinutes;
   final Map<String, dynamic>? meta;
-  final EncounterKeyVerse? keyVerse;
+  final VerseRef? keyVerse;
   final List<EncounterCard> cards;
 
   const EncounterStudy({
@@ -46,7 +47,7 @@ class EncounterStudy {
       estimatedReadingMinutes: json['estimated_reading_minutes'] as int?,
       meta: json['meta'] as Map<String, dynamic>?,
       keyVerse: json['key_verse'] != null
-          ? EncounterKeyVerse.fromJson(
+          ? VerseRef.fromJson(
               json['key_verse'] as Map<String, dynamic>,
             )
           : null,

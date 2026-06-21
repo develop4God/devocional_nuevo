@@ -9,3 +9,6 @@ export 'src/bible_text_normalizer.dart';
 export 'src/bible_verse_formatter.dart';
 export 'src/bible_version.dart';
 export 'src/bible_version_registry.dart';
+export 'src/i_verse_resolver_service.dart';
+export 'src/verse_ref.dart';
+export 'src/verse_resolver_service.dart';
