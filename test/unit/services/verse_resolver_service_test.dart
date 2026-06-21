@@ -18,6 +18,9 @@ class _FakeBibleDbService extends BibleDbService {
   bool initDbCalled = false;
   bool shouldThrowOnInit = false;
 
+  // For range tests: map verse number to specific response
+  Map<int, Map<String, dynamic>?>? versesByNumber;
+
   @override
   Future<void> initDb(String dbAssetPath, String dbName) async {
     initDbCalled = true;
@@ -35,6 +38,9 @@ class _FakeBibleDbService extends BibleDbService {
     required int chapter,
     required int verse,
   }) async {
+    if (versesByNumber != null) {
+      return versesByNumber![verse];
+    }
     return verseResult;
   }
 }
@@ -66,7 +72,12 @@ class _TestableVerseResolver extends VerseResolverService {
       match.service ??= BibleDbService();
       await match.service!.initDb(match.assetPath, match.dbFileName);
 
-      final parsed = BibleReferenceParser.parse(reference);
+      final rangeMatch = RegExp(r'^(.*\d+:\d+)-(\d+)$').firstMatch(reference);
+      final normalizedRef = rangeMatch?.group(1) ?? reference;
+      final endVerseOverride =
+          rangeMatch != null ? int.tryParse(rangeMatch.group(2)!) : null;
+
+      final parsed = BibleReferenceParser.parse(normalizedRef);
       if (parsed == null) return null;
       final verseNumber = parsed['verse'] as int?;
       if (verseNumber == null) return null;
@@ -76,13 +87,21 @@ class _TestableVerseResolver extends VerseResolverService {
       );
       if (book == null) return null;
 
-      final row = await match.service!.getVerse(
-        bookNumber: book['book_number'] as int,
-        chapter: parsed['chapter'] as int,
-        verse: verseNumber,
-      );
-      final raw = row?['text'] as String?;
-      return raw == null ? null : BibleTextNormalizer.clean(raw);
+      final endVerse = endVerseOverride ?? verseNumber;
+      final texts = <String>[];
+      for (var v = verseNumber; v <= endVerse; v++) {
+        final row = await match.service!.getVerse(
+          bookNumber: book['book_number'] as int,
+          chapter: parsed['chapter'] as int,
+          verse: v,
+        );
+        final text = row?['text'] as String?;
+        if (text == null) {
+          return null;
+        }
+        texts.add(BibleTextNormalizer.clean(text));
+      }
+      return texts.join(' ');
     } catch (_) {
       return null;
     }
@@ -416,6 +435,104 @@ void main() {
         versionCode: 'RVR1960',
       );
       expect(result, contains('Porque de tal manera amó Dios'));
+    });
+
+    test('resolver handles verse range with multiple consecutive verses',
+        () async {
+      final fakeDb = _FakeBibleDbService()
+        ..bookResult = {
+          'book_number': 1,
+          'long_name': 'Genesis',
+          'short_name': 'Gen',
+        }
+        ..versesByNumber = {
+          1: {
+            'text': 'In the beginning God created the heavens and the earth.'
+          },
+          2: {
+            'text':
+                'Now the earth was formless and empty, darkness was over the surface of the deep.'
+          },
+          3: {
+            'text': 'And God said, "Let there be light: and there was light.'
+          },
+        };
+
+      final resolver = _TestableVerseResolver([
+        _makeVersion(code: 'KJV', service: fakeDb),
+      ]);
+      final result = await resolver.resolveVerseText(
+        reference: 'Genesis 1:1-3',
+        versionCode: 'KJV',
+      );
+      expect(result,
+          'In the beginning God created the heavens and the earth. Now the earth was formless and empty, darkness was over the surface of the deep. And God said, "Let there be light: and there was light.');
+    });
+
+    test('resolver returns null when any verse in range is missing', () async {
+      final fakeDb = _FakeBibleDbService()
+        ..bookResult = {
+          'book_number': 43,
+          'long_name': 'John',
+          'short_name': 'Jn',
+        }
+        ..versesByNumber = {
+          16: {'text': 'For God so loved the world...'},
+          // verse 17 is intentionally missing
+          18: {'text': 'Whoever believes in him is not condemned...'},
+        };
+
+      final resolver = _TestableVerseResolver([
+        _makeVersion(code: 'KJV', service: fakeDb),
+      ]);
+      final result = await resolver.resolveVerseText(
+        reference: 'John 3:16-18',
+        versionCode: 'KJV',
+      );
+      expect(result, isNull);
+    });
+
+    test('resolver handles single verse (no range) as before', () async {
+      final fakeDb = _FakeBibleDbService()
+        ..bookResult = {
+          'book_number': 43,
+          'long_name': 'John',
+          'short_name': 'Jn',
+        }
+        ..verseResult = {
+          'text': 'For God so loved the world...',
+        };
+
+      final resolver = _TestableVerseResolver([
+        _makeVersion(code: 'KJV', service: fakeDb),
+      ]);
+      final result = await resolver.resolveVerseText(
+        reference: 'John 3:16',
+        versionCode: 'KJV',
+      );
+      expect(result, 'For God so loved the world...');
+    });
+
+    test('resolver ignores hyphen not in range format (e.g., "John-3:16")',
+        () async {
+      final fakeDb = _FakeBibleDbService()
+        ..bookResult = {
+          'book_number': 43,
+          'long_name': 'John',
+          'short_name': 'Jn',
+        }
+        ..verseResult = {
+          'text': 'Test verse',
+        };
+
+      final resolver = _TestableVerseResolver([
+        _makeVersion(code: 'KJV', service: fakeDb),
+      ]);
+      final result = await resolver.resolveVerseText(
+        reference: 'John-3:16',
+        versionCode: 'KJV',
+      );
+      expect(result, isNull);
     });
 
     test('resolver never throws for any registered version code', () async {
