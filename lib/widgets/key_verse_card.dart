@@ -1,7 +1,8 @@
 // lib/widgets/key_verse_card.dart
 
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/models/discovery_card_model.dart';
+import 'package:devocional_nuevo/widgets/scripture/resolved_verse_text.dart';
 import 'package:flutter/material.dart';
 
 /// A beautiful, modern card widget for displaying the key verse of a discovery study.
@@ -9,7 +10,7 @@ import 'package:flutter/material.dart';
 /// Designed with a premium aesthetic featuring subtle gradients, glassmorphism
 /// elements, and centered typography for a more impactful reading experience.
 class KeyVerseCard extends StatelessWidget {
-  final KeyVerse keyVerse;
+  final VerseRef keyVerse;
   final String? version;
   final EdgeInsetsGeometry? margin;
 
@@ -127,8 +128,10 @@ class KeyVerseCard extends StatelessWidget {
                   const SizedBox(height: 36),
 
                   // Verse Text
-                  Text(
-                    '"${keyVerse.text}"',
+                  ResolvedVerseText(
+                    reference: keyVerse.reference,
+                    fallbackText: keyVerse.text,
+                    quoted: true,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,

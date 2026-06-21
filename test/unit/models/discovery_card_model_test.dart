@@ -1,6 +1,7 @@
 @Tags(['unit', 'models'])
 library;
 
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -196,21 +197,21 @@ void main() {
     });
   });
 
-  group('KeyVerse Model Tests', () {
-    test('should create KeyVerse from JSON', () {
+  group('VerseRef Model Tests', () {
+    test('should create VerseRef from JSON', () {
       final json = {
         'reference': '2 Pedro 1:19',
         'text': 'Tenemos también la palabra profética más segura',
       };
 
-      final keyVerse = KeyVerse.fromJson(json);
+      final keyVerse = VerseRef.fromJson(json);
 
       expect(keyVerse.reference, equals('2 Pedro 1:19'));
       expect(keyVerse.text, contains('palabra profética'));
     });
 
-    test('should serialize KeyVerse to JSON', () {
-      final keyVerse = KeyVerse(
+    test('should serialize VerseRef to JSON', () {
+      final keyVerse = VerseRef(
         reference: 'Juan 1:1',
         text: 'En el principio era el Verbo',
       );
@@ -223,13 +224,13 @@ void main() {
   });
 
   group('Supporting Models Tests', () {
-    test('ScriptureConnection should serialize and deserialize', () {
+    test('VerseRef should serialize and deserialize', () {
       final json = {
         'reference': 'Génesis 1:1',
         'text': 'En el principio creó Dios',
       };
 
-      final connection = ScriptureConnection.fromJson(json);
+      final connection = VerseRef.fromJson(json);
       final serialized = connection.toJson();
 
       expect(connection.reference, equals('Génesis 1:1'));

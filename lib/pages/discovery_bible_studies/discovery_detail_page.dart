@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
@@ -13,6 +14,7 @@ import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/discovery_section_card.dart';
 import 'package:devocional_nuevo/widgets/key_verse_card.dart';
+import 'package:devocional_nuevo/widgets/scripture/resolved_verse_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -711,7 +713,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  Widget _buildScriptureTile(ScriptureConnection s, ThemeData theme) {
+  Widget _buildScriptureTile(VerseRef s, ThemeData theme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
@@ -733,7 +735,11 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(s.text, style: const TextStyle(height: 1.5)),
+          ResolvedVerseText(
+            reference: s.reference,
+            fallbackText: s.text,
+            style: const TextStyle(height: 1.5),
+          ),
         ],
       ),
     );

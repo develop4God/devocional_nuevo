@@ -1,5 +1,7 @@
 // lib/models/discovery_card_model.dart
 
+import 'package:bible_reader_core/bible_reader_core.dart';
+
 /// Modelo de datos para una tarjeta de estudio Discovery.
 ///
 /// Las tarjetas pueden ser de varios tipos:
@@ -18,7 +20,7 @@ class DiscoveryCard {
   final String? revelationKey;
 
   // For type: historical_thread
-  final List<ScriptureConnection>? scriptureConnections;
+  final List<VerseRef>? scriptureConnections;
 
   // For type: greek_exegesis
   final List<GreekWord>? greekWords;
@@ -58,7 +60,7 @@ class DiscoveryCard {
       content: json['content'] as String?,
       revelationKey: json['revelation_key'] as String?,
       scriptureConnections: (json['scripture_connections'] as List<dynamic>?)
-          ?.map((e) => ScriptureConnection.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => VerseRef.fromJson(e as Map<String, dynamic>))
           .toList(),
       greekWords: (json['greek_words'] as List<dynamic>?)
           ?.map((e) => GreekWord.fromJson(e as Map<String, dynamic>))
@@ -97,25 +99,6 @@ class DiscoveryCard {
           discoveryQuestions?.map((e) => e.toJson()).toList(),
       'prayer': prayer?.toJson(),
     };
-  }
-}
-
-/// Modelo de datos para una conexión bíblica.
-class ScriptureConnection {
-  final String reference;
-  final String text;
-
-  ScriptureConnection({required this.reference, required this.text});
-
-  factory ScriptureConnection.fromJson(Map<String, dynamic> json) {
-    return ScriptureConnection(
-      reference: json['reference'] as String? ?? '',
-      text: json['text'] as String? ?? '',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'reference': reference, 'text': text};
   }
 }
 
@@ -218,24 +201,5 @@ class Prayer {
 
   Map<String, dynamic> toJson() {
     return {'title': title, 'content': content};
-  }
-}
-
-/// Modelo de datos para el versículo clave.
-class KeyVerse {
-  final String reference;
-  final String text;
-
-  KeyVerse({required this.reference, required this.text});
-
-  factory KeyVerse.fromJson(Map<String, dynamic> json) {
-    return KeyVerse(
-      reference: json['reference'] as String? ?? '',
-      text: json['text'] as String? ?? '',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'reference': reference, 'text': text};
   }
 }
