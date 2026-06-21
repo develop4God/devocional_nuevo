@@ -855,18 +855,27 @@ class _CompletionCardState extends State<CompletionCard> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                if (widget.card.completionVerse!.bibleVersion != null) ...[
+                if (widget.bibleVersion != null) ...[
                   const SizedBox(height: 4),
                   _DelayedEntry(
                     delay: const Duration(milliseconds: 600),
-                    child: Text(
-                      widget.card.completionVerse!.bibleVersion!,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.4),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
+                    child: Builder(
+                      builder: (context) {
+                        debugPrint(
+                          '🏷️ [CompletionCard] version label → JSON authored: '
+                          '"${widget.card.completionVerse!.bibleVersion ?? 'n/a'}", '
+                          'live selectedVersion: "${widget.bibleVersion}"',
+                        );
+                        return Text(
+                          widget.bibleVersion!,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                        );
+                      },
                     ),
                   ),
                 ],
