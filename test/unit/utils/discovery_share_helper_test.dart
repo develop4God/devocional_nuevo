@@ -3,6 +3,7 @@ library;
 
 // test/unit/utils/discovery_share_helper_test.dart
 
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/utils/discovery_share_helper.dart';
@@ -24,7 +25,7 @@ void main() {
         // Add emoji for the study
         subtitle: 'Cristo: Nuestra Esperanza Radiante',
         estimatedReadingMinutes: 15,
-        keyVerse: KeyVerse(
+        keyVerse: VerseRef(
           reference: '2 Pedro 1:19',
           text:
               'Tenemos también la palabra profética más segura, a la cual hacéis bien en estar atentos como a una antorcha que alumbra en lugar oscuro...',

@@ -1003,6 +1003,64 @@ void main() {
         );
       },
     );
+    test(
+      'VerseResolverService does not use static singleton antipattern',
+      () async {
+        final file = File(
+          'bible_reader_core/lib/src/verse_resolver_service.dart',
+        );
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('static VerseResolverService? _instance'),
+          isFalse,
+          reason: 'VerseResolverService should not have static _instance field',
+        );
+
+        expect(
+          content.contains('static VerseResolverService get instance'),
+          isFalse,
+          reason: 'VerseResolverService should not have static instance getter',
+        );
+      },
+    );
+
+    test(
+      'VerseResolverService implements IVerseResolverService',
+      () async {
+        final file = File(
+          'bible_reader_core/lib/src/verse_resolver_service.dart',
+        );
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains(
+            'class VerseResolverService implements IVerseResolverService',
+          ),
+          isTrue,
+          reason:
+              'VerseResolverService must implement IVerseResolverService interface',
+        );
+      },
+    );
+
+    test(
+      'VerseResolverService is registered under interface in service_locator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('registerLazySingleton<IVerseResolverService>'),
+          isTrue,
+          reason:
+              'VerseResolverService must be registered under IVerseResolverService interface',
+        );
+      },
+    );
   });
 }
 
