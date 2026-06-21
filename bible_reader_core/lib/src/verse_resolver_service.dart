@@ -8,13 +8,20 @@ import 'bible_version_registry.dart';
 import 'i_verse_resolver_service.dart';
 
 class VerseResolverService implements IVerseResolverService {
+  VerseResolverService({
+    Future<List<BibleVersion>> Function()? versionProvider,
+  }) : _versionProvider =
+            versionProvider ?? BibleVersionRegistry.getAllVersions;
+
+  final Future<List<BibleVersion>> Function() _versionProvider;
+
   @override
   Future<String?> resolveVerseText({
     required String reference,
     required String versionCode,
   }) async {
     try {
-      final allVersions = await BibleVersionRegistry.getAllVersions();
+      final allVersions = await _versionProvider();
       BibleVersion? match;
       for (final v in allVersions) {
         if (v.dbFileName.startsWith(versionCode)) {
@@ -36,7 +43,8 @@ class VerseResolverService implements IVerseResolverService {
       final endVerseOverride =
           rangeMatch != null ? int.tryParse(rangeMatch.group(2)!) : null;
       debugPrint(
-          '🔍 [VerseResolver] reference: "$reference" → normalized: "$normalizedRef"');
+          '🔍 [VerseResolver] reference: "$reference" → normalized: "$normalizedRef"'
+          '${endVerseOverride != null ? " (range to $endVerseOverride)" : ""}');
 
       final parsed = BibleReferenceParser.parse(normalizedRef);
       if (parsed == null) {
