@@ -1,5 +1,6 @@
 // lib/models/discovery_devotional_model.dart
 
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
@@ -9,7 +10,7 @@ import 'package:flutter/material.dart';
 class DiscoveryDevotional extends Devocional {
   final String? subtitle;
   final int? estimatedReadingMinutes;
-  final KeyVerse? keyVerse;
+  final VerseRef? keyVerse;
   final List<DiscoveryCard> cards;
   final Map<String, dynamic>? metadata;
 
@@ -63,7 +64,7 @@ class DiscoveryDevotional extends Devocional {
         subtitle: json['subtitle'] as String?,
         estimatedReadingMinutes: json['estimated_reading_minutes'] as int?,
         keyVerse: json['key_verse'] != null
-            ? KeyVerse.fromJson(json['key_verse'] as Map<String, dynamic>)
+            ? VerseRef.fromJson(json['key_verse'] as Map<String, dynamic>)
             : null,
         cards: (json['cards'] as List<dynamic>?)
                 ?.map(
@@ -172,7 +173,7 @@ class DiscoveryDevotional extends Devocional {
     String? emoji,
     String? subtitle,
     int? estimatedReadingMinutes,
-    KeyVerse? keyVerse,
+    VerseRef? keyVerse,
     List<DiscoveryCard>? cards,
     Map<String, dynamic>? metadata,
     List<DiscoverySection>? secciones,

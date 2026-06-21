@@ -2,6 +2,7 @@
 /// Service Locator for Dependency Injection
 library;
 
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/debug/i_debug_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
@@ -141,6 +142,10 @@ Future<void> setupServiceLocator() async {
 
   locator.registerLazySingleton<IEncounterProgressService>(
     () => EncounterProgressService(),
+  );
+
+  locator.registerLazySingleton<IVerseResolverService>(
+    () => VerseResolverService(),
   );
 
   locator.registerLazySingleton<DiscoveryProgressTracker>(

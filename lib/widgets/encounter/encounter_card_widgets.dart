@@ -5,9 +5,11 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
+import 'package:devocional_nuevo/widgets/scripture/resolved_verse_text.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -481,8 +483,9 @@ class ScriptureMomentCard extends StatelessWidget {
                 const SizedBox(height: 24),
                 _DelayedEntry(
                   delay: const Duration(milliseconds: 400),
-                  child: Text(
-                    card.verseText!,
+                  child: ResolvedVerseText(
+                    reference: card.verseReference ?? '',
+                    fallbackText: card.verseText!,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
@@ -570,6 +573,13 @@ class CharacterMomentCard extends StatelessWidget {
             ),
           ),
         ],
+        if (card.verseOverlay != null) ...[
+          const SizedBox(height: 24),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 450),
+            child: _ModernVerseOverlay(overlay: card.verseOverlay!),
+          ),
+        ],
         if (card.content != null) ...[
           const SizedBox(height: 24),
           _DelayedEntry(
@@ -584,10 +594,32 @@ class CharacterMomentCard extends StatelessWidget {
             ),
           ),
         ],
-        if (card.revelationKey != null) ...[
+        if (card.scriptureConnections != null) ...[
           const SizedBox(height: 32),
           _DelayedEntry(
             delay: const Duration(milliseconds: 600),
+            child: Text(
+              'encounters.deeper_connections'.tr(),
+              style: const TextStyle(
+                color: Colors.white60,
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.0,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...card.scriptureConnections!.map(
+            (sc) => _DelayedEntry(
+              delay: const Duration(milliseconds: 700),
+              child: _ConnectionTile(sc: sc),
+            ),
+          ),
+        ],
+        if (card.revelationKey != null) ...[
+          const SizedBox(height: 32),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 800),
             child: _ModernRevelationKey(text: card.revelationKey!),
           ),
         ],
@@ -636,6 +668,13 @@ class TheologicalDepthCard extends StatelessWidget {
                 letterSpacing: 1.0,
               ),
             ),
+          ),
+        ],
+        if (card.verseOverlay != null) ...[
+          const SizedBox(height: 24),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 450),
+            child: _ModernVerseOverlay(overlay: card.verseOverlay!),
           ),
         ],
         if (card.content != null) ...[
@@ -828,8 +867,10 @@ class _CompletionCardState extends State<CompletionCard> {
                 const SizedBox(height: 24),
                 _DelayedEntry(
                   delay: const Duration(milliseconds: 500),
-                  child: Text(
-                    '"${widget.card.completionVerse!.text}"',
+                  child: ResolvedVerseText(
+                    reference: widget.card.completionVerse!.reference,
+                    fallbackText: widget.card.completionVerse!.text,
+                    quoted: true,
                     style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 16,
@@ -851,18 +892,27 @@ class _CompletionCardState extends State<CompletionCard> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                if (widget.card.completionVerse!.bibleVersion != null) ...[
+                if (widget.bibleVersion != null) ...[
                   const SizedBox(height: 4),
                   _DelayedEntry(
                     delay: const Duration(milliseconds: 600),
-                    child: Text(
-                      widget.card.completionVerse!.bibleVersion!,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.4),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
+                    child: Builder(
+                      builder: (context) {
+                        debugPrint(
+                          '🏷️ [CompletionCard] version label → JSON authored: '
+                          '"${widget.card.completionVerse!.bibleVersion ?? 'n/a'}", '
+                          'live selectedVersion: "${widget.bibleVersion}"',
+                        );
+                        return Text(
+                          widget.bibleVersion!,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -1030,7 +1080,7 @@ class _ModernRevelationKey extends StatelessWidget {
 }
 
 class _ModernVerseOverlay extends StatelessWidget {
-  final EncounterVerseOverlay overlay;
+  final VerseRef overlay;
 
   const _ModernVerseOverlay({required this.overlay});
 
@@ -1046,8 +1096,10 @@ class _ModernVerseOverlay extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '"${overlay.text}"',
+          ResolvedVerseText(
+            reference: overlay.reference,
+            fallbackText: overlay.text,
+            quoted: true,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
@@ -1070,7 +1122,7 @@ class _ModernVerseOverlay extends StatelessWidget {
 }
 
 class _ConnectionTile extends StatelessWidget {
-  final EncounterScriptureConnection sc;
+  final VerseRef sc;
 
   const _ConnectionTile({required this.sc});
 
@@ -1096,8 +1148,9 @@ class _ConnectionTile extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              sc.text,
+            ResolvedVerseText(
+              reference: sc.reference,
+              fallbackText: sc.text,
               style: const TextStyle(
                 color: Colors.white70,
                 fontSize: 13,

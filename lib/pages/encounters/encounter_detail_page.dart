@@ -6,6 +6,7 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/utils/image_precache_utils.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 
@@ -323,7 +324,8 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       child: buildEncounterCardWidget(
                         cards[index],
                         onBackToEncounters: _onCompleteEncounter,
-                        bibleVersion: study.bibleVersion,
+                        bibleVersion:
+                            context.read<DevocionalProvider>().selectedVersion,
                         language: study.language,
                         showCompletionMessage: state.isCompleted(
                           widget.entry.id,
