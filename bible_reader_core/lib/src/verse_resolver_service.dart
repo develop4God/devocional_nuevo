@@ -31,7 +31,10 @@ class VerseResolverService implements IVerseResolverService {
       match.service ??= BibleDbService();
       await match.service!.initDb(match.assetPath, match.dbFileName);
 
-      final normalizedRef = reference.replaceAll(RegExp(r'-\d+$'), '');
+      final rangeMatch = RegExp(r'^(.*\d+:\d+)-(\d+)$').firstMatch(reference);
+      final normalizedRef = rangeMatch?.group(1) ?? reference;
+      final endVerseOverride =
+          rangeMatch != null ? int.tryParse(rangeMatch.group(2)!) : null;
       debugPrint(
           '🔍 [VerseResolver] reference: "$reference" → normalized: "$normalizedRef"');
 
@@ -56,16 +59,25 @@ class VerseResolverService implements IVerseResolverService {
         return null;
       }
 
-      final row = await match.service!.getVerse(
-        bookNumber: book['book_number'] as int,
-        chapter: parsed['chapter'] as int,
-        verse: verseNumber,
-      );
-      final raw = row?['text'] as String?;
-      debugPrint(raw != null
-          ? '✅ [VerseResolver] resolved "$reference" → "${raw.substring(0, raw.length.clamp(0, 40))}…"'
-          : '⚠️ [VerseResolver] verse row not found for "$normalizedRef"');
-      return raw == null ? null : BibleTextNormalizer.clean(raw);
+      final endVerse = endVerseOverride ?? verseNumber;
+      final texts = <String>[];
+      for (var v = verseNumber; v <= endVerse; v++) {
+        final row = await match.service!.getVerse(
+          bookNumber: book['book_number'] as int,
+          chapter: parsed['chapter'] as int,
+          verse: v,
+        );
+        final text = row?['text'] as String?;
+        if (text == null) {
+          debugPrint(
+              '⚠️ [VerseResolver] verse row not found for "${parsed['bookName']} ${parsed['chapter']}:$v"');
+          return null; // partial range = unsafe, fall back to JSON
+        }
+        texts.add(BibleTextNormalizer.clean(text));
+      }
+      debugPrint(
+          '✅ [VerseResolver] resolved "$reference" → ${texts.length} verse(s)');
+      return texts.join(' ');
     } catch (e, stack) {
       debugPrint('💥 [VerseResolver] exception: $e');
       debugPrint('💥 [VerseResolver] stack: $stack');
