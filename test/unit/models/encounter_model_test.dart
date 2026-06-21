@@ -1,6 +1,7 @@
 @Tags(['unit', 'models'])
 library;
 
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
@@ -272,9 +273,9 @@ void main() {
 
   // ── Sub-models ─────────────────────────────────────────────────────────────
 
-  group('EncounterKeyVerse.fromJson', () {
+  group('VerseRef.fromJson', () {
     test('parses reference and text', () {
-      final kv = EncounterKeyVerse.fromJson({
+      final kv = VerseRef.fromJson({
         'reference': 'John 3:16',
         'text': 'For God so loved...',
       });
@@ -283,7 +284,7 @@ void main() {
     });
 
     test('defaults to empty string on missing fields', () {
-      final kv = EncounterKeyVerse.fromJson({});
+      final kv = VerseRef.fromJson({});
       expect(kv.reference, isEmpty);
       expect(kv.text, isEmpty);
     });

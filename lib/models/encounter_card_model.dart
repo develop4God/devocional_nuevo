@@ -1,5 +1,7 @@
 // lib/models/encounter_card_model.dart
 
+import 'package:bible_reader_core/bible_reader_core.dart';
+
 /// Union-type model for all encounter card types.
 ///
 /// Supported types:
@@ -17,7 +19,7 @@ class EncounterCard {
   final String? encounterId; // NEW — for cacheKey construction
   final String? title;
   final String? narrative;
-  final EncounterVerseOverlay? verseOverlay;
+  final VerseRef? verseOverlay;
   final String? revelationKey;
   final String? ambientSound;
   final String? haptic;
@@ -29,9 +31,9 @@ class EncounterCard {
   final String? reflection;
   final List<EncounterDiscoveryQuestion>? discoveryQuestions;
   final EncounterPrayer? prayer;
-  final EncounterCompletionVerse? completionVerse;
+  final VerseRef? completionVerse;
   final String? reflectionPrompt;
-  final List<EncounterScriptureConnection>? scriptureConnections;
+  final List<VerseRef>? scriptureConnections;
 
   const EncounterCard({
     required this.order,
@@ -101,7 +103,7 @@ class EncounterCard {
       title: json['title'] as String?,
       narrative: json['narrative'] as String?,
       verseOverlay: json['verse_overlay'] != null
-          ? EncounterVerseOverlay.fromJson(
+          ? VerseRef.fromJson(
               json['verse_overlay'] as Map<String, dynamic>,
             )
           : null,
@@ -124,14 +126,14 @@ class EncounterCard {
           ? EncounterPrayer.fromJson(json['prayer'] as Map<String, dynamic>)
           : null,
       completionVerse: json['completion_verse'] != null
-          ? EncounterCompletionVerse.fromJson(
+          ? VerseRef.fromJson(
               json['completion_verse'] as Map<String, dynamic>,
             )
           : null,
       reflectionPrompt: json['reflection_prompt'] as String?,
       scriptureConnections: (json['scripture_connections'] as List<dynamic>?)
           ?.map(
-            (e) => EncounterScriptureConnection.fromJson(
+            (e) => VerseRef.fromJson(
               e as Map<String, dynamic>,
             ),
           )
@@ -169,21 +171,6 @@ class EncounterCard {
       };
 }
 
-class EncounterVerseOverlay {
-  final String reference;
-  final String text;
-
-  const EncounterVerseOverlay({required this.reference, required this.text});
-
-  factory EncounterVerseOverlay.fromJson(Map<String, dynamic> json) =>
-      EncounterVerseOverlay(
-        reference: json['reference'] as String? ?? '',
-        text: json['text'] as String? ?? '',
-      );
-
-  Map<String, dynamic> toJson() => {'reference': reference, 'text': text};
-}
-
 class EncounterPrayer {
   final String? title;
   final String content;
@@ -199,31 +186,6 @@ class EncounterPrayer {
   Map<String, dynamic> toJson() => {
         if (title != null) 'title': title,
         'content': content,
-      };
-}
-
-class EncounterCompletionVerse {
-  final String reference;
-  final String text;
-  final String? bibleVersion;
-
-  const EncounterCompletionVerse({
-    required this.reference,
-    required this.text,
-    this.bibleVersion,
-  });
-
-  factory EncounterCompletionVerse.fromJson(Map<String, dynamic> json) =>
-      EncounterCompletionVerse(
-        reference: json['reference'] as String? ?? '',
-        text: json['text'] as String? ?? '',
-        bibleVersion: json['bible_version'] as String?,
-      );
-
-  Map<String, dynamic> toJson() => {
-        'reference': reference,
-        'text': text,
-        if (bibleVersion != null) 'bible_version': bibleVersion,
       };
 }
 
@@ -243,37 +205,4 @@ class EncounterDiscoveryQuestion {
       );
 
   Map<String, dynamic> toJson() => {'category': category, 'question': question};
-}
-
-class EncounterScriptureConnection {
-  final String reference;
-  final String text;
-
-  const EncounterScriptureConnection({
-    required this.reference,
-    required this.text,
-  });
-
-  factory EncounterScriptureConnection.fromJson(Map<String, dynamic> json) =>
-      EncounterScriptureConnection(
-        reference: json['reference'] as String? ?? '',
-        text: json['text'] as String? ?? '',
-      );
-
-  Map<String, dynamic> toJson() => {'reference': reference, 'text': text};
-}
-
-class EncounterKeyVerse {
-  final String reference;
-  final String text;
-
-  const EncounterKeyVerse({required this.reference, required this.text});
-
-  factory EncounterKeyVerse.fromJson(Map<String, dynamic> json) =>
-      EncounterKeyVerse(
-        reference: json['reference'] as String? ?? '',
-        text: json['text'] as String? ?? '',
-      );
-
-  Map<String, dynamic> toJson() => {'reference': reference, 'text': text};
 }

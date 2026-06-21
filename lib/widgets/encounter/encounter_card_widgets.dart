@@ -5,10 +5,11 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
-import 'package:devocional_nuevo/widgets/encounter/resolved_verse_text.dart';
+import 'package:devocional_nuevo/widgets/scripture/resolved_verse_text.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -1043,7 +1044,7 @@ class _ModernRevelationKey extends StatelessWidget {
 }
 
 class _ModernVerseOverlay extends StatelessWidget {
-  final EncounterVerseOverlay overlay;
+  final VerseRef overlay;
 
   const _ModernVerseOverlay({required this.overlay});
 
@@ -1085,7 +1086,7 @@ class _ModernVerseOverlay extends StatelessWidget {
 }
 
 class _ConnectionTile extends StatelessWidget {
-  final EncounterScriptureConnection sc;
+  final VerseRef sc;
 
   const _ConnectionTile({required this.sc});
 
