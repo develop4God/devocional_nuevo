@@ -65,9 +65,9 @@ class Constants {
     return languageFlags[languageCode] ?? '🌐';
   }
 
-  // Versiones de la Biblia disponibles por idioma
+  // Available versions by language / Drawer menu options (SRP: single source of truth for all version lists)
   static const Map<String, List<String>> bibleVersionsByLanguage = {
-    'es': ['RVR1960', 'NVI', 'NTV'],
+    'es': ['RVR1960', 'NVI'],//NTV not available on drawer yet
     'en': ['KJV', 'NIV', 'ESV'],
     'pt': ['ARC', 'NVI'],
     'fr': ['LSG1910', 'TOB'],
