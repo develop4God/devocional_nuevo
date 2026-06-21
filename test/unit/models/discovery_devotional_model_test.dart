@@ -1,6 +1,7 @@
 @Tags(['unit', 'models'])
 library;
 
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
@@ -300,7 +301,7 @@ void main() {
         date: DateTime(2026, 1, 15),
         subtitle: 'Test Subtitle',
         estimatedReadingMinutes: 5,
-        keyVerse: KeyVerse(reference: 'Juan 1:1', text: 'En el principio'),
+        keyVerse: VerseRef(reference: 'Juan 1:1', text: 'En el principio'),
         cards: [
           DiscoveryCard(
             order: 1,
@@ -394,7 +395,7 @@ void main() {
         paraMeditar: [],
         oracion: 'Test prayer',
         date: DateTime(2026, 1, 30),
-        keyVerse: KeyVerse(
+        keyVerse: VerseRef(
           reference: 'Juan 3:16',
           text: 'Porque de tal manera amó Dios al mundo...',
         ),

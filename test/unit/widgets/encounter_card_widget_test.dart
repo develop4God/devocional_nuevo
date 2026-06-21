@@ -388,7 +388,7 @@ void main() {
         order: 1,
         type: 'completion',
         title: 'Well Done',
-        completionVerse: EncounterCompletionVerse(
+        completionVerse: VerseRef(
           reference: 'Matt 14:33',
           text: 'Truly you are the Son of God.',
           bibleVersion: 'KJV',
@@ -538,7 +538,7 @@ void main() {
         order: 11,
         type: 'completion',
         title: 'You Walked the Water',
-        completionVerse: EncounterCompletionVerse(
+        completionVerse: VerseRef(
           reference: 'Matthew 14:33',
           text: 'Truly you are the Son of God.',
           bibleVersion: 'KJV',
