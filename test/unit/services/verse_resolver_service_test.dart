@@ -49,63 +49,10 @@ class _FakeBibleDbService extends BibleDbService {
 // Test-only subclass that bypasses the static BibleVersionRegistry.
 // ---------------------------------------------------------------------------
 
-class _TestableVerseResolver extends VerseResolverService {
-  final List<BibleVersion> _testVersions;
-
-  _TestableVerseResolver(this._testVersions);
-
-  @override
-  Future<String?> resolveVerseText({
-    required String reference,
-    required String versionCode,
-  }) async {
-    try {
-      BibleVersion? match;
-      for (final v in _testVersions) {
-        if (v.dbFileName.startsWith(versionCode)) {
-          match = v;
-          break;
-        }
-      }
-      if (match == null) return null;
-
-      match.service ??= BibleDbService();
-      await match.service!.initDb(match.assetPath, match.dbFileName);
-
-      final rangeMatch = RegExp(r'^(.*\d+:\d+)-(\d+)$').firstMatch(reference);
-      final normalizedRef = rangeMatch?.group(1) ?? reference;
-      final endVerseOverride =
-          rangeMatch != null ? int.tryParse(rangeMatch.group(2)!) : null;
-
-      final parsed = BibleReferenceParser.parse(normalizedRef);
-      if (parsed == null) return null;
-      final verseNumber = parsed['verse'] as int?;
-      if (verseNumber == null) return null;
-
-      final book = await match.service!.findBookByName(
-        parsed['bookName'] as String,
-      );
-      if (book == null) return null;
-
-      final endVerse = endVerseOverride ?? verseNumber;
-      final texts = <String>[];
-      for (var v = verseNumber; v <= endVerse; v++) {
-        final row = await match.service!.getVerse(
-          bookNumber: book['book_number'] as int,
-          chapter: parsed['chapter'] as int,
-          verse: v,
-        );
-        final text = row?['text'] as String?;
-        if (text == null) {
-          return null;
-        }
-        texts.add(BibleTextNormalizer.clean(text));
-      }
-      return texts.join(' ');
-    } catch (_) {
-      return null;
-    }
-  }
+VerseResolverService _createTestResolver(List<BibleVersion> versions) {
+  return VerseResolverService(
+    versionProvider: () async => versions,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -275,7 +222,7 @@ void main() {
     });
 
     test('resolves verse text when DB returns a match', () async {
-      final resolver = _TestableVerseResolver([
+      final resolver = _createTestResolver([
         _makeVersion(code: 'KJV', service: fakeDb),
       ]);
       final result = await resolver.resolveVerseText(
@@ -288,7 +235,7 @@ void main() {
 
     test('returns null when book is not found', () async {
       fakeDb.bookResult = null;
-      final resolver = _TestableVerseResolver([
+      final resolver = _createTestResolver([
         _makeVersion(code: 'KJV', service: fakeDb),
       ]);
       final result = await resolver.resolveVerseText(
@@ -300,7 +247,7 @@ void main() {
 
     test('returns null when verse is not found', () async {
       fakeDb.verseResult = null;
-      final resolver = _TestableVerseResolver([
+      final resolver = _createTestResolver([
         _makeVersion(code: 'KJV', service: fakeDb),
       ]);
       final result = await resolver.resolveVerseText(
@@ -312,7 +259,7 @@ void main() {
 
     test('returns null when DB init throws', () async {
       fakeDb.shouldThrowOnInit = true;
-      final resolver = _TestableVerseResolver([
+      final resolver = _createTestResolver([
         _makeVersion(code: 'KJV', service: fakeDb),
       ]);
       final result = await resolver.resolveVerseText(
@@ -323,7 +270,7 @@ void main() {
     });
 
     test('returns null when version list is empty', () async {
-      final resolver = _TestableVerseResolver([]);
+      final resolver = _createTestResolver([]);
       final result = await resolver.resolveVerseText(
         reference: 'John 3:16',
         versionCode: 'KJV',
@@ -340,7 +287,7 @@ void main() {
         }
         ..verseResult = {'text': 'Second version text'};
 
-      final resolver = _TestableVerseResolver([
+      final resolver = _createTestResolver([
         _makeVersion(code: 'KJV', service: fakeDb),
         _makeVersion(code: 'KJV', lang: 'alt', service: fakeDb2),
       ]);
@@ -364,7 +311,7 @@ void main() {
           'text': 'In the beginning God created the heaven and the earth.',
         };
 
-      final resolver = _TestableVerseResolver([
+      final resolver = _createTestResolver([
         _makeVersion(code: 'KJV', service: fakeDb),
       ]);
       final result = await resolver.resolveVerseText(
@@ -375,7 +322,7 @@ void main() {
     });
 
     test('user with unsupported version silently falls back', () async {
-      final resolver = _TestableVerseResolver([
+      final resolver = _createTestResolver([
         _makeVersion(code: 'KJV'),
       ]);
       final result = await resolver.resolveVerseText(
@@ -394,7 +341,7 @@ void main() {
         }
         ..verseResult = {'text': 'For God so loved...'};
 
-      final resolver = _TestableVerseResolver([
+      final resolver = _createTestResolver([
         _makeVersion(code: 'KJV', service: fakeDb),
       ]);
 
@@ -427,7 +374,7 @@ void main() {
               'Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito...',
         };
 
-      final resolver = _TestableVerseResolver([
+      final resolver = _createTestResolver([
         _makeVersion(code: 'RVR1960', lang: 'es', service: fakeDb),
       ]);
       final result = await resolver.resolveVerseText(
@@ -458,7 +405,7 @@ void main() {
           },
         };
 
-      final resolver = _TestableVerseResolver([
+      final resolver = _createTestResolver([
         _makeVersion(code: 'KJV', service: fakeDb),
       ]);
       final result = await resolver.resolveVerseText(
@@ -482,7 +429,7 @@ void main() {
           18: {'text': 'Whoever believes in him is not condemned...'},
         };
 
-      final resolver = _TestableVerseResolver([
+      final resolver = _createTestResolver([
         _makeVersion(code: 'KJV', service: fakeDb),
       ]);
       final result = await resolver.resolveVerseText(
@@ -503,7 +450,7 @@ void main() {
           'text': 'For God so loved the world...',
         };
 
-      final resolver = _TestableVerseResolver([
+      final resolver = _createTestResolver([
         _makeVersion(code: 'KJV', service: fakeDb),
       ]);
       final result = await resolver.resolveVerseText(
@@ -525,7 +472,7 @@ void main() {
           'text': 'Test verse',
         };
 
-      final resolver = _TestableVerseResolver([
+      final resolver = _createTestResolver([
         _makeVersion(code: 'KJV', service: fakeDb),
       ]);
       final result = await resolver.resolveVerseText(
@@ -580,7 +527,7 @@ void main() {
         ..verseResult = {'text': 'First call'};
 
       final version = _makeVersion(code: 'KJV', service: fakeDb);
-      final resolver = _TestableVerseResolver([version]);
+      final resolver = _createTestResolver([version]);
 
       await resolver.resolveVerseText(
         reference: 'John 3:16',
@@ -594,7 +541,7 @@ void main() {
       final version = _makeVersion(code: 'KJV');
       expect(version.service, isNull);
 
-      final resolver = _TestableVerseResolver([version]);
+      final resolver = _createTestResolver([version]);
       await resolver.resolveVerseText(
         reference: 'John 3:16',
         versionCode: 'KJV',
