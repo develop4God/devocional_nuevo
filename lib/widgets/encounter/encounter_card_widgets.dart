@@ -512,28 +512,10 @@ class ScriptureMomentCard extends StatelessWidget {
                   ),
                 ),
               ],
-              if (card.scriptureConnections != null) ...[
-                const SizedBox(height: 32),
-                _DelayedEntry(
-                  delay: const Duration(milliseconds: 600),
-                  child: Text(
-                    'encounters.deeper_connections'.tr(),
-                    style: const TextStyle(
-                      color: Colors.white60,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2.0,
-                    ),
-                  ),
+              if (card.scriptureConnections != null)
+                _ScriptureConnectionsSection(
+                  connections: card.scriptureConnections!,
                 ),
-                const SizedBox(height: 12),
-                ...card.scriptureConnections!.map(
-                  (sc) => _DelayedEntry(
-                    delay: const Duration(milliseconds: 700),
-                    child: _ConnectionTile(sc: sc),
-                  ),
-                ),
-              ],
               if (card.revelationKey != null) ...[
                 const SizedBox(height: 24),
                 _DelayedEntry(
@@ -616,28 +598,10 @@ class CharacterMomentCard extends StatelessWidget {
             ),
           ),
         ],
-        if (card.scriptureConnections != null) ...[
-          const SizedBox(height: 32),
-          _DelayedEntry(
-            delay: const Duration(milliseconds: 600),
-            child: Text(
-              'encounters.deeper_connections'.tr(),
-              style: const TextStyle(
-                color: Colors.white60,
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2.0,
-              ),
-            ),
+        if (card.scriptureConnections != null)
+          _ScriptureConnectionsSection(
+            connections: card.scriptureConnections!,
           ),
-          const SizedBox(height: 12),
-          ...card.scriptureConnections!.map(
-            (sc) => _DelayedEntry(
-              delay: const Duration(milliseconds: 700),
-              child: _ConnectionTile(sc: sc),
-            ),
-          ),
-        ],
         if (card.revelationKey != null) ...[
           const SizedBox(height: 32),
           _DelayedEntry(
@@ -713,28 +677,10 @@ class TheologicalDepthCard extends StatelessWidget {
             ),
           ),
         ],
-        if (card.scriptureConnections != null) ...[
-          const SizedBox(height: 32),
-          _DelayedEntry(
-            delay: const Duration(milliseconds: 600),
-            child: Text(
-              'encounters.deeper_connections'.tr(),
-              style: const TextStyle(
-                color: Colors.white60,
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2.0,
-              ),
-            ),
+        if (card.scriptureConnections != null)
+          _ScriptureConnectionsSection(
+            connections: card.scriptureConnections!,
           ),
-          const SizedBox(height: 12),
-          ...card.scriptureConnections!.map(
-            (sc) => _DelayedEntry(
-              delay: const Duration(milliseconds: 700),
-              child: _ConnectionTile(sc: sc),
-            ),
-          ),
-        ],
         if (card.revelationKey != null) ...[
           const SizedBox(height: 32),
           _DelayedEntry(
@@ -1139,6 +1085,41 @@ class _ModernVerseOverlay extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ScriptureConnectionsSection extends StatelessWidget {
+  final List<VerseRef> connections;
+
+  const _ScriptureConnectionsSection({required this.connections});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 32),
+        _DelayedEntry(
+          delay: const Duration(milliseconds: 600),
+          child: Text(
+            'encounters.deeper_connections'.tr(),
+            style: const TextStyle(
+              color: Colors.white60,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 2.0,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...connections.map(
+          (sc) => _DelayedEntry(
+            delay: const Duration(milliseconds: 700),
+            child: _ConnectionTile(sc: sc),
+          ),
+        ),
+      ],
     );
   }
 }
