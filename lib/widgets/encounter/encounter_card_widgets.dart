@@ -512,10 +512,32 @@ class ScriptureMomentCard extends StatelessWidget {
                   ),
                 ),
               ],
+              if (card.scriptureConnections != null) ...[
+                const SizedBox(height: 32),
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 600),
+                  child: Text(
+                    'encounters.deeper_connections'.tr(),
+                    style: const TextStyle(
+                      color: Colors.white60,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2.0,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...card.scriptureConnections!.map(
+                  (sc) => _DelayedEntry(
+                    delay: const Duration(milliseconds: 700),
+                    child: _ConnectionTile(sc: sc),
+                  ),
+                ),
+              ],
               if (card.revelationKey != null) ...[
                 const SizedBox(height: 24),
                 _DelayedEntry(
-                  delay: const Duration(milliseconds: 600),
+                  delay: const Duration(milliseconds: 800),
                   child: _ModernRevelationKey(text: card.revelationKey!),
                 ),
               ],
