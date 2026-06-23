@@ -453,6 +453,38 @@ class ScriptureMomentCard extends StatelessWidget {
         Center(
           child: Column(
             children: [
+              if (card.title != null)
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 200),
+                  child: Text(
+                    card.title!,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              if (card.subtitle != null) ...[
+                const SizedBox(height: 8),
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 250),
+                  child: Text(
+                    card.subtitle!.toUpperCase(),
+                    style: TextStyle(
+                      color: Colors.amber.withValues(alpha: 0.8),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.0,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+              if (card.title != null || card.subtitle != null)
+                const SizedBox(height: 16),
               if (card.verseReference != null)
                 _DelayedEntry(
                   delay: const Duration(milliseconds: 300),
@@ -1001,6 +1033,13 @@ class InteractiveMomentCard extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
+                ),
+              ],
+              if (card.revelationKey != null) ...[
+                const SizedBox(height: 24),
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 600),
+                  child: _ModernRevelationKey(text: card.revelationKey!),
                 ),
               ],
             ],
