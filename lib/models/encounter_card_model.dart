@@ -1,6 +1,8 @@
 // lib/models/encounter_card_model.dart
 
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/models/encounter_card_contract.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Union-type model for all encounter card types.
 ///
@@ -8,6 +10,10 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 ///   cinematic_scene | scripture_moment | character_moment |
 ///   theological_depth | discovery_activation | completion |
 ///   interactive_moment | unknown
+///
+/// See encounter_card_contract.dart (kEncounterCardRenderedFields) for the
+/// authoritative list of which fields each card `type` renders. Do not
+/// trust per-widget inspection alone — check the contract map first.
 class EncounterCard {
   final int order;
   final String type;
@@ -19,20 +25,34 @@ class EncounterCard {
   final String? encounterId; // NEW — for cacheKey construction
   final String? title;
   final String? narrative;
+
+  /// Rendered via _ModernVerseOverlay. One of three verse mechanisms — see verseReference/verseText and scriptureConnections.
   final VerseRef? verseOverlay;
+
+  /// Rendered via _ModernRevelationKey. See kEncounterCardRenderedFields in encounter_card_contract.dart for which card types render this.
   final String? revelationKey;
+
+  /// Reserved for future implementation — not yet rendered by any card widget.
   final String? ambientSound;
+
+  /// Reserved for future implementation — not yet rendered by any card widget.
   final String? haptic;
   final String? icon;
   final String? subtitle;
   final String? content;
+
+  /// Flat inline verse pair. Rendered together by ScriptureMomentCard. Use verseOverlay instead for a styled single-verse moment.
   final String? verseReference;
+
+  /// Flat inline verse pair. Rendered together by ScriptureMomentCard. Use verseOverlay instead for a styled single-verse moment.
   final String? verseText;
   final String? reflection;
   final List<EncounterDiscoveryQuestion>? discoveryQuestions;
   final EncounterPrayer? prayer;
   final VerseRef? completionVerse;
   final String? reflectionPrompt;
+
+  /// Rendered via _ScriptureConnectionsSection. List-of-supporting-verses role — distinct from the single-emphasis verseOverlay.
   final List<VerseRef>? scriptureConnections;
 
   const EncounterCard({
@@ -93,7 +113,7 @@ class EncounterCard {
     };
     final String type = knownTypes.contains(rawType) ? rawType : 'unknown';
 
-    return EncounterCard(
+    final card = EncounterCard(
       order: json['order'] as int? ?? 0,
       type: type,
       mood: json['mood'] as String?,
@@ -139,6 +159,10 @@ class EncounterCard {
           )
           .toList(),
     );
+
+    _debugCheckEncounterCardContract(card);
+
+    return card;
   }
 
   Map<String, dynamic> toJson() => {
@@ -169,6 +193,52 @@ class EncounterCard {
           'scripture_connections':
               scriptureConnections!.map((s) => s.toJson()).toList(),
       };
+}
+
+/// Debug-only: warns when [card] has a non-null field that is neither in
+/// this type's rendered-fields contract nor explicitly deferred. Silent in
+/// release builds — zero production cost.
+void _debugCheckEncounterCardContract(EncounterCard card) {
+  if (!kDebugMode) return;
+
+  final renderedFields = kEncounterCardRenderedFields[card.type];
+  if (renderedFields == null) return;
+
+  final populated = <String>{
+    if (card.mood != null) 'mood',
+    if (card.imageUrl != null) 'imageUrl',
+    if (card.title != null) 'title',
+    if (card.narrative != null) 'narrative',
+    if (card.verseOverlay != null) 'verseOverlay',
+    if (card.revelationKey != null) 'revelationKey',
+    if (card.ambientSound != null) 'ambientSound',
+    if (card.haptic != null) 'haptic',
+    if (card.icon != null) 'icon',
+    if (card.subtitle != null) 'subtitle',
+    if (card.content != null) 'content',
+    if (card.verseReference != null) 'verseReference',
+    if (card.verseText != null) 'verseText',
+    if (card.reflection != null) 'reflection',
+    if (card.discoveryQuestions != null) 'discoveryQuestions',
+    if (card.prayer != null) 'prayer',
+    if (card.completionVerse != null) 'completionVerse',
+    if (card.reflectionPrompt != null) 'reflectionPrompt',
+    if (card.scriptureConnections != null) 'scriptureConnections',
+  };
+
+  final orphaned = populated
+      .difference(renderedFields)
+      .difference(kDeferredEncounterCardFields);
+
+  if (orphaned.isNotEmpty) {
+    debugPrint(
+      '⚠️ [EncounterCardContract] card order=${card.order} type="${card.type}" '
+      'has content in field(s) $orphaned with no renderer registered in '
+      'kEncounterCardRenderedFields["${card.type}"]. Either wire a renderer '
+      'and add the field to the contract map, or add it to '
+      'kDeferredEncounterCardFields if intentionally deferred.',
+    );
+  }
 }
 
 class EncounterPrayer {
