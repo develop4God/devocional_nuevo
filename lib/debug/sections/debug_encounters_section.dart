@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
+import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/debug/debug_flags.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
@@ -23,6 +24,7 @@ class DebugEncountersSection extends StatelessWidget {
   });
 
   Future<void> _resetEncounterWelcome(BuildContext context) async {
+    if (!kDebugMode) return;
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('encounter_welcome_seen', false);
@@ -39,6 +41,48 @@ class DebugEncountersSection extends StatelessWidget {
       debugPrint('🔄 Encounter welcome reset: encounter_welcome_seen = false');
     } catch (e) {
       debugPrint('Error resetting encounter welcome: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  Future<void> _completeAllEncounters(BuildContext context) async {
+    if (!kDebugMode) return;
+    try {
+      final state = context.read<EncounterBloc>().state;
+      if (state is! EncounterLoaded || state.index.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('⚠️ No encounters loaded — load index first'),
+            ),
+          );
+        }
+        return;
+      }
+      final allIds = state.index.map((e) => e.id).toList();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(
+        IEncounterProgressService.completedIdsKey,
+        allIds,
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ All ${allIds.length} encounters marked complete'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        context.read<EncounterBloc>().add(
+              LoadEncounterIndex(forceRefresh: true),
+            );
+      }
+      debugPrint('🔄 All ${allIds.length} encounters marked complete');
+    } catch (e) {
+      debugPrint('❌ Error completing all encounters: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
@@ -232,6 +276,33 @@ class DebugEncountersSection extends StatelessWidget {
           const SizedBox(height: 6),
           const Text(
             'Reset the encounter welcome dialog so it displays again\non the next visit to the Encounters tab.',
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.black54,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Complete all encounters
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _completeAllEncounters(context),
+              icon: const Icon(Icons.done_all, color: Colors.green),
+              label: const Text(
+                'Complete All Encounters',
+                style: TextStyle(color: Colors.green),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.green),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Mark all loaded encounters as completed.\n'
+            'Useful for testing unlock logic & end states. [DEBUG ONLY]',
             style: TextStyle(
               fontSize: 11,
               color: Colors.black54,
