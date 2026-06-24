@@ -71,6 +71,86 @@ class _DelayedEntry extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
+// Named delay constants for the card-content stagger convention.
+// ---------------------------------------------------------------------------
+
+class EncounterCardDelays {
+  EncounterCardDelays._();
+
+  static const Duration t200 = Duration(milliseconds: 200);
+  static const Duration t250 = Duration(milliseconds: 250);
+  static const Duration t300 = Duration(milliseconds: 300);
+  static const Duration t350 = Duration(milliseconds: 350);
+  static const Duration t400 = Duration(milliseconds: 400);
+  static const Duration t450 = Duration(milliseconds: 450);
+}
+
+// ---------------------------------------------------------------------------
+// CardHeaderBlock: delayed title + optional subtitle for encounter cards.
+// ---------------------------------------------------------------------------
+
+class CardHeaderBlock extends StatelessWidget {
+  const CardHeaderBlock({
+    super.key,
+    required this.title,
+    required this.titleDelay,
+    required this.titleStyle,
+    this.titleUppercase = false,
+    this.titleAlign,
+    this.subtitle,
+    this.subtitleDelay,
+    this.subtitleStyle,
+    this.subtitleUppercase = false,
+    this.subtitleAlign,
+    this.spacing = 8.0,
+  });
+
+  final String title;
+  final Duration titleDelay;
+  final TextStyle titleStyle;
+  final bool titleUppercase;
+  final TextAlign? titleAlign;
+
+  final String? subtitle;
+  final Duration? subtitleDelay;
+  final TextStyle? subtitleStyle;
+  final bool subtitleUppercase;
+  final TextAlign? subtitleAlign;
+
+  final double spacing;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSubtitle = subtitle != null && subtitle!.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _DelayedEntry(
+          delay: titleDelay,
+          child: Text(
+            titleUppercase ? title.toUpperCase() : title,
+            style: titleStyle,
+            textAlign: titleAlign,
+          ),
+        ),
+        if (hasSubtitle) SizedBox(height: spacing),
+        if (hasSubtitle)
+          _DelayedEntry(
+            delay: subtitleDelay ?? EncounterCardDelays.t400,
+            child: Text(
+              subtitleUppercase ? subtitle!.toUpperCase() : subtitle!,
+              style: subtitleStyle ?? titleStyle,
+              textAlign: subtitleAlign,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Shared: Visual Header
 // ---------------------------------------------------------------------------
 
@@ -388,16 +468,15 @@ class CinematicSceneCard extends StatelessWidget {
       imageVersion: card.imageVersion,
       children: [
         if (card.title != null)
-          _DelayedEntry(
-            delay: const Duration(milliseconds: 300),
-            child: Text(
-              card.title!.toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.5,
-              ),
+          CardHeaderBlock(
+            title: card.title!,
+            titleDelay: EncounterCardDelays.t300,
+            titleUppercase: true,
+            titleStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
             ),
           ),
         if (card.narrative != null) ...[
@@ -454,35 +533,27 @@ class ScriptureMomentCard extends StatelessWidget {
           child: Column(
             children: [
               if (card.title != null)
-                _DelayedEntry(
-                  delay: const Duration(milliseconds: 200),
-                  child: Text(
-                    card.title!,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                    ),
-                    textAlign: TextAlign.center,
+                CardHeaderBlock(
+                  title: card.title!,
+                  titleDelay: EncounterCardDelays.t200,
+                  titleAlign: TextAlign.center,
+                  titleStyle: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
+                  subtitle: card.subtitle,
+                  subtitleDelay: EncounterCardDelays.t250,
+                  subtitleUppercase: true,
+                  subtitleAlign: TextAlign.center,
+                  subtitleStyle: TextStyle(
+                    color: Colors.amber.withValues(alpha: 0.8),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.0,
                   ),
                 ),
-              if (card.subtitle != null) ...[
-                const SizedBox(height: 8),
-                _DelayedEntry(
-                  delay: const Duration(milliseconds: 250),
-                  child: Text(
-                    card.subtitle!.toUpperCase(),
-                    style: TextStyle(
-                      color: Colors.amber.withValues(alpha: 0.8),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.0,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
               if (card.title != null || card.subtitle != null)
                 const SizedBox(height: 16),
               if (card.verseReference != null)
@@ -582,33 +653,25 @@ class CharacterMomentCard extends StatelessWidget {
       imageVersion: card.imageVersion,
       children: [
         if (card.title != null)
-          _DelayedEntry(
-            delay: const Duration(milliseconds: 300),
-            child: Text(
-              card.title!,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.5,
-              ),
+          CardHeaderBlock(
+            title: card.title!,
+            titleDelay: EncounterCardDelays.t300,
+            titleStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+            ),
+            subtitle: card.subtitle,
+            subtitleDelay: EncounterCardDelays.t400,
+            subtitleUppercase: true,
+            subtitleStyle: TextStyle(
+              color: Colors.amber.withValues(alpha: 0.8),
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
             ),
           ),
-        if (card.subtitle != null) ...[
-          const SizedBox(height: 8),
-          _DelayedEntry(
-            delay: const Duration(milliseconds: 400),
-            child: Text(
-              card.subtitle!.toUpperCase(),
-              style: TextStyle(
-                color: Colors.amber.withValues(alpha: 0.8),
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.0,
-              ),
-            ),
-          ),
-        ],
         if (card.verseOverlay != null) ...[
           const SizedBox(height: 24),
           _DelayedEntry(
@@ -661,33 +724,25 @@ class TheologicalDepthCard extends StatelessWidget {
       imageVersion: card.imageVersion,
       children: [
         if (card.title != null)
-          _DelayedEntry(
-            delay: const Duration(milliseconds: 300),
-            child: Text(
-              card.title!,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.5,
-              ),
+          CardHeaderBlock(
+            title: card.title!,
+            titleDelay: EncounterCardDelays.t300,
+            titleStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+            ),
+            subtitle: card.subtitle,
+            subtitleDelay: EncounterCardDelays.t400,
+            subtitleUppercase: true,
+            subtitleStyle: TextStyle(
+              color: Colors.amber.withValues(alpha: 0.8),
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
             ),
           ),
-        if (card.subtitle != null) ...[
-          const SizedBox(height: 8),
-          _DelayedEntry(
-            delay: const Duration(milliseconds: 400),
-            child: Text(
-              card.subtitle!.toUpperCase(),
-              style: TextStyle(
-                color: Colors.amber.withValues(alpha: 0.8),
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.0,
-              ),
-            ),
-          ),
-        ],
         if (card.verseOverlay != null) ...[
           const SizedBox(height: 24),
           _DelayedEntry(
@@ -739,32 +794,24 @@ class DiscoveryActivationCard extends StatelessWidget {
       imageVersion: card.imageVersion,
       children: [
         if (card.title != null)
-          _DelayedEntry(
-            delay: const Duration(milliseconds: 300),
-            child: Text(
-              card.title!.toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
-              ),
+          CardHeaderBlock(
+            title: card.title!,
+            titleDelay: EncounterCardDelays.t300,
+            titleUppercase: true,
+            titleStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+            ),
+            subtitle: card.subtitle,
+            subtitleDelay: EncounterCardDelays.t350,
+            subtitleAlign: TextAlign.center,
+            subtitleStyle: TextStyle(
+              color: Colors.white.withValues(alpha: 0.75),
+              fontSize: 15,
+              height: 1.5,
             ),
           ),
-        if (card.subtitle != null) ...[
-          const SizedBox(height: 8),
-          _DelayedEntry(
-            delay: const Duration(milliseconds: 350),
-            child: Text(
-              card.subtitle!,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.75),
-                fontSize: 15,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
         const SizedBox(height: 24),
         if (card.discoveryQuestions != null)
           ...card.discoveryQuestions!.asMap().entries.map(
@@ -1023,34 +1070,26 @@ class InteractiveMomentCard extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               if (card.title != null)
-                _DelayedEntry(
-                  delay: const Duration(milliseconds: 400),
-                  child: Text(
-                    card.title!,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                    ),
-                    textAlign: TextAlign.center,
+                CardHeaderBlock(
+                  title: card.title!,
+                  titleDelay: EncounterCardDelays.t400,
+                  titleAlign: TextAlign.center,
+                  titleStyle: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                  ),
+                  subtitle: card.subtitle,
+                  subtitleDelay: EncounterCardDelays.t450,
+                  subtitleUppercase: true,
+                  subtitleAlign: TextAlign.center,
+                  subtitleStyle: TextStyle(
+                    color: Colors.amber.withValues(alpha: 0.8),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.0,
                   ),
                 ),
-              if (card.subtitle != null) ...[
-                const SizedBox(height: 8),
-                _DelayedEntry(
-                  delay: const Duration(milliseconds: 450),
-                  child: Text(
-                    card.subtitle!.toUpperCase(),
-                    style: TextStyle(
-                      color: Colors.amber.withValues(alpha: 0.8),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.0,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
               if (card.reflectionPrompt != null) ...[
                 const SizedBox(height: 24),
                 _DelayedEntry(
