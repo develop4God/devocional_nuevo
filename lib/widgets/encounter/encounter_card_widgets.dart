@@ -750,6 +750,21 @@ class DiscoveryActivationCard extends StatelessWidget {
               ),
             ),
           ),
+        if (card.subtitle != null) ...[
+          const SizedBox(height: 8),
+          _DelayedEntry(
+            delay: const Duration(milliseconds: 350),
+            child: Text(
+              card.subtitle!,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.75),
+                fontSize: 15,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
         const SizedBox(height: 24),
         if (card.discoveryQuestions != null)
           ...card.discoveryQuestions!.asMap().entries.map(
@@ -1020,6 +1035,22 @@ class InteractiveMomentCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
+              if (card.subtitle != null) ...[
+                const SizedBox(height: 8),
+                _DelayedEntry(
+                  delay: const Duration(milliseconds: 450),
+                  child: Text(
+                    card.subtitle!.toUpperCase(),
+                    style: TextStyle(
+                      color: Colors.amber.withValues(alpha: 0.8),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.0,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
               if (card.reflectionPrompt != null) ...[
                 const SizedBox(height: 24),
                 _DelayedEntry(
