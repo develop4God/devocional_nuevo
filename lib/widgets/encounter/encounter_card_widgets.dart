@@ -279,6 +279,7 @@ class _CardShellState extends State<_CardShell> {
   @override
   Widget build(BuildContext context) {
     final base = EncounterMoodTheme.fromMood(widget.mood);
+    debugPrint('🎨 [CardShell] mood: "${widget.mood}" → color: #${base.toARGB32().toRadixString(16).padLeft(8, '0')}');
     return ClipRRect(
       borderRadius: BorderRadius.circular(28),
       child: Container(
