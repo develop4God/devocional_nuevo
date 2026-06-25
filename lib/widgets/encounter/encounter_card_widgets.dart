@@ -10,35 +10,9 @@ import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
 import 'package:devocional_nuevo/widgets/scripture/resolved_verse_text.dart';
+import 'package:devocional_nuevo/features/encounters/domain/encounter_mood_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-
-// ---------------------------------------------------------------------------
-// Mood -> Color mapping
-// ---------------------------------------------------------------------------
-
-Color moodColor(String? mood) {
-  switch (mood) {
-    case 'storm':
-      return const Color(0xFF0d1a2e);
-    case 'tense':
-      return const Color(0xFF0f1828);
-    case 'mysterious':
-      return const Color(0xFF0a0e1a);
-    case 'awe':
-      return const Color(0xFF0a1220);
-    case 'falling':
-      return const Color(0xFF040810);
-    case 'grace':
-      return const Color(0xFF12100a);
-    case 'peace':
-      return const Color(0xFF0a120e);
-    case 'intense':
-      return const Color(0xFF1a0a0e);
-    default:
-      return const Color(0xFF0a0e1a);
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Shared Components: Animated Entry
@@ -171,7 +145,7 @@ class _VisualHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base = moodColor(mood);
+    final base = EncounterMoodTheme.fromMood(mood);
     return Container(
       height: 240,
       width: double.infinity,
@@ -304,7 +278,7 @@ class _CardShellState extends State<_CardShell> {
 
   @override
   Widget build(BuildContext context) {
-    final base = moodColor(widget.mood);
+    final base = EncounterMoodTheme.fromMood(widget.mood);
     return ClipRRect(
       borderRadius: BorderRadius.circular(28),
       child: Container(
