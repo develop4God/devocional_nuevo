@@ -341,6 +341,10 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   }
 
   Widget _buildKeyVerseCardPage(DiscoveryDevotional study, ThemeData theme) {
+    final selectedVersion = context.read<DevocionalProvider>().selectedVersion;
+    final displayVersion =
+        selectedVersion.isNotEmpty ? selectedVersion : study.version;
+
     return Container(
       // Removed horizontal margin to allow the card to take full Page width
       // and let the PageView viewportFraction handle the gap/peeking.
@@ -355,7 +359,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              KeyVerseCard(keyVerse: study.keyVerse!, version: study.version),
+              KeyVerseCard(keyVerse: study.keyVerse!, version: displayVersion),
               const SizedBox(height: 32),
               _buildNavigationButtons(true, false),
               const SizedBox(height: 20),
