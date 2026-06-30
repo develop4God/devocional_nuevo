@@ -172,8 +172,11 @@ class _VisualHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final base = moodColor(mood);
+    final isLandscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
+    final headerHeight = isLandscape ? 120.0 : 240.0;
     return Container(
-      height: 240,
+      height: headerHeight,
       width: double.infinity,
       decoration: BoxDecoration(color: base),
       child: Stack(

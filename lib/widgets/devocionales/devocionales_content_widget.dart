@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -6,6 +5,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
+import 'package:devocional_nuevo/widgets/devocionales/copyable_verse_card.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.dart';
 import 'package:devocional_nuevo/widgets/supporter/pet_hero_section.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +16,6 @@ import 'package:provider/provider.dart';
 class DevocionalesContentWidget extends StatelessWidget {
   final Devocional devocional;
   final double fontSize;
-  final VoidCallback onVerseCopy;
   final VoidCallback onStreakBadgeTap;
   final int currentStreak;
   final Future<int> streakFuture;
@@ -34,7 +33,6 @@ class DevocionalesContentWidget extends StatelessWidget {
     super.key,
     required this.devocional,
     required this.fontSize,
-    required this.onVerseCopy,
     required this.onStreakBadgeTap,
     required this.currentStreak,
     required this.streakFuture,
@@ -89,50 +87,10 @@ class DevocionalesContentWidget extends StatelessWidget {
             onShare: onShare,
             onStreakTap: onStreakBadgeTap,
           ),
-          GestureDetector(
-            onTap: onVerseCopy,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    colorScheme.primary.withValues(alpha: 0.25),
-                    colorScheme.primary.withValues(alpha: 0.08),
-                    colorScheme.secondary.withValues(alpha: 0.06),
-                  ],
-                  stops: const [0.0, 0.6, 1.0],
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: colorScheme.primary.withValues(alpha: 0.3),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.primary.withValues(alpha: 0.2),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                    spreadRadius: -4,
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 40,
-                    offset: const Offset(0, 16),
-                    spreadRadius: -8,
-                  ),
-                ],
-              ),
-              child: AutoSizeText(
-                devocional.versiculo,
-                textAlign: TextAlign.center,
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-                maxLines: 12,
-              ),
+          CopyableVerseCard(
+            text: devocional.versiculo,
+            textStyle: textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 20),
@@ -163,25 +121,18 @@ class DevocionalesContentWidget extends StatelessWidget {
           ...devocional.paraMeditar.map((item) {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '${item.cita}: ',
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: fontSize,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    TextSpan(
-                      text: item.texto,
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontSize: fontSize,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
+              child: CopyableVerseCard(
+                text: item.texto,
+                copyText: '${item.cita}: ${item.texto}',
+                textStyle: textTheme.bodyMedium?.copyWith(fontSize: fontSize),
+                maxLines: 8,
+                prefixSpan: TextSpan(
+                  text: '${item.cita}: ',
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: fontSize,
+                    color: colorScheme.primary,
+                  ),
                 ),
               ),
             );
