@@ -1,6 +1,7 @@
 // lib/widgets/discovery_section_card.dart
 
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
+import 'package:devocional_nuevo/widgets/scripture/resolved_verse_text.dart';
 import 'package:flutter/material.dart';
 
 /// Card widget for displaying a Discovery section.
@@ -105,8 +106,9 @@ class _ScripturePassageCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              pasaje.texto,
+            ResolvedVerseText(
+              reference: pasaje.referencia,
+              fallbackText: pasaje.texto,
               style: const TextStyle(fontSize: 16, height: 1.5),
             ),
             if (pasaje.aplicacion != null) ...[
