@@ -295,13 +295,11 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                   ),
 
                   Expanded(
-                    child: Padding(
+                    child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(horizontal: 32),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Spacer(),
-
                           const SizedBox(height: 40),
 
                           // Text Reveal Section

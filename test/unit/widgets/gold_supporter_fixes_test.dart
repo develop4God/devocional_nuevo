@@ -123,7 +123,6 @@ void main() {
               child: DevocionalesContentWidget(
                 devocional: devocional,
                 fontSize: 16,
-                onVerseCopy: () {},
                 onStreakBadgeTap: () {},
                 currentStreak: 1,
                 streakFuture: Future.value(1),

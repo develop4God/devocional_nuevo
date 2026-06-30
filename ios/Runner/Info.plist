@@ -62,7 +62,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.develop4god.devocional</string>
+			<string>com.develop4god.devocional.appstore</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>devocional</string>

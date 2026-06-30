@@ -54,7 +54,6 @@ void main() {
   group('DevocionalesContentWidget', () {
     late Devocional devocional;
     late FakeDevocionalProvider fakeProvider;
-    late bool verseCopied;
     late bool streakTapped;
     late bool favoriteToggled;
     late bool shared;
@@ -78,7 +77,6 @@ void main() {
         tags: ['fe', 'amor'],
       );
       fakeProvider = FakeDevocionalProvider();
-      verseCopied = false;
       streakTapped = false;
       favoriteToggled = false;
       shared = false;
@@ -97,7 +95,6 @@ void main() {
             child: DevocionalesContentWidget(
               devocional: devocional,
               fontSize: 16,
-              onVerseCopy: () => verseCopied = true,
               onStreakBadgeTap: () => streakTapped = true,
               currentStreak: streak,
               streakFuture: streakFuture ?? Future.value(streak),
@@ -130,10 +127,9 @@ void main() {
       expect(find.byIcon(Icons.share_rounded), findsOneWidget);
     });
 
-    testWidgets('calls onVerseCopy when verse tapped', (tester) async {
+    testWidgets('verse card shows copy icon', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.text('Juan 3:16'));
-      expect(verseCopied, isTrue);
+      expect(find.byIcon(Icons.copy_outlined), findsWidgets);
     });
 
     testWidgets(
