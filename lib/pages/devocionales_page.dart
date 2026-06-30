@@ -1014,40 +1014,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   devocional: currentDevocional,
                                   fontSize: _fontSizeController.fontSize,
                                   scrollController: _scrollController,
-                                  onVerseCopy: () async {
-                                    try {
-                                      await Clipboard.setData(
-                                        ClipboardData(
-                                          text: currentDevocional.versiculo,
-                                        ),
-                                      );
-                                      if (!context.mounted) return;
-                                      HapticFeedback.selectionClick();
-                                      final messenger = ScaffoldMessenger.of(
-                                        context,
-                                      );
-                                      final ColorScheme colorScheme = Theme.of(
-                                        context,
-                                      ).colorScheme;
-                                      messenger.showSnackBar(
-                                        SnackBar(
-                                          backgroundColor:
-                                              colorScheme.secondary,
-                                          duration: const Duration(seconds: 2),
-                                          content: Text(
-                                            'share.copied_to_clipboard'.tr(),
-                                            style: TextStyle(
-                                              color: colorScheme.onSecondary,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    } catch (e) {
-                                      debugPrint(
-                                        '[DevocionalesPage] Error copying verse to clipboard: $e',
-                                      );
-                                    }
-                                  },
                                   onStreakBadgeTap: () {
                                     Navigator.push(
                                       context,
