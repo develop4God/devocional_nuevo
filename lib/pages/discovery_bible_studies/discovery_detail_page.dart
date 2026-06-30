@@ -1,6 +1,7 @@
 // lib/pages/discovery_detail_page.dart
 
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -886,7 +887,9 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
 
   Widget _buildCopyrightDisclaimer(DiscoveryDevotional study, ThemeData theme) {
     final language = study.language ?? 'en';
-    final version = study.version ?? 'KJV';
+    final selectedVersion = context.read<DevocionalProvider>().selectedVersion;
+    final version =
+        selectedVersion.isNotEmpty ? selectedVersion : (study.version ?? '');
     final copyrightText = CopyrightUtils.getCopyrightText(language, version);
 
     return Container(
