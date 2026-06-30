@@ -324,8 +324,12 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       child: buildEncounterCardWidget(
                         cards[index],
                         onBackToEncounters: _onCompleteEncounter,
-                        bibleVersion:
-                            context.read<DevocionalProvider>().selectedVersion,
+                        bibleVersion: () {
+                          final v = context
+                              .read<DevocionalProvider>()
+                              .selectedVersion;
+                          return v.isNotEmpty ? v : (study.bibleVersion ?? '');
+                        }(),
                         language: study.language,
                         showCompletionMessage: state.isCompleted(
                           widget.entry.id,
