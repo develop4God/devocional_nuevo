@@ -27,7 +27,7 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  bool _notificationsEnabled = false;
+  bool _notificationsEnabled = true;
   TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
 
   // Nueva variable para la hora seleccionada temporalmente por el usuario
@@ -52,24 +52,32 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
         name: 'NotificationConfigPage',
       );
       if (mounted) {
-        final messenger = ScaffoldMessenger.of(context);
-        // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-        final ColorScheme colorScheme = Theme.of(
-          context,
-        ).colorScheme; // Obtener colorScheme
-        messenger.showSnackBar(
-          SnackBar(
-            backgroundColor:
-                colorScheme.secondary, // Fondo del SnackBar usando secondary
-            content: Text(
-              'notifications_config_page.user_not_authenticated'.tr(),
-              // TEXTO TRADUCIDO
-              style: TextStyle(
-                color: colorScheme.onSecondary,
-              ), // Texto del SnackBar usando onSecondary
+        try {
+          final messenger = ScaffoldMessenger.of(context);
+          // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
+          final ColorScheme colorScheme = Theme.of(
+            context,
+          ).colorScheme; // Obtener colorScheme
+          messenger.showSnackBar(
+            SnackBar(
+              backgroundColor:
+                  colorScheme.secondary, // Fondo del SnackBar usando secondary
+              content: Text(
+                'notifications_config_page.user_not_authenticated'.tr(),
+                // TEXTO TRADUCIDO
+                style: TextStyle(
+                  color: colorScheme.onSecondary,
+                ), // Texto del SnackBar usando onSecondary
+              ),
             ),
-          ),
-        );
+          );
+        } catch (e) {
+          developer.log(
+            'NotificationConfigPage: Failed to show snackbar: $e',
+            name: 'NotificationConfigPage',
+            error: e,
+          );
+        }
         setState(() {
           _isLoading = false;
         });
