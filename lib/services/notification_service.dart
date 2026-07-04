@@ -75,6 +75,14 @@ class NotificationService {
   static const String _defaultNotificationTime = '09:00';
   static const String _fcmTokenKey = 'fcm_token';
 
+  // FCM token retrieval: the plugin reports transient network / Play Services
+  // errors only as text in the message (code: 'unknown'), so they are
+  // detected by substring.
+  static const int _maxTokenAttempts = 3;
+  static const String _transientTokenError = 'SERVICE_NOT_AVAILABLE';
+  static const Duration _transientRetryBase = Duration(seconds: 2);
+  static const Duration _tokenRetryBase = Duration(milliseconds: 600);
+
   Function(String? payload)? onNotificationTapped;
 
   /// NUEVO: Actualiza el campo lastLogin cada vez que el usuario ingresa a la app
@@ -220,8 +228,8 @@ class NotificationService {
         name: 'NotificationService',
       );
       String? token;
-      const int maxAttempts = 3;
-      for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+      for (int attempt = 1; attempt <= _maxTokenAttempts; attempt++) {
+        final stopwatch = Stopwatch()..start();
         try {
           token = await _firebaseMessaging.getToken();
           if (token != null) {
@@ -238,27 +246,35 @@ class NotificationService {
           }
         } catch (e) {
           final msg = e.toString();
+          final details = e is FirebaseException
+              ? 'plugin: ${e.plugin}, code: ${e.code}, message: ${e.message}'
+              : 'type: ${e.runtimeType}';
           developer.log(
-            'NotificationService: Error obteniendo token (intento $attempt): $msg',
+            'NotificationService: Error obteniendo token '
+            '(intento $attempt, ${stopwatch.elapsedMilliseconds}ms, $details): $msg',
             name: 'NotificationService',
             error: e,
           );
-          if (msg.contains('SERVICE_NOT_AVAILABLE') && attempt < maxAttempts) {
-            await Future.delayed(Duration(milliseconds: 600 * attempt));
+          if (attempt < _maxTokenAttempts) {
+            // Longer backoff for transient network errors.
+            final base = msg.contains(_transientTokenError)
+                ? _transientRetryBase
+                : _tokenRetryBase;
+            await Future.delayed(base * attempt);
             continue;
-          } else {
-            rethrow;
           }
+          // Do not rethrow: continue so the listeners get registered.
+          // onTokenRefresh will deliver the token once connectivity returns.
         }
-        if (token == null && attempt < maxAttempts) {
-          await Future.delayed(Duration(milliseconds: 400 * attempt));
+        if (token == null && attempt < _maxTokenAttempts) {
+          await Future.delayed(_tokenRetryBase * attempt);
         }
       }
       if (token != null) {
         await _saveFcmToken(token);
       } else {
         developer.log(
-          'NotificationService: No se pudo obtener token FCM tras $maxAttempts intentos (token sigue nulo).',
+          'NotificationService: No se pudo obtener token FCM tras $_maxTokenAttempts intentos (token sigue nulo).',
           name: 'NotificationService',
         );
       }
@@ -283,8 +299,8 @@ class NotificationService {
         );
         _handleMessage(message);
       });
-      // Verificación consolidada al terminar inicialización FCM
-      await verifyNotificationSetup();
+      // Verification runs in _saveNotificationSettingsToFirestore, after the
+      // settings document exists; verifying here would report null settings.
     } catch (e) {
       developer.log(
         'ERROR en _initializeFCM: $e',
@@ -367,7 +383,7 @@ class NotificationService {
       }, SetOptions(merge: true));
 
       developer.log(
-        'NotificationService: Token FCM y lastLogin guardados en Firestore para el usuario ${user.uid}',
+        'NotificationService: Token FCM guardado en Firestore para el usuario ${user.uid}',
         name: 'NotificationService',
       );
 
