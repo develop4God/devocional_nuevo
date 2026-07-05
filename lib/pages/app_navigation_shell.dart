@@ -29,11 +29,26 @@ class AppNavigationShell extends StatefulWidget {
 
   const AppNavigationShell({super.key, this.initialDevocionalId});
 
+  /// Attached by the app root to the single live shell instance so
+  /// [selectTab] can reach it from dialogs and pushed routes, which are
+  /// not descendants of the shell in the widget tree.
+  static final GlobalKey<AppNavigationShellState> shellKey =
+      GlobalKey<AppNavigationShellState>();
+
+  /// Switches the live shell to [tab]. No-op if no shell is mounted or the
+  /// tab is disabled by feature flags. Callers on pushed routes must pop
+  /// back to the shell first.
+  static void selectTab(AppTab tab) {
+    final state = shellKey.currentState;
+    if (state == null || !state._tabs.contains(tab)) return;
+    state._selectTab(tab);
+  }
+
   @override
-  State<AppNavigationShell> createState() => _AppNavigationShellState();
+  State<AppNavigationShell> createState() => AppNavigationShellState();
 }
 
-class _AppNavigationShellState extends State<AppNavigationShell> {
+class AppNavigationShellState extends State<AppNavigationShell> {
   late final List<AppTab> _tabs = [
     AppTab.home,
     AppTab.prayers,
