@@ -502,8 +502,7 @@ void main() {
         'reattachTts() re-claims native callbacks stolen by a newer '
         'FlutterTts instance', () async {
       Future<void> sendNativeEvent(String method) async {
-        await TestDefaultBinaryMessengerBinding
-            .instance.defaultBinaryMessenger
+        await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .handlePlatformMessage(
           'flutter_tts',
           const StandardMethodCodec().encodeMethodCall(MethodCall(method)),

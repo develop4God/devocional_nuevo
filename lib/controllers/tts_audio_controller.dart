@@ -141,6 +141,11 @@ class TtsAudioController {
   /// bible tab) this controller's handlers stop firing. Constructing a fresh
   /// instance re-claims the channel; native TTS state (rate, language) is
   /// engine-side and unaffected.
+  ///
+  /// The replaced instance needs no teardown: FlutterTts (4.2.5) exposes no
+  /// dispose/shutdown API and holds no per-instance native resources — only
+  /// handler fields and the static channel — so the old object is simply
+  /// garbage-collected.
   void reattachTts() {
     flutterTts = FlutterTts();
     _registerHandlers();
