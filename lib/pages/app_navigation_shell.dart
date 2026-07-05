@@ -10,9 +10,6 @@ import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/services/remote_config_service.dart';
-import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -49,16 +46,9 @@ class AppNavigationShell extends StatefulWidget {
 }
 
 class AppNavigationShellState extends State<AppNavigationShell> {
-  late final List<AppTab> _tabs = [
-    AppTab.home,
-    AppTab.prayers,
-    AppTab.bible,
-    if (Constants.enableDiscoveryFeature) AppTab.discovery,
-    if (Constants.enableEncountersFeature) AppTab.encounters,
-    AppTab.progress,
-    AppTab.settings,
-    if (getService<RemoteConfigService>().featureSupporter) AppTab.supporter,
-  ];
+  // Frozen at first build; passed to AppBottomNavBar so the icon row and the
+  // IndexedStack can never desync (e.g. on a runtime remote-config refresh).
+  late final List<AppTab> _tabs = enabledAppTabs();
 
   AppTab _currentTab = AppTab.home;
 
@@ -136,6 +126,7 @@ class AppNavigationShellState extends State<AppNavigationShell> {
           bottomNavigationBar: AppBottomNavBar(
             currentTab: _currentTab,
             onSelectTab: _selectTab,
+            tabs: _tabs,
           ),
         ),
       ),
