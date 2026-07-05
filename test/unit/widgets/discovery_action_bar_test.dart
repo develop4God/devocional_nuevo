@@ -13,10 +13,12 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_detail_page.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
@@ -81,13 +83,16 @@ void main() {
       final themeBloc = MockThemeBlocForTesting();
 
       return MaterialApp(
-        home: MultiBlocProvider(
-          providers: [
-            BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-            BlocProvider<ThemeBloc>.value(value: themeBloc),
-            BlocProvider<PrayerBloc>.value(value: prayerBloc),
-          ],
-          child: const DiscoveryDetailPage(studyId: 'dummy-study-id'),
+        home: ChangeNotifierProvider<DevocionalProvider>(
+          create: (_) => DevocionalProvider(enableAudio: false),
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+              BlocProvider<ThemeBloc>.value(value: themeBloc),
+              BlocProvider<PrayerBloc>.value(value: prayerBloc),
+            ],
+            child: const DiscoveryDetailPage(studyId: 'dummy-study-id'),
+          ),
         ),
       );
     }
