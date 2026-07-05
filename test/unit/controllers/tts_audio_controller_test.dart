@@ -497,5 +497,40 @@ void main() {
       await controller.play();
       expect(controller.state.value, TtsPlayerState.playing);
     });
+
+    test(
+        'reattachTts() re-claims native callbacks stolen by a newer '
+        'FlutterTts instance', () async {
+      Future<void> sendNativeEvent(String method) async {
+        await TestDefaultBinaryMessengerBinding
+            .instance.defaultBinaryMessenger
+            .handlePlatformMessage(
+          'flutter_tts',
+          const StandardMethodCodec().encodeMethodCall(MethodCall(method)),
+          (_) {},
+        );
+      }
+
+      // Another page (e.g. the bible tab) creates its own FlutterTts,
+      // which claims the shared method channel.
+      final thief = FlutterTts();
+      expect(thief, isNotNull);
+
+      await sendNativeEvent('speak.onStart');
+      expect(
+        controller.state.value,
+        isNot(TtsPlayerState.playing),
+        reason: 'Native events route to the newest instance, not ours',
+      );
+
+      controller.reattachTts();
+
+      await sendNativeEvent('speak.onStart');
+      expect(
+        controller.state.value,
+        TtsPlayerState.playing,
+        reason: 'After reattachTts() our handlers must receive events again',
+      );
+    });
   });
 }
