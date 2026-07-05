@@ -19,16 +19,37 @@ enum AppTab {
   supporter,
 }
 
+/// Single source of truth for which tabs are enabled and their order.
+/// Both [AppNavigationShell] (IndexedStack children) and [AppBottomNavBar]
+/// (icon row) must consume the same list, or the highlighted icon and the
+/// visible page can desync.
+List<AppTab> enabledAppTabs() => [
+      AppTab.home,
+      AppTab.prayers,
+      AppTab.bible,
+      if (Constants.enableDiscoveryFeature) AppTab.discovery,
+      if (Constants.enableEncountersFeature) AppTab.encounters,
+      AppTab.progress,
+      AppTab.settings,
+      if (getService<RemoteConfigService>().featureSupporter) AppTab.supporter,
+    ];
+
 /// Persistent bottom navigation bar shown on every main screen.
 /// Every icon switches tabs via [onSelectTab], keeping the bar frozen.
 class AppBottomNavBar extends StatelessWidget {
   final AppTab currentTab;
   final ValueChanged<AppTab> onSelectTab;
 
+  /// Enabled tabs, in order. Pass the same (frozen) list that drives the
+  /// shell's IndexedStack so icons never point at a missing page. Defaults
+  /// to [enabledAppTabs] when the bar is used standalone.
+  final List<AppTab>? tabs;
+
   const AppBottomNavBar({
     super.key,
     required this.currentTab,
     required this.onSelectTab,
+    this.tabs,
   });
 
   Color _iconColor(ColorScheme colorScheme, AppTab tab) {
@@ -50,6 +71,7 @@ class AppBottomNavBar extends StatelessWidget {
     final Color? appBarBackgroundColor = Theme.of(
       context,
     ).appBarTheme.backgroundColor;
+    final List<AppTab> enabledTabs = tabs ?? enabledAppTabs();
 
     return SafeArea(
       top: false,
@@ -104,7 +126,7 @@ class AppBottomNavBar extends StatelessWidget {
                 ),
               ),
               // 4. Discovery Studies
-              if (Constants.enableDiscoveryFeature)
+              if (enabledTabs.contains(AppTab.discovery))
                 IconButton(
                   key: const Key('bottom_appbar_discovery_icon'),
                   tooltip: 'discovery.discovery_studies'.tr(),
@@ -116,7 +138,7 @@ class AppBottomNavBar extends StatelessWidget {
                   ),
                 ),
               // 5. Encounters
-              if (Constants.enableEncountersFeature)
+              if (enabledTabs.contains(AppTab.encounters))
                 IconButton(
                   key: const Key('bottom_appbar_encounters_icon'),
                   tooltip: 'Encounters',
@@ -139,126 +161,112 @@ class AppBottomNavBar extends StatelessWidget {
                 ),
               ),
               // 7. Settings
-              FutureBuilder<bool>(
-                future: BubbleUtils.shouldShowBubble(
-                  BubbleUtils.getIconBubbleId(
-                    Icons.settings_suggest_sharp,
-                    'new',
-                  ),
+              _NavIconWithBadge(
+                iconKey: const Key('bottom_appbar_settings_icon'),
+                tooltip: 'tooltips.settings'.tr(),
+                icon: Icons.settings_suggest_sharp,
+                color: _iconColor(colorScheme, AppTab.settings),
+                bubbleId: BubbleUtils.getIconBubbleId(
+                  Icons.settings_suggest_sharp,
+                  'new',
                 ),
-                builder: (context, snapshot) {
-                  final showBubble = snapshot.data ?? false;
-                  return Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      IconButton(
-                        key: const Key('bottom_appbar_settings_icon'),
-                        tooltip: 'tooltips.settings'.tr(),
-                        onPressed: () async {
-                          await BubbleUtils.markAsShown(
-                            BubbleUtils.getIconBubbleId(
-                              Icons.settings_suggest_sharp,
-                              'new',
-                            ),
-                          );
-                          _selectTab(AppTab.settings, 'settings');
-                        },
-                        icon: Icon(
-                          Icons.settings_suggest_sharp,
-                          color: _iconColor(colorScheme, AppTab.settings),
-                          size: 30,
-                        ),
-                      ),
-                      if (showBubble)
-                        Positioned(
-                          top: BubbleConstants.iconBadgeTop,
-                          right: BubbleConstants.iconBadgeRight,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: BubbleConstants.newFeatureColor,
-                              borderRadius: BorderRadius.circular(
-                                BubbleConstants.iconBadgeRadius,
-                              ),
-                              boxShadow: BubbleConstants.bubbleShadow,
-                            ),
-                            child: Text(
-                              'bubble_constants.new_feature'.tr(),
-                              style: BubbleConstants.iconBadgeTextStyle,
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
+                onSelect: () => _selectTab(AppTab.settings, 'settings'),
               ),
               // 8. Support/Donate (conditional via Remote Config)
-              if (getService<RemoteConfigService>().featureSupporter)
-                FutureBuilder<bool>(
-                  future: BubbleUtils.shouldShowBubble(
-                    BubbleUtils.getIconBubbleId(
-                      Icons.volunteer_activism,
-                      'new',
-                      semanticLabel: 'supporter_bottom_bar',
-                    ),
+              if (enabledTabs.contains(AppTab.supporter))
+                _NavIconWithBadge(
+                  iconKey: const Key('bottom_appbar_supporter_icon'),
+                  tooltip: 'tooltips.support'.tr(),
+                  icon: Icons.volunteer_activism,
+                  color: _iconColor(colorScheme, AppTab.supporter),
+                  bubbleId: BubbleUtils.getIconBubbleId(
+                    Icons.volunteer_activism,
+                    'new',
+                    semanticLabel: 'supporter_bottom_bar',
                   ),
-                  builder: (context, snapshot) {
-                    final showBubble = snapshot.data ?? false;
-                    return Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        IconButton(
-                          key: const Key('bottom_appbar_supporter_icon'),
-                          tooltip: 'tooltips.support'.tr(),
-                          onPressed: () async {
-                            await BubbleUtils.markAsShown(
-                              BubbleUtils.getIconBubbleId(
-                                Icons.volunteer_activism,
-                                'new',
-                                semanticLabel: 'supporter_bottom_bar',
-                              ),
-                            );
-                            _selectTab(AppTab.supporter, 'supporter');
-                          },
-                          icon: Icon(
-                            Icons.volunteer_activism,
-                            color: _iconColor(colorScheme, AppTab.supporter),
-                            size: 30,
-                          ),
-                        ),
-                        if (showBubble)
-                          Positioned(
-                            top: BubbleConstants.iconBadgeTop,
-                            right: BubbleConstants.iconBadgeRight,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: BubbleConstants.newFeatureColor,
-                                borderRadius: BorderRadius.circular(
-                                  BubbleConstants.iconBadgeRadius,
-                                ),
-                                boxShadow: BubbleConstants.bubbleShadow,
-                              ),
-                              child: Text(
-                                'bubble_constants.new_feature'.tr(),
-                                style: BubbleConstants.iconBadgeTextStyle,
-                              ),
-                            ),
-                          ),
-                      ],
-                    );
-                  },
+                  onSelect: () => _selectTab(AppTab.supporter, 'supporter'),
                 ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Nav icon with an optional "new feature" bubble badge.
+///
+/// Stateful so the shouldShowBubble future is created once per element
+/// lifetime instead of on every parent rebuild — a fresh future per build
+/// would re-read SharedPreferences and blink the badge on each tab switch.
+class _NavIconWithBadge extends StatefulWidget {
+  final Key iconKey;
+  final String tooltip;
+  final IconData icon;
+  final Color color;
+  final String bubbleId;
+  final VoidCallback onSelect;
+
+  const _NavIconWithBadge({
+    required this.iconKey,
+    required this.tooltip,
+    required this.icon,
+    required this.color,
+    required this.bubbleId,
+    required this.onSelect,
+  });
+
+  @override
+  State<_NavIconWithBadge> createState() => _NavIconWithBadgeState();
+}
+
+class _NavIconWithBadgeState extends State<_NavIconWithBadge> {
+  late final Future<bool> _showBubble =
+      BubbleUtils.shouldShowBubble(widget.bubbleId);
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _showBubble,
+      builder: (context, snapshot) {
+        final showBubble = snapshot.data ?? false;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            IconButton(
+              key: widget.iconKey,
+              tooltip: widget.tooltip,
+              onPressed: () async {
+                await BubbleUtils.markAsShown(widget.bubbleId);
+                widget.onSelect();
+              },
+              icon: Icon(widget.icon, color: widget.color, size: 30),
+            ),
+            if (showBubble)
+              Positioned(
+                top: BubbleConstants.iconBadgeTop,
+                right: BubbleConstants.iconBadgeRight,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: BubbleConstants.newFeatureColor,
+                    borderRadius: BorderRadius.circular(
+                      BubbleConstants.iconBadgeRadius,
+                    ),
+                    boxShadow: BubbleConstants.bubbleShadow,
+                  ),
+                  child: Text(
+                    'bubble_constants.new_feature'.tr(),
+                    style: BubbleConstants.iconBadgeTextStyle,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
