@@ -67,10 +67,11 @@ final RouteObserver<PageRoute<dynamic>> routeObserver =
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  developer.log(
-    'BackgroundServiceCallback: Manejando mensaje FCM en segundo plano: ${message.messageId}',
-    name: 'BackgroundServiceCallback',
-  );
+  if (kDebugMode) {
+    debugPrint(
+      '🔔 [BackgroundServiceCallback] Handling background FCM message: ${message.messageId}',
+    );
+  }
   // Ensure Firebase is initialized in the background isolate before using any
   // Firebase-dependent services. If you have generated DefaultFirebaseOptions,
   // prefer using `Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)`.
