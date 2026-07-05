@@ -82,6 +82,40 @@ void main() {
       expect(find.byType(BottomAppBar), findsOneWidget);
     });
 
+    testWidgets('renders bar inside SafeArea', (WidgetTester tester) async {
+      overrideRemoteConfig();
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.ancestor(
+          of: find.byType(BottomAppBar),
+          matching: find.byType(SafeArea),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('handles rapid taps without errors', (
+      WidgetTester tester,
+    ) async {
+      overrideRemoteConfig();
+      final selections = <AppTab>[];
+      await tester.pumpWidget(
+        createWidgetUnderTest(onSelectTab: selections.add),
+      );
+      await tester.pumpAndSettle();
+
+      for (int i = 0; i < 3; i++) {
+        await tester.tap(find.byKey(const Key('bottom_appbar_prayers_icon')));
+        await tester.tap(find.byKey(const Key('bottom_appbar_settings_icon')));
+      }
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(selections.length, 6);
+    });
+
     testWidgets('displays all navigation icon keys', (
       WidgetTester tester,
     ) async {
