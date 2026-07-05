@@ -12,7 +12,7 @@ class DiscoveryInitial extends DiscoveryState {}
 class DiscoveryLoading extends DiscoveryState {}
 
 /// State when Discovery studies are successfully loaded
-class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
+class DiscoveryLoaded extends DiscoveryState with Equatable {
   final List<String> availableStudyIds;
   final Map<String, DiscoveryDevotional> loadedStudies;
   final Map<String, String> studyTitles; // study ID to localized title

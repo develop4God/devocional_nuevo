@@ -296,6 +296,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   action: SnackBarAction(
                     label: 'devotionals.go_to_settings'.tr(),
                     onPressed: () {
+                      // This page may be pushed over the shell (e.g. from
+                      // favorites); pop back so the tab switch is visible.
+                      Navigator.of(context).popUntil((route) => route.isFirst);
                       AppNavigationShell.selectTab(AppTab.settings);
                     },
                   ),
@@ -514,18 +517,28 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   void didPopNext() {
+    // When hosted as a shell tab, route pushes/pops happen over the whole
+    // shell, so this fires even while another tab is visible. Only react
+    // when this page's tab is actually the active one.
+    if (widget.isActive?.value == false) return;
     _handleRevealed();
   }
 
   @override
   void didPushNext() {
+    if (widget.isActive?.value == false) return;
     _handleCovered();
   }
 
   /// Called when this page becomes visible again (route popped back to it,
   /// or its tab re-selected in AppNavigationShell).
   void _handleRevealed() {
+    // The RouteAware and isActive paths can both fire for one transition.
+    if (_isTopRoute) return;
     _isTopRoute = true;
+    // Another page's FlutterTts instance (e.g. the bible tab) may have
+    // claimed the native callback channel while this page was hidden.
+    _ttsAudioController.reattachTts();
     // Refresh streak when returning to this page (e.g., from ProgressPage)
     _streakFuture = _loadStreak();
 
@@ -549,6 +562,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   /// Called when this page is hidden (route pushed on top, or another tab
   /// selected in AppNavigationShell).
   void _handleCovered() {
+    if (!_isTopRoute) return;
     _isTopRoute = false;
     _tracking.pauseTracking();
     debugPrint('📄 DevocionalesPage covered → tracking PAUSED');
@@ -766,7 +780,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   const SizedBox(width: 16),
                   OutlinedButton.icon(
                     onPressed: () {
-                      // Navigate to settings to change language/version
+                      // Navigate to settings to change language/version.
+                      // This page may be pushed over the shell (e.g. from
+                      // favorites); pop back so the tab switch is visible.
+                      Navigator.of(context).popUntil((route) => route.isFirst);
                       AppNavigationShell.selectTab(AppTab.settings);
                     },
                     icon: const Icon(Icons.settings),
