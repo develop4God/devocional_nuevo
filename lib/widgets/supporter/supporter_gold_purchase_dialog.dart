@@ -2,7 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/supporter_pet.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
-import 'package:devocional_nuevo/pages/devocionales_page.dart';
+import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
@@ -676,7 +676,7 @@ class _SupporterGoldPurchaseDialogState
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () => _navigateTo(const DevocionalesPage()),
+            onPressed: () => _navigateTo(const AppNavigationShell()),
             icon: const Icon(Icons.home_filled, color: _gold, size: 20),
             label: AutoSizeText(
               'supporter.go_to_devotionals'.tr(),

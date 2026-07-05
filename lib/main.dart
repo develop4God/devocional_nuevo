@@ -15,7 +15,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/pages/debug_page.dart';
-import 'package:devocional_nuevo/pages/devocionales_page.dart';
+import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/pages/encounters/encounters_list_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
@@ -501,7 +501,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             ),
             routes: {
               '/settings': (context) => const SettingsPage(),
-              '/devocionales': (context) => const DevocionalesPage(),
+              '/devocionales': (context) => const AppNavigationShell(),
               if (Constants.enableEncountersFeature)
                 '/encounters': (context) => const EncountersListPage(),
               if (kDebugMode || _developerMode)
@@ -586,7 +586,7 @@ class _AppInitializerState extends State<AppInitializer> {
     _initNonCriticalServices();
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (context, a, b) => const DevocionalesPage(),
+        pageBuilder: (context, a, b) => const AppNavigationShell(),
         transitionDuration: const Duration(milliseconds: 300),
       ),
     );
