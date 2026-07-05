@@ -25,7 +25,6 @@
 //   ✅ final service = ServiceLocator().get<NotificationService>();
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:devocional_nuevo/utils/debug_logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 // Importaciones para Firebase Cloud Messaging y Firestore
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -44,9 +43,11 @@ import 'package:timezone/timezone.dart' as tz;
 void flutterLocalNotificationsBackgroundHandler(
   NotificationResponse notificationResponse,
 ) async {
-  debugLog(
-    '🔔 [NotificationService] Background notification response: ${notificationResponse.payload}',
-  );
+  if (kDebugMode) {
+    debugPrint(
+      '🔔 [NotificationService] Background notification response: ${notificationResponse.payload}',
+    );
+  }
   // Puedes añadir lógica adicional aquí si necesitas procesar la notificación en segundo plano.
   // Por ejemplo, navegar a una pantalla específica o actualizar el estado de la aplicación.
   // Asegúrate de que cualquier inicialización de Firebase o servicios se haga aquí si es necesario.
@@ -91,7 +92,7 @@ class NotificationService {
       await userDocRef.set({
         'lastLogin': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-      debugLog(
+      debugPrint(
         '🔔 [NotificationService] lastLogin updated for user ${user.uid}',
       );
     }
@@ -103,7 +104,7 @@ class NotificationService {
       tzdata.initializeTimeZones();
       final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(currentTimeZone));
-      debugLog(
+      debugPrint(
         '🔔 [NotificationService] tz.local.name: ${tz.local.name}, tz.local.currentTimeZone: ${tz.local.currentTimeZone}',
       );
 
@@ -128,14 +129,14 @@ class NotificationService {
       );
 
       await _requestPermissions();
-      debugLog('🔔 [NotificationService] Initialized');
+      debugPrint('🔔 [NotificationService] Initialized');
 
       // **INICIO DE MODIFICACIÓN: Escuchar cambios de autenticación antes de inicializar FCM y guardar settings**
       // Esto asegura que haya un usuario (UID) disponible antes de intentar guardar tokens o settings.
       // Se elimina la llamada directa a _initializeFCM() y la lógica de settings de aquí.
       _auth.authStateChanges().listen((user) async {
         if (user != null) {
-          debugLog(
+          debugPrint(
             '🔔 [NotificationService] Authenticated user detected: ${user.uid}',
           );
 
@@ -149,7 +150,7 @@ class NotificationService {
           final RemoteMessage? initialMessage =
               await _firebaseMessaging.getInitialMessage();
           if (initialMessage != null) {
-            debugLog(
+            debugPrint(
               '🔔 [NotificationService] App opened from initial notification: ${initialMessage.messageId}',
             );
             _handleMessage(initialMessage);
@@ -185,12 +186,12 @@ class NotificationService {
             initialUserTimezone,
           );
         } else {
-          debugLog('🔔 [NotificationService] No authenticated user.');
+          debugPrint('🔔 [NotificationService] No authenticated user.');
         }
       });
       // **FIN DE MODIFICACIÓN**
     } catch (e) {
-      debugLog('❌ [NotificationService] ERROR in initialize: $e');
+      debugPrint('❌ [NotificationService] ERROR in initialize: $e');
     }
   }
 
@@ -207,7 +208,7 @@ class NotificationService {
         provisional: false,
         sound: true,
       );
-      debugLog(
+      debugPrint(
         '🔔 [NotificationService] User permission granted: ${settings.authorizationStatus}',
       );
       String? token;
@@ -216,12 +217,12 @@ class NotificationService {
         try {
           token = await _firebaseMessaging.getToken();
           if (token != null) {
-            debugLog(
+            debugPrint(
               '🔔 [NotificationService] FCM token obtained on attempt $attempt: $token',
             );
             break;
           } else {
-            debugLog(
+            debugPrint(
               '🔔 [NotificationService] FCM token null on attempt $attempt',
             );
           }
@@ -230,7 +231,7 @@ class NotificationService {
           final details = e is FirebaseException
               ? 'plugin: ${e.plugin}, code: ${e.code}, message: ${e.message}'
               : 'type: ${e.runtimeType}';
-          debugLog(
+          debugPrint(
             '❌ [NotificationService] Error obtaining token '
             '(attempt $attempt, ${stopwatch.elapsedMilliseconds}ms, $details): $msg',
           );
@@ -252,22 +253,22 @@ class NotificationService {
       if (token != null) {
         await _saveFcmToken(token);
       } else {
-        debugLog(
+        debugPrint(
           '🔔 [NotificationService] Could not obtain FCM token after $_maxTokenAttempts attempts (token still null).',
         );
       }
       _firebaseMessaging.onTokenRefresh.listen((newToken) {
-        debugLog('🔔 [NotificationService] FCM token refreshed: $newToken');
+        debugPrint('🔔 [NotificationService] FCM token refreshed: $newToken');
         _saveFcmToken(newToken);
       });
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        debugLog(
+        debugPrint(
           '🔔 [NotificationService] Foreground FCM message: ${message.messageId}',
         );
         _handleMessage(message);
       });
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        debugLog(
+        debugPrint(
           '🔔 [NotificationService] App opened from notification: ${message.messageId}',
         );
         _handleMessage(message);
@@ -275,7 +276,7 @@ class NotificationService {
       // Verification runs in _saveNotificationSettingsToFirestore, after the
       // settings document exists; verifying here would report null settings.
     } catch (e) {
-      debugLog('❌ [NotificationService] ERROR in _initializeFCM: $e');
+      debugPrint('❌ [NotificationService] ERROR in _initializeFCM: $e');
     }
   }
 
@@ -283,7 +284,7 @@ class NotificationService {
   void _handleMessage(RemoteMessage message) {
     // Solo procesar si el mensaje contiene una sección de notificación o datos relevantes
     if (message.notification != null || message.data.isNotEmpty) {
-      debugLog(
+      debugPrint(
         '🔔 [NotificationService] FCM message received. ID: ${message.messageId}',
       );
 
@@ -294,7 +295,7 @@ class NotificationService {
 
       // Si el mensaje es de solo datos y quieres mostrar una notificación:
       if (message.notification == null && message.data.isNotEmpty) {
-        debugLog(
+        debugPrint(
           '🔔 [NotificationService] Data-only FCM message, showing local notification.',
         );
         showImmediateNotification(
@@ -308,7 +309,7 @@ class NotificationService {
       // Aquí puedes manejar la lógica de navegación o actualización de UI si es necesario,
       // pero no mostrar otra notificación local.
       else if (message.notification != null) {
-        debugLog(
+        debugPrint(
           '🔔 [NotificationService] FCM message contains notification (already shown by the OS).',
         );
         // Aquí podrías añadir lógica para manejar el payload o navegar
@@ -324,7 +325,7 @@ class NotificationService {
     try {
       final User? user = _auth.currentUser;
       if (user == null) {
-        debugLog(
+        debugPrint(
           '🔔 [NotificationService] User not authenticated, cannot save FCM token.',
         );
         return;
@@ -347,17 +348,17 @@ class NotificationService {
         'platform': defaultTargetPlatform.toString(),
       }, SetOptions(merge: true));
 
-      debugLog(
+      debugPrint(
         '🔔 [NotificationService] FCM token saved to Firestore for user ${user.uid}',
       );
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_fcmTokenKey, token);
-      debugLog(
+      debugPrint(
         '🔔 [NotificationService] FCM token saved to SharedPreferences.',
       );
     } catch (e) {
-      debugLog('❌ [NotificationService] ERROR in _saveFcmToken: $e');
+      debugPrint('❌ [NotificationService] ERROR in _saveFcmToken: $e');
     }
   }
 
@@ -383,13 +384,13 @@ class NotificationService {
         'lastUpdated': FieldValue.serverTimestamp(),
         'preferredLanguage': currentLanguage,
       }, SetOptions(merge: true));
-      debugLog(
+      debugPrint(
         '🔔 [NotificationService] Notification settings saved for $userId: Enabled: $notificationsEnabled, Time: $notificationTime, Timezone: $userTimezone, Language: $currentLanguage',
       );
       // Verificación tras guardar configuración
       await verifyNotificationSetup();
     } catch (e) {
-      debugLog(
+      debugPrint(
         '❌ [NotificationService] Error saving notification settings for user $userId: $e',
       );
     }
@@ -423,7 +424,7 @@ class NotificationService {
   // **FIN DE MODIFICACIÓN**
 
   void _onNotificationTapped(NotificationResponse notificationResponse) {
-    debugLog(
+    debugPrint(
       '🔔 [NotificationService] Notification tapped: ${notificationResponse.payload}',
     );
     if (onNotificationTapped != null) {
@@ -462,13 +463,13 @@ class NotificationService {
         allPermissionsGranted = result ??
             false; // Para iOS, el resultado directo de requestPermissions
       }
-      debugLog(
+      debugPrint(
         '🔔 [NotificationService] Permissions granted: $allPermissionsGranted',
       );
       return allPermissionsGranted; // Retorna el estado combinado de todos los permisos
       // **FIN DE MODIFICACIÓN**
     } catch (e) {
-      debugLog('❌ [NotificationService] ERROR in _requestPermissions: $e');
+      debugPrint('❌ [NotificationService] ERROR in _requestPermissions: $e');
       return false;
     }
   }
@@ -481,7 +482,7 @@ class NotificationService {
   Future<void> setNotificationsEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_notificationsEnabledKey, enabled);
-    debugLog(
+    debugPrint(
         '🔔 [NotificationService] Notifications enabled set to $enabled');
 
     // **INICIO DE MODIFICACIÓN: Usar el método unificado para guardar el estado en Firestore**
@@ -506,11 +507,11 @@ class NotificationService {
           currentNotificationTime, // La hora actual (sin cambios aquí)
           currentUserTimezone, // La zona horaria actual (sin cambios aquí)
         );
-        debugLog(
+        debugPrint(
           '🔔 [NotificationService] Notifications enabled ($enabled) saved to Firestore for user ${user.uid}',
         );
       } catch (e) {
-        debugLog(
+        debugPrint(
           '❌ [NotificationService] ERROR in setNotificationsEnabled saving to Firestore: $e',
         );
       }
@@ -535,7 +536,7 @@ class NotificationService {
   Future<void> setNotificationTime(String time) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_notificationTimeKey, time);
-    debugLog('🔔 [NotificationService] Notification time set to $time');
+    debugPrint('🔔 [NotificationService] Notification time set to $time');
 
     // **INICIO DE MODIFICACIÓN: Usar el método unificado para guardar la hora en Firestore**
     final User? user = _auth.currentUser;
@@ -561,11 +562,11 @@ class NotificationService {
           time, // La nueva hora
           currentUserTimezone, // La zona horaria actual (sin cambios aquí)
         );
-        debugLog(
+        debugPrint(
           '🔔 [NotificationService] Notification time ($time) saved to Firestore for user ${user.uid}',
         );
       } catch (e) {
-        debugLog(
+        debugPrint(
           '❌ [NotificationService] ERROR in setNotificationTime saving to Firestore: $e',
         );
       }
@@ -631,10 +632,10 @@ class NotificationService {
         platformChannelSpecifics,
         payload: payload ?? 'immediate_devotional',
       );
-      debugLog(
+      debugPrint(
           '🔔 [NotificationService] Immediate notification shown: $title');
     } catch (e) {
-      debugLog(
+      debugPrint(
         '❌ [NotificationService] ERROR in showImmediateNotification: $e',
       );
     }
@@ -652,7 +653,7 @@ class NotificationService {
     // Asegurarse de leer los datos de la ubicación correcta y con valores por defecto.
     final User? user = _auth.currentUser;
     if (user == null) {
-      debugLog(
+      debugPrint(
         '🔔 [NotificationService] User not authenticated, cannot schedule local notification.',
       );
       return;
@@ -666,7 +667,7 @@ class NotificationService {
         .get();
 
     if (!docSnapshot.exists || docSnapshot.data() == null) {
-      debugLog(
+      debugPrint(
         '🔔 [NotificationService] No notification settings found to schedule.',
       );
       return;
@@ -680,7 +681,7 @@ class NotificationService {
         data['userTimezone'] ?? await FlutterTimezone.getLocalTimezone();
 
     if (!notificationsEnabled) {
-      debugLog(
+      debugPrint(
         '🔔 [NotificationService] Local notifications disabled, not scheduling.',
       );
       await cancelScheduledNotifications();
@@ -696,11 +697,11 @@ class NotificationService {
     // Establecer la zona horaria del usuario para programar la notificación
     try {
       tz.setLocalLocation(tz.getLocation(userTimezoneStr));
-      debugLog(
+      debugPrint(
         '🔔 [NotificationService] Local timezone set to: $userTimezoneStr',
       );
     } catch (e) {
-      debugLog(
+      debugPrint(
         '❌ [NotificationService] Error setting local timezone to $userTimezoneStr. Using fallback timezone. Error: $e',
       );
       tz.setLocalLocation(
@@ -710,7 +711,7 @@ class NotificationService {
 
     // Calcular la hora de la próxima notificación
     tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    debugLog('🔔 [NotificationService] tz.TZDateTime.now(tz.local): $now');
+    debugPrint('🔔 [NotificationService] tz.TZDateTime.now(tz.local): $now');
     tz.TZDateTime scheduledDate = tz.TZDateTime(
       tz.local,
       now.year,
@@ -723,7 +724,7 @@ class NotificationService {
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
-    debugLog(
+    debugPrint(
       '🔔 [NotificationService] Final scheduled date for daily notification: $scheduledDate',
     );
 
@@ -764,14 +765,14 @@ class NotificationService {
       matchDateTimeComponents: DateTimeComponents.time,
       payload: 'daily_devotional_payload',
     );
-    debugLog(
+    debugPrint(
       '🔔 [NotificationService] Daily notification scheduled for: $scheduledDate',
     );
   }
 
   Future<void> cancelScheduledNotifications() async {
     await _flutterLocalNotificationsPlugin.cancelAll();
-    debugLog(
+    debugPrint(
         '🔔 [NotificationService] All scheduled notifications cancelled');
   }
 
@@ -781,7 +782,7 @@ class NotificationService {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString('locale') ?? 'es';
     } catch (e) {
-      debugLog('❌ [NotificationService] Error getting current language: $e');
+      debugPrint('❌ [NotificationService] Error getting current language: $e');
       return 'es'; // Valor por defecto en caso de error
     }
   }
@@ -789,7 +790,7 @@ class NotificationService {
   Future<void> verifyNotificationSetup() async {
     final user = _auth.currentUser;
     if (user == null) {
-      debugLog(
+      debugPrint(
         '🔔 [NotificationService] verifyNotificationSetup → NO authenticated user',
       );
       return;
@@ -806,7 +807,7 @@ class NotificationService {
     final enabled = data['notificationsEnabled'];
     final notifTime = data['notificationTime'];
     final timezone = data['userTimezone'];
-    debugLog(
+    debugPrint(
       '🔔 [NotificationService] verifyNotificationSetup → User: ${user.uid}, Local token: ${storedToken != null ? 'OK' : 'NO'}, Firestore notificationsEnabled: $enabled, Time: $notifTime, TZ: $timezone',
     );
   }

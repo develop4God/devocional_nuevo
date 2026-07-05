@@ -113,6 +113,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Silence all debugPrint output in release builds. debugPrint is NOT
+  // stripped by tree shaking; it prints to the system log in release unless
+  // overridden (https://docs.flutter.dev/testing/code-debugging).
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
+
   await Firebase.initializeApp();
 
   // --- Crashlytics error handlers ----------------------------------------
