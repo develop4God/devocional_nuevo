@@ -1,7 +1,6 @@
 import 'dart:developer' as developer;
 
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
@@ -13,8 +12,6 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/helpers/devocional_navigation_helper.dart';
 import 'package:devocional_nuevo/main.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/pages/bible_reader_page.dart';
-import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
@@ -75,7 +72,12 @@ enum _PageInitializationState {
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
 
-  const DevocionalesPage({super.key, this.initialDevocionalId});
+  /// When hosted as a tab inside AppNavigationShell, notifies whether this
+  /// tab is visible. Tab switches don't fire RouteAware callbacks, so this
+  /// drives the same pause/resume logic for tracking and audio.
+  final ValueListenable<bool>? isActive;
+
+  const DevocionalesPage({super.key, this.initialDevocionalId, this.isActive});
 
   @override
   State<DevocionalesPage> createState() => _DevocionalesPageState();
@@ -144,6 +146,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
     // Listener para cerrar miniplayer automáticamente cuando el TTS complete
     _ttsAudioController.state.addListener(_handleTtsStateChange);
+    widget.isActive?.addListener(_handleTabVisibilityChange);
     _fontSizeController.addListener(_onFontSizeChanged);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -509,6 +512,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   void didPopNext() {
+    _handleRevealed();
+  }
+
+  @override
+  void didPushNext() {
+    _handleCovered();
+  }
+
+  /// Called when this page becomes visible again (route popped back to it,
+  /// or its tab re-selected in AppNavigationShell).
+  void _handleRevealed() {
     _isTopRoute = true;
     // Refresh streak when returning to this page (e.g., from ProgressPage)
     _streakFuture = _loadStreak();
@@ -521,23 +535,33 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     if (devocionalProvider.currentTrackedDevocionalId != null) {
       _tracking.resumeTracking();
       debugPrint(
-        '📄 DevocionalesPage popped next → tracking resumed & streak refreshed',
+        '📄 DevocionalesPage revealed → tracking resumed & streak refreshed',
       );
     } else {
       debugPrint(
-        '📄 DevocionalesPage popped next → no tracking to resume, streak refreshed',
+        '📄 DevocionalesPage revealed → no tracking to resume, streak refreshed',
       );
     }
   }
 
-  @override
-  void didPushNext() {
+  /// Called when this page is hidden (route pushed on top, or another tab
+  /// selected in AppNavigationShell).
+  void _handleCovered() {
     _isTopRoute = false;
     _tracking.pauseTracking();
-    debugPrint('📄 DevocionalesPage didPushNext → tracking PAUSED');
+    debugPrint('📄 DevocionalesPage covered → tracking PAUSED');
     if (_audioController != null && _audioController!.isActive) {
       debugPrint('🎵 [DEBUG] Navigation away - stopping audio (force)');
       _audioController!.forceStop();
+    }
+  }
+
+  void _handleTabVisibilityChange() {
+    if (!mounted) return;
+    if (widget.isActive!.value) {
+      _handleRevealed();
+    } else {
+      _handleCovered();
     }
   }
 
@@ -547,6 +571,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     try {
       _ttsAudioController.state.removeListener(_handleTtsStateChange);
     } catch (_) {}
+    widget.isActive?.removeListener(_handleTabVisibilityChange);
     _ttsAudioController.dispose();
     _ttsMiniplayerPresenter.dispose();
     _fontSizeController.removeListener(_onFontSizeChanged);
@@ -594,60 +619,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
 
     await SharePlus.instance.share(ShareParams(text: devotionalText));
-  }
-
-  void _goToPrayers() {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const PrayersPage(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        transitionDuration: const Duration(milliseconds: 250),
-      ),
-    );
-  }
-
-  void _goToBible() async {
-    final devocionalProvider = Provider.of<DevocionalProvider>(
-      context,
-      listen: false,
-    );
-    final appLanguage = devocionalProvider.selectedLanguage;
-
-    debugPrint('🟦 [Bible] Using app language instead of device: $appLanguage');
-
-    List<BibleVersion> versions =
-        await BibleVersionRegistry.getVersionsForLanguage(appLanguage);
-
-    debugPrint(
-      '🟩 [Bible] Versions for app language ($appLanguage): '
-      '${versions.map((v) => "${v.name} (${v.languageCode}) - downloaded: ${v.isDownloaded}").join(', ')}',
-    );
-
-    if (versions.isEmpty) {
-      versions = await BibleVersionRegistry.getVersionsForLanguage('es');
-    }
-
-    if (versions.isEmpty) {
-      versions = await BibleVersionRegistry.getAllVersions();
-    }
-
-    if (!mounted) return;
-
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            BibleReaderPage(versions: versions),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        transitionDuration: const Duration(milliseconds: 250),
-      ),
-    );
   }
 
   void _showAddPrayerOrThanksgivingChoice() {
@@ -802,43 +773,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           ),
         ),
       ),
-      // CRITICAL: Add bottom navigation bar so users can navigate away
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            IconButton(
-              key: const Key('error_nav_home'),
-              icon: const Icon(Icons.home),
-              tooltip: 'common.home'.tr(),
-              onPressed: () {
-                // Already on home, just retry
-                _initializeNavigationBloc();
-              },
-            ),
-            IconButton(
-              key: const Key('error_nav_bible'),
-              icon: const Icon(Icons.menu_book),
-              tooltip: 'common.bible'.tr(),
-              onPressed: _goToBible,
-            ),
-            IconButton(
-              key: const Key('error_nav_prayers'),
-              icon: const Icon(Icons.favorite),
-              tooltip: 'common.prayers'.tr(),
-              onPressed: _goToPrayers,
-            ),
-            IconButton(
-              key: const Key('error_nav_settings'),
-              icon: const Icon(Icons.settings),
-              tooltip: 'common.settings'.tr(),
-              onPressed: () {
-                Navigator.pushNamed(context, '/settings');
-              },
-            ),
-          ],
-        ),
-      ),
+      // Users can still navigate away via the persistent shell bottom bar.
     );
   }
 
@@ -1102,8 +1037,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       onPrevious: _goToPreviousDevocional,
       onNext: _goToNextDevocional,
       onShowInvitation: () => _showInvitation(context),
-      onBible: _goToBible,
-      onPrayers: _goToPrayers,
     );
   }
 
