@@ -45,29 +45,31 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
   }
 
   Future<void> _initializeFirebaseAndLoadSettings() async {
-    final user = _auth.currentUser;
+    var user = _auth.currentUser;
     if (user == null) {
-      developer.log(
-        'NotificationConfigPage: User not authenticated. Cannot load/save settings.',
-        name: 'NotificationConfigPage',
+      debugPrint(
+        '🔔 [NotificationConfigPage] currentUser was null on open, retrying anonymous sign-in.',
       );
+      try {
+        final credential = await _auth.signInAnonymously();
+        user = credential.user;
+      } catch (e) {
+        debugPrint(
+          '🔔 [NotificationConfigPage] Anonymous sign-in retry failed: $e',
+        );
+      }
+    }
+    if (user == null) {
       if (mounted) {
         try {
           final messenger = ScaffoldMessenger.of(context);
-          // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-          final ColorScheme colorScheme = Theme.of(
-            context,
-          ).colorScheme; // Obtener colorScheme
+          final ColorScheme colorScheme = Theme.of(context).colorScheme;
           messenger.showSnackBar(
             SnackBar(
-              backgroundColor:
-                  colorScheme.secondary, // Fondo del SnackBar usando secondary
+              backgroundColor: colorScheme.secondary,
               content: Text(
-                'notifications_config_page.user_not_authenticated'.tr(),
-                // TEXTO TRADUCIDO
-                style: TextStyle(
-                  color: colorScheme.onSecondary,
-                ), // Texto del SnackBar usando onSecondary
+                'errors.network_error'.tr(),
+                style: TextStyle(color: colorScheme.onSecondary),
               ),
             ),
           );
