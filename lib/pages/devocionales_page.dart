@@ -12,6 +12,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/helpers/devocional_navigation_helper.dart';
 import 'package:devocional_nuevo/main.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
@@ -28,6 +29,7 @@ import 'package:devocional_nuevo/widgets/add_entry_choice_modal.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_testimony_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
+import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
@@ -294,7 +296,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   action: SnackBarAction(
                     label: 'devotionals.go_to_settings'.tr(),
                     onPressed: () {
-                      Navigator.pushNamed(context, '/settings');
+                      AppNavigationShell.selectTab(AppTab.settings);
                     },
                   ),
                 ),
@@ -765,7 +767,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   OutlinedButton.icon(
                     onPressed: () {
                       // Navigate to settings to change language/version
-                      Navigator.pushNamed(context, '/settings');
+                      AppNavigationShell.selectTab(AppTab.settings);
                     },
                     icon: const Icon(Icons.settings),
                     label: Text('devotionals.go_to_settings'.tr()),
