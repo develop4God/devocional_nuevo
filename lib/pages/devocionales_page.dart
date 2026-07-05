@@ -554,6 +554,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       debugPrint('🎵 [DEBUG] Navigation away - stopping audio (force)');
       _audioController!.forceStop();
     }
+    // Stop devotional TTS as well — the miniplayer controller is separate
+    // from AudioController and must not keep speaking on another tab.
+    _ttsAudioController.stop();
   }
 
   void _handleTabVisibilityChange() {

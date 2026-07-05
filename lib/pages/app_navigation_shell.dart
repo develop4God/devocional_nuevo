@@ -59,6 +59,12 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
   void _selectTab(AppTab tab) {
     if (tab == _currentTab) return;
     setState(() {
+      // The bible page owns a FlutterTts engine, and flutter_tts routes
+      // platform events to the most recently created instance. Keeping the
+      // page alive while hidden starves the other TTS owners (double
+      // miniplayer / stuck spinner), so it is disposed on leave and rebuilt
+      // per visit — same lifecycle as the previous push navigation.
+      if (_currentTab == AppTab.bible) _builtTabs.remove(AppTab.bible);
       _builtTabs.add(tab);
       _currentTab = tab;
     });
