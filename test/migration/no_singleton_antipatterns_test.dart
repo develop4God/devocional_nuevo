@@ -54,9 +54,10 @@ void main() {
       final file = File('lib/services/localization_service.dart');
       final content = await file.readAsString();
 
-      // Assert public constructor exists
+      // Assert public constructor exists (takes an optional injected
+      // DeviceLocaleProvider, so it is no longer a bare no-arg constructor).
       expect(
-        content.contains('LocalizationService()'),
+        content.contains('LocalizationService({'),
         isTrue,
         reason: 'LocalizationService should have public constructor for DI',
       );
@@ -82,7 +83,7 @@ void main() {
       );
 
       expect(
-        content.contains('LocalizationService()'),
+        content.contains('LocalizationService('),
         isTrue,
         reason:
             'LocalizationService should be instantiated via public constructor in ServiceLocator',
