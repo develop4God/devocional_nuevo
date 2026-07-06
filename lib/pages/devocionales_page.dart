@@ -13,7 +13,6 @@ import 'package:devocional_nuevo/helpers/devocional_navigation_helper.dart';
 import 'package:devocional_nuevo/main.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
-import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
@@ -972,12 +971,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   fontSize: _fontSizeController.fontSize,
                                   scrollController: _scrollController,
                                   onStreakBadgeTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const ProgressPage(),
-                                      ),
+                                    AppNavigationShell.selectTab(
+                                      AppTab.progress,
                                     );
                                   },
                                   currentStreak: _currentStreak,

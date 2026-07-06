@@ -203,21 +203,7 @@ class _ProgressPageState extends State<ProgressPage>
       value: themeState.systemUiOverlayStyle,
       child: Scaffold(
         appBar: AppBar(
-          leading: IconButton(
-            icon: Transform(
-              alignment: Alignment.center,
-              transform: Matrix4.rotationY(3.14159),
-              child: Icon(
-                Icons.exit_to_app,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              Navigator.of(context).pop();
-            },
-            tooltip: 'progress.back'.tr(),
-          ),
+          automaticallyImplyLeading: false,
           title: Text(
             'progress.title'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
