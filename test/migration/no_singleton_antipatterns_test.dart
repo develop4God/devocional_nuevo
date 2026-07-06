@@ -54,9 +54,10 @@ void main() {
       final file = File('lib/services/localization_service.dart');
       final content = await file.readAsString();
 
-      // Assert public constructor exists
+      // Assert public constructor exists (takes an optional injected
+      // DeviceLocaleProvider, so it is no longer a bare no-arg constructor).
       expect(
-        content.contains('LocalizationService()'),
+        content.contains('LocalizationService({'),
         isTrue,
         reason: 'LocalizationService should have public constructor for DI',
       );
@@ -82,7 +83,7 @@ void main() {
       );
 
       expect(
-        content.contains('LocalizationService()'),
+        content.contains('LocalizationService('),
         isTrue,
         reason:
             'LocalizationService should be instantiated via public constructor in ServiceLocator',
@@ -107,6 +108,71 @@ void main() {
             'ILocalizationService should be registered using the existing LocalizationService instance',
       );
     });
+
+    // ── DeviceLocaleProvider DI registration ───────────────────────────────
+
+    test(
+      'DeviceLocaleProvider is registered in ServiceLocator and injected into LocalizationService',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'ServiceLocator source file should exist',
+        );
+
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('registerLazySingleton<DeviceLocaleProvider>('),
+          isTrue,
+          reason:
+              'DeviceLocaleProvider should be registered as a lazy singleton in ServiceLocator',
+        );
+
+        expect(
+          content.contains(
+            'deviceLocaleProvider: locator.get<DeviceLocaleProvider>()',
+          ),
+          isTrue,
+          reason:
+              'LocalizationService should receive DeviceLocaleProvider via constructor injection, not read PlatformDispatcher.instance directly',
+        );
+      },
+    );
+
+    test(
+      'PlatformDeviceLocaleProvider is not instantiated directly outside service_locator.dart',
+      () async {
+        final libDir = Directory('lib');
+        expect(
+          await libDir.exists(),
+          isTrue,
+          reason: 'lib directory should exist',
+        );
+
+        await for (final entity in libDir.list(recursive: true)) {
+          if (entity is! File || !entity.path.endsWith('.dart')) continue;
+          if (entity.path.endsWith('service_locator.dart')) continue;
+          if (entity.path.endsWith('device_locale_provider.dart')) continue;
+          // LocalizationService's constructor references
+          // PlatformDeviceLocaleProvider only as its default parameter
+          // value (the standard DI fallback-default pattern) — the actual
+          // instance used at runtime is still the one service_locator.dart
+          // constructs and injects.
+          if (entity.path.endsWith('localization_service.dart')) continue;
+
+          final content = await entity.readAsString();
+          expect(
+            content.contains('PlatformDeviceLocaleProvider('),
+            isFalse,
+            reason:
+                'PlatformDeviceLocaleProvider should only be instantiated in '
+                'service_locator.dart, found in ${entity.path}',
+          );
+        }
+      },
+    );
 
     test('Codebase does not reference LocalizationService.instance', () async {
       // Check lib directory

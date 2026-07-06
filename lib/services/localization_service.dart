@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:ui';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'device_locale_provider.dart';
 import 'i_localization_service.dart';
 
 /// Service for managing app localization and translations.
@@ -23,7 +26,14 @@ import 'i_localization_service.dart';
 class LocalizationService implements ILocalizationService {
   /// Default constructor for DI registration.
   /// The Service Locator will create and manage the singleton instance.
-  LocalizationService();
+  /// [deviceLocaleProvider] defaults to the real platform provider; tests
+  /// inject a fake to control the detected device locale deterministically.
+  LocalizationService({
+    DeviceLocaleProvider deviceLocaleProvider =
+        const PlatformDeviceLocaleProvider(),
+  }) : _deviceLocaleProvider = deviceLocaleProvider;
+
+  final DeviceLocaleProvider _deviceLocaleProvider;
 
   // Supported locales
   static const List<Locale> supportedLocales = [
@@ -70,23 +80,59 @@ class LocalizationService implements ILocalizationService {
       final savedLocale = Locale(savedLocaleCode);
       if (supportedLocales.contains(savedLocale)) {
         _currentLocale = savedLocale;
+      } else {
+        // Saved code is unsupported/stale — fall back and correct the
+        // persisted value so downstream readers of 'locale' don't keep
+        // seeing the invalid code.
+        _currentLocale = _detectDeviceLocale();
+        await _persistLocale(prefs, _currentLocale.languageCode);
       }
     } else {
       // Auto-detect device locale
       _currentLocale = _detectDeviceLocale();
+      // Persist so downstream reads of the 'locale' key (e.g. notification
+      // language selection) see the detected locale, not just in-memory state.
+      await _persistLocale(prefs, _currentLocale.languageCode);
     }
 
     // Load translations for current locale
     await _loadTranslations(_currentLocale.languageCode);
   }
 
+  /// Persist the locale code to SharedPreferences, logging (not throwing)
+  /// on failure — consistent with the non-fatal error handling used
+  /// elsewhere in this service (see `_loadTranslations`). Also reported to
+  /// Crashlytics: a silent failure here means notification language
+  /// selection keeps reading a stale/incorrect locale indefinitely.
+  Future<void> _persistLocale(
+      SharedPreferences prefs, String languageCode) async {
+    try {
+      await prefs.setString('locale', languageCode);
+    } catch (e, stackTrace) {
+      developer.log(
+        'Failed to persist locale: $languageCode',
+        name: 'LocalizationService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(
+          e,
+          stackTrace,
+          reason: 'Failed to persist locale: $languageCode',
+          fatal: false,
+        ),
+      );
+    }
+  }
+
   /// Detect device locale with fallback to default
   Locale _detectDeviceLocale() {
-    final deviceLocale = PlatformDispatcher.instance.locale;
+    final locale = _deviceLocaleProvider.locale;
 
     // Check if device locale is supported
     for (final supportedLocale in supportedLocales) {
-      if (supportedLocale.languageCode == deviceLocale.languageCode) {
+      if (supportedLocale.languageCode == locale.languageCode) {
         return supportedLocale;
       }
     }
@@ -173,7 +219,7 @@ class LocalizationService implements ILocalizationService {
 
     // Save to preferences
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('locale', locale.languageCode);
+    await _persistLocale(prefs, locale.languageCode);
 
     // Load new translations
     await _loadTranslations(locale.languageCode);

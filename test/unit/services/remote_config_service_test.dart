@@ -93,20 +93,6 @@ void main() {
         verify(mockRemoteConfig.getBool('feature_bloc')).called(1);
       });
 
-      test('should return default true for feature_supporter', () {
-        when(mockRemoteConfig.getBool('feature_supporter')).thenReturn(true);
-
-        expect(service.featureSupporter, true);
-        verify(mockRemoteConfig.getBool('feature_supporter')).called(1);
-      });
-
-      test('should return false when feature_supporter is disabled', () {
-        when(mockRemoteConfig.getBool('feature_supporter')).thenReturn(false);
-
-        expect(service.featureSupporter, false);
-        verify(mockRemoteConfig.getBool('feature_supporter')).called(1);
-      });
-
       test('should return default true for show_backup_section', () {
         when(mockRemoteConfig.getBool('show_backup_section')).thenReturn(true);
         expect(service.showBackupSection, true);

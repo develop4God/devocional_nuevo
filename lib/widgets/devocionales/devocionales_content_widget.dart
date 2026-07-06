@@ -25,6 +25,10 @@ class DevocionalesContentWidget extends StatelessWidget {
   final VoidCallback onFavoriteToggle;
   final VoidCallback onShare;
 
+  /// Forwarded to [DevocionalHeaderWidget.showDate]. Defaults to true to
+  /// match existing callers.
+  final bool showDate;
+
   /// Pet service injected by the caller — keeps [build] free of service-locator
   /// calls, which violates the project's DI rules.
   final SupporterPetService petService;
@@ -42,6 +46,7 @@ class DevocionalesContentWidget extends StatelessWidget {
     required this.onFavoriteToggle,
     required this.onShare,
     required this.petService,
+    this.showDate = true,
   });
 
   @override
@@ -80,6 +85,7 @@ class DevocionalesContentWidget extends StatelessWidget {
             ),
           DevocionalHeaderWidget(
             date: getLocalizedDateFormat(context),
+            showDate: showDate,
             currentStreak: currentStreak,
             streakFuture: streakFuture,
             isFavorite: isFavorite,
