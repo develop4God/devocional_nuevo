@@ -3,14 +3,11 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_list_page.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/notification_config_page.dart';
-import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
 import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
-import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/widgets/app_gradient_dialog.dart';
 import 'package:devocional_nuevo/widgets/theme_selector.dart';
 import 'package:flutter/material.dart';
@@ -530,52 +527,6 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                           },
                         ),
                         const SizedBox(height: 5),
-                        // --- Mis oraciones ---
-                        drawerRow(
-                          key: const Key('drawer_my_prayers'),
-                          icon: Icons.local_fire_department_outlined,
-                          iconColor: colorScheme.primary,
-                          label: Text(
-                            'drawer.my_prayers'.tr(),
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontSize: 16,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          onTap: () {
-                            Navigator.of(context).pop();
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const PrayersPage(),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 5),
-                        // --- Discovery Studies ---
-                        if (Constants.enableDiscoveryFeature)
-                          drawerRow(
-                            key: const Key('drawer_discovery_studies'),
-                            icon: Icons.school_outlined,
-                            iconColor: colorScheme.primary,
-                            label: Text(
-                              'discovery.discovery_studies'.tr(),
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                            onTap: () {
-                              Navigator.of(context).pop();
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const DiscoveryListPage(),
-                                ),
-                              );
-                            },
-                          ),
-                        if (Constants.enableDiscoveryFeature)
-                          const SizedBox(height: 5),
                         // --- Switch modo oscuro ---
                         drawerRow(
                           key: const Key('drawer_dark_mode_toggle'),
