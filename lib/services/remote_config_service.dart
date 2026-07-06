@@ -71,7 +71,6 @@ class RemoteConfigService {
       await _remoteConfig.setDefaults({
         'feature_legacy': false,
         'feature_bloc': false,
-        'feature_supporter': true, // Enable supporter feature (IAP)
         'show_backup_section': true,
       });
 
@@ -102,10 +101,6 @@ class RemoteConfigService {
       );
       developer.log(
         'RemoteConfigService: feature_bloc = $featureBloc',
-        name: 'RemoteConfigService',
-      );
-      developer.log(
-        'RemoteConfigService: feature_supporter = $featureSupporter',
         name: 'RemoteConfigService',
       );
     } catch (e, stack) {
@@ -151,21 +146,6 @@ class RemoteConfigService {
     }
   }
 
-  /// Get feature_supporter flag value (IAP support)
-  /// Returns true by default for testing
-  bool get featureSupporter {
-    try {
-      return _remoteConfig.getBool('feature_supporter');
-    } catch (e) {
-      developer.log(
-        'RemoteConfigService: Error reading feature_supporter, using default: true',
-        name: 'RemoteConfigService',
-        error: e,
-      );
-      return true; // Default to enabled for testing
-    }
-  }
-
   bool get showBackupSection {
     try {
       return _remoteConfig.getBool('show_backup_section');
@@ -200,10 +180,6 @@ class RemoteConfigService {
       );
       developer.log(
         'RemoteConfigService: feature_bloc = $featureBloc',
-        name: 'RemoteConfigService',
-      );
-      developer.log(
-        'RemoteConfigService: feature_supporter = $featureSupporter',
         name: 'RemoteConfigService',
       );
     } catch (e, stack) {
