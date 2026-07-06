@@ -252,6 +252,8 @@ function selectLanguageForUser(preferredLanguage) {
 exports.sendDailyDevotionalNotification = onSchedule({
   schedule: "0 * * * *",
   timeZone: "UTC",
+  timeoutSeconds: 540,
+  memory: "512MiB",
 }, async (context) => {
   logger.info("Notifications: Execution started.", {structuredData: true});
 
