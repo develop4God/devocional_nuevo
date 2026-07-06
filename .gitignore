@@ -1,4 +1,5 @@
 # Archivos y carpetas generados por Flutter y el entorno de desarrollo
+.claude/worktrees/
 .flutter-plugins
 .flutter-plugins-dependencies
 .flutter-tool-environment

@@ -1,4 +1,5 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -13,17 +14,7 @@ class ClipboardUtils {
       await Clipboard.setData(ClipboardData(text: text));
       if (!context.mounted) return;
       HapticFeedback.selectionClick();
-      final colorScheme = Theme.of(context).colorScheme;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: colorScheme.secondary,
-          duration: const Duration(seconds: 2),
-          content: Text(
-            'share.copied_to_clipboard'.tr(),
-            style: TextStyle(color: colorScheme.onSecondary),
-          ),
-        ),
-      );
+      AppSnackBar.show(context, 'share.copied_to_clipboard'.tr());
     } catch (e) {
       debugPrint('[ClipboardUtils] Error copying to clipboard: $e');
     }

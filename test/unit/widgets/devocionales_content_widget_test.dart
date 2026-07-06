@@ -127,6 +127,36 @@ void main() {
       expect(find.byIcon(Icons.share_rounded), findsOneWidget);
     });
 
+    testWidgets('hides the date when showDate is false', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ChangeNotifierProvider<DevocionalProvider>.value(
+              value: fakeProvider,
+              child: DevocionalesContentWidget(
+                devocional: devocional,
+                fontSize: 16,
+                onStreakBadgeTap: () => streakTapped = true,
+                currentStreak: 5,
+                streakFuture: Future.value(5),
+                getLocalizedDateFormat: (_) => '25 de diciembre de 2025',
+                showDate: false,
+                isFavorite: false,
+                onFavoriteToggle: () => favoriteToggled = true,
+                onShare: () => shared = true,
+                petService: petService,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('25 de diciembre de 2025'), findsNothing);
+      // Everything else still renders normally.
+      expect(find.text('Juan 3:16'), findsOneWidget);
+      expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
+    });
+
     testWidgets('verse card shows copy icon', (tester) async {
       await tester.pumpWidget(buildWidget());
       expect(find.byIcon(Icons.copy_outlined), findsWidgets);
