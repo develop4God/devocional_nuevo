@@ -173,7 +173,6 @@ class AppBottomNavBar extends StatelessWidget {
                 ),
                 onSelect: () => _selectTab(AppTab.settings, 'settings'),
               ),
-              // 8. Support/Donate (conditional via Remote Config)
               if (enabledTabs.contains(AppTab.supporter))
                 _NavIconWithBadge(
                   iconKey: const Key('bottom_appbar_supporter_icon'),

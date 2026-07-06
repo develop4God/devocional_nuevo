@@ -63,17 +63,7 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
     if (user == null) {
       if (mounted) {
         try {
-          final messenger = ScaffoldMessenger.of(context);
-          final ColorScheme colorScheme = Theme.of(context).colorScheme;
-          messenger.showSnackBar(
-            SnackBar(
-              backgroundColor: colorScheme.secondary,
-              content: Text(
-                'errors.network_error'.tr(),
-                style: TextStyle(color: colorScheme.onSecondary),
-              ),
-            ),
-          );
+          AppSnackBar.show(context, 'errors.network_error'.tr());
         } catch (e) {
           developer.log(
             'NotificationConfigPage: Failed to show snackbar: $e',
@@ -182,22 +172,11 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
         error: e,
       );
       if (mounted) {
-        final messenger = ScaffoldMessenger.of(context);
-        // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-        final ColorScheme colorScheme = Theme.of(
+        AppSnackBar.show(
           context,
-        ).colorScheme; // Obtener colorScheme
-        messenger.showSnackBar(
-          SnackBar(
-            backgroundColor: colorScheme.secondary,
-            content: Text(
-              'notifications_config_page.error_loading_settings'.tr({
-                'error': e.toString(),
-              }),
-              // Corregido el mensaje de error para mostrar 'e'
-              style: TextStyle(color: colorScheme.onSecondary),
-            ),
-          ),
+          'notifications_config_page.error_loading_settings'.tr({
+            'error': e.toString(),
+          }),
         );
       }
     } finally {
@@ -246,21 +225,11 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
         error: e,
       );
       if (mounted) {
-        final messenger = ScaffoldMessenger.of(context);
-        // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-        final ColorScheme colorScheme = Theme.of(
+        AppSnackBar.show(
           context,
-        ).colorScheme; // Obtener colorScheme
-        messenger.showSnackBar(
-          SnackBar(
-            backgroundColor: colorScheme.secondary,
-            content: Text(
-              'notifications_config_page.error_changing_state'.tr({
-                'error': e.toString(),
-              }), // TEXTO TRADUCIDO
-              style: TextStyle(color: colorScheme.onSecondary),
-            ),
-          ),
+          'notifications_config_page.error_changing_state'.tr({
+            'error': e.toString(),
+          }),
         );
       }
       setState(() {
@@ -348,21 +317,11 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
         error: e,
       );
       if (mounted) {
-        final messenger = ScaffoldMessenger.of(context);
-        // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-        final ColorScheme colorScheme = Theme.of(
+        AppSnackBar.show(
           context,
-        ).colorScheme; // Obtener colorScheme
-        messenger.showSnackBar(
-          SnackBar(
-            backgroundColor: colorScheme.secondary,
-            content: Text(
-              'notifications_config_page.error_setting_time'.tr({
-                'error': e.toString(),
-              }), // TEXTO TRADUCIDO
-              style: TextStyle(color: colorScheme.onSecondary),
-            ),
-          ),
+          'notifications_config_page.error_setting_time'.tr({
+            'error': e.toString(),
+          }),
         );
       }
       // Si falla, revertir _newlySelectedTime a la hora original
