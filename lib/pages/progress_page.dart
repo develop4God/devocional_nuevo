@@ -13,6 +13,7 @@ import '../models/spiritual_stats_model.dart';
 import '../pages/favorites_page.dart';
 import '../providers/devocional_provider.dart';
 import '../services/spiritual_stats_service.dart';
+import '../widgets/app_snack_bar.dart';
 
 class ProgressPage extends StatefulWidget {
   const ProgressPage({super.key});
@@ -84,12 +85,9 @@ class _ProgressPageState extends State<ProgressPage>
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'progress.error_loading_stats'.tr({'error': e.toString()}),
-            ),
-          ),
+        AppSnackBar.show(
+          context,
+          'progress.error_loading_stats'.tr({'error': e.toString()}),
         );
       }
     }

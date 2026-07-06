@@ -18,6 +18,7 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -1086,19 +1087,11 @@ class DevocionalProvider with ChangeNotifier {
       final wasAdded = await toggleFavorite(devocional.id);
       if (!context.mounted) return;
 
-      final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            wasAdded
-                ? 'devotionals_page.added_to_favorites'.tr()
-                : 'devotionals_page.removed_from_favorites'.tr(),
-            style: TextStyle(color: colorScheme.onSecondary),
-          ),
-          duration: const Duration(seconds: 2),
-          backgroundColor: colorScheme.secondary,
-        ),
+      AppSnackBar.show(
+        context,
+        wasAdded
+            ? 'devotionals_page.added_to_favorites'.tr()
+            : 'devotionals_page.removed_from_favorites'.tr(),
       );
     } catch (e) {
       if (!context.mounted) return;
