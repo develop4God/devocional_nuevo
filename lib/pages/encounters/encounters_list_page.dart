@@ -116,7 +116,10 @@ class _EncountersListPageState extends State<EncountersListPage>
     final prefs = await SharedPreferences.getInstance();
     final seen = prefs.getBool('encounter_welcome_seen') ?? false;
     if (!seen && mounted) {
-      Navigator.pushReplacement(
+      // Push (not pushReplacement) so this shell-hosted page stays on the
+      // stack underneath — EncounterWelcomePage pops back into it instead
+      // of needing to construct a new, standalone (bottom-bar-less) copy.
+      Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const EncounterWelcomePage()),
       );
