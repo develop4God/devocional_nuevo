@@ -70,6 +70,12 @@ class LocalizationService implements ILocalizationService {
       final savedLocale = Locale(savedLocaleCode);
       if (supportedLocales.contains(savedLocale)) {
         _currentLocale = savedLocale;
+      } else {
+        // Saved code is unsupported/stale — fall back and correct the
+        // persisted value so downstream readers of 'locale' don't keep
+        // seeing the invalid code.
+        _currentLocale = _detectDeviceLocale();
+        await prefs.setString('locale', _currentLocale.languageCode);
       }
     } else {
       // Auto-detect device locale
