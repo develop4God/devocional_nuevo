@@ -27,7 +27,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/bloc_test_helper.dart';
-import '../../helpers/test_helpers.dart';
 
 void main() {
   late DiscoveryBlocTestBase testBase;
@@ -47,10 +46,6 @@ void main() {
       (call) async => null,
     );
     await setupServiceLocator();
-    // FavoritesPage now shows the shell's AppBottomNavBar, which reads
-    // RemoteConfigService; the real implementation touches
-    // FirebaseRemoteConfig.instance and throws without a live Firebase app.
-    overrideRemoteConfigService();
   });
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
