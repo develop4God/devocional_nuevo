@@ -220,86 +220,107 @@ class _EncountersListPageState extends State<EncountersListPage>
 
   Widget _buildContent(EncounterLoaded state) {
     final lang = context.read<DevocionalProvider>().selectedLanguage;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Stack(
       children: [
-        ListView.builder(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          itemCount: state.index.length + 1, // +1 for header
-          itemBuilder: (context, i) {
-            if (i == 0) return _buildHeader();
-            final entry = state.index[i - 1];
-            final isUnlocked = state.isUnlocked(entry.id);
-            final isCompleted = state.isCompleted(entry.id);
+        ScrollbarTheme(
+          data: ScrollbarThemeData(
+            thumbColor: WidgetStateProperty.all(colorScheme.primary),
+            trackColor: WidgetStateProperty.all(
+              colorScheme.primary.withAlpha(60),
+            ),
+            thickness: WidgetStateProperty.all(10),
+            radius: const Radius.circular(8),
+          ),
+          child: Scrollbar(
+            thumbVisibility: true,
+            thickness: 10,
+            radius: const Radius.circular(8),
+            interactive: true,
+            trackVisibility: true,
+            child: ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 24,
+              ),
+              itemCount: state.index.length + 1, // +1 for header
+              itemBuilder: (context, i) {
+                if (i == 0) return _buildHeader();
+                final entry = state.index[i - 1];
+                final isUnlocked = state.isUnlocked(entry.id);
+                final isCompleted = state.isCompleted(entry.id);
 
-            final card = _EncounterCard(
-              entry: entry,
-              lang: lang,
-              isCompleted: isCompleted,
-              onTap: (entry.isPublished && isUnlocked)
-                  ? () {
-                      setState(() => _currentIndex = i - 1);
-                      _openEncounter(entry, lang);
-                    }
-                  : null,
-            );
+                final card = _EncounterCard(
+                  entry: entry,
+                  lang: lang,
+                  isCompleted: isCompleted,
+                  onTap: (entry.isPublished && isUnlocked)
+                      ? () {
+                          setState(() => _currentIndex = i - 1);
+                          _openEncounter(entry, lang);
+                        }
+                      : null,
+                );
 
-            Widget cardWidget;
-            if (entry.isPublished && !isUnlocked) {
-              // Locked: dim + dark overlay with lock icon and prerequisite text
-              final prerequisite = state.getPrerequisite(entry.id);
-              final prerequisiteTitle = prerequisite?.titleFor(lang) ?? '';
+                Widget cardWidget;
+                if (entry.isPublished && !isUnlocked) {
+                  // Locked: dim + dark overlay with lock icon and prerequisite text
+                  final prerequisite = state.getPrerequisite(entry.id);
+                  final prerequisiteTitle = prerequisite?.titleFor(lang) ?? '';
 
-              cardWidget = Stack(
-                children: [
-                  Opacity(opacity: 0.4, child: card),
-                  Positioned.fill(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.65),
-                        borderRadius: BorderRadius.circular(32),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.lock_rounded,
-                            color: Colors.white,
-                            size: 40,
+                  cardWidget = Stack(
+                    children: [
+                      Opacity(opacity: 0.4, child: card),
+                      Positioned.fill(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.65),
+                            borderRadius: BorderRadius.circular(32),
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'encounters.complete_to_unlock'.tr({
-                              'title': prerequisiteTitle,
-                            }),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              height: 1.4,
-                            ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.lock_rounded,
+                                color: Colors.white,
+                                size: 40,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'encounters.complete_to_unlock'.tr({
+                                  'title': prerequisiteTitle,
+                                }),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                ],
-              );
-            } else if (isCompleted) {
-              // Completed: no extra badge needed, already shown in card
-              cardWidget = card;
-            } else {
-              cardWidget = card;
-            }
+                    ],
+                  );
+                } else if (isCompleted) {
+                  // Completed: no extra badge needed, already shown in card
+                  cardWidget = card;
+                } else {
+                  cardWidget = card;
+                }
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: cardWidget,
-            );
-          },
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: cardWidget,
+                );
+              },
+            ),
+          ),
         ),
         // Grid overlay
         EncounterGridOverlay(
