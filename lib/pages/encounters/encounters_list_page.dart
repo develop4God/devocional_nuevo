@@ -37,6 +37,7 @@ class _EncountersListPageState extends State<EncountersListPage>
     with SingleTickerProviderStateMixin, RouteAware {
   bool _showGridOverlay = false;
   late AnimationController _gridAnimationController;
+  final ScrollController _scrollController = ScrollController();
   int _currentIndex = 0;
 
   // Unlock animation state
@@ -82,6 +83,7 @@ class _EncountersListPageState extends State<EncountersListPage>
   void dispose() {
     routeObserver.unsubscribe(this);
     _gridAnimationController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -237,12 +239,14 @@ class _EncountersListPageState extends State<EncountersListPage>
             radius: const Radius.circular(8),
           ),
           child: Scrollbar(
+            controller: _scrollController,
             thumbVisibility: true,
             thickness: 10,
             radius: const Radius.circular(8),
             interactive: true,
             trackVisibility: true,
             child: ListView.builder(
+              controller: _scrollController,
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.symmetric(
                 horizontal: 20,
