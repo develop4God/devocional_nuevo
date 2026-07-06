@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 // NEW IMPORTS for Firebase
 import 'package:firebase_auth/firebase_auth.dart';
@@ -232,22 +233,11 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
       await _notificationService.setNotificationsEnabled(enabled);
 
       if (!mounted) return;
-      final messenger = ScaffoldMessenger.of(context);
-      // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-      final ColorScheme colorScheme = Theme.of(
+      AppSnackBar.show(
         context,
-      ).colorScheme; // Obtener colorScheme
-      messenger.showSnackBar(
-        SnackBar(
-          backgroundColor: colorScheme.secondary,
-          content: Text(
-            _notificationsEnabled
-                ? 'notifications_config_page.notifications_enabled'.tr()
-                : 'notifications_config_page.notifications_disabled'.tr(),
-            // Usando _notificationsEnabled
-            style: TextStyle(color: colorScheme.onSecondary),
-          ),
-        ),
+        _notificationsEnabled
+            ? 'notifications_config_page.notifications_enabled'.tr()
+            : 'notifications_config_page.notifications_disabled'.tr(),
       );
     } catch (e) {
       developer.log(
@@ -316,20 +306,9 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
         name: 'NotificationConfigPage',
       );
       if (mounted) {
-        final messenger = ScaffoldMessenger.of(context);
-        // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-        final ColorScheme colorScheme = Theme.of(
+        AppSnackBar.show(
           context,
-        ).colorScheme; // Obtener colorScheme
-        messenger.showSnackBar(
-          SnackBar(
-            backgroundColor: colorScheme.secondary,
-            content: Text(
-              'notifications_config_page.time_not_changed'
-                  .tr(), // MENSAJE SI HORA NO CAMBIA
-              style: TextStyle(color: colorScheme.onSecondary),
-            ),
-          ),
+          'notifications_config_page.time_not_changed'.tr(),
         );
       }
       return;
@@ -358,19 +337,9 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
         _selectedTime = _newlySelectedTime!; // Actualiza la hora principal
         _newlySelectedTime = null; // Resetea la hora nueva después de guardar
       });
-      final messenger = ScaffoldMessenger.of(context);
-      // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-      final ColorScheme colorScheme = Theme.of(
+      AppSnackBar.show(
         context,
-      ).colorScheme; // Obtener colorScheme
-      messenger.showSnackBar(
-        SnackBar(
-          backgroundColor: colorScheme.secondary,
-          content: Text(
-            '${'notifications_config_page.notification_set'.tr()} $timeString',
-            style: TextStyle(color: colorScheme.onSecondary),
-          ),
-        ),
+        '${'notifications_config_page.notification_set'.tr()} $timeString',
       );
     } catch (e) {
       developer.log(
