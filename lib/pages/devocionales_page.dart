@@ -29,6 +29,7 @@ import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_testimony_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
@@ -687,18 +688,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   void _showFavoritesFeedback(bool wasAdded) {
     if (!mounted) return;
-    final colorScheme = Theme.of(context).colorScheme;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          wasAdded
-              ? 'devotionals_page.added_to_favorites'.tr()
-              : 'devotionals_page.removed_from_favorites'.tr(),
-          style: TextStyle(color: colorScheme.onSecondary),
-        ),
-        duration: const Duration(seconds: 2),
-        backgroundColor: colorScheme.secondary,
-      ),
+    AppSnackBar.show(
+      context,
+      wasAdded
+          ? 'devotionals_page.added_to_favorites'.tr()
+          : 'devotionals_page.removed_from_favorites'.tr(),
     );
   }
 
