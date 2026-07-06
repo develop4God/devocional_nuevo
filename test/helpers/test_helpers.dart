@@ -5,6 +5,7 @@ import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/auth_service.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -387,4 +388,53 @@ class FakeSpiritualStatsService implements ISpiritualStatsService {
 
   @override
   Future<void> bulkMarkAsRead(List<String> ids) async {}
+}
+
+/// Fake [RemoteConfigService] for widget tests. The real implementation
+/// touches `FirebaseRemoteConfig.instance` on construction, which throws in
+/// tests unless Firebase is fully initialized — use this instead of relying
+/// on the real service whenever a widget under test reads feature flags
+/// (e.g. anything that builds [AppBottomNavBar]).
+class FakeRemoteConfigService implements RemoteConfigService {
+  final bool supporterEnabled;
+
+  FakeRemoteConfigService({this.supporterEnabled = true});
+
+  @override
+  bool get featureSupporter => supporterEnabled;
+
+  @override
+  bool get showBackupSection => true;
+
+  @override
+  bool get featureLegacy => false;
+
+  @override
+  bool get featureBloc => false;
+
+  @override
+  bool get isReady => true;
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> refresh() async {}
+
+  @override
+  void resetForTesting() {}
+}
+
+/// Registers [FakeRemoteConfigService] in the locator, replacing whatever is
+/// currently registered. Call after [registerTestServices] /
+/// [registerTestServicesWithFakes] in any test whose widget tree builds
+/// [AppBottomNavBar] or otherwise reads [RemoteConfigService].
+void overrideRemoteConfigService({bool supporterEnabled = true}) {
+  final locator = ServiceLocator();
+  if (locator.isRegistered<RemoteConfigService>()) {
+    locator.unregister<RemoteConfigService>();
+  }
+  locator.registerSingleton<RemoteConfigService>(
+    FakeRemoteConfigService(supporterEnabled: supporterEnabled),
+  );
 }
