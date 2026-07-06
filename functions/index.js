@@ -189,6 +189,50 @@ const NOTIFICATION_TRANSLATIONS = {
       body: "دروسك الإيمانية جاهزة لك.",
     },
   ],
+  de: [
+    {
+      // Option A — Peace space (original)
+      title: "Dein Raum des Friedens wartet auf dich",
+      body: "Denk daran, dich heute mit dem Wort Gottes zu verbinden!",
+    },
+    {
+      // Option B — Daily habit
+      title: "Deine Andacht wartet auf dich",
+      body: "Beginne den Tag mit dem Wort Gottes.",
+    },
+    {
+      // Option C — Encounter
+      title: "Gott hat heute etwas für dich",
+      body: "Öffne deine Andacht und entdecke es.",
+    },
+    {
+      // Option D — Daily habit
+      title: "Hast du heute schon Zeit mit Gott verbracht?",
+      body: "Deine Andacht ist bereit für dich.",
+    },
+  ],
+  fil: [
+    {
+      // Option A — Peace space (original)
+      title: "Naghihintay ang iyong Tahimik na Espasyo",
+      body: "Alalahanin mong makipag-ugnayan ngayon sa salita ng Diyos!",
+    },
+    {
+      // Option B — Daily habit
+      title: "Naghihintay sa iyo ang iyong debosyonal",
+      body: "Simulan ang araw kasama ang Salita ng Diyos.",
+    },
+    {
+      // Option C — Encounter
+      title: "May bagay ang Diyos para sa iyo ngayon",
+      body: "Buksan ang iyong debosyonal at tuklasin ito.",
+    },
+    {
+      // Option D — Daily habit
+      title: "Nakapaglaan ka na ba ng oras kasama ang Diyos ngayon?",
+      body: "Handa na ang iyong debosyonal para sa iyo.",
+    },
+  ],
 };
 
 const NOTIFICATION_IMAGES = [
