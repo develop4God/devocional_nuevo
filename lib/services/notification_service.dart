@@ -27,6 +27,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 // Importaciones para Firebase Cloud Messaging y Firestore
@@ -71,6 +72,7 @@ class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final Connectivity _connectivity = Connectivity();
 
   static const String _notificationsEnabledKey = 'notifications_enabled';
   static const String _notificationTimeKey = 'notification_time';
@@ -79,11 +81,21 @@ class NotificationService {
 
   // FCM token retrieval: the plugin reports transient network / Play Services
   // errors only as text in the message (code: 'unknown'), so they are
-  // detected by substring.
+  // detected by substring. This burst only covers errors that resolve within
+  // seconds; if the device is offline or the failure outlives the burst,
+  // durability comes from _tokenRetrySubscription (below) and the
+  // app-resume retry, not from raising this count.
   static const int _maxTokenAttempts = 3;
   static const String _transientTokenError = 'SERVICE_NOT_AVAILABLE';
   static const Duration _transientRetryBase = Duration(seconds: 2);
   static const Duration _tokenRetryBase = Duration(milliseconds: 600);
+
+  // Minimum gap between token-retry attempts triggered by connectivity
+  // changes or app resume, so a flaky connection or repeated foregrounding
+  // can't hammer getToken() in a tight loop.
+  static const Duration _minRetryGap = Duration(minutes: 1);
+  DateTime? _lastTokenRetryAttempt;
+  StreamSubscription<List<ConnectivityResult>>? _tokenRetrySubscription;
 
   Function(String? payload)? onNotificationTapped;
 
@@ -198,8 +210,14 @@ class NotificationService {
     }
   }
 
+  int _initializeFCMCallCount = 0;
+
   // Método para inicializar FCM, obtener/guardar token y configurar listeners
   Future<void> _initializeFCM() async {
+    final callId = ++_initializeFCMCallCount;
+    debugPrint(
+      '🔔 [NotificationService] _initializeFCM call #$callId started at ${DateTime.now()}',
+    );
     try {
       NotificationSettings settings =
           await _firebaseMessaging.requestPermission(
@@ -212,66 +230,16 @@ class NotificationService {
         sound: true,
       );
       debugPrint(
-        '🔔 [NotificationService] User permission granted: ${settings.authorizationStatus}',
+        '🔔 [NotificationService] call #$callId: User permission granted: ${settings.authorizationStatus}',
       );
-      String? token;
-      for (int attempt = 1; attempt <= _maxTokenAttempts; attempt++) {
-        final stopwatch = Stopwatch()..start();
-        try {
-          token = await _firebaseMessaging.getToken();
-          if (token != null) {
-            debugPrint(
-              '🔔 [NotificationService] FCM token obtained on attempt $attempt: $token',
-            );
-            break;
-          } else {
-            debugPrint(
-              '🔔 [NotificationService] FCM token null on attempt $attempt',
-            );
-          }
-        } catch (e, stackTrace) {
-          final msg = e.toString();
-          final details = e is FirebaseException
-              ? 'plugin: ${e.plugin}, code: ${e.code}, message: ${e.message}'
-              : 'type: ${e.runtimeType}';
-          debugPrint(
-            '❌ [NotificationService] Error obtaining token '
-            '(attempt $attempt, ${stopwatch.elapsedMilliseconds}ms, $details): $msg',
-          );
-          if (attempt < _maxTokenAttempts) {
-            // Longer backoff for transient network errors.
-            final base = msg.contains(_transientTokenError)
-                ? _transientRetryBase
-                : _tokenRetryBase;
-            await Future.delayed(base * attempt);
-            continue;
-          }
-          // Do not rethrow: continue so the listeners get registered.
-          // onTokenRefresh will deliver the token once connectivity returns.
-          // Still report the exhausted retries: a permanent failure (bad
-          // signing config, missing Play Services) never fires onTokenRefresh
-          // and debugPrint is silenced in release, so without this the
-          // failure is invisible.
-          unawaited(
-            FirebaseCrashlytics.instance.recordError(
-              e,
-              stackTrace,
-              reason:
-                  'FCM token fetch failed after $_maxTokenAttempts attempts',
-            ),
-          );
-        }
-        if (token == null && attempt < _maxTokenAttempts) {
-          await Future.delayed(_tokenRetryBase * attempt);
-        }
-      }
-      if (token != null) {
-        await _saveFcmToken(token);
-      } else {
-        debugPrint(
-          '🔔 [NotificationService] Could not obtain FCM token after $_maxTokenAttempts attempts (token still null).',
-        );
-      }
+      await _fetchAndSaveTokenBurst(callId);
+      // Durable fallback for when the burst above exhausts its attempts
+      // while still offline or mid-outage: keep trying once connectivity
+      // actually returns, instead of giving up until the next cold start.
+      _listenForConnectivityTokenRetry();
+      debugPrint(
+        '🔔 [NotificationService] call #$callId: registering onTokenRefresh/onMessage listeners, finished at ${DateTime.now()}',
+      );
       _firebaseMessaging.onTokenRefresh.listen((newToken) {
         debugPrint('🔔 [NotificationService] FCM token refreshed: $newToken');
         _saveFcmToken(newToken);
@@ -291,8 +259,127 @@ class NotificationService {
       // Verification runs in _saveNotificationSettingsToFirestore, after the
       // settings document exists; verifying here would report null settings.
     } catch (e) {
-      debugPrint('❌ [NotificationService] ERROR in _initializeFCM: $e');
+      debugPrint(
+          '🔔 [NotificationService] call #$callId: ❌ ERROR in _initializeFCM: $e');
     }
+  }
+
+  /// Attempts to fetch and save the FCM token, up to [_maxTokenAttempts]
+  /// times with backoff. Skips an attempt (without consuming a retry slot's
+  /// backoff) when there is no connectivity at all, since getToken() cannot
+  /// succeed offline and retrying immediately would just waste attempts and
+  /// log noise. Returns the token, or null if it's still unavailable after
+  /// the burst — callers should not treat null as permanent failure; see
+  /// _listenForConnectivityTokenRetry and retryFcmTokenIfMissing.
+  Future<String?> _fetchAndSaveTokenBurst(int callId) async {
+    String? token;
+    for (int attempt = 1; attempt <= _maxTokenAttempts; attempt++) {
+      final connectivityResults = await _connectivity.checkConnectivity();
+      final isOffline = connectivityResults.isEmpty ||
+          (connectivityResults.length == 1 &&
+              connectivityResults.contains(ConnectivityResult.none));
+      if (isOffline) {
+        debugPrint(
+          '🔔 [NotificationService] call #$callId: offline, skipping attempt $attempt',
+        );
+        break;
+      }
+      final stopwatch = Stopwatch()..start();
+      try {
+        token = await _firebaseMessaging.getToken();
+        if (token != null) {
+          debugPrint(
+            '🔔 [NotificationService] call #$callId: FCM token obtained on attempt $attempt: $token',
+          );
+          break;
+        } else {
+          debugPrint(
+            '🔔 [NotificationService] call #$callId: FCM token null on attempt $attempt',
+          );
+        }
+      } catch (e, stackTrace) {
+        final msg = e.toString();
+        final details = e is FirebaseException
+            ? 'plugin: ${e.plugin}, code: ${e.code}, message: ${e.message}'
+            : 'type: ${e.runtimeType}';
+        debugPrint(
+          '🔔 [NotificationService] call #$callId: ❌ Error obtaining token '
+          '(attempt $attempt, ${stopwatch.elapsedMilliseconds}ms, $details): $msg',
+        );
+        if (attempt < _maxTokenAttempts) {
+          // Longer backoff for transient network errors.
+          final base = msg.contains(_transientTokenError)
+              ? _transientRetryBase
+              : _tokenRetryBase;
+          await Future.delayed(base * attempt);
+          continue;
+        }
+        // Do not rethrow: continue so the listeners get registered.
+        // onTokenRefresh, the connectivity-triggered retry, and the
+        // app-resume retry will each deliver the token once it's obtainable.
+        // Still report the exhausted retries: a permanent failure (bad
+        // signing config, missing Play Services) never fires onTokenRefresh
+        // and debugPrint is silenced in release, so without this the
+        // failure is invisible.
+        unawaited(
+          FirebaseCrashlytics.instance.recordError(
+            e,
+            stackTrace,
+            reason: 'FCM token fetch failed after $_maxTokenAttempts attempts',
+          ),
+        );
+      }
+      if (token == null && attempt < _maxTokenAttempts) {
+        await Future.delayed(_tokenRetryBase * attempt);
+      }
+    }
+    if (token != null) {
+      await _saveFcmToken(token);
+    } else {
+      debugPrint(
+        '🔔 [NotificationService] call #$callId: Could not obtain FCM token after $_maxTokenAttempts attempts (token still null).',
+      );
+    }
+    return token;
+  }
+
+  /// Subscribes (once) to connectivity changes so that regaining a network
+  /// connection retries the FCM token fetch if it's still missing. This is
+  /// the durability layer for the case the initial burst in
+  /// _fetchAndSaveTokenBurst exhausts its attempts while offline or mid
+  /// outage: without this, the app would only recover via onTokenRefresh
+  /// (which the plugin fires on its own schedule, not on our behalf) or the
+  /// user relaunching the app.
+  void _listenForConnectivityTokenRetry() {
+    if (_tokenRetrySubscription != null) return;
+    _tokenRetrySubscription =
+        Connectivity().onConnectivityChanged.listen((results) async {
+      if (results.contains(ConnectivityResult.none) && results.length == 1) {
+        return;
+      }
+      await retryFcmTokenIfMissing(reason: 'connectivity regained');
+    });
+  }
+
+  /// Re-attempts the FCM token fetch if one isn't already saved locally.
+  /// Rate-limited to at most once per [_minRetryGap] so a flaky connection
+  /// or repeated foregrounding can't hammer getToken() in a tight loop.
+  /// Call this from app-resume as well as the connectivity listener — both
+  /// are cheap no-ops once a token exists.
+  Future<void> retryFcmTokenIfMissing({required String reason}) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getString(_fcmTokenKey) != null) return;
+
+    final now = DateTime.now();
+    if (_lastTokenRetryAttempt != null &&
+        now.difference(_lastTokenRetryAttempt!) < _minRetryGap) {
+      return;
+    }
+    _lastTokenRetryAttempt = now;
+
+    debugPrint('🔔 [NotificationService] retrying FCM token ($reason)');
+    final callId = ++_initializeFCMCallCount;
+    await _fetchAndSaveTokenBurst(callId);
   }
 
   // NUEVO: Método para manejar mensajes FCM y mostrarlos localmente
