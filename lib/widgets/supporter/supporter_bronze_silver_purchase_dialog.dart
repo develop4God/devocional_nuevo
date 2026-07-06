@@ -1,7 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
-import 'package:devocional_nuevo/pages/progress_page.dart';
+import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
+import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
@@ -88,10 +89,7 @@ class _SupporterPurchaseDialogState extends State<SupporterPurchaseDialog>
     setState(() => _isLoading = false);
     Navigator.pop(context); // Use local context, not widget.dialogContext
     if (goToProgress && mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ProgressPage()),
-      );
+      AppNavigationShell.selectTab(AppTab.progress);
     }
   }
 
