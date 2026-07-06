@@ -74,6 +74,9 @@ class LocalizationService implements ILocalizationService {
     } else {
       // Auto-detect device locale
       _currentLocale = _detectDeviceLocale();
+      // Persist so downstream reads of the 'locale' key (e.g. notification
+      // language selection) see the detected locale, not just in-memory state.
+      await prefs.setString('locale', _currentLocale.languageCode);
     }
 
     // Load translations for current locale

@@ -222,6 +222,25 @@ void main() {
     );
 
     test(
+      'initialize() persists auto-detected locale to SharedPreferences when none is saved',
+      () async {
+        // No 'locale' key saved — forces the auto-detect branch
+        ServiceLocator().reset();
+        SharedPreferences.setMockInitialValues({});
+        await setupServiceLocator();
+
+        localizationService = getService<LocalizationService>();
+        await localizationService.initialize();
+
+        final prefs = await SharedPreferences.getInstance();
+        expect(
+          prefs.getString('locale'),
+          equals(localizationService.currentLocale.languageCode),
+        );
+      },
+    );
+
+    test(
       'initialize() uses default locale when saved locale is unsupported',
       () async {
         // Set up with unsupported locale
