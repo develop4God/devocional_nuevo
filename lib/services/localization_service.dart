@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:ui';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -91,7 +92,9 @@ class LocalizationService implements ILocalizationService {
 
   /// Persist the locale code to SharedPreferences, logging (not throwing)
   /// on failure — consistent with the non-fatal error handling used
-  /// elsewhere in this service (see `_loadTranslations`).
+  /// elsewhere in this service (see `_loadTranslations`). Also reported to
+  /// Crashlytics: a silent failure here means notification language
+  /// selection keeps reading a stale/incorrect locale indefinitely.
   Future<void> _persistLocale(
       SharedPreferences prefs, String languageCode) async {
     try {
@@ -103,16 +106,25 @@ class LocalizationService implements ILocalizationService {
         error: e,
         stackTrace: stackTrace,
       );
+      FirebaseCrashlytics.instance.recordError(
+        e,
+        stackTrace,
+        reason: 'Failed to persist locale: $languageCode',
+        fatal: false,
+      );
     }
   }
 
-  /// Detect device locale with fallback to default
-  Locale _detectDeviceLocale() {
-    final deviceLocale = PlatformDispatcher.instance.locale;
+  /// Detect device locale with fallback to default.
+  /// [deviceLocale] is exposed only so tests can pin a value —
+  /// PlatformDispatcher.instance has no test-controllable equivalent.
+  /// Production call sites should never pass this.
+  Locale _detectDeviceLocale({Locale? deviceLocale}) {
+    final locale = deviceLocale ?? PlatformDispatcher.instance.locale;
 
     // Check if device locale is supported
     for (final supportedLocale in supportedLocales) {
-      if (supportedLocale.languageCode == deviceLocale.languageCode) {
+      if (supportedLocale.languageCode == locale.languageCode) {
         return supportedLocale;
       }
     }
