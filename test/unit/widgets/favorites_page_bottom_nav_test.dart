@@ -12,8 +12,6 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/services/remote_config_service.dart';
-import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,32 +22,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/bloc_test_helper.dart';
 import '../../helpers/test_helpers.dart';
-
-class FakeRemoteConfigService implements RemoteConfigService {
-  @override
-  bool get featureSupporter => false;
-
-  @override
-  bool get showBackupSection => true;
-
-  @override
-  bool get featureLegacy => false;
-
-  @override
-  bool get featureBloc => false;
-
-  @override
-  bool get isReady => true;
-
-  @override
-  Future<void> initialize() async {}
-
-  @override
-  Future<void> refresh() async {}
-
-  @override
-  void resetForTesting() {}
-}
 
 class FakeThemeBloc extends Fake implements ThemeBloc {
   @override
@@ -78,7 +50,7 @@ void main() {
     late DiscoveryBlocTestBase testBase;
     late dynamic mockDevocionalProvider;
 
-    setUp(() {
+    setUp(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -86,14 +58,8 @@ void main() {
         const MethodChannel('flutter_tts'),
         (call) async => null,
       );
-      registerTestServices();
-      final locator = ServiceLocator();
-      if (locator.isRegistered<RemoteConfigService>()) {
-        locator.unregister<RemoteConfigService>();
-      }
-      locator.registerSingleton<RemoteConfigService>(
-        FakeRemoteConfigService(),
-      );
+      await registerTestServices();
+      overrideRemoteConfigService(supporterEnabled: false);
       testBase = DiscoveryBlocTestBase();
       testBase.setupMocks();
       testBase.mockEmptyIndexFetch();
@@ -169,6 +135,7 @@ void main() {
 
       await tester.tap(find.byKey(const Key('bottom_appbar_home_icon')));
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(FavoritesPage), findsNothing);
