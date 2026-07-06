@@ -61,7 +61,7 @@ function createModerationQueueHandler({moderationService, db, logger}) {
     });
 
     logger.info(
-      `[ModerationQueue] Prayer ${prayerId} → status: ${status} ` +
+        `[ModerationQueue] Prayer ${prayerId} → status: ${status} ` +
       `(flag: ${result.flag}, confidence: ${result.confidence})`,
     );
   }

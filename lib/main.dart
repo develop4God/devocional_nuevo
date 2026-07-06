@@ -1,4 +1,4 @@
-import 'dart:async' show TimeoutException;
+import 'dart:async' show TimeoutException, unawaited;
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
@@ -15,10 +15,9 @@ import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/pages/debug_page.dart';
-import 'package:devocional_nuevo/pages/devocionales_page.dart';
+import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/pages/encounters/encounters_list_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
-import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
@@ -67,10 +66,11 @@ final RouteObserver<PageRoute<dynamic>> routeObserver =
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  developer.log(
-    'BackgroundServiceCallback: Manejando mensaje FCM en segundo plano: ${message.messageId}',
-    name: 'BackgroundServiceCallback',
-  );
+  if (kDebugMode) {
+    debugPrint(
+      '🔔 [BackgroundServiceCallback] Handling background FCM message: ${message.messageId}',
+    );
+  }
   // Ensure Firebase is initialized in the background isolate before using any
   // Firebase-dependent services. If you have generated DefaultFirebaseOptions,
   // prefer using `Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)`.
@@ -113,6 +113,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Silence all debugPrint output in release builds. debugPrint is NOT
+  // stripped by tree shaking; it prints to the system log in release unless
+  // overridden (https://docs.flutter.dev/testing/code-debugging).
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
+
   await Firebase.initializeApp();
 
   // --- Crashlytics error handlers ----------------------------------------
@@ -407,6 +415,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       }
 
       _lastPausedTime = null;
+
+      unawaited(
+        getService<NotificationService>()
+            .retryFcmTokenIfMissing(reason: 'app resumed'),
+      );
     }
   }
 
@@ -491,8 +504,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               },
             ),
             routes: {
-              '/settings': (context) => const SettingsPage(),
-              '/devocionales': (context) => const DevocionalesPage(),
+              '/devocionales': (context) =>
+                  AppNavigationShell(key: AppNavigationShell.shellKey),
               if (Constants.enableEncountersFeature)
                 '/encounters': (context) => const EncountersListPage(),
               if (kDebugMode || _developerMode)
@@ -577,7 +590,8 @@ class _AppInitializerState extends State<AppInitializer> {
     _initNonCriticalServices();
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (context, a, b) => const DevocionalesPage(),
+        pageBuilder: (context, a, b) =>
+            AppNavigationShell(key: AppNavigationShell.shellKey),
         transitionDuration: const Duration(milliseconds: 300),
       ),
     );
