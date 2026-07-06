@@ -15,6 +15,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/discovery_share_helper.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/discovery_actions_bar.dart';
 import 'package:devocional_nuevo/widgets/discovery_card_premium.dart';
@@ -533,32 +534,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
   void _showFeedbackSnackBar(String message, {bool useIcon = false}) {
     if (!mounted) return;
-    final colorScheme = Theme.of(context).colorScheme;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            if (useIcon) ...[
-              const Icon(
-                Icons.verified_rounded,
-                color: Colors.greenAccent,
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-            ],
-            Expanded(
-              child: Text(
-                message,
-                style: TextStyle(color: colorScheme.onSecondary),
-              ),
-            ),
-          ],
-        ),
-        duration: const Duration(seconds: 2),
-        backgroundColor: colorScheme.secondary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
+    AppSnackBar.show(
+      context,
+      message,
+      icon: useIcon ? Icons.verified_rounded : null,
+      iconColor: Colors.greenAccent,
     );
   }
 

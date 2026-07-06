@@ -1,6 +1,7 @@
 // lib/pages/discovery_detail_page.dart
 
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -340,6 +341,10 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   }
 
   Widget _buildKeyVerseCardPage(DiscoveryDevotional study, ThemeData theme) {
+    final selectedVersion = context.read<DevocionalProvider>().selectedVersion;
+    final displayVersion =
+        selectedVersion.isNotEmpty ? selectedVersion : study.version;
+
     return Container(
       // Removed horizontal margin to allow the card to take full Page width
       // and let the PageView viewportFraction handle the gap/peeking.
@@ -354,7 +359,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              KeyVerseCard(keyVerse: study.keyVerse!, version: study.version),
+              KeyVerseCard(keyVerse: study.keyVerse!, version: displayVersion),
               const SizedBox(height: 32),
               _buildNavigationButtons(true, false),
               const SizedBox(height: 20),
@@ -633,6 +638,10 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               ),
             ),
           ],
+          if (card.scriptureAnchor != null) ...[
+            const SizedBox(height: 32),
+            _buildScriptureAnchorTile(card.scriptureAnchor!, theme),
+          ],
           if (card.scriptureConnections != null) ...[
             const SizedBox(height: 32),
             ...card.scriptureConnections!.map(
@@ -745,6 +754,38 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
+  Widget _buildScriptureAnchorTile(ScriptureAnchor anchor, ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            anchor.reference,
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ResolvedVerseText(
+            reference: anchor.reference,
+            fallbackText: anchor.text,
+            style: const TextStyle(height: 1.5),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildGreekWordTile(GreekWord word, ThemeData theme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -850,7 +891,9 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
 
   Widget _buildCopyrightDisclaimer(DiscoveryDevotional study, ThemeData theme) {
     final language = study.language ?? 'en';
-    final version = study.version ?? 'KJV';
+    final selectedVersion = context.read<DevocionalProvider>().selectedVersion;
+    final version =
+        selectedVersion.isNotEmpty ? selectedVersion : (study.version ?? '');
     final copyrightText = CopyrightUtils.getCopyrightText(language, version);
 
     return Container(

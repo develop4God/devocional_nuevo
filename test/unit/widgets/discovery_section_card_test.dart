@@ -2,15 +2,43 @@
 library;
 
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/discovery_section_card.dart';
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../helpers/test_helpers.dart';
+
+class _FakeVerseResolverService implements IVerseResolverService {
+  @override
+  Future<String?> resolveVerseText({
+    required String reference,
+    required String versionCode,
+  }) async =>
+      null;
+}
 
 void main() {
   group('DiscoverySectionCard Widget Tests', () {
     late DiscoverySection testSection;
 
-    setUp(() {
+    setUp(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      await registerTestServices();
+
+      final locator = ServiceLocator();
+      if (locator.isRegistered<IVerseResolverService>()) {
+        locator.unregister<IVerseResolverService>();
+      }
+      locator.registerSingleton<IVerseResolverService>(
+        _FakeVerseResolverService(),
+      );
+
       testSection = DiscoverySection(
         tipo: 'natural',
         titulo: 'Test Title',
@@ -28,13 +56,16 @@ void main() {
       String? versiculoClave,
     }) {
       return MaterialApp(
-        home: Scaffold(
-          body: DiscoverySectionCard(
-            section: section ?? testSection,
-            studyId: studyId ?? 'test_study_id',
-            sectionIndex: sectionIndex ?? 0,
-            isDark: isDark,
-            versiculoClave: versiculoClave,
+        home: ChangeNotifierProvider<DevocionalProvider>(
+          create: (_) => DevocionalProvider(enableAudio: false),
+          child: Scaffold(
+            body: DiscoverySectionCard(
+              section: section ?? testSection,
+              studyId: studyId ?? 'test_study_id',
+              sectionIndex: sectionIndex ?? 0,
+              isDark: isDark,
+              versiculoClave: versiculoClave,
+            ),
           ),
         ),
       );
