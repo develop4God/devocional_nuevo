@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:ui';
@@ -114,11 +115,13 @@ class LocalizationService implements ILocalizationService {
         error: e,
         stackTrace: stackTrace,
       );
-      FirebaseCrashlytics.instance.recordError(
-        e,
-        stackTrace,
-        reason: 'Failed to persist locale: $languageCode',
-        fatal: false,
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(
+          e,
+          stackTrace,
+          reason: 'Failed to persist locale: $languageCode',
+          fatal: false,
+        ),
       );
     }
   }
