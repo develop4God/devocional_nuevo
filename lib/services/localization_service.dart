@@ -75,18 +75,35 @@ class LocalizationService implements ILocalizationService {
         // persisted value so downstream readers of 'locale' don't keep
         // seeing the invalid code.
         _currentLocale = _detectDeviceLocale();
-        await prefs.setString('locale', _currentLocale.languageCode);
+        await _persistLocale(prefs, _currentLocale.languageCode);
       }
     } else {
       // Auto-detect device locale
       _currentLocale = _detectDeviceLocale();
       // Persist so downstream reads of the 'locale' key (e.g. notification
       // language selection) see the detected locale, not just in-memory state.
-      await prefs.setString('locale', _currentLocale.languageCode);
+      await _persistLocale(prefs, _currentLocale.languageCode);
     }
 
     // Load translations for current locale
     await _loadTranslations(_currentLocale.languageCode);
+  }
+
+  /// Persist the locale code to SharedPreferences, logging (not throwing)
+  /// on failure — consistent with the non-fatal error handling used
+  /// elsewhere in this service (see `_loadTranslations`).
+  Future<void> _persistLocale(
+      SharedPreferences prefs, String languageCode) async {
+    try {
+      await prefs.setString('locale', languageCode);
+    } catch (e, stackTrace) {
+      developer.log(
+        'Failed to persist locale: $languageCode',
+        name: 'LocalizationService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   /// Detect device locale with fallback to default
@@ -182,7 +199,7 @@ class LocalizationService implements ILocalizationService {
 
     // Save to preferences
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('locale', locale.languageCode);
+    await _persistLocale(prefs, locale.languageCode);
 
     // Load new translations
     await _loadTranslations(locale.languageCode);
