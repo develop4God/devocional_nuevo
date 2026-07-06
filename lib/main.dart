@@ -1,4 +1,4 @@
-import 'dart:async' show TimeoutException;
+import 'dart:async' show TimeoutException, unawaited;
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
@@ -415,6 +415,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       }
 
       _lastPausedTime = null;
+
+      unawaited(
+        getService<NotificationService>()
+            .retryFcmTokenIfMissing(reason: 'app resumed'),
+      );
     }
   }
 
