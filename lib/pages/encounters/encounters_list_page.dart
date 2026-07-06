@@ -37,6 +37,7 @@ class _EncountersListPageState extends State<EncountersListPage>
     with SingleTickerProviderStateMixin, RouteAware {
   bool _showGridOverlay = false;
   late AnimationController _gridAnimationController;
+  final ScrollController _scrollController = ScrollController();
   int _currentIndex = 0;
 
   // Unlock animation state
@@ -82,6 +83,7 @@ class _EncountersListPageState extends State<EncountersListPage>
   void dispose() {
     routeObserver.unsubscribe(this);
     _gridAnimationController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -116,7 +118,10 @@ class _EncountersListPageState extends State<EncountersListPage>
     final prefs = await SharedPreferences.getInstance();
     final seen = prefs.getBool('encounter_welcome_seen') ?? false;
     if (!seen && mounted) {
-      Navigator.pushReplacement(
+      // Push (not pushReplacement) so this shell-hosted page stays on the
+      // stack underneath — EncounterWelcomePage pops back into it instead
+      // of needing to construct a new, standalone (bottom-bar-less) copy.
+      Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const EncounterWelcomePage()),
       );
@@ -234,12 +239,14 @@ class _EncountersListPageState extends State<EncountersListPage>
             radius: const Radius.circular(8),
           ),
           child: Scrollbar(
+            controller: _scrollController,
             thumbVisibility: true,
             thickness: 10,
             radius: const Radius.circular(8),
             interactive: true,
             trackVisibility: true,
             child: ListView.builder(
+              controller: _scrollController,
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.symmetric(
                 horizontal: 20,
