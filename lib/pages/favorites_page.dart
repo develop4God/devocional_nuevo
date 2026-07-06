@@ -7,10 +7,12 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_detail_page.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -121,6 +123,15 @@ class _FavoritesPageState extends State<FavoritesPage>
               ),
             ),
           ],
+        ),
+        bottomNavigationBar: AppBottomNavBar(
+          currentTab: null,
+          onSelectTab: (tab) {
+            // Favorites is pushed over the shell (from the drawer, progress
+            // page, or discovery list); pop back to it before switching tabs.
+            Navigator.of(context).popUntil((route) => route.isFirst);
+            AppNavigationShell.selectTab(tab);
+          },
         ),
       ),
     );
