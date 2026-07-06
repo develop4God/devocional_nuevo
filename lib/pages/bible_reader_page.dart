@@ -16,6 +16,7 @@ import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_book_selector_dialog.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_chapter_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_action_modal.dart';
@@ -421,17 +422,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     Clipboard.setData(ClipboardData(text: text));
     Navigator.pop(modalContext);
     _controller.clearSelectedVerses();
-    final colorScheme = Theme.of(context).colorScheme;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'bible.copied_to_clipboard'.tr(),
-          style: TextStyle(color: colorScheme.onSecondary),
-        ),
-        backgroundColor: colorScheme.secondary,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    AppSnackBar.show(context, 'bible.copied_to_clipboard'.tr());
   }
 
   void _saveSelectedVerses(BuildContext modalContext) async {
@@ -448,20 +439,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
     _controller.clearSelectedVerses();
 
-    // Capture widget's context-dependent values immediately after mounted check
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    scaffoldMessenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          'bible.save_marked_verses'.tr(),
-          style: TextStyle(color: colorScheme.onSecondary),
-        ),
-        backgroundColor: colorScheme.secondary,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    AppSnackBar.show(context, 'bible.save_marked_verses'.tr());
   }
 
   void _deleteSelectedVerses(BuildContext modalContext) async {
@@ -479,20 +457,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
     _controller.clearSelectedVerses();
 
-    // Capture widget's context-dependent values immediately after mounted check
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    scaffoldMessenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          'bible.deleted_marked_verses'.tr(),
-          style: TextStyle(color: colorScheme.onSecondary),
-        ),
-        backgroundColor: colorScheme.secondary,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    AppSnackBar.show(context, 'bible.deleted_marked_verses'.tr());
   }
 
   // Helper para prefijos de capítulo y versículo según idioma
@@ -817,21 +782,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       ),
                       tooltip: 'bible.select_version'.tr(),
                       onSelected: (version) async {
-                        final scaffoldMessenger = ScaffoldMessenger.of(context);
-                        final colorScheme = Theme.of(context).colorScheme;
                         await _controller.switchVersion(version);
-                        if (!mounted) return;
-                        scaffoldMessenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'bible.loading_version'.tr({
-                                'version': version.name,
-                              }),
-                              style: TextStyle(color: colorScheme.onSecondary),
-                            ),
-                            backgroundColor: colorScheme.secondary,
-                            duration: const Duration(seconds: 1),
-                          ),
+                        if (!context.mounted) return;
+                        AppSnackBar.show(
+                          context,
+                          'bible.loading_version'.tr({
+                            'version': version.name,
+                          }),
                         );
                       },
                       itemBuilder: (context) => state.availableVersions.map((

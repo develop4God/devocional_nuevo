@@ -11,6 +11,8 @@ enum AppSnackBarType { feedback, tip }
 class AppSnackBar {
   AppSnackBar._();
 
+  static const Duration duration = Duration(seconds: 3);
+
   static void show(
     BuildContext context,
     String message, {
@@ -18,12 +20,12 @@ class AppSnackBar {
     IconData? icon,
     Color? iconColor,
     String? title,
-    Duration duration = const Duration(seconds: 2),
     SnackBarAction? action,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final backgroundColor =
-        type == AppSnackBarType.tip ? colorScheme.primary : colorScheme.secondary;
+    final backgroundColor = type == AppSnackBarType.tip
+        ? colorScheme.primary
+        : colorScheme.secondary;
     final foregroundColor =
         type == AppSnackBarType.tip ? Colors.white : colorScheme.onSecondary;
 
@@ -53,7 +55,8 @@ class AppSnackBar {
                         const SizedBox(height: 2),
                         Text(
                           message,
-                          style: TextStyle(fontSize: 13, color: foregroundColor),
+                          style:
+                              TextStyle(fontSize: 13, color: foregroundColor),
                         ),
                       ],
                     ),

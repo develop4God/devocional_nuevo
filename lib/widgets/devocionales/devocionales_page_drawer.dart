@@ -9,6 +9,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
 import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
 import 'package:devocional_nuevo/widgets/app_gradient_dialog.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/theme_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -688,16 +689,10 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                                   Navigator.of(
                                     context,
                                   ).pop(); // Cierra el Drawer
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'drawer.offline_access_ready'.tr(),
-                                      ),
-                                      backgroundColor: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                      duration: const Duration(seconds: 2),
-                                    ),
+                                  AppSnackBar.show(
+                                    context,
+                                    'drawer.offline_access_ready'.tr(),
+                                    type: AppSnackBarType.tip,
                                   );
                                 }
                               },
