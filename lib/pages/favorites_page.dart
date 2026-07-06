@@ -8,8 +8,8 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
-import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_detail_page.dart';
+import 'package:devocional_nuevo/pages/favorite_devocional_detail_page.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
@@ -274,7 +274,7 @@ class _FavoritesPageState extends State<FavoritesPage>
           context,
           MaterialPageRoute(
             builder: (c) =>
-                DevocionalesPage(initialDevocionalId: devocional.id),
+                FavoriteDevocionalDetailPage(devocional: devocional),
           ),
         ),
         borderRadius: BorderRadius.circular(20),
