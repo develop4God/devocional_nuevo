@@ -59,7 +59,6 @@ void main() {
         (call) async => null,
       );
       await registerTestServices();
-      overrideRemoteConfigService(supporterEnabled: false);
       testBase = DiscoveryBlocTestBase();
       testBase.setupMocks();
       testBase.mockEmptyIndexFetch();

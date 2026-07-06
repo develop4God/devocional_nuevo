@@ -1,6 +1,5 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
-import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
@@ -31,7 +30,7 @@ List<AppTab> enabledAppTabs() => [
       if (Constants.enableEncountersFeature) AppTab.encounters,
       AppTab.progress,
       AppTab.settings,
-      if (getService<RemoteConfigService>().featureSupporter) AppTab.supporter,
+      AppTab.supporter,
     ];
 
 /// Persistent bottom navigation bar shown on every main screen.
