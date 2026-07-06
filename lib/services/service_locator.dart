@@ -26,6 +26,7 @@ import 'package:devocional_nuevo/services/backup/google_drive_auth_service.dart'
 import 'package:devocional_nuevo/services/backup/google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/backup/i_backup_settings_service.dart';
 import 'package:devocional_nuevo/services/backup/backup_settings_service.dart';
+import 'package:devocional_nuevo/services/device_locale_provider.dart';
 import 'package:devocional_nuevo/services/i_connectivity_service.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:devocional_nuevo/services/backup/i_google_drive_auth_service.dart';
@@ -110,8 +111,13 @@ Future<void> setupServiceLocator() async {
 
   locator.registerLazySingleton<IAuthService>(() => FirebaseAuthService());
 
+  locator.registerLazySingleton<DeviceLocaleProvider>(
+    () => const PlatformDeviceLocaleProvider(),
+  );
   locator.registerLazySingleton<LocalizationService>(
-    () => LocalizationService(),
+    () => LocalizationService(
+      deviceLocaleProvider: locator.get<DeviceLocaleProvider>(),
+    ),
   );
   locator.registerSingleton<ILocalizationService>(
     locator.get<LocalizationService>(),
