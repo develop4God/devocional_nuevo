@@ -2,6 +2,7 @@
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -16,7 +17,13 @@ import '../services/spiritual_stats_service.dart';
 import '../widgets/app_snack_bar.dart';
 
 class ProgressPage extends StatefulWidget {
-  const ProgressPage({super.key});
+  /// Whether this page's tab is the one currently visible in
+  /// AppNavigationShell. Null when shown outside the shell. Used to avoid
+  /// showing the achievement tip over another tab, since the shell's
+  /// IndexedStack keeps this page's state alive when hidden.
+  final ValueListenable<bool>? isActive;
+
+  const ProgressPage({super.key, this.isActive});
 
   @override
   State<ProgressPage> createState() => _ProgressPageState();
@@ -35,6 +42,7 @@ class _ProgressPageState extends State<ProgressPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    widget.isActive?.addListener(_handleTabVisibilityChange);
     _initAnimations();
     _loadStats();
     _showAchievementTipIfNeeded();
@@ -44,6 +52,12 @@ class _ProgressPageState extends State<ProgressPage>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _scaffoldMessenger = ScaffoldMessenger.of(context);
+  }
+
+  void _handleTabVisibilityChange() {
+    if (widget.isActive?.value == false) {
+      _scaffoldMessenger?.hideCurrentSnackBar();
+    }
   }
 
   void _initAnimations() {
@@ -101,7 +115,7 @@ class _ProgressPageState extends State<ProgressPage>
       if (tipShownCount < 2) {
         await Future.delayed(const Duration(milliseconds: 1500));
 
-        if (mounted) {
+        if (mounted && widget.isActive?.value != false) {
           _showEducationalSnackBar();
           await prefs.setInt('achievement_tip_count', tipShownCount + 1);
         }
@@ -178,6 +192,7 @@ class _ProgressPageState extends State<ProgressPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    widget.isActive?.removeListener(_handleTabVisibilityChange);
     _scaffoldMessenger?.hideCurrentSnackBar();
     _streakAnimationController.dispose();
     super.dispose();

@@ -61,6 +61,11 @@ class AppNavigationShellState extends State<AppNavigationShell> {
   // switches don't fire RouteAware callbacks).
   final ValueNotifier<bool> _homeTabActive = ValueNotifier<bool>(true);
 
+  // Tells ProgressPage whether its tab is visible, so it doesn't show its
+  // delayed achievement tip SnackBar over whatever tab the user has since
+  // switched to (IndexedStack keeps ProgressPage's state alive when hidden).
+  final ValueNotifier<bool> _progressTabActive = ValueNotifier<bool>(false);
+
   void _selectTab(AppTab tab) {
     if (tab == _currentTab) return;
     setState(() {
@@ -74,6 +79,7 @@ class AppNavigationShellState extends State<AppNavigationShell> {
       _currentTab = tab;
     });
     _homeTabActive.value = tab == AppTab.home;
+    _progressTabActive.value = tab == AppTab.progress;
   }
 
   Widget _buildTab(AppTab tab) {
@@ -93,7 +99,7 @@ class AppNavigationShellState extends State<AppNavigationShell> {
       case AppTab.encounters:
         return const EncountersListPage();
       case AppTab.progress:
-        return const ProgressPage();
+        return ProgressPage(isActive: _progressTabActive);
       case AppTab.settings:
         return const SettingsPage();
       case AppTab.supporter:
@@ -104,6 +110,7 @@ class AppNavigationShellState extends State<AppNavigationShell> {
   @override
   void dispose() {
     _homeTabActive.dispose();
+    _progressTabActive.dispose();
     super.dispose();
   }
 
