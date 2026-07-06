@@ -3,11 +3,19 @@ library;
 
 import 'dart:ui';
 
+import 'package:devocional_nuevo/services/device_locale_provider.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class FakeDeviceLocaleProvider implements DeviceLocaleProvider {
+  FakeDeviceLocaleProvider(this.locale);
+
+  @override
+  final Locale locale;
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -225,36 +233,23 @@ void main() {
     test(
       'initialize() persists auto-detected locale to SharedPreferences when none is saved',
       () async {
-        // NOTE: PlatformDispatcher.instance is a fixed engine singleton;
-        // TestPlatformDispatcher.localeTestValue only affects code reading
-        // the locale via WidgetsBinding, not PlatformDispatcher.instance
-        // directly (which is what _detectDeviceLocale() uses) — so the
-        // device locale cannot be pinned in a plain `test()`. Instead,
-        // independently recompute the expected outcome from the same
-        // supportedLocales/defaultLocale inputs the production code uses,
-        // rather than asserting currentLocale against itself.
-        final deviceLanguageCode =
-            PlatformDispatcher.instance.locale.languageCode;
-        final expectedLanguageCode = LocalizationService.supportedLocales
-                .any((l) => l.languageCode == deviceLanguageCode)
-            ? deviceLanguageCode
-            : LocalizationService.defaultLocale.languageCode;
-
-        // No 'locale' key saved — forces the auto-detect branch
+        // No 'locale' key saved — forces the auto-detect branch. Inject a
+        // fake DeviceLocaleProvider so the expected outcome is a fixed
+        // literal, independent of both currentLocale and whatever locale
+        // the test runner's environment happens to report.
         ServiceLocator().reset();
         SharedPreferences.setMockInitialValues({});
         await setupServiceLocator();
 
-        localizationService = getService<LocalizationService>();
+        localizationService = LocalizationService(
+          deviceLocaleProvider: FakeDeviceLocaleProvider(const Locale('fr')),
+        );
         await localizationService.initialize();
 
-        expect(
-          localizationService.currentLocale.languageCode,
-          equals(expectedLanguageCode),
-        );
+        expect(localizationService.currentLocale.languageCode, equals('fr'));
 
         final prefs = await SharedPreferences.getInstance();
-        expect(prefs.getString('locale'), equals(expectedLanguageCode));
+        expect(prefs.getString('locale'), equals('fr'));
       },
     );
 
@@ -301,34 +296,22 @@ void main() {
     test(
       'initialize() uses default locale when saved locale is unsupported',
       () async {
-        // See note above: the device locale cannot be pinned via
-        // TestPlatformDispatcher because _detectDeviceLocale() reads
-        // PlatformDispatcher.instance directly. Recompute the expected
-        // outcome from the same inputs the production code uses.
-        final deviceLanguageCode =
-            PlatformDispatcher.instance.locale.languageCode;
-        final expectedLanguageCode = LocalizationService.supportedLocales
-                .any((l) => l.languageCode == deviceLanguageCode)
-            ? deviceLanguageCode
-            : LocalizationService.defaultLocale.languageCode;
-
-        // Set up with unsupported locale
+        // Inject a fake DeviceLocaleProvider — see note above.
         ServiceLocator().reset();
         SharedPreferences.setMockInitialValues({'locale': 'xx'});
         await setupServiceLocator();
-        localizationService = getService<LocalizationService>();
+        localizationService = LocalizationService(
+          deviceLocaleProvider: FakeDeviceLocaleProvider(const Locale('de')),
+        );
         await localizationService.initialize();
 
-        // Should fall back to the detected device locale
-        expect(
-          localizationService.currentLocale.languageCode,
-          equals(expectedLanguageCode),
-        );
+        // Should fall back to the pinned device locale
+        expect(localizationService.currentLocale.languageCode, equals('de'));
 
         // The stale/unsupported value must be corrected in SharedPreferences,
         // not just in memory, so other readers of 'locale' see the fallback.
         final prefs = await SharedPreferences.getInstance();
-        expect(prefs.getString('locale'), equals(expectedLanguageCode));
+        expect(prefs.getString('locale'), equals('de'));
       },
     );
 

@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'device_locale_provider.dart';
 import 'i_localization_service.dart';
 
 /// Service for managing app localization and translations.
@@ -24,7 +25,14 @@ import 'i_localization_service.dart';
 class LocalizationService implements ILocalizationService {
   /// Default constructor for DI registration.
   /// The Service Locator will create and manage the singleton instance.
-  LocalizationService();
+  /// [deviceLocaleProvider] defaults to the real platform provider; tests
+  /// inject a fake to control the detected device locale deterministically.
+  LocalizationService({
+    DeviceLocaleProvider deviceLocaleProvider =
+        const PlatformDeviceLocaleProvider(),
+  }) : _deviceLocaleProvider = deviceLocaleProvider;
+
+  final DeviceLocaleProvider _deviceLocaleProvider;
 
   // Supported locales
   static const List<Locale> supportedLocales = [
@@ -115,12 +123,9 @@ class LocalizationService implements ILocalizationService {
     }
   }
 
-  /// Detect device locale with fallback to default.
-  /// [deviceLocale] is exposed only so tests can pin a value —
-  /// PlatformDispatcher.instance has no test-controllable equivalent.
-  /// Production call sites should never pass this.
-  Locale _detectDeviceLocale({Locale? deviceLocale}) {
-    final locale = deviceLocale ?? PlatformDispatcher.instance.locale;
+  /// Detect device locale with fallback to default
+  Locale _detectDeviceLocale() {
+    final locale = _deviceLocaleProvider.locale;
 
     // Check if device locale is supported
     for (final supportedLocale in supportedLocales) {
