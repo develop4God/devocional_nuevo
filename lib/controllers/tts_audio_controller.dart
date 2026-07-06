@@ -14,7 +14,9 @@ class TtsAudioController {
   final ValueNotifier<TtsPlayerState> state = ValueNotifier<TtsPlayerState>(
     TtsPlayerState.idle,
   );
-  final FlutterTts flutterTts;
+  // Not final: reattachTts() swaps in a fresh instance to re-claim the
+  // shared flutter_tts method channel (see reattachTts).
+  FlutterTts flutterTts;
   final VoiceSettingsService _voiceSettingsService;
   late final TtsChunkProcessor _processor;
   String? _currentText;
@@ -128,6 +130,29 @@ class TtsAudioController {
     } catch (e) {
       debugPrint('[TTS Controller] Failed to load playbackRate: $e');
     }
+    _registerHandlers();
+  }
+
+  /// Re-claims the shared flutter_tts method channel for this controller.
+  ///
+  /// flutter_tts routes native callbacks to the most recently constructed
+  /// [FlutterTts] instance (the constructor sets the handler on a static
+  /// channel), so after another page creates its own instance (e.g. the
+  /// bible tab) this controller's handlers stop firing. Constructing a fresh
+  /// instance re-claims the channel; native TTS state (rate, language) is
+  /// engine-side and unaffected.
+  ///
+  /// The replaced instance needs no teardown: FlutterTts (4.2.5) exposes no
+  /// dispose/shutdown API and holds no per-instance native resources — only
+  /// handler fields and the static channel — so the old object is simply
+  /// garbage-collected.
+  void reattachTts() {
+    flutterTts = FlutterTts();
+    _registerHandlers();
+    debugPrint('🔁 [TTS Controller] Re-attached flutter_tts channel');
+  }
+
+  void _registerHandlers() {
     flutterTts.setStartHandler(() {
       debugPrint(
         '🎬 [TTS Controller] ▶️ START HANDLER FIRED - Playback started',

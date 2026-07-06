@@ -2,10 +2,10 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/supporter_pet.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
-import 'package:devocional_nuevo/pages/devocionales_page.dart';
-import 'package:devocional_nuevo/pages/settings_page.dart';
+import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
+import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
@@ -221,17 +221,13 @@ class _SupporterGoldPurchaseDialogState
 
   // ── Final navigation ──────────────────────────────────────────────────────
 
-  void _navigateTo(Widget page) {
+  void _goToTab(AppTab tab) {
     // Must use widget.dialogContext here — the gold dialog is a multi-phase
     // flow pushed from a parent route. By Phase 2, the local BuildContext may
     // no longer be associated with the original dialog route, so we hold a
     // reference to the push-site context to ensure the correct route is popped.
     Navigator.pop(widget.dialogContext);
-    if (!mounted) return;
-    final navigator = Navigator.of(context, rootNavigator: true);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      navigator.pushReplacement(MaterialPageRoute(builder: (_) => page));
-    });
+    AppNavigationShell.selectTab(tab);
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
@@ -667,7 +663,7 @@ class _SupporterGoldPurchaseDialogState
           child: _GoldButton(
             label: 'supporter.go_to_settings'.tr(),
             icon: Icons.settings_rounded,
-            onTap: () => _navigateTo(const SettingsPage()),
+            onTap: () => _goToTab(AppTab.settings),
           ),
         ),
         const SizedBox(height: 12),
@@ -676,7 +672,7 @@ class _SupporterGoldPurchaseDialogState
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () => _navigateTo(const DevocionalesPage()),
+            onPressed: () => _goToTab(AppTab.home),
             icon: const Icon(Icons.home_filled, color: _gold, size: 20),
             label: AutoSizeText(
               'supporter.go_to_devotionals'.tr(),

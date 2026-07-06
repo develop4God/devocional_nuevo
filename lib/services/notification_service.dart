@@ -24,8 +24,11 @@
 //   ✅ final service = getService<NotificationService>();
 //   ✅ final service = ServiceLocator().get<NotificationService>();
 
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 // Importaciones para Firebase Cloud Messaging y Firestore
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -226,7 +229,7 @@ class NotificationService {
               '🔔 [NotificationService] FCM token null on attempt $attempt',
             );
           }
-        } catch (e) {
+        } catch (e, stackTrace) {
           final msg = e.toString();
           final details = e is FirebaseException
               ? 'plugin: ${e.plugin}, code: ${e.code}, message: ${e.message}'
@@ -245,6 +248,18 @@ class NotificationService {
           }
           // Do not rethrow: continue so the listeners get registered.
           // onTokenRefresh will deliver the token once connectivity returns.
+          // Still report the exhausted retries: a permanent failure (bad
+          // signing config, missing Play Services) never fires onTokenRefresh
+          // and debugPrint is silenced in release, so without this the
+          // failure is invisible.
+          unawaited(
+            FirebaseCrashlytics.instance.recordError(
+              e,
+              stackTrace,
+              reason:
+                  'FCM token fetch failed after $_maxTokenAttempts attempts',
+            ),
+          );
         }
         if (token == null && attempt < _maxTokenAttempts) {
           await Future.delayed(_tokenRetryBase * attempt);

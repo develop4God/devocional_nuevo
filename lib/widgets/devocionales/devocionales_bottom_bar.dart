@@ -2,23 +2,13 @@ import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_list_page.dart';
-import 'package:devocional_nuevo/pages/encounters/encounters_list_page.dart';
-import 'package:devocional_nuevo/pages/progress_page.dart';
-import 'package:devocional_nuevo/pages/settings_page.dart';
-import 'package:devocional_nuevo/pages/supporter_page.dart';
-import 'package:devocional_nuevo/services/i_analytics_service.dart';
-import 'package:devocional_nuevo/services/remote_config_service.dart';
-import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
-import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 /// Bottom navigation bar for Devocionales page
-/// Contains navigation controls, TTS player, and action buttons
+/// Contains previous/next devotional controls and the TTS player.
+/// The app-wide action icons live in AppBottomNavBar (owned by the shell).
 class DevocionalesBottomBar extends StatelessWidget {
   final Devocional currentDevocional;
   final bool canNavigateNext;
@@ -27,8 +17,6 @@ class DevocionalesBottomBar extends StatelessWidget {
   final VoidCallback onPrevious;
   final VoidCallback onNext;
   final VoidCallback onShowInvitation;
-  final VoidCallback onBible;
-  final VoidCallback onPrayers;
 
   const DevocionalesBottomBar({
     super.key,
@@ -39,23 +27,15 @@ class DevocionalesBottomBar extends StatelessWidget {
     required this.onPrevious,
     required this.onNext,
     required this.onShowInvitation,
-    required this.onBible,
-    required this.onPrayers,
   });
 
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final Color? appBarBackgroundColor = Theme.of(
-      context,
-    ).appBarTheme.backgroundColor;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildNavigationControls(context, colorScheme),
-        _buildActionButtons(context, appBarBackgroundColor, colorScheme),
-      ],
+      children: [_buildNavigationControls(context, colorScheme)],
     );
   }
 
@@ -200,297 +180,6 @@ class DevocionalesBottomBar extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(
-    BuildContext context,
-    Color? appBarBackgroundColor,
-    ColorScheme colorScheme,
-  ) {
-    return SafeArea(
-      top: false,
-      child: BottomAppBar(
-        height: 60,
-        color: appBarBackgroundColor,
-        padding: EdgeInsets.zero,
-        child: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              // 1. Prayers
-              IconButton(
-                key: const Key('bottom_appbar_prayers_icon'),
-                tooltip: 'tooltips.my_prayers'.tr(),
-                onPressed: () async {
-                  getService<IAnalyticsService>().logBottomBarAction(
-                    action: 'prayers',
-                  );
-                  HapticFeedback.mediumImpact();
-                  await BubbleUtils.markAsShown(
-                    BubbleUtils.getIconBubbleId(
-                      Icons.local_fire_department_outlined,
-                      'new',
-                    ),
-                  );
-                  onPrayers();
-                },
-                icon: const Icon(
-                  Icons.local_fire_department_outlined,
-                  color: Colors.white,
-                  size: 35,
-                ),
-              ),
-              // 2. Bible
-              IconButton(
-                key: const Key('bottom_appbar_bible_icon'),
-                tooltip: 'tooltips.bible'.tr(),
-                onPressed: () async {
-                  getService<IAnalyticsService>().logBottomBarAction(
-                    action: 'bible',
-                  );
-                  onBible();
-                },
-                icon: const Icon(
-                  Icons.auto_stories_outlined,
-                  color: Colors.white,
-                  size: 32,
-                ),
-              ),
-              // 3. Discovery Studies
-              if (Constants.enableDiscoveryFeature)
-                IconButton(
-                  key: const Key('bottom_appbar_discovery_icon'),
-                  tooltip: 'discovery.discovery_studies'.tr(),
-                  onPressed: () {
-                    getService<IAnalyticsService>().logBottomBarAction(
-                      action: 'discovery',
-                    );
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const DiscoveryListPage(),
-                      ),
-                    );
-                  },
-                  icon: Icon(
-                    Icons.school_outlined,
-                    color: colorScheme.onPrimary,
-                    size: 32,
-                  ),
-                ),
-              // 4. Encounters (NEW)
-              if (Constants.enableEncountersFeature)
-                IconButton(
-                  key: const Key('bottom_appbar_encounters_icon'),
-                  tooltip: 'Encounters',
-                  onPressed: () {
-                    getService<IAnalyticsService>().logBottomBarAction(
-                      action: 'encounters',
-                    );
-                    if (!context.mounted) return;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const EncountersListPage(),
-                      ),
-                    );
-                  },
-                  icon: Icon(
-                    Icons.location_history_outlined,
-                    color: colorScheme.onPrimary,
-                    size: 32,
-                  ),
-                ),
-              // 5. Spiritual Stats/Progress
-              IconButton(
-                key: const Key('bottom_appbar_progress_icon'),
-                tooltip: 'tooltips.progress'.tr(),
-                onPressed: () {
-                  getService<IAnalyticsService>().logBottomBarAction(
-                    action: 'progress',
-                  );
-                  Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) =>
-                          const ProgressPage(),
-                      transitionsBuilder:
-                          (context, animation, secondaryAnimation, child) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: child,
-                        );
-                      },
-                      transitionDuration: const Duration(milliseconds: 250),
-                    ),
-                  );
-                },
-                icon: Icon(
-                  Icons.emoji_events_outlined,
-                  color: colorScheme.onPrimary,
-                  size: 32,
-                ),
-              ),
-              // 6. Settings
-              FutureBuilder<bool>(
-                future: BubbleUtils.shouldShowBubble(
-                  BubbleUtils.getIconBubbleId(
-                    Icons.settings_suggest_sharp,
-                    'new',
-                  ),
-                ),
-                builder: (context, snapshot) {
-                  final showBubble = snapshot.data ?? false;
-                  return Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      IconButton(
-                        key: const Key('bottom_appbar_settings_icon'),
-                        tooltip: 'tooltips.settings'.tr(),
-                        onPressed: () async {
-                          debugPrint('🔥 [BottomBar] Tap: settings');
-                          getService<IAnalyticsService>().logBottomBarAction(
-                            action: 'settings',
-                          );
-                          await BubbleUtils.markAsShown(
-                            BubbleUtils.getIconBubbleId(
-                              Icons.settings_suggest_sharp,
-                              'new',
-                            ),
-                          );
-                          if (!context.mounted) return;
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder:
-                                  (context, animation, secondaryAnimation) =>
-                                      const SettingsPage(),
-                              transitionsBuilder: (
-                                context,
-                                animation,
-                                secondaryAnimation,
-                                child,
-                              ) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: child,
-                                );
-                              },
-                              transitionDuration: const Duration(
-                                milliseconds: 250,
-                              ),
-                            ),
-                          );
-                        },
-                        icon: Icon(
-                          Icons.settings_suggest_sharp,
-                          color: colorScheme.onPrimary,
-                          size: 35,
-                        ),
-                      ),
-                      if (showBubble)
-                        Positioned(
-                          top: BubbleConstants.iconBadgeTop,
-                          right: BubbleConstants.iconBadgeRight,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: BubbleConstants.newFeatureColor,
-                              borderRadius: BorderRadius.circular(
-                                BubbleConstants.iconBadgeRadius,
-                              ),
-                              boxShadow: BubbleConstants.bubbleShadow,
-                            ),
-                            child: Text(
-                              'bubble_constants.new_feature'.tr(),
-                              style: BubbleConstants.iconBadgeTextStyle,
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              ),
-              // 7. Support/Donate (Conditional - Remote Config)
-              if (getService<RemoteConfigService>().featureSupporter)
-                FutureBuilder<bool>(
-                  future: BubbleUtils.shouldShowBubble(
-                    BubbleUtils.getIconBubbleId(
-                      Icons.volunteer_activism,
-                      'new',
-                      semanticLabel: 'supporter_bottom_bar',
-                    ),
-                  ),
-                  builder: (context, snapshot) {
-                    final showBubble = snapshot.data ?? false;
-                    return Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        IconButton(
-                          key: const Key('bottom_appbar_supporter_icon'),
-                          tooltip: 'tooltips.support'.tr(),
-                          onPressed: () async {
-                            debugPrint(
-                              '\u2764\ufe0f [BottomBar] Tap: supporter',
-                            );
-                            getService<IAnalyticsService>().logBottomBarAction(
-                              action: 'supporter',
-                            );
-                            await BubbleUtils.markAsShown(
-                              BubbleUtils.getIconBubbleId(
-                                Icons.volunteer_activism,
-                                'new',
-                                semanticLabel: 'supporter_bottom_bar',
-                              ),
-                            );
-                            if (!context.mounted) return;
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SupporterPage(),
-                              ),
-                            );
-                          },
-                          icon: Icon(
-                            Icons.volunteer_activism,
-                            color: colorScheme.onPrimary,
-                            size: 35,
-                          ),
-                        ),
-                        if (showBubble)
-                          Positioned(
-                            top: BubbleConstants.iconBadgeTop,
-                            right: BubbleConstants.iconBadgeRight,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: BubbleConstants.newFeatureColor,
-                                borderRadius: BorderRadius.circular(
-                                  BubbleConstants.iconBadgeRadius,
-                                ),
-                                boxShadow: BubbleConstants.bubbleShadow,
-                              ),
-                              child: Text(
-                                'bubble_constants.new_feature'.tr(),
-                                style: BubbleConstants.iconBadgeTextStyle,
-                              ),
-                            ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-            ],
-          ),
-        ),
       ),
     );
   }
