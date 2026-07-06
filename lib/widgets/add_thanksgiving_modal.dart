@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_event.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -328,27 +329,6 @@ class _AddThanksgivingModalState extends State<AddThanksgivingModal> {
   }
 
   void _showSuccessSnackBar(String message) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.check_circle_outline, color: colorScheme.onSecondary),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                message,
-                style: TextStyle(color: colorScheme.onSecondary),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: colorScheme.secondary,
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppSnackBar.show(context, message, icon: Icons.check_circle_outline);
   }
 }

@@ -1,6 +1,5 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
-import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
@@ -31,13 +30,15 @@ List<AppTab> enabledAppTabs() => [
       if (Constants.enableEncountersFeature) AppTab.encounters,
       AppTab.progress,
       AppTab.settings,
-      if (getService<RemoteConfigService>().featureSupporter) AppTab.supporter,
+      AppTab.supporter,
     ];
 
 /// Persistent bottom navigation bar shown on every main screen.
 /// Every icon switches tabs via [onSelectTab], keeping the bar frozen.
 class AppBottomNavBar extends StatelessWidget {
-  final AppTab currentTab;
+  /// Tab to highlight. Pass null when the bar is shown standalone on a page
+  /// that isn't itself a shell tab (e.g. [FavoritesPage]) so no icon is lit.
+  final AppTab? currentTab;
   final ValueChanged<AppTab> onSelectTab;
 
   /// Enabled tabs, in order. Pass the same (frozen) list that drives the
