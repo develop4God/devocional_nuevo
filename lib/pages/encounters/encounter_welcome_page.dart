@@ -8,7 +8,6 @@
 // is set to true and this page is never shown again.
 
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/pages/encounters/encounters_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -69,15 +68,10 @@ class _EncounterWelcomePageState extends State<EncounterWelcomePage>
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('encounter_welcome_seen', true);
     if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, _) => const EncountersListPage(),
-        transitionsBuilder: (context, animation, _, child) =>
-            FadeTransition(opacity: animation, child: child),
-        transitionDuration: const Duration(milliseconds: 600),
-      ),
-    );
+    // Pop back to the shell-hosted EncountersListPage this was pushed on
+    // top of, instead of constructing a new standalone instance — that
+    // would bypass AppNavigationShell and hide the bottom nav bar.
+    Navigator.pop(context);
   }
 
   @override
