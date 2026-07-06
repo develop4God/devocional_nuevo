@@ -7,6 +7,12 @@ import 'package:lottie/lottie.dart';
 
 class DevocionalHeaderWidget extends StatelessWidget {
   final String date;
+
+  /// Whether the date text is rendered. The date is still computed and
+  /// passed in unchanged — this only controls whether it's displayed, so
+  /// callers that don't want a date shown (e.g. a favorites detail view)
+  /// don't need to touch any date-computation logic.
+  final bool showDate;
   final int currentStreak;
   final Future<int> streakFuture;
   final bool isFavorite;
@@ -17,6 +23,7 @@ class DevocionalHeaderWidget extends StatelessWidget {
   const DevocionalHeaderWidget({
     super.key,
     required this.date,
+    this.showDate = true,
     required this.currentStreak,
     required this.streakFuture,
     required this.isFavorite,
@@ -51,16 +58,18 @@ class DevocionalHeaderWidget extends StatelessWidget {
 
           // 2. Date Text (Center)
           Expanded(
-            child: Text(
-              date,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: showDate
+                ? Text(
+                    date,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : const SizedBox.shrink(),
           ),
 
           const SizedBox(width: 8),
