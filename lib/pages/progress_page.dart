@@ -13,6 +13,7 @@ import '../models/spiritual_stats_model.dart';
 import '../pages/favorites_page.dart';
 import '../providers/devocional_provider.dart';
 import '../services/spiritual_stats_service.dart';
+import '../widgets/app_snack_bar.dart';
 
 class ProgressPage extends StatefulWidget {
   const ProgressPage({super.key});
@@ -84,12 +85,9 @@ class _ProgressPageState extends State<ProgressPage>
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'progress.error_loading_stats'.tr({'error': e.toString()}),
-            ),
-          ),
+        AppSnackBar.show(
+          context,
+          'progress.error_loading_stats'.tr({'error': e.toString()}),
         );
       }
     }
@@ -203,21 +201,7 @@ class _ProgressPageState extends State<ProgressPage>
       value: themeState.systemUiOverlayStyle,
       child: Scaffold(
         appBar: AppBar(
-          leading: IconButton(
-            icon: Transform(
-              alignment: Alignment.center,
-              transform: Matrix4.rotationY(3.14159),
-              child: Icon(
-                Icons.exit_to_app,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              Navigator.of(context).pop();
-            },
-            tooltip: 'progress.back'.tr(),
-          ),
+          automaticallyImplyLeading: false,
           title: Text(
             'progress.title'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -272,7 +256,7 @@ class _ProgressPageState extends State<ProgressPage>
   Widget _buildContent() {
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 76.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

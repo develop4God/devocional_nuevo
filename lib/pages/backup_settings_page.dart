@@ -19,6 +19,7 @@ import '../services/backup/i_google_drive_backup_service.dart';
 import '../services/service_locator.dart';
 import '../widgets/backup_configuration_sheet.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 
 List<({IconData icon, String label, int count})> _summaryItems(
   BackupContentSummary summary,
@@ -149,15 +150,13 @@ class _BackupSettingsViewState extends State<_BackupSettingsView> {
               );
             } else if (state is BackupCreated) {
               debugPrint('✅ [DEBUG] BackupCreated recibido');
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('backup.created_successfully'.tr()),
-                  backgroundColor: colorScheme.primary,
-                ),
+              AppSnackBar.show(
+                context,
+                'backup.created_successfully'.tr(),
+                type: AppSnackBarType.tip,
               );
             } else if (state is BackupRestored) {
               debugPrint('✅ [DEBUG] BackupRestored recibido');
-              final messenger = ScaffoldMessenger.of(context);
               if (state.restoredVersion != null &&
                   state.restoredVersion!.isNotEmpty) {
                 final provider = context.read<DevocionalProvider>();
@@ -168,11 +167,11 @@ class _BackupSettingsViewState extends State<_BackupSettingsView> {
                   );
                 }
               }
-              messenger.showSnackBar(
-                SnackBar(
-                  content: Text('backup.restored_successfully'.tr()),
-                  backgroundColor: colorScheme.primary,
-                ),
+              if (!context.mounted) return;
+              AppSnackBar.show(
+                context,
+                'backup.restored_successfully'.tr(),
+                type: AppSnackBarType.tip,
               );
             } else if (state is BackupSuccess && !_successDialogShown) {
               debugPrint('✅ [DEBUG] BackupSuccess recibido — mostrando shield');

@@ -5,23 +5,27 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// Source-level regression tests for the TTS modal navigation bug fix.
+/// Source-level regression tests for the TTS modal close-on-completion logic.
 ///
 /// These tests assert directly against the production source files to catch
 /// regressions if the fix is accidentally reverted.
 ///
 /// ## Bug History
-/// Both the modal builder AND [BibleReaderPage._handleTtsStateChange] were
-/// calling `Navigator.pop(context)` when TTS completed.  Because
-/// `showModalBottomSheet` does NOT push a route onto the Navigator stack,
-/// the extra `pop` in `_handleTtsStateChange` was dismissing
-/// `BibleReaderPage` itself — taking the user back to the devotionals list.
+/// 1. Originally BOTH the modal builder AND
+///    [BibleReaderPage._handleTtsStateChange] popped on TTS completion,
+///    producing a double pop that dismissed BibleReaderPage itself.
+/// 2. The first fix removed the page-side pop entirely, relying on the
+///    modal builder to close itself. But the page listener is registered
+///    first on the state ValueNotifier, so its resetModalState() cleared
+///    _shouldAutoCloseOnCompletion BEFORE the builder's listener ran,
+///    defusing the builder's auto-close — the miniplayer never closed.
 ///
-/// ## Fix
-/// - `_handleTtsStateChange` now only calls `resetModalState()` to clear the
-///   internal flag; it never calls `Navigator.pop()`.
-/// - The modal's builder uses `Navigator.of(ctx).pop()` with `ctx` (the
-///   modal's own [BuildContext]) to close itself correctly.
+/// ## Current contract (mirrors devocionales_page, production-validated)
+/// - `_handleTtsStateChange` calls `resetModalState()` (which defuses the
+///   builder's auto-close, guaranteeing a single closer) and then performs
+///   the one guarded pop in a post-frame callback.
+/// - The pop is guarded by `Navigator.canPop(context)` so it only dismisses
+///   the modal sheet, never the page.
 void main() {
   late String pageSource;
   late String presenterSource;
@@ -33,51 +37,58 @@ void main() {
     ).readAsString();
   });
 
-  group('BibleReaderTtsMiniplayerPresenter Navigation Fix', () {
+  group('BibleReader TTS modal close-on-completion', () {
+    late String methodSection;
+
+    setUpAll(() {
+      final methodStart = pageSource.indexOf('void _handleTtsStateChange()');
+      expect(
+        methodStart,
+        greaterThan(0),
+        reason: '_handleTtsStateChange must exist in bible_reader_page.dart',
+      );
+      // Inspect enough source after the method declaration to cover the
+      // full body (~2 500 characters is well beyond the method length).
+      methodSection = pageSource.substring(methodStart, methodStart + 2500);
+    });
+
     test(
-      'BibleReaderPage._handleTtsStateChange does not call Navigator.pop(context)',
+      '_handleTtsStateChange calls resetModalState() on TTS completion',
       () {
-        final methodStart = pageSource.indexOf('void _handleTtsStateChange()');
         expect(
-          methodStart,
-          greaterThan(0),
-          reason: '_handleTtsStateChange must exist in bible_reader_page.dart',
-        );
-
-        // Inspect enough source after the method declaration to cover the
-        // full body (~2 000 characters is well beyond the ~40-line method).
-        final methodSection = pageSource.substring(
-          methodStart,
-          methodStart + 2000,
-        );
-
-        expect(
-          methodSection.contains('Navigator.pop(context)'),
-          isFalse,
-          reason: '_handleTtsStateChange must NOT call Navigator.pop(context). '
-              'Calling pop with the page context dismisses BibleReaderPage '
-              'instead of just closing the modal bottom sheet.',
+          methodSection.contains('resetModalState()'),
+          isTrue,
+          reason: '_handleTtsStateChange must call resetModalState() first: '
+              'it defuses the modal builder\'s own auto-close (single-closer '
+              'guarantee) and clears isShowing for the next playback.',
         );
       },
     );
 
     test(
-      'BibleReaderPage._handleTtsStateChange calls resetModalState() on TTS completion',
+      '_handleTtsStateChange closes the modal itself with a guarded pop',
       () {
-        final methodStart = pageSource.indexOf('void _handleTtsStateChange()');
-        expect(methodStart, greaterThan(0));
-
-        final methodSection = pageSource.substring(
-          methodStart,
-          methodStart + 2000,
-        );
-
+        // The page listener runs BEFORE the modal builder's listener, so
+        // after resetModalState() the builder will NOT close the sheet —
+        // the page must pop it, exactly like devocionales_page does.
         expect(
-          methodSection.contains('resetModalState()'),
+          methodSection.contains('Navigator.of(context).pop()'),
           isTrue,
-          reason: '_handleTtsStateChange must call resetModalState() to clear '
-              'the internal isShowing flag when TTS completes, so a new '
-              'modal can be opened on the next playback.',
+          reason: '_handleTtsStateChange must pop the miniplayer sheet on '
+              'completion; the builder\'s auto-close is defused by '
+              'resetModalState() and will never fire.',
+        );
+        expect(
+          methodSection.contains('Navigator.canPop(context)'),
+          isTrue,
+          reason: 'The pop must be guarded by Navigator.canPop(context) so '
+              'it only dismisses the modal sheet, never BibleReaderPage.',
+        );
+        expect(
+          methodSection.contains('addPostFrameCallback'),
+          isTrue,
+          reason: 'The pop must run in a post-frame callback to avoid '
+              'navigating during a ValueNotifier notification frame.',
         );
       },
     );

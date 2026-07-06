@@ -3,10 +3,19 @@ library;
 
 import 'dart:ui';
 
+import 'package:devocional_nuevo/services/device_locale_provider.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class FakeDeviceLocaleProvider implements DeviceLocaleProvider {
+  FakeDeviceLocaleProvider(this.locale);
+
+  @override
+  final Locale locale;
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -222,22 +231,87 @@ void main() {
     );
 
     test(
+      'initialize() persists auto-detected locale to SharedPreferences when none is saved',
+      () async {
+        // No 'locale' key saved — forces the auto-detect branch. Inject a
+        // fake DeviceLocaleProvider so the expected outcome is a fixed
+        // literal, independent of both currentLocale and whatever locale
+        // the test runner's environment happens to report.
+        ServiceLocator().reset();
+        SharedPreferences.setMockInitialValues({});
+        await setupServiceLocator();
+
+        localizationService = LocalizationService(
+          deviceLocaleProvider: FakeDeviceLocaleProvider(const Locale('fr')),
+        );
+        await localizationService.initialize();
+
+        expect(localizationService.currentLocale.languageCode, equals('fr'));
+
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString('locale'), equals('fr'));
+      },
+    );
+
+    test(
+      'initialize() does not throw when SharedPreferences write fails',
+      () async {
+        // Force setString to throw by feeding the plugin an invalid initial
+        // value type via the mock method channel, simulating a persistence
+        // failure (e.g. disk full) on the auto-detect persistence path.
+        ServiceLocator().reset();
+        SharedPreferences.setMockInitialValues({});
+        await setupServiceLocator();
+
+        const channel = MethodChannel(
+          'plugins.flutter.io/shared_preferences',
+        );
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (methodCall) async {
+          if (methodCall.method == 'setString') {
+            throw PlatformException(
+              code: 'test_error',
+              message: 'Simulated SharedPreferences write failure',
+            );
+          }
+          return true;
+        });
+        addTearDown(() {
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, null);
+        });
+
+        localizationService = getService<LocalizationService>();
+
+        // Must not throw — persistence failures are caught and logged, not
+        // propagated, so app startup / language switching cannot crash on
+        // a SharedPreferences write error.
+        await expectLater(
+          localizationService.initialize(),
+          completes,
+        );
+      },
+    );
+
+    test(
       'initialize() uses default locale when saved locale is unsupported',
       () async {
-        // Set up with unsupported locale
+        // Inject a fake DeviceLocaleProvider — see note above.
         ServiceLocator().reset();
         SharedPreferences.setMockInitialValues({'locale': 'xx'});
         await setupServiceLocator();
-        localizationService = getService<LocalizationService>();
+        localizationService = LocalizationService(
+          deviceLocaleProvider: FakeDeviceLocaleProvider(const Locale('de')),
+        );
         await localizationService.initialize();
 
-        // Should fall back to a supported locale
-        expect(
-          LocalizationService.supportedLocales
-              .map((l) => l.languageCode)
-              .contains(localizationService.currentLocale.languageCode),
-          isTrue,
-        );
+        // Should fall back to the pinned device locale
+        expect(localizationService.currentLocale.languageCode, equals('de'));
+
+        // The stale/unsupported value must be corrected in SharedPreferences,
+        // not just in memory, so other readers of 'locale' see the fallback.
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString('locale'), equals('de'));
       },
     );
 

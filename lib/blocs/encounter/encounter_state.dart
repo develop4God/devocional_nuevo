@@ -13,7 +13,7 @@ class EncounterInitial extends EncounterState {}
 class EncounterLoading extends EncounterState {}
 
 /// State when the index is successfully loaded
-class EncounterLoaded extends EncounterState with EquatableMixin {
+class EncounterLoaded extends EncounterState with Equatable {
   final List<EncounterIndexEntry> index;
   final Map<String, EncounterStudy> loadedStudies;
   final Set<String> completedIds;
