@@ -37,7 +37,9 @@ List<AppTab> enabledAppTabs() => [
 /// Persistent bottom navigation bar shown on every main screen.
 /// Every icon switches tabs via [onSelectTab], keeping the bar frozen.
 class AppBottomNavBar extends StatelessWidget {
-  final AppTab currentTab;
+  /// Tab to highlight. Pass null when the bar is shown standalone on a page
+  /// that isn't itself a shell tab (e.g. [FavoritesPage]) so no icon is lit.
+  final AppTab? currentTab;
   final ValueChanged<AppTab> onSelectTab;
 
   /// Enabled tabs, in order. Pass the same (frozen) list that drives the
