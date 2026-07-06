@@ -257,6 +257,14 @@ void main() {
               .contains(localizationService.currentLocale.languageCode),
           isTrue,
         );
+
+        // The stale/unsupported value must be corrected in SharedPreferences,
+        // not just in memory, so other readers of 'locale' see the fallback.
+        final prefs = await SharedPreferences.getInstance();
+        expect(
+          prefs.getString('locale'),
+          equals(localizationService.currentLocale.languageCode),
+        );
       },
     );
 
