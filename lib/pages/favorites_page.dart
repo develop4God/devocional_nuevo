@@ -245,7 +245,7 @@ class _FavoritesPageState extends State<FavoritesPage>
               color: theme.colorScheme.error,
             ),
             title: 'discovery.error'.tr(),
-            message: state.message,
+            message: state.localizedMessage,
           );
         }
 

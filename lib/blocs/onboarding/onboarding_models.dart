@@ -9,15 +9,6 @@ enum OnboardingConfigurationType {
   notificationSettings,
 }
 
-/// Error categories for proper handling
-enum OnboardingErrorCategory {
-  serviceUnavailable,
-  networkError,
-  invalidConfiguration,
-  permissionDenied,
-  unknown,
-}
-
 /// Step types in onboarding flow
 enum OnboardingStepType {
   welcome,

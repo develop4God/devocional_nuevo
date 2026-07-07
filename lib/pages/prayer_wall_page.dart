@@ -140,7 +140,7 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
           } else if (state is PrayerWallError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: Text(state.message.tr()),
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
             );
@@ -338,7 +338,7 @@ class _ErrorView extends StatelessWidget {
               color: Theme.of(context).colorScheme.error,
             ),
             const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
+            Text(message.tr(), textAlign: TextAlign.center),
           ],
         ),
       ),
