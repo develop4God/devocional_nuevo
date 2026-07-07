@@ -182,7 +182,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       emit(
         OnboardingError(
           message: 'onboarding.onboarding_error_loading',
-          category: OnboardingErrorCategory.unknown,
         ),
       );
     }
@@ -264,7 +263,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       emit(
         OnboardingError(
           message: 'onboarding.onboarding_error_loading',
-          category: OnboardingErrorCategory.unknown,
         ),
       );
     } finally {
@@ -299,7 +297,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         emit(
           OnboardingError(
             message: 'onboarding.onboarding_error_loading',
-            category: OnboardingErrorCategory.invalidConfiguration,
           ),
         );
         return;
@@ -333,7 +330,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         emit(
           OnboardingError(
             message: 'onboarding.onboarding_error_loading',
-            category: OnboardingErrorCategory.invalidConfiguration,
           ),
         );
         return;
@@ -357,7 +353,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       emit(
         OnboardingError(
           message: 'onboarding.onboarding_error_loading',
-          category: OnboardingErrorCategory.invalidConfiguration,
         ),
       );
     }
@@ -421,7 +416,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       emit(
         OnboardingError(
           message: 'onboarding.onboarding_error_loading',
-          category: OnboardingErrorCategory.serviceUnavailable,
         ),
       );
     }
@@ -460,7 +454,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       emit(
         OnboardingError(
           message: 'onboarding.onboarding_error_loading',
-          category: OnboardingErrorCategory.unknown,
         ),
       );
     }
@@ -585,7 +578,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       emit(
         OnboardingError(
           message: 'onboarding.onboarding_error_loading',
-          category: OnboardingErrorCategory.unknown,
         ),
       );
     } finally {
@@ -615,7 +607,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       emit(
         OnboardingError(
           message: 'onboarding.onboarding_error_loading',
-          category: OnboardingErrorCategory.unknown,
         ),
       );
     }
