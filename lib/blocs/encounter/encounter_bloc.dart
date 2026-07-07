@@ -63,7 +63,11 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
       _preloadFirstEncounterImages(index, event.languageCode ?? 'es');
     } catch (e) {
       debugPrint('❌ [EncounterBloc] Error loading index: $e');
-      emit(EncounterError('Error loading encounters: $e'));
+      // Leave the message empty rather than surfacing the raw exception
+      // (e.g. "TimeoutException after 0:00:10.000000: Future not
+      // completed") to the user — EncountersListPage falls back to the
+      // localized 'encounters.error_load' string when message is empty.
+      emit(EncounterError(''));
     }
   }
 
