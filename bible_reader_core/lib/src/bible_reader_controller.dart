@@ -23,6 +23,7 @@ class BibleReaderController {
   final BiblePreferencesService preferencesService;
 
   final _stateController = StreamController<BibleReaderState>.broadcast();
+  bool _isDisposed = false;
 
   /// Stream of state changes - suitable for Bloc/Riverpod integration
   Stream<BibleReaderState> get stateStream => _stateController.stream;
@@ -38,10 +39,18 @@ class BibleReaderController {
   }) : _state = initialState ?? const BibleReaderState();
 
   void dispose() {
+    _isDisposed = true;
     _stateController.close();
   }
 
+  // initialize() and the other public methods below run several awaits
+  // between _emit() calls (DB queries, preference reads). If the owning
+  // widget is disposed mid-flight -- e.g. switching away from the Bible tab
+  // before a chapter finishes loading -- dispose() above already closed
+  // _stateController, and adding to a closed StreamController throws. Guard
+  // here once instead of before every _emit() call site.
   void _emit(BibleReaderState newState) {
+    if (_isDisposed) return;
     _state = newState;
     _stateController.add(_state);
   }
