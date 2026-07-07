@@ -20,6 +20,7 @@ import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,7 +28,9 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  final ValueListenable<bool>? isActive;
+
+  const SettingsPage({super.key, this.isActive});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -36,12 +39,14 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
-    return const _SettingsView();
+    return _SettingsView(isActive: widget.isActive);
   }
 }
 
 class _SettingsView extends StatefulWidget {
-  const _SettingsView();
+  final ValueListenable<bool>? isActive;
+
+  const _SettingsView({this.isActive});
 
   @override
   State<_SettingsView> createState() => _SettingsViewState();
@@ -68,6 +73,19 @@ class _SettingsViewState extends State<_SettingsView> {
   void initState() {
     super.initState();
     _loadInitialData();
+    widget.isActive?.addListener(_handleTabVisibilityChange);
+  }
+
+  // AppNavigationShell's IndexedStack keeps this page's state alive when
+  // hidden, so returning to Settings doesn't rebuild it. Without this,
+  // isPetUnlocked (set elsewhere, in SupporterPage, right after a Gold
+  // purchase) is never re-read and the Gold Supporter section — including
+  // the rename option — stays hidden until the app restarts.
+  void _handleTabVisibilityChange() {
+    if (widget.isActive?.value == true && mounted) {
+      setState(() {});
+      _loadNameFromBlocOrPrefs();
+    }
   }
 
   Future<void> _loadInitialData() async {
@@ -645,6 +663,7 @@ class _SettingsViewState extends State<_SettingsView> {
 
   @override
   void dispose() {
+    widget.isActive?.removeListener(_handleTabVisibilityChange);
     _nameController.dispose();
     _focusNode.dispose();
     super.dispose();
