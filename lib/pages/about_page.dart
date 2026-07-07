@@ -131,8 +131,8 @@ class _AboutPageState extends State<AboutPage> {
                   // thing preventing overflow. SingleChildScrollView below is
                   // the safety net that guarantees no overflow regardless of
                   // how wrong this estimate is.
-                  final estimatedContent = _naturalContentHeight +
-                      (isGold ? 70.0 : 0.0);
+                  final estimatedContent =
+                      _naturalContentHeight + (isGold ? 70.0 : 0.0);
                   final availableHeight = constraints.maxHeight;
 
                   double scale = availableHeight / estimatedContent;
@@ -295,14 +295,38 @@ class _AboutContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                _FeatureItem(text: 'about.feature_daily'.tr(), fontSize: _font(14), gap: _gap(3)),
-                _FeatureItem(text: 'about.feature_multiversion'.tr(), fontSize: _font(14), gap: _gap(3)),
-                _FeatureItem(text: 'about.feature_favorites'.tr(), fontSize: _font(14), gap: _gap(3)),
-                _FeatureItem(text: 'about.feature_sharing'.tr(), fontSize: _font(14), gap: _gap(3)),
-                _FeatureItem(text: 'about.feature_language'.tr(), fontSize: _font(14), gap: _gap(3)),
-                _FeatureItem(text: 'about.feature_themes'.tr(), fontSize: _font(14), gap: _gap(3)),
-                _FeatureItem(text: 'about.feature_dark_light'.tr(), fontSize: _font(14), gap: _gap(3)),
-                _FeatureItem(text: 'about.feature_notifications'.tr(), fontSize: _font(14), gap: _gap(3)),
+                _FeatureItem(
+                    text: 'about.feature_daily'.tr(),
+                    fontSize: _font(14),
+                    gap: _gap(3)),
+                _FeatureItem(
+                    text: 'about.feature_multiversion'.tr(),
+                    fontSize: _font(14),
+                    gap: _gap(3)),
+                _FeatureItem(
+                    text: 'about.feature_favorites'.tr(),
+                    fontSize: _font(14),
+                    gap: _gap(3)),
+                _FeatureItem(
+                    text: 'about.feature_sharing'.tr(),
+                    fontSize: _font(14),
+                    gap: _gap(3)),
+                _FeatureItem(
+                    text: 'about.feature_language'.tr(),
+                    fontSize: _font(14),
+                    gap: _gap(3)),
+                _FeatureItem(
+                    text: 'about.feature_themes'.tr(),
+                    fontSize: _font(14),
+                    gap: _gap(3)),
+                _FeatureItem(
+                    text: 'about.feature_dark_light'.tr(),
+                    fontSize: _font(14),
+                    gap: _gap(3)),
+                _FeatureItem(
+                    text: 'about.feature_notifications'.tr(),
+                    fontSize: _font(14),
+                    gap: _gap(3)),
               ],
             ),
           ),
@@ -402,7 +426,8 @@ class _AboutContent extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.auto_awesome, size: 14 * scale.clamp(0.8, 1.0), color: colorScheme.primary),
+              Icon(Icons.auto_awesome,
+                  size: 14 * scale.clamp(0.8, 1.0), color: colorScheme.primary),
               SizedBox(width: _gap(7)),
               Text(
                 'about.more_from_developer'.tr(),
