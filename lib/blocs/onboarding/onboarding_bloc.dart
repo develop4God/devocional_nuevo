@@ -181,7 +181,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error initializing onboarding: $e');
       emit(
         OnboardingError(
-          message: 'Error initializing onboarding: ${e.toString()}',
+          message: 'onboarding.onboarding_error_loading',
           category: OnboardingErrorCategory.unknown,
           errorContext: {'error': e.toString()},
         ),
@@ -264,7 +264,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error progressing to step: $e');
       emit(
         OnboardingError(
-          message: 'Error progressing to step: ${e.toString()}',
+          message: 'onboarding.onboarding_error_loading',
           category: OnboardingErrorCategory.unknown,
           errorContext: {'stepIndex': event.stepIndex, 'error': e.toString()},
         ),
@@ -297,7 +297,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       if (!_validateThemeFamily(event.themeFamily)) {
         emit(
           OnboardingError(
-            message: 'Invalid theme family: ${event.themeFamily}',
+            message: 'onboarding.onboarding_error_loading',
             category: OnboardingErrorCategory.invalidConfiguration,
             errorContext: {'themeFamily': event.themeFamily},
           ),
@@ -329,7 +329,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       if (!_validateConfiguration(updatedSelections)) {
         emit(
           OnboardingError(
-            message: 'Configuration validation failed',
+            message: 'onboarding.onboarding_error_loading',
             category: OnboardingErrorCategory.invalidConfiguration,
             errorContext: {'configuration': updatedSelections},
           ),
@@ -354,7 +354,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error selecting theme: $e');
       emit(
         OnboardingError(
-          message: 'Error selecting theme: ${e.toString()}',
+          message: 'onboarding.onboarding_error_loading',
           category: OnboardingErrorCategory.invalidConfiguration,
           errorContext: {
             'themeFamily': event.themeFamily,
@@ -422,7 +422,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error configuring backup: $e');
       emit(
         OnboardingError(
-          message: 'Error configuring backup: ${e.toString()}',
+          message: 'onboarding.onboarding_error_loading',
           category: OnboardingErrorCategory.serviceUnavailable,
           errorContext: {
             'enableBackup': event.enableBackup,
@@ -465,7 +465,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error updating configuration: $e');
       emit(
         OnboardingError(
-          message: 'Error updating configuration: ${e.toString()}',
+          message: 'onboarding.onboarding_error_loading',
           category: OnboardingErrorCategory.unknown,
           errorContext: {
             'configuration': event.configuration,
@@ -594,7 +594,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error completing onboarding: $e');
       emit(
         OnboardingError(
-          message: 'Error completing onboarding: ${e.toString()}',
+          message: 'onboarding.onboarding_error_loading',
           category: OnboardingErrorCategory.unknown,
           errorContext: {'error': e.toString()},
         ),
@@ -625,7 +625,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error resetting onboarding: $e');
       emit(
         OnboardingError(
-          message: 'Error resetting onboarding: ${e.toString()}',
+          message: 'onboarding.onboarding_error_loading',
           category: OnboardingErrorCategory.unknown,
           errorContext: {'error': e.toString()},
         ),
