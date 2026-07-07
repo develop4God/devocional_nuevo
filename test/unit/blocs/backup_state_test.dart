@@ -3,6 +3,8 @@ library;
 
 import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/models/backup_content_summary.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Comprehensive tests for BackupState classes
@@ -557,6 +559,33 @@ void main() {
     test('extends BackupState', () {
       const state = BackupError('Error');
       expect(state, isA<BackupState>());
+    });
+
+    test('isRawText defaults to false', () {
+      const state = BackupError('backup.sign_in_failed');
+      expect(state.isRawText, isFalse);
+    });
+
+    group('localizedMessage', () {
+      setUp(() {
+        ServiceLocator().reset();
+        ServiceLocator().registerSingleton<LocalizationService>(
+          LocalizationService(),
+        );
+      });
+
+      test('resolves the message itself when isRawText is false', () {
+        const state = BackupError('backup.sign_in_failed');
+        expect(state.localizedMessage, 'backup.sign_in_failed');
+      });
+
+      test('falls back to the generic key when isRawText is true', () {
+        const state = BackupError(
+          'Exception: socket closed',
+          isRawText: true,
+        );
+        expect(state.localizedMessage, 'backup.error_generic');
+      });
     });
   });
 
