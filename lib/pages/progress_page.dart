@@ -82,9 +82,15 @@ class _ProgressPageState extends State<ProgressPage>
   }
 
   Future<void> _loadStats() async {
-    setState(() {
-      _isLoading = true;
-    });
+    // Only the very first load has no data to show yet, so only that one
+    // should blank the page to a spinner. Later reloads (tab reveal,
+    // returning from FavoritesPage, pull-to-refresh) should update the
+    // figures in place instead of flashing the whole page empty.
+    if (_stats == null) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
     try {
       final devocionalProvider = Provider.of<DevocionalProvider>(
@@ -93,6 +99,7 @@ class _ProgressPageState extends State<ProgressPage>
       );
       final favoritesCount = devocionalProvider.favoriteDevocionales.length;
       final stats = await _statsService.updateFavoritesCount(favoritesCount);
+      if (!mounted) return;
 
       setState(() {
         _stats = stats;
@@ -101,16 +108,16 @@ class _ProgressPageState extends State<ProgressPage>
 
       _streakAnimationController.forward();
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         _isLoading = false;
       });
 
-      if (mounted) {
-        AppSnackBar.show(
-          context,
-          'progress.error_loading_stats'.tr({'error': e.toString()}),
-        );
-      }
+      AppSnackBar.show(
+        context,
+        'progress.error_loading_stats'.tr({'error': e.toString()}),
+      );
     }
   }
 
