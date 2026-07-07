@@ -316,8 +316,7 @@ class _AddThanksgivingModalState extends State<AddThanksgivingModal> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage =
-            'Error al ${_isEditing ? 'actualizar' : 'crear'} el agradecimiento';
+        _errorMessage = 'thanksgiving.thanksgiving_update_error'.tr();
       });
     } finally {
       if (mounted) {
