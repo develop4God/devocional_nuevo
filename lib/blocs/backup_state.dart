@@ -135,17 +135,20 @@ class BackupRestored extends BackupState {
 class BackupError extends BackupState {
   final String message;
 
-  const BackupError(this.message);
+  /// True when [message] is raw text (an interpolated exception, or a
+  /// hardcoded literal) that must never be shown to the user verbatim.
+  /// False (default) means [message] is a real translation key, safe to
+  /// resolve via .tr(). Not part of [props] -- it's a display hint tied to
+  /// how [message] was constructed at the call site, not part of the
+  /// error's identity for equality purposes.
+  final bool isRawText;
 
-  /// Resolves [message] as a translation key when possible. Some call sites
-  /// pass a real key (e.g. 'backup.restore_failed'); others interpolate a
-  /// raw exception, which isn't a valid key -- `.tr()` returns it unchanged
-  /// in that case, so fall back to a generic localized error instead of
-  /// showing that raw text to the user.
-  String get localizedMessage {
-    final translated = message.tr();
-    return translated != message ? translated : 'backup.error_generic'.tr();
-  }
+  const BackupError(this.message, {this.isRawText = false});
+
+  /// Resolves [message] for display: a real key through .tr(), raw text
+  /// through the generic localized error instead of showing it verbatim.
+  String get localizedMessage =>
+      isRawText ? 'backup.error_generic'.tr() : message.tr();
 
   @override
   List<Object?> get props => [message];
