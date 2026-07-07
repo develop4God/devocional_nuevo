@@ -48,13 +48,6 @@ class _SupporterPageState extends State<SupporterPage>
   bool _showScrollHint = true;
   bool _showConfetti = false;
 
-  // Set when a purchase is delivered (real IAP callback or debug simulator)
-  // while this tab isn't the foreground one -- SupporterBloc is an app-wide
-  // singleton, so delivery can land at any time regardless of which tab the
-  // user is looking at. Rather than showing the dialog on whatever route
-  // happens to be on top, it's deferred and shown once the user returns here.
-  SupporterTier? _pendingTierToShow;
-
   bool get _isActive => widget.isActive?.value ?? true;
 
   @override
@@ -81,7 +74,6 @@ class _SupporterPageState extends State<SupporterPage>
           });
 
     _scrollController.addListener(_scrollListener);
-    widget.isActive?.addListener(_handleTabVisibilityChange);
 
     // Kick off IAP initialization only if not already loaded.
     // The BLoC is hoisted to main.dart and lives across navigations — without
@@ -105,22 +97,8 @@ class _SupporterPageState extends State<SupporterPage>
     }
   }
 
-  void _handleTabVisibilityChange() {
-    if (_isActive && _pendingTierToShow != null && mounted) {
-      final tier = _pendingTierToShow!;
-      _pendingTierToShow = null;
-      debugPrint(
-        '🔔 [SupporterPage] Tab active again, showing deferred dialog for ${tier.productId}',
-      );
-      setState(() => _showConfetti = true);
-      _confettiController.forward();
-      _showSuccessDialog(tier);
-    }
-  }
-
   @override
   void dispose() {
-    widget.isActive?.removeListener(_handleTabVisibilityChange);
     _headerAnimController.dispose();
     _confettiController.dispose();
     _scrollController
@@ -300,23 +278,23 @@ class _SupporterPageState extends State<SupporterPage>
             debugPrint(
               '📦 [SupporterPage] purchasedLevels=${state.purchasedLevels}, purchasingProductId=${state.purchasingProductId}, isRestoring=${state.isRestoring}, error=${state.errorMessage}',
             );
-            // Handle successful delivery
+            // Handle successful delivery. The celebration dialog must only
+            // ever be the direct result of a purchase tapped on this page --
+            // if delivery lands while this tab is backgrounded (SupporterBloc
+            // is an app-wide singleton, so it can), purchasedLevels above
+            // still updates the tier to "purchased", but no dialog is shown
+            // for it, now or later. Revisiting Supporter afterward must never
+            // pop the celebration on its own.
             if (state.justDeliveredTier != null) {
               if (_isActive) {
                 setState(() => _showConfetti = true);
                 _confettiController.forward();
                 _showSuccessDialog(state.justDeliveredTier!);
               } else {
-                // Delivered while this tab is backgrounded (SupporterBloc is
-                // an app-wide singleton; delivery can land at any time) --
-                // defer showing the dialog until the user actually returns
-                // to Supporter (see _handleTabVisibilityChange) instead of
-                // popping it up on whatever route happens to be on top.
-                debugPrint(
-                  '🔔 [SupporterPage] Tab inactive, deferring dialog for '
-                  '${state.justDeliveredTier!.productId}',
-                );
-                _pendingTierToShow = state.justDeliveredTier;
+                // Clear justDeliveredTier now (rather than leaving it set)
+                // so a later, genuine on-page purchase for a different tier
+                // isn't swallowed by the null→non-null transition guard above.
+                context.read<SupporterBloc>().add(ClearSupporterError());
               }
             }
 
