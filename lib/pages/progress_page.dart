@@ -600,10 +600,15 @@ class _ProgressPageState extends State<ProgressPage>
         const SizedBox(width: 12),
         Expanded(
           child: InkWell(
-            onTap: () {
-              Navigator.of(context).push(
+            onTap: () async {
+              await Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => const FavoritesPage()),
               );
+              // FavoritesPage is pushed on top of this tab, so returning from
+              // it doesn't flip `isActive` (this tab was active the whole
+              // time) and the tab-reveal reload never fires. Reload here so
+              // unfavoriting on that page is reflected in this grid.
+              if (mounted) _loadStats();
             },
             borderRadius: BorderRadius.circular(16),
             child: _buildStatCard(
