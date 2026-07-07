@@ -379,7 +379,19 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
   @override
   Future<SpiritualStats> updateFavoritesCount(int favoritesCount) async {
     final stats = await getStats();
-    final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
+    final updatedStats = stats.copyWith(
+      favoritesCount: favoritesCount,
+      // Favorites-type achievements (e.g. first_favorite, collector) are
+      // only otherwise re-checked as a side effect of a new devotional read,
+      // so without this a favorite toggle can cross a threshold and never
+      // unlock the badge until an unrelated read happens later.
+      unlockedAchievements: _updateAchievements(
+        stats,
+        stats.currentStreak,
+        stats.totalDevocionalesRead,
+        favoritesCount,
+      ),
+    );
     await saveStats(updatedStats);
     debugPrint('✅ [STATS] favoritesCount actualizado: $favoritesCount');
     return updatedStats;
