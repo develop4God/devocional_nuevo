@@ -469,7 +469,7 @@ class _EncounterCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 260,
+        height: 272,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(32),
           color: accentColor.withValues(alpha: 0.15),
