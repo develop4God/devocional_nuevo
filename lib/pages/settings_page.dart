@@ -253,7 +253,7 @@ class _SettingsViewState extends State<_SettingsView> {
                 child: OutlinedButton.icon(
                   onPressed: () async {
                     final Uri url = Uri.parse(
-                      'https://www.develop4god.com/apoyanos',
+                      'https://develop4god.com/apoyanos',
                     );
                     try {
                       if (await canLaunchUrl(url)) {
