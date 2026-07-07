@@ -11,9 +11,11 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/spiritual_stats_model.dart';
+import '../pages/app_navigation_shell.dart';
 import '../pages/favorites_page.dart';
 import '../providers/devocional_provider.dart';
 import '../services/spiritual_stats_service.dart';
+import '../widgets/app_bottom_nav_bar.dart';
 import '../widgets/app_snack_bar.dart';
 
 class ProgressPage extends StatefulWidget {
@@ -57,6 +59,11 @@ class _ProgressPageState extends State<ProgressPage>
   void _handleTabVisibilityChange() {
     if (widget.isActive?.value == false) {
       _scaffoldMessenger?.hideCurrentSnackBar();
+    } else {
+      // The shell's IndexedStack keeps this page's state alive when hidden,
+      // so returning to this tab doesn't rebuild it. Reload here or the
+      // streak/devotionals-read stats stay stale until the app restarts.
+      _loadStats();
     }
   }
 
@@ -579,7 +586,7 @@ class _ProgressPageState extends State<ProgressPage>
         Expanded(
           child: InkWell(
             onTap: () {
-              Navigator.of(context).pop();
+              AppNavigationShell.selectTab(AppTab.home);
             },
             borderRadius: BorderRadius.circular(16),
             child: _buildStatCard(
