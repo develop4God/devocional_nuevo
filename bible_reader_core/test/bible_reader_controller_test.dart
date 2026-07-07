@@ -424,6 +424,20 @@ void main() {
 
       await subscription.cancel();
     });
+
+    test(
+      'does not throw when a state change is triggered after dispose',
+      () async {
+        // Regression test: initialize() and other async methods run several
+        // awaits between _emit() calls (DB queries, preference reads). If
+        // the owning widget is disposed mid-flight, dispose() already closed
+        // the StreamController; the next _emit() call must not throw
+        // "Bad state: Cannot add new events after calling close".
+        controller.dispose();
+
+        expect(() => controller.toggleFontControls(), returnsNormally);
+      },
+    );
   });
 
   group('BibleReaderController Integration Tests', () {
