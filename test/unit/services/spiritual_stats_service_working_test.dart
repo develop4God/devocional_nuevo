@@ -1,6 +1,7 @@
 @Tags(['critical', 'unit', 'services'])
 library;
 
+import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -79,5 +80,46 @@ void main() {
       );
       expect(statsTwice.totalDevocionalesRead, statsOnce.totalDevocionalesRead);
     });
+
+    test('unlockAchievement adds the achievement on first call', () async {
+      final badge = PredefinedAchievements.supporterBadges.first;
+      final stats = await statsService.unlockAchievement(badge);
+      expect(stats.unlockedAchievements.any((a) => a.id == badge.id), isTrue);
+    });
+
+    test('unlockAchievement is a no-op if already unlocked', () async {
+      final badge = PredefinedAchievements.supporterBadges.first;
+      final statsOnce = await statsService.unlockAchievement(badge);
+      final statsTwice = await statsService.unlockAchievement(badge);
+      expect(
+        statsTwice.unlockedAchievements.where((a) => a.id == badge.id).length,
+        1,
+      );
+      expect(
+        statsTwice.unlockedAchievements.length,
+        statsOnce.unlockedAchievements.length,
+      );
+    });
+
+    test(
+      'updateFavoritesCount unlocks a favorites achievement when threshold is crossed',
+      () async {
+        final firstFavoriteId = PredefinedAchievements.all
+            .firstWhere((a) => a.id == 'first_favorite')
+            .id;
+        final statsBefore = await statsService.getStats();
+        expect(
+          statsBefore.unlockedAchievements.any((a) => a.id == firstFavoriteId),
+          isFalse,
+        );
+
+        final statsAfter = await statsService.updateFavoritesCount(1);
+
+        expect(
+          statsAfter.unlockedAchievements.any((a) => a.id == firstFavoriteId),
+          isTrue,
+        );
+      },
+    );
   });
 }

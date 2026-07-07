@@ -168,7 +168,7 @@ class _EncountersListPageState extends State<EncountersListPage>
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (state is EncounterError) {
-                    return _buildError(state.message);
+                    return _buildError(state.localizedMessage);
                   }
                   if (state is EncounterLoaded) {
                     if (state.index.isEmpty) return _buildEmpty();
@@ -426,7 +426,7 @@ class _EncountersListPageState extends State<EncountersListPage>
           const Icon(Icons.error_outline, size: 64, color: Colors.red),
           const SizedBox(height: 16),
           Text(
-            message.isNotEmpty ? message : 'encounters.error_load'.tr(),
+            message,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -469,7 +469,7 @@ class _EncounterCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 260,
+        height: 272,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(32),
           color: accentColor.withValues(alpha: 0.15),

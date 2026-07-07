@@ -11,9 +11,11 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/spiritual_stats_model.dart';
+import '../pages/app_navigation_shell.dart';
 import '../pages/favorites_page.dart';
 import '../providers/devocional_provider.dart';
 import '../services/spiritual_stats_service.dart';
+import '../widgets/app_bottom_nav_bar.dart';
 import '../widgets/app_snack_bar.dart';
 
 class ProgressPage extends StatefulWidget {
@@ -57,6 +59,11 @@ class _ProgressPageState extends State<ProgressPage>
   void _handleTabVisibilityChange() {
     if (widget.isActive?.value == false) {
       _scaffoldMessenger?.hideCurrentSnackBar();
+    } else {
+      // The shell's IndexedStack keeps this page's state alive when hidden,
+      // so returning to this tab doesn't rebuild it. Reload here or the
+      // streak/devotionals-read stats stay stale until the app restarts.
+      _loadStats();
     }
   }
 
@@ -75,9 +82,15 @@ class _ProgressPageState extends State<ProgressPage>
   }
 
   Future<void> _loadStats() async {
-    setState(() {
-      _isLoading = true;
-    });
+    // Only the very first load has no data to show yet, so only that one
+    // should blank the page to a spinner. Later reloads (tab reveal,
+    // returning from FavoritesPage, pull-to-refresh) should update the
+    // figures in place instead of flashing the whole page empty.
+    if (_stats == null) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
     try {
       final devocionalProvider = Provider.of<DevocionalProvider>(
@@ -86,6 +99,7 @@ class _ProgressPageState extends State<ProgressPage>
       );
       final favoritesCount = devocionalProvider.favoriteDevocionales.length;
       final stats = await _statsService.updateFavoritesCount(favoritesCount);
+      if (!mounted) return;
 
       setState(() {
         _stats = stats;
@@ -94,16 +108,17 @@ class _ProgressPageState extends State<ProgressPage>
 
       _streakAnimationController.forward();
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         _isLoading = false;
       });
 
-      if (mounted) {
-        AppSnackBar.show(
-          context,
-          'progress.error_loading_stats'.tr({'error': e.toString()}),
-        );
-      }
+      debugPrint('❌ [PROGRESS] Error loading stats: $e');
+      AppSnackBar.show(
+        context,
+        'progress.error_loading'.tr(),
+      );
     }
   }
 
@@ -579,7 +594,7 @@ class _ProgressPageState extends State<ProgressPage>
         Expanded(
           child: InkWell(
             onTap: () {
-              Navigator.of(context).pop();
+              AppNavigationShell.selectTab(AppTab.home);
             },
             borderRadius: BorderRadius.circular(16),
             child: _buildStatCard(
@@ -593,10 +608,15 @@ class _ProgressPageState extends State<ProgressPage>
         const SizedBox(width: 12),
         Expanded(
           child: InkWell(
-            onTap: () {
-              Navigator.of(context).push(
+            onTap: () async {
+              await Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => const FavoritesPage()),
               );
+              // FavoritesPage is pushed on top of this tab, so returning from
+              // it doesn't flip `isActive` (this tab was active the whole
+              // time) and the tab-reveal reload never fires. Reload here so
+              // unfavoriting on that page is reflected in this grid.
+              if (mounted) _loadStats();
             },
             borderRadius: BorderRadius.circular(16),
             child: _buildStatCard(

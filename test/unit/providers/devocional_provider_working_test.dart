@@ -204,6 +204,12 @@ void main() {
       expect(provider.selectedVersion, isNotNull);
       expect(provider.isLoading, isFalse);
       expect(provider.errorMessage, isNotNull); // Will have error due to 400
+      // errorMessage must be a translation key (UI calls .tr() on it),
+      // never a raw hardcoded/interpolated string.
+      expect(
+        provider.errorMessage,
+        anyOf('errors.network_error', 'devotionals.generic_error'),
+      );
       expect(provider.devocionales, isEmpty);
       expect(provider.favoriteDevocionales, isEmpty);
       expect(provider.isOfflineMode, isFalse);

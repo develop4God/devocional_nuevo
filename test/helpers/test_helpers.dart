@@ -387,4 +387,8 @@ class FakeSpiritualStatsService implements ISpiritualStatsService {
 
   @override
   Future<void> bulkMarkAsRead(List<String> ids) async {}
+
+  @override
+  Future<SpiritualStats> unlockAchievement(Achievement achievement) async =>
+      SpiritualStats();
 }

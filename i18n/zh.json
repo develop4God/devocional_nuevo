@@ -378,7 +378,7 @@
     "app_name": "基督教灵修",
     "version": "版本",
     "loading_version": "加载中...",
-    "description": "基督教灵修将每日灵感直接带到您的手机。享受更新的圣经信息，探索、保存您的收藏、分享神的话语和自定义您的阅读体验。",
+    "description": "基督教灵修将每日灵感直接带到您的手机。",
     "main_features": "主要功能：",
     "feature_daily": "• 每日灵修",
     "feature_multiversion": "• 多版本支持",
@@ -390,7 +390,10 @@
     "feature_notifications": "• 通知选项",
     "developed_by": "由Develop4God用❤️开发",
     "terms_copyright": "条款 和 条件/版权",
-    "link_error": "无法打开链接。"
+    "link_error": "无法打开链接。",
+    "more_from_developer": "来自 Develop4God 的更多应用",
+    "habitus_faith_tagline": "怀着目标与信仰，养成健康习惯",
+    "view_app": "查看"
   },
   "stats": {
     "title": "属灵统计",
@@ -720,7 +723,8 @@
     "no_thanksgivings_description": "创建您的第一个感恩以表达对神的感谢。",
     "days_old_single": "（{days}天）",
     "days_old_plural": "（{days}天）",
-    "thankful_for": "我感谢："
+    "thankful_for": "我感谢：",
+    "thanksgiving_update_error": "更新感恩时出错"
   },
   "discovery": {
     "discovery_studies": "圣经研究",
@@ -849,7 +853,8 @@
     "no_testimonies_description": "创建您的第一个见证，分享神在您生命中的作为。",
     "days_old_single": "({days}天)",
     "days_old_plural": "({days}天)",
-    "my_testimony": "我的见证:"
+    "my_testimony": "我的见证:",
+    "testimony_update_error": "更新见证时出错"
   },
   "supporter": {
     "page_title": "支持Develop4God事工",

@@ -174,7 +174,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (state is DiscoveryError) {
-                  return _buildErrorState(context, state.message);
+                  return _buildErrorState(context, state.localizedMessage);
                 }
                 if (state is DiscoveryLoaded) {
                   // Requirement #2: Auto-reorder - completed studies to the end
