@@ -18,6 +18,7 @@ import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/supporter/supporter_bronze_silver_purchase_dialog.dart';
 import 'package:devocional_nuevo/widgets/supporter/supporter_gold_purchase_dialog.dart';
 import 'package:devocional_nuevo/widgets/supporter/tier_card.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,7 +29,9 @@ import 'package:lottie/lottie.dart';
 /// Requires a [SupporterBloc] ancestor in the widget tree
 /// (provided by [settings_page.dart] navigation).
 class SupporterPage extends StatefulWidget {
-  const SupporterPage({super.key});
+  final ValueListenable<bool>? isActive;
+
+  const SupporterPage({super.key, this.isActive});
 
   @override
   State<SupporterPage> createState() => _SupporterPageState();
@@ -44,6 +47,15 @@ class _SupporterPageState extends State<SupporterPage>
 
   bool _showScrollHint = true;
   bool _showConfetti = false;
+
+  // Set when a purchase is delivered (real IAP callback or debug simulator)
+  // while this tab isn't the foreground one -- SupporterBloc is an app-wide
+  // singleton, so delivery can land at any time regardless of which tab the
+  // user is looking at. Rather than showing the dialog on whatever route
+  // happens to be on top, it's deferred and shown once the user returns here.
+  SupporterTier? _pendingTierToShow;
+
+  bool get _isActive => widget.isActive?.value ?? true;
 
   @override
   void initState() {
@@ -69,6 +81,7 @@ class _SupporterPageState extends State<SupporterPage>
           });
 
     _scrollController.addListener(_scrollListener);
+    widget.isActive?.addListener(_handleTabVisibilityChange);
 
     // Kick off IAP initialization only if not already loaded.
     // The BLoC is hoisted to main.dart and lives across navigations — without
@@ -92,8 +105,22 @@ class _SupporterPageState extends State<SupporterPage>
     }
   }
 
+  void _handleTabVisibilityChange() {
+    if (_isActive && _pendingTierToShow != null && mounted) {
+      final tier = _pendingTierToShow!;
+      _pendingTierToShow = null;
+      debugPrint(
+        '🔔 [SupporterPage] Tab active again, showing deferred dialog for ${tier.productId}',
+      );
+      setState(() => _showConfetti = true);
+      _confettiController.forward();
+      _showSuccessDialog(tier);
+    }
+  }
+
   @override
   void dispose() {
+    widget.isActive?.removeListener(_handleTabVisibilityChange);
     _headerAnimController.dispose();
     _confettiController.dispose();
     _scrollController
@@ -275,9 +302,22 @@ class _SupporterPageState extends State<SupporterPage>
             );
             // Handle successful delivery
             if (state.justDeliveredTier != null) {
-              setState(() => _showConfetti = true);
-              _confettiController.forward();
-              _showSuccessDialog(state.justDeliveredTier!);
+              if (_isActive) {
+                setState(() => _showConfetti = true);
+                _confettiController.forward();
+                _showSuccessDialog(state.justDeliveredTier!);
+              } else {
+                // Delivered while this tab is backgrounded (SupporterBloc is
+                // an app-wide singleton; delivery can land at any time) --
+                // defer showing the dialog until the user actually returns
+                // to Supporter (see _handleTabVisibilityChange) instead of
+                // popping it up on whatever route happens to be on top.
+                debugPrint(
+                  '🔔 [SupporterPage] Tab inactive, deferring dialog for '
+                  '${state.justDeliveredTier!.productId}',
+                );
+                _pendingTierToShow = state.justDeliveredTier;
+              }
             }
 
             // Handle Gold supporter edit-name request

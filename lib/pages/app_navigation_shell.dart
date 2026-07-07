@@ -72,6 +72,14 @@ class AppNavigationShellState extends State<AppNavigationShell> {
   // wouldn't otherwise be reflected until app restart).
   final ValueNotifier<bool> _settingsTabActive = ValueNotifier<bool>(false);
 
+  // Tells SupporterPage whether its tab is the foreground one. SupporterBloc
+  // is an app-wide singleton and purchase delivery (real IAP callback or the
+  // debug simulator) can land while the user has navigated away from
+  // Supporter -- IndexedStack keeps the page (and its BlocListener) alive in
+  // the background, so without this guard the purchase-success dialog pops
+  // up on whatever route happens to be on top instead of on Supporter.
+  final ValueNotifier<bool> _supporterTabActive = ValueNotifier<bool>(false);
+
   void _selectTab(AppTab tab) {
     if (tab == _currentTab) return;
     setState(() {
@@ -87,6 +95,7 @@ class AppNavigationShellState extends State<AppNavigationShell> {
     _homeTabActive.value = tab == AppTab.home;
     _progressTabActive.value = tab == AppTab.progress;
     _settingsTabActive.value = tab == AppTab.settings;
+    _supporterTabActive.value = tab == AppTab.supporter;
   }
 
   Widget _buildTab(AppTab tab) {
@@ -110,7 +119,7 @@ class AppNavigationShellState extends State<AppNavigationShell> {
       case AppTab.settings:
         return SettingsPage(isActive: _settingsTabActive);
       case AppTab.supporter:
-        return const SupporterPage();
+        return SupporterPage(isActive: _supporterTabActive);
     }
   }
 
@@ -119,6 +128,7 @@ class AppNavigationShellState extends State<AppNavigationShell> {
     _homeTabActive.dispose();
     _progressTabActive.dispose();
     _settingsTabActive.dispose();
+    _supporterTabActive.dispose();
     super.dispose();
   }
 
