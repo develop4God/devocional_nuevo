@@ -36,7 +36,7 @@ class _AboutPageState extends State<AboutPage> {
   // shrinking. This is an estimate of the "natural" height of the page
   // content on a normal-density phone with the gold section hidden.
   static const double _naturalContentHeight = 760.0;
-  static const double _minScale = 0.78;
+  static const double _minScale = 0.55;
 
   @override
   void initState() {
@@ -205,7 +205,7 @@ class _AboutContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconSize = 100.0 * scale.clamp(0.7, 1.0);
+    final iconSize = 76.0 * scale.clamp(0.45, 1.0);
 
     return Center(
       child: Column(
@@ -372,8 +372,8 @@ class _AboutContent extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
                 padding: EdgeInsets.symmetric(
-                  horizontal: 20 * scale.clamp(0.85, 1.0),
-                  vertical: 10 * scale.clamp(0.85, 1.0),
+                  horizontal: 20 * scale.clamp(0.6, 1.0),
+                  vertical: 10 * scale.clamp(0.6, 1.0),
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30.0),
@@ -427,7 +427,7 @@ class _AboutContent extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.auto_awesome,
-                  size: 14 * scale.clamp(0.8, 1.0), color: colorScheme.primary),
+                  size: 14 * scale.clamp(0.6, 1.0), color: colorScheme.primary),
               SizedBox(width: _gap(7)),
               Text(
                 'about.more_from_developer'.tr(),
@@ -453,8 +453,8 @@ class _AboutContent extends StatelessWidget {
                   borderRadius: BorderRadius.circular(11),
                   child: Image.asset(
                     'assets/icons/Habitus_faith_icon.png',
-                    width: 46 * scale.clamp(0.8, 1.0),
-                    height: 46 * scale.clamp(0.8, 1.0),
+                    width: 46 * scale.clamp(0.55, 1.0),
+                    height: 46 * scale.clamp(0.55, 1.0),
                     fit: BoxFit.cover,
                   ),
                 ),
