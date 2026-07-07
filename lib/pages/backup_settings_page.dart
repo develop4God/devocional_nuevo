@@ -144,7 +144,7 @@ class _BackupSettingsViewState extends State<_BackupSettingsView> {
               debugPrint('❌ [DEBUG] BackupError recibido: ${state.message}');
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(state.message.tr()),
+                  content: Text(state.localizedMessage),
                   backgroundColor: colorScheme.error,
                 ),
               );
@@ -229,7 +229,7 @@ class _BackupSettingsViewState extends State<_BackupSettingsView> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        state.message,
+                        state.localizedMessage,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

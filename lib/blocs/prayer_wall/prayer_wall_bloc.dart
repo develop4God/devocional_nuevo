@@ -74,7 +74,8 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
       }
     } catch (e) {
       debugPrint('❌ [PrayerWallBloc] Load error: $e');
-      emit(PrayerWallError('Failed to load prayers. Please try again.'));
+      // Translation key, not display text -- PrayerWallPage calls .tr() on it.
+      emit(PrayerWallError('errors.prayer_loading_error'));
     }
   }
 
@@ -191,7 +192,8 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
       }
     } catch (e) {
       debugPrint('❌ [PrayerWallBloc] Submit error: $e');
-      emit(PrayerWallError('Failed to submit prayer. Please try again.'));
+      // Translation key, not display text -- PrayerWallPage calls .tr() on it.
+      emit(PrayerWallError('errors.retry_message'));
     }
   }
 

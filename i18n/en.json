@@ -378,7 +378,7 @@
     "app_name": "Christian Devotionals",
     "version": "Version",
     "loading_version": "Loading...",
-    "description": "Christian Devotionals brings daily inspiration directly to your phone. Enjoy updated biblical messages, explore, save your favorites, share the word, and customize your reading experience.",
+    "description": "Christian Devotionals brings daily inspiration directly to your phone.",
     "main_features": "Main Features:",
     "feature_daily": "• Daily Devotionals",
     "feature_multiversion": "• Multi-Version Support",
@@ -390,7 +390,10 @@
     "feature_notifications": "• Notification Options",
     "developed_by": "Developed with ❤️ by Develop4God",
     "terms_copyright": "Terms & Conditions / Copyright",
-    "link_error": "Could not open link."
+    "link_error": "Could not open link.",
+    "more_from_developer": "Also from Develop4God",
+    "habitus_faith_tagline": "Build healthy habits, with purpose and faith",
+    "view_app": "View"
   },
   "stats": {
     "title": "Spiritual Stats",
@@ -720,7 +723,8 @@
     "no_thanksgivings_description": "Create your first thanksgiving to express your gratitude to God.",
     "days_old_single": "({days} day)",
     "days_old_plural": "({days} days)",
-    "thankful_for": "I am thankful for:"
+    "thankful_for": "I am thankful for:",
+    "thanksgiving_update_error": "Error updating thanksgiving"
   },
   "discovery": {
     "discovery_studies": "Bible Studies",
@@ -849,7 +853,8 @@
     "no_testimonies_description": "Create your first testimony to share how God has worked in your life.",
     "days_old_single": "({days} day)",
     "days_old_plural": "({days} days)",
-    "my_testimony": "My testimony:"
+    "my_testimony": "My testimony:",
+    "testimony_update_error": "Error updating testimony"
   },
   "supporter": {
     "page_title": "Support Develop4God Ministry",

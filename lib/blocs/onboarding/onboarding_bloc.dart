@@ -181,9 +181,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error initializing onboarding: $e');
       emit(
         OnboardingError(
-          message: 'Error initializing onboarding: ${e.toString()}',
-          category: OnboardingErrorCategory.unknown,
-          errorContext: {'error': e.toString()},
+          message: 'onboarding.onboarding_error_loading',
         ),
       );
     }
@@ -264,9 +262,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error progressing to step: $e');
       emit(
         OnboardingError(
-          message: 'Error progressing to step: ${e.toString()}',
-          category: OnboardingErrorCategory.unknown,
-          errorContext: {'stepIndex': event.stepIndex, 'error': e.toString()},
+          message: 'onboarding.onboarding_error_loading',
         ),
       );
     } finally {
@@ -295,11 +291,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     try {
       // Validate theme family input
       if (!_validateThemeFamily(event.themeFamily)) {
+        debugPrint(
+          '❌ [ONBOARDING_BLOC] Invalid theme family: ${event.themeFamily}',
+        );
         emit(
           OnboardingError(
-            message: 'Invalid theme family: ${event.themeFamily}',
-            category: OnboardingErrorCategory.invalidConfiguration,
-            errorContext: {'themeFamily': event.themeFamily},
+            message: 'onboarding.onboarding_error_loading',
           ),
         );
         return;
@@ -327,11 +324,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
       // Validate configuration before saving
       if (!_validateConfiguration(updatedSelections)) {
+        debugPrint(
+          '❌ [ONBOARDING_BLOC] Invalid configuration: $updatedSelections',
+        );
         emit(
           OnboardingError(
-            message: 'Configuration validation failed',
-            category: OnboardingErrorCategory.invalidConfiguration,
-            errorContext: {'configuration': updatedSelections},
+            message: 'onboarding.onboarding_error_loading',
           ),
         );
         return;
@@ -354,12 +352,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error selecting theme: $e');
       emit(
         OnboardingError(
-          message: 'Error selecting theme: ${e.toString()}',
-          category: OnboardingErrorCategory.invalidConfiguration,
-          errorContext: {
-            'themeFamily': event.themeFamily,
-            'error': e.toString(),
-          },
+          message: 'onboarding.onboarding_error_loading',
         ),
       );
     }
@@ -422,12 +415,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error configuring backup: $e');
       emit(
         OnboardingError(
-          message: 'Error configuring backup: ${e.toString()}',
-          category: OnboardingErrorCategory.serviceUnavailable,
-          errorContext: {
-            'enableBackup': event.enableBackup,
-            'error': e.toString(),
-          },
+          message: 'onboarding.onboarding_error_loading',
         ),
       );
     }
@@ -465,12 +453,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error updating configuration: $e');
       emit(
         OnboardingError(
-          message: 'Error updating configuration: ${e.toString()}',
-          category: OnboardingErrorCategory.unknown,
-          errorContext: {
-            'configuration': event.configuration,
-            'error': e.toString(),
-          },
+          message: 'onboarding.onboarding_error_loading',
         ),
       );
     }
@@ -594,9 +577,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error completing onboarding: $e');
       emit(
         OnboardingError(
-          message: 'Error completing onboarding: ${e.toString()}',
-          category: OnboardingErrorCategory.unknown,
-          errorContext: {'error': e.toString()},
+          message: 'onboarding.onboarding_error_loading',
         ),
       );
     } finally {
@@ -625,9 +606,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('❌ [ONBOARDING_BLOC] Error resetting onboarding: $e');
       emit(
         OnboardingError(
-          message: 'Error resetting onboarding: ${e.toString()}',
-          category: OnboardingErrorCategory.unknown,
-          errorContext: {'error': e.toString()},
+          message: 'onboarding.onboarding_error_loading',
         ),
       );
     }

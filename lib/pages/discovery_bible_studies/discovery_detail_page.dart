@@ -119,7 +119,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             }
 
             if (state is DiscoveryError) {
-              return Center(child: Text(state.message));
+              return Center(child: Text(state.localizedMessage));
             }
 
             if (state is DiscoveryLoaded) {

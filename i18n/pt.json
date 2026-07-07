@@ -378,7 +378,7 @@
     "app_name": "Devocionais Cristãos",
     "version": "Versão",
     "loading_version": "Carregando...",
-    "description": "Devocionais Cristãos traz inspiração diária diretamente ao seu telefone. Desfrute de mensagens bíblicas atualizadas, explore, salve seus favoritos, compartilhe a palavra e personalize sua experiência de leitura.",
+    "description": "Devocionais Cristãos traz inspiração diária diretamente ao seu telefone.",
     "main_features": "Principais Recursos:",
     "feature_daily": "• Devocionais Diários",
     "feature_multiversion": "• Suporte Multi-Versão",
@@ -390,7 +390,10 @@
     "feature_notifications": "• Opciones de Notificação",
     "developed_by": "Desenvolvido com ❤️ por Develop4God",
     "terms_copyright": "Termos e Condições / Copyright",
-    "link_error": "Não foi possível abrir o link."
+    "link_error": "Não foi possível abrir o link.",
+    "more_from_developer": "Também da Develop4God",
+    "habitus_faith_tagline": "Construa hábitos saudáveis, com propósito e fé",
+    "view_app": "Ver"
   },
   "stats": {
     "title": "Estatísticas Espirituales",
@@ -720,7 +723,8 @@
     "no_thanksgivings_description": "Crie sua primeira ação de graças para expressar sua gratidão a Deus.",
     "days_old_single": "({days} dia)",
     "days_old_plural": "({days} dias)",
-    "thankful_for": "Agradeço por:"
+    "thankful_for": "Agradeço por:",
+    "thanksgiving_update_error": "Erro ao atualizar a ação de graças"
   },
   "discovery": {
     "discovery_studies": "Estudos Bíblicos",
@@ -849,7 +853,8 @@
     "no_testimonies_description": "Crie seu primeiro testemunho para compartilhar como Deus tem trabalhado em sua vida.",
     "days_old_single": "({days} dia)",
     "days_old_plural": "({days} dias)",
-    "my_testimony": "Meu testemunho:"
+    "my_testimony": "Meu testemunho:",
+    "testimony_update_error": "Erro ao atualizar o testemunho"
   },
   "supporter": {
     "page_title": "Apoiar Ministério Develop4God",

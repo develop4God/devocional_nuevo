@@ -312,8 +312,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage =
-            'Error al ${_isEditing ? 'actualizar' : 'crear'} la oración';
+        _errorMessage = 'prayer.prayer_update_error'.tr();
       });
     } finally {
       if (mounted) {

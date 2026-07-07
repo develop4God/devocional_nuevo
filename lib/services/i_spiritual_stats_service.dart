@@ -82,4 +82,11 @@ abstract class ISpiritualStatsService {
   /// Used by one-time startup migrations. Implementations should be idempotent and
   /// perform a single getStats()+saveStats() cycle rather than per-ID writes.
   Future<void> bulkMarkAsRead(List<String> ids);
+
+  /// Atomically unlocks [achievement] if not already unlocked. For
+  /// achievements granted directly by an external event (e.g. a supporter
+  /// purchase) rather than by a threshold check. Callers should use this
+  /// instead of their own getStats()+saveStats() cycle, which would bypass
+  /// this service's internal synchronization and risk lost updates.
+  Future<SpiritualStats> unlockAchievement(Achievement achievement);
 }

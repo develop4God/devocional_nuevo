@@ -390,7 +390,10 @@
     "feature_notifications": "दैनिक सूचनाएं",
     "developed_by": "द्वारा विकसित",
     "terms_copyright": "सर्वाधिकार सुरक्षित",
-    "link_error": "लिंक खोलने में त्रुटि"
+    "link_error": "लिंक खोलने में त्रुटि",
+    "more_from_developer": "डेवलप4गॉड से भी",
+    "habitus_faith_tagline": "उद्देश्य और विश्वास के साथ स्वस्थ आदतें बनाएं",
+    "view_app": "देखें"
   },
   "stats": {
     "title": "आँकड़े",
@@ -720,7 +723,8 @@
     "no_thanksgivings_description": "परमेश्वर को अपना आभार व्यक्त करने के लिए अपना पहला धन्यवाद बनाएं।",
     "days_old_single": "({days} दिन)",
     "days_old_plural": "({days} दिन)",
-    "thankful_for": "मैं आभारी हूँ:"
+    "thankful_for": "मैं आभारी हूँ:",
+    "thanksgiving_update_error": "धन्यवाद अपडेट करते समय त्रुटि"
   },
   "discovery": {
     "discovery_studies": "बाइबिल अध्ययन",
@@ -849,7 +853,8 @@
     "no_testimonies_description": "अपनी पहली गवाही बनाएं कि परमेश्वर ने आपके जीवन में कैसे कार्य किया है।",
     "days_old_single": "({days} दिन)",
     "days_old_plural": "({days} दिन)",
-    "my_testimony": "मेरी गवाही:"
+    "my_testimony": "मेरी गवाही:",
+    "testimony_update_error": "गवाही अपडेट करते समय त्रुटि"
   },
   "supporter": {
     "page_title": "Develop4God मंत्रालय का समर्थन करें",

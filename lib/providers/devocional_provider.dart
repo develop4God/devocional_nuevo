@@ -18,6 +18,7 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
+import 'package:devocional_nuevo/utils/network_error_utils.dart';
 import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -622,7 +623,9 @@ class DevocionalProvider with ChangeNotifier {
         '✅ Successfully loaded devotionals from years: ${yearsToLoad.toList()}',
       );
     } catch (e) {
-      _errorMessage = 'Error al cargar los devocionales: $e';
+      _errorMessage = isTransientNetworkError(e)
+          ? 'errors.network_error'
+          : 'devotionals.generic_error';
       _allDevocionalesForCurrentLanguage = [];
       _filteredDevocionales = [];
       debugPrint('Error en _fetchAllDevocionalesForLanguage: $e');
@@ -663,14 +666,13 @@ class DevocionalProvider with ChangeNotifier {
 
     if (_filteredDevocionales.isEmpty &&
         _allDevocionalesForCurrentLanguage.isNotEmpty) {
-      _errorMessage =
-          'No se encontraron devocionales para la versión $_selectedVersion.';
+      _errorMessage = 'devotionals.generic_error';
       debugPrint(
         '🚨 [FILTER] Version mismatch — selected: $_selectedVersion, '
         'available versions: ${_allDevocionalesForCurrentLanguage.map((d) => d.version).toSet().toList()}',
       );
     } else if (_allDevocionalesForCurrentLanguage.isEmpty) {
-      _errorMessage = 'No hay devocionales disponibles.';
+      _errorMessage = 'devotionals.generic_error';
     } else {
       _errorMessage = null;
     }

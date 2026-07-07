@@ -18,6 +18,7 @@ import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/supporter/supporter_bronze_silver_purchase_dialog.dart';
 import 'package:devocional_nuevo/widgets/supporter/supporter_gold_purchase_dialog.dart';
 import 'package:devocional_nuevo/widgets/supporter/tier_card.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,7 +29,9 @@ import 'package:lottie/lottie.dart';
 /// Requires a [SupporterBloc] ancestor in the widget tree
 /// (provided by [settings_page.dart] navigation).
 class SupporterPage extends StatefulWidget {
-  const SupporterPage({super.key});
+  final ValueListenable<bool>? isActive;
+
+  const SupporterPage({super.key, this.isActive});
 
   @override
   State<SupporterPage> createState() => _SupporterPageState();
@@ -44,6 +47,8 @@ class _SupporterPageState extends State<SupporterPage>
 
   bool _showScrollHint = true;
   bool _showConfetti = false;
+
+  bool get _isActive => widget.isActive?.value ?? true;
 
   @override
   void initState() {
@@ -105,24 +110,16 @@ class _SupporterPageState extends State<SupporterPage>
   // ── Unlock Logic ──────────────────────────────────────────────────────────
 
   Future<void> _unlockSupporterBadge(SupporterTierLevel level) async {
-    final statsService = getService<ISpiritualStatsService>();
-    final stats = await statsService.getStats();
     final badgeId = 'supporter_${level.name}';
-
-    // Check if already unlocked
-    if (stats.unlockedAchievements.any((a) => a.id == badgeId)) return;
-
-    // Find the badge definition
     final badgeTemplate = PredefinedAchievements.supporterBadges.firstWhere(
       (a) => a.id == badgeId,
     );
 
-    final updatedAchievements = List<Achievement>.from(
-      stats.unlockedAchievements,
-    )..add(badgeTemplate.copyWith(isUnlocked: true));
-
-    await statsService.saveStats(
-      stats.copyWith(unlockedAchievements: updatedAchievements),
+    // Goes through the service's own get-modify-save cycle (locked against
+    // concurrent stats updates) instead of doing it here, which would race
+    // with any other in-flight read-modify-write on the same stats blob.
+    await getService<ISpiritualStatsService>().unlockAchievement(
+      badgeTemplate,
     );
   }
 
@@ -281,11 +278,24 @@ class _SupporterPageState extends State<SupporterPage>
             debugPrint(
               '📦 [SupporterPage] purchasedLevels=${state.purchasedLevels}, purchasingProductId=${state.purchasingProductId}, isRestoring=${state.isRestoring}, error=${state.errorMessage}',
             );
-            // Handle successful delivery
+            // Handle successful delivery. The celebration dialog must only
+            // ever be the direct result of a purchase tapped on this page --
+            // if delivery lands while this tab is backgrounded (SupporterBloc
+            // is an app-wide singleton, so it can), purchasedLevels above
+            // still updates the tier to "purchased", but no dialog is shown
+            // for it, now or later. Revisiting Supporter afterward must never
+            // pop the celebration on its own.
             if (state.justDeliveredTier != null) {
-              setState(() => _showConfetti = true);
-              _confettiController.forward();
-              _showSuccessDialog(state.justDeliveredTier!);
+              if (_isActive) {
+                setState(() => _showConfetti = true);
+                _confettiController.forward();
+                _showSuccessDialog(state.justDeliveredTier!);
+              } else {
+                // Clear justDeliveredTier now (rather than leaving it set)
+                // so a later, genuine on-page purchase for a different tier
+                // isn't swallowed by the null→non-null transition guard above.
+                context.read<SupporterBloc>().add(ClearSupporterError());
+              }
             }
 
             // Handle Gold supporter edit-name request
