@@ -4,8 +4,6 @@ import 'package:devocional_nuevo/blocs/testimony_bloc.dart';
 import 'package:devocional_nuevo/blocs/testimony_event.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/testimony_model.dart';
-import 'package:devocional_nuevo/services/localization_service.dart';
-import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -313,13 +311,8 @@ class _AddTestimonyModalState extends State<AddTestimonyModal> {
         Navigator.of(context).pop();
       }
     } catch (e) {
-      final errorAction = _isEditing ? 'update' : 'create';
-      final errorMessage = getService<LocalizationService>().translate(
-        'errors.testimony_save_error',
-        {'action': errorAction},
-      );
       setState(() {
-        _errorMessage = errorMessage;
+        _errorMessage = 'testimony.testimony_update_error'.tr();
       });
     } finally {
       if (mounted) {

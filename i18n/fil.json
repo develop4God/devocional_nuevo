@@ -720,7 +720,8 @@
     "no_thanksgivings_description": "Lumikha ng iyong unang pasasalamat upang ipahayag ang iyong pasasalamat sa Diyos.",
     "days_old_single": "(isang araw)",
     "days_old_plural": "({days} na araw)",
-    "thankful_for": "Nagpapasalamat ako para sa:"
+    "thankful_for": "Nagpapasalamat ako para sa:",
+    "thanksgiving_update_error": "Error sa pag-update ng pasasalamat"
   },
   "discovery": {
     "discovery_studies": "Mga Pag-aaral sa Biblia",
@@ -849,7 +850,8 @@
     "no_testimonies_description": "Gumawa ng iyong unang patotoo upang ibahagi kung paano gumawa ang Diyos sa iyong buhay.",
     "days_old_single": "(isang araw)",
     "days_old_plural": "({days} na araw)",
-    "my_testimony": "Ang aking patotoo:"
+    "my_testimony": "Ang aking patotoo:",
+    "testimony_update_error": "Error sa pag-update ng patotoo"
   },
   "supporter": {
     "page_title": "Suportahan ang Ministeryo ng Develop4God",

@@ -720,7 +720,8 @@
     "no_thanksgivings_description": "أنشئ شكرك الأول للتعبير عن امتنانك لله.",
     "days_old_single": "({days} يوم)",
     "days_old_plural": "({days} أيام)",
-    "thankful_for": "أنا شاكر على:"
+    "thankful_for": "أنا شاكر على:",
+    "thanksgiving_update_error": "خطأ في تحديث الشكر"
   },
   "discovery": {
     "discovery_studies": "دراسات كتابية",
@@ -849,7 +850,8 @@
     "no_testimonies_description": "أنشئ شهادتك الأولى لمشاركة كيف عمل الله في حياتك.",
     "days_old_single": "({days} يوم)",
     "days_old_plural": "({days} أيام)",
-    "my_testimony": "شهادتي:"
+    "my_testimony": "شهادتي:",
+    "testimony_update_error": "خطأ في تحديث الشهادة"
   },
   "supporter": {
     "page_title": "ادعم خدمة Develop4God",

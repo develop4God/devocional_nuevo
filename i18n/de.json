@@ -720,7 +720,8 @@
     "no_thanksgivings_description": "Erstelle deine erste Danksagung, um Gott deine Dankbarkeit auszudrücken.",
     "days_old_single": "({days} Tag)",
     "days_old_plural": "({days} Tage)",
-    "thankful_for": "Ich bin dankbar für:"
+    "thankful_for": "Ich bin dankbar für:",
+    "thanksgiving_update_error": "Fehler beim Aktualisieren der Danksagung"
   },
   "discovery": {
     "discovery_studies": "Bibelstudien",
@@ -849,7 +850,8 @@
     "no_testimonies_description": "Erstelle dein erstes Zeugnis, um zu teilen, wie Gott in deinem Leben gewirkt hat.",
     "days_old_single": "({days} Tag)",
     "days_old_plural": "({days} Tage)",
-    "my_testimony": "Mein Zeugnis:"
+    "my_testimony": "Mein Zeugnis:",
+    "testimony_update_error": "Fehler beim Aktualisieren des Zeugnisses"
   },
   "supporter": {
     "page_title": "Develop4God Werk unterstützen",

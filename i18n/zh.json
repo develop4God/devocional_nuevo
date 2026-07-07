@@ -720,7 +720,8 @@
     "no_thanksgivings_description": "创建您的第一个感恩以表达对神的感谢。",
     "days_old_single": "（{days}天）",
     "days_old_plural": "（{days}天）",
-    "thankful_for": "我感谢："
+    "thankful_for": "我感谢：",
+    "thanksgiving_update_error": "更新感恩时出错"
   },
   "discovery": {
     "discovery_studies": "圣经研究",
@@ -849,7 +850,8 @@
     "no_testimonies_description": "创建您的第一个见证，分享神在您生命中的作为。",
     "days_old_single": "({days}天)",
     "days_old_plural": "({days}天)",
-    "my_testimony": "我的见证:"
+    "my_testimony": "我的见证:",
+    "testimony_update_error": "更新见证时出错"
   },
   "supporter": {
     "page_title": "支持Develop4God事工",

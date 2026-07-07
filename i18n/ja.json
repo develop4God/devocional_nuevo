@@ -720,7 +720,8 @@
     "no_thanksgivings_description": "神への感謝を表現するために最初の感謝を作成してください。",
     "days_old_single": "({days}日)",
     "days_old_plural": "({days}日)",
-    "thankful_for": "感謝しています："
+    "thankful_for": "感謝しています：",
+    "thanksgiving_update_error": "感謝の更新中にエラーが発生しました"
   },
   "discovery": {
     "discovery_studies": "聖書研究",
@@ -849,7 +850,8 @@
     "no_testimonies_description": "神があなたの人生でどのように働かれたかを共有するために、最初の証を作成してください。",
     "days_old_single": "({days}日)",
     "days_old_plural": "({days}日)",
-    "my_testimony": "私の証:"
+    "my_testimony": "私の証:",
+    "testimony_update_error": "証の更新中にエラーが発生しました"
   },
   "supporter": {
     "page_title": "Develop4Godミニストリーのサポート",
