@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:synchronized/synchronized.dart';
 
 import '../debug/i_debug_spiritual_stats_service.dart';
 import '../models/spiritual_stats_model.dart';
@@ -18,6 +19,14 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
   // Configuración para JSON backup
   static const String _jsonBackupEnabledKey = 'json_backup_enabled';
   static const String _jsonBackupFilename = 'spiritual_stats_backup.json';
+
+  // Guards every get-modify-save cycle below against lost updates from
+  // concurrent callers. Static (not per-instance) because the app constructs
+  // several separate SpiritualStatsService instances (ProgressPage,
+  // DevocionalProvider, the service-locator singleton) that all read/write
+  // the same underlying SharedPreferences key -- an instance field would not
+  // synchronize across them.
+  static final Lock _lock = Lock();
 
   /// NUEVO: Habilitar/deshabilitar backup JSON manual
   @override
@@ -39,35 +48,38 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
 
   /// Registrar visita diaria automática al abrir la app
   Future<void> recordDailyAppVisit() async {
-    final today = DateTime.now();
-    final todayDateOnly = DateTime(today.year, today.month, today.day);
-    final readDates = await _getReadDates();
+    await _lock.synchronized(() async {
+      final today = DateTime.now();
+      final todayDateOnly = DateTime(today.year, today.month, today.day);
+      final readDates = await _getReadDates();
 
-    final alreadyVisitedToday = readDates.any(
-      (date) =>
-          date.year == today.year &&
-          date.month == today.month &&
-          date.day == today.day,
-    );
-
-    if (!alreadyVisitedToday) {
-      readDates.add(todayDateOnly);
-      await _saveReadDates(readDates);
-
-      // Actualizar racha automáticamente
-      final stats = await getStats();
-      final newStreak = _calculateCurrentStreak(readDates);
-
-      final updatedStats = stats.copyWith(
-        currentStreak: newStreak,
-        longestStreak:
-            newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
-        lastActivityDate: today,
+      final alreadyVisitedToday = readDates.any(
+        (date) =>
+            date.year == today.year &&
+            date.month == today.month &&
+            date.day == today.day,
       );
 
-      await saveStats(updatedStats);
-      debugPrint('Nueva visita diaria registrada. Racha: $newStreak');
-    }
+      if (!alreadyVisitedToday) {
+        readDates.add(todayDateOnly);
+        await _saveReadDates(readDates);
+
+        // Actualizar racha automáticamente
+        final stats = await getStats();
+        final newStreak = _calculateCurrentStreak(readDates);
+
+        final updatedStats = stats.copyWith(
+          currentStreak: newStreak,
+          longestStreak: newStreak > stats.longestStreak
+              ? newStreak
+              : stats.longestStreak,
+          lastActivityDate: today,
+        );
+
+        await saveStats(updatedStats);
+        debugPrint('Nueva visita diaria registrada. Racha: $newStreak');
+      }
+    });
   }
 
   /// Get current spiritual statistics
@@ -119,98 +131,101 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
     int? favoritesCount,
     String source = 'unknown', // 'read', 'heard', etc.
   }) async {
-    debugPrint(
-      '🎯 [STATS] Iniciando registro de devocional: $devocionalId, fuente: $source',
-    );
-    final prefs = await SharedPreferences.getInstance();
-    final stats = await getStats();
-
-    if (devocionalId.isEmpty) {
-      debugPrint('🎯 [STATS] DevocionalId vacío, no se registra');
-      return stats;
-    }
-
-    final bool meetsReadingCriteria =
-        (readingTimeSeconds >= 40 && scrollPercentage >= 0.6) ||
-            (listenedPercentage >= 0.6);
-
-    debugPrint(
-      '🎯 [STATS] Criterios: tiempo=$readingTimeSeconds, scroll=$scrollPercentage, escuchado=$listenedPercentage, cumple=$meetsReadingCriteria',
-    );
-
-    if (stats.readDevocionalIds.contains(devocionalId)) {
-      debugPrint('🎯 [STATS] Devocional ya registrado: $devocionalId');
-      if (favoritesCount != null) {
-        final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
-        await saveStats(updatedStats);
-        return updatedStats;
-      }
-      return stats;
-    }
-
-    if (!meetsReadingCriteria) {
+    return await _lock.synchronized(() async {
       debugPrint(
-        '🎯 [STATS] Devocional no cumple criterio, no se suma: $devocionalId',
+        '🎯 [STATS] Iniciando registro de devocional: $devocionalId, fuente: $source',
       );
+      final prefs = await SharedPreferences.getInstance();
+      final stats = await getStats();
+
+      if (devocionalId.isEmpty) {
+        debugPrint('🎯 [STATS] DevocionalId vacío, no se registra');
+        return stats;
+      }
+
+      final bool meetsReadingCriteria =
+          (readingTimeSeconds >= 40 && scrollPercentage >= 0.6) ||
+              (listenedPercentage >= 0.6);
+
+      debugPrint(
+        '🎯 [STATS] Criterios: tiempo=$readingTimeSeconds, scroll=$scrollPercentage, escuchado=$listenedPercentage, cumple=$meetsReadingCriteria',
+      );
+
+      if (stats.readDevocionalIds.contains(devocionalId)) {
+        debugPrint('🎯 [STATS] Devocional ya registrado: $devocionalId');
+        if (favoritesCount != null) {
+          final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
+          await saveStats(updatedStats);
+          return updatedStats;
+        }
+        return stats;
+      }
+
+      if (!meetsReadingCriteria) {
+        debugPrint(
+          '🎯 [STATS] Devocional no cumple criterio, no se suma: $devocionalId',
+        );
+        await prefs.setString(_lastReadDevocionalKey, devocionalId);
+        await prefs.setInt(
+          _lastReadTimeKey,
+          DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        );
+        if (favoritesCount != null) {
+          final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
+          await saveStats(updatedStats);
+          return updatedStats;
+        }
+        return stats;
+      }
+
       await prefs.setString(_lastReadDevocionalKey, devocionalId);
       await prefs.setInt(
         _lastReadTimeKey,
         DateTime.now().millisecondsSinceEpoch ~/ 1000,
       );
-      if (favoritesCount != null) {
-        final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
-        await saveStats(updatedStats);
-        return updatedStats;
+
+      final today = DateTime.now();
+      final todayDateOnly = DateTime(today.year, today.month, today.day);
+      final readDates = await _getReadDates();
+      final alreadyReadToday = readDates.any(
+        (date) =>
+            date.year == today.year &&
+            date.month == today.month &&
+            date.day == today.day,
+      );
+      if (!alreadyReadToday) {
+        readDates.add(todayDateOnly);
+        await _saveReadDates(readDates);
+        debugPrint(
+            '🎯 [STATS] Nueva fecha de lectura agregada: $todayDateOnly');
       }
-      return stats;
-    }
+      final newStreak = _calculateCurrentStreak(readDates);
 
-    await prefs.setString(_lastReadDevocionalKey, devocionalId);
-    await prefs.setInt(
-      _lastReadTimeKey,
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-    );
+      final newReadDevocionalIds = List<String>.from(stats.readDevocionalIds);
+      newReadDevocionalIds.add(devocionalId);
 
-    final today = DateTime.now();
-    final todayDateOnly = DateTime(today.year, today.month, today.day);
-    final readDates = await _getReadDates();
-    final alreadyReadToday = readDates.any(
-      (date) =>
-          date.year == today.year &&
-          date.month == today.month &&
-          date.day == today.day,
-    );
-    if (!alreadyReadToday) {
-      readDates.add(todayDateOnly);
-      await _saveReadDates(readDates);
-      debugPrint('🎯 [STATS] Nueva fecha de lectura agregada: $todayDateOnly');
-    }
-    final newStreak = _calculateCurrentStreak(readDates);
+      final updatedStats = stats.copyWith(
+        totalDevocionalesRead: stats.totalDevocionalesRead + 1,
+        currentStreak: newStreak,
+        longestStreak:
+            newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
+        lastActivityDate: today,
+        favoritesCount: favoritesCount ?? stats.favoritesCount,
+        readDevocionalIds: newReadDevocionalIds,
+        unlockedAchievements: _updateAchievements(
+          stats,
+          newStreak,
+          stats.totalDevocionalesRead + 1,
+          favoritesCount ?? stats.favoritesCount,
+        ),
+      );
 
-    final newReadDevocionalIds = List<String>.from(stats.readDevocionalIds);
-    newReadDevocionalIds.add(devocionalId);
-
-    final updatedStats = stats.copyWith(
-      totalDevocionalesRead: stats.totalDevocionalesRead + 1,
-      currentStreak: newStreak,
-      longestStreak:
-          newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
-      lastActivityDate: today,
-      favoritesCount: favoritesCount ?? stats.favoritesCount,
-      readDevocionalIds: newReadDevocionalIds,
-      unlockedAchievements: _updateAchievements(
-        stats,
-        newStreak,
-        stats.totalDevocionalesRead + 1,
-        favoritesCount ?? stats.favoritesCount,
-      ),
-    );
-
-    await saveStats(updatedStats);
-    debugPrint(
-      '🎯 [STATS] Devocional guardado: $devocionalId, total ahora: ${updatedStats.totalDevocionalesRead}',
-    );
-    return updatedStats;
+      await saveStats(updatedStats);
+      debugPrint(
+        '🎯 [STATS] Devocional guardado: $devocionalId, total ahora: ${updatedStats.totalDevocionalesRead}',
+      );
+      return updatedStats;
+    });
   }
 
   @override
@@ -258,26 +273,28 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
   Future<void> bulkMarkAsRead(List<String> ids) async {
     if (ids.isEmpty) return;
 
-    final stats = await getStats();
-    final existing = Set<String>.from(stats.readDevocionalIds);
-    final toAdd =
-        ids.where((id) => id.isNotEmpty && !existing.contains(id)).toList();
+    await _lock.synchronized(() async {
+      final stats = await getStats();
+      final existing = Set<String>.from(stats.readDevocionalIds);
+      final toAdd =
+          ids.where((id) => id.isNotEmpty && !existing.contains(id)).toList();
 
-    if (toAdd.isEmpty) {
+      if (toAdd.isEmpty) {
+        debugPrint(
+          '🔧 [FIX] bulkMarkAsRead: all ${ids.length} IDs already present, skipping write',
+        );
+        return;
+      }
+
+      final updatedIds = List<String>.from(stats.readDevocionalIds)
+        ..addAll(toAdd);
+      final updatedStats = stats.copyWith(readDevocionalIds: updatedIds);
+      await saveStats(updatedStats);
+
       debugPrint(
-        '🔧 [FIX] bulkMarkAsRead: all ${ids.length} IDs already present, skipping write',
+        '🔧 [MIGRATION] bulkMarkAsRead: marked ${toAdd.length} gap IDs as read (skipped ${ids.length - toAdd.length} already present)',
       );
-      return;
-    }
-
-    final updatedIds = List<String>.from(stats.readDevocionalIds)
-      ..addAll(toAdd);
-    final updatedStats = stats.copyWith(readDevocionalIds: updatedIds);
-    await saveStats(updatedStats);
-
-    debugPrint(
-      '🔧 [MIGRATION] bulkMarkAsRead: marked ${toAdd.length} gap IDs as read (skipped ${ids.length - toAdd.length} already present)',
-    );
+    });
   }
 
   /// Crear backup JSON manual
@@ -378,35 +395,67 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
   /// Actualiza el número de favoritos en las estadísticas espirituales
   @override
   Future<SpiritualStats> updateFavoritesCount(int favoritesCount) async {
-    final stats = await getStats();
-    final updatedStats = stats.copyWith(
-      favoritesCount: favoritesCount,
-      // Favorites-type achievements (e.g. first_favorite, collector) are
-      // only otherwise re-checked as a side effect of a new devotional read,
-      // so without this a favorite toggle can cross a threshold and never
-      // unlock the badge until an unrelated read happens later.
-      unlockedAchievements: _updateAchievements(
-        stats,
-        stats.currentStreak,
-        stats.totalDevocionalesRead,
-        favoritesCount,
-      ),
-    );
-    await saveStats(updatedStats);
-    debugPrint('✅ [STATS] favoritesCount actualizado: $favoritesCount');
-    return updatedStats;
+    return await _lock.synchronized(() async {
+      final stats = await getStats();
+      if (stats.favoritesCount == favoritesCount) return stats;
+
+      final updatedStats = stats.copyWith(
+        favoritesCount: favoritesCount,
+        // Favorites-type achievements (e.g. first_favorite, collector) are
+        // only otherwise re-checked as a side effect of a new devotional
+        // read, so without this a favorite toggle can cross a threshold and
+        // never unlock the badge until an unrelated read happens later.
+        unlockedAchievements: _updateAchievements(
+          stats,
+          stats.currentStreak,
+          stats.totalDevocionalesRead,
+          favoritesCount,
+        ),
+      );
+      await saveStats(updatedStats);
+      debugPrint('✅ [STATS] favoritesCount actualizado: $favoritesCount');
+      return updatedStats;
+    });
   }
 
   /// Update answered prayers count in spiritual statistics
   @override
   Future<SpiritualStats> updateAnsweredPrayersCount(
       int answeredPrayersCount) async {
-    final stats = await getStats();
-    final updatedStats =
-        stats.copyWith(answeredPrayersCount: answeredPrayersCount);
-    await saveStats(updatedStats);
-    debugPrint('✅ [STATS] answeredPrayersCount updated: $answeredPrayersCount');
-    return updatedStats;
+    return await _lock.synchronized(() async {
+      final stats = await getStats();
+      final updatedStats =
+          stats.copyWith(answeredPrayersCount: answeredPrayersCount);
+      await saveStats(updatedStats);
+      debugPrint(
+          '✅ [STATS] answeredPrayersCount updated: $answeredPrayersCount');
+      return updatedStats;
+    });
+  }
+
+  /// Atomically unlocks [achievement] if not already unlocked. Used for
+  /// achievements granted directly by an external event (e.g. a supporter
+  /// purchase) rather than by a threshold check against read/streak/favorites
+  /// counts. Locked like every other mutator here so it can't race with a
+  /// concurrent stats update and silently drop someone else's unlock.
+  @override
+  Future<SpiritualStats> unlockAchievement(Achievement achievement) async {
+    return await _lock.synchronized(() async {
+      final stats = await getStats();
+      if (stats.unlockedAchievements.any((a) => a.id == achievement.id)) {
+        return stats;
+      }
+
+      final updatedAchievements = List<Achievement>.from(
+        stats.unlockedAchievements,
+      )..add(achievement.copyWith(isUnlocked: true));
+      final updatedStats = stats.copyWith(
+        unlockedAchievements: updatedAchievements,
+      );
+      await saveStats(updatedStats);
+      debugPrint('✅ [STATS] Achievement unlocked: ${achievement.id}');
+      return updatedStats;
+    });
   }
 
   Future<List<String>> _getReadDatesAsStrings() async {
@@ -614,39 +663,42 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
 
   @override
   Future<void> resetStats() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_statsKey);
-    await prefs.remove(_readDatesKey);
-    await prefs.remove(_lastReadDevocionalKey);
-    await prefs.remove(_lastReadTimeKey);
+    await _lock.synchronized(() async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_statsKey);
+      await prefs.remove(_readDatesKey);
+      await prefs.remove(_lastReadDevocionalKey);
+      await prefs.remove(_lastReadTimeKey);
 
-    // Limpiar backups
-    try {
-      final directory = await getApplicationDocumentsDirectory();
+      // Limpiar backups
+      try {
+        final directory = await getApplicationDocumentsDirectory();
 
-      // Eliminar backup manual
-      final manualBackup = File('${directory.path}/$_jsonBackupFilename');
-      if (await manualBackup.exists()) {
-        await manualBackup.delete();
+        // Eliminar backup manual
+        final manualBackup = File('${directory.path}/$_jsonBackupFilename');
+        if (await manualBackup.exists()) {
+          await manualBackup.delete();
+        }
+
+        // Eliminar auto-backups
+        final autoBackups = directory
+            .listSync()
+            .where(
+              (entity) =>
+                  entity is File &&
+                  entity.path.contains('spiritual_stats_auto_'),
+            )
+            .cast<File>();
+
+        for (final file in autoBackups) {
+          await file.delete();
+        }
+
+        debugPrint('All backups deleted');
+      } catch (e) {
+        debugPrint('Error deleting backups: $e');
       }
-
-      // Eliminar auto-backups
-      final autoBackups = directory
-          .listSync()
-          .where(
-            (entity) =>
-                entity is File && entity.path.contains('spiritual_stats_auto_'),
-          )
-          .cast<File>();
-
-      for (final file in autoBackups) {
-        await file.delete();
-      }
-
-      debugPrint('All backups deleted');
-    } catch (e) {
-      debugPrint('Error deleting backups: $e');
-    }
+    });
   }
 
   @override
@@ -664,40 +716,42 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
   /// present the streak is already covering it and a further-back date is used.
   @override
   Future<SpiritualStats> addStreakDay() async {
-    final stats = await getStats();
-    final readDates = await _getReadDates();
+    return await _lock.synchronized(() async {
+      final stats = await getStats();
+      final readDates = await _getReadDates();
 
-    final today = DateTime.now();
-    final todayOnly = DateTime(today.year, today.month, today.day);
+      final today = DateTime.now();
+      final todayOnly = DateTime(today.year, today.month, today.day);
 
-    // The day we need to add is: today - currentStreak days.
-    // If currentStreak == 0 we start with "today"; if already present we push back.
-    int daysBack = stats.currentStreak;
-    DateTime candidate = todayOnly.subtract(Duration(days: daysBack));
+      // The day we need to add is: today - currentStreak days.
+      // If currentStreak == 0 we start with "today"; if already present we push back.
+      int daysBack = stats.currentStreak;
+      DateTime candidate = todayOnly.subtract(Duration(days: daysBack));
 
-    // Make sure the candidate isn't already present (defensive).
-    while (readDates.any((d) =>
-        d.year == candidate.year &&
-        d.month == candidate.month &&
-        d.day == candidate.day)) {
-      daysBack++;
-      candidate = todayOnly.subtract(Duration(days: daysBack));
-    }
+      // Make sure the candidate isn't already present (defensive).
+      while (readDates.any((d) =>
+          d.year == candidate.year &&
+          d.month == candidate.month &&
+          d.day == candidate.day)) {
+        daysBack++;
+        candidate = todayOnly.subtract(Duration(days: daysBack));
+      }
 
-    readDates.add(candidate);
-    await _saveReadDates(readDates);
-    debugPrint(
-        '🔧 [DEBUG] addStreakDay: added $candidate (daysBack=$daysBack)');
+      readDates.add(candidate);
+      await _saveReadDates(readDates);
+      debugPrint(
+          '🔧 [DEBUG] addStreakDay: added $candidate (daysBack=$daysBack)');
 
-    final newStreak = _calculateCurrentStreak(readDates);
-    final updatedStats = stats.copyWith(
-      currentStreak: newStreak,
-      longestStreak:
-          newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
-    );
-    await saveStats(updatedStats);
-    debugPrint('🔧 [DEBUG] addStreakDay: new streak = $newStreak');
-    return updatedStats;
+      final newStreak = _calculateCurrentStreak(readDates);
+      final updatedStats = stats.copyWith(
+        currentStreak: newStreak,
+        longestStreak:
+            newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
+      );
+      await saveStats(updatedStats);
+      debugPrint('🔧 [DEBUG] addStreakDay: new streak = $newStreak');
+      return updatedStats;
+    });
   }
 
   @override
@@ -727,46 +781,48 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
   /// Restore stats from backup data
   @override
   Future<void> restoreStats(Map<String, dynamic> backupData) async {
-    try {
-      // Support multiple backup formats:
-      // 1. Merged format: 'spiritual_stats' key (from backup merge)
-      // 2. Legacy format: 'stats' key (from exportStatsAsJson)
-      // 3. Flat format: direct fields like 'totalDevocionalesRead'
-      final Map<String, dynamic>? statsData =
-          backupData.containsKey('spiritual_stats')
-              ? backupData['spiritual_stats'] as Map<String, dynamic>?
-              : backupData.containsKey('stats')
-                  ? backupData['stats'] as Map<String, dynamic>?
-                  : backupData.containsKey('totalDevocionalesRead')
-                      ? backupData
-                      : null;
+    await _lock.synchronized(() async {
+      try {
+        // Support multiple backup formats:
+        // 1. Merged format: 'spiritual_stats' key (from backup merge)
+        // 2. Legacy format: 'stats' key (from exportStatsAsJson)
+        // 3. Flat format: direct fields like 'totalDevocionalesRead'
+        final Map<String, dynamic>? statsData =
+            backupData.containsKey('spiritual_stats')
+                ? backupData['spiritual_stats'] as Map<String, dynamic>?
+                : backupData.containsKey('stats')
+                    ? backupData['stats'] as Map<String, dynamic>?
+                    : backupData.containsKey('totalDevocionalesRead')
+                        ? backupData
+                        : null;
 
-      if (statsData != null) {
-        final stats = SpiritualStats.fromJson(statsData);
-        await saveStats(stats);
-        debugPrint(
-          '[RESTORE] Restored spiritual stats: '
-          '${stats.totalDevocionalesRead} total read, '
-          '${stats.readDevocionalIds.length} IDs, '
-          'streak ${stats.currentStreak}, longest ${stats.longestStreak}',
-        );
-      } else {
-        debugPrint(
-            '[RESTORE] ⚠️ restoreStats: no recognizable stats structure found');
-      }
+        if (statsData != null) {
+          final stats = SpiritualStats.fromJson(statsData);
+          await saveStats(stats);
+          debugPrint(
+            '[RESTORE] Restored spiritual stats: '
+            '${stats.totalDevocionalesRead} total read, '
+            '${stats.readDevocionalIds.length} IDs, '
+            'streak ${stats.currentStreak}, longest ${stats.longestStreak}',
+          );
+        } else {
+          debugPrint(
+              '[RESTORE] ⚠️ restoreStats: no recognizable stats structure found');
+        }
 
-      if (backupData.containsKey('read_dates')) {
-        final readDatesData = backupData['read_dates'] as List<dynamic>;
-        final readDates = readDatesData
-            .map((dateStr) => DateTime.parse(dateStr as String))
-            .toList();
-        await _saveReadDates(readDates);
-        debugPrint(
-            '[RESTORE] Restored ${readDates.length} read dates from backup');
+        if (backupData.containsKey('read_dates')) {
+          final readDatesData = backupData['read_dates'] as List<dynamic>;
+          final readDates = readDatesData
+              .map((dateStr) => DateTime.parse(dateStr as String))
+              .toList();
+          await _saveReadDates(readDates);
+          debugPrint(
+              '[RESTORE] Restored ${readDates.length} read dates from backup');
+        }
+      } catch (e) {
+        debugPrint('[RESTORE] Error restoring stats from backup: $e');
+        rethrow;
       }
-    } catch (e) {
-      debugPrint('[RESTORE] Error restoring stats from backup: $e');
-      rethrow;
-    }
+    });
   }
 }

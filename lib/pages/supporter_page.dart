@@ -105,24 +105,16 @@ class _SupporterPageState extends State<SupporterPage>
   // ── Unlock Logic ──────────────────────────────────────────────────────────
 
   Future<void> _unlockSupporterBadge(SupporterTierLevel level) async {
-    final statsService = getService<ISpiritualStatsService>();
-    final stats = await statsService.getStats();
     final badgeId = 'supporter_${level.name}';
-
-    // Check if already unlocked
-    if (stats.unlockedAchievements.any((a) => a.id == badgeId)) return;
-
-    // Find the badge definition
     final badgeTemplate = PredefinedAchievements.supporterBadges.firstWhere(
       (a) => a.id == badgeId,
     );
 
-    final updatedAchievements = List<Achievement>.from(
-      stats.unlockedAchievements,
-    )..add(badgeTemplate.copyWith(isUnlocked: true));
-
-    await statsService.saveStats(
-      stats.copyWith(unlockedAchievements: updatedAchievements),
+    // Goes through the service's own get-modify-save cycle (locked against
+    // concurrent stats updates) instead of doing it here, which would race
+    // with any other in-flight read-modify-write on the same stats blob.
+    await getService<ISpiritualStatsService>().unlockAchievement(
+      badgeTemplate,
     );
   }
 
