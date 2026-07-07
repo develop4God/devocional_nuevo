@@ -596,8 +596,10 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
             shouldUnlock = favoritesCount >= achievement.threshold;
             break;
           case AchievementType.special:
-            // TODO: Handle this case.
-            throw UnimplementedError();
+            // Special achievements (e.g. supporter badges) are unlocked
+            // directly by their own purchase/grant flow, not by threshold
+            // checks here.
+            break;
         }
 
         if (shouldUnlock) {
