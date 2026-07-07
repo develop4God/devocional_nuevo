@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Visual variant of [AppSnackBar]. Determines background/text color.
-enum AppSnackBarType { feedback, tip }
+enum AppSnackBarType { feedback, tip, error }
 
 /// Single reusable floating snackbar style for the whole app.
 ///
@@ -23,11 +23,16 @@ class AppSnackBar {
     SnackBarAction? action,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final backgroundColor = type == AppSnackBarType.tip
-        ? colorScheme.primary
-        : colorScheme.secondary;
-    final foregroundColor =
-        type == AppSnackBarType.tip ? Colors.white : colorScheme.onSecondary;
+    final backgroundColor = switch (type) {
+      AppSnackBarType.tip => colorScheme.primary,
+      AppSnackBarType.error => colorScheme.error,
+      AppSnackBarType.feedback => colorScheme.secondary,
+    };
+    final foregroundColor = switch (type) {
+      AppSnackBarType.tip => Colors.white,
+      AppSnackBarType.error => colorScheme.onError,
+      AppSnackBarType.feedback => colorScheme.onSecondary,
+    };
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

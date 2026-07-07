@@ -6,6 +6,7 @@ import 'dart:developer' as developer;
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -89,9 +90,7 @@ class _ContactPageState extends State<ContactPage> {
           });
         }
       } else {
-        _showErrorSnackBar(
-          'No se pudo abrir el cliente de correo. Por favor, envía un correo manualmente a develop4god@gmail.com',
-        );
+        _showErrorSnackBar('about.link_error'.tr());
       }
     } catch (e) {
       developer.log(
@@ -99,27 +98,17 @@ class _ContactPageState extends State<ContactPage> {
         error: e,
         name: 'EmailLaunch',
       );
-      _showErrorSnackBar(
-        'Error al abrir el cliente de correo: ${e.toString()}',
-      );
+      _showErrorSnackBar('about.link_error'.tr());
     }
   }
 
   void _showValidationError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    AppSnackBar.show(context, message, type: AppSnackBarType.error);
   }
 
   void _showErrorSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red),
-      );
+      AppSnackBar.show(context, message, type: AppSnackBarType.error);
     }
   }
 
@@ -348,7 +337,7 @@ class _ContactPageState extends State<ContactPage> {
                   if (await canLaunchUrl(emailUri)) {
                     await launchUrl(emailUri);
                   } else {
-                    _showErrorSnackBar('No se pudo abrir el cliente de correo');
+                    _showErrorSnackBar('about.link_error'.tr());
                   }
                 },
               ),
@@ -368,7 +357,7 @@ class _ContactPageState extends State<ContactPage> {
                       mode: LaunchMode.externalApplication,
                     );
                   } else {
-                    _showErrorSnackBar('No se pudo abrir el navegador');
+                    _showErrorSnackBar('about.link_error'.tr());
                   }
                 },
               ),
