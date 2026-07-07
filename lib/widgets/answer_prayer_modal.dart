@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_event.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -217,12 +218,10 @@ class _AnswerPrayerModalState extends State<AnswerPrayerModal> {
 
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('prayer.prayer_marked_answered'.tr()),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppSnackBar.show(
+          context,
+          'prayer.prayer_marked_answered'.tr(),
+          type: AppSnackBarType.tip,
         );
       }
     } catch (e) {
@@ -230,12 +229,10 @@ class _AnswerPrayerModalState extends State<AnswerPrayerModal> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al marcar la oración como respondida'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppSnackBar.show(
+          context,
+          'prayer.prayer_update_error'.tr(),
+          type: AppSnackBarType.error,
         );
       }
     }

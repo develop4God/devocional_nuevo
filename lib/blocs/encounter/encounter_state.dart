@@ -1,5 +1,6 @@
 // lib/blocs/encounter/encounter_state.dart
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:equatable/equatable.dart';
@@ -81,4 +82,9 @@ class EncounterLoaded extends EncounterState with Equatable {
 class EncounterError extends EncounterState {
   final String message;
   EncounterError(this.message);
+
+  /// [message] is always left empty by the bloc (never a raw exception),
+  /// so this always resolves to the localized generic error -- mirroring
+  /// BackupError.localizedMessage / DiscoveryError.localizedMessage.
+  String get localizedMessage => 'encounters.error_load'.tr();
 }

@@ -109,7 +109,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('❌ [BLOC] Error toggling auto backup: $e');
-      emit(BackupError('Error updating auto backup: ${e.toString()}'));
+      emit(BackupError('Error updating auto backup: ${e.toString()}',
+          isRawText: true));
     }
 
     debugPrint('🏁 [BLOC] === END ToggleAutoBackup ===');
@@ -153,7 +154,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('❌ [BLOC] Error changing backup frequency: $e');
-      emit(BackupError('Error changing backup frequency: ${e.toString()}'));
+      emit(BackupError('Error changing backup frequency: ${e.toString()}',
+          isRawText: true));
     }
 
     debugPrint('🏁 [BLOC] === END ChangeBackupFrequency ===');
@@ -177,7 +179,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('❌ [BLOC] Error toggling WiFi only: $e');
-      emit(BackupError('Error updating WiFi-only setting: ${e.toString()}'));
+      emit(BackupError('Error updating WiFi-only setting: ${e.toString()}',
+          isRawText: true));
     }
 
     debugPrint('🏁 [BLOC] === END ToggleWifiOnly ===');
@@ -199,7 +202,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('Error toggling compression: $e');
-      emit(BackupError('Error updating compression setting: ${e.toString()}'));
+      emit(BackupError('Error updating compression setting: ${e.toString()}',
+          isRawText: true));
     }
   }
 
@@ -228,7 +232,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('Error updating backup options: $e');
-      emit(BackupError('Error updating backup options: ${e.toString()}'));
+      emit(BackupError('Error updating backup options: ${e.toString()}',
+          isRawText: true));
     }
   }
 
@@ -255,11 +260,12 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         debugPrint('🔄 [BLOC] Reloading settings to refresh times');
       } else {
         debugPrint('❌ [BLOC] Manual backup failed');
-        emit(const BackupError('Failed to create backup'));
+        emit(const BackupError('Failed to create backup', isRawText: true));
       }
     } catch (e) {
       debugPrint('❌ [BLOC] Error creating manual backup: $e');
-      emit(BackupError('Error creating backup: ${e.toString()}'));
+      emit(BackupError('Error creating backup: ${e.toString()}',
+          isRawText: true));
     }
 
     debugPrint('🏁 [BLOC] === END CreateManualBackup ===');
@@ -323,7 +329,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       debugPrint('✅ [BLOC] BackupLoaded emitted successfully');
     } catch (e) {
       debugPrint('❌ [BLOC] Error $errorLabel: $e');
-      emit(BackupError('Error $errorLabel: ${e.toString()}'));
+      emit(BackupError('Error $errorLabel: ${e.toString()}', isRawText: true));
     }
   }
 
@@ -475,7 +481,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       add(const LoadBackupSettings());
     } catch (e) {
       debugPrint('❌ [BLOC] Error signing out from Google Drive: $e');
-      emit(BackupError('Error signing out: ${e.toString()}'));
+      emit(BackupError('Error signing out: ${e.toString()}', isRawText: true));
     }
 
     debugPrint('🏁 [BLOC] === END SignOutFromGoogleDrive ===');

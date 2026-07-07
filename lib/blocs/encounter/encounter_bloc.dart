@@ -63,7 +63,11 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
       _preloadFirstEncounterImages(index, event.languageCode ?? 'es');
     } catch (e) {
       debugPrint('❌ [EncounterBloc] Error loading index: $e');
-      emit(EncounterError('Error loading encounters: $e'));
+      // Leave the message empty rather than surfacing the raw exception
+      // (e.g. "TimeoutException after 0:00:10.000000: Future not
+      // completed") to the user — EncountersListPage falls back to the
+      // localized 'encounters.error_load' string when message is empty.
+      emit(EncounterError(''));
     }
   }
 
@@ -194,9 +198,15 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
       debugPrint('❌ [EncounterBloc] Error loading study ${event.id}: $e');
       final newState = state;
       if (newState is EncounterLoaded) {
+        // errorMessage is only ever read as a boolean flag (never displayed
+        // raw), so the exact text here doesn't reach the user.
         emit(newState.copyWith(errorMessage: 'Error loading encounter: $e'));
       } else {
-        emit(EncounterError('Error loading encounter: $e'));
+        // Leave empty rather than surfacing the raw exception -- same fix
+        // as _onLoadEncounterIndex's catch block. EncounterBloc is a single
+        // shared instance, so this state can surface on EncountersListPage,
+        // which falls back to the localized 'encounters.error_load' string.
+        emit(EncounterError(''));
       }
     }
   }

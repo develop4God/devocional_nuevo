@@ -174,71 +174,89 @@ class _VisualHeader extends StatelessWidget {
     final base = moodColor(mood);
     final isLandscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
-    final headerHeight = isLandscape ? 120.0 : 240.0;
-    return Container(
-      height: headerHeight,
-      width: double.infinity,
-      decoration: BoxDecoration(color: base),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (imageUrl != null &&
-              imageUrl!.isNotEmpty &&
-              encounterId != null &&
-              imageVersion != null)
-            EncounterImageWidget(
-              baseFilename: imageUrl!,
-              encounterId: encounterId!,
-              imageVersion: imageVersion!,
-              fit: BoxFit.cover,
-              fallbackColor: base,
-            )
-          else if (imageUrl != null && imageUrl!.isNotEmpty)
-            CachedNetworkImage(
-              imageUrl: imageUrl!,
-              fit: BoxFit.cover,
-              fadeInDuration: Duration.zero,
-              fadeOutDuration: Duration.zero,
-              placeholder: (_, __) => Shimmer.fromColors(
-                baseColor: base,
-                highlightColor:
-                    Color.lerp(base, const Color(0xFF4a6080), 0.35) ?? base,
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  color: Colors.white,
-                ),
-              ),
-              errorWidget: (_, __, ___) => Container(color: base),
-            ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.2),
-                  base.withValues(alpha: 0.8),
-                ],
-              ),
-            ),
-          ),
-          if (icon != null)
-            Center(
-              child: _DelayedEntry(
-                delay: const Duration(milliseconds: 200),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
+    // Fixed pixel heights (120/240) were tuned for one phone width. The card
+    // has no max-width, so on a tablet the same height stretches across a
+    // much wider box -- BoxFit.cover then has to crop far more aggressively,
+    // cutting into the top of the image. Deriving the height from an aspect
+    // ratio against the actual available width keeps the crop proportional
+    // on any screen size instead of a hardcoded pixel value. The clamp is
+    // only a sanity floor/ceiling (never crush the header on a tiny window,
+    // never let it dominate a very wide one) -- not the primary sizing.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final targetAspectRatio = isLandscape ? 16 / 6 : 16 / 9;
+        final screenHeight = MediaQuery.sizeOf(context).height;
+        final headerHeight = (constraints.maxWidth / targetAspectRatio).clamp(
+          150.0,
+          screenHeight * (isLandscape ? 0.35 : 0.45),
+        );
+        return Container(
+          key: const ValueKey('encounter_visual_header'),
+          height: headerHeight,
+          width: double.infinity,
+          decoration: BoxDecoration(color: base),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (imageUrl != null &&
+                  imageUrl!.isNotEmpty &&
+                  encounterId != null &&
+                  imageVersion != null)
+                EncounterImageWidget(
+                  baseFilename: imageUrl!,
+                  encounterId: encounterId!,
+                  imageVersion: imageVersion!,
+                  fit: BoxFit.cover,
+                  fallbackColor: base,
+                )
+              else if (imageUrl != null && imageUrl!.isNotEmpty)
+                CachedNetworkImage(
+                  imageUrl: imageUrl!,
+                  fit: BoxFit.cover,
+                  fadeInDuration: Duration.zero,
+                  fadeOutDuration: Duration.zero,
+                  placeholder: (_, __) => Shimmer.fromColors(
+                    baseColor: base,
+                    highlightColor:
+                        Color.lerp(base, const Color(0xFF4a6080), 0.35) ?? base,
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: Colors.white,
+                    ),
                   ),
-                  child: Text(icon!, style: const TextStyle(fontSize: 48)),
+                  errorWidget: (_, __, ___) => Container(color: base),
+                ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.2),
+                      base.withValues(alpha: 0.8),
+                    ],
+                  ),
                 ),
               ),
-            ),
-        ],
-      ),
+              if (icon != null)
+                Center(
+                  child: _DelayedEntry(
+                    delay: const Duration(milliseconds: 200),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(icon!, style: const TextStyle(fontSize: 48)),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

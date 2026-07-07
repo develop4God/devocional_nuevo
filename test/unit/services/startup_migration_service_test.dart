@@ -192,6 +192,10 @@ class _FakeStatsService implements ISpiritualStatsService {
   Future<void> bulkMarkAsRead(List<String> ids) async {
     markedAsRead.addAll(ids);
   }
+
+  @override
+  Future<SpiritualStats> unlockAchievement(Achievement achievement) async =>
+      SpiritualStats();
 }
 
 // ── Helper ───────────────────────────────────────────────────────────────────

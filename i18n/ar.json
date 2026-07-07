@@ -378,7 +378,7 @@
     "app_name": "تأملات مسيحية",
     "version": "الإصدار",
     "loading_version": "جارٍ التحميل...",
-    "description": "تأملات مسيحية يجلب الإلهام اليومي مباشرةً إلى هاتفك. استمتع برسائل كتابية مُحدَّثة، واستكشف، واحفظ مفضلاتك، وشارك الكلمة، وخصّص تجربة قراءتك.",
+    "description": "تأملات مسيحية يجلب الإلهام اليومي مباشرةً إلى هاتفك.",
     "main_features": "الميزات الرئيسية:",
     "feature_daily": "• تأملات يومية",
     "feature_multiversion": "• دعم إصدارات متعددة",
@@ -390,7 +390,10 @@
     "feature_notifications": "• خيارات الإشعارات",
     "developed_by": "تم التطوير بـ ❤️ بواسطة Develop4God",
     "terms_copyright": "الشروط والأحكام / حقوق النشر",
-    "link_error": "تعذّر فتح الرابط."
+    "link_error": "تعذّر فتح الرابط.",
+    "more_from_developer": "أيضًا من ديفيلوب4جود",
+    "habitus_faith_tagline": "ابنِ عادات صحية، بهدف وإيمان",
+    "view_app": "عرض"
   },
   "stats": {
     "title": "الإحصائيات الروحية",
@@ -720,7 +723,8 @@
     "no_thanksgivings_description": "أنشئ شكرك الأول للتعبير عن امتنانك لله.",
     "days_old_single": "({days} يوم)",
     "days_old_plural": "({days} أيام)",
-    "thankful_for": "أنا شاكر على:"
+    "thankful_for": "أنا شاكر على:",
+    "thanksgiving_update_error": "خطأ في تحديث الشكر"
   },
   "discovery": {
     "discovery_studies": "دراسات كتابية",
@@ -849,7 +853,8 @@
     "no_testimonies_description": "أنشئ شهادتك الأولى لمشاركة كيف عمل الله في حياتك.",
     "days_old_single": "({days} يوم)",
     "days_old_plural": "({days} أيام)",
-    "my_testimony": "شهادتي:"
+    "my_testimony": "شهادتي:",
+    "testimony_update_error": "خطأ في تحديث الشهادة"
   },
   "supporter": {
     "page_title": "ادعم خدمة Develop4God",

@@ -1,6 +1,7 @@
 // lib/blocs/backup_state.dart
 import 'package:equatable/equatable.dart';
 
+import '../extensions/string_extensions.dart';
 import '../models/backup_content_summary.dart';
 
 /// States for Google Drive backup functionality
@@ -134,7 +135,20 @@ class BackupRestored extends BackupState {
 class BackupError extends BackupState {
   final String message;
 
-  const BackupError(this.message);
+  /// True when [message] is raw text (an interpolated exception, or a
+  /// hardcoded literal) that must never be shown to the user verbatim.
+  /// False (default) means [message] is a real translation key, safe to
+  /// resolve via .tr(). Not part of [props] -- it's a display hint tied to
+  /// how [message] was constructed at the call site, not part of the
+  /// error's identity for equality purposes.
+  final bool isRawText;
+
+  const BackupError(this.message, {this.isRawText = false});
+
+  /// Resolves [message] for display: a real key through .tr(), raw text
+  /// through the generic localized error instead of showing it verbatim.
+  String get localizedMessage =>
+      isRawText ? 'backup.error_generic'.tr() : message.tr();
 
   @override
   List<Object?> get props => [message];
