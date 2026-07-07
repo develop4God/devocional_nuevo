@@ -60,6 +60,7 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
       context,
       listen: false,
     );
+    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     // Show blocking loading dialog
@@ -98,20 +99,31 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
         Navigator.of(context).pop();
 
         final error = devocionalProvider.errorMessage;
-        AppSnackBar.show(
-          context,
-          error ?? 'settings.version_changed'.tr(),
-          type: error != null ? AppSnackBarType.feedback : AppSnackBarType.tip,
-        );
+        if (error != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error.tr()),
+              backgroundColor: colorScheme.error,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        } else {
+          AppSnackBar.show(
+            context,
+            'settings.version_changed'.tr(),
+            type: AppSnackBarType.tip,
+          );
+        }
       }
     } catch (e) {
       debugPrint('Error switching version: $e');
       if (context.mounted) {
         Navigator.of(context).pop(); // Close dialog if still open
-        AppSnackBar.show(
-          context,
-          'errors.unknown_error'.tr(),
-          type: AppSnackBarType.feedback,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('errors.unknown_error'.tr()),
+            backgroundColor: colorScheme.error,
+          ),
         );
       }
     }
@@ -266,15 +278,25 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                                 // Show snackbar on the parent scaffold
                                 if (parentContext.mounted) {
                                   try {
-                                    AppSnackBar.show(
-                                      parentContext,
-                                      success
-                                          ? 'drawer.download_success'.tr()
-                                          : 'drawer.download_error'.tr(),
-                                      type: success
-                                          ? AppSnackBarType.tip
-                                          : AppSnackBarType.feedback,
-                                    );
+                                    if (success) {
+                                      AppSnackBar.show(
+                                        parentContext,
+                                        'drawer.download_success'.tr(),
+                                        type: AppSnackBarType.tip,
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(
+                                        parentContext,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'drawer.download_error'.tr(),
+                                          ),
+                                          backgroundColor: colorScheme.error,
+                                          duration: const Duration(seconds: 4),
+                                        ),
+                                      );
+                                    }
                                   } catch (_) {
                                     // If parent context no longer has a ScaffoldMessenger, ignore.
                                   }
