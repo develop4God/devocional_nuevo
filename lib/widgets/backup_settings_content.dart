@@ -54,7 +54,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message.tr()),
+              content: Text(state.localizedMessage),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -614,7 +614,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
           Text('backup.error_loading'.tr(), style: theme.textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
-            state.message.tr(),
+            state.localizedMessage,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),

@@ -1,6 +1,7 @@
 // lib/blocs/backup_state.dart
 import 'package:equatable/equatable.dart';
 
+import '../extensions/string_extensions.dart';
 import '../models/backup_content_summary.dart';
 
 /// States for Google Drive backup functionality
@@ -135,6 +136,16 @@ class BackupError extends BackupState {
   final String message;
 
   const BackupError(this.message);
+
+  /// Resolves [message] as a translation key when possible. Some call sites
+  /// pass a real key (e.g. 'backup.restore_failed'); others interpolate a
+  /// raw exception, which isn't a valid key -- `.tr()` returns it unchanged
+  /// in that case, so fall back to a generic localized error instead of
+  /// showing that raw text to the user.
+  String get localizedMessage {
+    final translated = message.tr();
+    return translated != message ? translated : 'backup.error_generic'.tr();
+  }
 
   @override
   List<Object?> get props => [message];
