@@ -10,7 +10,6 @@ import 'package:devocional_nuevo/pages/onboarding/onboarding_complete_page.dart'
 import 'package:devocional_nuevo/pages/onboarding/onboarding_theme_selection_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_welcome_page.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -103,22 +102,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           size: 48,
         ),
         title: Text('onboarding.onboarding_error_title'.tr()),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(error.message.tr()),
-            // Raw error context is developer diagnostic info, not fit for
-            // end users -- only show it in debug builds.
-            if (kDebugMode && error.errorContext?.isNotEmpty == true) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Details: ${error.errorContext}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ],
-        ),
+        content: Text(error.message.tr()),
         actions: [
           TextButton(
             onPressed: () {

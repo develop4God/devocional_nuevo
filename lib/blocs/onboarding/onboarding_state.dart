@@ -112,14 +112,12 @@ class OnboardingError extends OnboardingState {
   /// resolved via .tr() at display time -- never raw display text.
   final String message;
   final OnboardingErrorCategory category;
-  final Map<String, dynamic>? errorContext;
 
   const OnboardingError({
     required this.message,
     required this.category,
-    this.errorContext,
   });
 
   @override
-  List<Object?> get props => [message, category, errorContext];
+  List<Object?> get props => [message, category];
 }
