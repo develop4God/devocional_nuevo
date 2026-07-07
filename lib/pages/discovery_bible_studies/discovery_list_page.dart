@@ -174,7 +174,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (state is DiscoveryError) {
-                  return _buildErrorState(context, state.message);
+                  return _buildErrorState(context);
                 }
                 if (state is DiscoveryLoaded) {
                   // Requirement #2: Auto-reorder - completed studies to the end
@@ -438,7 +438,10 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     );
   }
 
-  Widget _buildErrorState(BuildContext context, String message) {
+  // Bloc state carries the raw exception in `message` (useful for bloc-level
+  // tests), but that's never fit to show a user — always show the localized
+  // generic error instead of rendering it.
+  Widget _buildErrorState(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -448,7 +451,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
             Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
-              message,
+              'discovery.discovery_load_error'.tr(),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
