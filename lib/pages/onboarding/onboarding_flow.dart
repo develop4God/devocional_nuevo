@@ -4,11 +4,13 @@ import 'package:devocional_nuevo/blocs/onboarding/onboarding_event.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_models.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_backup_configuration_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_complete_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_theme_selection_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_welcome_page.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -100,13 +102,15 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           color: Theme.of(context).colorScheme.error,
           size: 48,
         ),
-        title: const Text('Onboarding Error'),
+        title: Text('onboarding.onboarding_error_title'.tr()),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(error.message),
-            if (error.errorContext?.isNotEmpty == true) ...[
+            Text(error.message.tr()),
+            // Raw error context is developer diagnostic info, not fit for
+            // end users -- only show it in debug builds.
+            if (kDebugMode && error.errorContext?.isNotEmpty == true) ...[
               const SizedBox(height: 8),
               Text(
                 'Details: ${error.errorContext}',
@@ -123,7 +127,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                 _onboardingBloc.add(const InitializeOnboarding());
               }
             },
-            child: const Text('Retry'),
+            child: Text('onboarding.onboarding_retry'.tr()),
           ),
           TextButton(
             onPressed: () {
@@ -132,7 +136,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                 widget.onComplete(); // Skip onboarding on persistent errors
               }
             },
-            child: const Text('Skip'),
+            child: Text('onboarding.onboarding_skip'.tr()),
           ),
         ],
       ),
@@ -185,12 +189,12 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Error loading onboarding',
+                      'onboarding.onboarding_error_title'.tr(),
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      state.message,
+                      state.message.tr(),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
@@ -199,7 +203,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                       onPressed: () {
                         _onboardingBloc.add(const InitializeOnboarding());
                       },
-                      child: const Text('Retry'),
+                      child: Text('onboarding.onboarding_retry'.tr()),
                     ),
                   ],
                 ),

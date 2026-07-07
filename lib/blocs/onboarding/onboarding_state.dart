@@ -108,6 +108,8 @@ class OnboardingCompleted extends OnboardingState {
 
 /// Error state with descriptive messages
 class OnboardingError extends OnboardingState {
+  /// A translation key (e.g. 'onboarding.onboarding_error_loading'),
+  /// resolved via .tr() at display time -- never raw display text.
   final String message;
   final OnboardingErrorCategory category;
   final Map<String, dynamic>? errorContext;
