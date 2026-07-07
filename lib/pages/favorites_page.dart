@@ -245,10 +245,7 @@ class _FavoritesPageState extends State<FavoritesPage>
               color: theme.colorScheme.error,
             ),
             title: 'discovery.error'.tr(),
-            // state.message carries the raw exception (kept for bloc-level
-            // tests) -- never fit to show a user, so always show the
-            // localized generic error instead.
-            message: 'discovery.discovery_load_error'.tr(),
+            message: state.localizedMessage,
           );
         }
 

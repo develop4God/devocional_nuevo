@@ -119,10 +119,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             }
 
             if (state is DiscoveryError) {
-              // state.message carries the raw exception (kept for bloc-level
-              // tests) -- never fit to show a user, so always show the
-              // localized generic error instead.
-              return Center(child: Text('discovery.discovery_load_error'.tr()));
+              return Center(child: Text(state.localizedMessage));
             }
 
             if (state is DiscoveryLoaded) {

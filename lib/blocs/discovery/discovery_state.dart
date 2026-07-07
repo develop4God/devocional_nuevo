@@ -1,5 +1,6 @@
 // lib/blocs/discovery/discovery_state.dart
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:equatable/equatable.dart';
 
@@ -113,4 +114,9 @@ class DiscoveryStudyLoading extends DiscoveryState {
 class DiscoveryError extends DiscoveryState {
   final String message;
   DiscoveryError(this.message);
+
+  /// [message] always carries a raw exception (kept as-is because bloc-level
+  /// tests assert on it), never fit to show a user -- always resolve to the
+  /// localized generic error instead, mirroring BackupError.localizedMessage.
+  String get localizedMessage => 'discovery.discovery_load_error'.tr();
 }
