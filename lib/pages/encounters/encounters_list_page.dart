@@ -168,7 +168,7 @@ class _EncountersListPageState extends State<EncountersListPage>
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (state is EncounterError) {
-                    return _buildError(state.message);
+                    return _buildError(state.localizedMessage);
                   }
                   if (state is EncounterLoaded) {
                     if (state.index.isEmpty) return _buildEmpty();
@@ -426,7 +426,7 @@ class _EncountersListPageState extends State<EncountersListPage>
           const Icon(Icons.error_outline, size: 64, color: Colors.red),
           const SizedBox(height: 16),
           Text(
-            message.isNotEmpty ? message : 'encounters.error_load'.tr(),
+            message,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
