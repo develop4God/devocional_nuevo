@@ -2,8 +2,10 @@ import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
+import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/copyable_verse_card.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.dart';
@@ -71,9 +73,7 @@ class DevocionalesContentWidget extends StatelessWidget {
                   return PetHeroSection(
                     formattedDate: getLocalizedDateFormat(context),
                     showPetHint: false,
-                    onTap: () {
-                      // Optional: navigate to selection or do nothing
-                    },
+                    onTap: () => AppNavigationShell.selectTab(AppTab.settings),
                     selectedPet: petService.selectedPet,
                     selectedTheme: (
                       colors: [colorScheme.primary, colorScheme.tertiary],

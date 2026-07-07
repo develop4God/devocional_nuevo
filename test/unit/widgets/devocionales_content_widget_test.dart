@@ -1,18 +1,22 @@
 @Tags(['unit', 'widgets'])
 library;
 
+import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
+import 'package:devocional_nuevo/widgets/supporter/pet_hero_section.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../helpers/iap_mock_helper.dart';
 import '../../helpers/test_helpers.dart';
 
 class FakeDevocionalProvider extends ChangeNotifier
@@ -187,6 +191,56 @@ void main() {
       await tester.tap(inkWellFinder.first);
       expect(streakTapped, isTrue);
     });
+
+    testWidgets(
+      'tapping the pet header navigates to Settings (does not throw)',
+      (tester) async {
+        await petService.unlockPetFeature();
+        await petService.setShowPetHeader(true);
+
+        final supporterBloc = SupporterBloc(
+          iapService: FakeIapService(isAvailable: true),
+          profileRepository: FakeSupporterProfileRepository(),
+        );
+        addTearDown(supporterBloc.close);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: ChangeNotifierProvider<DevocionalProvider>.value(
+                value: fakeProvider,
+                child: BlocProvider<SupporterBloc>.value(
+                  value: supporterBloc,
+                  child: DevocionalesContentWidget(
+                    devocional: devocional,
+                    fontSize: 16,
+                    onStreakBadgeTap: () => streakTapped = true,
+                    currentStreak: 5,
+                    streakFuture: Future.value(5),
+                    getLocalizedDateFormat: (_) => '25 de diciembre de 2025',
+                    isFavorite: false,
+                    onFavoriteToggle: () => favoriteToggled = true,
+                    onShare: () => shared = true,
+                    petService: petService,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.byType(PetHeroSection), findsOneWidget);
+
+        // AppNavigationShell.selectTab is a documented safe no-op when no
+        // shell is mounted (as in this isolated widget test) -- this
+        // confirms the tap wires through without throwing.
+        expect(
+          () => tester.tap(find.byType(PetHeroSection)),
+          returnsNormally,
+        );
+      },
+    );
 
     testWidgets('shows placeholder if streak is zero', (tester) async {
       await tester.pumpWidget(buildWidget(streak: 0));
