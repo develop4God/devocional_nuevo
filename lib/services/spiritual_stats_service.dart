@@ -70,9 +70,8 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
 
         final updatedStats = stats.copyWith(
           currentStreak: newStreak,
-          longestStreak: newStreak > stats.longestStreak
-              ? newStreak
-              : stats.longestStreak,
+          longestStreak:
+              newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
           lastActivityDate: today,
         );
 
@@ -392,45 +391,61 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
     }
   }
 
-  /// Actualiza el número de favoritos en las estadísticas espirituales
-  @override
-  Future<SpiritualStats> updateFavoritesCount(int favoritesCount) async {
+  /// Runs [mutator] against the current stats under the shared lock and
+  /// persists the result. [mutator] returns null to signal "nothing to
+  /// change", which skips the save entirely -- shared by the simple
+  /// get-modify-save mutators below (recordDevocionalCompletado and the
+  /// other methods with more unique per-step logic stay as their own
+  /// _lock.synchronized blocks).
+  Future<SpiritualStats> _mutate(
+    SpiritualStats? Function(SpiritualStats current) mutator,
+    String Function(SpiritualStats updated) logMessage,
+  ) async {
     return await _lock.synchronized(() async {
       final stats = await getStats();
-      if (stats.favoritesCount == favoritesCount) return stats;
+      final updatedStats = mutator(stats);
+      if (updatedStats == null) return stats;
 
-      final updatedStats = stats.copyWith(
-        favoritesCount: favoritesCount,
-        // Favorites-type achievements (e.g. first_favorite, collector) are
-        // only otherwise re-checked as a side effect of a new devotional
-        // read, so without this a favorite toggle can cross a threshold and
-        // never unlock the badge until an unrelated read happens later.
-        unlockedAchievements: _updateAchievements(
-          stats,
-          stats.currentStreak,
-          stats.totalDevocionalesRead,
-          favoritesCount,
-        ),
-      );
       await saveStats(updatedStats);
-      debugPrint('✅ [STATS] favoritesCount actualizado: $favoritesCount');
+      debugPrint(logMessage(updatedStats));
       return updatedStats;
     });
+  }
+
+  /// Actualiza el número de favoritos en las estadísticas espirituales
+  @override
+  Future<SpiritualStats> updateFavoritesCount(int favoritesCount) {
+    return _mutate(
+      (stats) {
+        if (stats.favoritesCount == favoritesCount) return null;
+        return stats.copyWith(
+          favoritesCount: favoritesCount,
+          // Favorites-type achievements (e.g. first_favorite, collector) are
+          // only otherwise re-checked as a side effect of a new devotional
+          // read, so without this a favorite toggle can cross a threshold
+          // and never unlock the badge until an unrelated read happens
+          // later.
+          unlockedAchievements: _updateAchievements(
+            stats,
+            stats.currentStreak,
+            stats.totalDevocionalesRead,
+            favoritesCount,
+          ),
+        );
+      },
+      (_) => '✅ [STATS] favoritesCount actualizado: $favoritesCount',
+    );
   }
 
   /// Update answered prayers count in spiritual statistics
   @override
   Future<SpiritualStats> updateAnsweredPrayersCount(
-      int answeredPrayersCount) async {
-    return await _lock.synchronized(() async {
-      final stats = await getStats();
-      final updatedStats =
-          stats.copyWith(answeredPrayersCount: answeredPrayersCount);
-      await saveStats(updatedStats);
-      debugPrint(
-          '✅ [STATS] answeredPrayersCount updated: $answeredPrayersCount');
-      return updatedStats;
-    });
+    int answeredPrayersCount,
+  ) {
+    return _mutate(
+      (stats) => stats.copyWith(answeredPrayersCount: answeredPrayersCount),
+      (_) => '✅ [STATS] answeredPrayersCount updated: $answeredPrayersCount',
+    );
   }
 
   /// Atomically unlocks [achievement] if not already unlocked. Used for
@@ -439,23 +454,19 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
   /// counts. Locked like every other mutator here so it can't race with a
   /// concurrent stats update and silently drop someone else's unlock.
   @override
-  Future<SpiritualStats> unlockAchievement(Achievement achievement) async {
-    return await _lock.synchronized(() async {
-      final stats = await getStats();
-      if (stats.unlockedAchievements.any((a) => a.id == achievement.id)) {
-        return stats;
-      }
-
-      final updatedAchievements = List<Achievement>.from(
-        stats.unlockedAchievements,
-      )..add(achievement.copyWith(isUnlocked: true));
-      final updatedStats = stats.copyWith(
-        unlockedAchievements: updatedAchievements,
-      );
-      await saveStats(updatedStats);
-      debugPrint('✅ [STATS] Achievement unlocked: ${achievement.id}');
-      return updatedStats;
-    });
+  Future<SpiritualStats> unlockAchievement(Achievement achievement) {
+    return _mutate(
+      (stats) {
+        if (stats.unlockedAchievements.any((a) => a.id == achievement.id)) {
+          return null;
+        }
+        final updatedAchievements = List<Achievement>.from(
+          stats.unlockedAchievements,
+        )..add(achievement.copyWith(isUnlocked: true));
+        return stats.copyWith(unlockedAchievements: updatedAchievements);
+      },
+      (_) => '✅ [STATS] Achievement unlocked: ${achievement.id}',
+    );
   }
 
   Future<List<String>> _getReadDatesAsStrings() async {
@@ -522,27 +533,31 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
 
   @override
   Future<bool> importStatsFromJson(String jsonString) async {
-    try {
-      final importData = json.decode(jsonString);
+    return await _lock.synchronized(() async {
+      try {
+        final importData = json.decode(jsonString);
 
-      if (importData['stats'] == null) {
-        debugPrint('Invalid JSON format: no stats found');
+        if (importData['stats'] == null) {
+          debugPrint('Invalid JSON format: no stats found');
+          return false;
+        }
+
+        final stats = SpiritualStats.fromJson(importData['stats']);
+        await saveStats(stats);
+
+        if (importData['read_dates'] != null) {
+          await _restoreReadDates(
+            List<String>.from(importData['read_dates']),
+          );
+        }
+
+        debugPrint('Successfully imported stats from JSON');
+        return true;
+      } catch (e) {
+        debugPrint('Error importing stats from JSON: $e');
         return false;
       }
-
-      final stats = SpiritualStats.fromJson(importData['stats']);
-      await saveStats(stats);
-
-      if (importData['read_dates'] != null) {
-        await _restoreReadDates(List<String>.from(importData['read_dates']));
-      }
-
-      debugPrint('Successfully imported stats from JSON');
-      return true;
-    } catch (e) {
-      debugPrint('Error importing stats from JSON: $e');
-      return false;
-    }
+    });
   }
 
   @override
