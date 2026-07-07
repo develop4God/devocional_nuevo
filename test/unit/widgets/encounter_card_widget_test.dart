@@ -377,6 +377,62 @@ void main() {
     expect(find.text('TEST TITLE'), findsOneWidget); // Title is uppercased
   });
 
+  // ── Test: visual header height scales with screen width ─────────────────────
+  //
+  // Regression test: the header's height used to be a fixed pixel constant
+  // (120 landscape / 240 portrait) regardless of screen width. On a tablet,
+  // the same fixed height stretched across a much wider box, so BoxFit.cover
+  // had to crop the image far more aggressively -- cutting into the top of
+  // the artwork. The height must now scale with the available width instead
+  // of staying flat across very different screen sizes.
+
+  testWidgets(
+    'CinematicSceneCard visual header is taller on a wider (tablet) screen '
+    'than on a narrower (phone) screen',
+    (tester) async {
+      const card = EncounterCard(
+        order: 1,
+        type: 'cinematic_scene',
+        title: 'Test Title',
+      );
+
+      Future<double> pumpAndMeasureHeaderHeight(Size physicalSize) async {
+        tester.view.physicalSize = physicalSize;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(body: CinematicSceneCard(card: card)),
+          ),
+        );
+        await tester.pump();
+
+        // _VisualHeader's Container carries a ValueKey specifically so tests
+        // can target its rendered height directly -- BoxFit.cover has to
+        // crop the image into whatever height this resolves to.
+        return tester
+            .getSize(find.byKey(const ValueKey('encounter_visual_header')))
+            .height;
+      }
+
+      final phoneHeaderHeight = await pumpAndMeasureHeaderHeight(
+        const Size(390, 844), // typical phone portrait
+      );
+      final tabletHeaderHeight = await pumpAndMeasureHeaderHeight(
+        const Size(1024, 1366), // typical tablet portrait
+      );
+
+      expect(
+        tabletHeaderHeight,
+        greaterThan(phoneHeaderHeight),
+        reason: 'Header height must scale up with the wider tablet viewport, '
+            'not stay a fixed pixel value shared with the phone width.',
+      );
+    },
+  );
+
   // ── Test 2: CompletionCard back button calls onBackToEncounters ─────────────
 
   testWidgets('CompletionCard back button calls onBackToEncounters', (
