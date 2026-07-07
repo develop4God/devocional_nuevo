@@ -53,7 +53,7 @@ class _OnboardingBackupConfigurationPageState
           if (state is BackupError && !_isNavigating) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message.tr()),
+                content: Text(state.localizedMessage),
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
             );
