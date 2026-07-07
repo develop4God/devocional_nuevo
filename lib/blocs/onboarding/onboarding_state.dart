@@ -111,13 +111,9 @@ class OnboardingError extends OnboardingState {
   /// A translation key (e.g. 'onboarding.onboarding_error_loading'),
   /// resolved via .tr() at display time -- never raw display text.
   final String message;
-  final OnboardingErrorCategory category;
 
-  const OnboardingError({
-    required this.message,
-    required this.category,
-  });
+  const OnboardingError({required this.message});
 
   @override
-  List<Object?> get props => [message, category];
+  List<Object?> get props => [message];
 }
