@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart'; // for TtsState
@@ -120,6 +121,14 @@ void main() {
     // Reset service locator and register fake TTS service
     ServiceLocator().reset();
     ServiceLocator().registerSingleton<ITtsService>(FakeTtsService());
+    // addFavoriteId -> updateFavoritesCount now recomputes achievements,
+    // which reads PredefinedAchievements.all -- that needs LocalizationService
+    // registered. Left uninitialized: translate() falls back to returning
+    // the key unchanged when nothing's loaded, which is fine here since this
+    // test doesn't assert on achievement display text.
+    ServiceLocator().registerSingleton<LocalizationService>(
+      LocalizationService(),
+    );
   });
 
   test('saveFavorites persists ids and schema version', () async {
