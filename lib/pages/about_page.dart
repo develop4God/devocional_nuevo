@@ -347,7 +347,7 @@ class _AboutContent extends StatelessWidget {
           ),
           SizedBox(height: _gap(12)),
           InkWell(
-            onTap: () => onLaunchURL('https://www.develop4God.com'),
+            onTap: () => onLaunchURL('https://develop4god.com'),
             child: Text(
               'https://www.develop4God.com',
               style: textTheme.bodyMedium?.copyWith(
@@ -363,7 +363,7 @@ class _AboutContent extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             child: ElevatedButton.icon(
-              onPressed: () => onLaunchURL('https://www.develop4god.com/'),
+              onPressed: () => onLaunchURL('https://develop4god.com/'),
               icon: Icon(Icons.public, color: colorScheme.onPrimary),
               label: Text(
                 'about.terms_copyright'.tr(),
