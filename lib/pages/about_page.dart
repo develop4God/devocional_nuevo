@@ -347,6 +347,13 @@ class _AboutContent extends StatelessWidget {
           ),
           SizedBox(height: _gap(12)),
           InkWell(
+            // Do NOT change this to www.develop4God.com (matching the
+            // display text below): AndroidManifest.xml registers an
+            // autoVerify App Links intent filter for host
+            // "www.develop4god.com", so a matching URL gets routed back
+            // into this app instead of opening a browser. Keep the launch
+            // URL on the non-www host so this link actually opens a
+            // browser. See test/unit/translations/drawer_and_url_test.dart.
             onTap: () => onLaunchURL('https://develop4god.com'),
             child: Text(
               'https://www.develop4God.com',
@@ -363,6 +370,8 @@ class _AboutContent extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             child: ElevatedButton.icon(
+              // Same App Links caveat as above: keep this on the non-www
+              // host, not www.develop4God.com.
               onPressed: () => onLaunchURL('https://develop4god.com/'),
               icon: Icon(Icons.public, color: colorScheme.onPrimary),
               label: Text(
