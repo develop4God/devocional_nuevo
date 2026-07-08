@@ -166,21 +166,40 @@ void main() {
     );
 
     test(
-      'Website URL appears in both display text and launchURL call',
+      'launchURL calls intentionally use the non-www host to avoid the '
+      "app's own Android App Links intent filter",
       () async {
         final file = File('lib/pages/about_page.dart');
         final content = await file.readAsString();
 
-        // Count occurrences of the correct URL
-        final urlPattern = RegExp(r'https://www\.develop4God\.com(?![/\w])');
-        final matches = urlPattern.allMatches(content);
+        // AndroidManifest.xml registers an autoVerify App Links intent
+        // filter for host "www.develop4god.com", routing any matching URL
+        // straight back into this app instead of a browser. The onLaunchURL
+        // calls deliberately target "develop4god.com" (no "www") so tapping
+        // the website link on the About page opens an external browser
+        // instead of looping back into the app.
+        final launchCallPattern = RegExp(r"onLaunchURL\('([^']+)'\)");
+        final launchUrls = launchCallPattern
+            .allMatches(content)
+            .map((m) => m.group(1)!)
+            .where((url) => url.contains('develop4god.com'))
+            .toList();
 
         expect(
-          matches.length >= 2,
-          isTrue,
+          launchUrls,
+          isNotEmpty,
           reason:
-              'URL should appear at least twice (in display text and launchURL)',
+              'Expected at least one onLaunchURL call targeting develop4god.com',
         );
+        for (final url in launchUrls) {
+          expect(
+            url.startsWith('https://develop4god.com'),
+            isTrue,
+            reason: 'onLaunchURL("$url") must use the non-www host to avoid '
+                "triggering the app's own App Links intent filter "
+                '(host="www.develop4god.com" in AndroidManifest.xml)',
+          );
+        }
       },
     );
   });
