@@ -22,6 +22,9 @@ class DiscoveryCard {
   // For type: historical_thread
   final List<VerseRef>? scriptureConnections;
 
+  // Present on most card types
+  final List<VerseRef>? scriptureReferences;
+
   // For type: greek_exegesis
   final List<GreekWord>? greekWords;
 
@@ -42,6 +45,7 @@ class DiscoveryCard {
     this.content,
     this.revelationKey,
     this.scriptureConnections,
+    this.scriptureReferences,
     this.greekWords,
     this.scriptureAnchor,
     this.identityStatement,
@@ -60,6 +64,9 @@ class DiscoveryCard {
       content: json['content'] as String?,
       revelationKey: json['revelation_key'] as String?,
       scriptureConnections: (json['scripture_connections'] as List<dynamic>?)
+          ?.map((e) => VerseRef.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      scriptureReferences: (json['scripture_references'] as List<dynamic>?)
           ?.map((e) => VerseRef.fromJson(e as Map<String, dynamic>))
           .toList(),
       greekWords: (json['greek_words'] as List<dynamic>?)
@@ -92,6 +99,8 @@ class DiscoveryCard {
       'revelation_key': revelationKey,
       'scripture_connections':
           scriptureConnections?.map((e) => e.toJson()).toList(),
+      'scripture_references':
+          scriptureReferences?.map((e) => e.toJson()).toList(),
       'greek_words': greekWords?.map((e) => e.toJson()).toList(),
       'scripture_anchor': scriptureAnchor?.toJson(),
       'identity_statement': identityStatement,

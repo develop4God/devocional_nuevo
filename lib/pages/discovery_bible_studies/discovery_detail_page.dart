@@ -592,7 +592,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           ],
           const SizedBox(height: 24),
           if (card.content != null)
-            Text(
+            _buildBoldMarkdownText(
               card.content!,
               style: theme.textTheme.bodyLarge?.copyWith(
                 height: 1.6,
@@ -645,6 +645,12 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           if (card.scriptureConnections != null) ...[
             const SizedBox(height: 32),
             ...card.scriptureConnections!.map(
+              (scripture) => _buildScriptureTile(scripture, theme),
+            ),
+          ],
+          if (card.scriptureReferences != null) ...[
+            const SizedBox(height: 32),
+            ...card.scriptureReferences!.map(
               (scripture) => _buildScriptureTile(scripture, theme),
             ),
           ],
@@ -720,6 +726,31 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
         ],
       ),
     );
+  }
+
+  /// Renders text containing `**bold**` markers as a [Text.rich] with the
+  /// marked segments bolded, since the JSON content uses lightweight
+  /// markdown-style emphasis that plain [Text] does not parse.
+  Widget _buildBoldMarkdownText(String text, {TextStyle? style}) {
+    final boldPattern = RegExp(r'\*\*(.+?)\*\*');
+    final spans = <TextSpan>[];
+    var lastEnd = 0;
+    for (final match in boldPattern.allMatches(text)) {
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(text: text.substring(lastEnd, match.start)));
+      }
+      spans.add(
+        TextSpan(
+          text: match.group(1),
+          style: const TextStyle(fontWeight: FontWeight.w800),
+        ),
+      );
+      lastEnd = match.end;
+    }
+    if (lastEnd < text.length) {
+      spans.add(TextSpan(text: text.substring(lastEnd)));
+    }
+    return Text.rich(TextSpan(style: style, children: spans));
   }
 
   Widget _buildScriptureTile(VerseRef s, ThemeData theme) {
