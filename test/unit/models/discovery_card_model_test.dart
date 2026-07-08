@@ -159,6 +159,50 @@ void main() {
       },
     );
 
+    test(
+      'should parse scripture_references on any card type regardless of type-specific fields',
+      () {
+        final json = {
+          'order': 2,
+          'type': 'character_context',
+          'title': 'El que no tiene nada que negociar',
+          'content': 'Antes de hablar del joven rico...',
+          'scripture_references': [
+            {
+              'reference': 'Mateo 19:14',
+              'text': 'Y Jesús dijo: Dejad a los niños venir a mí, y no se lo '
+                  'impidáis; porque de los tales es el reino de los cielos.',
+            },
+          ],
+          'revelation_key': 'El Reino se ofrece a quien menos tiene',
+        };
+
+        final card = DiscoveryCard.fromJson(json);
+
+        expect(card.scriptureReferences, hasLength(1));
+        expect(card.scriptureReferences![0].reference, equals('Mateo 19:14'));
+        expect(
+            card.scriptureReferences![0].text, contains('Dejad a los niños'));
+      },
+    );
+
+    test('should serialize scripture_references to JSON correctly', () {
+      final card = DiscoveryCard(
+        order: 1,
+        type: 'personal_application',
+        title: 'Test Card',
+        scriptureReferences: [
+          VerseRef(reference: 'Mateo 19:14', text: 'Dejad a los niños...'),
+        ],
+      );
+
+      final json = card.toJson();
+
+      expect(json['scripture_references'], hasLength(1));
+      expect(
+          json['scripture_references'][0]['reference'], equals('Mateo 19:14'));
+    });
+
     test('should serialize card to JSON correctly', () {
       final card = DiscoveryCard(
         order: 1,
@@ -193,6 +237,7 @@ void main() {
       expect(card.subtitle, isNull);
       expect(card.content, isNull);
       expect(card.scriptureConnections, isNull);
+      expect(card.scriptureReferences, isNull);
       expect(card.greekWords, isNull);
     });
   });
