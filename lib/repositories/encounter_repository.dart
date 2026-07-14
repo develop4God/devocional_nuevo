@@ -293,4 +293,22 @@ class EncounterRepository {
       );
     }
   }
+
+  /// Clears all cached index and study data, so the next fetch bypasses
+  /// both the session/prefs cache and the per-study version check,
+  /// guaranteeing fresh content from GitHub.
+  Future<void> clearCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys().where(
+          (k) => k.startsWith(_studyCacheKeyPrefix) || k == _indexCacheKey,
+        );
+    final keysToRemove = keys.toList();
+    for (final key in keysToRemove) {
+      await prefs.remove(key);
+    }
+    _indexFetchedThisSession = false;
+    debugPrint(
+      '🗑️ Encounter: Cleared ${keysToRemove.length} cache entries (index + studies)',
+    );
+  }
 }
