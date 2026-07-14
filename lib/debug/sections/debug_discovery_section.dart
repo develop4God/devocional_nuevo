@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
+import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/debug/debug_flags.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -73,13 +74,53 @@ class DebugDiscoverySection extends StatelessWidget {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () async {
-                await getService<DiscoveryRepository>().clearCache();
-                if (!context.mounted) return;
-                context.read<DiscoveryBloc>().add(
-                      RefreshDiscoveryStudies(forceRefresh: true),
+                final repository = getService<DiscoveryRepository>();
+                final bloc = context.read<DiscoveryBloc>();
+                final currentState = bloc.state;
+                final languageCode = currentState is DiscoveryLoaded
+                    ? currentState.languageCode
+                    : 'es';
+
+                await repository.clearCache();
+
+                // Fetch the fresh index once, then force-download every
+                // study in it — the normal app flow only prefetches the
+                // first study for offline access, so a full force reload
+                // needs its own loop over all study IDs.
+                var downloadedCount = 0;
+                try {
+                  final index = await repository.fetchIndex(
+                    forceRefresh: true,
+                  );
+                  final studies = index['studies'] as List<dynamic>? ?? [];
+                  for (final s in studies) {
+                    final id = (s as Map<String, dynamic>)['id'] as String?;
+                    if (id == null) continue;
+                    await repository.fetchDiscoveryStudy(
+                      id,
+                      languageCode,
+                      prefetchedIndex: index,
                     );
+                    downloadedCount++;
+                  }
+                } catch (e) {
+                  debugPrint(
+                      '⚠️ Discovery: Force reload of studies failed: $e');
+                }
+
+                if (!context.mounted) return;
+                bloc.add(
+                  RefreshDiscoveryStudies(
+                    languageCode: languageCode,
+                    forceRefresh: false,
+                  ),
+                );
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('🔄 Discovery index reloaded')),
+                  SnackBar(
+                    content: Text(
+                      '🔄 Discovery: reloaded index + $downloadedCount studies',
+                    ),
+                  ),
                 );
               },
               icon: const Icon(Icons.refresh, color: Colors.deepOrange),

@@ -230,13 +230,44 @@ class DebugEncountersSection extends StatelessWidget {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () async {
-                await getService<EncounterRepository>().clearCache();
+                final repository = getService<EncounterRepository>();
+                await repository.clearCache();
+
+                // Fetch the fresh index once, then force-download every
+                // study in it (normal app flow only preloads the first
+                // encounter's images, not all study content).
+                var downloadedCount = 0;
+                try {
+                  final entries = await repository.fetchIndex(
+                    forceRefresh: true,
+                  );
+                  for (final entry in entries) {
+                    final lang = entry.files.keys.isNotEmpty
+                        ? entry.files.keys.first
+                        : 'es';
+                    await repository.fetchStudy(
+                      entry.id,
+                      lang,
+                      filename: entry.files[lang],
+                      entry: entry,
+                    );
+                    downloadedCount++;
+                  }
+                } catch (e) {
+                  debugPrint(
+                      '⚠️ Encounter: Force reload of studies failed: $e');
+                }
+
                 if (!context.mounted) return;
                 context.read<EncounterBloc>().add(
-                      LoadEncounterIndex(forceRefresh: true),
+                      LoadEncounterIndex(forceRefresh: false),
                     );
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('🔄 Encounters index reloaded')),
+                  SnackBar(
+                    content: Text(
+                      '🔄 Encounters: reloaded index + $downloadedCount studies',
+                    ),
+                  ),
                 );
               },
               icon: const Icon(Icons.refresh, color: Colors.teal),
