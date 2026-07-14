@@ -2,6 +2,8 @@
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/debug/debug_flags.dart';
+import 'package:devocional_nuevo/repositories/discovery_repository.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -65,6 +67,30 @@ class DebugDiscoverySection extends StatelessWidget {
             onPressed: onRefreshBranches,
             icon: const Icon(Icons.refresh),
             label: const Text('Refresh Branches'),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                await getService<DiscoveryRepository>().clearCache();
+                if (!context.mounted) return;
+                context.read<DiscoveryBloc>().add(
+                      RefreshDiscoveryStudies(forceRefresh: true),
+                    );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('🔄 Discovery index reloaded')),
+                );
+              },
+              icon: const Icon(Icons.refresh, color: Colors.deepOrange),
+              label: const Text(
+                'Force Reload Index',
+                style: TextStyle(color: Colors.deepOrange),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.deepOrange),
+              ),
+            ),
           ),
         ],
       ),

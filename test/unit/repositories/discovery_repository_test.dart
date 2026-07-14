@@ -167,5 +167,53 @@ void main() {
         verify(() => mockHttpClient.get(any())).called(2);
       },
     );
+
+    test(
+      'clearCache removes index and study cache, forcing fresh network fetch',
+      () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+            'discovery_index_cache_main', jsonEncode(indexV1));
+        await prefs.setString(
+          'discovery_cache_${studyId}_${languageCode}_main',
+          jsonEncode(studyJsonV1),
+        );
+        await prefs.setString(
+          'discovery_cache_${studyId}_${languageCode}_main_version',
+          version1,
+        );
+
+        await repository.clearCache();
+
+        expect(prefs.getString('discovery_index_cache_main'), isNull);
+        expect(
+          prefs.getString('discovery_cache_${studyId}_${languageCode}_main'),
+          isNull,
+        );
+        expect(
+          prefs.getString(
+            'discovery_cache_${studyId}_${languageCode}_main_version',
+          ),
+          isNull,
+        );
+
+        when(() => mockHttpClient.get(any())).thenAnswer((invocation) async {
+          final uri = invocation.positionalArguments[0] as Uri;
+          if (uri.toString().contains('index.json')) {
+            return http.Response(jsonEncode(indexV1), 200);
+          } else {
+            return http.Response(jsonEncode(studyJsonV1), 200);
+          }
+        });
+
+        final study = await repository.fetchDiscoveryStudy(
+          studyId,
+          languageCode,
+        );
+
+        expect(study.reflexion, equals('Study Version 1.0'));
+        verify(() => mockHttpClient.get(any())).called(2);
+      },
+    );
   });
 }
