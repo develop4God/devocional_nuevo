@@ -17,7 +17,12 @@ abstract class IPrayerWallRepository {
 
   /// Returns a stream for the current user's own pending prayer (if any).
   /// Shows the author their own prayer while it awaits moderation.
-  Stream<PrayerWallEntry?> watchMyPendingPrayer({required String authorHash});
+  ///
+  /// [uid] must be the caller's own raw Firebase UID (not a hash) — the
+  /// Firestore security rule authorizes this read against `ownerUid ==
+  /// request.auth.uid`, which Firestore can only verify for a query that
+  /// filters on the same raw value.
+  Stream<PrayerWallEntry?> watchMyPendingPrayer({required String uid});
 
   /// Submits a new prayer to the wall.
   ///
@@ -38,12 +43,20 @@ abstract class IPrayerWallRepository {
   /// Increments the 🙏 pray count for a prayer (optimistic update supported).
   Future<void> tapPrayHand({required String prayerId});
 
-  /// Reports a prayer. After 3 reports it moves to `needs_review` automatically.
+  /// Reports a prayer. Writes a one-per-caller marker doc; a Cloud Function
+  /// aggregates distinct reporters server-side and moves the prayer to
+  /// `needs_review` once 3 distinct users have reported it. A caller
+  /// reporting the same prayer twice is a no-op (rejected by rules, caught
+  /// internally) — it does not count twice.
   Future<void> reportPrayer({required String prayerId});
 
   /// Hard-deletes the user's own prayer from Firestore.
+  ///
+  /// [uid] must be the caller's own raw Firebase UID (not a hash) — ownership
+  /// is enforced by the Firestore rule (`ownerUid == request.auth.uid`), this
+  /// client-side check only produces a clearer error before the round trip.
   Future<void> deletePrayer({
     required String prayerId,
-    required String authorHash,
+    required String uid,
   });
 }

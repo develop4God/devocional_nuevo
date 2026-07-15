@@ -1,24 +1,46 @@
 rules_version = '2';
 
 // Firestore Security Rules for devocional_nuevo
-// Prayer Wall: prayers/{prayerId}
 //
-// Privacy-by-design constraints enforced here:
-// - Clients may ONLY read approved prayers (status == 'approved')
-// - Clients CANNOT read or write originalText, moderationReason, moderationScore, moderationFlag, authorId, or reportCount
-// - Only Cloud Functions (Admin SDK) may read/write the full document
-// - Writes are locked after creation (only Cloud Functions update via Admin SDK)
+// SECURITY_ASSESSMENT_2026_07_15.md — F-01 / F-02 remediation.
+// These rules were previously inconsistent with the client (see git history):
+// the old `create` rule didn't validate `status`/`ownerUid`, letting a client
+// self-approve a prayer or spoof authorship, and `update`/`delete`/`users/**`
+// were blanket-denied even though the app performs those writes — meaning
+// the rules actually enforced in production could not have matched this
+// file. This version is derived directly from every read/write the client
+// (lib/repositories/prayer_wall_repository.dart, lib/services/notification_service.dart)
+// performs, with each one narrowly scoped instead of trusted wholesale.
+//
+// KNOWN LIMITATION — field-level exposure:
+// Firestore security rules can allow/deny a whole document but cannot hide
+// individual fields from an authorized reader. Any client permitted to read
+// an approved prayer therefore also receives moderationScore/moderationFlag/
+// moderationReason/authorId/reportCount on the wire, even though the app's
+// PrayerWallEntry model chooses not to parse them. If that metadata needs to
+// stay server-only, split the document into a public-safe doc plus a
+// server-only companion doc, or an Admin-SDK-only field.
 //
 // KNOWN LIMITATION — originalText encryption (AC-002):
-// originalText is currently stored as plain text in Firestore. Field-level
-// encryption requires a Firebase Extension (Encryption Extension) or a
-// server-side KMS key. This is DEFERRED as a follow-up task. The security
-// rules below mitigate the risk by:
-//   1. Preventing authenticated clients from reading originalText (clients
-//      can only read approved prayers, whose originalText has been cleared
-//      by the Cloud Function after masking).
-//   2. Preventing any client from writing to an existing document.
+// originalText is stored as plain text for the brief window between client
+// write and Cloud Function processing. Field-level encryption requires a
+// Firebase Extension (Encryption Extension) or a server-side KMS key and is
+// DEFERRED as a follow-up task. Mitigations in place:
+//   1. Only the author can read their own document while it's not yet
+//      approved (see `allow read` below).
+//   2. No client can create a document with status other than 'pending',
+//      so originalText is never immediately public.
 // Full encryption should be implemented before production launch.
+//
+// 2026-07-15 follow-up (F-06, F-10):
+// - reportCount is no longer client-writable directly; see the
+//   `reports/{reporterId}` subcollection rule and
+//   functions/triggers/on_prayer_report_created.js for the one-report-per-
+//   user aggregation that replaced it.
+// - `authorId` is still accepted from the client on create (a SHA-256(uid)
+//   hash), but functions/triggers/on_prayer_submitted.js overwrites it with
+//   a keyed HMAC of the rule-verified `ownerUid` once PRAYER_AUTHOR_HMAC_SECRET
+//   is configured, making it unlinkable without that secret.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -26,29 +48,167 @@ service cloud.firestore {
     // ── Prayer Wall ──────────────────────────────────────────────────────────
     match /prayers/{prayerId} {
 
-      // Fields that must NEVER be present in a client-submitted create.
-      function hasForbiddenWriteFields() {
-        return 'moderationReason' in request.resource.data
-          || 'moderationScore'  in request.resource.data
-          || 'moderationFlag'   in request.resource.data
-          || 'reportCount'      in request.resource.data;
+      function isFreshTimestamp(ts) {
+        return ts is timestamp
+          && ts >= request.time - duration.value(5, 'm')
+          && ts <= request.time + duration.value(5, 'm');
       }
 
-      // Only approved prayers may be read by authenticated clients.
-      // originalText is cleared by the Cloud Function before status → approved,
-      // so approved documents never expose raw user text.
-      allow read: if request.auth != null
-        && resource.data.status == 'approved';
-
-      // Authenticated users may CREATE a prayer document, but may not inject
-      // server-only fields (moderation results, report counts).
+      // A brand-new prayer must start in a fully "untouched" state: owned by
+      // the caller, unmoderated, uncounted, dated to now, and containing no
+      // field outside this exact allow-list. This is what stops a client
+      // from self-approving (status:'approved'), spoofing authorship
+      // (ownerUid/authorId), or forging engagement/moderation numbers (F-02).
       allow create: if request.auth != null
-        && !hasForbiddenWriteFields();
+        && request.resource.data.keys().hasOnly([
+             'originalText', 'maskedText', 'language', 'status', 'isAnonymous',
+             'authorId', 'ownerUid', 'prayCount', 'reportCount',
+             'moderationScore', 'moderationFlag', 'moderationReason',
+             'createdAt', 'moderatedAt', 'expiresAt'
+           ])
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.maskedText == ''
+        && request.resource.data.originalText is string
+        && request.resource.data.originalText.size() > 0
+        && request.resource.data.originalText.size() <= 2000
+        && request.resource.data.language is string
+        && request.resource.data.isAnonymous is bool
+        && request.resource.data.authorId is string
+        && request.resource.data.prayCount == 0
+        && request.resource.data.reportCount == 0
+        && request.resource.data.moderationScore == 0
+        && request.resource.data.moderationFlag == 'none'
+        && request.resource.data.moderationReason == ''
+        && request.resource.data.moderatedAt == null
+        && isFreshTimestamp(request.resource.data.createdAt)
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt
+             >= request.resource.data.createdAt + duration.value(30, 'd') - duration.value(5, 'm')
+        && request.resource.data.expiresAt
+             <= request.resource.data.createdAt + duration.value(30, 'd') + duration.value(5, 'm');
 
-      // All UPDATE and DELETE operations must go through Cloud Functions
-      // (Admin SDK bypasses these rules). Direct client mutations are denied.
-      allow update: if false;
+      // Approved prayers are visible to any authenticated user (the public
+      // wall). An author may additionally read their own document while it's
+      // pending/needs_review/rejected/pastoral, so they can watch it move
+      // through moderation. See the field-level-exposure note above — this
+      // does not hide moderation metadata from either audience.
+      allow read: if request.auth != null
+        && (resource.data.status == 'approved'
+            || resource.data.ownerUid == request.auth.uid);
+
+      // Exactly one client update path exists: a "pray" tap (prayCount += 1)
+      // on an already-approved prayer. Anything else (moderation fields,
+      // ownerUid, text, arbitrary counter jumps) is rejected. All other
+      // transitions (approve, reject, PII mask) happen server-side via the
+      // Admin SDK, which bypasses these rules.
+      //
+      // F-06: reportCount is intentionally NOT client-writable here. It used
+      // to be a direct client increment, which let one account call
+      // reportPrayer() three times and force any prayer into needs_review.
+      // Reports are now one doc per user under the `reports` subcollection
+      // below (doc ID == request.auth.uid, so a second report from the same
+      // user is an `update` and is rejected); a Cloud Function trigger
+      // (functions/triggers/on_prayer_report_created.js) is the only writer
+      // of reportCount, aggregating distinct reporters via the Admin SDK.
+      function isPrayTap() {
+        return resource.data.status == 'approved'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['prayCount'])
+          && request.resource.data.prayCount == resource.data.prayCount + 1;
+      }
+
+      allow update: if request.auth != null && isPrayTap();
+
+      // Authors may delete their own prayer (e.g. while still pending).
+      allow delete: if request.auth != null
+        && resource.data.ownerUid == request.auth.uid;
+
+      // One report per user per prayer. No read/update/delete: a report is
+      // write-once evidence for the aggregation trigger, never displayed
+      // and never meant to be revocable by the reporter.
+      match /reports/{reporterId} {
+        allow create: if request.auth != null
+          && request.auth.uid == reporterId
+          && request.resource.data.keys().hasOnly(['createdAt'])
+          && request.resource.data.createdAt == request.time;
+        allow read, update, delete: if false;
+      }
+    }
+
+    // ── Per-user data ──────────────────────────────────────────────────────
+    // users/{uid}                       — lastLogin timestamp only.
+    // users/{uid}/fcmTokens/{token}     — one doc per registered device.
+    // users/{uid}/settings/notifications — notification preferences.
+    // All of it is owner-only; Cloud Functions read/write via the Admin SDK,
+    // which is unaffected by these rules.
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['lastLogin'])
+        && request.resource.data.lastLogin == request.time;
+
+      allow update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastLogin'])
+        && request.resource.data.lastLogin == request.time;
+
       allow delete: if false;
+
+      match /fcmTokens/{tokenId} {
+        allow read, delete: if request.auth != null && request.auth.uid == userId;
+
+        allow write: if request.auth != null
+          && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly(['token', 'createdAt', 'platform'])
+          && request.resource.data.token is string
+          && request.resource.data.platform is string
+          && request.resource.data.createdAt == request.time;
+      }
+
+      // NEW-1 fix (found by adversarial emulator validation, 2026-07-15):
+      // the scheduled Cloud Function (sendDailyDevotionalNotification, see
+      // functions/index.js) writes a 6th field — lastNotificationSentDate —
+      // into this same document via the Admin SDK. The client's
+      // set(merge:true) writes only 5 fields, but for a merge write
+      // request.resource.data is the POST-MERGE document, so once a user has
+      // ever received a notification it would contain 6 keys. A plain
+      // keys().hasOnly([5 keys]) on request.resource.data therefore denied
+      // every subsequent settings write for any user the scheduler had
+      // already touched — a real regression that would have broken
+      // notification settings for active users on deploy. Splitting into
+      // create/update and checking the DIFF (like users/{userId} above)
+      // instead of the full merged document fixes it: only the keys this
+      // specific write actually changes need to be in the allow-list,
+      // regardless of what else already exists on the document.
+      match /settings/{settingId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+
+        function isAllowedSettingsWrite() {
+          return request.resource.data.lastUpdated == request.time
+            && request.resource.data.notificationsEnabled is bool
+            && request.resource.data.notificationTime is string
+            && request.resource.data.userTimezone is string
+            && request.resource.data.preferredLanguage is string;
+        }
+
+        allow create: if request.auth != null
+          && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly([
+               'notificationsEnabled', 'notificationTime', 'userTimezone',
+               'lastUpdated', 'preferredLanguage'
+             ])
+          && isAllowedSettingsWrite();
+
+        allow update: if request.auth != null
+          && request.auth.uid == userId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+               'notificationsEnabled', 'notificationTime', 'userTimezone',
+               'lastUpdated', 'preferredLanguage'
+             ])
+          && isAllowedSettingsWrite();
+      }
     }
 
     // ── All other collections: default deny ──────────────────────────────────

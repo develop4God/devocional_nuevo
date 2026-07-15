@@ -61,10 +61,10 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
 
       // Subscribe to the author's own pending prayer so the BLoC reflects
       // server-side status changes (e.g. approved, pastoral) in real time.
-      if (event.authorHash != null) {
+      if (event.uid != null) {
         await _pendingSubscription?.cancel();
         _pendingSubscription = _repository
-            .watchMyPendingPrayer(authorHash: event.authorHash!)
+            .watchMyPendingPrayer(uid: event.uid!)
             .listen(
           (pending) => add(PrayerWallPendingUpdated(pending)),
           onError: (Object e) {
@@ -245,7 +245,7 @@ class PrayerWallBloc extends Bloc<PrayerWallEvent, PrayerWallState> {
     try {
       await _repository.deletePrayer(
         prayerId: event.prayerId,
-        authorHash: event.authorHash,
+        uid: event.uid,
       );
       final current = state;
       if (current is PrayerWallLoaded) {
