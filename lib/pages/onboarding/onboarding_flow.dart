@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/blocs/onboarding/onboarding_event.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_models.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_backup_configuration_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_complete_page.dart';
@@ -12,6 +13,7 @@ import 'package:devocional_nuevo/pages/onboarding/onboarding_welcome_page.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class OnboardingFlow extends StatefulWidget {
@@ -130,184 +132,193 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<OnboardingBloc>(
-      create: (context) => _onboardingBloc,
-      child: BlocConsumer<OnboardingBloc, OnboardingState>(
-        listener: (context, state) {
-          if (!mounted) return; // Safety check for async state updates
+    final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
-          if (state is OnboardingStepActive) {
-            // Animate to the current step page
-            _animateToPage(state.currentStepIndex);
-          } else if (state is OnboardingCompleted) {
-            // Onboarding completed, call the completion callback
-            widget.onComplete();
-          } else if (state is OnboardingError) {
-            // Show detailed error dialog instead of just snackbar
-            _showErrorDialog(context, state);
-          }
-        },
-        builder: (context, state) {
-          if (state is OnboardingLoading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: themeState.systemUiOverlayStyle,
+      child: BlocProvider<OnboardingBloc>(
+        create: (context) => _onboardingBloc,
+        child: BlocConsumer<OnboardingBloc, OnboardingState>(
+          listener: (context, state) {
+            if (!mounted) return; // Safety check for async state updates
 
-          if (state is OnboardingCompleted) {
-            // This should not be reached due to the listener, but provide fallback
-            return const Scaffold(
-              body: Center(child: Text('Onboarding completed!')),
-            );
-          }
+            if (state is OnboardingStepActive) {
+              // Animate to the current step page
+              _animateToPage(state.currentStepIndex);
+            } else if (state is OnboardingCompleted) {
+              // Onboarding completed, call the completion callback
+              widget.onComplete();
+            } else if (state is OnboardingError) {
+              // Show detailed error dialog instead of just snackbar
+              _showErrorDialog(context, state);
+            }
+          },
+          builder: (context, state) {
+            if (state is OnboardingLoading) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
 
-          if (state is OnboardingError) {
-            return Scaffold(
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+            if (state is OnboardingCompleted) {
+              // This should not be reached due to the listener, but provide fallback
+              return const Scaffold(
+                body: Center(child: Text('Onboarding completed!')),
+              );
+            }
+
+            if (state is OnboardingError) {
+              return Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'onboarding.onboarding_error_title'.tr(),
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        state.message.tr(),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () {
+                          _onboardingBloc.add(const InitializeOnboarding());
+                        },
+                        child: Text('onboarding.onboarding_retry'.tr()),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            if (state is OnboardingStepActive) {
+              return Scaffold(
+                body: Column(
                   children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'onboarding.onboarding_error_title'.tr(),
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      state.message.tr(),
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () {
-                        _onboardingBloc.add(const InitializeOnboarding());
-                      },
-                      child: Text('onboarding.onboarding_retry'.tr()),
+                    // Progress indicator
+                    if (state.currentStepIndex <
+                        OnboardingSteps.defaultSteps.length - 1)
+                      SafeArea(
+                        bottom: false,
+                        child: Padding(
+                          padding: const EdgeInsetsDirectional.only(
+                            start: 32,
+                            end: 32,
+                            top: 16,
+                          ),
+                          child: Text(
+                            'onboarding.onboarding_step_indicator'.tr({
+                              'current': state.currentStepIndex + 1,
+                              'total': OnboardingSteps.defaultSteps.length - 1,
+                            }),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  )
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.6),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ),
+                      ),
+                    if (state.currentStepIndex <
+                        OnboardingSteps.defaultSteps.length - 1)
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(32, 8, 32, 16),
+                        child: Row(
+                          children: List.generate(
+                            OnboardingSteps.defaultSteps.length - 1,
+                            (index) {
+                              return Expanded(
+                                child: Container(
+                                  margin: EdgeInsetsDirectional.only(
+                                    end: index <
+                                            OnboardingSteps
+                                                    .defaultSteps.length -
+                                                2
+                                        ? 8
+                                        : 0,
+                                  ),
+                                  height:
+                                      6, // Increased height for better visibility
+                                  decoration: BoxDecoration(
+                                    color: index <= state.currentStepIndex
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .outline
+                                            .withValues(alpha: 0.3),
+                                    borderRadius: BorderRadius.circular(3),
+                                    boxShadow: index <= state.currentStepIndex
+                                        ? [
+                                            BoxShadow(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withValues(alpha: 0.3),
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+
+                    // Pages
+                    Expanded(
+                      child: PageView(
+                        controller: _pageController,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          OnboardingWelcomePage(
+                            onNext: () => _handleStepNavigation(1),
+                            onSkip: _handleComplete,
+                          ),
+                          OnboardingThemeSelectionPage(
+                            onNext: () => _handleStepNavigation(2),
+                            onBack: _handleBack,
+                          ),
+                          OnboardingBackupConfigurationPage(
+                            onNext: () => _handleStepNavigation(3),
+                            onBack: _handleBack,
+                            onSkip: () => _handleStepNavigation(3),
+                          ),
+                          OnboardingCompletePage(onStartApp: _handleComplete),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
+              );
+            }
+
+            // Default fallback for initial state
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
             );
-          }
-
-          if (state is OnboardingStepActive) {
-            return Scaffold(
-              body: Column(
-                children: [
-                  // Progress indicator
-                  if (state.currentStepIndex <
-                      OnboardingSteps.defaultSteps.length - 1)
-                    SafeArea(
-                      bottom: false,
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.only(
-                          start: 32,
-                          end: 32,
-                          top: 16,
-                        ),
-                        child: Text(
-                          'onboarding.onboarding_step_indicator'.tr({
-                            'current': state.currentStepIndex + 1,
-                            'total': OnboardingSteps.defaultSteps.length - 1,
-                          }),
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.6),
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
-                      ),
-                    ),
-                  if (state.currentStepIndex <
-                      OnboardingSteps.defaultSteps.length - 1)
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(32, 8, 32, 16),
-                      child: Row(
-                        children: List.generate(
-                          OnboardingSteps.defaultSteps.length - 1,
-                          (index) {
-                            return Expanded(
-                              child: Container(
-                                margin: EdgeInsetsDirectional.only(
-                                  end: index <
-                                          OnboardingSteps.defaultSteps.length -
-                                              2
-                                      ? 8
-                                      : 0,
-                                ),
-                                height:
-                                    6, // Increased height for better visibility
-                                decoration: BoxDecoration(
-                                  color: index <= state.currentStepIndex
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Theme.of(context)
-                                          .colorScheme
-                                          .outline
-                                          .withValues(alpha: 0.3),
-                                  borderRadius: BorderRadius.circular(3),
-                                  boxShadow: index <= state.currentStepIndex
-                                      ? [
-                                          BoxShadow(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                                .withValues(alpha: 0.3),
-                                            blurRadius: 4,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-
-                  // Pages
-                  Expanded(
-                    child: PageView(
-                      controller: _pageController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        OnboardingWelcomePage(
-                          onNext: () => _handleStepNavigation(1),
-                          onSkip: _handleComplete,
-                        ),
-                        OnboardingThemeSelectionPage(
-                          onNext: () => _handleStepNavigation(2),
-                          onBack: _handleBack,
-                        ),
-                        OnboardingBackupConfigurationPage(
-                          onNext: () => _handleStepNavigation(3),
-                          onBack: _handleBack,
-                          onSkip: () => _handleStepNavigation(3),
-                        ),
-                        OnboardingCompletePage(onStartApp: _handleComplete),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // Default fallback for initial state
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        },
+          },
+        ),
       ),
     );
   }

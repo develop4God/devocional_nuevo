@@ -74,181 +74,177 @@ class _OnboardingThemeSelectionPageState
 
               // Main content
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                  child: Column(
-                    children: [
-                      // Title and subtitle section - more flexible height
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          minHeight: 80,
-                          maxHeight: 140, // Flexible height constraint
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Title
-                            Text(
-                              'onboarding.onboarding_theme_title'.tr(),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface,
-                                  ),
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-
-                            const SizedBox(height: 12),
-
-                            // Subtitle
-                            Text(
-                              'onboarding.onboarding_theme_subtitle'.tr(),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withValues(alpha: 0.7),
-                                  ),
-                              textAlign: TextAlign.center,
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Theme selection grid - takes remaining space
-                      Expanded(
-                        child: GridView.builder(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 1.2,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Title and subtitle
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Title
+                          Text(
+                            'onboarding.onboarding_theme_title'.tr(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          itemCount: themeDisplayNames.length,
-                          itemBuilder: (context, index) {
-                            final themeKey = themeDisplayNames.keys.elementAt(
-                              index,
-                            );
-                            final displayName = themeDisplayNames[themeKey]!;
-                            final themeData =
-                                appThemeFamilies[themeKey]!['light']!;
-                            final isSelected = selectedTheme == themeKey;
 
-                            return GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedTheme = themeKey;
-                                });
-                                // Apply theme immediately for live preview
-                                context.read<ThemeBloc>().add(
-                                      ChangeThemeFamily(themeKey),
-                                    );
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
+                          const SizedBox(height: 12),
+
+                          // Subtitle
+                          Text(
+                            'onboarding.onboarding_theme_subtitle'.tr(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.7),
+                                ),
+                            textAlign: TextAlign.center,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Theme carousel — a horizontally scrollable row of
+                    // preview cards. Fixed height avoids the fragile
+                    // nested-Expanded sizing a grid needs here.
+                    SizedBox(
+                      height: 220,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                        itemCount: themeDisplayNames.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(width: 16),
+                        itemBuilder: (context, index) {
+                          final themeKey = themeDisplayNames.keys.elementAt(
+                            index,
+                          );
+                          final displayName = themeDisplayNames[themeKey]!;
+                          final themeData =
+                              appThemeFamilies[themeKey]!['light']!;
+                          final isSelected = selectedTheme == themeKey;
+
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedTheme = themeKey;
+                              });
+                              // Apply theme immediately for live preview
+                              context.read<ThemeBloc>().add(
+                                    ChangeThemeFamily(themeKey),
+                                  );
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                              width: 150,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? themeData.colorScheme.primary
+                                      : Colors.grey.withValues(alpha: 0.3),
+                                  width: isSelected ? 3 : 1,
+                                ),
+                                color: themeData.colorScheme.surface,
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: themeData.colorScheme.primary
+                                              .withValues(alpha: 0.35),
+                                          blurRadius: 12,
+                                          spreadRadius: 1,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Color circle
+                                  Container(
+                                    width: 64,
+                                    height: 64,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: themeData.colorScheme.primary,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 3,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 16),
+
+                                  // Theme name
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                    ),
+                                    child: Text(
+                                      displayName,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color:
+                                            themeData.colorScheme.onSurface,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 8),
+
+                                  // Selected indicator (reserves space so
+                                  // the card doesn't jump size on select)
+                                  Icon(
+                                    Icons.check_circle,
                                     color: isSelected
                                         ? themeData.colorScheme.primary
-                                        : Colors.grey.withValues(alpha: 0.3),
-                                    width: isSelected ? 3 : 1,
+                                        : Colors.transparent,
+                                    size: 20,
                                   ),
-                                  color: themeData.colorScheme.surface,
-                                  boxShadow: isSelected
-                                      ? [
-                                          BoxShadow(
-                                            color: themeData.colorScheme.primary
-                                                .withValues(alpha: 0.3),
-                                            blurRadius: 8,
-                                            spreadRadius: 2,
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize:
-                                      MainAxisSize.min, // Prevent overflow
-                                  children: [
-                                    // Color circle - smaller
-                                    Container(
-                                      width: 50, // Reduced size
-                                      height: 50, // Reduced size
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: themeData.colorScheme.primary,
-                                        border: Border.all(
-                                          color: Colors.white,
-                                          width: 2, // Reduced border
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.1,
-                                            ),
-                                            blurRadius: 4,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 16),
-
-                                    // Theme name - constrained
-                                    Flexible(
-                                      child: Text(
-                                        displayName,
-                                        style: TextStyle(
-                                          fontSize: 12, // Smaller font
-                                          fontWeight: FontWeight.w600,
-                                          color:
-                                              themeData.colorScheme.onSurface,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-
-                                    // Selected indicator
-                                    if (isSelected)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          top: 4,
-                                        ), // Reduced padding
-                                        child: Icon(
-                                          Icons.check_circle,
-                                          color: themeData.colorScheme.primary,
-                                          size: 16, // Smaller icon
-                                        ),
-                                      ),
-                                  ],
-                                ),
+                                ],
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
 
