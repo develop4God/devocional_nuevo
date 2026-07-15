@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  SECURITY_ASSESSMENT_2026_07_15.md F-04: previously cleartextTrafficPermitted
+  was true for all domains and the "user" (user-installed) CA store was
+  trusted, which together made on-device MITM trivial for anyone who could
+  get a CA installed (malware, a hostile MDM profile, or brief physical
+  access) — it would silently intercept/modify traffic to Firebase and any
+  other HTTPS endpoint. Every endpoint the app talks to (Firebase, GitHub
+  raw asset CDN) is HTTPS, so cleartext was never actually needed.
+-->
 <network-security-config>
-    <base-config cleartextTrafficPermitted="true">
+    <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
-            <certificates src="user" />
         </trust-anchors>
     </base-config>
 </network-security-config>
