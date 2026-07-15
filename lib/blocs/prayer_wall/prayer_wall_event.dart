@@ -8,12 +8,13 @@ abstract class PrayerWallEvent {}
 class LoadPrayerWall extends PrayerWallEvent {
   final String userLanguage;
 
-  /// Optional: author hash used to subscribe to the author's own pending prayer.
-  /// When provided, [PrayerWallBloc] calls [IPrayerWallRepository.watchMyPendingPrayer]
-  /// so status changes (approved, pastoral) are reflected in real time.
-  final String? authorHash;
+  /// Optional: the caller's own raw Firebase UID, used to subscribe to the
+  /// author's own pending prayer. When provided, [PrayerWallBloc] calls
+  /// [IPrayerWallRepository.watchMyPendingPrayer] so status changes
+  /// (approved, pastoral) are reflected in real time.
+  final String? uid;
 
-  LoadPrayerWall({required this.userLanguage, this.authorHash});
+  LoadPrayerWall({required this.userLanguage, this.uid});
 }
 
 /// Refresh the prayer wall (triggered by pull-to-refresh).
@@ -53,8 +54,8 @@ class ReportPrayer extends PrayerWallEvent {
 /// Delete the user's own prayer.
 class DeletePrayer extends PrayerWallEvent {
   final String prayerId;
-  final String authorHash;
-  DeletePrayer({required this.prayerId, required this.authorHash});
+  final String uid;
+  DeletePrayer({required this.prayerId, required this.uid});
 }
 
 /// Internal event: author's pending prayer changed on the server.

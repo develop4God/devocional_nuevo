@@ -41,6 +41,7 @@ import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/network_error_utils.dart';
 import 'package:devocional_nuevo/utils/constants/theme_constants.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -122,6 +123,24 @@ void main() async {
   }
 
   await Firebase.initializeApp();
+
+  // Debug-only, opt-in hook to point Firestore at the local Emulator Suite
+  // (see firebase.json's emulators block) instead of the live project.
+  // Off by default — only activates with kDebugMode AND an explicit
+  // --dart-define, so it can never affect a release build or a normal
+  // debug run. 10.0.2.2 is the Android emulator's alias for the host
+  // machine's localhost; use your machine's LAN IP for a physical device.
+  if (kDebugMode &&
+      const String.fromEnvironment('FIRESTORE_EMULATOR_HOST').isNotEmpty) {
+    FirebaseFirestore.instance.useFirestoreEmulator(
+      const String.fromEnvironment('FIRESTORE_EMULATOR_HOST'),
+      8080,
+    );
+    debugPrint(
+      '🧪 Connected to local Firestore emulator at '
+      '${const String.fromEnvironment('FIRESTORE_EMULATOR_HOST')}:8080',
+    );
+  }
 
   // --- Crashlytics error handlers ----------------------------------------
   // Transient network errors (SocketException, DNS failure, etc.) are NOT app

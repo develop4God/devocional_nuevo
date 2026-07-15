@@ -30,6 +30,7 @@ class PrayerWallPage extends StatefulWidget {
 
 class _PrayerWallPageState extends State<PrayerWallPage> {
   late final String _userLanguage;
+  late final String _uid;
   late final String _authorHash;
 
   @override
@@ -39,14 +40,15 @@ class _PrayerWallPageState extends State<PrayerWallPage> {
     final localization = getService<LocalizationService>();
     _userLanguage = localization.currentLocale.languageCode;
 
-    // Hash the Firebase UID once — never use raw UID
-    final uid = getService<IAuthService>().currentUserId ?? 'anonymous';
-    _authorHash = PrayerWallRepository.hashUserId(uid);
+    _uid = getService<IAuthService>().currentUserId ?? 'anonymous';
+    // Hashed once for submitPrayer's authorId field — never send the raw UID
+    // there. Queries that Firestore rules must authorize against
+    // request.auth.uid (watchMyPendingPrayer, deletePrayer) use _uid directly.
+    _authorHash = PrayerWallRepository.hashUserId(_uid);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PrayerWallBloc>().add(
-            LoadPrayerWall(
-                userLanguage: _userLanguage, authorHash: _authorHash),
+            LoadPrayerWall(userLanguage: _userLanguage, uid: _uid),
           );
 
       getService<IAnalyticsService>().logCustomEvent(

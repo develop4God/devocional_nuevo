@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Allow read/write for authenticated users to their own user document
+    // This rule applies to the user document itself (e.g., /users/USER_UID)
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Rule for FCM tokens
+      match /fcmTokens/{tokenId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // NEW RULE: Allow read/write for authenticated users to their own 'settings' subcollection
+      // This rule applies to documents within the 'settings' subcollection (e.g., /users/USER_UID/settings/notifications)
+      match /settings/{settingId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // ── Prayer Wall ───────────────────────────────────────────────────────────
+    match /prayers/{prayerId} {
+
+      function hasForbiddenWriteFields() {
+        return 'moderationReason' in request.resource.data
+          || 'moderationScore'  in request.resource.data
+          || 'moderationFlag'   in request.resource.data
+          || 'reportCount'      in request.resource.data;
+      }
+
+      // Only approved prayers readable by authenticated clients
+      allow read: if request.auth != null
+        && resource.data.status == 'approved';
+
+      // Authenticated users may create — no server-only fields allowed
+      allow create: if request.auth != null
+        && !hasForbiddenWriteFields();
+
+      // Owner can delete their own prayer instantly — no Cloud Function needed
+      // ownerUid is the raw anonymous Firebase UID stored at creation
+      allow delete: if request.auth != null
+        && resource.data.ownerUid == request.auth.uid;
+
+      // All updates via Cloud Functions only (Admin SDK bypasses rules)
+      allow update: if false;
+    }
+
+    // ── Default deny — everything else blocked ────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

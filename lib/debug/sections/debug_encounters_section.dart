@@ -3,7 +3,9 @@ import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/debug/debug_flags.dart';
+import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -227,12 +229,45 @@ class DebugEncountersSection extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () {
+              onPressed: () async {
+                final repository = getService<EncounterRepository>();
+                await repository.clearCache();
+
+                // Fetch the fresh index once, then force-download every
+                // study in it (normal app flow only preloads the first
+                // encounter's images, not all study content).
+                var downloadedCount = 0;
+                try {
+                  final entries = await repository.fetchIndex(
+                    forceRefresh: true,
+                  );
+                  for (final entry in entries) {
+                    final lang = entry.files.keys.isNotEmpty
+                        ? entry.files.keys.first
+                        : 'es';
+                    await repository.fetchStudy(
+                      entry.id,
+                      lang,
+                      filename: entry.files[lang],
+                      entry: entry,
+                    );
+                    downloadedCount++;
+                  }
+                } catch (e) {
+                  debugPrint(
+                      '⚠️ Encounter: Force reload of studies failed: $e');
+                }
+
+                if (!context.mounted) return;
                 context.read<EncounterBloc>().add(
-                      LoadEncounterIndex(forceRefresh: true),
+                      LoadEncounterIndex(forceRefresh: false),
                     );
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('🔄 Encounters index reloaded')),
+                  SnackBar(
+                    content: Text(
+                      '🔄 Encounters: reloaded index + $downloadedCount studies',
+                    ),
+                  ),
                 );
               },
               icon: const Icon(Icons.refresh, color: Colors.teal),
