@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_bloc.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_event.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_state.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_complete_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,7 +46,11 @@ void main() {
     when(() => mockBackupBloc.state).thenReturn(const BackupInitial());
   });
 
-  Future<void> pumpPage(WidgetTester tester, Size physicalSize) async {
+  Future<void> pumpPage(
+    WidgetTester tester,
+    Size physicalSize, {
+    VoidCallback? onBack,
+  }) async {
     tester.view.physicalSize = physicalSize;
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -58,7 +63,10 @@ void main() {
           BlocProvider<BackupBloc>.value(value: mockBackupBloc),
         ],
         child: MaterialApp(
-          home: OnboardingCompletePage(onStartApp: () {}, onBack: () {}),
+          home: OnboardingCompletePage(
+            onStartApp: () {},
+            onBack: onBack ?? () {},
+          ),
         ),
       ),
     );
@@ -90,5 +98,78 @@ void main() {
     await pumpPage(tester, const Size(1600, 2560));
 
     expect(tester.takeException(), isNull);
+  });
+
+  group('Back button — gated on Google Drive backup connection', () {
+    testWidgets(
+      'is disabled once backup is connected, so the user cannot '
+      're-trigger sign-in from the confirmation screen',
+      (tester) async {
+        when(() => mockBackupBloc.state).thenReturn(
+          const BackupLoaded(
+            autoBackupEnabled: true,
+            backupFrequency: 'daily',
+            wifiOnlyEnabled: false,
+            compressionEnabled: false,
+            backupOptions: {},
+            estimatedSize: 0,
+            isAuthenticated: true,
+          ),
+        );
+
+        var backCalled = false;
+        await pumpPage(
+          tester,
+          const Size(1080, 2400),
+          onBack: () => backCalled = true,
+        );
+
+        final backText = 'onboarding.onboarding_back'.tr();
+        final backButton = find.widgetWithText(TextButton, backText);
+        expect(backButton, findsOneWidget);
+
+        final button = tester.widget<TextButton>(backButton);
+        expect(button.onPressed, isNull);
+
+        await tester.tap(backButton, warnIfMissed: false);
+        await tester.pump();
+        expect(backCalled, isFalse);
+      },
+    );
+
+    testWidgets(
+      'stays enabled and calls onBack when backup is not yet connected',
+      (tester) async {
+        when(() => mockBackupBloc.state).thenReturn(
+          const BackupLoaded(
+            autoBackupEnabled: false,
+            backupFrequency: 'deactivated',
+            wifiOnlyEnabled: false,
+            compressionEnabled: false,
+            backupOptions: {},
+            estimatedSize: 0,
+            isAuthenticated: false,
+          ),
+        );
+
+        var backCalled = false;
+        await pumpPage(
+          tester,
+          const Size(1080, 2400),
+          onBack: () => backCalled = true,
+        );
+
+        final backText = 'onboarding.onboarding_back'.tr();
+        final backButton = find.widgetWithText(TextButton, backText);
+        expect(backButton, findsOneWidget);
+
+        final button = tester.widget<TextButton>(backButton);
+        expect(button.onPressed, isNotNull);
+
+        await tester.tap(backButton);
+        await tester.pump();
+        expect(backCalled, isTrue);
+      },
+    );
   });
 }

@@ -203,22 +203,25 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             }
 
             if (state is OnboardingStepActive) {
-              // Once Google Drive backup is connected, there's nothing to
-              // undo by going back — block back navigation entirely on
-              // this step so the user can't re-trigger the sign-in flow.
-              final backupAlreadyConnected = state.currentStepIndex == 2 &&
+              // On the final (completion) step, once Google Drive backup
+              // is connected there is nothing left to undo — block back
+              // navigation entirely so the user can't re-trigger the
+              // sign-in flow from the confirmation screen. The backup
+              // step itself keeps allowing normal back navigation: by
+              // design the user won't revisit it once already connected.
+              final backOnCompletionBlocked = state.currentStepIndex == 3 &&
                   state.userSelections['backupEnabled'] == true;
 
               return PopScope(
                 // Step 0 (welcome) has nothing to go back to within the
                 // flow, so the system back gesture/button behaves normally
                 // (backgrounds the app). Steps 1+ intercept back to return
-                // to the previous onboarding step instead of exiting. When
-                // backup is already connected, back is a no-op — nothing
-                // to undo, and re-entering the step would re-trigger sign-in.
+                // to the previous onboarding step instead of exiting,
+                // except on the completion step once backup is connected
+                // (see above).
                 canPop: state.currentStepIndex == 0,
                 onPopInvokedWithResult: (didPop, _) {
-                  if (!didPop && !backupAlreadyConnected) _handleBack();
+                  if (!didPop && !backOnCompletionBlocked) _handleBack();
                 },
                 child: Scaffold(
                   body: Column(
