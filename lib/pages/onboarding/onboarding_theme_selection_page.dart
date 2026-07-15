@@ -8,11 +8,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class OnboardingThemeSelectionPage extends StatefulWidget {
   final VoidCallback onNext;
   final VoidCallback onBack;
+  final VoidCallback onSkip;
 
   const OnboardingThemeSelectionPage({
     super.key,
     required this.onNext,
     required this.onBack,
+    required this.onSkip,
   });
 
   @override
@@ -51,11 +53,12 @@ class _OnboardingThemeSelectionPageState
           ),
         ),
         child: SafeArea(
+          top: false,
           child: Column(
             children: [
-              // Navigation buttons
+              // Navigation header
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -64,6 +67,15 @@ class _OnboardingThemeSelectionPageState
                         onPressed: widget.onBack,
                         child: Text(
                           'onboarding.onboarding_back'.tr(),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    Flexible(
+                      child: TextButton(
+                        onPressed: widget.onSkip,
+                        child: Text(
+                          'onboarding.onboarding_skip'.tr(),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -217,8 +229,7 @@ class _OnboardingThemeSelectionPageState
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
-                                        color:
-                                            themeData.colorScheme.onSurface,
+                                        color: themeData.colorScheme.onSurface,
                                       ),
                                       textAlign: TextAlign.center,
                                       maxLines: 2,
