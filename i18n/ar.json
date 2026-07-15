@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "الله يباركك ويملأ حياتك سلامًا",
     "onboarding_skip": "تخطّي",
+    "onboarding_step_indicator": "الخطوة {current} من {total}",
     "onboarding_back": "رجوع",
     "onboarding_next": "التالي",
     "onboarding_config_later": "الإعداد لاحقًا",

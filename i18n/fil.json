@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "Pagpalain ka ng Diyos at punuin ang iyong buhay ng kapayapaan",
     "onboarding_skip": "Laktawan",
+    "onboarding_step_indicator": "Hakbang {current} ng {total}",
     "onboarding_back": "Bumalik",
     "onboarding_next": "Susunod",
     "onboarding_config_later": "I-setup mamaya",

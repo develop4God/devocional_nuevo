@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "परमेश्वर आपको आशीष दें और आपके जीवन को शांति से भर दें",
     "onboarding_skip": "छोड़ें",
+    "onboarding_step_indicator": "चरण {current} में से {total}",
     "onboarding_back": "वापस",
     "onboarding_next": "अगला",
     "onboarding_config_later": "बाद में सेटअप करें",

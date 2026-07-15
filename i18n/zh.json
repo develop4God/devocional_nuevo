@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "神祝福你，让你的生活充满平安",
     "onboarding_skip": "跳过",
+    "onboarding_step_indicator": "第 {current}/{total} 步",
     "onboarding_back": "返回",
     "onboarding_next": "下一个",
     "onboarding_config_later": "稍后配置",
