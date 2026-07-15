@@ -203,11 +203,35 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                   // Progress indicator
                   if (state.currentStepIndex <
                       OnboardingSteps.defaultSteps.length - 1)
+                    SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.only(
+                          start: 32,
+                          end: 32,
+                          top: 16,
+                        ),
+                        child: Text(
+                          'onboarding.onboarding_step_indicator'.tr({
+                            'current': state.currentStepIndex + 1,
+                            'total': OnboardingSteps.defaultSteps.length - 1,
+                          }),
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ),
+                    ),
+                  if (state.currentStepIndex <
+                      OnboardingSteps.defaultSteps.length - 1)
                     Container(
-                      padding: const EdgeInsets.fromLTRB(32, 24, 32, 16),
-                      // Added top padding for status bar
-                      margin: const EdgeInsets.only(top: 16),
-                      // Additional margin to separate from status bar
+                      padding: const EdgeInsets.fromLTRB(32, 8, 32, 16),
                       child: Row(
                         children: List.generate(
                           OnboardingSteps.defaultSteps.length - 1,
@@ -259,6 +283,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                       children: [
                         OnboardingWelcomePage(
                           onNext: () => _handleStepNavigation(1),
+                          onSkip: _handleComplete,
                         ),
                         OnboardingThemeSelectionPage(
                           onNext: () => _handleStepNavigation(2),
