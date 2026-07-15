@@ -126,261 +126,291 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                 ),
               ),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                  child: Column(
-                    children: [
-                      const Spacer(flex: 2),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: IntrinsicHeight(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              // Celebration icon with particles
+                              SizedBox(
+                                height: 200,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    // Background particles
+                                    ...List.generate(8, (index) {
+                                      return AnimatedBuilder(
+                                        animation: _particleAnimation,
+                                        builder: (context, child) {
+                                          final angle =
+                                              (index * 45.0) * (math.pi / 180);
+                                          final distance = 60 +
+                                              (40 * _particleAnimation.value);
+                                          final x = distance *
+                                              math.cos(
+                                                angle +
+                                                    _particleAnimation.value *
+                                                        2 *
+                                                        math.pi,
+                                              );
+                                          final y = distance *
+                                              math.sin(
+                                                angle +
+                                                    _particleAnimation.value *
+                                                        2 *
+                                                        math.pi,
+                                              );
 
-                      // Celebration icon with particles
-                      SizedBox(
-                        height: 200,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Background particles
-                            ...List.generate(8, (index) {
-                              return AnimatedBuilder(
-                                animation: _particleAnimation,
+                                          return Transform.translate(
+                                            offset: Offset(x, y),
+                                            child: Container(
+                                              width: 6,
+                                              height: 6,
+                                              decoration: BoxDecoration(
+                                                color: colorScheme.primary
+                                                    .withValues(
+                                                  alpha: 0.3 *
+                                                      (1 -
+                                                          _particleAnimation
+                                                              .value),
+                                                ),
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    }),
+
+                                    // Main celebration icon
+                                    AnimatedBuilder(
+                                      animation: Listenable.merge([
+                                        _scaleAnimation,
+                                        _pulseAnimation,
+                                      ]),
+                                      builder: (context, child) {
+                                        return Transform.scale(
+                                          scale: _scaleAnimation.value *
+                                              _pulseAnimation.value,
+                                          child: Container(
+                                            width: 140,
+                                            height: 140,
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  colorScheme.primary,
+                                                  colorScheme.secondary,
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                              shape: BoxShape.circle,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: colorScheme.primary
+                                                      .withValues(
+                                                    alpha: 0.3,
+                                                  ),
+                                                  blurRadius: 30,
+                                                  spreadRadius: 5,
+                                                  offset: const Offset(0, 10),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Icon(
+                                              Icons.celebration_outlined,
+                                              color: colorScheme.onPrimary,
+                                              size: 70,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 40),
+
+                              // Title with animation
+                              AnimatedBuilder(
+                                animation: _fadeAnimation,
                                 builder: (context, child) {
-                                  final angle =
-                                      (index * 45.0) * (math.pi / 180);
-                                  final distance =
-                                      60 + (40 * _particleAnimation.value);
-                                  final x = distance *
-                                      math.cos(
-                                        angle +
-                                            _particleAnimation.value *
-                                                2 *
-                                                math.pi,
-                                      );
-                                  final y = distance *
-                                      math.sin(
-                                        angle +
-                                            _particleAnimation.value *
-                                                2 *
-                                                math.pi,
-                                      );
-
                                   return Transform.translate(
-                                    offset: Offset(x, y),
-                                    child: Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: BoxDecoration(
-                                        color: colorScheme.primary.withValues(
-                                          alpha: 0.3 *
-                                              (1 - _particleAnimation.value),
+                                    offset: Offset(
+                                        0, 20 * (1 - _fadeAnimation.value)),
+                                    child: Opacity(
+                                      opacity: _fadeAnimation.value,
+                                      child: Text(
+                                        'onboarding.onboarding_complete_title'
+                                            .tr(),
+                                        style: theme.textTheme.headlineLarge
+                                            ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.onSurface,
+                                          letterSpacing: -0.5,
                                         ),
-                                        shape: BoxShape.circle,
+                                        textAlign: TextAlign.center,
                                       ),
                                     ),
                                   );
                                 },
-                              );
-                            }),
+                              ),
 
-                            // Main celebration icon
-                            AnimatedBuilder(
-                              animation: Listenable.merge([
-                                _scaleAnimation,
-                                _pulseAnimation,
-                              ]),
-                              builder: (context, child) {
-                                return Transform.scale(
-                                  scale: _scaleAnimation.value *
-                                      _pulseAnimation.value,
-                                  child: Container(
-                                    width: 140,
-                                    height: 140,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          colorScheme.primary,
-                                          colorScheme.secondary,
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: colorScheme.primary.withValues(
-                                            alpha: 0.3,
-                                          ),
-                                          blurRadius: 30,
-                                          spreadRadius: 5,
-                                          offset: const Offset(0, 10),
+                              const SizedBox(height: 16),
+
+                              // Subtitle
+                              AnimatedBuilder(
+                                animation: _fadeAnimation,
+                                builder: (context, child) {
+                                  return Transform.translate(
+                                    offset: Offset(
+                                        0, 20 * (1 - _fadeAnimation.value)),
+                                    child: Opacity(
+                                      opacity: _fadeAnimation.value,
+                                      child: Text(
+                                        'onboarding.onboarding_complete_subtitle'
+                                            .tr(),
+                                        style:
+                                            theme.textTheme.bodyLarge?.copyWith(
+                                          color: colorScheme.onSurface
+                                              .withValues(alpha: 0.7),
+                                          height: 1.5,
                                         ),
-                                      ],
+                                        textAlign: TextAlign.center,
+                                      ),
                                     ),
-                                    child: Icon(
-                                      Icons.celebration_outlined,
-                                      color: colorScheme.onPrimary,
-                                      size: 70,
+                                  );
+                                },
+                              ),
+
+                              const SizedBox(height: 40),
+
+                              // Setup summary card - Consulta BackupBloc directamente
+                              BlocBuilder<BackupBloc, BackupState>(
+                                buildWhen: (previous, current) {
+                                  // Construir en el primer estado Y cuando sea BackupLoaded
+                                  return previous is BackupInitial ||
+                                      current is BackupLoaded;
+                                },
+                                builder: (context, backupState) {
+                                  bool isBackupConfigured = false;
+
+                                  if (backupState is BackupLoaded) {
+                                    isBackupConfigured =
+                                        backupState.isAuthenticated &&
+                                            backupState.autoBackupEnabled;
+                                  }
+
+                                  debugPrint(
+                                    '🔍 [COMPLETE] isBackupConfigured: $isBackupConfigured',
+                                  );
+
+                                  return AnimatedBuilder(
+                                    animation: _fadeAnimation,
+                                    builder: (context, child) {
+                                      return Transform.translate(
+                                        offset: Offset(
+                                            0, 30 * (1 - _fadeAnimation.value)),
+                                        child: Opacity(
+                                          opacity: _fadeAnimation.value,
+                                          child: _buildSetupSummaryCard(
+                                            context,
+                                            isBackupConfigured,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+
+                              const SizedBox(height: 40),
+
+                              // Start button
+                              AnimatedBuilder(
+                                animation: _fadeAnimation,
+                                builder: (context, child) {
+                                  return Transform.translate(
+                                    offset: Offset(
+                                        0, 20 * (1 - _fadeAnimation.value)),
+                                    child: Opacity(
+                                      opacity: _fadeAnimation.value,
+                                      child: SizedBox(
+                                        width: double.infinity,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                colorScheme.primary,
+                                                colorScheme.secondary,
+                                              ],
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: colorScheme.primary
+                                                    .withValues(
+                                                  alpha: 0.3,
+                                                ),
+                                                blurRadius: 20,
+                                                offset: const Offset(0, 8),
+                                              ),
+                                            ],
+                                          ),
+                                          child: ElevatedButton(
+                                            onPressed: () {
+                                              context
+                                                  .read<OnboardingBloc>()
+                                                  .add(
+                                                    const CompleteOnboarding(),
+                                                  );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              shadowColor: Colors.transparent,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                vertical: 18,
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              'onboarding.onboarding_start_app'
+                                                  .tr(),
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                                color: colorScheme.onPrimary,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
+                                  );
+                                },
+                              ),
+
+                              const SizedBox(height: 32),
+                            ],
+                          ),
                         ),
                       ),
-
-                      const SizedBox(height: 40),
-
-                      // Title with animation
-                      AnimatedBuilder(
-                        animation: _fadeAnimation,
-                        builder: (context, child) {
-                          return Transform.translate(
-                            offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
-                            child: Opacity(
-                              opacity: _fadeAnimation.value,
-                              child: Text(
-                                'onboarding.onboarding_complete_title'.tr(),
-                                style: theme.textTheme.headlineLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.onSurface,
-                                  letterSpacing: -0.5,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Subtitle
-                      AnimatedBuilder(
-                        animation: _fadeAnimation,
-                        builder: (context, child) {
-                          return Transform.translate(
-                            offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
-                            child: Opacity(
-                              opacity: _fadeAnimation.value,
-                              child: Text(
-                                'onboarding.onboarding_complete_subtitle'.tr(),
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: colorScheme.onSurface
-                                      .withValues(alpha: 0.7),
-                                  height: 1.5,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 40),
-
-                      // Setup summary card - Consulta BackupBloc directamente
-                      BlocBuilder<BackupBloc, BackupState>(
-                        buildWhen: (previous, current) {
-                          // Construir en el primer estado Y cuando sea BackupLoaded
-                          return previous is BackupInitial ||
-                              current is BackupLoaded;
-                        },
-                        builder: (context, backupState) {
-                          bool isBackupConfigured = false;
-
-                          if (backupState is BackupLoaded) {
-                            isBackupConfigured = backupState.isAuthenticated &&
-                                backupState.autoBackupEnabled;
-                          }
-
-                          debugPrint(
-                            '🔍 [COMPLETE] isBackupConfigured: $isBackupConfigured',
-                          );
-
-                          return AnimatedBuilder(
-                            animation: _fadeAnimation,
-                            builder: (context, child) {
-                              return Transform.translate(
-                                offset:
-                                    Offset(0, 30 * (1 - _fadeAnimation.value)),
-                                child: Opacity(
-                                  opacity: _fadeAnimation.value,
-                                  child: _buildSetupSummaryCard(
-                                    context,
-                                    isBackupConfigured,
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-
-                      const Spacer(flex: 2),
-
-                      // Start button
-                      AnimatedBuilder(
-                        animation: _fadeAnimation,
-                        builder: (context, child) {
-                          return Transform.translate(
-                            offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
-                            child: Opacity(
-                              opacity: _fadeAnimation.value,
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        colorScheme.primary,
-                                        colorScheme.secondary,
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: colorScheme.primary.withValues(
-                                          alpha: 0.3,
-                                        ),
-                                        blurRadius: 20,
-                                        offset: const Offset(0, 8),
-                                      ),
-                                    ],
-                                  ),
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      context.read<OnboardingBloc>().add(
-                                            const CompleteOnboarding(),
-                                          );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.transparent,
-                                      shadowColor: Colors.transparent,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 18,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'onboarding.onboarding_start_app'.tr(),
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
-                                        color: colorScheme.onPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 32),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
             ],
