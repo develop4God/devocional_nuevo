@@ -619,7 +619,7 @@
     "onboarding_complete_subtitle": "あなたの霊的空間が設定されました。自信を持ってデボーショナルジャーニーを始めてください。",
     "onboarding_your_setup": "あなたの設定",
     "onboarding_start_app": "旅を始める",
-    "onboarding_theme_configured": "カスタムテーマが選択されました",
+    "onboarding_setup_theme_configured": "カスタムテーマが選択されました",
     "onboarding_setup_backup_configured": "自動バックアップを設定",
     "onboarding_setup_protection_active": "データ保護が有効",
     "onboarding_setup_backup_skipped": "今はバックアップをスキップ",
