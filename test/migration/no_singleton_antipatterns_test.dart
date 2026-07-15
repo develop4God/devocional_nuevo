@@ -1127,6 +1127,72 @@ void main() {
         );
       },
     );
+
+    // ── OnboardingService / RemoteConfigService DI registration ────────────
+
+    test(
+      'OnboardingService does not use static singleton antipattern',
+      () async {
+        final file = File('lib/services/onboarding_service.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('static final OnboardingService _instance'),
+          isFalse,
+          reason: 'OnboardingService should not have static _instance field',
+        );
+
+        expect(
+          content.contains('static OnboardingService get instance'),
+          isFalse,
+          reason: 'OnboardingService should not have static instance getter',
+        );
+      },
+    );
+
+    test(
+      'OnboardingService and RemoteConfigService are registered as lazy singletons in ServiceLocator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('registerLazySingleton<OnboardingService>'),
+          isTrue,
+          reason:
+              'OnboardingService should be registered as lazy singleton in ServiceLocator',
+        );
+
+        expect(
+          content.contains('registerLazySingleton<RemoteConfigService>'),
+          isTrue,
+          reason:
+              'RemoteConfigService should be registered as lazy singleton in ServiceLocator',
+        );
+
+        expect(
+          content.contains(
+            'remoteConfigService: locator.get<RemoteConfigService>()',
+          ),
+          isTrue,
+          reason:
+              'OnboardingService should receive RemoteConfigService via constructor injection',
+        );
+      },
+    );
+
+    test('Codebase does not reference OnboardingService.instance', () async {
+      final libDir = Directory('lib');
+      expect(await libDir.exists(), isTrue);
+
+      await _checkDirectoryForPattern(
+        libDir,
+        'OnboardingService.instance',
+        'lib',
+      );
+    });
   });
 }
 
