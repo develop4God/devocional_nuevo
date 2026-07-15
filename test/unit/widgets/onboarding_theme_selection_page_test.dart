@@ -1,3 +1,6 @@
+@Tags(['unit', 'widgets', 'onboarding'])
+library;
+
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_theme_selection_page.dart';
