@@ -37,7 +37,8 @@
     <application
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:label="Devocionales Cristianos">
+        android:label="Devocionales Cristianos"
+        android:networkSecurityConfig="@xml/network_security_config">
 
         <!-- Actividad principal -->
         <activity

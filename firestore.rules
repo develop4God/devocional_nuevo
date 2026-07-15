@@ -167,16 +167,47 @@ service cloud.firestore {
           && request.resource.data.createdAt == request.time;
       }
 
+      // NEW-1 fix (found by adversarial emulator validation, 2026-07-15):
+      // the scheduled Cloud Function (sendDailyDevotionalNotification, see
+      // functions/index.js) writes a 6th field — lastNotificationSentDate —
+      // into this same document via the Admin SDK. The client's
+      // set(merge:true) writes only 5 fields, but for a merge write
+      // request.resource.data is the POST-MERGE document, so once a user has
+      // ever received a notification it would contain 6 keys. A plain
+      // keys().hasOnly([5 keys]) on request.resource.data therefore denied
+      // every subsequent settings write for any user the scheduler had
+      // already touched — a real regression that would have broken
+      // notification settings for active users on deploy. Splitting into
+      // create/update and checking the DIFF (like users/{userId} above)
+      // instead of the full merged document fixes it: only the keys this
+      // specific write actually changes need to be in the allow-list,
+      // regardless of what else already exists on the document.
       match /settings/{settingId} {
         allow read: if request.auth != null && request.auth.uid == userId;
 
-        allow write: if request.auth != null
+        function isAllowedSettingsWrite() {
+          return request.resource.data.lastUpdated == request.time
+            && request.resource.data.notificationsEnabled is bool
+            && request.resource.data.notificationTime is string
+            && request.resource.data.userTimezone is string
+            && request.resource.data.preferredLanguage is string;
+        }
+
+        allow create: if request.auth != null
           && request.auth.uid == userId
           && request.resource.data.keys().hasOnly([
                'notificationsEnabled', 'notificationTime', 'userTimezone',
                'lastUpdated', 'preferredLanguage'
              ])
-          && request.resource.data.lastUpdated == request.time;
+          && isAllowedSettingsWrite();
+
+        allow update: if request.auth != null
+          && request.auth.uid == userId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+               'notificationsEnabled', 'notificationTime', 'userTimezone',
+               'lastUpdated', 'preferredLanguage'
+             ])
+          && isAllowedSettingsWrite();
       }
     }
 
