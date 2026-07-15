@@ -112,17 +112,28 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
               // Navigation header
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    TextButton(
-                      onPressed: widget.onBack,
-                      child: Text(
-                        'onboarding.onboarding_back'.tr(),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                child: BlocBuilder<BackupBloc, BackupState>(
+                  builder: (context, backupState) {
+                    // Once Google Drive backup is connected there is
+                    // nothing left to change by going back — disable Back
+                    // so the user can't re-trigger the sign-in flow from
+                    // the final confirmation screen.
+                    final isBackupConnected = backupState is BackupLoaded &&
+                        backupState.isAuthenticated;
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        TextButton(
+                          onPressed: isBackupConnected ? null : widget.onBack,
+                          child: Text(
+                            'onboarding.onboarding_back'.tr(),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
               Expanded(
