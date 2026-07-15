@@ -31,6 +31,16 @@ rules_version = '2';
 //   2. No client can create a document with status other than 'pending',
 //      so originalText is never immediately public.
 // Full encryption should be implemented before production launch.
+//
+// 2026-07-15 follow-up (F-06, F-10):
+// - reportCount is no longer client-writable directly; see the
+//   `reports/{reporterId}` subcollection rule and
+//   functions/triggers/on_prayer_report_created.js for the one-report-per-
+//   user aggregation that replaced it.
+// - `authorId` is still accepted from the client on create (a SHA-256(uid)
+//   hash), but functions/triggers/on_prayer_submitted.js overwrites it with
+//   a keyed HMAC of the rule-verified `ownerUid` once PRAYER_AUTHOR_HMAC_SECRET
+//   is configured, making it unlinkable without that secret.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -87,40 +97,42 @@ service cloud.firestore {
         && (resource.data.status == 'approved'
             || resource.data.ownerUid == request.auth.uid);
 
-      // Two, and only two, client update paths exist, each a narrow diff
-      // against an already-approved prayer:
-      //   - "pray" tap:   prayCount += 1
-      //   - report:       reportCount += 1, and once reportCount reaches 3,
-      //                    status flips approved -> needs_review in the same write.
-      // Anything else (moderation fields, ownerUid, text, arbitrary counter
-      // jumps) is rejected. All other transitions (approve, reject, PII mask)
-      // happen server-side via the Admin SDK, which bypasses these rules.
-      function diffKeysOnly(keys) {
-        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
-      }
-
+      // Exactly one client update path exists: a "pray" tap (prayCount += 1)
+      // on an already-approved prayer. Anything else (moderation fields,
+      // ownerUid, text, arbitrary counter jumps) is rejected. All other
+      // transitions (approve, reject, PII mask) happen server-side via the
+      // Admin SDK, which bypasses these rules.
+      //
+      // F-06: reportCount is intentionally NOT client-writable here. It used
+      // to be a direct client increment, which let one account call
+      // reportPrayer() three times and force any prayer into needs_review.
+      // Reports are now one doc per user under the `reports` subcollection
+      // below (doc ID == request.auth.uid, so a second report from the same
+      // user is an `update` and is rejected); a Cloud Function trigger
+      // (functions/triggers/on_prayer_report_created.js) is the only writer
+      // of reportCount, aggregating distinct reporters via the Admin SDK.
       function isPrayTap() {
         return resource.data.status == 'approved'
-          && diffKeysOnly(['prayCount'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['prayCount'])
           && request.resource.data.prayCount == resource.data.prayCount + 1;
       }
 
-      function isReport() {
-        return resource.data.status == 'approved'
-          && request.resource.data.reportCount == resource.data.reportCount + 1
-          && (
-            (diffKeysOnly(['reportCount']) && request.resource.data.reportCount < 3)
-            || (diffKeysOnly(['reportCount', 'status'])
-                && request.resource.data.reportCount >= 3
-                && request.resource.data.status == 'needs_review')
-          );
-      }
-
-      allow update: if request.auth != null && (isPrayTap() || isReport());
+      allow update: if request.auth != null && isPrayTap();
 
       // Authors may delete their own prayer (e.g. while still pending).
       allow delete: if request.auth != null
         && resource.data.ownerUid == request.auth.uid;
+
+      // One report per user per prayer. No read/update/delete: a report is
+      // write-once evidence for the aggregation trigger, never displayed
+      // and never meant to be revocable by the reporter.
+      match /reports/{reporterId} {
+        allow create: if request.auth != null
+          && request.auth.uid == reporterId
+          && request.resource.data.keys().hasOnly(['createdAt'])
+          && request.resource.data.createdAt == request.time;
+        allow read, update, delete: if false;
+      }
     }
 
     // ── Per-user data ──────────────────────────────────────────────────────
