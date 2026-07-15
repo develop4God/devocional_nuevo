@@ -76,7 +76,10 @@ function createModerationQueueHandler({moderationService, db, logger}) {
  */
 function resolveStatus(result) {
   if (result.isPastoral) return "pastoral";
-  if (result.approved) return "approved";
+  // F-03 follow-up: only honor "approved" at >= 0.75 confidence, matching
+  // on_prayer_submitted.js — see that file for why a low-confidence
+  // approval shouldn't publish immediately.
+  if (result.approved && result.confidence >= 0.75) return "approved";
   if (result.confidence < 0.75) return "needs_review"; // Low confidence → human review
   return "rejected";
 }

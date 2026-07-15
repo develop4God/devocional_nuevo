@@ -10,11 +10,22 @@ const {GeminiModerationService} = require("./services/gemini_moderation_service"
 const {createModerationQueueHandler} = require("./tasks/moderation_queue_handler");
 
 /**
- * Default fetch function — uses node-fetch (dynamic import for ESM compat).
+ * Default fetch function — Node 22 (this project's declared engine, see
+ * functions/package.json) has a global `fetch`, so no dependency is needed.
+ *
+ * F-11 follow-up (found by adversarial validation, 2026-07-15): this
+ * previously dynamically imported "node-fetch", which is NOT listed in
+ * functions/package.json's dependencies — it only resolved because a
+ * transitive dependency happened to hoist a copy into node_modules. F-11's
+ * fix makes this code path actually run in production for the first time,
+ * which would have made that latent fragility live too (an `npm ci` that
+ * doesn't happen to hoist node-fetch would break the whole pipeline with a
+ * module-not-found error). Using the runtime's built-in fetch removes the
+ * dependency entirely instead of just declaring it.
  * @returns {Function}
  */
 function defaultFetchFn() {
-  return (...args) => import("node-fetch").then((m) => m.default(...args));
+  return (...args) => fetch(...args);
 }
 
 /**

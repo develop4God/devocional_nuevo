@@ -46,9 +46,27 @@ function computeAuthorPseudonym(ownerUid) {
  *
  * Services are constructed via the DI factory (createPrayerWallServices) so
  * they can be injected/mocked in tests without modifying this handler.
+ *
+ * F-11 follow-up (found by adversarial validation, 2026-07-15): a Cloud
+ * Functions v2 trigger only receives a Secret Manager secret in
+ * process.env if it's explicitly listed in `secrets`. This trigger reads
+ * GEMINI_API_KEY and PRAYER_AUTHOR_HMAC_SECRET but declared neither, so even
+ * with the export fix above, deploying this function would still leave the
+ * pipeline silently inert if either value lives in Secret Manager (the
+ * pattern this codebase's own docs recommend, e.g. `firebase
+ * functions:secrets:set GEMINI_API_KEY`) rather than a bare `.env` file.
+ * Declaring them here is the correct fix if Secret Manager is in use; if
+ * GEMINI_API_KEY is actually supplied via `.env` instead, this declaration
+ * will make `firebase deploy` fail loudly with "secret not found" —
+ * which, unlike the previous silent no-op, immediately surfaces the
+ * mismatch instead of hiding it. Confirm which mechanism is actually in use
+ * for this project before/at the next deploy.
  */
 const onPrayerSubmitted = onDocumentCreated(
-    "prayers/{prayerId}",
+    {
+      document: "prayers/{prayerId}",
+      secrets: ["GEMINI_API_KEY", "PRAYER_AUTHOR_HMAC_SECRET"],
+    },
     async (event) => {
       const prayerId = event.params.prayerId;
       const prayer = event.data?.data();
@@ -113,9 +131,14 @@ const onPrayerSubmitted = onDocumentCreated(
 
         const moderationResult = await moderationService.moderate(maskedText, language);
 
-        // Determine status from moderation result
+        // Determine status from moderation result.
+        // F-03 follow-up: an "approved" verdict is only honored at >= 0.75
+        // confidence — previously a low-confidence approval still published
+        // immediately, when the same low confidence on a non-approval would
+        // have routed to needs_review instead. A low-confidence approval is
+        // exactly the shape a partially-successful injection would produce.
         const status = moderationResult.isPastoral ? "pastoral" :
-                     moderationResult.approved ? "approved" :
+                     (moderationResult.approved && moderationResult.confidence >= 0.75) ? "approved" :
                      moderationResult.confidence < 0.75 ? "needs_review" :
                      "rejected";
 
