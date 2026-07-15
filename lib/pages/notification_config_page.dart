@@ -15,6 +15,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationConfigPage extends StatefulWidget {
   const NotificationConfigPage({super.key});
@@ -128,12 +130,12 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
           name: 'NotificationConfigPage',
         );
 
-        // Si se usó un valor por defecto para notificationTime, guárdalo en Firestore
+        // Si se usó un valor por defecto para notificationTime, guárdalo en Firestore.
+        // Va a través de NotificationService (no una escritura directa aquí)
+        // porque ese método escribe los 5 campos que el esquema/reglas de
+        // Firestore requieren; una escritura parcial aquí los dejaría fuera.
         if (shouldUpdateFirestore) {
-          await _userNotificationSettingsRef!.update({
-            'notificationTime': timeString,
-            'lastUpdated': FieldValue.serverTimestamp(),
-          });
+          await _notificationService.setNotificationTime(timeString);
           developer.log(
             'NotificationConfigPage: notificationTime was missing, updated Firestore with default: $timeString',
             name: 'NotificationConfigPage',
@@ -152,10 +154,20 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
           minute: int.parse(parts[1]),
         );
 
+        // Firestore rules require every field the schema defines to be
+        // present on the document (see firestore.rules' isAllowedSettingsWrite),
+        // so this bootstrap create must include all five, not just the three
+        // this page happens to manage.
+        final currentTimezone = await FlutterTimezone.getLocalTimezone();
+        final prefs = await SharedPreferences.getInstance();
+        final currentLanguage = prefs.getString('locale') ?? 'es';
+
         await _userNotificationSettingsRef!.set({
           // Crea el documento
           'notificationsEnabled': _notificationsEnabled,
           'notificationTime': timeString, // Guarda la hora por defecto aquí
+          'userTimezone': currentTimezone,
+          'preferredLanguage': currentLanguage,
           'lastUpdated': FieldValue.serverTimestamp(),
         });
         developer.log(
@@ -200,16 +212,14 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
         );
         return;
       }
-      await _userNotificationSettingsRef!.update({
-        'notificationsEnabled': enabled,
-        'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      // Escribe a través de NotificationService (no directamente aquí) para
+      // que el documento siempre reciba los 5 campos requeridos por las
+      // reglas de Firestore, no solo los 2 que esta pantalla gestiona.
+      await _notificationService.setNotificationsEnabled(enabled);
       developer.log(
         'NotificationConfigPage: Notifications enabled set to $enabled in Firestore.',
         name: 'NotificationConfigPage',
       );
-
-      await _notificationService.setNotificationsEnabled(enabled);
 
       if (!mounted) return;
       AppSnackBar.show(
@@ -290,16 +300,14 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
     try {
       final String timeString =
           '${_newlySelectedTime!.hour.toString().padLeft(2, '0')}:${_newlySelectedTime!.minute.toString().padLeft(2, '0')}';
-      await _userNotificationSettingsRef!.update({
-        'notificationTime': timeString,
-        'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      // Escribe a través de NotificationService (no directamente aquí) para
+      // que el documento siempre reciba los 5 campos requeridos por las
+      // reglas de Firestore, no solo los 2 que esta pantalla gestiona.
+      await _notificationService.setNotificationTime(timeString);
       developer.log(
         'NotificationConfigPage: Notification time adjusted to $timeString in Firestore.',
         name: 'NotificationConfigPage',
       );
-
-      await _notificationService.setNotificationTime(timeString);
 
       if (!mounted) return;
       setState(() {
