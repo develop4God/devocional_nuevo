@@ -203,112 +203,129 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             }
 
             if (state is OnboardingStepActive) {
-              return Scaffold(
-                body: Column(
-                  children: [
-                    // Progress indicator
-                    if (state.currentStepIndex <
-                        OnboardingSteps.defaultSteps.length - 1)
-                      SafeArea(
-                        bottom: false,
-                        child: Padding(
-                          padding: const EdgeInsetsDirectional.only(
-                            start: 32,
-                            end: 32,
-                            top: 16,
-                          ),
-                          child: Text(
-                            'onboarding.onboarding_step_indicator'.tr({
-                              'current': state.currentStepIndex + 1,
-                              'total': OnboardingSteps.defaultSteps.length - 1,
-                            }),
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  )
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.6),
-                                  fontWeight: FontWeight.w600,
-                                ),
+              return PopScope(
+                // Step 0 (welcome) has nothing to go back to within the
+                // flow, so the system back gesture/button behaves normally
+                // (backgrounds the app). Steps 1+ intercept back to return
+                // to the previous onboarding step instead of exiting.
+                canPop: state.currentStepIndex == 0,
+                onPopInvokedWithResult: (didPop, _) {
+                  if (!didPop) _handleBack();
+                },
+                child: Scaffold(
+                  body: Column(
+                    children: [
+                      // Progress indicator
+                      if (state.currentStepIndex <
+                          OnboardingSteps.defaultSteps.length - 1)
+                        SafeArea(
+                          bottom: false,
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.only(
+                              start: 32,
+                              end: 32,
+                              top: 16,
+                            ),
+                            child: Text(
+                              'onboarding.onboarding_step_indicator'.tr({
+                                'current': state.currentStepIndex + 1,
+                                'total':
+                                    OnboardingSteps.defaultSteps.length - 1,
+                              }),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    )
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.6),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
                           ),
                         ),
-                      ),
-                    if (state.currentStepIndex <
-                        OnboardingSteps.defaultSteps.length - 1)
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(32, 8, 32, 16),
-                        child: Row(
-                          children: List.generate(
-                            OnboardingSteps.defaultSteps.length - 1,
-                            (index) {
-                              return Expanded(
-                                child: Container(
-                                  margin: EdgeInsetsDirectional.only(
-                                    end: index <
-                                            OnboardingSteps
-                                                    .defaultSteps.length -
-                                                2
-                                        ? 8
-                                        : 0,
+                      if (state.currentStepIndex <
+                          OnboardingSteps.defaultSteps.length - 1)
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(32, 8, 32, 16),
+                          child: Row(
+                            children: List.generate(
+                              OnboardingSteps.defaultSteps.length - 1,
+                              (index) {
+                                return Expanded(
+                                  child: Container(
+                                    margin: EdgeInsetsDirectional.only(
+                                      end: index <
+                                              OnboardingSteps
+                                                      .defaultSteps.length -
+                                                  2
+                                          ? 8
+                                          : 0,
+                                    ),
+                                    height:
+                                        6, // Increased height for better visibility
+                                    decoration: BoxDecoration(
+                                      color: index <= state.currentStepIndex
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .outline
+                                              .withValues(alpha: 0.3),
+                                      borderRadius: BorderRadius.circular(3),
+                                      boxShadow: index <= state.currentStepIndex
+                                          ? [
+                                              BoxShadow(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                    .withValues(alpha: 0.3),
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
                                   ),
-                                  height:
-                                      6, // Increased height for better visibility
-                                  decoration: BoxDecoration(
-                                    color: index <= state.currentStepIndex
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .outline
-                                            .withValues(alpha: 0.3),
-                                    borderRadius: BorderRadius.circular(3),
-                                    boxShadow: index <= state.currentStepIndex
-                                        ? [
-                                            BoxShadow(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                                  .withValues(alpha: 0.3),
-                                              blurRadius: 4,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ]
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            },
+                                );
+                              },
+                            ),
                           ),
                         ),
-                      ),
 
-                    // Pages
-                    Expanded(
-                      child: PageView(
-                        controller: _pageController,
-                        physics: const NeverScrollableScrollPhysics(),
-                        children: [
-                          OnboardingWelcomePage(
-                            onNext: () => _handleStepNavigation(1),
-                            onSkip: _handleComplete,
-                          ),
-                          OnboardingThemeSelectionPage(
-                            onNext: () => _handleStepNavigation(2),
-                            onBack: _handleBack,
-                          ),
-                          OnboardingBackupConfigurationPage(
-                            onNext: () => _handleStepNavigation(3),
-                            onBack: _handleBack,
-                            onSkip: () => _handleStepNavigation(3),
-                          ),
-                          OnboardingCompletePage(onStartApp: _handleComplete),
-                        ],
+                      // Pages
+                      Expanded(
+                        child: PageView(
+                          controller: _pageController,
+                          physics: const NeverScrollableScrollPhysics(),
+                          children: [
+                            OnboardingWelcomePage(
+                              onNext: () => _handleStepNavigation(1),
+                              onSkip: _handleComplete,
+                            ),
+                            OnboardingThemeSelectionPage(
+                              onNext: () => _handleStepNavigation(2),
+                              onBack: _handleBack,
+                              onSkip: () => _handleStepNavigation(2),
+                            ),
+                            OnboardingBackupConfigurationPage(
+                              onNext: () => _handleStepNavigation(3),
+                              onBack: _handleBack,
+                              onSkip: () => _handleStepNavigation(3),
+                            ),
+                            OnboardingCompletePage(
+                              onStartApp: _handleComplete,
+                              onBack: _handleBack,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             }
