@@ -199,5 +199,97 @@ void main() {
         expect(loaded['selectedThemeFamily'], 'Blue');
       },
     );
+
+    test('loadProgress clears and returns null on corrupted JSON', () async {
+      SharedPreferences.setMockInitialValues({
+        'onboarding_progress': 'not valid json',
+      });
+
+      expect(await service.loadProgress(), isNull);
+    });
+
+    test(
+      'loadProgress returns null and clears storage when the payload is '
+      'missing a required key (completedSteps)',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'onboarding_progress': '{"schemaVersion":1,"payload":'
+              '{"totalSteps":4,"stepCompletionStatus":[true,false,false,false],'
+              '"progressPercentage":25.0}}',
+        });
+
+        expect(await service.loadProgress(), isNull);
+
+        // Confirms the invalid entry was actually removed, not just ignored.
+        expect(await service.loadProgress(), isNull);
+      },
+    );
+
+    test(
+      'loadProgress returns null when a required field has the wrong type '
+      '(totalSteps as a String instead of an int)',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'onboarding_progress': '{"schemaVersion":1,"payload":'
+              '{"totalSteps":"4","completedSteps":1,'
+              '"stepCompletionStatus":[true,false,false,false],'
+              '"progressPercentage":25.0}}',
+        });
+
+        expect(await service.loadProgress(), isNull);
+      },
+    );
+
+    test(
+      'loadProgress migrates a pre-schema-version (legacy, unwrapped) '
+      'payload and returns the parsed values unchanged',
+      () async {
+        // Legacy shape: no {schemaVersion, payload} wrapper at all — the
+        // raw progress fields were stored directly under the storage key.
+        // _isValidProgressStructure falls back to validating this shape
+        // directly (onboarding_service.dart:385), and schemaVersion reads
+        // as 0 via `wrapper['schemaVersion'] as int? ?? 0`, so this
+        // exercises the schemaVersion < _currentSchemaVersion branch and
+        // calls _migrateProgress.
+        SharedPreferences.setMockInitialValues({
+          'onboarding_progress': '{"totalSteps":4,"completedSteps":2,'
+              '"stepCompletionStatus":[true,true,false,false],'
+              '"progressPercentage":50.0}',
+        });
+
+        final migrated = await service.loadProgress();
+
+        expect(migrated, isNotNull);
+        expect(migrated!.totalSteps, 4);
+        expect(migrated.completedSteps, 2);
+        expect(migrated.stepCompletionStatus, [true, true, false, false]);
+        expect(migrated.progressPercentage, 50.0);
+      },
+    );
+
+    test(
+      'loadProgress does NOT re-persist migrated data — unlike '
+      'loadConfiguration, a second load re-runs migration from the same '
+      'legacy storage shape rather than reading back an upgraded v1 record',
+      () async {
+        const legacyJson = '{"totalSteps":4,"completedSteps":2,'
+            '"stepCompletionStatus":[true,true,false,false],'
+            '"progressPercentage":50.0}';
+        SharedPreferences.setMockInitialValues({
+          'onboarding_progress': legacyJson,
+        });
+
+        await service.loadProgress();
+
+        final prefs = await SharedPreferences.getInstance();
+        expect(
+          prefs.getString('onboarding_progress'),
+          legacyJson,
+          reason: 'loadProgress has no self-healing re-save, unlike '
+              'loadConfiguration; storage stays at the legacy shape after '
+              'a migrated read',
+        );
+      },
+    );
   });
 }
