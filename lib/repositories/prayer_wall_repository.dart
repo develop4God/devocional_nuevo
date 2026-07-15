@@ -138,27 +138,37 @@ class PrayerWallRepository implements IPrayerWallRepository {
     });
   }
 
+  /// Reports a prayer by writing a one-per-user marker doc under
+  /// `prayers/{prayerId}/reports/{uid}`. `reportCount` is no longer written
+  /// directly by the client — a Cloud Function trigger
+  /// (on_prayer_report_created) aggregates distinct reports and flips the
+  /// prayer to `needs_review` at the 3-report threshold. This prevents a
+  /// single account from reporting the same prayer repeatedly to force a
+  /// takedown: a second attempt targets an existing doc, which Firestore
+  /// rules classify as an update and deny (`allow update: if false`).
   @override
   Future<void> reportPrayer({required String prayerId}) async {
-    await _firestore.runTransaction((transaction) async {
-      final ref = _firestore.collection(_collection).doc(prayerId);
-      final snapshot = await transaction.get(ref);
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
 
-      if (!snapshot.exists) return;
+    final reportRef = _firestore
+        .collection(_collection)
+        .doc(prayerId)
+        .collection('reports')
+        .doc(uid);
 
-      final reportCount =
-          (snapshot.data()?['reportCount'] as num?)?.toInt() ?? 0;
-      final newReportCount = reportCount + 1;
-
-      final updates = <String, dynamic>{'reportCount': newReportCount};
-
-      // After 3 reports → move to needs_review automatically
-      if (newReportCount >= 3) {
-        updates['status'] = 'needs_review';
+    try {
+      await reportRef.set({'createdAt': FieldValue.serverTimestamp()});
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        // Already reported by this user — safe to ignore.
+        debugPrint(
+          '🚩 [PrayerWallRepository] Report ignored for $prayerId (already reported by this user).',
+        );
+        return;
       }
-
-      transaction.update(ref, updates);
-    });
+      rethrow;
+    }
   }
 
   @override
