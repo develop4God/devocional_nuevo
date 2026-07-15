@@ -212,7 +212,7 @@ void main() {
         when(
           () => repo.deletePrayer(
             prayerId: any(named: 'prayerId'),
-            authorHash: any(named: 'authorHash'),
+            uid: any(named: 'uid'),
           ),
         ).thenAnswer((_) async {});
         return PrayerWallBloc(repository: repo);
@@ -222,8 +222,7 @@ void main() {
         otherLanguagePrayers: const [],
         myPendingPrayer: _makeEntry(status: PrayerWallStatus.pending),
       ),
-      act: (bloc) =>
-          bloc.add(DeletePrayer(prayerId: 'prayer1', authorHash: 'h')),
+      act: (bloc) => bloc.add(DeletePrayer(prayerId: 'prayer1', uid: 'u1')),
       wait: const Duration(milliseconds: 100),
       expect: () => [
         isA<PrayerWallLoaded>().having(

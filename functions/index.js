@@ -283,6 +283,23 @@ try {
 
 const db = admin.firestore();
 
+// ==========================================
+// PRAYER WALL TRIGGERS
+// ==========================================
+// SECURITY_ASSESSMENT (2026-07-15 follow-up): these triggers existed in
+// functions/triggers/ but were never required/exported here, so
+// `firebase deploy --only functions` never registered them — the entire
+// PII-masking + moderation pipeline (and report aggregation) was inert in
+// production. Every prayer would have stayed at status:'pending' forever,
+// with originalText never cleared. Wiring them up here after
+// setGlobalOptions() so they inherit the same region default as the
+// functions above.
+const {onPrayerSubmitted} = require("./triggers/on_prayer_submitted");
+const {onPrayerReportCreated} = require("./triggers/on_prayer_report_created");
+
+exports.onPrayerSubmitted = onPrayerSubmitted;
+exports.onPrayerReportCreated = onPrayerReportCreated;
+
 // Helper: Select language for user
 function selectLanguageForUser(preferredLanguage) {
   return (preferredLanguage && NOTIFICATION_TRANSLATIONS[preferredLanguage]) ?
