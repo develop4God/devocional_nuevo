@@ -32,7 +32,6 @@ import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.d
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
-import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/i_startup_migration_service.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
@@ -171,18 +170,6 @@ void main() async {
   // setupServiceLocator() returns a Future now — await to ensure services
   // are registered before any call to getService<T>().
   await setupServiceLocator();
-
-  try {
-    final remoteConfigService = getService<RemoteConfigService>();
-    await remoteConfigService.initialize();
-  } catch (e) {
-    // Remote config is non-critical, app continues without it
-    developer.log(
-      'Remote config initialization failed: $e',
-      name: 'main',
-      error: e,
-    );
-  }
 
   // Initialize deep link handler
   try {
