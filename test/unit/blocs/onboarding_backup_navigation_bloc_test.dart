@@ -46,6 +46,9 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(const ChangeThemeFamily('spirit'));
+    registerFallbackValue(
+      OnboardingProgress.fromStepCompletion(const [false, false, false, false]),
+    );
   });
 
   setUp(() {
@@ -62,6 +65,27 @@ void main() {
     ).thenAnswer((_) async {});
     when(
       () => mockOnboardingService.setOnboardingComplete(),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockOnboardingService.loadConfiguration(),
+    ).thenAnswer((_) async => <String, dynamic>{});
+    when(
+      () => mockOnboardingService.loadProgress(),
+    ).thenAnswer((_) async => null);
+    when(
+      () => mockOnboardingService.saveConfiguration(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockOnboardingService.saveProgress(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockOnboardingService.clearConfiguration(),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockOnboardingService.clearProgress(),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockOnboardingService.resetOnboarding(),
     ).thenAnswer((_) async {});
 
     when(() => mockBackupBloc.state).thenReturn(const BackupInitial());
