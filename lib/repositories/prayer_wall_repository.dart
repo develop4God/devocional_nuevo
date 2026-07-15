@@ -62,10 +62,10 @@ class PrayerWallRepository implements IPrayerWallRepository {
   }
 
   @override
-  Stream<PrayerWallEntry?> watchMyPendingPrayer({required String authorHash}) {
+  Stream<PrayerWallEntry?> watchMyPendingPrayer({required String uid}) {
     return _firestore
         .collection(_collection)
-        .where('authorId', isEqualTo: authorHash)
+        .where('ownerUid', isEqualTo: uid)
         .where('status', isEqualTo: 'pending')
         .orderBy('createdAt', descending: true)
         .limit(1)
@@ -164,16 +164,17 @@ class PrayerWallRepository implements IPrayerWallRepository {
   @override
   Future<void> deletePrayer({
     required String prayerId,
-    required String authorHash,
+    required String uid,
   }) async {
     final ref = _firestore.collection(_collection).doc(prayerId);
     final snapshot = await ref.get();
 
     if (!snapshot.exists) return;
 
-    // Verify ownership before hard-deleting
-    final storedAuthor = snapshot.data()?['authorId'] as String?;
-    if (storedAuthor != authorHash) {
+    // Verify ownership before hard-deleting. This is a UX nicety only — the
+    // Firestore rule (ownerUid == request.auth.uid) is the real enforcement.
+    final storedOwner = snapshot.data()?['ownerUid'] as String?;
+    if (storedOwner != uid) {
       throw Exception('Unauthorized: cannot delete another user\'s prayer.');
     }
 
