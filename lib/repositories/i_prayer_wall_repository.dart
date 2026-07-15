@@ -17,7 +17,12 @@ abstract class IPrayerWallRepository {
 
   /// Returns a stream for the current user's own pending prayer (if any).
   /// Shows the author their own prayer while it awaits moderation.
-  Stream<PrayerWallEntry?> watchMyPendingPrayer({required String authorHash});
+  ///
+  /// [uid] must be the caller's own raw Firebase UID (not a hash) — the
+  /// Firestore security rule authorizes this read against `ownerUid ==
+  /// request.auth.uid`, which Firestore can only verify for a query that
+  /// filters on the same raw value.
+  Stream<PrayerWallEntry?> watchMyPendingPrayer({required String uid});
 
   /// Submits a new prayer to the wall.
   ///
@@ -42,8 +47,12 @@ abstract class IPrayerWallRepository {
   Future<void> reportPrayer({required String prayerId});
 
   /// Hard-deletes the user's own prayer from Firestore.
+  ///
+  /// [uid] must be the caller's own raw Firebase UID (not a hash) — ownership
+  /// is enforced by the Firestore rule (`ownerUid == request.auth.uid`), this
+  /// client-side check only produces a clearer error before the round trip.
   Future<void> deletePrayer({
     required String prayerId,
-    required String authorHash,
+    required String uid,
   });
 }
