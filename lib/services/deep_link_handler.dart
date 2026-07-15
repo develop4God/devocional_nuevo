@@ -4,7 +4,6 @@ import 'dart:developer' as developer;
 import 'package:devocional_nuevo/main.dart';
 import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/pages/encounters/encounters_list_page.dart';
-import 'package:devocional_nuevo/pages/prayer_wall_page.dart';
 import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,7 +14,6 @@ import 'package:flutter/services.dart';
 /// - https://www.develop4god.com/devotional - Navigate to devotional page
 /// - https://www.develop4god.com/progress - Navigate to progress page
 /// - https://www.develop4god.com/prayers - Navigate to prayers page
-/// - https://www.develop4god.com/prayer_wall - Navigate to prayer wall page
 /// - https://www.develop4god.com/testimonies - Navigate to testimonies page
 /// - https://www.develop4god.com/backup - Navigate to backup settings page
 /// - https://www.develop4god.com/supporter - Navigate to supporter page
@@ -209,8 +207,6 @@ class DeepLinkHandler {
           return await _handleProgressDeepLink(context);
         case 'prayers':
           return await _handlePrayersDeepLink(context);
-        case 'prayer_wall':
-          return await _handlePrayerWallDeepLink(context);
         case 'testimonies':
           return await _handleTestimoniesDeepLink(context);
         case 'backup':
@@ -308,27 +304,6 @@ class DeepLinkHandler {
     developer.log('Navigated to prayers page', name: 'DeepLinkHandler');
 
     return true;
-  }
-
-  /// Handle prayer wall deep link
-  /// Format: devocional://prayer_wall
-  Future<bool> _handlePrayerWallDeepLink(BuildContext context) async {
-    try {
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      }
-
-      // Push PrayerWallPage (don't await - allows function to return immediately)
-      final route = MaterialPageRoute(builder: (_) => const PrayerWallPage());
-      Navigator.of(context).push(route);
-
-      developer.log('Navigated to prayer wall page', name: 'DeepLinkHandler');
-
-      return true;
-    } catch (e) {
-      developer.log('Navigation error: $e', name: 'DeepLinkHandler', error: e);
-      return false;
-    }
   }
 
   /// Handle testimonies deep link
