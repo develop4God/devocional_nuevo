@@ -30,6 +30,9 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(const ChangeThemeFamily('spirit'));
+    registerFallbackValue(
+      OnboardingProgress.fromStepCompletion(const [false, false, false, false]),
+    );
   });
 
   setUp(() {
@@ -46,6 +49,24 @@ void main() {
     ).thenAnswer((_) async {});
     when(
       () => mockOnboardingService.setOnboardingComplete(),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockOnboardingService.saveConfiguration(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockOnboardingService.saveProgress(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockOnboardingService.loadConfiguration(),
+    ).thenAnswer((_) async => {});
+    when(
+      () => mockOnboardingService.loadProgress(),
+    ).thenAnswer((_) async => null);
+    when(
+      () => mockOnboardingService.clearConfiguration(),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockOnboardingService.clearProgress(),
     ).thenAnswer((_) async {});
 
     // Provide a default state for BackupBloc to avoid "Null is not a subtype of BackupState"
@@ -252,6 +273,37 @@ void main() {
             (s) => s.currentStepIndex,
             'stepIndex',
             2,
+          ),
+        ],
+      );
+
+      blocTest<OnboardingBloc, OnboardingState>(
+        'ignores a duplicate ProgressToStep dispatched while the first is '
+        'still in flight',
+        build: () => onboardingBloc,
+        seed: () => OnboardingStepActive(
+          currentStepIndex: 0,
+          currentStep: OnboardingSteps.defaultSteps[0],
+          userSelections: const {},
+          stepConfiguration: const {},
+          canProgress: true,
+          canGoBack: false,
+          progress: OnboardingProgress.fromStepCompletion(const [
+            true,
+            false,
+            false,
+            false,
+          ]),
+        ),
+        act: (bloc) {
+          bloc.add(const ProgressToStep(1));
+          bloc.add(const ProgressToStep(1));
+        },
+        expect: () => [
+          isA<OnboardingStepActive>().having(
+            (s) => s.currentStepIndex,
+            'stepIndex',
+            1,
           ),
         ],
       );

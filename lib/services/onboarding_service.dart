@@ -1,4 +1,7 @@
 // lib/services/onboarding_service.dart
+import 'dart:convert';
+
+import 'package:devocional_nuevo/blocs/onboarding/onboarding_models.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +30,24 @@ class OnboardingService {
 
   // Current onboarding version
   static const int _currentVersion = 1;
+
+  // Configuration/progress persistence keys
+  static const String _configurationKey = 'onboarding_configuration';
+  static const String _progressKey = 'onboarding_progress';
+
+  // Schema versioning for configuration/progress persistence migration
+  static const int _currentSchemaVersion = 1;
+
+  Future<void>? _writeQueue;
+
+  /// Serializes SharedPreferences writes so concurrent saveConfiguration()/
+  /// saveProgress() calls don't interleave.
+  Future<T> _serialized<T>(Future<T> Function() operation) {
+    final previous = _writeQueue ?? Future.value();
+    final result = previous.then((_) => operation());
+    _writeQueue = result.then((_) {}, onError: (_) {});
+    return result;
+  }
 
   /// Check if onboarding has been completed
   Future<bool> isOnboardingComplete() async {
@@ -157,5 +178,248 @@ class OnboardingService {
       debugPrint('❌ [OnboardingService] Error reading remote config: $e');
       return false;
     }
+  }
+
+  /// Load saved onboarding configuration from SharedPreferences
+  Future<Map<String, dynamic>> loadConfiguration() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final configJson = prefs.getString(_configurationKey);
+
+      if (configJson != null) {
+        Map<String, dynamic> wrapper;
+        try {
+          wrapper = jsonDecode(configJson) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint(
+            '❌ [OnboardingService] Corrupted JSON detected in configuration: $e',
+          );
+          debugPrint(
+            '🔄 [OnboardingService] Clearing corrupted configuration data',
+          );
+          await prefs.remove(_configurationKey);
+          return {};
+        }
+
+        final schemaVersion = wrapper['schemaVersion'] as int? ?? 0;
+        Map<String, dynamic> config =
+            wrapper['payload'] as Map<String, dynamic>? ?? wrapper;
+
+        if (schemaVersion < _currentSchemaVersion) {
+          debugPrint(
+            '🔄 [OnboardingService] Configuration migrated from v$schemaVersion to v$_currentSchemaVersion',
+          );
+          await saveConfiguration(config);
+        }
+
+        debugPrint(
+          '📊 [OnboardingService] Configuración cargada: ${config.keys}',
+        );
+        return config;
+      }
+    } catch (e) {
+      debugPrint(
+        '⚠️ [OnboardingService] Error loading saved configuration: $e',
+      );
+      debugPrint('🔄 [OnboardingService] Falling back to empty configuration');
+    }
+    return {};
+  }
+
+  /// Save onboarding configuration to SharedPreferences with schema versioning
+  Future<void> saveConfiguration(Map<String, dynamic> configuration) {
+    return _serialized(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final wrapper = {
+          'schemaVersion': _currentSchemaVersion,
+          'payload': configuration,
+        };
+        await prefs.setString(_configurationKey, jsonEncode(wrapper));
+        debugPrint(
+          '💾 [OnboardingService] Configuración guardada: ${configuration.keys}',
+        );
+      } catch (e) {
+        debugPrint('⚠️ [OnboardingService] Error saving configuration: $e');
+      }
+    });
+  }
+
+  /// Clear saved onboarding configuration
+  Future<void> clearConfiguration() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_configurationKey);
+      debugPrint('🗑️ [OnboardingService] Configuración limpiada');
+    } catch (e) {
+      debugPrint('⚠️ [OnboardingService] Error clearing configuration: $e');
+    }
+  }
+
+  /// Load saved onboarding progress from SharedPreferences
+  Future<OnboardingProgress?> loadProgress() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final progressJson = prefs.getString(_progressKey);
+
+      if (progressJson != null) {
+        Map<String, dynamic> wrapper;
+        try {
+          wrapper = jsonDecode(progressJson) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint(
+            '❌ [OnboardingService] Corrupted JSON detected in progress: $e',
+          );
+          debugPrint('🔄 [OnboardingService] Clearing corrupted progress data');
+          await prefs.remove(_progressKey);
+          return null;
+        }
+
+        if (!_isValidProgressStructure(wrapper)) {
+          debugPrint(
+            '⚠️ [OnboardingService] Invalid progress structure detected, falling back to defaults',
+          );
+          await prefs.remove(_progressKey);
+          return null;
+        }
+
+        final schemaVersion = wrapper['schemaVersion'] as int? ?? 0;
+        Map<String, dynamic> progressData =
+            wrapper['payload'] as Map<String, dynamic>? ?? wrapper;
+
+        if (schemaVersion < _currentSchemaVersion) {
+          progressData = _migrateProgress(progressData, schemaVersion);
+          debugPrint(
+            '🔄 [OnboardingService] Progress migrated from v$schemaVersion to v$_currentSchemaVersion',
+          );
+        }
+
+        final progress = OnboardingProgress.fromJson(progressData);
+        debugPrint(
+          '📊 [OnboardingService] Progreso cargado: ${progress.completedSteps}/${progress.totalSteps}',
+        );
+        return progress;
+      }
+    } catch (e) {
+      debugPrint('⚠️ [OnboardingService] Error loading saved progress: $e');
+      debugPrint('🔄 [OnboardingService] Falling back to null progress');
+    }
+    return null;
+  }
+
+  /// Save onboarding progress to SharedPreferences with schema versioning
+  Future<void> saveProgress(OnboardingProgress progress) {
+    return _serialized(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final wrapper = {
+          'schemaVersion': _currentSchemaVersion,
+          'payload': progress.toJson(),
+        };
+        await prefs.setString(_progressKey, jsonEncode(wrapper));
+        debugPrint(
+          '💾 [OnboardingService] Progreso guardado: ${progress.completedSteps}/${progress.totalSteps}',
+        );
+      } catch (e) {
+        debugPrint('⚠️ [OnboardingService] Error saving progress: $e');
+      }
+    });
+  }
+
+  /// Clear saved onboarding progress
+  Future<void> clearProgress() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_progressKey);
+      debugPrint('🗑️ [OnboardingService] Progreso limpiado');
+    } catch (e) {
+      debugPrint('⚠️ [OnboardingService] Error clearing progress: $e');
+    }
+  }
+
+  /// Migrate progress data from older schema versions
+  Map<String, dynamic> _migrateProgress(
+    Map<String, dynamic> progressData,
+    int fromVersion,
+  ) {
+    debugPrint(
+      '🔄 [OnboardingService] Migrating progress from version $fromVersion to $_currentSchemaVersion',
+    );
+
+    try {
+      Map<String, dynamic> migratedProgress = Map<String, dynamic>.from(
+        progressData,
+      );
+
+      if (fromVersion < 1) {
+        migratedProgress['totalSteps'] ??= 4;
+        migratedProgress['completedSteps'] ??= 0;
+        migratedProgress['stepCompletionStatus'] ??= List<bool>.filled(
+          4,
+          false,
+        );
+        migratedProgress['progressPercentage'] ??= 0.0;
+        debugPrint(
+          '✅ [OnboardingService] Progress migration v0->v1 completed',
+        );
+      }
+
+      return migratedProgress;
+    } catch (e) {
+      debugPrint('❌ [OnboardingService] Progress migration failed: $e');
+      debugPrint(
+        '🔄 [OnboardingService] Falling back to original progress data',
+      );
+      return progressData;
+    }
+  }
+
+  /// Validate progress JSON structure
+  bool _isValidProgressStructure(Map<String, dynamic> data) {
+    try {
+      if (data.containsKey('schemaVersion') && data.containsKey('payload')) {
+        final payload = data['payload'];
+        if (payload is! Map<String, dynamic>) return false;
+        return _isValidProgressPayload(payload);
+      }
+      return _isValidProgressPayload(data);
+    } catch (e) {
+      debugPrint(
+        '❌ [OnboardingService] Progress structure validation failed: $e',
+      );
+      return false;
+    }
+  }
+
+  /// Validate progress payload structure
+  bool _isValidProgressPayload(Map<String, dynamic> payload) {
+    const requiredKeys = [
+      'totalSteps',
+      'completedSteps',
+      'stepCompletionStatus',
+      'progressPercentage',
+    ];
+
+    for (final key in requiredKeys) {
+      if (!payload.containsKey(key)) {
+        debugPrint(
+          '❌ [OnboardingService] Missing required progress key: $key',
+        );
+        return false;
+      }
+    }
+
+    if (payload['totalSteps'] is! int || payload['completedSteps'] is! int) {
+      debugPrint('❌ [OnboardingService] Invalid progress step count types');
+      return false;
+    }
+
+    if (payload['stepCompletionStatus'] is! List ||
+        payload['progressPercentage'] is! num) {
+      debugPrint('❌ [OnboardingService] Invalid progress data types');
+      return false;
+    }
+
+    return true;
   }
 }
