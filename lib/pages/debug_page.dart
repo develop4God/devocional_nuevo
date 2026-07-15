@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/debug/sections/debug_devotionals_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_discovery_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_encounters_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_iap_section.dart';
+import 'package:devocional_nuevo/debug/sections/debug_prayer_wall_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_streak_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_tts_section.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -123,6 +124,10 @@ class _DebugPageState extends State<DebugPage> {
 
             // ── TTS debug (fallback toggle + voice explorer) ──
             const DebugTtsSection(),
+            const SizedBox(height: 32),
+
+            // ── Prayer Wall debug (no user-facing nav entry yet) ──
+            const DebugPrayerWallSection(),
             const SizedBox(height: 32),
           ],
         ),
