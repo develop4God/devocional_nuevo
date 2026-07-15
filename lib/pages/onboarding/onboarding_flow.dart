@@ -16,6 +16,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+/// True when system back navigation must be a no-op for [state]: on the
+/// final (completion) step, once Google Drive backup is connected there is
+/// nothing left to undo, so back is blocked to prevent re-triggering the
+/// sign-in flow from the confirmation screen. The backup configuration step
+/// itself keeps allowing normal back navigation — by design the user won't
+/// revisit it once already connected.
+bool isBackNavigationBlocked(OnboardingStepActive state) {
+  return state.currentStepIndex == 3 &&
+      state.userSelections['backupEnabled'] == true;
+}
+
 class OnboardingFlow extends StatefulWidget {
   final VoidCallback onComplete;
 
@@ -203,25 +214,18 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             }
 
             if (state is OnboardingStepActive) {
-              // On the final (completion) step, once Google Drive backup
-              // is connected there is nothing left to undo — block back
-              // navigation entirely so the user can't re-trigger the
-              // sign-in flow from the confirmation screen. The backup
-              // step itself keeps allowing normal back navigation: by
-              // design the user won't revisit it once already connected.
-              final backOnCompletionBlocked = state.currentStepIndex == 3 &&
-                  state.userSelections['backupEnabled'] == true;
-
               return PopScope(
                 // Step 0 (welcome) has nothing to go back to within the
                 // flow, so the system back gesture/button behaves normally
                 // (backgrounds the app). Steps 1+ intercept back to return
                 // to the previous onboarding step instead of exiting,
                 // except on the completion step once backup is connected
-                // (see above).
+                // (see isBackNavigationBlocked).
                 canPop: state.currentStepIndex == 0,
                 onPopInvokedWithResult: (didPop, _) {
-                  if (!didPop && !backOnCompletionBlocked) _handleBack();
+                  if (!didPop && !isBackNavigationBlocked(state)) {
+                    _handleBack();
+                  }
                 },
                 child: Scaffold(
                   body: Column(
