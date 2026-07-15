@@ -96,6 +96,7 @@ class _OnboardingBackupConfigurationPageState
               ),
             ),
             child: SafeArea(
+              top: false,
               child: Column(
                 children: [
                   _buildOnboardingHeader(context),
@@ -121,7 +122,7 @@ class _OnboardingBackupConfigurationPageState
 
   Widget _buildOnboardingHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: BlocBuilder<BackupBloc, BackupState>(
         builder: (context, state) {
           final isConnected = state is BackupLoaded && state.isAuthenticated;
