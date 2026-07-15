@@ -10,6 +10,7 @@ import 'package:devocional_nuevo/pages/onboarding/onboarding_complete_page.dart'
 import 'package:devocional_nuevo/pages/onboarding/onboarding_theme_selection_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_welcome_page.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -49,7 +50,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     }
 
     _onboardingBloc = OnboardingBloc(
-      onboardingService: OnboardingService.instance,
+      onboardingService: getService<OnboardingService>(),
       themeBloc: themeBloc,
       backupBloc: backupBloc,
     );

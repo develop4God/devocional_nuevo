@@ -1,15 +1,23 @@
 // lib/services/onboarding_service.dart
+import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service responsible for managing onboarding state
+///
+/// Registered in ServiceLocator as a lazy singleton.
+/// Usage: `getService<OnboardingService>()`
 class OnboardingService {
-  // Singleton pattern
-  static final OnboardingService _instance = OnboardingService._internal();
+  final RemoteConfigService _remoteConfigService;
 
-  static OnboardingService get instance => _instance;
+  OnboardingService._({required RemoteConfigService remoteConfigService})
+      : _remoteConfigService = remoteConfigService;
 
-  OnboardingService._internal();
+  factory OnboardingService.create({
+    required RemoteConfigService remoteConfigService,
+  }) {
+    return OnboardingService._(remoteConfigService: remoteConfigService);
+  }
 
   // Keys for SharedPreferences
   static const String _onboardingCompleteKey = 'onboarding_complete';
@@ -137,42 +145,17 @@ class OnboardingService {
     return true;
   }
 
-  /// Check if we should show onboarding flow
-  //flag off for now
-  /*Future<bool> shouldShowOnboarding() async {
+  /// Check if we should show onboarding flow.
+  /// Gated by the enable_onboarding_flow remote config flag and whether
+  /// the user has already completed onboarding.
+  Future<bool> shouldShowOnboarding() async {
     try {
-      final remoteConfig = FirebaseRemoteConfig.instance;
-      await remoteConfig.fetchAndActivate();
-      final enableOnboarding = remoteConfig.getBool('enable_onboarding_flow');
-
-      final isComplete = await isOnboardingComplete();
-      return enableOnboarding && !isComplete;
+      if (!_remoteConfigService.isReady) return false;
+      if (!_remoteConfigService.enableOnboardingFlow) return false;
+      return !(await isOnboardingComplete());
     } catch (e) {
       debugPrint('❌ [OnboardingService] Error reading remote config: $e');
-      return !(await isOnboardingComplete());
-    }
-  }*/
-
-  /// Get the current onboarding version
-  /*int get currentVersion => _currentVersion;
-
-  /// Check if user needs to see updated onboarding
-  Future<bool> needsOnboardingUpdate() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final isComplete = prefs.getBool(_onboardingCompleteKey) ?? false;
-      final savedVersion = prefs.getInt(_onboardingVersionKey) ?? 0;
-
-      // User needs update if completed old version
-      return isComplete && savedVersion < _currentVersion;
-    } catch (e) {
-      debugPrint(
-          '❌ [OnboardingService] Error checking for onboarding update: $e');
       return false;
     }
-  }*/
-  Future<bool> shouldShowOnboarding() async {
-    // Onboarding permanently disabled (forced)
-    return false;
   }
 }
