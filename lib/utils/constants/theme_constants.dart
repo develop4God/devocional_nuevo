@@ -260,7 +260,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green,
-          foregroundColor: Colors.black87,
+          foregroundColor: Colors.white,
         ),
       ),
       sliderTheme: SliderThemeData(
@@ -394,7 +394,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.pink,
-          foregroundColor: Colors.black87,
+          foregroundColor: Colors.white,
         ),
       ),
       sliderTheme: SliderThemeData(
@@ -528,7 +528,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.cyan,
-          foregroundColor: Colors.black87,
+          foregroundColor: Colors.white,
         ),
       ),
       sliderTheme: SliderThemeData(
