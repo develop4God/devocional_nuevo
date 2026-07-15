@@ -43,7 +43,11 @@ abstract class IPrayerWallRepository {
   /// Increments the 🙏 pray count for a prayer (optimistic update supported).
   Future<void> tapPrayHand({required String prayerId});
 
-  /// Reports a prayer. After 3 reports it moves to `needs_review` automatically.
+  /// Reports a prayer. Writes a one-per-caller marker doc; a Cloud Function
+  /// aggregates distinct reporters server-side and moves the prayer to
+  /// `needs_review` once 3 distinct users have reported it. A caller
+  /// reporting the same prayer twice is a no-op (rejected by rules, caught
+  /// internally) — it does not count twice.
   Future<void> reportPrayer({required String prayerId});
 
   /// Hard-deletes the user's own prayer from Firestore.
