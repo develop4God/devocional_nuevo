@@ -404,7 +404,11 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                                               style: TextStyle(
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.w600,
-                                                color: colorScheme.onPrimary,
+                                                color: theme
+                                                    .elevatedButtonTheme
+                                                    .style
+                                                    ?.foregroundColor
+                                                    ?.resolve({}),
                                               ),
                                             ),
                                           ),
