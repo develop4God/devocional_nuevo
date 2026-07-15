@@ -619,7 +619,7 @@
     "onboarding_complete_subtitle": "您的灵修空间已配置。现在是开始您的每日属灵之旅的时候了。",
     "onboarding_your_setup": "您的设置",
     "onboarding_start_app": "开始我与神的空间",
-    "onboarding_theme_configured": "自定义主题已选择",
+    "onboarding_setup_theme_configured": "自定义主题已选择",
     "onboarding_setup_backup_configured": "自动备份已配置",
     "onboarding_setup_protection_active": "数据保护已激活",
     "onboarding_setup_backup_skipped": "备份暂时跳过",
