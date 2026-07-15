@@ -24,6 +24,9 @@ tags:
   pages:
     # Full page/screen tests
     # Example: @Tags(['unit', 'pages'])
+  onboarding:
+    # Onboarding flow tests
+    # Example: @Tags(['unit', 'onboarding'])
   controllers:
     # Controller tests (audio, TTS, etc.)
     # Example: @Tags(['unit', 'controllers'])
