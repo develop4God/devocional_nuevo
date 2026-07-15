@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "Gott segne dich und erfülle dein Leben mit Frieden",
     "onboarding_skip": "Überspringen",
+    "onboarding_step_indicator": "Schritt {current} von {total}",
     "onboarding_back": "Zurück",
     "onboarding_next": "Weiter",
     "onboarding_config_later": "Später einrichten",

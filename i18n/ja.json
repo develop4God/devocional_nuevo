@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "神があなたを祝福し、あなたの人生を平和で満たしますように",
     "onboarding_skip": "スキップ",
+    "onboarding_step_indicator": "ステップ {current}/{total}",
     "onboarding_back": "戻る",
     "onboarding_next": "次へ",
     "onboarding_config_later": "後で設定",

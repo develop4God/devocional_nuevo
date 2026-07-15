@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "Deus te abençoe e encha de paz sua vida",
     "onboarding_skip": "Pular",
+    "onboarding_step_indicator": "Passo {current} de {total}",
     "onboarding_back": "Voltar",
     "onboarding_next": "Próximo",
     "onboarding_config_later": "Configurar depois",

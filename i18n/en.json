@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "God bless you and fill your life with peace",
     "onboarding_skip": "Skip",
+    "onboarding_step_indicator": "Step {current} of {total}",
     "onboarding_back": "Back",
     "onboarding_next": "Next",
     "onboarding_config_later": "Setup later",

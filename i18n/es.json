@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "Dios te bendiga y llene de paz tu vida",
     "onboarding_skip": "Omitir",
+    "onboarding_step_indicator": "Paso {current} de {total}",
     "onboarding_back": "Atrás",
     "onboarding_next": "Siguiente",
     "onboarding_config_later": "Configurar luego",
