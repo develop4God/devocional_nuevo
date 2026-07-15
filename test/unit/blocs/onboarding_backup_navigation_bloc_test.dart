@@ -1,4 +1,4 @@
-@Tags(['unit', 'blocs'])
+@Tags(['unit', 'blocs', 'onboarding'])
 library;
 
 // test/unit/blocs/onboarding_backup_navigation_bloc_test.dart

@@ -1,4 +1,4 @@
-@Tags(['unit', 'blocs'])
+@Tags(['unit', 'blocs', 'onboarding'])
 library;
 
 import 'package:bloc_test/bloc_test.dart';

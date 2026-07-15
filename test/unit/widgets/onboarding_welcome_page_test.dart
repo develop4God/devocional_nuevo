@@ -1,3 +1,6 @@
+@Tags(['unit', 'widgets', 'onboarding'])
+library;
+
 import 'package:devocional_nuevo/pages/onboarding/onboarding_welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
