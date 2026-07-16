@@ -141,13 +141,16 @@ jobs:
           git config --local user.name "GitHub Action [bot]"
 
           # Check if there are actual changes (not counting generated files)
-          if ! git diff --quiet lib/ test/ pubspec.yaml pubspec.lock i18n/ docs/ 2>/dev/null; then
+          if ! git diff --quiet -- lib/ test/ pubspec.yaml pubspec.lock i18n/ docs/ \
+              ':(exclude)**/*.mocks.dart' \
+              ':(exclude)**/GeneratedPluginRegistrant*' \
+              ':(exclude)**/generated_plugin_registrant*' 2>/dev/null; then
             # Only auto-commit on push events (not on PRs)
             if [ "${{ github.event_name }}" = "push" ]; then
               BRANCH="${{ github.ref_name }}"
 
               git add lib/ test/ pubspec.yaml pubspec.lock i18n/ docs/
-              git reset -- '**/GeneratedPluginRegistrant*' '**/generated_plugin_registrant*' 2>/dev/null || true
+              git reset -- '**/GeneratedPluginRegistrant*' '**/generated_plugin_registrant*' '**/*.mocks.dart' 2>/dev/null || true
 
               # Only commit if source files changed (not just generated files)
               if ! git diff --cached --quiet; then
