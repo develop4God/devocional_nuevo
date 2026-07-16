@@ -45,9 +45,9 @@ class RemoteConfigService {
 
     try {
       await _remoteConfig.setDefaults({
-        // TODO: revert to false before merging to main — enabled here only
-        // for QA testing of the onboarding wiring on this branch.
-        'enable_onboarding_flow': true,
+        // Gates whether new/returning users see the onboarding flow.
+        // Controlled remotely so it can be toggled without a release.
+        'enable_onboarding_flow': false,
       });
 
       await _remoteConfig.setConfigSettings(
