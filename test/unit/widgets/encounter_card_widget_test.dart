@@ -433,6 +433,46 @@ void main() {
     },
   );
 
+  // ── Test: visual header does not crash on a very short screen ───────────────
+  //
+  // Regression test: `(width / aspectRatio).clamp(150.0, screenHeight * factor)`
+  // throws ArgumentError when screenHeight * factor < 150.0 (min > max), which
+  // happens on very short viewports (small landscape windows, split-screen,
+  // some foldables). The upper bound must never fall below the 150.0 floor.
+
+  testWidgets(
+    'CinematicSceneCard visual header does not throw on a very short screen',
+    (tester) async {
+      const card = EncounterCard(
+        order: 1,
+        type: 'cinematic_scene',
+        title: 'Test Title',
+      );
+
+      // Landscape, very short height: screenHeight * 0.35 = 84, well under
+      // the 150.0 floor -- this is the exact shape that used to crash.
+      tester.view.physicalSize = const Size(800, 240);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: CinematicSceneCard(card: card)),
+        ),
+      );
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(
+        tester
+            .getSize(find.byKey(const ValueKey('encounter_visual_header')))
+            .height,
+        greaterThanOrEqualTo(150.0),
+      );
+    },
+  );
+
   // ── Test 2: CompletionCard back button calls onBackToEncounters ─────────────
 
   testWidgets('CompletionCard back button calls onBackToEncounters', (
