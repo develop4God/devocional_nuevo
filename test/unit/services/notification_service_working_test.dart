@@ -46,6 +46,17 @@ void _mockInitializePlatformChannels() {
       return null;
     },
   );
+
+  const connectivityChannel =
+      MethodChannel('dev.fluttercommunity.plus/connectivity');
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(
+    connectivityChannel,
+    (MethodCall call) async {
+      if (call.method == 'check') return ['wifi'];
+      return null;
+    },
+  );
 }
 
 void main() {
@@ -397,27 +408,34 @@ void main() {
       expect(store.lastLoginWrites, isEmpty);
     });
 
-    // NOTE: initialize()'s authStateChanges subscription is only reached
-    // after flutter_local_notifications' own plugin initialization, which
-    // throws LateInitializationError under the unit test platform binding
-    // (a pre-existing plugin/test-environment limitation, not something
-    // introduced by this DI migration). So the auth-gated flow below is
-    // exercised directly via the authStateChanges stream + the private FCM
-    // path's public entry points, without depending on initialize() itself
-    // completing under test.
     test(
-      'signing in drives updateLastLogin and saves the FCM token once _initializeFCM-equivalent flow runs',
+      'signing in drives the full notification setup flow as one sequence',
       () async {
         fakePushMessaging.token = 'fake-fcm-token';
 
-        // Directly exercise the behavior initialize()'s authStateChanges
-        // listener would trigger for a signed-in user.
-        await notificationService.updateLastLogin();
-        await notificationService.setNotificationsEnabled(true);
+        // initialize()'s plugin bootstrap and its authStateChanges
+        // subscription are in separate try/catch scopes, so the listener
+        // attaches even though flutter_local_notifications' plugin
+        // bootstrap throws LateInitializationError under the unit test
+        // platform binding (a pre-existing plugin/test-environment
+        // limitation, not something introduced by this migration).
+        await notificationService.initialize();
+
+        fakeAuthService.emitAuthStateChange('fake-uid');
+        // Allow the async authStateChanges listener chain to run.
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
 
         expect(
           fakeUserProfileStore.lastLoginWrites.containsKey('fake-uid'),
           isTrue,
+        );
+        expect(fakePushMessaging.requestPermissionCallCount, greaterThan(0));
+        expect(fakePushMessaging.getTokenCallCount, greaterThan(0));
+        expect(
+          fakeUserProfileStore.savedFcmTokens['fake-uid'],
+          contains('fake-fcm-token'),
         );
         expect(
           fakeUserProfileStore.savedSettings.containsKey('fake-uid'),
@@ -427,14 +445,15 @@ void main() {
     );
 
     test(
-      'initialize does not throw even when the local-notifications plugin '
-      'is unavailable under the test platform binding',
+      'signing out after initialize does not drive the notification setup flow',
       () async {
-        // This only asserts initialize() completes without an uncaught
-        // exception; under the unit test binding it never reaches the
-        // authStateChanges subscription (see NOTE above), so it cannot
-        // assert anything about the auth-gated FCM flow.
-        await expectLater(notificationService.initialize(), completes);
+        await notificationService.initialize();
+
+        fakeAuthService.emitAuthStateChange(null);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(fakeUserProfileStore.lastLoginWrites, isEmpty);
+        expect(fakePushMessaging.requestPermissionCallCount, equals(0));
       },
     );
   });

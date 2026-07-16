@@ -128,6 +128,11 @@ class NotificationService {
   }
 
   Future<void> initialize() async {
+    // Plugin bootstrap (timezone data, flutter_local_notifications, OS
+    // permission prompts) is isolated in its own try/catch so that a
+    // platform-channel failure here does not prevent the authStateChanges
+    // subscription below from attaching. Without this separation, a plugin
+    // bootstrap failure silently disables the entire FCM/settings sync flow.
     try {
       // Usar tzdata.initializeTimeZones() como se ha confirmado que funciona
       tzdata.initializeTimeZones();
@@ -159,66 +164,66 @@ class NotificationService {
 
       await _requestPermissions();
       debugPrint('🔔 [NotificationService] Initialized');
-
-      // **INICIO DE MODIFICACIÓN: Escuchar cambios de autenticación antes de inicializar FCM y guardar settings**
-      // Esto asegura que haya un usuario (UID) disponible antes de intentar guardar tokens o settings.
-      // Se elimina la llamada directa a _initializeFCM() y la lógica de settings de aquí.
-      _authService.authStateChanges.listen((uid) async {
-        try {
-          if (uid != null) {
-            debugPrint(
-              '🔔 [NotificationService] Authenticated user detected: $uid',
-            );
-
-            // Actualizar lastLogin cada vez que el usuario ingresa
-            await updateLastLogin();
-
-            // Ahora, inicializar FCM y gestionar el token solo si hay un usuario
-            await _initializeFCM();
-
-            // Manejar el mensaje inicial si la app se abrió desde una notificación
-            final RemoteMessage? initialMessage =
-                await _pushMessaging.getInitialMessage();
-            if (initialMessage != null) {
-              debugPrint(
-                '🔔 [NotificationService] App opened from initial notification: ${initialMessage.messageId}',
-              );
-              _handleMessage(initialMessage);
-            }
-
-            // Asegurar que la configuración de notificaciones esté completa en Firestore
-            final userId = uid;
-            final currentDeviceTimezone =
-                await FlutterTimezone.getLocalTimezone();
-
-            final settingsData =
-                await _userProfileStore.getNotificationSettings(userId);
-
-            bool initialNotificationsEnabled =
-                settingsData?['notificationsEnabled'] ?? true;
-            String initialNotificationTime =
-                settingsData?['notificationTime'] ?? _defaultNotificationTime;
-            String initialUserTimezone =
-                settingsData?['userTimezone'] ?? currentDeviceTimezone;
-
-            await _saveNotificationSettingsToFirestore(
-              userId,
-              initialNotificationsEnabled,
-              initialNotificationTime,
-              initialUserTimezone,
-            );
-          } else {
-            debugPrint('🔔 [NotificationService] No authenticated user.');
-          }
-        } catch (e) {
-          debugPrint(
-              '❌ [NotificationService] ERROR in authStateChanges listener: $e');
-        }
-      });
-      // **FIN DE MODIFICACIÓN**
     } catch (e) {
       debugPrint('❌ [NotificationService] ERROR in initialize: $e');
     }
+
+    // **INICIO DE MODIFICACIÓN: Escuchar cambios de autenticación antes de inicializar FCM y guardar settings**
+    // Esto asegura que haya un usuario (UID) disponible antes de intentar guardar tokens o settings.
+    // Se elimina la llamada directa a _initializeFCM() y la lógica de settings de aquí.
+    _authService.authStateChanges.listen((uid) async {
+      try {
+        if (uid != null) {
+          debugPrint(
+            '🔔 [NotificationService] Authenticated user detected: $uid',
+          );
+
+          // Actualizar lastLogin cada vez que el usuario ingresa
+          await updateLastLogin();
+
+          // Ahora, inicializar FCM y gestionar el token solo si hay un usuario
+          await _initializeFCM();
+
+          // Manejar el mensaje inicial si la app se abrió desde una notificación
+          final RemoteMessage? initialMessage =
+              await _pushMessaging.getInitialMessage();
+          if (initialMessage != null) {
+            debugPrint(
+              '🔔 [NotificationService] App opened from initial notification: ${initialMessage.messageId}',
+            );
+            _handleMessage(initialMessage);
+          }
+
+          // Asegurar que la configuración de notificaciones esté completa en Firestore
+          final userId = uid;
+          final currentDeviceTimezone =
+              await FlutterTimezone.getLocalTimezone();
+
+          final settingsData =
+              await _userProfileStore.getNotificationSettings(userId);
+
+          bool initialNotificationsEnabled =
+              settingsData?['notificationsEnabled'] ?? true;
+          String initialNotificationTime =
+              settingsData?['notificationTime'] ?? _defaultNotificationTime;
+          String initialUserTimezone =
+              settingsData?['userTimezone'] ?? currentDeviceTimezone;
+
+          await _saveNotificationSettingsToFirestore(
+            userId,
+            initialNotificationsEnabled,
+            initialNotificationTime,
+            initialUserTimezone,
+          );
+        } else {
+          debugPrint('🔔 [NotificationService] No authenticated user.');
+        }
+      } catch (e) {
+        debugPrint(
+            '❌ [NotificationService] ERROR in authStateChanges listener: $e');
+      }
+    });
+    // **FIN DE MODIFICACIÓN**
   }
 
   int _initializeFCMCallCount = 0;
