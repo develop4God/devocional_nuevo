@@ -143,24 +143,17 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        final isCompact = constraints.maxHeight < 700;
-                        final isVeryCompact = constraints.maxHeight < 560;
-                        final heroHeight =
-                            isVeryCompact ? 90.0 : (isCompact ? 130.0 : 200.0);
-                        final sectionSpacing =
-                            isVeryCompact ? 12.0 : (isCompact ? 20.0 : 40.0);
-                        final smallSpacing = isVeryCompact ? 8.0 : 16.0;
+                        const heroHeight = 200.0;
+                        const sectionSpacing = 40.0;
+                        const smallSpacing = 16.0;
 
-                        return SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: constraints.maxHeight,
-                            ),
-                            child: IntrinsicHeight(
+                        return Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: SizedBox(
+                              width: constraints.maxWidth - 64.0,
                               child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   // Celebration animation
                                   AnimatedBuilder(
@@ -447,11 +440,14 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
-                'onboarding.onboarding_your_setup'.tr(),
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
+              Expanded(
+                child: Text(
+                  'onboarding.onboarding_your_setup'.tr(),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
