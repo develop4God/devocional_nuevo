@@ -45,15 +45,13 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight,
-                          ),
-                          child: IntrinsicHeight(
+                      return Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: SizedBox(
+                            width: constraints.maxWidth - 64.0,
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 // Animated header
                                 AnimatedDonationHeader(
