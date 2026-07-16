@@ -1,4 +1,4 @@
-@Tags(['critical', 'unit', 'services'])
+@Tags(['critical', 'unit', 'services', 'notifications'])
 library;
 
 // test/critical_coverage/notification_service_working_test.dart
