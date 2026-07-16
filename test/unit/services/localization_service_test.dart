@@ -263,9 +263,7 @@ void main() {
         SharedPreferences.setMockInitialValues({});
         await setupServiceLocator();
 
-        const channel = MethodChannel(
-          'plugins.flutter.io/shared_preferences',
-        );
+        const channel = MethodChannel('plugins.flutter.io/shared_preferences');
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (methodCall) async {
           if (methodCall.method == 'setString') {
@@ -286,10 +284,7 @@ void main() {
         // Must not throw — persistence failures are caught and logged, not
         // propagated, so app startup / language switching cannot crash on
         // a SharedPreferences write error.
-        await expectLater(
-          localizationService.initialize(),
-          completes,
-        );
+        await expectLater(localizationService.initialize(), completes);
       },
     );
 

@@ -50,9 +50,7 @@ class _FakeBibleDbService extends BibleDbService {
 // ---------------------------------------------------------------------------
 
 VerseResolverService _createTestResolver(List<BibleVersion> versions) {
-  return VerseResolverService(
-    versionProvider: () async => versions,
-  );
+  return VerseResolverService(versionProvider: () async => versions);
 }
 
 // ---------------------------------------------------------------------------
@@ -156,27 +154,21 @@ void main() {
   group('VerseResolverService — version matching', () {
     test('matches KJV version code to KJV_en.SQLite3', () async {
       final versions = await BibleVersionRegistry.getAllVersions();
-      final match = versions.where(
-        (v) => v.dbFileName.startsWith('KJV'),
-      );
+      final match = versions.where((v) => v.dbFileName.startsWith('KJV'));
       expect(match, isNotEmpty);
       expect(match.first.dbFileName, 'KJV_en.SQLite3');
     });
 
     test('matches RVR1960 version code to RVR1960_es.SQLite3', () async {
       final versions = await BibleVersionRegistry.getAllVersions();
-      final match = versions.where(
-        (v) => v.dbFileName.startsWith('RVR1960'),
-      );
+      final match = versions.where((v) => v.dbFileName.startsWith('RVR1960'));
       expect(match, isNotEmpty);
       expect(match.first.dbFileName, 'RVR1960_es.SQLite3');
     });
 
     test('matches ESV version code to ESV_en.SQLite3', () async {
       final versions = await BibleVersionRegistry.getAllVersions();
-      final match = versions.where(
-        (v) => v.dbFileName.startsWith('ESV'),
-      );
+      final match = versions.where((v) => v.dbFileName.startsWith('ESV'));
       expect(match, isNotEmpty);
       expect(match.first.dbFileName, 'ESV_en.SQLite3');
     });
@@ -196,9 +188,7 @@ void main() {
 
     test('no match for fabricated version code', () async {
       final versions = await BibleVersionRegistry.getAllVersions();
-      final match = versions.where(
-        (v) => v.dbFileName.startsWith('ZZZZZ'),
-      );
+      final match = versions.where((v) => v.dbFileName.startsWith('ZZZZZ'));
       expect(match, isEmpty);
     });
   });
@@ -322,9 +312,7 @@ void main() {
     });
 
     test('user with unsupported version silently falls back', () async {
-      final resolver = _createTestResolver([
-        _makeVersion(code: 'KJV'),
-      ]);
+      final resolver = _createTestResolver([_makeVersion(code: 'KJV')]);
       final result = await resolver.resolveVerseText(
         reference: 'Genesis 1:1',
         versionCode: 'UNSUPPORTED_VERSION',
@@ -394,14 +382,14 @@ void main() {
         }
         ..versesByNumber = {
           1: {
-            'text': 'In the beginning God created the heavens and the earth.'
+            'text': 'In the beginning God created the heavens and the earth.',
           },
           2: {
             'text':
-                'Now the earth was formless and empty, darkness was over the surface of the deep.'
+                'Now the earth was formless and empty, darkness was over the surface of the deep.',
           },
           3: {
-            'text': 'And God said, "Let there be light: and there was light.'
+            'text': 'And God said, "Let there be light: and there was light.',
           },
         };
 
@@ -412,8 +400,10 @@ void main() {
         reference: 'Genesis 1:1-3',
         versionCode: 'KJV',
       );
-      expect(result,
-          'In the beginning God created the heavens and the earth. Now the earth was formless and empty, darkness was over the surface of the deep. And God said, "Let there be light: and there was light.');
+      expect(
+        result,
+        'In the beginning God created the heavens and the earth. Now the earth was formless and empty, darkness was over the surface of the deep. And God said, "Let there be light: and there was light.',
+      );
     });
 
     test('resolver returns null when any verse in range is missing', () async {
@@ -446,9 +436,7 @@ void main() {
           'long_name': 'John',
           'short_name': 'Jn',
         }
-        ..verseResult = {
-          'text': 'For God so loved the world...',
-        };
+        ..verseResult = {'text': 'For God so loved the world...'};
 
       final resolver = _createTestResolver([
         _makeVersion(code: 'KJV', service: fakeDb),
@@ -460,27 +448,27 @@ void main() {
       expect(result, 'For God so loved the world...');
     });
 
-    test('resolver ignores hyphen not in range format (e.g., "John-3:16")',
-        () async {
-      final fakeDb = _FakeBibleDbService()
-        ..bookResult = {
-          'book_number': 43,
-          'long_name': 'John',
-          'short_name': 'Jn',
-        }
-        ..verseResult = {
-          'text': 'Test verse',
-        };
+    test(
+      'resolver ignores hyphen not in range format (e.g., "John-3:16")',
+      () async {
+        final fakeDb = _FakeBibleDbService()
+          ..bookResult = {
+            'book_number': 43,
+            'long_name': 'John',
+            'short_name': 'Jn',
+          }
+          ..verseResult = {'text': 'Test verse'};
 
-      final resolver = _createTestResolver([
-        _makeVersion(code: 'KJV', service: fakeDb),
-      ]);
-      final result = await resolver.resolveVerseText(
-        reference: 'John-3:16',
-        versionCode: 'KJV',
-      );
-      expect(result, isNull);
-    });
+        final resolver = _createTestResolver([
+          _makeVersion(code: 'KJV', service: fakeDb),
+        ]);
+        final result = await resolver.resolveVerseText(
+          reference: 'John-3:16',
+          versionCode: 'KJV',
+        );
+        expect(result, isNull);
+      },
+    );
 
     test('resolver never throws for any registered version code', () async {
       final service = VerseResolverService();
@@ -536,18 +524,20 @@ void main() {
       expect(version.service, same(fakeDb));
     });
 
-    test('resolver assigns BibleDbService when version has no service',
-        () async {
-      final version = _makeVersion(code: 'KJV');
-      expect(version.service, isNull);
+    test(
+      'resolver assigns BibleDbService when version has no service',
+      () async {
+        final version = _makeVersion(code: 'KJV');
+        expect(version.service, isNull);
 
-      final resolver = _createTestResolver([version]);
-      await resolver.resolveVerseText(
-        reference: 'John 3:16',
-        versionCode: 'KJV',
-      );
-      // service was assigned (initDb will throw since no real asset, caught)
-      expect(version.service, isA<BibleDbService>());
-    });
+        final resolver = _createTestResolver([version]);
+        await resolver.resolveVerseText(
+          reference: 'John 3:16',
+          versionCode: 'KJV',
+        );
+        // service was assigned (initDb will throw since no real asset, caught)
+        expect(version.service, isA<BibleDbService>());
+      },
+    );
   });
 }

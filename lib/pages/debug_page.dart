@@ -8,8 +8,10 @@ import 'package:devocional_nuevo/debug/sections/debug_devotionals_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_discovery_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_encounters_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_iap_section.dart';
+import 'package:devocional_nuevo/debug/sections/debug_onboarding_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_streak_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_tts_section.dart';
+import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/debug/debug_backup_section.dart';
 import 'package:flutter/foundation.dart';
@@ -36,6 +38,8 @@ class _DebugPageState extends State<DebugPage> {
   // composition root (kDebugMode only, never shipped to production).
   late final IDebugSpiritualStatsService _statsService =
       getService<IDebugSpiritualStatsService>();
+  late final OnboardingService _onboardingService =
+      getService<OnboardingService>();
 
   @override
   void initState() {
@@ -109,6 +113,10 @@ class _DebugPageState extends State<DebugPage> {
 
             // ── Streak debug ──
             DebugStreakSection(statsService: _statsService),
+            const SizedBox(height: 32),
+
+            // ── Onboarding debug ──
+            DebugOnboardingSection(onboardingService: _onboardingService),
             const SizedBox(height: 32),
 
             // ── Bulk add test data ──

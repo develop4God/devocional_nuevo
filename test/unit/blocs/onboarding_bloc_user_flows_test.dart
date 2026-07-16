@@ -1,8 +1,12 @@
-@Tags(['critical', 'unit', 'blocs'])
+@Tags(['critical', 'unit', 'onboarding'])
 library;
 
 // test/critical_coverage/onboarding_bloc_user_flows_test.dart
-// High-value user behavior tests for OnboardingBloc
+// NOTE: these tests exercise standalone logic re-implemented inline
+// (progressToNextStep, goToPreviousStep, etc.) — NOT the real OnboardingBloc.
+// They do not cover lib/blocs/onboarding/onboarding_bloc.dart. Real bloc
+// coverage lives in test/behavioral/onboarding_behavior_test.dart and
+// test/unit/blocs/onboarding_backup_navigation_bloc_test.dart.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';

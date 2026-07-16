@@ -235,10 +235,7 @@ void main() {
         // AppNavigationShell.selectTab is a documented safe no-op when no
         // shell is mounted (as in this isolated widget test) -- this
         // confirms the tap wires through without throwing.
-        expect(
-          () => tester.tap(find.byType(PetHeroSection)),
-          returnsNormally,
-        );
+        expect(() => tester.tap(find.byType(PetHeroSection)), returnsNormally);
       },
     );
 

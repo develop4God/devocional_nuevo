@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "الله يباركك ويملأ حياتك سلامًا",
     "onboarding_skip": "تخطّي",
+    "onboarding_step_indicator": "الخطوة {current} من {total}",
     "onboarding_back": "رجوع",
     "onboarding_next": "التالي",
     "onboarding_config_later": "الإعداد لاحقًا",
@@ -618,7 +619,7 @@
     "onboarding_complete_subtitle": "تم إعداد مساحتك التأملية. حان وقت بدء رحلتك الروحية اليومية.",
     "onboarding_your_setup": "إعداداتك",
     "onboarding_start_app": "ابدأ مساحتي مع الله",
-    "onboarding_theme_configured": "تم اختيار المظهر المخصص",
+    "onboarding_setup_theme_configured": "تم اختيار المظهر المخصص",
     "onboarding_setup_backup_configured": "تم إعداد النسخ الاحتياطي التلقائي",
     "onboarding_setup_protection_active": "حماية البيانات مُفعّلة",
     "onboarding_setup_backup_skipped": "تم تخطي النسخ الاحتياطي حاليًا",

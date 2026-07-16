@@ -68,8 +68,9 @@ void main() {
       expect(find.textContaining('cuerpo del versículo'), findsOneWidget);
     });
 
-    testWidgets('copies copyText instead of text when both provided',
-        (tester) async {
+    testWidgets('copies copyText instead of text when both provided', (
+      tester,
+    ) async {
       String? copiedText;
       tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
         SystemChannels.platform,

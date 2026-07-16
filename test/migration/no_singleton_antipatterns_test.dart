@@ -1053,22 +1053,21 @@ void main() {
       },
     );
 
-    test(
-      'StartupMigrationService implements IStartupMigrationService',
-      () async {
-        final file = File('lib/services/startup_migration_service.dart');
-        expect(await file.exists(), isTrue);
-        final content = await file.readAsString();
+    test('StartupMigrationService implements IStartupMigrationService',
+        () async {
+      final file = File('lib/services/startup_migration_service.dart');
+      expect(await file.exists(), isTrue);
+      final content = await file.readAsString();
 
-        expect(
-          content.contains(
-              'class StartupMigrationService implements IStartupMigrationService'),
-          isTrue,
-          reason:
-              'StartupMigrationService must implement IStartupMigrationService interface',
-        );
-      },
-    );
+      expect(
+        content.contains(
+          'class StartupMigrationService implements IStartupMigrationService',
+        ),
+        isTrue,
+        reason:
+            'StartupMigrationService must implement IStartupMigrationService interface',
+      );
+    });
     test(
       'VerseResolverService does not use static singleton antipattern',
       () async {
@@ -1092,25 +1091,22 @@ void main() {
       },
     );
 
-    test(
-      'VerseResolverService implements IVerseResolverService',
-      () async {
-        final file = File(
-          'bible_reader_core/lib/src/verse_resolver_service.dart',
-        );
-        expect(await file.exists(), isTrue);
-        final content = await file.readAsString();
+    test('VerseResolverService implements IVerseResolverService', () async {
+      final file = File(
+        'bible_reader_core/lib/src/verse_resolver_service.dart',
+      );
+      expect(await file.exists(), isTrue);
+      final content = await file.readAsString();
 
-        expect(
-          content.contains(
-            'class VerseResolverService implements IVerseResolverService',
-          ),
-          isTrue,
-          reason:
-              'VerseResolverService must implement IVerseResolverService interface',
-        );
-      },
-    );
+      expect(
+        content.contains(
+          'class VerseResolverService implements IVerseResolverService',
+        ),
+        isTrue,
+        reason:
+            'VerseResolverService must implement IVerseResolverService interface',
+      );
+    });
 
     test(
       'VerseResolverService is registered under interface in service_locator',
@@ -1124,6 +1120,181 @@ void main() {
           isTrue,
           reason:
               'VerseResolverService must be registered under IVerseResolverService interface',
+        );
+      },
+    );
+
+    // ── OnboardingService / RemoteConfigService DI registration ────────────
+
+    test(
+      'OnboardingService does not use static singleton antipattern',
+      () async {
+        final file = File('lib/services/onboarding_service.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('static final OnboardingService _instance'),
+          isFalse,
+          reason: 'OnboardingService should not have static _instance field',
+        );
+
+        expect(
+          content.contains('static OnboardingService get instance'),
+          isFalse,
+          reason: 'OnboardingService should not have static instance getter',
+        );
+      },
+    );
+
+    test(
+      'OnboardingService and RemoteConfigService are registered as lazy singletons in ServiceLocator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('registerLazySingleton<OnboardingService>'),
+          isTrue,
+          reason:
+              'OnboardingService should be registered as lazy singleton in ServiceLocator',
+        );
+
+        expect(
+          content.contains('registerLazySingleton<RemoteConfigService>'),
+          isTrue,
+          reason:
+              'RemoteConfigService should be registered as lazy singleton in ServiceLocator',
+        );
+
+        expect(
+          content.contains(
+            'remoteConfigService: locator.get<RemoteConfigService>()',
+          ),
+          isTrue,
+          reason:
+              'OnboardingService should receive RemoteConfigService via constructor injection',
+        );
+      },
+    );
+
+    test('Codebase does not reference OnboardingService.instance', () async {
+      final libDir = Directory('lib');
+      expect(await libDir.exists(), isTrue);
+
+      await _checkDirectoryForPattern(
+        libDir,
+        'OnboardingService.instance',
+        'lib',
+      );
+    });
+
+    // ── NotificationService Firebase DI registration ───────────────────────
+
+    test(
+      'IUserProfileStore and IPushMessaging are registered as lazy singletons in ServiceLocator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('registerLazySingleton<IUserProfileStore>'),
+          isTrue,
+          reason:
+              'IUserProfileStore should be registered as lazy singleton in ServiceLocator',
+        );
+
+        expect(
+          content.contains('registerLazySingleton<IPushMessaging>'),
+          isTrue,
+          reason:
+              'IPushMessaging should be registered as lazy singleton in ServiceLocator',
+        );
+      },
+    );
+
+    test(
+      'NotificationService receives its Firebase dependencies via constructor injection',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        final content = await file.readAsString();
+
+        expect(
+          content.contains(
+                'NotificationService createFirebaseNotificationService({',
+              ) &&
+              content.contains(
+                'userProfileStore: FirestoreUserProfileStore()',
+              ) &&
+              content.contains('pushMessaging: FirebaseCloudMessaging()') &&
+              content.contains(
+                'createFirebaseNotificationService(\n      authService: locator.get<IAuthService>(),',
+              ),
+          isTrue,
+          reason: 'NotificationService should be built via the shared '
+              'createFirebaseNotificationService factory, resolving IAuthService '
+              'from the locator at the composition root — not constructed inline '
+              'so main.dart\'s fallback path can share the same wiring',
+        );
+      },
+    );
+
+    test(
+      'NotificationService does not access FirebaseAuth/FirebaseFirestore/FirebaseMessaging directly',
+      () async {
+        final file = File('lib/services/notification_service.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('FirebaseAuth.instance'),
+          isFalse,
+          reason:
+              'NotificationService must use injected IAuthService, not FirebaseAuth.instance directly',
+        );
+
+        expect(
+          content.contains('FirebaseFirestore.instance'),
+          isFalse,
+          reason:
+              'NotificationService must use injected IUserProfileStore, not FirebaseFirestore.instance directly',
+        );
+
+        expect(
+          content.contains('FirebaseMessaging.instance'),
+          isFalse,
+          reason:
+              'NotificationService must use injected IPushMessaging, not FirebaseMessaging.instance directly',
+        );
+      },
+    );
+
+    test(
+      "main.dart's background-isolate fallback reuses createFirebaseNotificationService "
+      'instead of duplicating the Firebase wiring',
+      () async {
+        final file = File('lib/main.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('createFirebaseNotificationService('),
+          isTrue,
+          reason: "main.dart's fallback registration should call the shared "
+              'createFirebaseNotificationService factory instead of constructing '
+              'FirestoreUserProfileStore()/FirebaseCloudMessaging() inline',
+        );
+
+        expect(
+          content.contains('FirestoreUserProfileStore()') ||
+              content.contains('FirebaseCloudMessaging()'),
+          isFalse,
+          reason:
+              'main.dart must not directly instantiate FirestoreUserProfileStore or '
+              'FirebaseCloudMessaging; that wiring belongs solely in '
+              'createFirebaseNotificationService',
         );
       },
     );

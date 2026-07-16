@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "परमेश्वर आपको आशीष दें और आपके जीवन को शांति से भर दें",
     "onboarding_skip": "छोड़ें",
+    "onboarding_step_indicator": "चरण {current} में से {total}",
     "onboarding_back": "वापस",
     "onboarding_next": "अगला",
     "onboarding_config_later": "बाद में सेटअप करें",
@@ -618,7 +619,7 @@
     "onboarding_complete_subtitle": "आपका भक्ति स्थान कॉन्फ़िगर हो गया है। अपनी दैनिक आध्यात्मिक यात्रा शुरू करने का समय आ गया है।",
     "onboarding_your_setup": "आपका सेटअप",
     "onboarding_start_app": "परमेश्वर के साथ अपना स्थान शुरू करें",
-    "onboarding_theme_configured": "कस्टम थीम चयनित",
+    "onboarding_setup_theme_configured": "कस्टम थीम चयनित",
     "onboarding_setup_backup_configured": "स्वचालित बैकअप कॉन्फ़िगर किया गया",
     "onboarding_setup_protection_active": "डेटा सुरक्षा सक्रिय",
     "onboarding_setup_backup_skipped": "अभी के लिए बैकअप छोड़ दिया गया",
