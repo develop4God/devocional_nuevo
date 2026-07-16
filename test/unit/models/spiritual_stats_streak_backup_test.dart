@@ -1,4 +1,4 @@
-@Tags(['unit', 'models'])
+@Tags(['unit', 'models', 'backup'])
 library;
 
 // test/unit/models/spiritual_stats_streak_backup_test.dart

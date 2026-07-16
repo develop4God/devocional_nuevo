@@ -1,4 +1,4 @@
-@Tags(['unit', 'services'])
+@Tags(['unit', 'services', 'onboarding'])
 library;
 
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_models.dart';
