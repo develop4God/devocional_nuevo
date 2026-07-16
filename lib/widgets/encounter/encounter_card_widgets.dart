@@ -3,6 +3,8 @@
 // Modern, immersive encounter card widgets.
 // Redesigned with a "Visual First" approach and modern transitions.
 
+import 'dart:math' as math;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
@@ -186,9 +188,14 @@ class _VisualHeader extends StatelessWidget {
       builder: (context, constraints) {
         final targetAspectRatio = isLandscape ? 16 / 6 : 16 / 9;
         final screenHeight = MediaQuery.sizeOf(context).height;
-        final headerHeight = (constraints.maxWidth / targetAspectRatio).clamp(
-          150.0,
+        const minHeaderHeight = 150.0;
+        final maxHeaderHeight = math.max(
+          minHeaderHeight,
           screenHeight * (isLandscape ? 0.35 : 0.45),
+        );
+        final headerHeight = (constraints.maxWidth / targetAspectRatio).clamp(
+          minHeaderHeight,
+          maxHeaderHeight,
         );
         return Container(
           key: const ValueKey('encounter_visual_header'),
