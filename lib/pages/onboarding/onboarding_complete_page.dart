@@ -1,8 +1,7 @@
-import 'dart:math' as math;
-
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../blocs/backup_bloc.dart';
 import '../../blocs/backup_state.dart';
@@ -26,12 +25,10 @@ class OnboardingCompletePage extends StatefulWidget {
 class _OnboardingCompletePageState extends State<OnboardingCompletePage>
     with TickerProviderStateMixin {
   late AnimationController _celebrationController;
-  late AnimationController _particleController;
   late AnimationController _pulseController;
 
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
-  late Animation<double> _particleAnimation;
   late Animation<double> _pulseAnimation;
 
   @override
@@ -40,11 +37,6 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
 
     _celebrationController = AnimationController(
       duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-
-    _particleController = AnimationController(
-      duration: const Duration(seconds: 3),
       vsync: this,
     );
 
@@ -67,23 +59,17 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
       ),
     );
 
-    _particleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _particleController, curve: Curves.easeOut),
-    );
-
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
     _celebrationController.forward();
-    _particleController.repeat();
     _pulseController.repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _celebrationController.dispose();
-    _particleController.dispose();
     _pulseController.dispose();
     super.dispose();
   }
@@ -139,116 +125,54 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
+                    final isCompact = constraints.maxHeight < 700;
+                    final isVeryCompact = constraints.maxHeight < 560;
+                    final heroHeight =
+                        isVeryCompact ? 90.0 : (isCompact ? 130.0 : 200.0);
+                    final sectionSpacing =
+                        isVeryCompact ? 12.0 : (isCompact ? 20.0 : 40.0);
+                    final smallSpacing = isVeryCompact ? 8.0 : 16.0;
+
                     return SingleChildScrollView(
+                      physics: isVeryCompact
+                          ? const NeverScrollableScrollPhysics()
+                          : null,
                       padding: const EdgeInsets.symmetric(horizontal: 32.0),
                       child: ConstrainedBox(
                         constraints: BoxConstraints(
                           minHeight: constraints.maxHeight,
+                          maxHeight: isVeryCompact
+                              ? constraints.maxHeight
+                              : double.infinity,
                         ),
                         child: IntrinsicHeight(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              // Celebration icon with particles
-                              SizedBox(
-                                height: 200,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    // Background particles
-                                    ...List.generate(8, (index) {
-                                      return AnimatedBuilder(
-                                        animation: _particleAnimation,
-                                        builder: (context, child) {
-                                          final angle =
-                                              (index * 45.0) * (math.pi / 180);
-                                          final distance = 60 +
-                                              (40 * _particleAnimation.value);
-                                          final x = distance *
-                                              math.cos(
-                                                angle +
-                                                    _particleAnimation.value *
-                                                        2 *
-                                                        math.pi,
-                                              );
-                                          final y = distance *
-                                              math.sin(
-                                                angle +
-                                                    _particleAnimation.value *
-                                                        2 *
-                                                        math.pi,
-                                              );
-
-                                          return Transform.translate(
-                                            offset: Offset(x, y),
-                                            child: Container(
-                                              width: 6,
-                                              height: 6,
-                                              decoration: BoxDecoration(
-                                                color: colorScheme.primary
-                                                    .withValues(
-                                                  alpha: 0.3 *
-                                                      (1 -
-                                                          _particleAnimation
-                                                              .value),
-                                                ),
-                                                shape: BoxShape.circle,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    }),
-
-                                    // Main celebration icon
-                                    AnimatedBuilder(
-                                      animation: Listenable.merge([
-                                        _scaleAnimation,
-                                        _pulseAnimation,
-                                      ]),
-                                      builder: (context, child) {
-                                        return Transform.scale(
-                                          scale: _scaleAnimation.value *
-                                              _pulseAnimation.value,
-                                          child: Container(
-                                            width: 140,
-                                            height: 140,
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                colors: [
-                                                  colorScheme.primary,
-                                                  colorScheme.secondary,
-                                                ],
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                              ),
-                                              shape: BoxShape.circle,
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: colorScheme.primary
-                                                      .withValues(
-                                                    alpha: 0.3,
-                                                  ),
-                                                  blurRadius: 30,
-                                                  spreadRadius: 5,
-                                                  offset: const Offset(0, 10),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Icon(
-                                              Icons.celebration_outlined,
-                                              color: colorScheme.onPrimary,
-                                              size: 70,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
+                              // Celebration animation
+                              AnimatedBuilder(
+                                animation: Listenable.merge([
+                                  _scaleAnimation,
+                                  _pulseAnimation,
+                                ]),
+                                builder: (context, child) {
+                                  return Transform.scale(
+                                    scale: _scaleAnimation.value *
+                                        _pulseAnimation.value,
+                                    child: child,
+                                  );
+                                },
+                                child: SizedBox(
+                                  height: heroHeight,
+                                  width: heroHeight,
+                                  child: Lottie.asset(
+                                    'assets/lottie/celebration.json',
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
                               ),
 
-                              const SizedBox(height: 40),
+                              SizedBox(height: sectionSpacing),
 
                               // Title with animation
                               AnimatedBuilder(
@@ -275,7 +199,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                                 },
                               ),
 
-                              const SizedBox(height: 16),
+                              SizedBox(height: smallSpacing),
 
                               // Subtitle
                               AnimatedBuilder(
@@ -302,7 +226,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                                 },
                               ),
 
-                              const SizedBox(height: 40),
+                              SizedBox(height: sectionSpacing),
 
                               // Setup summary card - Consulta BackupBloc directamente
                               BlocBuilder<BackupBloc, BackupState>(
@@ -343,7 +267,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                                 },
                               ),
 
-                              const SizedBox(height: 40),
+                              SizedBox(height: sectionSpacing),
 
                               // Start button
                               AnimatedBuilder(
@@ -417,7 +341,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                                 },
                               ),
 
-                              const SizedBox(height: 32),
+                              SizedBox(height: smallSpacing),
                             ],
                           ),
                         ),
