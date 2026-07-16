@@ -580,10 +580,7 @@ void main() {
       });
 
       test('falls back to the generic key when isRawText is true', () {
-        const state = BackupError(
-          'Exception: socket closed',
-          isRawText: true,
-        );
+        const state = BackupError('Exception: socket closed', isRawText: true);
         expect(state.localizedMessage, 'backup.error_generic');
       });
     });

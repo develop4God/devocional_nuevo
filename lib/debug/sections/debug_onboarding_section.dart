@@ -62,9 +62,8 @@ class _DebugOnboardingSectionState extends State<DebugOnboardingSection> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => OnboardingFlow(
-          onComplete: () => Navigator.of(context).pop(),
-        ),
+        builder: (_) =>
+            OnboardingFlow(onComplete: () => Navigator.of(context).pop()),
       ),
     );
   }
@@ -97,9 +96,9 @@ class _DebugOnboardingSectionState extends State<DebugOnboardingSection> {
           const SizedBox(height: 12),
           Text(
             'Complete: ${_isComplete ?? '…'}',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.purple.shade900,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.purple.shade900),
           ),
           const SizedBox(height: 16),
           SizedBox(

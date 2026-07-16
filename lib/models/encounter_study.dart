@@ -47,9 +47,7 @@ class EncounterStudy {
       estimatedReadingMinutes: json['estimated_reading_minutes'] as int?,
       meta: json['meta'] as Map<String, dynamic>?,
       keyVerse: json['key_verse'] != null
-          ? VerseRef.fromJson(
-              json['key_verse'] as Map<String, dynamic>,
-            )
+          ? VerseRef.fromJson(json['key_verse'] as Map<String, dynamic>)
           : null,
       cards: (json['cards'] as List<dynamic>?)
               ?.map(

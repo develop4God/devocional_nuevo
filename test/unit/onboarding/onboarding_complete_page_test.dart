@@ -102,40 +102,38 @@ void main() {
 
   group('Back button — gated on Google Drive backup connection', () {
     testWidgets(
-      'is disabled once backup is connected, so the user cannot '
-      're-trigger sign-in from the confirmation screen',
-      (tester) async {
-        when(() => mockBackupBloc.state).thenReturn(
-          const BackupLoaded(
-            autoBackupEnabled: true,
-            backupFrequency: 'daily',
-            wifiOnlyEnabled: false,
-            compressionEnabled: false,
-            backupOptions: {},
-            estimatedSize: 0,
-            isAuthenticated: true,
-          ),
-        );
+        'is disabled once backup is connected, so the user cannot '
+        're-trigger sign-in from the confirmation screen', (tester) async {
+      when(() => mockBackupBloc.state).thenReturn(
+        const BackupLoaded(
+          autoBackupEnabled: true,
+          backupFrequency: 'daily',
+          wifiOnlyEnabled: false,
+          compressionEnabled: false,
+          backupOptions: {},
+          estimatedSize: 0,
+          isAuthenticated: true,
+        ),
+      );
 
-        var backCalled = false;
-        await pumpPage(
-          tester,
-          const Size(1080, 2400),
-          onBack: () => backCalled = true,
-        );
+      var backCalled = false;
+      await pumpPage(
+        tester,
+        const Size(1080, 2400),
+        onBack: () => backCalled = true,
+      );
 
-        final backText = 'onboarding.onboarding_back'.tr();
-        final backButton = find.widgetWithText(TextButton, backText);
-        expect(backButton, findsOneWidget);
+      final backText = 'onboarding.onboarding_back'.tr();
+      final backButton = find.widgetWithText(TextButton, backText);
+      expect(backButton, findsOneWidget);
 
-        final button = tester.widget<TextButton>(backButton);
-        expect(button.onPressed, isNull);
+      final button = tester.widget<TextButton>(backButton);
+      expect(button.onPressed, isNull);
 
-        await tester.tap(backButton, warnIfMissed: false);
-        await tester.pump();
-        expect(backCalled, isFalse);
-      },
-    );
+      await tester.tap(backButton, warnIfMissed: false);
+      await tester.pump();
+      expect(backCalled, isFalse);
+    });
 
     testWidgets(
       'stays enabled and calls onBack when backup is not yet connected',

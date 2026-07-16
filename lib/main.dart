@@ -206,9 +206,8 @@ void main() async {
         ChangeNotifierProvider(create: (context) => LocalizationProvider()),
         ChangeNotifierProvider(create: (context) => DevocionalProvider()),
         BlocProvider(
-          create: (context) => PrayerBloc(
-            statsService: getService<ISpiritualStatsService>(),
-          ),
+          create: (context) =>
+              PrayerBloc(statsService: getService<ISpiritualStatsService>()),
         ),
         BlocProvider(create: (context) => ThanksgivingBloc()),
         BlocProvider(create: (context) => TestimonyBloc()),
@@ -417,8 +416,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       _lastPausedTime = null;
 
       unawaited(
-        getService<NotificationService>()
-            .retryFcmTokenIfMissing(reason: 'app resumed'),
+        getService<NotificationService>().retryFcmTokenIfMissing(
+          reason: 'app resumed',
+        ),
       );
     }
   }

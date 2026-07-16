@@ -21,9 +21,7 @@ void main() {
     });
 
     test('enableOnboardingFlow returns true when remote flag is true', () {
-      when(
-        mockRemoteConfig.getBool('enable_onboarding_flow'),
-      ).thenReturn(true);
+      when(mockRemoteConfig.getBool('enable_onboarding_flow')).thenReturn(true);
 
       expect(service.enableOnboardingFlow, true);
     });

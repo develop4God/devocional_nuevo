@@ -977,8 +977,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   ),
                                   isFavorite: isFavorite,
                                   onFavoriteToggle: () async {
-                                    final wasAdded = await devocionalProvider
-                                        .toggleFavorite(currentDevocional.id);
+                                    final wasAdded =
+                                        await devocionalProvider.toggleFavorite(
+                                      currentDevocional.id,
+                                    );
                                     _showFavoritesFeedback(wasAdded);
                                   },
                                   onShare: () =>

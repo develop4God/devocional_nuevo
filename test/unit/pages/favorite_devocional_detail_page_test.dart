@@ -139,7 +139,9 @@ void main() {
 
       verify(mockDevocionalProvider.toggleFavorite('fav-1')).called(1);
       expect(
-          find.text('devotionals_page.removed_from_favorites'), findsOneWidget);
+        find.text('devotionals_page.removed_from_favorites'),
+        findsOneWidget,
+      );
     });
   });
 }

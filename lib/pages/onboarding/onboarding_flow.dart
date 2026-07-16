@@ -251,9 +251,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                                   .textTheme
                                   .labelMedium
                                   ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    )
+                                    color: Theme.of(context)
                                         .colorScheme
                                         .onSurface
                                         .withValues(alpha: 0.6),
@@ -284,9 +282,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                                         6, // Increased height for better visibility
                                     decoration: BoxDecoration(
                                       color: index <= state.currentStepIndex
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .primary
+                                          ? Theme.of(
+                                              context,
+                                            ).colorScheme.primary
                                           : Theme.of(context)
                                               .colorScheme
                                               .outline

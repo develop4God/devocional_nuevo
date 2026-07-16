@@ -128,8 +128,10 @@ class SpiritualStats {
       unlockedAchievements: mergedAchievements,
       favoritesCount: max(local.favoritesCount, remote.favoritesCount),
       readDevocionalIds: mergedIds,
-      answeredPrayersCount:
-          max(local.answeredPrayersCount, remote.answeredPrayersCount),
+      answeredPrayersCount: max(
+        local.answeredPrayersCount,
+        remote.answeredPrayersCount,
+      ),
     );
   }
 }

@@ -143,22 +143,11 @@ void main() {
       expect(await service.loadProgress(), isNull);
     });
 
-    test('loadConfiguration clears and returns empty on corrupted JSON',
-        () async {
-      SharedPreferences.setMockInitialValues({
-        'onboarding_configuration': 'not valid json',
-      });
-
-      expect(await service.loadConfiguration(), isEmpty);
-    });
-
     test(
-      'loadConfiguration returns empty on valid JSON with a malformed '
-      '(non-Map) payload',
+      'loadConfiguration clears and returns empty on corrupted JSON',
       () async {
         SharedPreferences.setMockInitialValues({
-          'onboarding_configuration':
-              '{"schemaVersion":1,"payload":"a string, not a map"}',
+          'onboarding_configuration': 'not valid json',
         });
 
         expect(await service.loadConfiguration(), isEmpty);
@@ -166,12 +155,21 @@ void main() {
     );
 
     test(
+        'loadConfiguration returns empty on valid JSON with a malformed '
+        '(non-Map) payload', () async {
+      SharedPreferences.setMockInitialValues({
+        'onboarding_configuration':
+            '{"schemaVersion":1,"payload":"a string, not a map"}',
+      });
+
+      expect(await service.loadConfiguration(), isEmpty);
+    });
+
+    test(
       'concurrent saveConfiguration calls are serialized, last write wins',
       () async {
         final first = service.saveConfiguration({'selectedThemeFamily': 'A'});
-        final second = service.saveConfiguration({
-          'selectedThemeFamily': 'B',
-        });
+        final second = service.saveConfiguration({'selectedThemeFamily': 'B'});
 
         await Future.wait([first, second]);
 
@@ -209,63 +207,57 @@ void main() {
     });
 
     test(
-      'loadProgress returns null and clears storage when the payload is '
-      'missing a required key (completedSteps)',
-      () async {
-        SharedPreferences.setMockInitialValues({
-          'onboarding_progress': '{"schemaVersion":1,"payload":'
-              '{"totalSteps":4,"stepCompletionStatus":[true,false,false,false],'
-              '"progressPercentage":25.0}}',
-        });
+        'loadProgress returns null and clears storage when the payload is '
+        'missing a required key (completedSteps)', () async {
+      SharedPreferences.setMockInitialValues({
+        'onboarding_progress': '{"schemaVersion":1,"payload":'
+            '{"totalSteps":4,"stepCompletionStatus":[true,false,false,false],'
+            '"progressPercentage":25.0}}',
+      });
 
-        expect(await service.loadProgress(), isNull);
+      expect(await service.loadProgress(), isNull);
 
-        // Confirms the invalid entry was actually removed, not just ignored.
-        expect(await service.loadProgress(), isNull);
-      },
-    );
+      // Confirms the invalid entry was actually removed, not just ignored.
+      expect(await service.loadProgress(), isNull);
+    });
 
     test(
-      'loadProgress returns null when a required field has the wrong type '
-      '(totalSteps as a String instead of an int)',
-      () async {
-        SharedPreferences.setMockInitialValues({
-          'onboarding_progress': '{"schemaVersion":1,"payload":'
-              '{"totalSteps":"4","completedSteps":1,'
-              '"stepCompletionStatus":[true,false,false,false],'
-              '"progressPercentage":25.0}}',
-        });
+        'loadProgress returns null when a required field has the wrong type '
+        '(totalSteps as a String instead of an int)', () async {
+      SharedPreferences.setMockInitialValues({
+        'onboarding_progress': '{"schemaVersion":1,"payload":'
+            '{"totalSteps":"4","completedSteps":1,'
+            '"stepCompletionStatus":[true,false,false,false],'
+            '"progressPercentage":25.0}}',
+      });
 
-        expect(await service.loadProgress(), isNull);
-      },
-    );
+      expect(await service.loadProgress(), isNull);
+    });
 
     test(
-      'loadProgress migrates a pre-schema-version (legacy, unwrapped) '
-      'payload and returns the parsed values unchanged',
-      () async {
-        // Legacy shape: no {schemaVersion, payload} wrapper at all — the
-        // raw progress fields were stored directly under the storage key.
-        // _isValidProgressStructure falls back to validating this shape
-        // directly (onboarding_service.dart:385), and schemaVersion reads
-        // as 0 via `wrapper['schemaVersion'] as int? ?? 0`, so this
-        // exercises the schemaVersion < _currentSchemaVersion branch and
-        // calls _migrateProgress.
-        SharedPreferences.setMockInitialValues({
-          'onboarding_progress': '{"totalSteps":4,"completedSteps":2,'
-              '"stepCompletionStatus":[true,true,false,false],'
-              '"progressPercentage":50.0}',
-        });
+        'loadProgress migrates a pre-schema-version (legacy, unwrapped) '
+        'payload and returns the parsed values unchanged', () async {
+      // Legacy shape: no {schemaVersion, payload} wrapper at all — the
+      // raw progress fields were stored directly under the storage key.
+      // _isValidProgressStructure falls back to validating this shape
+      // directly (onboarding_service.dart:385), and schemaVersion reads
+      // as 0 via `wrapper['schemaVersion'] as int? ?? 0`, so this
+      // exercises the schemaVersion < _currentSchemaVersion branch and
+      // calls _migrateProgress.
+      SharedPreferences.setMockInitialValues({
+        'onboarding_progress': '{"totalSteps":4,"completedSteps":2,'
+            '"stepCompletionStatus":[true,true,false,false],'
+            '"progressPercentage":50.0}',
+      });
 
-        final migrated = await service.loadProgress();
+      final migrated = await service.loadProgress();
 
-        expect(migrated, isNotNull);
-        expect(migrated!.totalSteps, 4);
-        expect(migrated.completedSteps, 2);
-        expect(migrated.stepCompletionStatus, [true, true, false, false]);
-        expect(migrated.progressPercentage, 50.0);
-      },
-    );
+      expect(migrated, isNotNull);
+      expect(migrated!.totalSteps, 4);
+      expect(migrated.completedSteps, 2);
+      expect(migrated.stepCompletionStatus, [true, true, false, false]);
+      expect(migrated.progressPercentage, 50.0);
+    });
 
     test(
       'loadProgress does NOT re-persist migrated data — unlike '

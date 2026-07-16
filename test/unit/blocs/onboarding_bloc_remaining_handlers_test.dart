@@ -85,9 +85,7 @@ void main() {
     when(
       () => mockOnboardingService.clearConfiguration(),
     ).thenAnswer((_) async {});
-    when(
-      () => mockOnboardingService.clearProgress(),
-    ).thenAnswer((_) async {});
+    when(() => mockOnboardingService.clearProgress()).thenAnswer((_) async {});
     when(
       () => mockOnboardingService.resetOnboarding(),
     ).thenAnswer((_) async {});
@@ -124,19 +122,16 @@ void main() {
           false,
         ]),
       ),
-      act: (bloc) => bloc.add(
-        const UpdateStepConfiguration({'newKey': 'newValue'}),
-      ),
+      act: (bloc) =>
+          bloc.add(const UpdateStepConfiguration({'newKey': 'newValue'})),
       expect: () => [
-        isA<OnboardingStepActive>().having(
-          (s) => s.stepConfiguration,
-          'stepConfiguration',
-          {'existingKey': 'existingValue', 'newKey': 'newValue'},
-        ).having(
-          (s) => s.userSelections,
-          'userSelections',
-          {'selectedThemeFamily': 'Blue'},
-        ).having((s) => s.currentStepIndex, 'currentStepIndex', 1),
+        isA<OnboardingStepActive>()
+            .having((s) => s.stepConfiguration, 'stepConfiguration', {
+          'existingKey': 'existingValue',
+          'newKey': 'newValue',
+        }).having((s) => s.userSelections, 'userSelections', {
+          'selectedThemeFamily': 'Blue',
+        }).having((s) => s.currentStepIndex, 'currentStepIndex', 1),
       ],
     );
 
@@ -158,9 +153,8 @@ void main() {
           false,
         ]),
       ),
-      act: (bloc) => bloc.add(
-        const UpdateStepConfiguration({'themeApplied': true}),
-      ),
+      act: (bloc) =>
+          bloc.add(const UpdateStepConfiguration({'themeApplied': true})),
       expect: () => [
         isA<OnboardingStepActive>().having(
           (s) => s.stepConfiguration,
@@ -174,9 +168,7 @@ void main() {
       'is a no-op when not in OnboardingStepActive',
       build: () => onboardingBloc,
       seed: () => const OnboardingLoading(),
-      act: (bloc) => bloc.add(
-        const UpdateStepConfiguration({'key': 'value'}),
-      ),
+      act: (bloc) => bloc.add(const UpdateStepConfiguration({'key': 'value'})),
       expect: () => <OnboardingState>[],
     );
   });

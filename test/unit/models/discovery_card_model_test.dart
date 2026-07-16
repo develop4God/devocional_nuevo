@@ -182,7 +182,9 @@ void main() {
         expect(card.scriptureReferences, hasLength(1));
         expect(card.scriptureReferences![0].reference, equals('Mateo 19:14'));
         expect(
-            card.scriptureReferences![0].text, contains('Dejad a los niños'));
+          card.scriptureReferences![0].text,
+          contains('Dejad a los niños'),
+        );
       },
     );
 
@@ -200,7 +202,9 @@ void main() {
 
       expect(json['scripture_references'], hasLength(1));
       expect(
-          json['scripture_references'][0]['reference'], equals('Mateo 19:14'));
+        json['scripture_references'][0]['reference'],
+        equals('Mateo 19:14'),
+      );
     });
 
     test('should serialize card to JSON correctly', () {

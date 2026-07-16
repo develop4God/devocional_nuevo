@@ -359,9 +359,7 @@ class OnboardingService {
           false,
         );
         migratedProgress['progressPercentage'] ??= 0.0;
-        debugPrint(
-          '✅ [OnboardingService] Progress migration v0->v1 completed',
-        );
+        debugPrint('✅ [OnboardingService] Progress migration v0->v1 completed');
       }
 
       return migratedProgress;
@@ -402,9 +400,7 @@ class OnboardingService {
 
     for (final key in requiredKeys) {
       if (!payload.containsKey(key)) {
-        debugPrint(
-          '❌ [OnboardingService] Missing required progress key: $key',
-        );
+        debugPrint('❌ [OnboardingService] Missing required progress key: $key');
         return false;
       }
     }

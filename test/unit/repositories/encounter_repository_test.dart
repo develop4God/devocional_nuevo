@@ -65,15 +65,13 @@ void main() {
           isNull,
         );
 
-        when(() => mockHttpClient.get(any())).thenAnswer(
-          (invocation) async {
-            final uri = invocation.positionalArguments[0] as Uri;
-            if (uri.toString().contains('index.json')) {
-              return http.Response(jsonEncode(index), 200);
-            }
-            return http.Response(jsonEncode(studyJson), 200);
-          },
-        );
+        when(() => mockHttpClient.get(any())).thenAnswer((invocation) async {
+          final uri = invocation.positionalArguments[0] as Uri;
+          if (uri.toString().contains('index.json')) {
+            return http.Response(jsonEncode(index), 200);
+          }
+          return http.Response(jsonEncode(studyJson), 200);
+        });
 
         final entries = await repository.fetchIndex();
         expect(entries, hasLength(1));

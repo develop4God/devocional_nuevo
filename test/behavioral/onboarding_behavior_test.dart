@@ -68,9 +68,7 @@ void main() {
     when(
       () => mockOnboardingService.clearConfiguration(),
     ).thenAnswer((_) async {});
-    when(
-      () => mockOnboardingService.clearProgress(),
-    ).thenAnswer((_) async {});
+    when(() => mockOnboardingService.clearProgress()).thenAnswer((_) async {});
 
     // Provide a default state for BackupBloc to avoid "Null is not a subtype of BackupState"
     when(() => mockBackupBloc.state).thenReturn(const BackupInitial());

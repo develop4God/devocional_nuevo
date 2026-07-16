@@ -180,8 +180,9 @@ void main() {
 
         // Act: Simulate Device B receiving the merged backup sync-back
         await statsService.saveStats(deviceBStats); // Start with Device B state
-        await statsService
-            .restoreStats(mergedBackupPayload); // Sync merged data
+        await statsService.restoreStats(
+          mergedBackupPayload,
+        ); // Sync merged data
 
         // Assert: Device B should now have max streak of 5 from Device A
         final syncedStats = await statsService.getStats();
@@ -368,64 +369,58 @@ void main() {
       },
     );
 
-    test(
-      'Backward compatibility: Legacy stats format still works',
-      () async {
-        // Ensure our fix doesn't break existing backup restore flows
-        final legacyBackupData = {
-          'stats': {
-            'totalDevocionalesRead': 15,
-            'currentStreak': 15,
-            'longestStreak': 15,
-            'lastActivityDate': '2026-05-28T00:00:00.000',
-            'readDevocionalIds': List.generate(15, (i) => 'legacy-dev$i'),
-            'favoritesCount': 7,
-            'unlockedAchievements': [],
-          },
-          'read_dates': List.generate(
-            15,
-            (i) => DateTime(2026, 5, 28 - i).toIso8601String().substring(0, 10),
-          ),
-        };
-
-        // Act: Restore from legacy format
-        await statsService.restoreStats(legacyBackupData);
-
-        // Assert: Should work just as before
-        final restoredStats = await statsService.getStats();
-        expect(restoredStats.currentStreak, equals(15));
-        expect(restoredStats.longestStreak, equals(15));
-        expect(restoredStats.totalDevocionalesRead, equals(15));
-      },
-    );
-
-    test(
-      'Flat format (no wrapper) still works',
-      () async {
-        // Ensure our fix doesn't break flat backup format
-        final flatBackupData = {
-          'totalDevocionalesRead': 20,
-          'currentStreak': 20,
-          'longestStreak': 20,
+    test('Backward compatibility: Legacy stats format still works', () async {
+      // Ensure our fix doesn't break existing backup restore flows
+      final legacyBackupData = {
+        'stats': {
+          'totalDevocionalesRead': 15,
+          'currentStreak': 15,
+          'longestStreak': 15,
           'lastActivityDate': '2026-05-28T00:00:00.000',
-          'readDevocionalIds': List.generate(20, (i) => 'flat-dev$i'),
-          'favoritesCount': 10,
+          'readDevocionalIds': List.generate(15, (i) => 'legacy-dev$i'),
+          'favoritesCount': 7,
           'unlockedAchievements': [],
-          'read_dates': List.generate(
-            20,
-            (i) => DateTime(2026, 5, 28 - i).toIso8601String().substring(0, 10),
-          ),
-        };
+        },
+        'read_dates': List.generate(
+          15,
+          (i) => DateTime(2026, 5, 28 - i).toIso8601String().substring(0, 10),
+        ),
+      };
 
-        // Act: Restore from flat format
-        await statsService.restoreStats(flatBackupData);
+      // Act: Restore from legacy format
+      await statsService.restoreStats(legacyBackupData);
 
-        // Assert: Should work
-        final restoredStats = await statsService.getStats();
-        expect(restoredStats.currentStreak, equals(20));
-        expect(restoredStats.longestStreak, equals(20));
-        expect(restoredStats.totalDevocionalesRead, equals(20));
-      },
-    );
+      // Assert: Should work just as before
+      final restoredStats = await statsService.getStats();
+      expect(restoredStats.currentStreak, equals(15));
+      expect(restoredStats.longestStreak, equals(15));
+      expect(restoredStats.totalDevocionalesRead, equals(15));
+    });
+
+    test('Flat format (no wrapper) still works', () async {
+      // Ensure our fix doesn't break flat backup format
+      final flatBackupData = {
+        'totalDevocionalesRead': 20,
+        'currentStreak': 20,
+        'longestStreak': 20,
+        'lastActivityDate': '2026-05-28T00:00:00.000',
+        'readDevocionalIds': List.generate(20, (i) => 'flat-dev$i'),
+        'favoritesCount': 10,
+        'unlockedAchievements': [],
+        'read_dates': List.generate(
+          20,
+          (i) => DateTime(2026, 5, 28 - i).toIso8601String().substring(0, 10),
+        ),
+      };
+
+      // Act: Restore from flat format
+      await statsService.restoreStats(flatBackupData);
+
+      // Assert: Should work
+      final restoredStats = await statsService.getStats();
+      expect(restoredStats.currentStreak, equals(20));
+      expect(restoredStats.longestStreak, equals(20));
+      expect(restoredStats.totalDevocionalesRead, equals(20));
+    });
   });
 }

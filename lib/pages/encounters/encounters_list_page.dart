@@ -248,10 +248,7 @@ class _EncountersListPageState extends State<EncountersListPage>
             child: ListView.builder(
               controller: _scrollController,
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 24,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
               itemCount: state.index.length + 1, // +1 for header
               itemBuilder: (context, i) {
                 if (i == 0) return _buildHeader();
@@ -425,10 +422,7 @@ class _EncountersListPageState extends State<EncountersListPage>
         children: [
           const Icon(Icons.error_outline, size: 64, color: Colors.red),
           const SizedBox(height: 16),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-          ),
+          Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
