@@ -140,7 +140,11 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action [bot]"
 
-          # Check if there are actual changes (not counting generated files)
+          # Check if there are actual changes (not counting generated files).
+          # *.mocks.dart is excluded because build_runner's mockito codegen isn't
+          # byte-stable across runs (cosmetic ordering/whitespace churn with no
+          # source change), which was causing false "dart fix needed" PR failures
+          # even when dart fix itself reported "Nothing to fix!" (see a78c962d).
           if ! git diff --quiet -- lib/ test/ pubspec.yaml pubspec.lock i18n/ docs/ \
               ':(exclude)**/*.mocks.dart' \
               ':(exclude)**/GeneratedPluginRegistrant*' \
