@@ -38,6 +38,7 @@ bool isTransientNetworkError(Object error) {
       msg.contains('Connection closed before full header') ||
       msg.contains('Connection closed while receiving data') ||
       msg.contains('Could not decompress image') ||
+      msg.contains('Invalid image data') ||
       (msg.contains('ClientException') &&
           (msg.contains('SocketException') ||
               msg.contains('host lookup') ||
