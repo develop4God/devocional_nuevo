@@ -134,19 +134,21 @@ jobs:
       - name: 🧹 Remove unused imports (dart fix)
         run: |
           echo "🧹 Checking for unused imports and applying auto-fixes..."
-          dart fix --apply
+          DART_FIX_OUTPUT=$(dart fix --apply 2>&1)
+          echo "$DART_FIX_OUTPUT"
+
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action [bot]"
 
-          # Only auto-commit on push events (not on PRs)
-          if [ "${{ github.event_name }}" = "push" ]; then
-            BRANCH="${{ github.ref_name }}"
+          # Check if there are actual changes (not counting generated files)
+          if ! git diff --quiet lib/ test/ pubspec.yaml pubspec.lock i18n/ docs/ 2>/dev/null; then
+            # Only auto-commit on push events (not on PRs)
+            if [ "${{ github.event_name }}" = "push" ]; then
+              BRANCH="${{ github.ref_name }}"
 
-            if ! git diff --quiet; then
-              # ⚠️ Exclude auto-generated files from commit
               git add lib/ test/ pubspec.yaml pubspec.lock i18n/ docs/
               git reset -- '**/GeneratedPluginRegistrant*' '**/generated_plugin_registrant*' 2>/dev/null || true
-              
+
               # Only commit if source files changed (not just generated files)
               if ! git diff --cached --quiet; then
                 git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
@@ -155,15 +157,15 @@ jobs:
                 echo "ℹ️ Only generated files were modified, skipping commit"
                 git checkout -- .
               fi
-            fi
-          else
-            # On PRs, fail if changes needed
-            if ! git diff --quiet; then
+            else
+              # On PRs, fail if changes needed
               echo "❌ Unused imports or auto-fixes needed on PR. Please run locally:"
               echo "  dart fix --apply"
               echo "  git add -A && git commit -m '🧹 Auto-fix code'"
               exit 1
             fi
+          else
+            echo "✅ No auto-fix changes needed"
           fi
 
       - name: 🔍 Analyze code
