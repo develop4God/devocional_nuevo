@@ -150,58 +150,63 @@ class NotificationService {
       // Esto asegura que haya un usuario (UID) disponible antes de intentar guardar tokens o settings.
       // Se elimina la llamada directa a _initializeFCM() y la lógica de settings de aquí.
       _auth.authStateChanges().listen((user) async {
-        if (user != null) {
-          debugPrint(
-            '🔔 [NotificationService] Authenticated user detected: ${user.uid}',
-          );
-
-          // Actualizar lastLogin cada vez que el usuario ingresa
-          await updateLastLogin();
-
-          // Ahora, inicializar FCM y gestionar el token solo si hay un usuario
-          await _initializeFCM();
-
-          // Manejar el mensaje inicial si la app se abrió desde una notificación
-          final RemoteMessage? initialMessage =
-              await _firebaseMessaging.getInitialMessage();
-          if (initialMessage != null) {
+        try {
+          if (user != null) {
             debugPrint(
-              '🔔 [NotificationService] App opened from initial notification: ${initialMessage.messageId}',
+              '🔔 [NotificationService] Authenticated user detected: ${user.uid}',
             );
-            _handleMessage(initialMessage);
+
+            // Actualizar lastLogin cada vez que el usuario ingresa
+            await updateLastLogin();
+
+            // Ahora, inicializar FCM y gestionar el token solo si hay un usuario
+            await _initializeFCM();
+
+            // Manejar el mensaje inicial si la app se abrió desde una notificación
+            final RemoteMessage? initialMessage =
+                await _firebaseMessaging.getInitialMessage();
+            if (initialMessage != null) {
+              debugPrint(
+                '🔔 [NotificationService] App opened from initial notification: ${initialMessage.messageId}',
+              );
+              _handleMessage(initialMessage);
+            }
+
+            // Asegurar que la configuración de notificaciones esté completa en Firestore
+            final userId = user.uid;
+            final currentDeviceTimezone =
+                await FlutterTimezone.getLocalTimezone();
+
+            final settingsDoc = await _firestore
+                .collection('users')
+                .doc(userId)
+                .collection('settings')
+                .doc('notifications')
+                .get();
+
+            bool initialNotificationsEnabled = settingsDoc.exists
+                ? (settingsDoc.data()?['notificationsEnabled'] ?? true)
+                : true;
+            String initialNotificationTime = settingsDoc.exists
+                ? (settingsDoc.data()?['notificationTime'] ??
+                    _defaultNotificationTime)
+                : _defaultNotificationTime;
+            String initialUserTimezone = settingsDoc.exists
+                ? (settingsDoc.data()?['userTimezone'] ?? currentDeviceTimezone)
+                : currentDeviceTimezone;
+
+            await _saveNotificationSettingsToFirestore(
+              userId,
+              initialNotificationsEnabled,
+              initialNotificationTime,
+              initialUserTimezone,
+            );
+          } else {
+            debugPrint('🔔 [NotificationService] No authenticated user.');
           }
-
-          // Asegurar que la configuración de notificaciones esté completa en Firestore
-          final userId = user.uid;
-          final currentDeviceTimezone =
-              await FlutterTimezone.getLocalTimezone();
-
-          final settingsDoc = await _firestore
-              .collection('users')
-              .doc(userId)
-              .collection('settings')
-              .doc('notifications')
-              .get();
-
-          bool initialNotificationsEnabled = settingsDoc.exists
-              ? (settingsDoc.data()?['notificationsEnabled'] ?? true)
-              : true;
-          String initialNotificationTime = settingsDoc.exists
-              ? (settingsDoc.data()?['notificationTime'] ??
-                  _defaultNotificationTime)
-              : _defaultNotificationTime;
-          String initialUserTimezone = settingsDoc.exists
-              ? (settingsDoc.data()?['userTimezone'] ?? currentDeviceTimezone)
-              : currentDeviceTimezone;
-
-          await _saveNotificationSettingsToFirestore(
-            userId,
-            initialNotificationsEnabled,
-            initialNotificationTime,
-            initialUserTimezone,
-          );
-        } else {
-          debugPrint('🔔 [NotificationService] No authenticated user.');
+        } catch (e) {
+          debugPrint(
+              '❌ [NotificationService] ERROR in authStateChanges listener: $e');
         }
       });
       // **FIN DE MODIFICACIÓN**
