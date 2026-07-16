@@ -18,9 +18,7 @@ void main() {
 
     final locator = ServiceLocator();
 
-    locator.registerSingleton<LocalizationService>(
-      _TestLocalizationService(),
-    );
+    locator.registerSingleton<LocalizationService>(_TestLocalizationService());
 
     if (locator.isRegistered<IVerseResolverService>()) {
       locator.unregister<IVerseResolverService>();

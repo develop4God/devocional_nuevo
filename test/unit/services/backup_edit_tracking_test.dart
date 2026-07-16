@@ -48,19 +48,20 @@ void main() {
       });
 
       test(
-          'Prayer fromJson defaults lastModifiedDate to createdDate when missing',
-          () {
-        final json = {
-          'id': 'prayer1',
-          'text': 'Test prayer',
-          'createdDate': '2026-05-01T00:00:00.000',
-          'status': 'active',
-        };
+        'Prayer fromJson defaults lastModifiedDate to createdDate when missing',
+        () {
+          final json = {
+            'id': 'prayer1',
+            'text': 'Test prayer',
+            'createdDate': '2026-05-01T00:00:00.000',
+            'status': 'active',
+          };
 
-        final prayer = Prayer.fromJson(json);
+          final prayer = Prayer.fromJson(json);
 
-        expect(prayer.lastModifiedDate, equals(prayer.createdDate));
-      });
+          expect(prayer.lastModifiedDate, equals(prayer.createdDate));
+        },
+      );
 
       test('Prayer copyWith updates lastModifiedDate automatically', () {
         final original = Prayer(
@@ -76,27 +77,30 @@ void main() {
 
         expect(edited.text, equals('Edited text'));
         expect(
-            edited.lastModifiedDate.isAfter(original.lastModifiedDate), isTrue);
+          edited.lastModifiedDate.isAfter(original.lastModifiedDate),
+          isTrue,
+        );
       });
 
       test(
-          'Prayer copyWith can preserve lastModifiedDate when updateModifiedDate is false',
-          () {
-        final original = Prayer(
-          id: 'prayer1',
-          text: 'Original text',
-          createdDate: DateTime(2026, 5, 1),
-          status: PrayerStatus.active,
-          lastModifiedDate: DateTime(2026, 5, 1),
-        );
+        'Prayer copyWith can preserve lastModifiedDate when updateModifiedDate is false',
+        () {
+          final original = Prayer(
+            id: 'prayer1',
+            text: 'Original text',
+            createdDate: DateTime(2026, 5, 1),
+            status: PrayerStatus.active,
+            lastModifiedDate: DateTime(2026, 5, 1),
+          );
 
-        final copied = original.copyWith(
-          text: 'Same text',
-          updateModifiedDate: false,
-        );
+          final copied = original.copyWith(
+            text: 'Same text',
+            updateModifiedDate: false,
+          );
 
-        expect(copied.lastModifiedDate, equals(original.lastModifiedDate));
-      });
+          expect(copied.lastModifiedDate, equals(original.lastModifiedDate));
+        },
+      );
     });
 
     group('Thanksgiving Model lastModifiedDate', () {
@@ -126,7 +130,9 @@ void main() {
 
         expect(edited.text, equals('Edited text'));
         expect(
-            edited.lastModifiedDate.isAfter(original.lastModifiedDate), isTrue);
+          edited.lastModifiedDate.isAfter(original.lastModifiedDate),
+          isTrue,
+        );
       });
     });
 
@@ -157,7 +163,9 @@ void main() {
 
         expect(edited.text, equals('Edited text'));
         expect(
-            edited.lastModifiedDate.isAfter(original.lastModifiedDate), isTrue);
+          edited.lastModifiedDate.isAfter(original.lastModifiedDate),
+          isTrue,
+        );
       });
     });
 
@@ -242,81 +250,86 @@ void main() {
         expect(merged[0]['text'], equals('Edited testimony'));
       });
 
-      test('Prayers: entries without lastModifiedDate are kept if no conflict',
-          () {
-        final legacyPrayer = {
-          'id': 'prayer1',
-          'text': 'Legacy prayer without timestamp',
-          'createdDate': '2026-05-01T00:00:00.000',
-          'status': 'active',
-        };
-
-        final merged = _mergePrayersByTimestamp(
-          remote: [],
-          local: [legacyPrayer],
-        );
-
-        expect(merged.length, equals(1));
-        expect(merged[0]['text'], equals('Legacy prayer without timestamp'));
-      });
-
       test(
-          'Prayers: newer version wins even when legacy version has no timestamp',
-          () {
-        final legacyVersion = {
-          'id': 'prayer1',
-          'text': 'Legacy prayer',
-          'createdDate': '2026-05-01T00:00:00.000',
-          'status': 'active',
-          // No lastModifiedDate
-        };
-
-        final modernVersion = {
-          'id': 'prayer1',
-          'text': 'Modern edited prayer',
-          'createdDate': '2026-05-01T00:00:00.000',
-          'status': 'active',
-          'lastModifiedDate': '2026-05-15T14:30:00.000',
-        };
-
-        final merged = _mergePrayersByTimestamp(
-          remote: [legacyVersion],
-          local: [modernVersion],
-        );
-
-        expect(merged.length, equals(1));
-        expect(merged[0]['text'], equals('Modern edited prayer'));
-      });
-
-      test('Prayers: multiple prayers from different devices are all preserved',
-          () {
-        final deviceAPrayers = [
-          {
+        'Prayers: entries without lastModifiedDate are kept if no conflict',
+        () {
+          final legacyPrayer = {
             'id': 'prayer1',
-            'text': 'Prayer from device A',
+            'text': 'Legacy prayer without timestamp',
             'createdDate': '2026-05-01T00:00:00.000',
             'status': 'active',
-            'lastModifiedDate': '2026-05-01T10:00:00.000',
-          },
-        ];
+          };
 
-        final deviceBPrayers = [
-          {
-            'id': 'prayer2',
-            'text': 'Prayer from device B',
-            'createdDate': '2026-05-02T00:00:00.000',
+          final merged = _mergePrayersByTimestamp(
+            remote: [],
+            local: [legacyPrayer],
+          );
+
+          expect(merged.length, equals(1));
+          expect(merged[0]['text'], equals('Legacy prayer without timestamp'));
+        },
+      );
+
+      test(
+        'Prayers: newer version wins even when legacy version has no timestamp',
+        () {
+          final legacyVersion = {
+            'id': 'prayer1',
+            'text': 'Legacy prayer',
+            'createdDate': '2026-05-01T00:00:00.000',
             'status': 'active',
-            'lastModifiedDate': '2026-05-02T10:00:00.000',
-          },
-        ];
+            // No lastModifiedDate
+          };
 
-        final merged = _mergePrayersByTimestamp(
-          remote: deviceAPrayers,
-          local: deviceBPrayers,
-        );
+          final modernVersion = {
+            'id': 'prayer1',
+            'text': 'Modern edited prayer',
+            'createdDate': '2026-05-01T00:00:00.000',
+            'status': 'active',
+            'lastModifiedDate': '2026-05-15T14:30:00.000',
+          };
 
-        expect(merged.length, equals(2));
-      });
+          final merged = _mergePrayersByTimestamp(
+            remote: [legacyVersion],
+            local: [modernVersion],
+          );
+
+          expect(merged.length, equals(1));
+          expect(merged[0]['text'], equals('Modern edited prayer'));
+        },
+      );
+
+      test(
+        'Prayers: multiple prayers from different devices are all preserved',
+        () {
+          final deviceAPrayers = [
+            {
+              'id': 'prayer1',
+              'text': 'Prayer from device A',
+              'createdDate': '2026-05-01T00:00:00.000',
+              'status': 'active',
+              'lastModifiedDate': '2026-05-01T10:00:00.000',
+            },
+          ];
+
+          final deviceBPrayers = [
+            {
+              'id': 'prayer2',
+              'text': 'Prayer from device B',
+              'createdDate': '2026-05-02T00:00:00.000',
+              'status': 'active',
+              'lastModifiedDate': '2026-05-02T10:00:00.000',
+            },
+          ];
+
+          final merged = _mergePrayersByTimestamp(
+            remote: deviceAPrayers,
+            local: deviceBPrayers,
+          );
+
+          expect(merged.length, equals(2));
+        },
+      );
     });
   });
 }

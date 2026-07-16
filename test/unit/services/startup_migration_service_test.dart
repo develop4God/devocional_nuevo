@@ -230,27 +230,27 @@ void main() {
   });
 
   group('leading gap at index 0', () {
-    test('fills gap when first devotional is unread and second is read',
-        () async {
-      final devs = [_dev('d0'), _dev('d1'), _dev('d2')];
-      await sut.runAll(devs, ['d1', 'd2']);
+    test(
+      'fills gap when first devotional is unread and second is read',
+      () async {
+        final devs = [_dev('d0'), _dev('d1'), _dev('d2')];
+        await sut.runAll(devs, ['d1', 'd2']);
 
-      expect(fakeStats.markedAsRead, contains('d0'));
-      expect(fakeStats.markedAsRead.length, 1);
-    });
+        expect(fakeStats.markedAsRead, contains('d0'));
+        expect(fakeStats.markedAsRead.length, 1);
+      },
+    );
 
-    test('real-world case: filipenses2_3-4RVR1960 skipped, d1 and d2 read',
-        () async {
-      final devs = [
-        _dev('filipenses2_3-4RVR1960'),
-        _dev('d1'),
-        _dev('d2'),
-      ];
-      await sut.runAll(devs, ['d1', 'd2']);
+    test(
+      'real-world case: filipenses2_3-4RVR1960 skipped, d1 and d2 read',
+      () async {
+        final devs = [_dev('filipenses2_3-4RVR1960'), _dev('d1'), _dev('d2')];
+        await sut.runAll(devs, ['d1', 'd2']);
 
-      expect(fakeStats.markedAsRead, contains('filipenses2_3-4RVR1960'));
-      expect(fakeStats.markedAsRead.length, 1);
-    });
+        expect(fakeStats.markedAsRead, contains('filipenses2_3-4RVR1960'));
+        expect(fakeStats.markedAsRead.length, 1);
+      },
+    );
 
     test('does NOT fill when first devotional is already read', () async {
       final devs = [_dev('d0'), _dev('d1'), _dev('d2')];
@@ -261,8 +261,9 @@ void main() {
 
     test('does NOT fill when second entry is also unread', () async {
       final devs = [_dev('d0'), _dev('d1'), _dev('d2')];
-      await sut
-          .runAll(devs, ['d2']); // d0 and d1 both unread — not a leading gap
+      await sut.runAll(devs, [
+        'd2',
+      ]); // d0 and d1 both unread — not a leading gap
       expect(fakeStats.markedAsRead, isEmpty);
     });
   });
@@ -288,14 +289,19 @@ void main() {
       expect(fakeStats.markedAsRead, isEmpty);
     });
 
-    test('idempotent: second call with same scenario no-ops (no new gap)',
-        () async {
-      final devs = [_dev('d0'), _dev('d1'), _dev('d2')];
-      await sut.runAll(devs, ['d1', 'd2']); // first call — fills d0
-      await sut.runAll(devs,
-          ['d1', 'd2', 'd0']); // second call — d0 already read, no gap found
-      expect(fakeStats.markedAsRead, hasLength(1)); // still just d0
-    });
+    test(
+      'idempotent: second call with same scenario no-ops (no new gap)',
+      () async {
+        final devs = [_dev('d0'), _dev('d1'), _dev('d2')];
+        await sut.runAll(devs, ['d1', 'd2']); // first call — fills d0
+        await sut.runAll(devs, [
+          'd1',
+          'd2',
+          'd0',
+        ]); // second call — d0 already read, no gap found
+        expect(fakeStats.markedAsRead, hasLength(1)); // still just d0
+      },
+    );
 
     test('multiple gaps across separate startups (QA scenario)', () async {
       // Simulate: First startup fills one gap
@@ -305,8 +311,9 @@ void main() {
 
       // Reset stats and service (new app startup, new test scenario)
       fakeStats.markedAsRead.clear();
-      await (await SharedPreferences.getInstance())
-          .remove('read_gap_fix_done'); // Clear prefs to simulate new state
+      await (await SharedPreferences.getInstance()).remove(
+        'read_gap_fix_done',
+      ); // Clear prefs to simulate new state
       sut = StartupMigrationService(statsService: fakeStats);
 
       // Second startup: new gap pattern (interior gap)

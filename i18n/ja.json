@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "神があなたを祝福し、あなたの人生を平和で満たしますように",
     "onboarding_skip": "スキップ",
+    "onboarding_step_indicator": "ステップ {current}/{total}",
     "onboarding_back": "戻る",
     "onboarding_next": "次へ",
     "onboarding_config_later": "後で設定",
@@ -618,7 +619,7 @@
     "onboarding_complete_subtitle": "あなたの霊的空間が設定されました。自信を持ってデボーショナルジャーニーを始めてください。",
     "onboarding_your_setup": "あなたの設定",
     "onboarding_start_app": "旅を始める",
-    "onboarding_theme_configured": "カスタムテーマが選択されました",
+    "onboarding_setup_theme_configured": "カスタムテーマが選択されました",
     "onboarding_setup_backup_configured": "自動バックアップを設定",
     "onboarding_setup_protection_active": "データ保護が有効",
     "onboarding_setup_backup_skipped": "今はバックアップをスキップ",
