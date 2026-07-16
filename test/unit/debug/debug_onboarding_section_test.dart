@@ -1,4 +1,4 @@
-@Tags(['unit'])
+@Tags(['unit', 'onboarding'])
 library;
 
 import 'package:devocional_nuevo/debug/sections/debug_onboarding_section.dart';
