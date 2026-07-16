@@ -1,4 +1,4 @@
-@Tags(['unit', 'models'])
+@Tags(['unit', 'models', 'backup'])
 library;
 
 // test/unit/models/backup_content_summary_test.dart

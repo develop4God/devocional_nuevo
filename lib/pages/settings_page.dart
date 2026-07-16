@@ -15,7 +15,6 @@ import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dar
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
-import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
@@ -55,8 +54,6 @@ class _SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<_SettingsView> {
   late final VoiceSettingsService _voiceSettingsService =
       getService<VoiceSettingsService>();
-  late final RemoteConfigService _remoteConfigService =
-      getService<RemoteConfigService>();
   late final SupporterPetService _petService =
       getService<SupporterPetService>();
   late final ISupporterProfileRepository _profileRepo =
@@ -645,24 +642,21 @@ class _SettingsViewState extends State<_SettingsView> {
             ),
 
             // Google Drive Backup
-            if (_remoteConfigService.showBackupSection)
-              _buildSettingTile(
-                icon: Icons.backup_rounded,
-                title: 'backup.title'.tr(),
-                bubbleId: 'settings_backup_new',
-                onTap: () async {
-                  await BubbleUtils.markAsShown('settings_backup_new');
-                  if (!context.mounted) return;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const BackupSettingsPage(),
-                    ),
-                  );
-                },
-                colorScheme: colorScheme,
-                textTheme: textTheme,
-              ),
+            _buildSettingTile(
+              icon: Icons.backup_rounded,
+              title: 'backup.title'.tr(),
+              bubbleId: 'settings_backup_new',
+              onTap: () async {
+                await BubbleUtils.markAsShown('settings_backup_new');
+                if (!context.mounted) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const BackupSettingsPage()),
+                );
+              },
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+            ),
 
             const SizedBox(height: 20),
           ],

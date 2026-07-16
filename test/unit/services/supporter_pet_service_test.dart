@@ -29,15 +29,16 @@ void main() {
     });
 
     test(
-        'unlockPetFeature also enables the pet header and clears pending setup',
-        () async {
-      await service.markGoldSetupPending();
-      expect(service.isGoldSetupPending, isTrue);
+      'unlockPetFeature also enables the pet header and clears pending setup',
+      () async {
+        await service.markGoldSetupPending();
+        expect(service.isGoldSetupPending, isTrue);
 
-      await service.unlockPetFeature();
+        await service.unlockPetFeature();
 
-      expect(service.showPetHeader, isTrue);
-      expect(service.isGoldSetupPending, isFalse);
-    });
+        expect(service.showPetHeader, isTrue);
+        expect(service.isGoldSetupPending, isFalse);
+      },
+    );
   });
 }

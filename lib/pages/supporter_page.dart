@@ -118,9 +118,7 @@ class _SupporterPageState extends State<SupporterPage>
     // Goes through the service's own get-modify-save cycle (locked against
     // concurrent stats updates) instead of doing it here, which would race
     // with any other in-flight read-modify-write on the same stats blob.
-    await getService<ISpiritualStatsService>().unlockAchievement(
-      badgeTemplate,
-    );
+    await getService<ISpiritualStatsService>().unlockAchievement(badgeTemplate);
   }
 
   // ── Event callbacks ───────────────────────────────────────────────────────

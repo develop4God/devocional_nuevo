@@ -82,5 +82,19 @@ void main() {
         isTrue,
       );
     });
+
+    test('returns true for "Could not decompress image" codec error', () {
+      expect(
+        isTransientNetworkError(Exception('Could not decompress image.')),
+        isTrue,
+      );
+    });
+
+    test('returns true for "Invalid image data" codec error', () {
+      expect(
+        isTransientNetworkError(Exception('Invalid image data.')),
+        isTrue,
+      );
+    });
   });
 }

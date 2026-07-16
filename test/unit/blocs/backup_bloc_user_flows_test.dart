@@ -1,4 +1,4 @@
-@Tags(['unit', 'blocs'])
+@Tags(['unit', 'blocs', 'backup'])
 library;
 
 // test/unit/blocs/backup_bloc_user_flows_test.dart

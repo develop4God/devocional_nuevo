@@ -245,4 +245,22 @@ class DiscoveryRepository {
   Future<Map<String, dynamic>> fetchIndex({bool forceRefresh = false}) async {
     return await _fetchIndex(forceRefresh: forceRefresh);
   }
+
+  /// Clears all cached index and study data (all branches), so the next
+  /// fetch bypasses both the session/prefs cache and the per-study version
+  /// check, guaranteeing fresh content from GitHub.
+  Future<void> clearCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys().where(
+          (k) => k.startsWith(_cacheKeyPrefix) || k.startsWith(_indexCacheKey),
+        );
+    final keysToRemove = keys.toList();
+    for (final key in keysToRemove) {
+      await prefs.remove(key);
+    }
+    _indexFetchedThisSession = false;
+    debugPrint(
+      '🗑️ Discovery: Cleared ${keysToRemove.length} cache entries (index + studies, all branches)',
+    );
+  }
 }

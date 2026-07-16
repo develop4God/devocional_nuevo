@@ -52,18 +52,15 @@ void main() {
       methodSection = pageSource.substring(methodStart, methodStart + 2500);
     });
 
-    test(
-      '_handleTtsStateChange calls resetModalState() on TTS completion',
-      () {
-        expect(
-          methodSection.contains('resetModalState()'),
-          isTrue,
-          reason: '_handleTtsStateChange must call resetModalState() first: '
-              'it defuses the modal builder\'s own auto-close (single-closer '
-              'guarantee) and clears isShowing for the next playback.',
-        );
-      },
-    );
+    test('_handleTtsStateChange calls resetModalState() on TTS completion', () {
+      expect(
+        methodSection.contains('resetModalState()'),
+        isTrue,
+        reason: '_handleTtsStateChange must call resetModalState() first: '
+            'it defuses the modal builder\'s own auto-close (single-closer '
+            'guarantee) and clears isShowing for the next playback.',
+      );
+    });
 
     test(
       '_handleTtsStateChange closes the modal itself with a guarded pop',

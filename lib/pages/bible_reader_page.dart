@@ -786,9 +786,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                         if (!context.mounted) return;
                         AppSnackBar.show(
                           context,
-                          'bible.loading_version'.tr({
-                            'version': version.name,
-                          }),
+                          'bible.loading_version'.tr({'version': version.name}),
                         );
                       },
                       itemBuilder: (context) => state.availableVersions.map((

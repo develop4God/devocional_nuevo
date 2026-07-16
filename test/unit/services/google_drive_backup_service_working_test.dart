@@ -1,4 +1,4 @@
-@Tags(['critical', 'unit', 'services'])
+@Tags(['critical', 'unit', 'services', 'backup'])
 library;
 
 // test/critical_coverage/google_drive_backup_service_working_test.dart

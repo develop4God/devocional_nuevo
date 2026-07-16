@@ -57,12 +57,7 @@ const Map<String, Set<String>> kEncounterCardRenderedFields = {
     'discoveryQuestions',
     'prayer',
   },
-  'completion': {
-    'mood',
-    'imageUrl',
-    'completionVerse',
-    'reflectionPrompt',
-  },
+  'completion': {'mood', 'imageUrl', 'completionVerse', 'reflectionPrompt'},
   'interactive_moment': {
     'mood',
     'imageUrl',

@@ -38,6 +38,8 @@ import 'package:devocional_nuevo/services/iap/iap_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/i_localization_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
+import 'package:devocional_nuevo/services/onboarding_service.dart';
+import 'package:devocional_nuevo/services/push_messaging.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/startup_migration_service.dart';
@@ -46,6 +48,7 @@ import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
+import 'package:devocional_nuevo/services/user_profile_store.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -103,6 +106,20 @@ class ServiceLocator {
   }
 }
 
+/// Builds a [NotificationService] wired to the real Firebase-backed
+/// implementations. Shared by [setupServiceLocator] and by main.dart's
+/// background-isolate fallback so both paths construct the same
+/// dependencies instead of duplicating the wiring.
+NotificationService createFirebaseNotificationService({
+  required IAuthService authService,
+}) {
+  return NotificationService.create(
+    authService: authService,
+    userProfileStore: FirestoreUserProfileStore(),
+    pushMessaging: FirebaseCloudMessaging(),
+  );
+}
+
 Future<void> setupServiceLocator() async {
   final locator = ServiceLocator();
   final prefs = await SharedPreferences.getInstance();
@@ -128,11 +145,24 @@ Future<void> setupServiceLocator() async {
   locator.registerLazySingleton<TtsChunkProcessor>(() => TtsChunkProcessor());
   locator.registerLazySingleton<ITtsService>(() => TtsService());
   locator.registerLazySingleton<IAnalyticsService>(() => AnalyticsService());
+  locator.registerLazySingleton<IUserProfileStore>(
+    () => FirestoreUserProfileStore(),
+  );
+  locator.registerLazySingleton<IPushMessaging>(
+    () => FirebaseCloudMessaging(),
+  );
   locator.registerLazySingleton<NotificationService>(
-    NotificationService.create,
+    () => createFirebaseNotificationService(
+      authService: locator.get<IAuthService>(),
+    ),
   );
   locator.registerLazySingleton<RemoteConfigService>(
     RemoteConfigService.create,
+  );
+  locator.registerLazySingleton<OnboardingService>(
+    () => OnboardingService.create(
+      remoteConfigService: locator.get<RemoteConfigService>(),
+    ),
   );
   locator.registerLazySingleton<http.Client>(() => http.Client());
 
