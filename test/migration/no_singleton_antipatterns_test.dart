@@ -1189,6 +1189,83 @@ void main() {
         'lib',
       );
     });
+
+    // ── NotificationService Firebase DI registration ───────────────────────
+
+    test(
+      'IUserProfileStore and IPushMessaging are registered as lazy singletons in ServiceLocator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('registerLazySingleton<IUserProfileStore>'),
+          isTrue,
+          reason:
+              'IUserProfileStore should be registered as lazy singleton in ServiceLocator',
+        );
+
+        expect(
+          content.contains('registerLazySingleton<IPushMessaging>'),
+          isTrue,
+          reason:
+              'IPushMessaging should be registered as lazy singleton in ServiceLocator',
+        );
+      },
+    );
+
+    test(
+      'NotificationService receives its Firebase dependencies via constructor injection',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('authService: locator.get<IAuthService>()') &&
+              content.contains(
+                'userProfileStore: locator.get<IUserProfileStore>()',
+              ) &&
+              content.contains(
+                'pushMessaging: locator.get<IPushMessaging>()',
+              ),
+          isTrue,
+          reason:
+              'NotificationService.create should receive IAuthService, IUserProfileStore, '
+              'and IPushMessaging resolved from the locator at the composition root',
+        );
+      },
+    );
+
+    test(
+      'NotificationService does not access FirebaseAuth/FirebaseFirestore/FirebaseMessaging directly',
+      () async {
+        final file = File('lib/services/notification_service.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('FirebaseAuth.instance'),
+          isFalse,
+          reason:
+              'NotificationService must use injected IAuthService, not FirebaseAuth.instance directly',
+        );
+
+        expect(
+          content.contains('FirebaseFirestore.instance'),
+          isFalse,
+          reason:
+              'NotificationService must use injected IUserProfileStore, not FirebaseFirestore.instance directly',
+        );
+
+        expect(
+          content.contains('FirebaseMessaging.instance'),
+          isFalse,
+          reason:
+              'NotificationService must use injected IPushMessaging, not FirebaseMessaging.instance directly',
+        );
+      },
+    );
   });
 }
 

@@ -8,6 +8,8 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/test_helpers.dart';
+
 void main() {
   group('ServiceLocator', () {
     setUp(() {
@@ -152,7 +154,11 @@ void main() {
       test('NotificationService can be registered and verified', () {
         // Register NotificationService as lazy singleton using factory
         ServiceLocator().registerLazySingleton<NotificationService>(
-          NotificationService.create,
+          () => NotificationService.create(
+            authService: FakeAuthService(),
+            userProfileStore: FakeUserProfileStore(),
+            pushMessaging: FakePushMessaging(),
+          ),
         );
 
         // Verify it's registered

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
@@ -5,7 +6,10 @@ import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/auth_service.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/push_messaging.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/user_profile_store.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -187,6 +191,16 @@ Future<void> registerTestServicesWithFakes() async {
     locator.unregister<IAuthService>();
   }
   locator.registerSingleton<IAuthService>(FakeAuthService());
+
+  if (locator.isRegistered<IUserProfileStore>()) {
+    locator.unregister<IUserProfileStore>();
+  }
+  locator.registerSingleton<IUserProfileStore>(FakeUserProfileStore());
+
+  if (locator.isRegistered<IPushMessaging>()) {
+    locator.unregister<IPushMessaging>();
+  }
+  locator.registerSingleton<IPushMessaging>(FakePushMessaging());
 }
 
 /// Fake AnalyticsService that doesn't require Firebase initialization
@@ -289,6 +303,115 @@ class FakeAnalyticsService extends AnalyticsService
 class FakeAuthService implements IAuthService {
   @override
   String? get currentUserId => 'fake-uid';
+
+  final StreamController<String?> _authStateController =
+      StreamController<String?>.broadcast();
+
+  @override
+  Stream<String?> get authStateChanges => _authStateController.stream;
+
+  /// Test-only helper to simulate a sign-in/sign-out event.
+  void emitAuthStateChange(String? uid) => _authStateController.add(uid);
+}
+
+/// Fake [IUserProfileStore] with inspectable state, so tests can assert on
+/// what NotificationService actually wrote instead of mocking interactions.
+class FakeUserProfileStore implements IUserProfileStore {
+  final Map<String, DateTime> lastLoginWrites = {};
+  final Map<String, Map<String, dynamic>> savedSettings = {};
+  final Map<String, List<String>> savedFcmTokens = {};
+
+  @override
+  Future<void> updateLastLogin(String uid) async {
+    lastLoginWrites[uid] = DateTime.now();
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getNotificationSettings(String uid) async {
+    return savedSettings[uid];
+  }
+
+  @override
+  Future<void> saveNotificationSettings(
+    String uid, {
+    required bool notificationsEnabled,
+    required String notificationTime,
+    required String userTimezone,
+    required String preferredLanguage,
+  }) async {
+    savedSettings[uid] = {
+      'notificationsEnabled': notificationsEnabled,
+      'notificationTime': notificationTime,
+      'userTimezone': userTimezone,
+      'preferredLanguage': preferredLanguage,
+    };
+  }
+
+  @override
+  Future<void> saveFcmToken(
+    String uid,
+    String token, {
+    required String platform,
+  }) async {
+    savedFcmTokens.putIfAbsent(uid, () => []).add(token);
+  }
+}
+
+/// Fake [IPushMessaging] with inspectable state and controllable streams.
+class FakePushMessaging implements IPushMessaging {
+  RemoteMessage? initialMessage;
+  NotificationSettings? permissionResponse;
+  String? token;
+
+  final StreamController<String> _onTokenRefreshController =
+      StreamController<String>.broadcast();
+  final StreamController<RemoteMessage> _onMessageController =
+      StreamController<RemoteMessage>.broadcast();
+  final StreamController<RemoteMessage> _onMessageOpenedAppController =
+      StreamController<RemoteMessage>.broadcast();
+
+  int requestPermissionCallCount = 0;
+  int getTokenCallCount = 0;
+
+  @override
+  Future<RemoteMessage?> getInitialMessage() async => initialMessage;
+
+  @override
+  Future<NotificationSettings> requestPermission() async {
+    requestPermissionCallCount++;
+    return permissionResponse ??
+        const NotificationSettings(
+          authorizationStatus: AuthorizationStatus.authorized,
+          alert: AppleNotificationSetting.enabled,
+          announcement: AppleNotificationSetting.notSupported,
+          badge: AppleNotificationSetting.enabled,
+          carPlay: AppleNotificationSetting.notSupported,
+          lockScreen: AppleNotificationSetting.enabled,
+          notificationCenter: AppleNotificationSetting.enabled,
+          showPreviews: AppleShowPreviewSetting.always,
+          timeSensitive: AppleNotificationSetting.notSupported,
+          criticalAlert: AppleNotificationSetting.notSupported,
+          sound: AppleNotificationSetting.enabled,
+          providesAppNotificationSettings:
+              AppleNotificationSetting.notSupported,
+        );
+  }
+
+  @override
+  Stream<String> get onTokenRefresh => _onTokenRefreshController.stream;
+
+  @override
+  Future<String?> getToken() async {
+    getTokenCallCount++;
+    return token;
+  }
+
+  @override
+  Stream<RemoteMessage> get onMessage => _onMessageController.stream;
+
+  @override
+  Stream<RemoteMessage> get onMessageOpenedApp =>
+      _onMessageOpenedAppController.stream;
 }
 
 /// Mock PathProvider for testing
