@@ -329,9 +329,7 @@ class DeepLinkHandler {
     debugPrint('🔗 [DeepLink] _handleBackupDeepLink: ENTER');
     try {
       final nav = Navigator.of(context);
-      nav.push(
-        MaterialPageRoute(builder: (_) => const BackupSettingsPage()),
-      );
+      nav.push(MaterialPageRoute(builder: (_) => const BackupSettingsPage()));
       developer.log('Navigated to backup page', name: 'DeepLinkHandler');
       return true;
     } catch (e, st) {

@@ -89,9 +89,7 @@ class DebugDiscoverySection extends StatelessWidget {
                 // needs its own loop over all study IDs.
                 var downloadedCount = 0;
                 try {
-                  final index = await repository.fetchIndex(
-                    forceRefresh: true,
-                  );
+                  final index = await repository.fetchIndex(forceRefresh: true);
                   final studies = index['studies'] as List<dynamic>? ?? [];
                   for (final s in studies) {
                     final id = (s as Map<String, dynamic>)['id'] as String?;
@@ -105,7 +103,8 @@ class DebugDiscoverySection extends StatelessWidget {
                   }
                 } catch (e) {
                   debugPrint(
-                      '⚠️ Discovery: Force reload of studies failed: $e');
+                    '⚠️ Discovery: Force reload of studies failed: $e',
+                  );
                 }
 
                 if (!context.mounted) return;

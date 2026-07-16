@@ -109,8 +109,12 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('❌ [BLOC] Error toggling auto backup: $e');
-      emit(BackupError('Error updating auto backup: ${e.toString()}',
-          isRawText: true));
+      emit(
+        BackupError(
+          'Error updating auto backup: ${e.toString()}',
+          isRawText: true,
+        ),
+      );
     }
 
     debugPrint('🏁 [BLOC] === END ToggleAutoBackup ===');
@@ -154,8 +158,12 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('❌ [BLOC] Error changing backup frequency: $e');
-      emit(BackupError('Error changing backup frequency: ${e.toString()}',
-          isRawText: true));
+      emit(
+        BackupError(
+          'Error changing backup frequency: ${e.toString()}',
+          isRawText: true,
+        ),
+      );
     }
 
     debugPrint('🏁 [BLOC] === END ChangeBackupFrequency ===');
@@ -179,8 +187,12 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('❌ [BLOC] Error toggling WiFi only: $e');
-      emit(BackupError('Error updating WiFi-only setting: ${e.toString()}',
-          isRawText: true));
+      emit(
+        BackupError(
+          'Error updating WiFi-only setting: ${e.toString()}',
+          isRawText: true,
+        ),
+      );
     }
 
     debugPrint('🏁 [BLOC] === END ToggleWifiOnly ===');
@@ -202,8 +214,12 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('Error toggling compression: $e');
-      emit(BackupError('Error updating compression setting: ${e.toString()}',
-          isRawText: true));
+      emit(
+        BackupError(
+          'Error updating compression setting: ${e.toString()}',
+          isRawText: true,
+        ),
+      );
     }
   }
 
@@ -232,8 +248,12 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('Error updating backup options: $e');
-      emit(BackupError('Error updating backup options: ${e.toString()}',
-          isRawText: true));
+      emit(
+        BackupError(
+          'Error updating backup options: ${e.toString()}',
+          isRawText: true,
+        ),
+      );
     }
   }
 
@@ -264,8 +284,9 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
     } catch (e) {
       debugPrint('❌ [BLOC] Error creating manual backup: $e');
-      emit(BackupError('Error creating backup: ${e.toString()}',
-          isRawText: true));
+      emit(
+        BackupError('Error creating backup: ${e.toString()}', isRawText: true),
+      );
     }
 
     debugPrint('🏁 [BLOC] === END CreateManualBackup ===');
@@ -402,8 +423,9 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
             );
 
             // Recalculate current devotional index from restored read IDs
-            if (_navigationBloc != null && _devocionalProvider != null) {
-              _navigationBloc?.add(
+            final navigationBloc = _navigationBloc;
+            if (navigationBloc != null && _devocionalProvider != null) {
+              navigationBloc.add(
                 NavigateToFirstUnread(
                   _devocionalProvider!.lastRestoredReadIds.toList(),
                 ),

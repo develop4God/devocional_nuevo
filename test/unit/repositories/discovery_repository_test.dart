@@ -173,7 +173,9 @@ void main() {
       () async {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(
-            'discovery_index_cache_main', jsonEncode(indexV1));
+          'discovery_index_cache_main',
+          jsonEncode(indexV1),
+        );
         await prefs.setString(
           'discovery_cache_${studyId}_${languageCode}_main',
           jsonEncode(studyJsonV1),

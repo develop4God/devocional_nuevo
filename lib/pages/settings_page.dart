@@ -651,9 +651,7 @@ class _SettingsViewState extends State<_SettingsView> {
                 if (!context.mounted) return;
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const BackupSettingsPage(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const BackupSettingsPage()),
                 );
               },
               colorScheme: colorScheme,

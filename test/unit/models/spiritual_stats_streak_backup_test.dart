@@ -53,7 +53,7 @@ void main() {
           'dev4',
           'dev5',
           'dev6',
-          'dev7'
+          'dev7',
         ],
       );
 
@@ -108,36 +108,32 @@ void main() {
       expect(merged.longestStreak, equals(15));
     });
 
-    test('Longest streak updated when current streak exceeds it on one device',
-        () {
-      final deviceA = SpiritualStats(
-        currentStreak: 8,
-        longestStreak: 8,
-        readDevocionalIds: List.generate(8, (i) => 'dev$i'),
-      );
+    test(
+      'Longest streak updated when current streak exceeds it on one device',
+      () {
+        final deviceA = SpiritualStats(
+          currentStreak: 8,
+          longestStreak: 8,
+          readDevocionalIds: List.generate(8, (i) => 'dev$i'),
+        );
 
-      final deviceB = SpiritualStats(
-        currentStreak: 12,
-        longestStreak: 12, // Updated on device B
-        readDevocionalIds: List.generate(12, (i) => 'dev$i'),
-      );
+        final deviceB = SpiritualStats(
+          currentStreak: 12,
+          longestStreak: 12, // Updated on device B
+          readDevocionalIds: List.generate(12, (i) => 'dev$i'),
+        );
 
-      final merged = SpiritualStats.merge(deviceA, deviceB);
+        final merged = SpiritualStats.merge(deviceA, deviceB);
 
-      expect(merged.currentStreak, equals(12)); // Takes max current
-      expect(merged.longestStreak, equals(12)); // Takes max longest
-    });
+        expect(merged.currentStreak, equals(12)); // Takes max current
+        expect(merged.longestStreak, equals(12)); // Takes max longest
+      },
+    );
 
     test('Zero streak on both devices results in zero', () {
-      final deviceA = SpiritualStats(
-        currentStreak: 0,
-        longestStreak: 5,
-      );
+      final deviceA = SpiritualStats(currentStreak: 0, longestStreak: 5);
 
-      final deviceB = SpiritualStats(
-        currentStreak: 0,
-        longestStreak: 3,
-      );
+      final deviceB = SpiritualStats(currentStreak: 0, longestStreak: 3);
 
       final merged = SpiritualStats.merge(deviceA, deviceB);
 
@@ -146,10 +142,7 @@ void main() {
     });
 
     test('Backup preserves current streak in toJson', () {
-      final stats = SpiritualStats(
-        currentStreak: 15,
-        longestStreak: 20,
-      );
+      final stats = SpiritualStats(currentStreak: 15, longestStreak: 20);
 
       final json = stats.toJson();
 

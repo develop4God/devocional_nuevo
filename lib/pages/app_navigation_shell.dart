@@ -186,8 +186,9 @@ class _BibleTabState extends State<_BibleTab> {
 
   @override
   Widget build(BuildContext context) {
-    final String language =
-        context.select<DevocionalProvider, String>((p) => p.selectedLanguage);
+    final String language = context.select<DevocionalProvider, String>(
+      (p) => p.selectedLanguage,
+    );
     if (language != _language) {
       _language = language;
       _versionsFuture = _loadVersions(language);

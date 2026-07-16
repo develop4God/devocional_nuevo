@@ -81,9 +81,7 @@ void main() {
     when(
       () => mockOnboardingService.clearConfiguration(),
     ).thenAnswer((_) async {});
-    when(
-      () => mockOnboardingService.clearProgress(),
-    ).thenAnswer((_) async {});
+    when(() => mockOnboardingService.clearProgress()).thenAnswer((_) async {});
     when(
       () => mockOnboardingService.resetOnboarding(),
     ).thenAnswer((_) async {});
@@ -218,8 +216,9 @@ void main() {
             ),
       ],
       verify: (_) {
-        verify(() => mockBackupBloc.add(const ToggleAutoBackup(true)))
-            .called(1);
+        verify(
+          () => mockBackupBloc.add(const ToggleAutoBackup(true)),
+        ).called(1);
       },
     );
 

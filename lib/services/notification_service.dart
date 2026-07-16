@@ -260,7 +260,8 @@ class NotificationService {
       // settings document exists; verifying here would report null settings.
     } catch (e) {
       debugPrint(
-          '🔔 [NotificationService] call #$callId: ❌ ERROR in _initializeFCM: $e');
+        '🔔 [NotificationService] call #$callId: ❌ ERROR in _initializeFCM: $e',
+      );
     }
   }
 
@@ -352,8 +353,9 @@ class NotificationService {
   /// user relaunching the app.
   void _listenForConnectivityTokenRetry() {
     if (_tokenRetrySubscription != null) return;
-    _tokenRetrySubscription =
-        Connectivity().onConnectivityChanged.listen((results) async {
+    _tokenRetrySubscription = Connectivity().onConnectivityChanged.listen((
+      results,
+    ) async {
       if (results.contains(ConnectivityResult.none) && results.length == 1) {
         return;
       }
@@ -585,7 +587,8 @@ class NotificationService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_notificationsEnabledKey, enabled);
     debugPrint(
-        '🔔 [NotificationService] Notifications enabled set to $enabled');
+      '🔔 [NotificationService] Notifications enabled set to $enabled',
+    );
 
     // **INICIO DE MODIFICACIÓN: Usar el método unificado para guardar el estado en Firestore**
     final User? user = _auth.currentUser;
@@ -735,7 +738,8 @@ class NotificationService {
         payload: payload ?? 'immediate_devotional',
       );
       debugPrint(
-          '🔔 [NotificationService] Immediate notification shown: $title');
+        '🔔 [NotificationService] Immediate notification shown: $title',
+      );
     } catch (e) {
       debugPrint(
         '❌ [NotificationService] ERROR in showImmediateNotification: $e',
@@ -875,7 +879,8 @@ class NotificationService {
   Future<void> cancelScheduledNotifications() async {
     await _flutterLocalNotificationsPlugin.cancelAll();
     debugPrint(
-        '🔔 [NotificationService] All scheduled notifications cancelled');
+      '🔔 [NotificationService] All scheduled notifications cancelled',
+    );
   }
 
   // Metodo para obtener el idioma actual de la aplicación desde SharedPreferences

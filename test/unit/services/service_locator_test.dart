@@ -203,8 +203,9 @@ void main() {
 
         expect(
           content.contains('registerSingleton<ISpiritualStatsService>') &&
-              content
-                  .contains('registerSingleton<IDebugSpiritualStatsService>'),
+              content.contains(
+                'registerSingleton<IDebugSpiritualStatsService>',
+              ),
           isTrue,
           reason:
               'ISpiritualStatsService and IDebugSpiritualStatsService should be registered in service locator',

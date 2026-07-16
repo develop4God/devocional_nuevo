@@ -152,45 +152,40 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
   }
 
-  testWidgets(
-    'shows the safeguard Next button when already connected',
-    (tester) async {
-      await pumpPage(tester, isAuthenticated: true);
+  testWidgets('shows the safeguard Next button when already connected', (
+    tester,
+  ) async {
+    await pumpPage(tester, isAuthenticated: true);
 
-      final nextText = 'onboarding.onboarding_next'.tr();
-      expect(find.widgetWithText(ElevatedButton, nextText), findsOneWidget);
-    },
-  );
+    final nextText = 'onboarding.onboarding_next'.tr();
+    expect(find.widgetWithText(ElevatedButton, nextText), findsOneWidget);
+  });
 
-  testWidgets(
-    'hides the safeguard Next button when not yet connected',
-    (tester) async {
-      await pumpPage(tester, isAuthenticated: false);
+  testWidgets('hides the safeguard Next button when not yet connected', (
+    tester,
+  ) async {
+    await pumpPage(tester, isAuthenticated: false);
 
-      final nextText = 'onboarding.onboarding_next'.tr();
-      expect(find.widgetWithText(ElevatedButton, nextText), findsNothing);
-    },
-  );
+    final nextText = 'onboarding.onboarding_next'.tr();
+    expect(find.widgetWithText(ElevatedButton, nextText), findsNothing);
+  });
 
-  testWidgets(
-    'tapping the safeguard Next button calls onNext',
-    (tester) async {
-      var nextCalled = false;
+  testWidgets('tapping the safeguard Next button calls onNext', (tester) async {
+    var nextCalled = false;
 
-      await pumpPage(
-        tester,
-        isAuthenticated: true,
-        onNext: () => nextCalled = true,
-      );
+    await pumpPage(
+      tester,
+      isAuthenticated: true,
+      onNext: () => nextCalled = true,
+    );
 
-      final nextText = 'onboarding.onboarding_next'.tr();
-      final nextButton = find.widgetWithText(ElevatedButton, nextText);
-      expect(nextButton, findsOneWidget);
+    final nextText = 'onboarding.onboarding_next'.tr();
+    final nextButton = find.widgetWithText(ElevatedButton, nextText);
+    expect(nextButton, findsOneWidget);
 
-      await tester.tap(nextButton);
-      await tester.pump();
+    await tester.tap(nextButton);
+    await tester.pump();
 
-      expect(nextCalled, isTrue);
-    },
-  );
+    expect(nextCalled, isTrue);
+  });
 }

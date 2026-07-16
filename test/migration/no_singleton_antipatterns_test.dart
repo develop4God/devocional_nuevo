@@ -1053,22 +1053,21 @@ void main() {
       },
     );
 
-    test(
-      'StartupMigrationService implements IStartupMigrationService',
-      () async {
-        final file = File('lib/services/startup_migration_service.dart');
-        expect(await file.exists(), isTrue);
-        final content = await file.readAsString();
+    test('StartupMigrationService implements IStartupMigrationService',
+        () async {
+      final file = File('lib/services/startup_migration_service.dart');
+      expect(await file.exists(), isTrue);
+      final content = await file.readAsString();
 
-        expect(
-          content.contains(
-              'class StartupMigrationService implements IStartupMigrationService'),
-          isTrue,
-          reason:
-              'StartupMigrationService must implement IStartupMigrationService interface',
-        );
-      },
-    );
+      expect(
+        content.contains(
+          'class StartupMigrationService implements IStartupMigrationService',
+        ),
+        isTrue,
+        reason:
+            'StartupMigrationService must implement IStartupMigrationService interface',
+      );
+    });
     test(
       'VerseResolverService does not use static singleton antipattern',
       () async {
@@ -1092,25 +1091,22 @@ void main() {
       },
     );
 
-    test(
-      'VerseResolverService implements IVerseResolverService',
-      () async {
-        final file = File(
-          'bible_reader_core/lib/src/verse_resolver_service.dart',
-        );
-        expect(await file.exists(), isTrue);
-        final content = await file.readAsString();
+    test('VerseResolverService implements IVerseResolverService', () async {
+      final file = File(
+        'bible_reader_core/lib/src/verse_resolver_service.dart',
+      );
+      expect(await file.exists(), isTrue);
+      final content = await file.readAsString();
 
-        expect(
-          content.contains(
-            'class VerseResolverService implements IVerseResolverService',
-          ),
-          isTrue,
-          reason:
-              'VerseResolverService must implement IVerseResolverService interface',
-        );
-      },
-    );
+      expect(
+        content.contains(
+          'class VerseResolverService implements IVerseResolverService',
+        ),
+        isTrue,
+        reason:
+            'VerseResolverService must implement IVerseResolverService interface',
+      );
+    });
 
     test(
       'VerseResolverService is registered under interface in service_locator',

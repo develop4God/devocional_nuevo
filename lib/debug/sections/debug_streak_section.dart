@@ -62,10 +62,7 @@ class _DebugStreakSectionState extends State<DebugStreakSection> {
       if (mounted) {
         setState(() => _loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('❌ Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -89,8 +86,11 @@ class _DebugStreakSectionState extends State<DebugStreakSection> {
           // Header
           Row(
             children: [
-              const Icon(Icons.local_fire_department,
-                  color: Colors.orange, size: 28),
+              const Icon(
+                Icons.local_fire_department,
+                color: Colors.orange,
+                size: 28,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Streak Debug',
@@ -173,10 +173,9 @@ class _StatChip extends StatelessWidget {
         ),
         Text(
           label,
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall
-              ?.copyWith(color: Colors.orange.shade700),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: Colors.orange.shade700),
         ),
       ],
     );

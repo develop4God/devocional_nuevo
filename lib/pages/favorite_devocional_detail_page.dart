@@ -67,9 +67,7 @@ class _FavoriteDevocionalDetailPageState
         appBar: CustomAppBar(titleText: 'favorites.title'.tr()),
         body: Consumer<DevocionalProvider>(
           builder: (context, devocionalProvider, child) {
-            final isFavorite = devocionalProvider.isFavorite(
-              widget.devocional,
-            );
+            final isFavorite = devocionalProvider.isFavorite(widget.devocional);
             return DevocionalesContentWidget(
               devocional: widget.devocional,
               fontSize: FontSizeController.defaultFontSize,

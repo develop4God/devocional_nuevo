@@ -27,13 +27,8 @@ import 'package:mockito/mockito.dart' as _i1;
 
 class _FakeSpeechRateValidRange_0 extends _i1.SmartFake
     implements _i2.SpeechRateValidRange {
-  _FakeSpeechRateValidRange_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeSpeechRateValidRange_0(Object parent, Invocation parentInvocation)
+      : super(parent, parentInvocation);
 }
 
 /// A class which mocks [FlutterTts].
@@ -85,115 +80,79 @@ class MockFlutterTts extends _i1.Mock implements _i2.FlutterTts {
       (super.noSuchMethod(
         Invocation.getter(#getSpeechRateValidRange),
         returnValue: _i3.Future<_i2.SpeechRateValidRange>.value(
-            _FakeSpeechRateValidRange_0(
-          this,
-          Invocation.getter(#getSpeechRateValidRange),
-        )),
+          _FakeSpeechRateValidRange_0(
+            this,
+            Invocation.getter(#getSpeechRateValidRange),
+          ),
+        ),
       ) as _i3.Future<_i2.SpeechRateValidRange>);
 
   @override
   set startHandler(_i4.VoidCallback? value) => super.noSuchMethod(
-        Invocation.setter(
-          #startHandler,
-          value,
-        ),
+        Invocation.setter(#startHandler, value),
         returnValueForMissingStub: null,
       );
 
   @override
   set completionHandler(_i4.VoidCallback? value) => super.noSuchMethod(
-        Invocation.setter(
-          #completionHandler,
-          value,
-        ),
+        Invocation.setter(#completionHandler, value),
         returnValueForMissingStub: null,
       );
 
   @override
   set pauseHandler(_i4.VoidCallback? value) => super.noSuchMethod(
-        Invocation.setter(
-          #pauseHandler,
-          value,
-        ),
+        Invocation.setter(#pauseHandler, value),
         returnValueForMissingStub: null,
       );
 
   @override
   set continueHandler(_i4.VoidCallback? value) => super.noSuchMethod(
-        Invocation.setter(
-          #continueHandler,
-          value,
-        ),
+        Invocation.setter(#continueHandler, value),
         returnValueForMissingStub: null,
       );
 
   @override
   set cancelHandler(_i4.VoidCallback? value) => super.noSuchMethod(
-        Invocation.setter(
-          #cancelHandler,
-          value,
-        ),
+        Invocation.setter(#cancelHandler, value),
         returnValueForMissingStub: null,
       );
 
   @override
   set progressHandler(_i2.ProgressHandler? value) => super.noSuchMethod(
-        Invocation.setter(
-          #progressHandler,
-          value,
-        ),
+        Invocation.setter(#progressHandler, value),
         returnValueForMissingStub: null,
       );
 
   @override
   set errorHandler(_i2.ErrorHandler? value) => super.noSuchMethod(
-        Invocation.setter(
-          #errorHandler,
-          value,
-        ),
+        Invocation.setter(#errorHandler, value),
         returnValueForMissingStub: null,
       );
 
   @override
   _i3.Future<dynamic> awaitSpeakCompletion(bool? awaitCompletion) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #awaitSpeakCompletion,
-          [awaitCompletion],
-        ),
+        Invocation.method(#awaitSpeakCompletion, [awaitCompletion]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> awaitSynthCompletion(bool? awaitCompletion) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #awaitSynthCompletion,
-          [awaitCompletion],
-        ),
+        Invocation.method(#awaitSynthCompletion, [awaitCompletion]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
-  _i3.Future<dynamic> speak(
-    String? text, {
-    bool? focus = false,
-  }) =>
+  _i3.Future<dynamic> speak(String? text, {bool? focus = false}) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #speak,
-          [text],
-          {#focus: focus},
-        ),
+        Invocation.method(#speak, [text], {#focus: focus}),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> pause() => (super.noSuchMethod(
-        Invocation.method(
-          #pause,
-          [],
-        ),
+        Invocation.method(#pause, []),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
@@ -204,61 +163,39 @@ class MockFlutterTts extends _i1.Mock implements _i2.FlutterTts {
     bool? isFullPath = false,
   ]) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #synthesizeToFile,
-          [
-            text,
-            fileName,
-            isFullPath,
-          ],
-        ),
+        Invocation.method(#synthesizeToFile, [text, fileName, isFullPath]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> setLanguage(String? language) => (super.noSuchMethod(
-        Invocation.method(
-          #setLanguage,
-          [language],
-        ),
+        Invocation.method(#setLanguage, [language]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> setSpeechRate(double? rate) => (super.noSuchMethod(
-        Invocation.method(
-          #setSpeechRate,
-          [rate],
-        ),
+        Invocation.method(#setSpeechRate, [rate]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> setVolume(double? volume) => (super.noSuchMethod(
-        Invocation.method(
-          #setVolume,
-          [volume],
-        ),
+        Invocation.method(#setVolume, [volume]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> setSharedInstance(bool? sharedSession) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #setSharedInstance,
-          [sharedSession],
-        ),
+        Invocation.method(#setSharedInstance, [sharedSession]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> autoStopSharedSession(bool? autoStop) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #autoStopSharedSession,
-          [autoStop],
-        ),
+        Invocation.method(#autoStopSharedSession, [autoStop]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
@@ -270,190 +207,126 @@ class MockFlutterTts extends _i1.Mock implements _i2.FlutterTts {
         _i2.IosTextToSpeechAudioMode.defaultMode,
   ]) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #setIosAudioCategory,
-          [
-            category,
-            options,
-            mode,
-          ],
-        ),
+        Invocation.method(#setIosAudioCategory, [category, options, mode]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> setEngine(String? engine) => (super.noSuchMethod(
-        Invocation.method(
-          #setEngine,
-          [engine],
-        ),
+        Invocation.method(#setEngine, [engine]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> setPitch(double? pitch) => (super.noSuchMethod(
-        Invocation.method(
-          #setPitch,
-          [pitch],
-        ),
+        Invocation.method(#setPitch, [pitch]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> setVoice(Map<String, String>? voice) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #setVoice,
-          [voice],
-        ),
+        Invocation.method(#setVoice, [voice]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> clearVoice() => (super.noSuchMethod(
-        Invocation.method(
-          #clearVoice,
-          [],
-        ),
+        Invocation.method(#clearVoice, []),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> stop() => (super.noSuchMethod(
-        Invocation.method(
-          #stop,
-          [],
-        ),
+        Invocation.method(#stop, []),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> isLanguageAvailable(String? language) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #isLanguageAvailable,
-          [language],
-        ),
+        Invocation.method(#isLanguageAvailable, [language]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> isLanguageInstalled(String? language) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #isLanguageInstalled,
-          [language],
-        ),
+        Invocation.method(#isLanguageInstalled, [language]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> areLanguagesInstalled(List<String>? languages) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #areLanguagesInstalled,
-          [languages],
-        ),
+        Invocation.method(#areLanguagesInstalled, [languages]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> setSilence(int? timems) => (super.noSuchMethod(
-        Invocation.method(
-          #setSilence,
-          [timems],
-        ),
+        Invocation.method(#setSilence, [timems]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<dynamic> setQueueMode(int? queueMode) => (super.noSuchMethod(
-        Invocation.method(
-          #setQueueMode,
-          [queueMode],
-        ),
+        Invocation.method(#setQueueMode, [queueMode]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   void setStartHandler(_i4.VoidCallback? callback) => super.noSuchMethod(
-        Invocation.method(
-          #setStartHandler,
-          [callback],
-        ),
+        Invocation.method(#setStartHandler, [callback]),
         returnValueForMissingStub: null,
       );
 
   @override
   void setCompletionHandler(_i4.VoidCallback? callback) => super.noSuchMethod(
-        Invocation.method(
-          #setCompletionHandler,
-          [callback],
-        ),
+        Invocation.method(#setCompletionHandler, [callback]),
         returnValueForMissingStub: null,
       );
 
   @override
   void setContinueHandler(_i4.VoidCallback? callback) => super.noSuchMethod(
-        Invocation.method(
-          #setContinueHandler,
-          [callback],
-        ),
+        Invocation.method(#setContinueHandler, [callback]),
         returnValueForMissingStub: null,
       );
 
   @override
   void setPauseHandler(_i4.VoidCallback? callback) => super.noSuchMethod(
-        Invocation.method(
-          #setPauseHandler,
-          [callback],
-        ),
+        Invocation.method(#setPauseHandler, [callback]),
         returnValueForMissingStub: null,
       );
 
   @override
   void setCancelHandler(_i4.VoidCallback? callback) => super.noSuchMethod(
-        Invocation.method(
-          #setCancelHandler,
-          [callback],
-        ),
+        Invocation.method(#setCancelHandler, [callback]),
         returnValueForMissingStub: null,
       );
 
   @override
   void setProgressHandler(_i2.ProgressHandler? callback) => super.noSuchMethod(
-        Invocation.method(
-          #setProgressHandler,
-          [callback],
-        ),
+        Invocation.method(#setProgressHandler, [callback]),
         returnValueForMissingStub: null,
       );
 
   @override
   void setErrorHandler(_i2.ErrorHandler? handler) => super.noSuchMethod(
-        Invocation.method(
-          #setErrorHandler,
-          [handler],
-        ),
+        Invocation.method(#setErrorHandler, [handler]),
         returnValueForMissingStub: null,
       );
 
   @override
   _i3.Future<dynamic> platformCallHandler(_i5.MethodCall? call) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #platformCallHandler,
-          [call],
-        ),
+        Invocation.method(#platformCallHandler, [call]),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
 
   @override
   _i3.Future<void> setAudioAttributesForNavigation() => (super.noSuchMethod(
-        Invocation.method(
-          #setAudioAttributesForNavigation,
-          [],
-        ),
+        Invocation.method(#setAudioAttributesForNavigation, []),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);

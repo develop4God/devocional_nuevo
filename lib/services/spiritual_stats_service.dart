@@ -196,7 +196,8 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
         readDates.add(todayDateOnly);
         await _saveReadDates(readDates);
         debugPrint(
-            '🎯 [STATS] Nueva fecha de lectura agregada: $todayDateOnly');
+          '🎯 [STATS] Nueva fecha de lectura agregada: $todayDateOnly',
+        );
       }
       final newStreak = _calculateCurrentStreak(readDates);
 
@@ -415,33 +416,28 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
   /// Actualiza el número de favoritos en las estadísticas espirituales
   @override
   Future<SpiritualStats> updateFavoritesCount(int favoritesCount) {
-    return _mutate(
-      (stats) {
-        if (stats.favoritesCount == favoritesCount) return null;
-        return stats.copyWith(
-          favoritesCount: favoritesCount,
-          // Favorites-type achievements (e.g. first_favorite, collector) are
-          // only otherwise re-checked as a side effect of a new devotional
-          // read, so without this a favorite toggle can cross a threshold
-          // and never unlock the badge until an unrelated read happens
-          // later.
-          unlockedAchievements: _updateAchievements(
-            stats,
-            stats.currentStreak,
-            stats.totalDevocionalesRead,
-            favoritesCount,
-          ),
-        );
-      },
-      (_) => '✅ [STATS] favoritesCount actualizado: $favoritesCount',
-    );
+    return _mutate((stats) {
+      if (stats.favoritesCount == favoritesCount) return null;
+      return stats.copyWith(
+        favoritesCount: favoritesCount,
+        // Favorites-type achievements (e.g. first_favorite, collector) are
+        // only otherwise re-checked as a side effect of a new devotional
+        // read, so without this a favorite toggle can cross a threshold
+        // and never unlock the badge until an unrelated read happens
+        // later.
+        unlockedAchievements: _updateAchievements(
+          stats,
+          stats.currentStreak,
+          stats.totalDevocionalesRead,
+          favoritesCount,
+        ),
+      );
+    }, (_) => '✅ [STATS] favoritesCount actualizado: $favoritesCount');
   }
 
   /// Update answered prayers count in spiritual statistics
   @override
-  Future<SpiritualStats> updateAnsweredPrayersCount(
-    int answeredPrayersCount,
-  ) {
+  Future<SpiritualStats> updateAnsweredPrayersCount(int answeredPrayersCount) {
     return _mutate(
       (stats) => stats.copyWith(answeredPrayersCount: answeredPrayersCount),
       (_) => '✅ [STATS] answeredPrayersCount updated: $answeredPrayersCount',
@@ -455,18 +451,15 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
   /// concurrent stats update and silently drop someone else's unlock.
   @override
   Future<SpiritualStats> unlockAchievement(Achievement achievement) {
-    return _mutate(
-      (stats) {
-        if (stats.unlockedAchievements.any((a) => a.id == achievement.id)) {
-          return null;
-        }
-        final updatedAchievements = List<Achievement>.from(
-          stats.unlockedAchievements,
-        )..add(achievement.copyWith(isUnlocked: true));
-        return stats.copyWith(unlockedAchievements: updatedAchievements);
-      },
-      (_) => '✅ [STATS] Achievement unlocked: ${achievement.id}',
-    );
+    return _mutate((stats) {
+      if (stats.unlockedAchievements.any((a) => a.id == achievement.id)) {
+        return null;
+      }
+      final updatedAchievements = List<Achievement>.from(
+        stats.unlockedAchievements,
+      )..add(achievement.copyWith(isUnlocked: true));
+      return stats.copyWith(unlockedAchievements: updatedAchievements);
+    }, (_) => '✅ [STATS] Achievement unlocked: ${achievement.id}');
   }
 
   Future<List<String>> _getReadDatesAsStrings() async {
@@ -546,9 +539,7 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
         await saveStats(stats);
 
         if (importData['read_dates'] != null) {
-          await _restoreReadDates(
-            List<String>.from(importData['read_dates']),
-          );
+          await _restoreReadDates(List<String>.from(importData['read_dates']));
         }
 
         debugPrint('Successfully imported stats from JSON');
@@ -744,10 +735,12 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
       DateTime candidate = todayOnly.subtract(Duration(days: daysBack));
 
       // Make sure the candidate isn't already present (defensive).
-      while (readDates.any((d) =>
-          d.year == candidate.year &&
-          d.month == candidate.month &&
-          d.day == candidate.day)) {
+      while (readDates.any(
+        (d) =>
+            d.year == candidate.year &&
+            d.month == candidate.month &&
+            d.day == candidate.day,
+      )) {
         daysBack++;
         candidate = todayOnly.subtract(Duration(days: daysBack));
       }
@@ -755,7 +748,8 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
       readDates.add(candidate);
       await _saveReadDates(readDates);
       debugPrint(
-          '🔧 [DEBUG] addStreakDay: added $candidate (daysBack=$daysBack)');
+        '🔧 [DEBUG] addStreakDay: added $candidate (daysBack=$daysBack)',
+      );
 
       final newStreak = _calculateCurrentStreak(readDates);
       final updatedStats = stats.copyWith(
@@ -822,7 +816,8 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
           );
         } else {
           debugPrint(
-              '[RESTORE] ⚠️ restoreStats: no recognizable stats structure found');
+            '[RESTORE] ⚠️ restoreStats: no recognizable stats structure found',
+          );
         }
 
         if (backupData.containsKey('read_dates')) {
@@ -832,7 +827,8 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
               .toList();
           await _saveReadDates(readDates);
           debugPrint(
-              '[RESTORE] Restored ${readDates.length} read dates from backup');
+            '[RESTORE] Restored ${readDates.length} read dates from backup',
+          );
         }
       } catch (e) {
         debugPrint('[RESTORE] Error restoring stats from backup: $e');

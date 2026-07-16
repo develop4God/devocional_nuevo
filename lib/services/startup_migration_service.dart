@@ -126,10 +126,7 @@ class StartupMigrationService implements IStartupMigrationService {
       unawaited(
         getService<IAnalyticsService>().logCustomEvent(
           eventName: 'read_gap_fix_applied',
-          parameters: {
-            'gaps_filled': 1,
-            'gap_index': singleGapIndex,
-          },
+          parameters: {'gaps_filled': 1, 'gap_index': singleGapIndex},
         ),
       );
     } catch (e, stack) {

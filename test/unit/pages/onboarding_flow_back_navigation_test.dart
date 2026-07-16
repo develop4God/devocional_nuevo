@@ -44,12 +44,14 @@ void main() {
       expect(isBackNavigationBlocked(state), isTrue);
     });
 
-    test('allows back on the completion step when backup was never enabled',
-        () {
-      final state = _stateAt(3);
+    test(
+      'allows back on the completion step when backup was never enabled',
+      () {
+        final state = _stateAt(3);
 
-      expect(isBackNavigationBlocked(state), isFalse);
-    });
+        expect(isBackNavigationBlocked(state), isFalse);
+      },
+    );
 
     test(
         'allows back on the completion step when backup was explicitly '
@@ -85,8 +87,10 @@ void main() {
     test(
         'treats a non-bool backupEnabled value as not connected — guards '
         'against unexpected persisted/migrated data shapes', () {
-      final state =
-          _stateAt(3, userSelections: const {'backupEnabled': 'true'});
+      final state = _stateAt(
+        3,
+        userSelections: const {'backupEnabled': 'true'},
+      );
 
       expect(isBackNavigationBlocked(state), isFalse);
     });

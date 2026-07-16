@@ -31,7 +31,9 @@ abstract final class StartupFixKeys {
   /// Deprecated: no longer actively used. Retained for historical data only.
   /// The read-gap fix now runs on every startup (idempotent, safe to repeat).
   /// See [StartupMigrationService._applyReadGapFix].
-  @Deprecated('Read gap fix now runs idempotently every startup. '
-      'This key is retained for legacy data only.')
+  @Deprecated(
+    'Read gap fix now runs idempotently every startup. '
+    'This key is retained for legacy data only.',
+  )
   static const String readGapFixDone = 'read_gap_fix_done';
 }

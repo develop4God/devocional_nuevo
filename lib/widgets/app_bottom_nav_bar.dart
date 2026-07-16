@@ -60,9 +60,7 @@ class AppBottomNavBar extends StatelessWidget {
   }
 
   void _selectTab(AppTab tab, String analyticsAction) {
-    getService<IAnalyticsService>().logBottomBarAction(
-      action: analyticsAction,
-    );
+    getService<IAnalyticsService>().logBottomBarAction(action: analyticsAction);
     onSelectTab(tab);
   }
 
@@ -221,8 +219,9 @@ class _NavIconWithBadge extends StatefulWidget {
 }
 
 class _NavIconWithBadgeState extends State<_NavIconWithBadge> {
-  late final Future<bool> _showBubble =
-      BubbleUtils.shouldShowBubble(widget.bubbleId);
+  late final Future<bool> _showBubble = BubbleUtils.shouldShowBubble(
+    widget.bubbleId,
+  );
 
   @override
   Widget build(BuildContext context) {

@@ -255,7 +255,8 @@ class DebugEncountersSection extends StatelessWidget {
                   }
                 } catch (e) {
                   debugPrint(
-                      '⚠️ Encounter: Force reload of studies failed: $e');
+                    '⚠️ Encounter: Force reload of studies failed: $e',
+                  );
                 }
 
                 if (!context.mounted) return;

@@ -165,11 +165,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       );
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error initializing onboarding: $e');
-      emit(
-        OnboardingError(
-          message: 'onboarding.onboarding_error_loading',
-        ),
-      );
+      emit(OnboardingError(message: 'onboarding.onboarding_error_loading'));
     }
 
     debugPrint('🏁 [ONBOARDING_BLOC] === FIN InitializeOnboarding ===');
@@ -246,11 +242,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       );
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error progressing to step: $e');
-      emit(
-        OnboardingError(
-          message: 'onboarding.onboarding_error_loading',
-        ),
-      );
+      emit(OnboardingError(message: 'onboarding.onboarding_error_loading'));
     } finally {
       _isProcessingStep = false;
     }
@@ -280,11 +272,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         debugPrint(
           '❌ [ONBOARDING_BLOC] Invalid theme family: ${event.themeFamily}',
         );
-        emit(
-          OnboardingError(
-            message: 'onboarding.onboarding_error_loading',
-          ),
-        );
+        emit(OnboardingError(message: 'onboarding.onboarding_error_loading'));
         return;
       }
 
@@ -313,11 +301,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         debugPrint(
           '❌ [ONBOARDING_BLOC] Invalid configuration: $updatedSelections',
         );
-        emit(
-          OnboardingError(
-            message: 'onboarding.onboarding_error_loading',
-          ),
-        );
+        emit(OnboardingError(message: 'onboarding.onboarding_error_loading'));
         return;
       }
 
@@ -336,11 +320,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('✅ [ONBOARDING_BLOC] Selección de tema exitosa');
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error selecting theme: $e');
-      emit(
-        OnboardingError(
-          message: 'onboarding.onboarding_error_loading',
-        ),
-      );
+      emit(OnboardingError(message: 'onboarding.onboarding_error_loading'));
     }
 
     debugPrint('🏁 [ONBOARDING_BLOC] === FIN SelectTheme ===');
@@ -375,11 +355,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       updatedSelections['backupSkipped'] = false;
 
       // Coordinate with BackupBloc if available and backup is enabled
-      if (event.enableBackup && _backupBloc != null) {
+      final backupBloc = _backupBloc;
+      if (event.enableBackup && backupBloc != null) {
         debugPrint(
           '🔧 [ONBOARDING_BLOC] Configurando backup a través de BackupBloc',
         );
-        _backupBloc?.add(const ToggleAutoBackup(true));
+        backupBloc.add(const ToggleAutoBackup(true));
       }
 
       // Save configuration
@@ -399,11 +380,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('✅ [ONBOARDING_BLOC] Configuración de backup exitosa');
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error configuring backup: $e');
-      emit(
-        OnboardingError(
-          message: 'onboarding.onboarding_error_loading',
-        ),
-      );
+      emit(OnboardingError(message: 'onboarding.onboarding_error_loading'));
     }
 
     debugPrint('🏁 [ONBOARDING_BLOC] === FIN ConfigureBackupOption ===');
@@ -437,11 +414,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('✅ [ONBOARDING_BLOC] Configuración actualizada');
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error updating configuration: $e');
-      emit(
-        OnboardingError(
-          message: 'onboarding.onboarding_error_loading',
-        ),
-      );
+      emit(OnboardingError(message: 'onboarding.onboarding_error_loading'));
     }
 
     debugPrint('🏁 [ONBOARDING_BLOC] === FIN UpdateStepConfiguration ===');
@@ -561,11 +534,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('✅ [ONBOARDING_BLOC] Onboarding completado exitosamente');
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error completing onboarding: $e');
-      emit(
-        OnboardingError(
-          message: 'onboarding.onboarding_error_loading',
-        ),
-      );
+      emit(OnboardingError(message: 'onboarding.onboarding_error_loading'));
     } finally {
       _isCompletingOnboarding = false;
     }
@@ -590,11 +559,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('✅ [ONBOARDING_BLOC] Onboarding reset exitoso');
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error resetting onboarding: $e');
-      emit(
-        OnboardingError(
-          message: 'onboarding.onboarding_error_loading',
-        ),
-      );
+      emit(OnboardingError(message: 'onboarding.onboarding_error_loading'));
     }
 
     debugPrint('🏁 [ONBOARDING_BLOC] === FIN ResetOnboarding ===');

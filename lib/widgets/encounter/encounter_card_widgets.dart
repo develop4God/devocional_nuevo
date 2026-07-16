@@ -715,9 +715,7 @@ class CharacterMomentCard extends StatelessWidget {
           ),
         ],
         if (card.scriptureConnections != null)
-          _ScriptureConnectionsSection(
-            connections: card.scriptureConnections!,
-          ),
+          _ScriptureConnectionsSection(connections: card.scriptureConnections!),
         if (card.revelationKey != null) ...[
           const SizedBox(height: 32),
           _DelayedEntry(
@@ -786,9 +784,7 @@ class TheologicalDepthCard extends StatelessWidget {
           ),
         ],
         if (card.scriptureConnections != null)
-          _ScriptureConnectionsSection(
-            connections: card.scriptureConnections!,
-          ),
+          _ScriptureConnectionsSection(connections: card.scriptureConnections!),
         if (card.revelationKey != null) ...[
           const SizedBox(height: 32),
           _DelayedEntry(

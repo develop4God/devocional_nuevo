@@ -28,19 +28,18 @@ void main() {
     );
   }
 
-  testWidgets(
-    'shows current completion status from OnboardingService',
-    (tester) async {
-      when(
-        () => mockOnboardingService.isOnboardingComplete(),
-      ).thenAnswer((_) async => true);
+  testWidgets('shows current completion status from OnboardingService', (
+    tester,
+  ) async {
+    when(
+      () => mockOnboardingService.isOnboardingComplete(),
+    ).thenAnswer((_) async => true);
 
-      await pumpSection(tester);
-      await tester.pumpAndSettle();
+    await pumpSection(tester);
+    await tester.pumpAndSettle();
 
-      expect(find.textContaining('Complete: true'), findsOneWidget);
-    },
-  );
+    expect(find.textContaining('Complete: true'), findsOneWidget);
+  });
 
   testWidgets(
     'tapping Reset Onboarding State calls resetOnboarding and refreshes status',
@@ -70,23 +69,22 @@ void main() {
     },
   );
 
-  testWidgets(
-    'shows error snackbar when resetOnboarding throws',
-    (tester) async {
-      when(
-        () => mockOnboardingService.isOnboardingComplete(),
-      ).thenAnswer((_) async => false);
-      when(
-        () => mockOnboardingService.resetOnboarding(),
-      ).thenThrow(Exception('reset failed'));
+  testWidgets('shows error snackbar when resetOnboarding throws', (
+    tester,
+  ) async {
+    when(
+      () => mockOnboardingService.isOnboardingComplete(),
+    ).thenAnswer((_) async => false);
+    when(
+      () => mockOnboardingService.resetOnboarding(),
+    ).thenThrow(Exception('reset failed'));
 
-      await pumpSection(tester);
-      await tester.pumpAndSettle();
+    await pumpSection(tester);
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Reset Onboarding State'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('Reset Onboarding State'));
+    await tester.pumpAndSettle();
 
-      expect(find.textContaining('Error'), findsOneWidget);
-    },
-  );
+    expect(find.textContaining('Error'), findsOneWidget);
+  });
 }

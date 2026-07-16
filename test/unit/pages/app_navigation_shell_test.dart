@@ -13,7 +13,9 @@ void main() {
       // Call sites (SnackBar actions, dialogs) may fire when the shell is
       // gone (e.g. during app teardown) — must not throw.
       expect(
-          () => AppNavigationShell.selectTab(AppTab.settings), returnsNormally);
+        () => AppNavigationShell.selectTab(AppTab.settings),
+        returnsNormally,
+      );
       expect(() => AppNavigationShell.selectTab(AppTab.home), returnsNormally);
     });
 

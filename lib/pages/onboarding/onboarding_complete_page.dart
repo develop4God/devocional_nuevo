@@ -121,17 +121,15 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                         // nothing left to change by going back — disable Back
                         // so the user can't re-trigger the sign-in flow from
                         // the final confirmation screen.
-                        final isBackupConnected =
-                            backupState is BackupLoaded &&
+                        final isBackupConnected = backupState is BackupLoaded &&
                             backupState.isAuthenticated;
 
                         return Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             TextButton(
-                              onPressed: isBackupConnected
-                                  ? null
-                                  : widget.onBack,
+                              onPressed:
+                                  isBackupConnected ? null : widget.onBack,
                               child: Text(
                                 'onboarding.onboarding_back'.tr(),
                                 overflow: TextOverflow.ellipsis,
@@ -147,25 +145,17 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                       builder: (context, constraints) {
                         final isCompact = constraints.maxHeight < 700;
                         final isVeryCompact = constraints.maxHeight < 560;
-                        final heroHeight = isVeryCompact
-                            ? 90.0
-                            : (isCompact ? 130.0 : 200.0);
-                        final sectionSpacing = isVeryCompact
-                            ? 12.0
-                            : (isCompact ? 20.0 : 40.0);
+                        final heroHeight =
+                            isVeryCompact ? 90.0 : (isCompact ? 130.0 : 200.0);
+                        final sectionSpacing =
+                            isVeryCompact ? 12.0 : (isCompact ? 20.0 : 40.0);
                         final smallSpacing = isVeryCompact ? 8.0 : 16.0;
 
                         return SingleChildScrollView(
-                          physics: isVeryCompact
-                              ? const NeverScrollableScrollPhysics()
-                              : null,
                           padding: const EdgeInsets.symmetric(horizontal: 32.0),
                           child: ConstrainedBox(
                             constraints: BoxConstraints(
                               minHeight: constraints.maxHeight,
-                              maxHeight: isVeryCompact
-                                  ? constraints.maxHeight
-                                  : double.infinity,
                             ),
                             child: IntrinsicHeight(
                               child: Column(
@@ -180,8 +170,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                                     ]),
                                     builder: (context, child) {
                                       return Transform.scale(
-                                        scale:
-                                            _scaleAnimation.value *
+                                        scale: _scaleAnimation.value *
                                             _pulseAnimation.value,
                                         child: child,
                                       );
@@ -214,10 +203,10 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                                                 .tr(),
                                             style: theme.textTheme.headlineLarge
                                                 ?.copyWith(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: colorScheme.onSurface,
-                                                  letterSpacing: -0.5,
-                                                ),
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.onSurface,
+                                              letterSpacing: -0.5,
+                                            ),
                                             textAlign: TextAlign.center,
                                           ),
                                         ),
@@ -243,10 +232,10 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                                                 .tr(),
                                             style: theme.textTheme.bodyLarge
                                                 ?.copyWith(
-                                                  color: colorScheme.onSurface
-                                                      .withValues(alpha: 0.7),
-                                                  height: 1.5,
-                                                ),
+                                              color: colorScheme.onSurface
+                                                  .withValues(alpha: 0.7),
+                                              height: 1.5,
+                                            ),
                                             textAlign: TextAlign.center,
                                           ),
                                         ),
@@ -269,7 +258,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                                       if (backupState is BackupLoaded) {
                                         isBackupConfigured =
                                             backupState.isAuthenticated &&
-                                            backupState.autoBackupEnabled;
+                                                backupState.autoBackupEnabled;
                                       }
 
                                       debugPrint(
@@ -344,15 +333,15 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                                                       Colors.transparent,
                                                   shadowColor:
                                                       Colors.transparent,
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        vertical: 18,
-                                                      ),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    vertical: 18,
+                                                  ),
                                                   shape: RoundedRectangleBorder(
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                          16,
-                                                        ),
+                                                      16,
+                                                    ),
                                                   ),
                                                 ),
                                                 child: Text(

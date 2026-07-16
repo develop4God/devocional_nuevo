@@ -42,15 +42,14 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets(
-    'renders the theme carousel without overflow on a small phone',
-    (tester) async {
-      await pumpPage(tester, const Size(720, 1280));
+  testWidgets('renders the theme carousel without overflow on a small phone', (
+    tester,
+  ) async {
+    await pumpPage(tester, const Size(720, 1280));
 
-      expect(tester.takeException(), isNull);
-      expect(find.byType(ListView), findsOneWidget);
-    },
-  );
+    expect(tester.takeException(), isNull);
+    expect(find.byType(ListView), findsOneWidget);
+  });
 
   testWidgets('renders the theme carousel without overflow on a tablet', (
     tester,
