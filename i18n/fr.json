@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "Que Dieu vous bénisse et remplisse votre vie de paix",
     "onboarding_skip": "Passer",
+    "onboarding_step_indicator": "Étape {current} sur {total}",
     "onboarding_back": "Retour",
     "onboarding_next": "Suivant",
     "onboarding_config_later": "Configurer plus tard",
@@ -618,7 +619,7 @@
     "onboarding_complete_subtitle": "Votre espace de méditation est configuré. Il est temps de commencer votre voyage spirituel quotidien.",
     "onboarding_your_setup": "Votre Configuration",
     "onboarding_start_app": "Commencer mon espace avec Dieu",
-    "onboarding_theme_configured": "Thème personnalisé sélectionné",
+    "onboarding_setup_theme_configured": "Thème personnalisé sélectionné",
     "onboarding_setup_backup_configured": "Sauvegarde automatique configurée",
     "onboarding_setup_protection_active": "Protection des données activée",
     "onboarding_setup_backup_skipped": "Sauvegarde ignorée pour l'instant",

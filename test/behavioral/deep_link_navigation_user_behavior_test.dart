@@ -14,7 +14,6 @@ import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/main.dart';
-import 'package:devocional_nuevo/pages/prayer_wall_page.dart';
 import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -194,22 +193,6 @@ void main() {
       final result = await deepLinkHandler.handleDeepLink(uri);
 
       expect(result, isFalse);
-    });
-
-    testWidgets('User taps a prayer_wall deep link', (
-      WidgetTester tester,
-    ) async {
-      await pumpTestApp(tester);
-
-      final uri = Uri.parse('devocional://prayer_wall');
-      final result = await deepLinkHandler.handleDeepLink(uri);
-
-      expect(result, isTrue);
-      // Use pump instead of pumpAndSettle to avoid timeout from animations or Firebase initialization issues
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-
-      expect(find.byType(PrayerWallPage), findsOneWidget);
     });
   });
 }

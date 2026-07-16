@@ -115,10 +115,7 @@ class _ProgressPageState extends State<ProgressPage>
       });
 
       debugPrint('❌ [PROGRESS] Error loading stats: $e');
-      AppSnackBar.show(
-        context,
-        'progress.error_loading'.tr(),
-      );
+      AppSnackBar.show(context, 'progress.error_loading'.tr());
     }
   }
 

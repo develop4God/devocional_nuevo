@@ -105,7 +105,9 @@ class LocalizationService implements ILocalizationService {
   /// Crashlytics: a silent failure here means notification language
   /// selection keeps reading a stale/incorrect locale indefinitely.
   Future<void> _persistLocale(
-      SharedPreferences prefs, String languageCode) async {
+    SharedPreferences prefs,
+    String languageCode,
+  ) async {
     try {
       await prefs.setString('locale', languageCode);
     } catch (e, stackTrace) {

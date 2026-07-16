@@ -123,9 +123,7 @@ class EncounterCard {
       title: json['title'] as String?,
       narrative: json['narrative'] as String?,
       verseOverlay: json['verse_overlay'] != null
-          ? VerseRef.fromJson(
-              json['verse_overlay'] as Map<String, dynamic>,
-            )
+          ? VerseRef.fromJson(json['verse_overlay'] as Map<String, dynamic>)
           : null,
       revelationKey: json['revelation_key'] as String?,
       ambientSound: json['ambient_sound'] as String?,
@@ -146,17 +144,11 @@ class EncounterCard {
           ? EncounterPrayer.fromJson(json['prayer'] as Map<String, dynamic>)
           : null,
       completionVerse: json['completion_verse'] != null
-          ? VerseRef.fromJson(
-              json['completion_verse'] as Map<String, dynamic>,
-            )
+          ? VerseRef.fromJson(json['completion_verse'] as Map<String, dynamic>)
           : null,
       reflectionPrompt: json['reflection_prompt'] as String?,
       scriptureConnections: (json['scripture_connections'] as List<dynamic>?)
-          ?.map(
-            (e) => VerseRef.fromJson(
-              e as Map<String, dynamic>,
-            ),
-          )
+          ?.map((e) => VerseRef.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 

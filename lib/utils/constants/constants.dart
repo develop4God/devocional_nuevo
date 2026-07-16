@@ -111,11 +111,6 @@ class Constants {
   static const String prefShowInvitationDialog = 'showInvitationDialog';
 
   /// FEATURE FLAGS
-  /// Feature flag to disable onboarding initialization (not available to users)
-  static const bool enableOnboardingFeature = false;
-
-  /// Feature flag to disable backup initialization (not available to users)
-
   /// Feature flag for Discovery Studies feature
   static const bool enableDiscoveryFeature = true;
 

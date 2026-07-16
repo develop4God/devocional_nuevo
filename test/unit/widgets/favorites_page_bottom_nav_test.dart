@@ -81,9 +81,7 @@ void main() {
             ),
           ],
           child: MultiBlocProvider(
-            providers: [
-              BlocProvider<ThemeBloc>.value(value: themeBloc),
-            ],
+            providers: [BlocProvider<ThemeBloc>.value(value: themeBloc)],
             child: MaterialApp(
               home: Builder(
                 builder: (context) => Scaffold(

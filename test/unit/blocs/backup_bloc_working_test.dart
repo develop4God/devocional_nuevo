@@ -1,4 +1,4 @@
-@Tags(['critical', 'unit', 'blocs'])
+@Tags(['critical', 'unit', 'blocs', 'backup'])
 library;
 
 import 'package:bloc_test/bloc_test.dart';
@@ -10,9 +10,6 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mockito/mockito.dart' as mockito;
-import 'package:devocional_nuevo/services/remote_config_service.dart';
-import '../services/remote_config_service_test.mocks.dart';
 
 // Mock classes for testing
 
@@ -22,28 +19,6 @@ class MockGoogleDriveBackupService extends Mock
 class MockDevocionalProvider extends Mock implements DevocionalProvider {}
 
 void main() {
-  group('Backup Feature Flag Tests', () {
-    test(
-      'show_backup_section RC flag default must be true to protect production',
-      () {
-        final mockRemoteConfig = MockFirebaseRemoteConfig();
-        mockito
-            .when(mockRemoteConfig.getBool('show_backup_section'))
-            .thenReturn(true);
-        final remoteConfigService = RemoteConfigService.create(
-          remoteConfig: mockRemoteConfig,
-        );
-
-        expect(
-          remoteConfigService.showBackupSection,
-          true,
-          reason: 'flag-off=false: hides backup from all users in production. '
-              'Change only via Firebase RC, never in code.',
-        );
-      },
-    );
-  });
-
   group('BackupBloc Critical Coverage Tests', () {
     late MockGoogleDriveBackupService mockBackupService;
     late MockDevocionalProvider mockDevocionalProvider;

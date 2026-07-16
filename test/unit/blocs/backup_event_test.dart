@@ -1,4 +1,4 @@
-@Tags(['critical', 'unit', 'blocs'])
+@Tags(['critical', 'unit', 'blocs', 'backup'])
 library;
 
 import 'package:devocional_nuevo/blocs/backup_event.dart';

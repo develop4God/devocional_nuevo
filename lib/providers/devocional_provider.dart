@@ -13,7 +13,6 @@ import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
 import 'package:devocional_nuevo/services/devocional_index_service.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
-import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
@@ -391,92 +390,17 @@ class DevocionalProvider with ChangeNotifier {
       name: 'DevocionalProvider',
     );
 
-    // Get feature flags from Remote Config (with ready check)
     try {
-      final remoteConfig = getService<RemoteConfigService>();
       final analytics = getService<IAnalyticsService>();
-
-      if (remoteConfig.isReady) {
-        final useLegacy = remoteConfig.featureLegacy;
-        final useBloc = remoteConfig.featureBloc;
-
-        developer.log(
-          '[PROVIDER] Feature flags - legacy: $useLegacy, bloc: $useBloc',
-          name: 'DevocionalProvider',
-        );
-
-        // 🔥 TRACK cual modo se usó
-        await analytics.logCustomEvent(
-          eventName: 'devotional_tracking_mode',
-          parameters: {
-            'mode': useBloc ? 'bloc' : 'legacy',
-            'legacy_flag': useLegacy,
-            'bloc_flag': useBloc,
-            'remote_config_ready': true,
-            'devocional_id': devocionalId,
-          },
-        );
-
-        if (useBloc) {
-          developer.log(
-            '[PROVIDER] Using BLoC tracking',
-            name: 'DevocionalProvider',
-          );
-          try {
-            // TODO: BLoC tracking logic
-            await analytics.logCustomEvent(
-              eventName: 'devotional_bloc_success',
-              parameters: {'devocional_id': devocionalId},
-            );
-          } catch (e, stack) {
-            await analytics.logCustomEvent(
-              eventName: 'devotional_bloc_error',
-              parameters: {
-                'devocional_id': devocionalId,
-                'error': e.toString(),
-              },
-            );
-            await FirebaseCrashlytics.instance.recordError(
-              e,
-              stack,
-              reason: 'BLoC tracking mode failed',
-            );
-          }
-        } else {
-          developer.log(
-            '[PROVIDER] Using legacy tracking',
-            name: 'DevocionalProvider',
-          );
-          await analytics.logCustomEvent(
-            eventName: 'devotional_legacy_success',
-            parameters: {'devocional_id': devocionalId},
-          );
-        }
-      } else {
-        await analytics.logCustomEvent(
-          eventName: 'devotional_tracking_mode',
-          parameters: {
-            'mode': 'legacy',
-            'remote_config_ready': false,
-            'reason': 'remote_config_not_ready',
-            'devocional_id': devocionalId,
-          },
-        );
-        developer.log(
-          '[PROVIDER] Remote Config not ready yet, using defaults',
-          name: 'DevocionalProvider',
-        );
-      }
-    } catch (e, stack) {
-      developer.log(
-        '[PROVIDER] Error reading feature flags, using defaults: $e',
-        name: 'DevocionalProvider',
-        error: e,
+      await analytics.logCustomEvent(
+        eventName: 'devotional_bloc_success',
+        parameters: {'devocional_id': devocionalId},
       );
+    } catch (e, stack) {
       await FirebaseCrashlytics.instance.recordError(
         e,
         stack,
-        reason: 'Error reading feature flags in recordDevocionalRead',
+        reason: 'BLoC tracking mode failed',
       );
     }
 

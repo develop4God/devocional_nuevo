@@ -60,8 +60,10 @@ class AppSnackBar {
                         const SizedBox(height: 2),
                         Text(
                           message,
-                          style:
-                              TextStyle(fontSize: 13, color: foregroundColor),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: foregroundColor,
+                          ),
                         ),
                       ],
                     ),

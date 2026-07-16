@@ -1,4 +1,4 @@
-@Tags(['critical', 'unit', 'blocs'])
+@Tags(['critical', 'unit', 'blocs', 'backup'])
 library;
 
 import 'package:devocional_nuevo/blocs/backup_state.dart';
@@ -580,10 +580,7 @@ void main() {
       });
 
       test('falls back to the generic key when isRawText is true', () {
-        const state = BackupError(
-          'Exception: socket closed',
-          isRawText: true,
-        );
+        const state = BackupError('Exception: socket closed', isRawText: true);
         expect(state.localizedMessage, 'backup.error_generic');
       });
     });

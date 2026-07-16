@@ -30,6 +30,7 @@ import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
+import 'package:devocional_nuevo/services/auth_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
@@ -86,7 +87,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     // registered so we can show notifications.
     final locator = ServiceLocator();
     locator.registerLazySingleton<NotificationService>(
-      NotificationService.create,
+      () => createFirebaseNotificationService(
+        authService: FirebaseAuthService(),
+      ),
     );
   }
 
@@ -206,9 +209,8 @@ void main() async {
         ChangeNotifierProvider(create: (context) => LocalizationProvider()),
         ChangeNotifierProvider(create: (context) => DevocionalProvider()),
         BlocProvider(
-          create: (context) => PrayerBloc(
-            statsService: getService<ISpiritualStatsService>(),
-          ),
+          create: (context) =>
+              PrayerBloc(statsService: getService<ISpiritualStatsService>()),
         ),
         BlocProvider(create: (context) => ThanksgivingBloc()),
         BlocProvider(create: (context) => TestimonyBloc()),
@@ -417,8 +419,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       _lastPausedTime = null;
 
       unawaited(
-        getService<NotificationService>()
-            .retryFcmTokenIfMissing(reason: 'app resumed'),
+        getService<NotificationService>().retryFcmTokenIfMissing(
+          reason: 'app resumed',
+        ),
       );
     }
   }
@@ -451,10 +454,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       await localizationProvider.initialize();
       if (!mounted) return false;
 
-      if (Constants.enableOnboardingFeature) {
-        return await OnboardingService.instance.shouldShowOnboarding();
-      }
-      return false;
+      return await getService<OnboardingService>().shouldShowOnboarding();
     } catch (e) {
       return false;
     }

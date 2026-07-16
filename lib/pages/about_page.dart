@@ -296,37 +296,45 @@ class _AboutContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 _FeatureItem(
-                    text: 'about.feature_daily'.tr(),
-                    fontSize: _font(14),
-                    gap: _gap(3)),
+                  text: 'about.feature_daily'.tr(),
+                  fontSize: _font(14),
+                  gap: _gap(3),
+                ),
                 _FeatureItem(
-                    text: 'about.feature_multiversion'.tr(),
-                    fontSize: _font(14),
-                    gap: _gap(3)),
+                  text: 'about.feature_multiversion'.tr(),
+                  fontSize: _font(14),
+                  gap: _gap(3),
+                ),
                 _FeatureItem(
-                    text: 'about.feature_favorites'.tr(),
-                    fontSize: _font(14),
-                    gap: _gap(3)),
+                  text: 'about.feature_favorites'.tr(),
+                  fontSize: _font(14),
+                  gap: _gap(3),
+                ),
                 _FeatureItem(
-                    text: 'about.feature_sharing'.tr(),
-                    fontSize: _font(14),
-                    gap: _gap(3)),
+                  text: 'about.feature_sharing'.tr(),
+                  fontSize: _font(14),
+                  gap: _gap(3),
+                ),
                 _FeatureItem(
-                    text: 'about.feature_language'.tr(),
-                    fontSize: _font(14),
-                    gap: _gap(3)),
+                  text: 'about.feature_language'.tr(),
+                  fontSize: _font(14),
+                  gap: _gap(3),
+                ),
                 _FeatureItem(
-                    text: 'about.feature_themes'.tr(),
-                    fontSize: _font(14),
-                    gap: _gap(3)),
+                  text: 'about.feature_themes'.tr(),
+                  fontSize: _font(14),
+                  gap: _gap(3),
+                ),
                 _FeatureItem(
-                    text: 'about.feature_dark_light'.tr(),
-                    fontSize: _font(14),
-                    gap: _gap(3)),
+                  text: 'about.feature_dark_light'.tr(),
+                  fontSize: _font(14),
+                  gap: _gap(3),
+                ),
                 _FeatureItem(
-                    text: 'about.feature_notifications'.tr(),
-                    fontSize: _font(14),
-                    gap: _gap(3)),
+                  text: 'about.feature_notifications'.tr(),
+                  fontSize: _font(14),
+                  gap: _gap(3),
+                ),
               ],
             ),
           ),
@@ -392,10 +400,7 @@ class _AboutContent extends StatelessWidget {
           ),
           if (developerMode)
             Padding(
-              padding: EdgeInsets.only(
-                top: _gap(16.0),
-                bottom: _gap(8.0),
-              ),
+              padding: EdgeInsets.only(top: _gap(16.0), bottom: _gap(8.0)),
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.bug_report, color: Colors.white),
                 label: const Text('Debug Tools'),
@@ -435,8 +440,11 @@ class _AboutContent extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.auto_awesome,
-                  size: 14 * scale.clamp(0.6, 1.0), color: colorScheme.primary),
+              Icon(
+                Icons.auto_awesome,
+                size: 14 * scale.clamp(0.6, 1.0),
+                color: colorScheme.primary,
+              ),
               SizedBox(width: _gap(7)),
               Text(
                 'about.more_from_developer'.tr(),
@@ -575,11 +583,7 @@ class _FeatureItem extends StatelessWidget {
   final double? fontSize;
   final double gap;
 
-  const _FeatureItem({
-    required this.text,
-    this.fontSize,
-    this.gap = 3.0,
-  });
+  const _FeatureItem({required this.text, this.fontSize, this.gap = 3.0});
 
   @override
   Widget build(BuildContext context) {

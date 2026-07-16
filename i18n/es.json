@@ -599,6 +599,7 @@
   "onboarding": {
     "onboarding_welcome_header": "Dios te bendiga y llene de paz tu vida",
     "onboarding_skip": "Omitir",
+    "onboarding_step_indicator": "Paso {current} de {total}",
     "onboarding_back": "Atrás",
     "onboarding_next": "Siguiente",
     "onboarding_config_later": "Configurar luego",
@@ -618,7 +619,7 @@
     "onboarding_complete_subtitle": "Tu espacio devocional está configurado. Es hora de comenzar tu jornada espiritual diaria.",
     "onboarding_your_setup": "Tu Configuración",
     "onboarding_start_app": "Comenzar mi espacio con Dios",
-    "onboarding_theme_configured": "Tema personalizado seleccionado",
+    "onboarding_setup_theme_configured": "Tema personalizado seleccionado",
     "onboarding_setup_backup_configured": "Respaldo automático configurado",
     "onboarding_setup_protection_active": "Protección de datos activada",
     "onboarding_setup_backup_skipped": "Respaldo omitido por ahora",
