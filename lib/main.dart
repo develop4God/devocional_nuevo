@@ -30,7 +30,10 @@ import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
+import 'package:devocional_nuevo/services/auth_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
+import 'package:devocional_nuevo/services/push_messaging.dart';
+import 'package:devocional_nuevo/services/user_profile_store.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -86,7 +89,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     // registered so we can show notifications.
     final locator = ServiceLocator();
     locator.registerLazySingleton<NotificationService>(
-      NotificationService.create,
+      () => NotificationService.create(
+        authService: FirebaseAuthService(),
+        userProfileStore: FirestoreUserProfileStore(),
+        pushMessaging: FirebaseCloudMessaging(),
+      ),
     );
   }
 

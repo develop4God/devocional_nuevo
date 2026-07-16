@@ -28,7 +28,9 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:devocional_nuevo/services/auth_service.dart';
+import 'package:devocional_nuevo/services/push_messaging.dart';
+import 'package:devocional_nuevo/services/user_profile_store.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 // Importaciones para Firebase Cloud Messaging y Firestore
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -61,17 +63,32 @@ void flutterLocalNotificationsBackgroundHandler(
 class NotificationService {
   // Private constructor to prevent direct instantiation
   // Always use getService<NotificationService>() or ServiceLocator.get<NotificationService>()
-  NotificationService._();
+  NotificationService._({
+    required IAuthService authService,
+    required IUserProfileStore userProfileStore,
+    required IPushMessaging pushMessaging,
+  })  : _authService = authService,
+        _userProfileStore = userProfileStore,
+        _pushMessaging = pushMessaging;
 
   // Factory constructor for ServiceLocator registration
-  factory NotificationService.create() => NotificationService._();
+  factory NotificationService.create({
+    required IAuthService authService,
+    required IUserProfileStore userProfileStore,
+    required IPushMessaging pushMessaging,
+  }) =>
+      NotificationService._(
+        authService: authService,
+        userProfileStore: userProfileStore,
+        pushMessaging: pushMessaging,
+      );
 
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final IAuthService _authService;
+  final IUserProfileStore _userProfileStore;
+  final IPushMessaging _pushMessaging;
   final Connectivity _connectivity = Connectivity();
 
   static const String _notificationsEnabledKey = 'notifications_enabled';
@@ -101,14 +118,11 @@ class NotificationService {
 
   /// NUEVO: Actualiza el campo lastLogin cada vez que el usuario ingresa a la app
   Future<void> updateLastLogin() async {
-    final User? user = _auth.currentUser;
-    if (user != null) {
-      final userDocRef = _firestore.collection('users').doc(user.uid);
-      await userDocRef.set({
-        'lastLogin': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+    final String? uid = _authService.currentUserId;
+    if (uid != null) {
+      await _userProfileStore.updateLastLogin(uid);
       debugPrint(
-        '🔔 [NotificationService] lastLogin updated for user ${user.uid}',
+        '🔔 [NotificationService] lastLogin updated for user $uid',
       );
     }
   }
@@ -149,11 +163,11 @@ class NotificationService {
       // **INICIO DE MODIFICACIÓN: Escuchar cambios de autenticación antes de inicializar FCM y guardar settings**
       // Esto asegura que haya un usuario (UID) disponible antes de intentar guardar tokens o settings.
       // Se elimina la llamada directa a _initializeFCM() y la lógica de settings de aquí.
-      _auth.authStateChanges().listen((user) async {
+      _authService.authStateChanges.listen((uid) async {
         try {
-          if (user != null) {
+          if (uid != null) {
             debugPrint(
-              '🔔 [NotificationService] Authenticated user detected: ${user.uid}',
+              '🔔 [NotificationService] Authenticated user detected: $uid',
             );
 
             // Actualizar lastLogin cada vez que el usuario ingresa
@@ -164,7 +178,7 @@ class NotificationService {
 
             // Manejar el mensaje inicial si la app se abrió desde una notificación
             final RemoteMessage? initialMessage =
-                await _firebaseMessaging.getInitialMessage();
+                await _pushMessaging.getInitialMessage();
             if (initialMessage != null) {
               debugPrint(
                 '🔔 [NotificationService] App opened from initial notification: ${initialMessage.messageId}',
@@ -173,27 +187,19 @@ class NotificationService {
             }
 
             // Asegurar que la configuración de notificaciones esté completa en Firestore
-            final userId = user.uid;
+            final userId = uid;
             final currentDeviceTimezone =
                 await FlutterTimezone.getLocalTimezone();
 
-            final settingsDoc = await _firestore
-                .collection('users')
-                .doc(userId)
-                .collection('settings')
-                .doc('notifications')
-                .get();
+            final settingsData =
+                await _userProfileStore.getNotificationSettings(userId);
 
-            bool initialNotificationsEnabled = settingsDoc.exists
-                ? (settingsDoc.data()?['notificationsEnabled'] ?? true)
-                : true;
-            String initialNotificationTime = settingsDoc.exists
-                ? (settingsDoc.data()?['notificationTime'] ??
-                    _defaultNotificationTime)
-                : _defaultNotificationTime;
-            String initialUserTimezone = settingsDoc.exists
-                ? (settingsDoc.data()?['userTimezone'] ?? currentDeviceTimezone)
-                : currentDeviceTimezone;
+            bool initialNotificationsEnabled =
+                settingsData?['notificationsEnabled'] ?? true;
+            String initialNotificationTime =
+                settingsData?['notificationTime'] ?? _defaultNotificationTime;
+            String initialUserTimezone =
+                settingsData?['userTimezone'] ?? currentDeviceTimezone;
 
             await _saveNotificationSettingsToFirestore(
               userId,
@@ -224,16 +230,7 @@ class NotificationService {
       '🔔 [NotificationService] _initializeFCM call #$callId started at ${DateTime.now()}',
     );
     try {
-      NotificationSettings settings =
-          await _firebaseMessaging.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
+      NotificationSettings settings = await _pushMessaging.requestPermission();
       debugPrint(
         '🔔 [NotificationService] call #$callId: User permission granted: ${settings.authorizationStatus}',
       );
@@ -245,17 +242,17 @@ class NotificationService {
       debugPrint(
         '🔔 [NotificationService] call #$callId: registering onTokenRefresh/onMessage listeners, finished at ${DateTime.now()}',
       );
-      _firebaseMessaging.onTokenRefresh.listen((newToken) {
+      _pushMessaging.onTokenRefresh.listen((newToken) {
         debugPrint('🔔 [NotificationService] FCM token refreshed: $newToken');
         _saveFcmToken(newToken);
       });
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      _pushMessaging.onMessage.listen((RemoteMessage message) {
         debugPrint(
           '🔔 [NotificationService] Foreground FCM message: ${message.messageId}',
         );
         _handleMessage(message);
       });
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      _pushMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         debugPrint(
           '🔔 [NotificationService] App opened from notification: ${message.messageId}',
         );
@@ -292,7 +289,7 @@ class NotificationService {
       }
       final stopwatch = Stopwatch()..start();
       try {
-        token = await _firebaseMessaging.getToken();
+        token = await _pushMessaging.getToken();
         if (token != null) {
           debugPrint(
             '🔔 [NotificationService] call #$callId: FCM token obtained on attempt $attempt: $token',
@@ -432,33 +429,22 @@ class NotificationService {
   // Método para guardar el token FCM en Firestore
   Future<void> _saveFcmToken(String token) async {
     try {
-      final User? user = _auth.currentUser;
-      if (user == null) {
+      final String? uid = _authService.currentUserId;
+      if (uid == null) {
         debugPrint(
           '🔔 [NotificationService] User not authenticated, cannot save FCM token.',
         );
         return;
       }
 
-      final userDocRef = _firestore.collection('users').doc(user.uid);
-
-      // Añadir el campo lastLogin al documento principal del usuario
-      // Eliminado para evitar duplicidad
-      // await userDocRef.set(
-      //   {'lastLogin': FieldValue.serverTimestamp()},
-      //   SetOptions(merge: true),
-      // ); // Usar merge para no sobrescribir subcolecciones
-
-      final tokenRef = userDocRef.collection('fcmTokens').doc(token);
-
-      await tokenRef.set({
-        'token': token,
-        'createdAt': FieldValue.serverTimestamp(),
-        'platform': defaultTargetPlatform.toString(),
-      }, SetOptions(merge: true));
+      await _userProfileStore.saveFcmToken(
+        uid,
+        token,
+        platform: defaultTargetPlatform.toString(),
+      );
 
       debugPrint(
-        '🔔 [NotificationService] FCM token saved to Firestore for user ${user.uid}',
+        '🔔 [NotificationService] FCM token saved to Firestore for user $uid',
       );
 
       final prefs = await SharedPreferences.getInstance();
@@ -481,18 +467,13 @@ class NotificationService {
   ) async {
     try {
       String currentLanguage = await _getCurrentAppLanguage();
-      final docRef = _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('settings')
-          .doc('notifications');
-      await docRef.set({
-        'notificationsEnabled': notificationsEnabled,
-        'notificationTime': notificationTime,
-        'userTimezone': userTimezone,
-        'lastUpdated': FieldValue.serverTimestamp(),
-        'preferredLanguage': currentLanguage,
-      }, SetOptions(merge: true));
+      await _userProfileStore.saveNotificationSettings(
+        userId,
+        notificationsEnabled: notificationsEnabled,
+        notificationTime: notificationTime,
+        userTimezone: userTimezone,
+        preferredLanguage: currentLanguage,
+      );
       debugPrint(
         '🔔 [NotificationService] Notification settings saved for $userId: Enabled: $notificationsEnabled, Time: $notificationTime, Timezone: $userTimezone, Language: $currentLanguage',
       );
@@ -596,29 +577,25 @@ class NotificationService {
     );
 
     // **INICIO DE MODIFICACIÓN: Usar el método unificado para guardar el estado en Firestore**
-    final User? user = _auth.currentUser;
-    if (user != null) {
+    final String? uid = _authService.currentUserId;
+    if (uid != null) {
       try {
         // Obtener la hora de notificación actual y la zona horaria para mantener la consistencia
-        final settingsDoc = await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .collection('settings')
-            .doc('notifications')
-            .get();
+        final settingsData =
+            await _userProfileStore.getNotificationSettings(uid);
         String currentNotificationTime =
-            settingsDoc.data()?['notificationTime'] ?? _defaultNotificationTime;
-        String currentUserTimezone = settingsDoc.data()?['userTimezone'] ??
+            settingsData?['notificationTime'] ?? _defaultNotificationTime;
+        String currentUserTimezone = settingsData?['userTimezone'] ??
             await FlutterTimezone.getLocalTimezone();
 
         await _saveNotificationSettingsToFirestore(
-          user.uid,
+          uid,
           enabled, // El nuevo estado de habilitado
           currentNotificationTime, // La hora actual (sin cambios aquí)
           currentUserTimezone, // La zona horaria actual (sin cambios aquí)
         );
         debugPrint(
-          '🔔 [NotificationService] Notifications enabled ($enabled) saved to Firestore for user ${user.uid}',
+          '🔔 [NotificationService] Notifications enabled ($enabled) saved to Firestore for user $uid',
         );
       } catch (e) {
         debugPrint(
@@ -649,31 +626,27 @@ class NotificationService {
     debugPrint('🔔 [NotificationService] Notification time set to $time');
 
     // **INICIO DE MODIFICACIÓN: Usar el método unificado para guardar la hora en Firestore**
-    final User? user = _auth.currentUser;
-    if (user != null) {
+    final String? uid = _authService.currentUserId;
+    if (uid != null) {
       try {
         // Obtener el estado actual de notificaciones habilitadas y la zona horaria
-        final settingsDoc = await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .collection('settings')
-            .doc('notifications')
-            .get();
+        final settingsData =
+            await _userProfileStore.getNotificationSettings(uid);
         bool currentNotificationsEnabled =
-            settingsDoc.data()?['notificationsEnabled'] ??
+            settingsData?['notificationsEnabled'] ??
                 true; // Por defecto true si no existe
-        String currentUserTimezone = settingsDoc.data()?['userTimezone'] ??
+        String currentUserTimezone = settingsData?['userTimezone'] ??
             await FlutterTimezone.getLocalTimezone();
 
         await _saveNotificationSettingsToFirestore(
-          user.uid,
+          uid,
           currentNotificationsEnabled,
           // El estado de habilitado actual (sin cambios aquí)
           time, // La nueva hora
           currentUserTimezone, // La zona horaria actual (sin cambios aquí)
         );
         debugPrint(
-          '🔔 [NotificationService] Notification time ($time) saved to Firestore for user ${user.uid}',
+          '🔔 [NotificationService] Notification time ($time) saved to Firestore for user $uid',
         );
       } catch (e) {
         debugPrint(
@@ -762,29 +735,23 @@ class NotificationService {
 
     // **INICIO DE MODIFICACIÓN: Leer configuración de Firestore para programación local**
     // Asegurarse de leer los datos de la ubicación correcta y con valores por defecto.
-    final User? user = _auth.currentUser;
-    if (user == null) {
+    final String? uid = _authService.currentUserId;
+    if (uid == null) {
       debugPrint(
         '🔔 [NotificationService] User not authenticated, cannot schedule local notification.',
       );
       return;
     }
 
-    final docSnapshot = await _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('settings')
-        .doc('notifications')
-        .get();
+    final data = await _userProfileStore.getNotificationSettings(uid);
 
-    if (!docSnapshot.exists || docSnapshot.data() == null) {
+    if (data == null) {
       debugPrint(
         '🔔 [NotificationService] No notification settings found to schedule.',
       );
       return;
     }
 
-    final data = docSnapshot.data()!;
     bool notificationsEnabled = data['notificationsEnabled'] ?? false;
     String notificationTimeStr =
         data['notificationTime'] ?? _defaultNotificationTime;
@@ -900,8 +867,8 @@ class NotificationService {
   }
 
   Future<void> verifyNotificationSetup() async {
-    final user = _auth.currentUser;
-    if (user == null) {
+    final String? uid = _authService.currentUserId;
+    if (uid == null) {
       debugPrint(
         '🔔 [NotificationService] verifyNotificationSetup → NO authenticated user',
       );
@@ -909,18 +876,12 @@ class NotificationService {
     }
     final prefs = await SharedPreferences.getInstance();
     final storedToken = prefs.getString(_fcmTokenKey);
-    final settingsDoc = await _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('settings')
-        .doc('notifications')
-        .get();
-    final data = settingsDoc.data() ?? {};
+    final data = await _userProfileStore.getNotificationSettings(uid) ?? {};
     final enabled = data['notificationsEnabled'];
     final notifTime = data['notificationTime'];
     final timezone = data['userTimezone'];
     debugPrint(
-      '🔔 [NotificationService] verifyNotificationSetup → User: ${user.uid}, Local token: ${storedToken != null ? 'OK' : 'NO'}, Firestore notificationsEnabled: $enabled, Time: $notifTime, TZ: $timezone',
+      '🔔 [NotificationService] verifyNotificationSetup → User: $uid, Local token: ${storedToken != null ? 'OK' : 'NO'}, Firestore notificationsEnabled: $enabled, Time: $notifTime, TZ: $timezone',
     );
   }
 }
