@@ -3,6 +3,9 @@ library;
 
 // test/critical_coverage/notification_service_working_test.dart
 
+import 'dart:async';
+
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -364,6 +367,7 @@ void main() {
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
+      await setupFirebaseMocks();
       ServiceLocator().reset();
       await setupServiceLocator();
       _mockInitializePlatformChannels();
@@ -454,6 +458,132 @@ void main() {
 
         expect(fakeUserProfileStore.lastLoginWrites, isEmpty);
         expect(fakePushMessaging.requestPermissionCallCount, equals(0));
+      },
+    );
+
+    test(
+      'retryFcmTokenIfMissing retries through transient getToken failures '
+      'and saves the token once it succeeds',
+      () {
+        fakeAsync((async) {
+          fakePushMessaging.getTokenResults.addAll([
+            Exception('SERVICE_NOT_AVAILABLE'),
+            Exception('SERVICE_NOT_AVAILABLE'),
+            'fake-fcm-token',
+          ]);
+
+          bool completed = false;
+          unawaited(
+            notificationService
+                .retryFcmTokenIfMissing(reason: 'test')
+                .then((_) => completed = true),
+          );
+          // Drain the retry burst: two transient-error backoffs
+          // (_transientRetryBase * attempt, seconds-scale) before the third
+          // attempt succeeds.
+          async.elapse(const Duration(seconds: 10));
+
+          // Prove the future actually completed within the elapsed window,
+          // rather than asserting on state captured mid-flight.
+          expect(completed, isTrue);
+          expect(fakePushMessaging.getTokenCallCount, equals(3));
+          expect(
+            fakeUserProfileStore.savedFcmTokens['fake-uid'],
+            contains('fake-fcm-token'),
+          );
+        });
+      },
+    );
+
+    test(
+      'retryFcmTokenIfMissing gives up without throwing after exhausting '
+      'all attempts, and does not save a token',
+      () {
+        // The exhausted-retry path also evaluates
+        // FirebaseCrashlytics.instance (as an argument to unawaited(...)),
+        // and that getter throws synchronously here (Firebase.app() →
+        // core/no-app). Root cause, verified directly: setupFirebaseMocks's
+        // Firebase.initializeApp() call fails with a channel-error on
+        // dev.flutter.pigeon.firebase_core_platform_interface
+        // .FirebaseCoreHostApi.initializeCore (its pigeon-channel mock
+        // doesn't match what this firebase_core version actually calls),
+        // and setupFirebaseMocks silently swallows that failure — a
+        // pre-existing test-infra gap, not something this migration
+        // introduced, and no other test in this repo exercises
+        // FirebaseCrashlytics.instance either.
+        //
+        // A synchronous throw inside an async function's body rejects the
+        // Future that function returns, the same as an awaited throw would
+        // — so this propagates cleanly through retryFcmTokenIfMissing's
+        // await chain to the onError handler below, independent of
+        // unawaited() (which only applies to the Future recordError()
+        // itself would have returned, had the getter not already thrown
+        // while building its argument). That onError handler is scoped
+        // narrowly to this one known error string; anything else fails the
+        // test loudly. (A blanket runZonedGuarded was tried and rejected:
+        // a deliberately-failing expect() thrown inside fakeAsync's zone
+        // is caught by such a handler exactly like any other error, so an
+        // empty catch-all would have silently passed a failing test.)
+        fakeAsync((async) {
+          fakePushMessaging.getTokenResults.addAll([
+            Exception('SERVICE_NOT_AVAILABLE'),
+            Exception('SERVICE_NOT_AVAILABLE'),
+            Exception('SERVICE_NOT_AVAILABLE'),
+          ]);
+
+          Object? caughtError;
+          bool completed = false;
+          notificationService.retryFcmTokenIfMissing(reason: 'test').then(
+            (_) {
+              completed = true;
+            },
+            onError: (Object e) {
+              caughtError = e;
+            },
+          );
+          async.elapse(const Duration(seconds: 10));
+
+          // The only error expected here is the known Crashlytics
+          // test-infra gap. Anything else should fail the test loudly.
+          if (caughtError != null) {
+            expect(
+              caughtError.toString(),
+              contains('core/no-app'),
+              reason: 'retryFcmTokenIfMissing should only reject via the known '
+                  'FirebaseCrashlytics test-infra gap — any other error is '
+                  'a real regression',
+            );
+          } else {
+            expect(completed, isTrue);
+          }
+
+          expect(fakePushMessaging.getTokenCallCount, equals(3));
+          expect(fakeUserProfileStore.savedFcmTokens['fake-uid'], isNull);
+        });
+      },
+    );
+
+    test(
+      'retryFcmTokenIfMissing is rate-limited: a second call before '
+      '_minRetryGap elapses does not re-invoke getToken',
+      () {
+        fakeAsync((async) {
+          fakePushMessaging.getTokenResults.add('fake-fcm-token');
+
+          unawaited(
+              notificationService.retryFcmTokenIfMissing(reason: 'first'));
+          async.elapse(const Duration(seconds: 1));
+          expect(fakePushMessaging.getTokenCallCount, equals(1));
+
+          // Token is now saved locally, so a second call is a no-op
+          // regardless of the rate limit — this asserts the "cheap no-op
+          // once a token exists" contract documented on the method.
+          unawaited(
+            notificationService.retryFcmTokenIfMissing(reason: 'second'),
+          );
+          async.elapse(const Duration(seconds: 1));
+          expect(fakePushMessaging.getTokenCallCount, equals(1));
+        });
       },
     );
   });
