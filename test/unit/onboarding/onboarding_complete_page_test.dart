@@ -100,6 +100,34 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  group('Tap anywhere to continue — accessibility affordance', () {
+    testWidgets(
+        'tapping empty space on the page dispatches CompleteOnboarding, '
+        'same as the Continue button', (tester) async {
+      await pumpPage(tester, const Size(1080, 2400));
+
+      await tester.tap(find.byType(InkWell).first);
+      await tester.pump();
+
+      verify(() => mockOnboardingBloc.add(const CompleteOnboarding()))
+          .called(1);
+    });
+
+    testWidgets(
+        'tapping the Back button does not also dispatch '
+        'CompleteOnboarding', (tester) async {
+      await pumpPage(tester, const Size(1080, 2400));
+
+      final backText = 'onboarding.onboarding_back'.tr();
+      final backButton = find.widgetWithText(TextButton, backText);
+
+      await tester.tap(backButton);
+      await tester.pump();
+
+      verifyNever(() => mockOnboardingBloc.add(const CompleteOnboarding()));
+    });
+  });
+
   group('Back button — gated on Google Drive backup connection', () {
     testWidgets(
         'is disabled once backup is connected, so the user cannot '
