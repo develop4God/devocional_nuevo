@@ -106,6 +106,20 @@ class ServiceLocator {
   }
 }
 
+/// Builds a [NotificationService] wired to the real Firebase-backed
+/// implementations. Shared by [setupServiceLocator] and by main.dart's
+/// background-isolate fallback so both paths construct the same
+/// dependencies instead of duplicating the wiring.
+NotificationService createFirebaseNotificationService({
+  required IAuthService authService,
+}) {
+  return NotificationService.create(
+    authService: authService,
+    userProfileStore: FirestoreUserProfileStore(),
+    pushMessaging: FirebaseCloudMessaging(),
+  );
+}
+
 Future<void> setupServiceLocator() async {
   final locator = ServiceLocator();
   final prefs = await SharedPreferences.getInstance();
@@ -138,10 +152,8 @@ Future<void> setupServiceLocator() async {
     () => FirebaseCloudMessaging(),
   );
   locator.registerLazySingleton<NotificationService>(
-    () => NotificationService.create(
+    () => createFirebaseNotificationService(
       authService: locator.get<IAuthService>(),
-      userProfileStore: locator.get<IUserProfileStore>(),
-      pushMessaging: locator.get<IPushMessaging>(),
     ),
   );
   locator.registerLazySingleton<RemoteConfigService>(

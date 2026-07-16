@@ -1222,17 +1222,21 @@ void main() {
         final content = await file.readAsString();
 
         expect(
-          content.contains('authService: locator.get<IAuthService>()') &&
-              content.contains(
-                'userProfileStore: locator.get<IUserProfileStore>()',
+          content.contains(
+                'NotificationService createFirebaseNotificationService({',
               ) &&
               content.contains(
-                'pushMessaging: locator.get<IPushMessaging>()',
+                'userProfileStore: FirestoreUserProfileStore()',
+              ) &&
+              content.contains('pushMessaging: FirebaseCloudMessaging()') &&
+              content.contains(
+                'createFirebaseNotificationService(\n      authService: locator.get<IAuthService>(),',
               ),
           isTrue,
-          reason:
-              'NotificationService.create should receive IAuthService, IUserProfileStore, '
-              'and IPushMessaging resolved from the locator at the composition root',
+          reason: 'NotificationService should be built via the shared '
+              'createFirebaseNotificationService factory, resolving IAuthService '
+              'from the locator at the composition root — not constructed inline '
+              'so main.dart\'s fallback path can share the same wiring',
         );
       },
     );
@@ -1263,6 +1267,34 @@ void main() {
           isFalse,
           reason:
               'NotificationService must use injected IPushMessaging, not FirebaseMessaging.instance directly',
+        );
+      },
+    );
+
+    test(
+      "main.dart's background-isolate fallback reuses createFirebaseNotificationService "
+      'instead of duplicating the Firebase wiring',
+      () async {
+        final file = File('lib/main.dart');
+        expect(await file.exists(), isTrue);
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('createFirebaseNotificationService('),
+          isTrue,
+          reason: "main.dart's fallback registration should call the shared "
+              'createFirebaseNotificationService factory instead of constructing '
+              'FirestoreUserProfileStore()/FirebaseCloudMessaging() inline',
+        );
+
+        expect(
+          content.contains('FirestoreUserProfileStore()') ||
+              content.contains('FirebaseCloudMessaging()'),
+          isFalse,
+          reason:
+              'main.dart must not directly instantiate FirestoreUserProfileStore or '
+              'FirebaseCloudMessaging; that wiring belongs solely in '
+              'createFirebaseNotificationService',
         );
       },
     );

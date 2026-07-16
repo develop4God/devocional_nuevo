@@ -363,6 +363,12 @@ class FakePushMessaging implements IPushMessaging {
   NotificationSettings? permissionResponse;
   String? token;
 
+  /// Queue of results for successive [getToken] calls, consumed in order.
+  /// Each entry is either a token string/null (success) or an [Object] error
+  /// to throw. Falls back to [token] once the queue is empty, so tests can
+  /// script a failure-then-success sequence without touching real Firebase.
+  final List<Object?> getTokenResults = [];
+
   final StreamController<String> _onTokenRefreshController =
       StreamController<String>.broadcast();
   final StreamController<RemoteMessage> _onMessageController =
@@ -403,6 +409,16 @@ class FakePushMessaging implements IPushMessaging {
   @override
   Future<String?> getToken() async {
     getTokenCallCount++;
+    if (getTokenResults.isNotEmpty) {
+      final result = getTokenResults.removeAt(0);
+      if (result is Exception) {
+        throw result;
+      }
+      if (result is Error) {
+        throw result;
+      }
+      return result as String?;
+    }
     return token;
   }
 
