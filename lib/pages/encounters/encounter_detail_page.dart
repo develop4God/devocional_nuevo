@@ -4,11 +4,20 @@
 // Uses PageView with intuitive viewport peeking (0.88) to show next card preview.
 // Matches Discovery Bible Studies carousel for consistent UX across features.
 
+import 'dart:ui' as ui;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
+import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/tts/encounter_tts_text_builder.dart';
+import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/image_precache_utils.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
+import 'package:devocional_nuevo/widgets/tts/reader_tts_miniplayer_presenter.dart';
 
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
@@ -19,6 +28,7 @@ import 'package:devocional_nuevo/widgets/encounter/encounter_card_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:lottie/lottie.dart';
 
 class EncounterDetailPage extends StatefulWidget {
@@ -50,9 +60,33 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
   /// Guards the one-time study-ready debug log inside the BlocBuilder.
   bool _studyLoggedOnce = false;
 
+  // TTS — page-scoped, mirrors the pattern used by BibleReaderPage /
+  // DevocionalesPage. Not registered in ServiceLocator; owns its own
+  // FlutterTts instance, created/disposed with this page.
+  late final TtsAudioController _ttsAudioController;
+  late final ReaderTtsMiniplayerPresenter<EncounterCard>
+      _ttsMiniplayerPresenter;
+  List<EncounterCard> _currentCards = const [];
+
+  EncounterCard? get _currentCard => _currentIndex < _currentCards.length
+      ? _currentCards[_currentIndex]
+      : null;
+
   @override
   void initState() {
     super.initState();
+
+    final flutterTts = FlutterTts();
+    _ttsAudioController = TtsAudioController(
+      flutterTts: flutterTts,
+      voiceSettingsService: getService<VoiceSettingsService>(),
+      chunkProcessor: getService<TtsChunkProcessor>(),
+    );
+    _ttsMiniplayerPresenter = ReaderTtsMiniplayerPresenter<EncounterCard>(
+      ttsAudioController: _ttsAudioController,
+      analyticsService: getService<IAnalyticsService>(),
+      buildSampleText: (card) => EncounterTtsTextBuilder.build(card),
+    );
     // Guarantee card[1] preload on first frame, before user can swipe.
     // This is safer than relying on _studyLoggedOnce inside BlocBuilder,
     // which rebuilds after state changes and may miss the window on fast devices.
@@ -73,8 +107,25 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
 
   @override
   void dispose() {
+    _ttsMiniplayerPresenter.dispose();
+    _ttsAudioController.dispose();
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _playCurrentCard(BuildContext context, String? language) {
+    final card = _currentCard;
+    if (card == null) return;
+    final languageCode =
+        language ?? ui.PlatformDispatcher.instance.locale.languageCode;
+    final text = EncounterTtsTextBuilder.build(card);
+    if (text.isEmpty) return;
+    _ttsAudioController.setText(text, languageCode: languageCode);
+    _ttsMiniplayerPresenter.showMiniplayerModal(
+      context,
+      () => _currentCard ?? card,
+    );
+    _ttsAudioController.play();
   }
 
   // ---------------------------------------------------------------------------
@@ -262,6 +313,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
           }
 
           final cards = study.cards;
+          _currentCards = cards;
           if (cards.isEmpty) {
             return Center(
               child: Text(
@@ -295,6 +347,13 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                   setState(() => _currentIndex = index);
                   // JIT: cards already in scope — no extra context.read needed.
                   _preloadCardImage(cards, index + 1);
+                  // Page-change-while-playing policy: stop rather than
+                  // silently reset position or keep narrating a stale card.
+                  final ttsState = _ttsAudioController.state.value;
+                  if (ttsState == TtsPlayerState.playing ||
+                      ttsState == TtsPlayerState.paused) {
+                    _ttsAudioController.stop();
+                  }
                 },
                 physics: const BouncingScrollPhysics(),
                 itemCount: cards.length,
@@ -374,6 +433,20 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                     size: 24,
                   ),
                   onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+
+              // TTS play button (Top Right) - Gold styling, mirrors back button
+              Positioned(
+                top: 44,
+                right: 8,
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.volume_up_rounded,
+                    color: Color(0xFFFFD700),
+                    size: 24,
+                  ),
+                  onPressed: () => _playCurrentCard(context, study.language),
                 ),
               ),
 
