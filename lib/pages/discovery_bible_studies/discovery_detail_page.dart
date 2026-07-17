@@ -1,6 +1,9 @@
 // lib/pages/discovery_detail_page.dart
 
+import 'dart:ui' as ui;
+
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
+import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
@@ -11,14 +14,19 @@ import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/tts/discovery_tts_text_builder.dart';
+import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/discovery_section_card.dart';
 import 'package:devocional_nuevo/widgets/key_verse_card.dart';
 import 'package:devocional_nuevo/widgets/scripture/resolved_verse_text.dart';
+import 'package:devocional_nuevo/widgets/tts/reader_tts_miniplayer_presenter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../blocs/theme/theme_bloc.dart';
@@ -44,6 +52,24 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   bool _isCelebrating = false;
   bool _hasTriggeredCompletion = false;
 
+  // TTS — page-scoped, mirrors the pattern used by BibleReaderPage /
+  // DevocionalesPage. Not registered in ServiceLocator; owns its own
+  // FlutterTts instance, created/disposed with this page.
+  late final TtsAudioController _ttsAudioController;
+  late final ReaderTtsMiniplayerPresenter<DiscoveryCard>
+      _ttsMiniplayerPresenter;
+  List<DiscoveryCard> _currentCards = const [];
+
+  DiscoveryCard? get _currentCard {
+    final contentIndex = _currentCards.isNotEmpty && _hasKeyVerseCardForCurrent
+        ? _currentSectionIndex - 1
+        : _currentSectionIndex;
+    if (contentIndex < 0 || contentIndex >= _currentCards.length) return null;
+    return _currentCards[contentIndex];
+  }
+
+  bool _hasKeyVerseCardForCurrent = false;
+
   /// Helper to check if the study has a key verse card to display
   bool _hasKeyVerseCard(DiscoveryDevotional study) {
     return study.cards.isNotEmpty && study.keyVerse != null;
@@ -56,9 +82,42 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    final flutterTts = FlutterTts();
+    _ttsAudioController = TtsAudioController(
+      flutterTts: flutterTts,
+      voiceSettingsService: getService<VoiceSettingsService>(),
+      chunkProcessor: getService<TtsChunkProcessor>(),
+    );
+    _ttsMiniplayerPresenter = ReaderTtsMiniplayerPresenter<DiscoveryCard>(
+      ttsAudioController: _ttsAudioController,
+      analyticsService: getService<IAnalyticsService>(),
+      buildSampleText: (card) => DiscoveryTtsTextBuilder.build(card),
+    );
+  }
+
+  @override
   void dispose() {
+    _ttsMiniplayerPresenter.dispose();
+    _ttsAudioController.dispose();
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _playCurrentCard(BuildContext context, String? language) {
+    final card = _currentCard;
+    if (card == null) return;
+    final languageCode =
+        language ?? ui.PlatformDispatcher.instance.locale.languageCode;
+    final text = DiscoveryTtsTextBuilder.build(card);
+    if (text.isEmpty) return;
+    _ttsAudioController.setText(text, languageCode: languageCode);
+    _ttsMiniplayerPresenter.showMiniplayerModal(
+      context,
+      () => _currentCard ?? card,
+    );
+    _ttsAudioController.play();
   }
 
   void _onCompleteStudy() {
@@ -149,6 +208,9 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                   state.isStudyCompleted(widget.studyId) ||
                       _hasTriggeredCompletion;
 
+              _currentCards = study.cards;
+              _hasKeyVerseCardForCurrent = _hasKeyVerseCard(study);
+
               return Stack(
                 children: [
                   Column(
@@ -158,8 +220,17 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                       Expanded(
                         child: PageView.builder(
                           controller: _pageController,
-                          onPageChanged: (index) =>
-                              setState(() => _currentSectionIndex = index),
+                          onPageChanged: (index) {
+                            setState(() => _currentSectionIndex = index);
+                            // Page-change-while-playing policy: stop rather
+                            // than silently reset position or keep narrating
+                            // a stale card.
+                            final ttsState = _ttsAudioController.state.value;
+                            if (ttsState == TtsPlayerState.playing ||
+                                ttsState == TtsPlayerState.paused) {
+                              _ttsAudioController.stop();
+                            }
+                          },
                           itemCount: _getTotalPages(study),
                           physics: const BouncingScrollPhysics(),
                           itemBuilder: (context, index) {
@@ -319,7 +390,14 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: Icon(
+              Icons.volume_up_rounded,
+              color: theme.colorScheme.primary,
+            ),
+            onPressed: () => _playCurrentCard(context, study.language),
+          ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
