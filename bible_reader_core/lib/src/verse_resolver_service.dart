@@ -35,6 +35,9 @@ class VerseResolverService implements IVerseResolverService {
         return null;
       }
 
+      match.service ??= BibleDbService();
+      await match.service!.initDb(match.assetPath, match.dbFileName);
+
       final rangeMatch = RegExp(r'^(.*\d+:\d+)-(\d+)$').firstMatch(reference);
       final normalizedRef = rangeMatch?.group(1) ?? reference;
       final endVerseOverride =
@@ -54,9 +57,6 @@ class VerseResolverService implements IVerseResolverService {
             '❌ [VerseResolver] no verse number in ref: "$normalizedRef"');
         return null;
       }
-
-      match.service ??= BibleDbService();
-      await match.service!.initDb(match.assetPath, match.dbFileName);
 
       final book = await match.service!.findBookByName(
         parsed['bookName'] as String,
