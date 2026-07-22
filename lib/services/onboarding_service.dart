@@ -118,6 +118,11 @@ class OnboardingService {
   /// onboarding as complete so it isn't shown retroactively once
   /// enable_onboarding_flow is turned on. Runs at most once per device,
   /// guarded by [_onboardingBackfillAppliedKey].
+  ///
+  /// The flag is only set once the stats read succeeds. A failed read
+  /// (e.g. a plugin channel not yet ready at cold start) leaves the flag
+  /// unset so the backfill retries on the next check, instead of
+  /// permanently misclassifying an existing engaged user as new.
   Future<void> _backfillExistingUser(SharedPreferences prefs) async {
     if (prefs.getBool(_onboardingBackfillAppliedKey) ?? false) return;
 
@@ -131,10 +136,9 @@ class OnboardingService {
           'existing user (${stats.totalDevocionalesRead} devotionals read)',
         );
       }
+      await prefs.setBool(_onboardingBackfillAppliedKey, true);
     } catch (e) {
       debugPrint('❌ [OnboardingService] Error backfilling existing user: $e');
-    } finally {
-      await prefs.setBool(_onboardingBackfillAppliedKey, true);
     }
   }
 

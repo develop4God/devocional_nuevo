@@ -34,6 +34,43 @@ class _ThrowingStatsService extends FakeSpiritualStatsService {
       throw Exception('stats read failed');
 }
 
+/// Fake stats service that fails the first [failFirst] calls, then
+/// succeeds with [thenReturns] devotionals read on every call after.
+/// Tracks [callCount] so tests can assert exactly how many times the
+/// backfill actually invoked [getStats].
+class _FlakyStatsService extends FakeSpiritualStatsService {
+  _FlakyStatsService({required this.failFirst, required this.thenReturns});
+
+  final int failFirst;
+  final int thenReturns;
+  int callCount = 0;
+
+  @override
+  Future<SpiritualStats> getStats() async {
+    callCount++;
+    if (callCount <= failFirst) {
+      throw Exception('stats read failed');
+    }
+    return SpiritualStats(totalDevocionalesRead: thenReturns);
+  }
+}
+
+/// Fake stats service that counts how many times [getStats] is invoked,
+/// used to verify the backfill's write-serialization actually prevents a
+/// duplicate stats read when two checks race on the same instance.
+class _CountingStatsService extends FakeSpiritualStatsService {
+  _CountingStatsService(this.totalDevocionalesRead);
+
+  final int totalDevocionalesRead;
+  int callCount = 0;
+
+  @override
+  Future<SpiritualStats> getStats() async {
+    callCount++;
+    return SpiritualStats(totalDevocionalesRead: totalDevocionalesRead);
+  }
+}
+
 void main() {
   group('OnboardingService.shouldShowOnboarding', () {
     late MockFirebaseRemoteConfig mockRemoteConfig;
@@ -175,7 +212,7 @@ void main() {
 
     test(
       'a failing stats read during backfill does not propagate, and the '
-      'backfill is still marked applied (no retry on transient errors)',
+      'backfill is NOT marked applied so it retries on the next check',
       () async {
         SharedPreferences.setMockInitialValues({});
         final throwingRemoteConfig = MockFirebaseRemoteConfig();
@@ -204,11 +241,96 @@ void main() {
         // Exception from getStats() must not propagate out of the check.
         expect(await service.isOnboardingComplete(), false);
 
-        // The backfill must still be marked applied so it doesn't retry
-        // forever on a device with a permanently failing stats read.
+        // The backfill must NOT be marked applied on a failed read, so a
+        // transient error (e.g. a plugin channel not ready yet) gets
+        // retried on the next check instead of permanently misclassifying
+        // an existing engaged user as new.
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getBool('onboarding_backfill_applied'), isNot(true));
+        expect(prefs.getBool('onboarding_complete'), isNot(true));
+      },
+    );
+
+    test(
+      'a stats read that keeps failing retries the backfill on every '
+      'check, and succeeds once the read recovers',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        mockRemoteConfig = MockFirebaseRemoteConfig();
+        remoteConfigService = RemoteConfigService.create(
+          remoteConfig: mockRemoteConfig,
+        );
+        when(mockRemoteConfig.setDefaults(any))
+            .thenAnswer((_) => Future.value());
+        when(
+          mockRemoteConfig.setConfigSettings(any),
+        ).thenAnswer((_) => Future.value());
+        when(mockRemoteConfig.fetchAndActivate()).thenAnswer((_) async => true);
+        await remoteConfigService.initialize();
+        when(
+          mockRemoteConfig.getBool('enable_onboarding_flow'),
+        ).thenReturn(true);
+
+        final flakyStats = _FlakyStatsService(failFirst: 2, thenReturns: 5);
+        final service = OnboardingService.create(
+          remoteConfigService: remoteConfigService,
+          statsService: flakyStats,
+        );
+
+        // First two checks: stats read fails, backfill not applied yet.
+        expect(await service.isOnboardingComplete(), false);
+        expect(await service.isOnboardingComplete(), false);
+
+        // Third check: stats read succeeds, backfill runs and applies.
+        expect(await service.isOnboardingComplete(), true);
+
         final prefs = await SharedPreferences.getInstance();
         expect(prefs.getBool('onboarding_backfill_applied'), true);
-        expect(prefs.getBool('onboarding_complete'), isNot(true));
+        expect(flakyStats.callCount, 3);
+      },
+    );
+
+    test(
+      'concurrent first-time checks only read stats once and apply the '
+      'backfill exactly once',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        mockRemoteConfig = MockFirebaseRemoteConfig();
+        remoteConfigService = RemoteConfigService.create(
+          remoteConfig: mockRemoteConfig,
+        );
+        when(mockRemoteConfig.setDefaults(any))
+            .thenAnswer((_) => Future.value());
+        when(
+          mockRemoteConfig.setConfigSettings(any),
+        ).thenAnswer((_) => Future.value());
+        when(mockRemoteConfig.fetchAndActivate()).thenAnswer((_) async => true);
+        await remoteConfigService.initialize();
+        when(
+          mockRemoteConfig.getBool('enable_onboarding_flow'),
+        ).thenReturn(true);
+
+        final countingStats = _CountingStatsService(5);
+        final service = OnboardingService.create(
+          remoteConfigService: remoteConfigService,
+          statsService: countingStats,
+        );
+
+        final results = await Future.wait([
+          service.isOnboardingComplete(),
+          service.isOnboardingComplete(),
+        ]);
+
+        expect(results, [true, true]);
+        expect(
+          countingStats.callCount,
+          1,
+          reason: '_serialized must prevent a second concurrent call from '
+              'reading stats again once the backfill flag is about to be set',
+        );
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getBool('onboarding_backfill_applied'), true);
+        expect(prefs.getBool('onboarding_complete'), true);
       },
     );
 
