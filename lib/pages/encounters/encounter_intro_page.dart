@@ -181,8 +181,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
       '🎬 [Intro/${widget.entry.id}] → navigating to EncounterDetailPage (600ms fade)',
     );
 
-    getService<IAnalyticsService>().logEncounterAction(
-      action: 'encounter_started',
+    getService<IAnalyticsService>().logEncounterStarted(
       encounterId: widget.entry.id,
     );
 
