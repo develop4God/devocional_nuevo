@@ -80,8 +80,14 @@ Use this checklist to configure In-App Purchases correctly.
 - [ ] Upload your release bundle/APK:
   ```bash
   cd /home/develop4god/projects/devocional_nuevo
-  flutter build appbundle --release
+  flutter build appbundle --release --split-debug-info=build/symbols
   ```
+  `--split-debug-info` writes debug symbol files to `build/symbols/` for this
+  exact build. Without them, any future crash/ANR report from Play Console
+  shows only raw unsymbolicated addresses — copy `build/symbols/` somewhere
+  safe (named/dated per version) and upload it to Play Console under this
+  release's native debug symbols, so crash reports show real Dart function
+  names and line numbers instead.
 - [ ] Upload `build/app/outputs/bundle/release/app-release.aab`
 - [ ] Fill in release notes (can be simple: "IAP testing")
 - [ ] Click **Review release**
