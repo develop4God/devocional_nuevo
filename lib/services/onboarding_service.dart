@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_models.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
+import 'package:devocional_nuevo/utils/constants/engagement_constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -43,11 +44,12 @@ class OnboardingService {
   static const int _currentVersion = 1;
 
   // Onboarding didn't exist for most of this app's lifetime, so no existing
-  // user has ever completed it. Reuses the same "engaged user" threshold
-  // already established by InAppReviewService's first-time milestone check
-  // (5+ devotionals read) to avoid showing onboarding to people who installed
-  // the app long before this flow existed.
-  static const int _existingUserDevocionalThreshold = 5;
+  // user has ever completed it. Reuses the shared "engaged user" threshold
+  // (see EngagementThresholds) already established by InAppReviewService's
+  // first-time milestone check, to avoid showing onboarding to people who
+  // installed the app long before this flow existed.
+  static const int _existingUserDevocionalThreshold =
+      EngagementThresholds.engagedUserDevocionalThreshold;
 
   // Configuration/progress persistence keys
   static const String _configurationKey = 'onboarding_configuration';
