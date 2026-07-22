@@ -65,6 +65,20 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final RouteObserver<PageRoute<dynamic>> routeObserver =
     RouteObserver<PageRoute<dynamic>>();
 
+// Bracketing logs around each startup step in main(): if the app ever hangs
+// before runApp() (black screen, no frame ever drawn), the last "starting"
+// line with no matching "done" line in adb logcat identifies exactly which
+// step is stuck, instead of guessing at a timeout duration. Uses print()
+// rather than debugPrint()/developer.log()/stdout.writeln(): debugPrint is
+// silenced in release builds (see below), dart:developer's log() does not
+// route to adb logcat at all (dart-lang/sdk#39061), and stdout.writeln() was
+// empirically tested on-device and also does not reach logcat — print() is
+// the only one of the four that reliably reaches logcat in every build mode.
+void _startupLog(String step) {
+  // ignore: avoid_print
+  print('startup: $step');
+}
+
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (kDebugMode) {
@@ -124,7 +138,9 @@ void main() async {
     debugPrint = (String? message, {int? wrapWidth}) {};
   }
 
+  _startupLog('Firebase.initializeApp() starting');
   await Firebase.initializeApp();
+  _startupLog('Firebase.initializeApp() done');
 
   // --- Crashlytics error handlers ----------------------------------------
   // Transient network errors (SocketException, DNS failure, etc.) are NOT app
@@ -173,11 +189,15 @@ void main() async {
 
   // setupServiceLocator() returns a Future now — await to ensure services
   // are registered before any call to getService<T>().
+  _startupLog('setupServiceLocator() starting');
   await setupServiceLocator();
+  _startupLog('setupServiceLocator() done');
 
   try {
+    _startupLog('remoteConfigService.initialize() starting');
     final remoteConfigService = getService<RemoteConfigService>();
     await remoteConfigService.initialize();
+    _startupLog('remoteConfigService.initialize() done');
   } catch (e) {
     // Remote config is non-critical, app continues without it
     developer.log(
@@ -189,8 +209,10 @@ void main() async {
 
   // Initialize deep link handler
   try {
+    _startupLog('deepLinkHandler.initialize() starting');
     final deepLinkHandler = getService<DeepLinkHandler>();
     await deepLinkHandler.initialize();
+    _startupLog('deepLinkHandler.initialize() done');
   } catch (e) {
     // Deep link handler is non-critical, app continues without it
     developer.log(
@@ -202,6 +224,8 @@ void main() async {
 
   SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  _startupLog('runApp() about to be called');
 
   runApp(
     MultiProvider(
@@ -422,6 +446,29 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         getService<NotificationService>().retryFcmTokenIfMissing(
           reason: 'app resumed',
         ),
+      );
+
+      // Confirm to the native side that this resume actually rendered a
+      // frame, clearing the black-screen-on-resume watchdog marker set in
+      // MainActivity.onPause(). Scheduled via addPostFrameCallback so it
+      // only fires once a frame genuinely completes after resume.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(_confirmResumeDrawn());
+      });
+    }
+  }
+
+  static const MethodChannel _resumeWatchdogChannel = MethodChannel(
+    'com.develop4god.devocional_nuevo/resume_watchdog',
+  );
+
+  Future<void> _confirmResumeDrawn() async {
+    try {
+      await _resumeWatchdogChannel.invokeMethod('confirmResumeDrawn');
+    } catch (e) {
+      developer.log(
+        'Error confirming resume drawn to native watchdog: $e',
+        name: 'MyApp',
       );
     }
   }
