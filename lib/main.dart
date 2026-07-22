@@ -423,6 +423,29 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           reason: 'app resumed',
         ),
       );
+
+      // Confirm to the native side that this resume actually rendered a
+      // frame, clearing the black-screen-on-resume watchdog marker set in
+      // MainActivity.onPause(). Scheduled via addPostFrameCallback so it
+      // only fires once a frame genuinely completes after resume.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(_confirmResumeDrawn());
+      });
+    }
+  }
+
+  static const MethodChannel _resumeWatchdogChannel = MethodChannel(
+    'com.develop4god.devocional_nuevo/resume_watchdog',
+  );
+
+  Future<void> _confirmResumeDrawn() async {
+    try {
+      await _resumeWatchdogChannel.invokeMethod('confirmResumeDrawn');
+    } catch (e) {
+      developer.log(
+        'Error confirming resume drawn to native watchdog: $e',
+        name: 'MyApp',
+      );
     }
   }
 
