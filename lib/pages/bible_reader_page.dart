@@ -376,11 +376,17 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   String _getSelectedVersesText() {
     final state = _controller.state;
+    final version = state.selectedVersion;
+    final versionName = version == null
+        ? ''
+        : (Constants.versionAbbreviation(version).isNotEmpty
+            ? Constants.versionAbbreviation(version)
+            : _getDisplayName(version.name, version.languageCode));
     return BibleVerseFormatter.formatVerses(
       selectedVerseKeys: state.selectedVerses,
       verses: state.verses,
       books: state.books,
-      versionName: state.selectedVersion?.name ?? '',
+      versionName: versionName,
       cleanText: _cleanVerseText,
     );
   }
