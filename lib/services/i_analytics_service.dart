@@ -86,14 +86,25 @@ abstract class IAnalyticsService {
   /// Event name: `discovery_action`
   Future<void> logDiscoveryAction({required String action, String? studyId});
 
-  /// Log Encounter page actions
+  /// Log when a user opens an encounter from the list
   ///
-  /// Event name: `encounter_action`
-  Future<void> logEncounterAction({
-    required String action,
-    String? encounterId,
-    int? cardOrder,
-  });
+  /// Event name: `encounter_opened`
+  Future<void> logEncounterOpened({required String encounterId});
+
+  /// Log when a user starts an encounter (past the intro screen)
+  ///
+  /// Event name: `encounter_started`
+  Future<void> logEncounterStarted({required String encounterId});
+
+  /// Log when a user completes all cards in an encounter
+  ///
+  /// Event name: `encounter_completed`
+  Future<void> logEncounterCompleted({required String encounterId});
+
+  /// Log when a user toggles the encounters list view
+  ///
+  /// Event name: `encounter_view_toggle`
+  Future<void> logEncounterViewToggle({required String view});
 
   /// Log Bible Reader page open event
   ///

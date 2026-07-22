@@ -63,7 +63,6 @@ class _EncountersListPageState extends State<EncountersListPage>
       final lang = context.read<DevocionalProvider>().selectedLanguage;
       bloc.add(LoadEncounterIndex(languageCode: lang));
     }
-    getService<IAnalyticsService>().logEncounterAction(action: 'index_loaded');
     _checkWelcomeSeen();
   }
 
@@ -129,8 +128,8 @@ class _EncountersListPageState extends State<EncountersListPage>
   }
 
   void _toggleGridOverlay() {
-    getService<IAnalyticsService>().logEncounterAction(
-      action: _showGridOverlay ? 'toggle_list_view' : 'toggle_grid_view',
+    getService<IAnalyticsService>().logEncounterViewToggle(
+      view: _showGridOverlay ? 'list' : 'grid',
     );
     setState(() {
       _showGridOverlay = !_showGridOverlay;
@@ -377,10 +376,7 @@ class _EncountersListPageState extends State<EncountersListPage>
   }
 
   void _openEncounter(EncounterIndexEntry entry, String lang) {
-    getService<IAnalyticsService>().logEncounterAction(
-      action: 'encounter_opened',
-      encounterId: entry.id,
-    );
+    getService<IAnalyticsService>().logEncounterOpened(encounterId: entry.id);
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
