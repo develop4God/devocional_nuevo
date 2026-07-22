@@ -13,10 +13,12 @@ only file/directory counts are refreshed.
 import argparse
 import re
 import subprocess
+from datetime import date
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 README_PATH = REPO_ROOT / "README.md"
+PUBSPEC_PATH = REPO_ROOT / "pubspec.yaml"
 
 
 def count_dart_files_recursive(path: Path) -> int:
@@ -67,6 +69,13 @@ def replace_marked_block(content: str, marker: str, new_inner: str) -> str:
         raise RuntimeError(f"Marker not found: {marker}")
     replacement = f"{start}\n```\n{new_inner}\n```\n{end}"
     return pattern.sub(lambda _: replacement, content)
+
+
+def get_app_version() -> str | None:
+    if not PUBSPEC_PATH.exists():
+        return None
+    match = re.search(r"^version:\s*(\S+)", PUBSPEC_PATH.read_text(), re.MULTILINE)
+    return match.group(1) if match else None
 
 
 def get_language_codes() -> list[str]:
@@ -122,11 +131,20 @@ def main():
     language_codes = get_language_codes()
     languages = len(language_codes)
     flutter_version = get_flutter_version()
+    app_version = get_app_version()
+    current_year = date.today().year
 
     content = README_PATH.read_text()
 
     content = replace_marked_block(content, "lib-tree-en", build_lib_tree_block())
     content = replace_marked_block(content, "test-tree-en", build_test_tree_block())
+
+    if app_version:
+        content = re.sub(
+            r"App Version: \S+", f"App Version: {app_version}", content
+        )
+
+    content = re.sub(r"© \d{4} develop4God", f"© {current_year} develop4God", content)
 
     if flutter_version:
         content = re.sub(

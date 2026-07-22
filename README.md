@@ -524,4 +524,6 @@ Para el texto completo de la licencia, ver el archivo [LICENSE](./LICENSE) o vis
 
 ---
 
+App Version: 1.12.6+108
+
 © 2026 develop4God
