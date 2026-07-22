@@ -328,6 +328,11 @@ jobs:
           HIT=$(echo "$SUMMARY" | grep -oP 'lines......: [\d.]+% \(\K[\d]+')
           TOTAL=$(echo "$SUMMARY" | grep -oP 'of \K[\d]+')
           TEST_COUNT=$(grep -oP '\+(\d+):' test_output.txt | tail -1 | grep -oP '\d+')
+          TEST_FILE_COUNT=$(find test -iname "*_test.dart" | wc -l)
+          SOURCE_FILE_COUNT=$(find lib -iname "*.dart" | wc -l)
+          HIT_FMT=$(printf "%'d" "$HIT" | tr -d ' ')
+          TOTAL_FMT=$(printf "%'d" "$TOTAL" | tr -d ' ')
+          TEST_COUNT_FMT=$(printf "%'d" "$TEST_COUNT" | tr -d ' ')
 
           if   (( $(echo "$COVERAGE >= 70" | bc -l) )); then COLOR="brightgreen"
           elif (( $(echo "$COVERAGE >= 50" | bc -l) )); then COLOR="yellow"
@@ -335,7 +340,13 @@ jobs:
 
           sed -i "s|Coverage-[^-]*%25-[a-z]*\.svg|Coverage-${COVERAGE}%25-${COLOR}.svg|g" README.md
           sed -i "s|Tests-[0-9]*+-[a-z]*\.svg|Tests-${TEST_COUNT}+-brightgreen.svg|g" README.md
-          sed -i "s|[0-9.]*% code coverage ([0-9,]* of [0-9,]* lines)|${COVERAGE}% code coverage (${HIT} of ${TOTAL} lines)|g" README.md
+          sed -i -E "s|[0-9.]+% code coverage\*\* \([0-9,]+ of [0-9,]+ lines\)|${COVERAGE}% code coverage** (${HIT_FMT} of ${TOTAL_FMT} lines)|g" README.md
+          sed -i -E "s|\*\*[0-9,]+ test files\*\*|**${TEST_FILE_COUNT} test files**|g" README.md
+          sed -i -E "s|\*\*[0-9,]+ tests\*\* with full pass rate|**${TEST_COUNT_FMT} tests** with full pass rate|g" README.md
+          sed -i -E "s#Source Files \(lib/\) \| [0-9,]+ Dart files#Source Files (lib/) | ${SOURCE_FILE_COUNT} Dart files#g" README.md
+          sed -i -E "s#Test Files( +)\| [0-9,]+ test files#Test Files\1| ${TEST_FILE_COUNT} test files#g" README.md
+          sed -i -E "s#Total Tests( +)\| [0-9,]+ tests \(100% passing ✅\)#Total Tests\1| ${TEST_COUNT_FMT} tests (100% passing ✅)#g" README.md
+          sed -i -E "s#Test Coverage( +)\| [0-9.]+% \([0-9,]+/[0-9,]+ lines\)#Test Coverage\1| ${COVERAGE}% (${HIT_FMT}/${TOTAL_FMT} lines)#g" README.md
 
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action [bot]"
