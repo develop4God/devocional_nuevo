@@ -377,6 +377,50 @@ void main() {
     expect(find.text('TEST TITLE'), findsOneWidget); // Title is uppercased
   });
 
+  // ── Test: CinematicSceneCard renders scriptureConnections ───────────────────
+  //
+  // Regression test: scriptureConnections was parsed from JSON and carried on
+  // EncounterCard, but CinematicSceneCard.build() never read the field, so
+  // any scripture_connections on a cinematic_scene card was silently dropped
+  // at render time. This covers the fix wiring _ScriptureConnectionsSection
+  // into CinematicSceneCard, matching ScriptureMomentCard/CharacterMomentCard/
+  // TheologicalDepthCard, which already render it.
+
+  testWidgets('CinematicSceneCard renders scriptureConnections', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      const card = EncounterCard(
+        order: 1,
+        type: 'cinematic_scene',
+        title: 'Test Title',
+        narrative: 'A test narrative.',
+        scriptureConnections: [
+          VerseRef(
+              reference: 'Marcos 1:7',
+              text: 'Viene tras mí el que es más poderoso que yo.'),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider(
+            create: (_) => DevocionalProvider(),
+            child: const Scaffold(body: CinematicSceneCard(card: card)),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Marcos 1:7'), findsOneWidget);
+      expect(
+        find.text('Viene tras mí el que es más poderoso que yo.'),
+        findsOneWidget,
+      );
+    });
+  });
+
   // ── Test: visual header height scales with screen width ─────────────────────
   //
   // Regression test: the header's height used to be a fixed pixel constant
