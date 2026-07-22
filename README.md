@@ -1,6 +1,6 @@
 # Devocionales Cristianos / Christian Devotionals
 
-[![Flutter](https://img.shields.io/badge/Flutter-3.32.8-blue.svg)](https://flutter.dev/)
+[![Flutter](https://img.shields.io/badge/Flutter-3.41.9-blue.svg)](https://flutter.dev/)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Tests](https://img.shields.io/badge/Tests-3157+-brightgreen.svg)](#-testing--pruebas)
 [![Coverage](https://img.shields.io/badge/Coverage-51.9%25-yellow.svg)](#-testing--pruebas)
@@ -38,7 +38,7 @@ favorites, spiritual tracking, and intelligent review system.
 
 ### 🛠️ Technologies
 
-- **Flutter 3.32.8**: Main framework
+- **Flutter 3.41.9**: Main framework
 - **Flutter BLoC**: Complex state management
 - **Provider**: Simple state management
 - **Firebase**: Notifications, auth, and analytics
@@ -54,7 +54,7 @@ favorites, spiritual tracking, and intelligent review system.
 | Test Files          | 241 test files               |
 | Total Tests         | 3,157 tests (100% passing ✅) |
 | Test Coverage       | 51.9% (10,725/20,666 lines)   |
-| Supported Languages | 8 (es, en, pt, fr, ja, zh, de, hi) |
+| Supported Languages | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Static Analysis     | ✅ All checks passing         |
 
 ### 🏗️ Architecture
@@ -194,7 +194,7 @@ patrol_test/                 # 🆕 Patrol framework tests (native automation)
 
 ### 📱 Requirements
 
-- Flutter 3.32.8 or higher
+- Flutter 3.41.9 or higher
 - Dart SDK >=3.0.0 <4.0.0
 - Android SDK 21+ (Android 5.0+)
 - Android compileSdk 34+ (for Android 15 compatibility)
@@ -249,7 +249,7 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 
 ### 🛠️ Tecnologías
 
-- **Flutter 3.32.8**: Framework principal
+- **Flutter 3.41.9**: Framework principal
 - **Flutter BLoC**: Gestión de estado complejo
 - **Provider**: Gestión de estado simple
 - **Firebase**: Notificaciones, autenticación y analytics
@@ -261,11 +261,11 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 
 | Métrica                | Valor                              |
 |------------------------|------------------------------------|
-| Archivos Fuente (lib/) | 145 archivos Dart                  |
-| Archivos de Test       | 142 archivos                       |
-| Total de Tests         | 1,318 tests (100% aprobados ✅)     |
-| Cobertura de Tests     | 44.06% (3,455/7,841 líneas)        |
-| Idiomas Soportados     | 8 (es, en, pt, fr, ja, zh, de, hi) |
+| Archivos Fuente (lib/) | 242 archivos Dart                  |
+| Archivos de Test       | 241 archivos                       |
+| Total de Tests         | 3,157 tests (100% aprobados ✅)     |
+| Cobertura de Tests     | 51.9% (10,725/20,666 líneas)        |
+| Idiomas Soportados     | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Análisis Estático      | ✅ Todas las verificaciones pasando |
 
 ### 🏗️ Arquitectura
@@ -406,7 +406,7 @@ patrol_test/                 # 🆕 Tests del framework Patrol (automatización 
 
 ### 📱 Requisitos
 
-- Flutter 3.32.8 o superior
+- Flutter 3.41.9 o superior
 - Dart SDK >=3.0.0 <4.0.0
 - Android SDK 21+ (Android 5.0+)
 - Android compileSdk 34+ (para compatibilidad con Android 15)
