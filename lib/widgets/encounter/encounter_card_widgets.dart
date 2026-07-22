@@ -528,6 +528,10 @@ class CinematicSceneCard extends StatelessWidget {
             child: _ModernVerseOverlay(overlay: card.verseOverlay!),
           ),
         ],
+        if (card.scriptureConnections != null)
+          _ScriptureConnectionsSection(
+            connections: card.scriptureConnections!,
+          ),
         if (card.revelationKey != null) ...[
           const SizedBox(height: 20),
           _DelayedEntry(
