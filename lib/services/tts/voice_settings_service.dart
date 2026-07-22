@@ -263,7 +263,14 @@ class VoiceSettingsService {
       await prefs.setString('tts_voice_$language', voiceData.toString());
 
       // Solo aplicar la voz globalmente al TTS al guardar
-      await _flutterTts.setVoice({'name': voiceName, 'locale': locale});
+      try {
+        await _flutterTts.setVoice({'name': voiceName, 'locale': locale});
+      } catch (e) {
+        debugPrint(
+          '⚠️ VoiceSettings: Failed to apply voice to TTS engine (native not ready?): $e',
+        );
+        // Voice preference is still saved; engine will use its default until next successful setVoice
+      }
 
       debugPrint(
         '🔧🗂️ VoiceSettings: Saved & applied voice ${voiceData['friendly_name']} (${voiceData['technical_name']}) for language $language',

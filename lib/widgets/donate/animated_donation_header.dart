@@ -79,48 +79,63 @@ class _AnimatedDonationHeaderState extends State<AnimatedDonationHeader>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: widget.height.clamp(
-        120.0,
-        MediaQuery.of(context).size.height * 0.3,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          colors: [
-            widget.colorScheme.primary.withValues(alpha: 0.9),
-            widget.colorScheme.secondary.withValues(alpha: 0.8),
-            widget.colorScheme.tertiary.withValues(alpha: 0.7),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          stops: const [0.0, 0.6, 1.0],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: widget.colorScheme.primary.withValues(alpha: 0.3),
-            blurRadius: 20,
-            spreadRadius: 2,
-            offset: const Offset(0, 8),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
+
+        // Prefer the space the parent actually gives us; MediaQuery is only
+        // a fallback for when the parent hands down unbounded height.
+        final availableHeight = constraints.maxHeight.isFinite
+            ? constraints.maxHeight
+            : MediaQuery.of(context).size.height;
+
+        final minHeight = isTablet ? 160.0 : 120.0;
+        final maxHeight = max(
+          minHeight,
+          availableHeight * (isTablet ? 0.22 : 0.3),
+        );
+
+        return Container(
+          height: widget.height.clamp(minHeight, maxHeight),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              colors: [
+                widget.colorScheme.primary.withValues(alpha: 0.9),
+                widget.colorScheme.secondary.withValues(alpha: 0.8),
+                widget.colorScheme.tertiary.withValues(alpha: 0.7),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: const [0.0, 0.6, 1.0],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: widget.colorScheme.primary.withValues(alpha: 0.3),
+                blurRadius: 20,
+                spreadRadius: 2,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          clipBehavior: Clip.hardEdge,
-          children: [
-            // Ondas animadas de fondo
-            ..._buildAnimatedWaves(),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Stack(
+              clipBehavior: Clip.hardEdge,
+              children: [
+                // Ondas animadas de fondo
+                ..._buildAnimatedWaves(),
 
-            // Partículas flotantes
-            ..._buildFloatingParticles(),
+                // Partículas flotantes
+                ..._buildFloatingParticles(),
 
-            // Contenido principal
-            _buildMainContent(),
-          ],
-        ),
-      ),
+                // Contenido principal
+                _buildMainContent(),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

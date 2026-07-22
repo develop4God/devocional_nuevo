@@ -14,6 +14,7 @@ const Map<String, Set<String>> kEncounterCardRenderedFields = {
     'title',
     'narrative',
     'verseOverlay',
+    'scriptureConnections',
     'revelationKey',
   },
   'scripture_moment': {

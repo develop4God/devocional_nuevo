@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/spiritual_stats_model.dart';
 import '../extensions/string_extensions.dart';
+import '../utils/constants/engagement_constants.dart';
 
 /// Service for managing In-App Review requests
 /// Shows review dialogs at optimal engagement moments (5th, 25th, 50th, 100th, 200th devotional)
@@ -18,7 +19,13 @@ class InAppReviewService {
   static const String _firstTimeCheckKey = 'review_first_time_check_done';
 
   // Constants
-  static const List<int> _milestones = [5, 25, 50, 100, 200];
+  static const List<int> _milestones = [
+    EngagementThresholds.engagedUserDevocionalThreshold,
+    25,
+    50,
+    100,
+    200,
+  ];
   static const int _globalCooldownDays = 90;
   static const int _remindLaterDays = 30;
 
@@ -73,7 +80,9 @@ class InAppReviewService {
 
       // Check for first-time users with existing devotionals (5+)
       final firstTimeCheckDone = prefs.getBool(_firstTimeCheckKey) ?? false;
-      if (!firstTimeCheckDone && totalDevocionalesRead >= 5) {
+      if (!firstTimeCheckDone &&
+          totalDevocionalesRead >=
+              EngagementThresholds.engagedUserDevocionalThreshold) {
         debugPrint(
           '🆕 InAppReview: First time check - user has $totalDevocionalesRead devotionals',
         );
