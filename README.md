@@ -62,29 +62,23 @@ favorites, spiritual tracking, and intelligent review system.
 The application follows a **hybrid Provider + BLoC Pattern** architecture with clear separation of
 concerns:
 
+<!-- README-STATS:lib-tree-en -->
 ```
 lib/
-├── blocs/           # BLoC state management (12 files)
-│   ├── devocionales/
-│   ├── discovery/   # Discovery Studies feature
-│   ├── onboarding/
-│   └── theme/
-├── controllers/     # Application controllers (2 files)
-├── extensions/      # Dart extensions (1 file)
-├── models/          # Data models (8 files)
-│   └── discovery/   # Discovery models
-├── pages/           # Application screens (15+ files)
-│   ├── devotional_discovery/
-│   ├── onboarding/
-│   └── discovery/
-├── providers/       # State providers (2 files)
-├── repositories/    # Data repositories (3 files)
-├── services/        # Core services (16 files)
-│   └── tts/
-├── utils/           # Utilities and constants (8 files)
-└── widgets/         # Reusable UI components (22+ files)
-    └── donate/
+├── blocs/  (38 files)
+├── controllers/  (4 files)
+├── debug/  (11 files)
+├── extensions/  (1 files)
+├── helpers/  (1 files)
+├── models/  (17 files)
+├── pages/  (28 files)
+├── providers/  (2 files)
+├── repositories/  (10 files)
+├── services/  (52 files)
+├── utils/  (18 files)
+└── widgets/  (58 files)
 ```
+<!-- /README-STATS:lib-tree-en -->
 
 ### 🧪 Testing
 
@@ -104,18 +98,18 @@ structure:
 flutter test
 
 # Run by performance tier (fast feedback)
-flutter test --tags=critical        # Fast: ~1-2 min (29 critical tests)
-flutter test --tags=unit           # Medium: ~5-10 min (121 unit tests)
+flutter test --tags=critical        # Fast critical tests
+flutter test --tags=unit           # All unit tests
 flutter test --exclude-tags=slow   # Skip slow tests
 
 # Run by category
-flutter test --tags=blocs          # All BLoC tests (19 tests)
-flutter test --tags=services       # All service tests (33 tests)
-flutter test --tags=models         # All model tests (10 tests)
-flutter test --tags=widgets        # All widget tests (12 tests)
-flutter test --tags=pages          # All page tests (16 tests)
-flutter test --tags=integration    # Integration tests (9 tests)
-flutter test --tags=behavioral     # Behavioral tests (5 tests)
+flutter test --tags=blocs          # All BLoC tests
+flutter test --tags=services       # All service tests
+flutter test --tags=models         # All model tests
+flutter test --tags=widgets        # All widget tests
+flutter test --tags=pages          # All page tests
+flutter test --tags=integration    # Integration tests
+flutter test --tags=behavioral     # Behavioral tests
 
 # Combine tags
 flutter test --tags=critical,blocs # Critical BLoC tests only
@@ -133,52 +127,27 @@ dart format .
 dart fix --apply
 ```
 
-**Test Structure (Reorganized Feb 2025):**
+**Test Structure:**
 
+<!-- README-STATS:test-tree-en -->
 ```
 test/
-├── behavioral/              (5 tests)  - Real user behavior & journey tests
-├── integration/             (8 tests)  - Cross-component integration tests
-├── migration/               (1 test)   - Code migration validation
-├── helpers/                 (6 files)  - Shared test utilities & mocks
-└── unit/                    (116 tests) - All unit tests, organized by type
-    ├── blocs/              (19 tests) - BLoC & state management
-    ├── services/           (28 tests) - Service layer tests
-    ├── models/             (10 tests) - Data model tests
-    ├── widgets/            (12 tests) - Widget component tests
-    ├── pages/              (16 tests) - Full page/screen tests
-    ├── controllers/         (4 tests) - Controllers (audio, TTS)
-    ├── providers/           (4 tests) - Provider tests
-    ├── features/            (4 tests) - User flow tests
-    ├── utils/              (13 tests) - Utility & helper tests
-    ├── repositories/        (1 test)  - Repository tests
-    ├── extensions/          (1 test)  - Extension tests
-    ├── translations/        (1 test)  - i18n tests
-    └── android/             (1 test)  - Android-specific tests
-
-patrol_test/                 # 🆕 Patrol framework tests (native automation)
-├── devotional_reading_workflow_test.dart  # ✅ 13 tests
-├── tts_audio_test.dart                    # ⚠️ 6/10 tests
-├── offline_mode_test.dart                 # 🔧 In progress
-└── README.md                              # Patrol documentation
+├── behavioral/  (7 tests)
+├── helpers/  (0 tests)
+├── integration/  (9 tests)
+├── migration/  (2 tests)
+├── models/  (1 tests)
+└── unit/  (221 tests)
 ```
+<!-- /README-STATS:test-tree-en -->
 
-**🆕 Test Organization Features:**
+**Test Organization Features:**
 
-- ✅ Clean directory structure (19 directories, down from 24)
 - ✅ All tests properly tagged for selective execution
 - ✅ Fast critical tests for quick feedback (~1-2 minutes)
 - ✅ Organized by type (BLoCs, Services, Models, Widgets, etc.)
 - ✅ Easy to find where to add new tests
 - ✅ No duplicate or scattered tests
-- 📄 See [TEST_REORGANIZATION_SUMMARY.md](docs/testing/TEST_REORGANIZATION_SUMMARY.md) for details
-
-**🆕 Patrol Integration Tests:**
-
-- Modern testing framework with native automation
-- Supports permissions, notifications, back button
-- Cleaner syntax with `$` shorthand
-- See [`patrol_test/README.md`](./patrol_test/README.md) for details
 
 **Coverage Highlights:**
 
@@ -273,29 +242,7 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 La aplicación sigue una arquitectura **híbrida Provider + Patrón BLoC** con clara separación de
 responsabilidades:
 
-```
-lib/
-├── blocs/           # Gestión de estado BLoC (12 archivos)
-│   ├── devocionales/
-│   ├── discovery/   # Feature Discovery Studies
-│   ├── onboarding/
-│   └── theme/
-├── controllers/     # Controladores de aplicación (2 archivos)
-├── extensions/      # Extensiones de Dart (1 archivo)
-├── models/          # Modelos de datos (8 archivos)
-│   └── discovery/   # Modelos Discovery
-├── pages/           # Pantallas de la aplicación (15+ archivos)
-│   ├── devotional_discovery/
-│   ├── onboarding/
-│   └── discovery/
-├── providers/       # Proveedores de estado (2 archivos)
-├── repositories/    # Repositorios de datos (3 archivos)
-├── services/        # Servicios centrales (16 archivos)
-│   └── tts/
-├── utils/           # Utilidades y constantes (8 archivos)
-└── widgets/         # Componentes UI reutilizables (22+ archivos)
-    └── donate/
-```
+See [Architecture](#-architecture) above (folder structure is language-agnostic).
 
 ### 🧪 Testing / Pruebas
 
@@ -315,18 +262,18 @@ organizada:
 flutter test
 
 # Ejecutar por nivel de rendimiento (retroalimentación rápida)
-flutter test --tags=critical        # Rápido: ~1-2 min (29 tests críticos)
-flutter test --tags=unit           # Medio: ~5-10 min (121 tests unitarios)
+flutter test --tags=critical        # Tests críticos rápidos
+flutter test --tags=unit           # Todos los tests unitarios
 flutter test --exclude-tags=slow   # Omitir tests lentos
 
 # Ejecutar por categoría
-flutter test --tags=blocs          # Todos los tests BLoC (19 tests)
-flutter test --tags=services       # Todos los tests de servicios (33 tests)
-flutter test --tags=models         # Todos los tests de modelos (10 tests)
-flutter test --tags=widgets        # Todos los tests de widgets (12 tests)
-flutter test --tags=pages          # Todos los tests de páginas (16 tests)
-flutter test --tags=integration    # Tests de integración (9 tests)
-flutter test --tags=behavioral     # Tests comportamentales (5 tests)
+flutter test --tags=blocs          # Todos los tests BLoC
+flutter test --tags=services       # Todos los tests de servicios
+flutter test --tags=models         # Todos los tests de modelos
+flutter test --tags=widgets        # Todos los tests de widgets
+flutter test --tags=pages          # Todos los tests de páginas
+flutter test --tags=integration    # Tests de integración
+flutter test --tags=behavioral     # Tests comportamentales
 
 # Combinar etiquetas
 flutter test --tags=critical,blocs # Solo tests BLoC críticos
@@ -344,52 +291,17 @@ dart format .
 dart fix --apply
 ```
 
-**Estructura de Tests (Reorganizada Feb 2025):**
+**Estructura de Tests:**
 
-```
-test/
-├── behavioral/              (5 tests)  - Tests de comportamiento real del usuario
-├── integration/             (8 tests)  - Tests de integración entre componentes
-├── migration/               (1 test)   - Validación de migración de código
-├── helpers/                 (6 files)  - Utilidades compartidas & mocks
-└── unit/                    (116 tests) - Todos los tests unitarios, organizados por tipo
-    ├── blocs/              (19 tests) - BLoC & gestión de estado
-    ├── services/           (28 tests) - Tests de capa de servicios
-    ├── models/             (10 tests) - Tests de modelos de datos
-    ├── widgets/            (12 tests) - Tests de componentes widget
-    ├── pages/              (16 tests) - Tests de pantallas completas
-    ├── controllers/         (4 tests) - Controladores (audio, TTS)
-    ├── providers/           (4 tests) - Tests de providers
-    ├── features/            (4 tests) - Tests de flujos de usuario
-    ├── utils/              (13 tests) - Tests de utilidades
-    ├── repositories/        (1 test)  - Tests de repositorios
-    ├── extensions/          (1 test)  - Tests de extensiones
-    ├── translations/        (1 test)  - Tests de i18n
-    └── android/             (1 test)  - Tests específicos de Android
+See [Test Structure](#-testing) above (folder structure is language-agnostic).
 
-patrol_test/                 # 🆕 Tests del framework Patrol (automatización nativa)
-├── devotional_reading_workflow_test.dart  # ✅ 13 tests
-├── tts_audio_test.dart                    # ⚠️ 6/10 tests
-├── offline_mode_test.dart                 # 🔧 En progreso
-└── README.md                              # Documentación de Patrol
-```
+**Características de Organización de Tests:**
 
-**🆕 Características de Organización de Tests:**
-
-- ✅ Estructura de directorios limpia (19 directorios, reducido de 24)
 - ✅ Todos los tests etiquetados para ejecución selectiva
 - ✅ Tests críticos rápidos para retroalimentación rápida (~1-2 minutos)
 - ✅ Organizados por tipo (BLoCs, Services, Models, Widgets, etc.)
 - ✅ Fácil encontrar dónde añadir nuevos tests
 - ✅ Sin tests duplicados o dispersos
-- 📄 Ver [TEST_REORGANIZATION_SUMMARY.md](docs/testing/TEST_REORGANIZATION_SUMMARY.md) para detalles
-
-**🆕 Tests de Integración con Patrol:**
-
-- Framework de testing moderno con automatización nativa
-- Soporta permisos, notificaciones, botón atrás
-- Sintaxis más limpia con shorthand `$`
-- Ver [`patrol_test/README.md`](./patrol_test/README.md) para detalles
 
 **Áreas Cubiertas:**
 
