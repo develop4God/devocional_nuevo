@@ -2,8 +2,8 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.32.8-blue.svg)](https://flutter.dev/)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Tests](https://img.shields.io/badge/Tests-1446+-brightgreen.svg)](#-testing--pruebas)
-[![Coverage](https://img.shields.io/badge/Coverage-52.0%25-yellow.svg)](#-testing--pruebas)
+[![Tests](https://img.shields.io/badge/Tests-3157+-brightgreen.svg)](#-testing--pruebas)
+[![Coverage](https://img.shields.io/badge/Coverage-51.9%25-yellow.svg)](#-testing--pruebas)
 [![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](#)
 
 ---
@@ -50,10 +50,10 @@ favorites, spiritual tracking, and intelligent review system.
 
 | Metric              | Value                        |
 |---------------------|------------------------------|
-| Source Files (lib/) | 145 Dart files               |
-| Test Files          | 142 test files               |
-| Total Tests         | 1,318 tests (100% passing ✅) |
-| Test Coverage       | 44.06% (3,455/7,841 lines)   |
+| Source Files (lib/) | 242 Dart files               |
+| Test Files          | 241 test files               |
+| Total Tests         | 3,157 tests (100% passing ✅) |
+| Test Coverage       | 51.9% (10,725/20,666 lines)   |
 | Supported Languages | 8 (es, en, pt, fr, ja, zh, de, hi) |
 | Static Analysis     | ✅ All checks passing         |
 
@@ -93,9 +93,9 @@ structure:
 
 **Test Statistics:**
 
-- **142 test files** (100% passing ✅)
-- **1,318 tests** with full pass rate
-- **44.06% code coverage** (3,455 of 7,841 lines)
+- **241 test files** (100% passing ✅)
+- **3,157 tests** with full pass rate
+- **51.9% code coverage** (10,725 of 20,666 lines)
 - Multiple test types: Unit, Widget, Integration, Behavioral
 - All tests properly tagged for selective execution
 
