@@ -37,6 +37,38 @@ def get_flutter_version() -> str | None:
     return match.group(1) if match else None
 
 
+def build_lib_tree_block() -> str:
+    lib = REPO_ROOT / "lib"
+    dirs = sorted(d for d in lib.iterdir() if d.is_dir())
+    lines = ["lib/"]
+    for i, d in enumerate(dirs):
+        connector = "└──" if i == len(dirs) - 1 else "├──"
+        count = len(list(d.rglob("*.dart")))
+        lines.append(f"{connector} {d.name}/  ({count} files)")
+    return "\n".join(lines)
+
+
+def build_test_tree_block() -> str:
+    test = REPO_ROOT / "test"
+    dirs = sorted(d for d in test.iterdir() if d.is_dir())
+    lines = ["test/"]
+    for i, d in enumerate(dirs):
+        connector = "└──" if i == len(dirs) - 1 else "├──"
+        count = len(list(d.rglob("*_test.dart")))
+        lines.append(f"{connector} {d.name}/  ({count} tests)")
+    return "\n".join(lines)
+
+
+def replace_marked_block(content: str, marker: str, new_inner: str) -> str:
+    start = f"<!-- README-STATS:{marker} -->"
+    end = f"<!-- /README-STATS:{marker} -->"
+    pattern = re.compile(re.escape(start) + r".*?" + re.escape(end), re.DOTALL)
+    if not pattern.search(content):
+        raise RuntimeError(f"Marker not found: {marker}")
+    replacement = f"{start}\n```\n{new_inner}\n```\n{end}"
+    return pattern.sub(lambda _: replacement, content)
+
+
 def get_language_codes() -> list[str]:
     i18n_dir = REPO_ROOT / "i18n"
     if not i18n_dir.exists():
@@ -92,6 +124,9 @@ def main():
     flutter_version = get_flutter_version()
 
     content = README_PATH.read_text()
+
+    content = replace_marked_block(content, "lib-tree-en", build_lib_tree_block())
+    content = replace_marked_block(content, "test-tree-en", build_test_tree_block())
 
     if flutter_version:
         content = re.sub(
