@@ -21,20 +21,31 @@ favorites, spiritual tracking, and intelligent review system.
 
 ### ✨ Main Features
 
-- **📖 Daily Devotionals**: Updated spiritual content
-- **🔍 Discovery Studies**: Interactive learning studies with progress tracking (NEW!)
-- **🤝 Encounters**: Connect with testimonies and spiritual experiences (NEW!)
-- **📖 Integrated Bible**: Complete offline Bible access with search and share functionality
-- **🌍 Multilingual Support**: Spanish, English, Portuguese, French, Japanese, Chinese, German, Hindi with complete localization
-- **🔊 Audio TTS**: Text-to-speech reading of devotionals
-- **⭐ Favorites**: Save your favorite devotionals
-- **📊 Spiritual Tracking**: Reading statistics and progress
-- **🙏 Prayer Management**: Personal prayer tracking
-- **📴 Offline Mode**: Access without internet connection
-- **🔔 Notifications**: Customizable reminders
-- **📱 Share**: Share inspiring content with optimized format
-- **⭐ Smart Review System**: Requests reviews at optimal moments
-- **📱 Android 15 Support**: Compatible with edge-to-edge display and modern APIs
+**📚 Content & Study**
+- **Daily or On-Demand Devotionals**: Updated spiritual content in multiple Bible versions
+- **Discovery Studies**: Learning from the Word of God
+- **Encounters**: Connect with Jesus Christ as never before
+- **Integrated Bible**: Complete offline Bible access with search, share, and save functionality
+- **Audio TTS**: Text-to-speech reading of devotionals and Bible reader
+
+**🙏 Personal Journey**
+- **Favorites**: Save your favorite devotionals, Bible studies, Encounters, and Bible verses
+- **Spiritual Tracking**: Reading statistics and progress
+- **Prayer, Thanksgiving & Testimony**: Your personal journey
+
+**☁️ Sync & Access**
+- **Offline Mode**: Access without internet connection
+- **Google Drive Backup**: Never lose your spiritual progress
+- **Notifications**: Customizable reminders
+
+**🎨 Experience**
+- **Multiple Themes**: Light and dark mode, plus additional theme options
+- **Multilingual Support**: Complete localization per language
+- **Share**: Share inspiring content with optimized format
+
+**💛 Community & Support**
+- **Support Our Ministry**: Optional in-app support to help sustain the app and keep it free for all
+- **Smart Review System**: Requests reviews at optimal moments
 
 ### 🛠️ Technologies
 
@@ -199,22 +210,31 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 
 ### ✨ Características Principales
 
-- **📖 Devocionales Diarios**: Contenido espiritual actualizado
-- **🔍 Estudios Discovery**: Estudios interactivos con seguimiento de progreso (¡NUEVO!)
-- **🤝 Encuentros**: Conecta con testimonios y experiencias espirituales (¡NUEVO!)
-- **📖 Biblia Integrada**: Acceso completo a la Biblia offline con búsqueda y compartir
-- **🌍 Soporte Multilingüe**: Español, Inglés, Portugués, Francés con localización completa
-- **🔊 Audio TTS**: Lectura de devocionales con síntesis de voz
-- **⭐ Favoritos**: Guarda tus devocionales preferidos
-- **📊 Tracking Espiritual**: Estadísticas de lectura y progreso
-- **🙏 Gestión de Oraciones**: Seguimiento de oraciones personales
-- **📴 Modo Offline**: Acceso sin conexión a internet
-- **🔔 Notificaciones**: Recordatorios personalizables
-- **📱 Compartir**: Comparte contenido inspirador con formato optimizado
-- **☁️ Respaldo en la Nube**: Sincronización automática con Google Drive
-- **🚀 Onboarding Inteligente**: Configuración guiada inicial con arquitectura BLoC
-- **⭐ Sistema de Reseñas Inteligente**: Solicita reseñas en momentos óptimos
-- **📱 Soporte Android 15**: Compatible con edge-to-edge display y APIs modernas
+**📚 Contenido y Estudio**
+- **Devocionales Diarios o Bajo Demanda**: Contenido espiritual actualizado en múltiples versiones de la Biblia
+- **Estudios Discovery**: Aprendiendo de la Palabra de Dios
+- **Encuentros**: Conecta con Jesucristo como nunca antes
+- **Biblia Integrada**: Acceso completo a la Biblia offline con búsqueda, compartir y guardar
+- **Audio TTS**: Lectura de devocionales y Biblia con síntesis de voz
+
+**🙏 Journey Personal**
+- **Favoritos**: Guarda tus devocionales, estudios bíblicos, Encuentros y versículos favoritos
+- **Tracking Espiritual**: Estadísticas de lectura y progreso
+- **Oración, Acción de Gracias y Testimonio**: Tu journey personal
+
+**☁️ Sincronización y Acceso**
+- **Modo Offline**: Acceso sin conexión a internet
+- **Respaldo en Google Drive**: Nunca pierdas tu progreso espiritual
+- **Notificaciones**: Recordatorios personalizables
+
+**🎨 Experiencia**
+- **Múltiples Temas**: Modo claro y oscuro, más opciones de tema adicionales
+- **Soporte Multilingüe**: Localización completa por idioma
+- **Compartir**: Comparte contenido inspirador con formato optimizado
+
+**💛 Comunidad y Apoyo**
+- **Apoya Nuestro Ministerio**: Soporte opcional dentro de la app para sostenerla y mantenerla gratuita para todos
+- **Sistema de Reseñas Inteligente**: Solicita reseñas en momentos óptimos
 
 ### 🛠️ Tecnologías
 
