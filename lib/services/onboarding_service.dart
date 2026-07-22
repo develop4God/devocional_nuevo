@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_models.dart';
+import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,14 +13,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Usage: `getService<OnboardingService>()`
 class OnboardingService {
   final RemoteConfigService _remoteConfigService;
+  final ISpiritualStatsService _statsService;
 
-  OnboardingService._({required RemoteConfigService remoteConfigService})
-      : _remoteConfigService = remoteConfigService;
+  OnboardingService._({
+    required RemoteConfigService remoteConfigService,
+    required ISpiritualStatsService statsService,
+  })  : _remoteConfigService = remoteConfigService,
+        _statsService = statsService;
 
   factory OnboardingService.create({
     required RemoteConfigService remoteConfigService,
+    required ISpiritualStatsService statsService,
   }) {
-    return OnboardingService._(remoteConfigService: remoteConfigService);
+    return OnboardingService._(
+      remoteConfigService: remoteConfigService,
+      statsService: statsService,
+    );
   }
 
   // Keys for SharedPreferences
@@ -27,9 +36,18 @@ class OnboardingService {
   static const String _onboardingVersionKey = 'onboarding_version';
   static const String _onboardingInProgressKey =
       'onboarding_in_progress'; // 🔧 NUEVO
+  static const String _onboardingBackfillAppliedKey =
+      'onboarding_backfill_applied';
 
   // Current onboarding version
   static const int _currentVersion = 1;
+
+  // Onboarding didn't exist for most of this app's lifetime, so no existing
+  // user has ever completed it. Reuses the same "engaged user" threshold
+  // already established by InAppReviewService's first-time milestone check
+  // (5+ devotionals read) to avoid showing onboarding to people who installed
+  // the app long before this flow existed.
+  static const int _existingUserDevocionalThreshold = 5;
 
   // Configuration/progress persistence keys
   static const String _configurationKey = 'onboarding_configuration';
@@ -49,10 +67,17 @@ class OnboardingService {
     return result;
   }
 
-  /// Check if onboarding has been completed
+  /// Check if onboarding has been completed.
+  ///
+  /// Side effect: on the first call ever made to this method (or any method
+  /// that calls it, e.g. [shouldShowOnboarding]), it also runs the one-time
+  /// [_backfillExistingUser] migration, which may write to SharedPreferences.
+  /// Safe to call from multiple sites — the write is idempotent and guarded.
   Future<bool> isOnboardingComplete() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+
+      await _serialized(() => _backfillExistingUser(prefs));
 
       // 🔧 NUEVO: Si el onboarding está en progreso, retornar false
       final inProgress = prefs.getBool(_onboardingInProgressKey) ?? false;
@@ -85,6 +110,31 @@ class OnboardingService {
     } catch (e) {
       debugPrint('❌ [OnboardingService] Error checking onboarding status: $e');
       return false;
+    }
+  }
+
+  /// One-time backfill for users who installed the app before onboarding
+  /// existed. If the device already has real reading history, mark
+  /// onboarding as complete so it isn't shown retroactively once
+  /// enable_onboarding_flow is turned on. Runs at most once per device,
+  /// guarded by [_onboardingBackfillAppliedKey].
+  Future<void> _backfillExistingUser(SharedPreferences prefs) async {
+    if (prefs.getBool(_onboardingBackfillAppliedKey) ?? false) return;
+
+    try {
+      final stats = await _statsService.getStats();
+      if (stats.totalDevocionalesRead >= _existingUserDevocionalThreshold) {
+        await prefs.setBool(_onboardingCompleteKey, true);
+        await prefs.setInt(_onboardingVersionKey, _currentVersion);
+        debugPrint(
+          '🔄 [OnboardingService] Backfilled onboarding_complete for '
+          'existing user (${stats.totalDevocionalesRead} devotionals read)',
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ [OnboardingService] Error backfilling existing user: $e');
+    } finally {
+      await prefs.setBool(_onboardingBackfillAppliedKey, true);
     }
   }
 
@@ -128,6 +178,11 @@ class OnboardingService {
   }
 
   /// Reset onboarding (for testing purposes)
+  ///
+  /// Deliberately does NOT remove [_onboardingBackfillAppliedKey]: on a
+  /// device with real reading history, clearing it would let
+  /// [_backfillExistingUser] immediately re-mark onboarding as complete on
+  /// the next check, defeating the point of a manual QA reset.
   Future<void> resetOnboarding() async {
     try {
       final prefs = await SharedPreferences.getInstance();
