@@ -361,31 +361,84 @@ class AnalyticsService implements IAnalyticsService {
     }
   }
 
-  /// Log Encounter page actions
+  /// Log when a user opens an encounter from the list
   ///
-  /// Event name: `encounter_action`
+  /// Event name: `encounter_opened`
   /// Parameters:
-  /// - `action`: The action performed (e.g., 'index_loaded', 'encounter_opened', 'card_viewed', 'encounter_completed')
-  /// - `encounter_id`: ID of the encounter (optional)
-  /// - `card_order`: Card order number (optional)
+  /// - `encounter_id`: ID of the encounter
   @override
-  Future<void> logEncounterAction({
-    required String action,
-    String? encounterId,
-    int? cardOrder,
-  }) async {
+  Future<void> logEncounterOpened({required String encounterId}) async {
     try {
-      debugPrint('🔥 [Encounter] Action: $action');
-      final parameters = <String, Object>{'action': action};
-      if (encounterId != null) parameters['encounter_id'] = encounterId;
-      if (cardOrder != null) parameters['card_order'] = cardOrder;
+      debugPrint('🔥 [Encounter] Opened: $encounterId');
       await analytics.logEvent(
-        name: 'encounter_action',
-        parameters: parameters,
+        name: 'encounter_opened',
+        parameters: {'encounter_id': encounterId},
       );
-      debugPrint('📊 Analytics: encounter_action event logged ($action)');
+      debugPrint('📊 Analytics: encounter_opened event logged ($encounterId)');
     } catch (e) {
-      _logAnalyticsError('encounter_action', e);
+      _logAnalyticsError('encounter_opened', e);
+      // Fail silently - analytics errors should not affect app functionality
+    }
+  }
+
+  /// Log when a user starts an encounter (past the intro screen)
+  ///
+  /// Event name: `encounter_started`
+  /// Parameters:
+  /// - `encounter_id`: ID of the encounter
+  @override
+  Future<void> logEncounterStarted({required String encounterId}) async {
+    try {
+      debugPrint('🔥 [Encounter] Started: $encounterId');
+      await analytics.logEvent(
+        name: 'encounter_started',
+        parameters: {'encounter_id': encounterId},
+      );
+      debugPrint('📊 Analytics: encounter_started event logged ($encounterId)');
+    } catch (e) {
+      _logAnalyticsError('encounter_started', e);
+      // Fail silently - analytics errors should not affect app functionality
+    }
+  }
+
+  /// Log when a user completes all cards in an encounter
+  ///
+  /// Event name: `encounter_completed`
+  /// Parameters:
+  /// - `encounter_id`: ID of the encounter
+  @override
+  Future<void> logEncounterCompleted({required String encounterId}) async {
+    try {
+      debugPrint('🔥 [Encounter] Completed: $encounterId');
+      await analytics.logEvent(
+        name: 'encounter_completed',
+        parameters: {'encounter_id': encounterId},
+      );
+      debugPrint(
+        '📊 Analytics: encounter_completed event logged ($encounterId)',
+      );
+    } catch (e) {
+      _logAnalyticsError('encounter_completed', e);
+      // Fail silently - analytics errors should not affect app functionality
+    }
+  }
+
+  /// Log when a user toggles the encounters list view
+  ///
+  /// Event name: `encounter_view_toggle`
+  /// Parameters:
+  /// - `view`: The view switched to (e.g., 'grid', 'list')
+  @override
+  Future<void> logEncounterViewToggle({required String view}) async {
+    try {
+      debugPrint('🔥 [Encounter] View toggled: $view');
+      await analytics.logEvent(
+        name: 'encounter_view_toggle',
+        parameters: {'view': view},
+      );
+      debugPrint('📊 Analytics: encounter_view_toggle event logged ($view)');
+    } catch (e) {
+      _logAnalyticsError('encounter_view_toggle', e);
       // Fail silently - analytics errors should not affect app functionality
     }
   }

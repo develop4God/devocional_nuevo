@@ -157,11 +157,16 @@ class _TestAnalyticsService extends AnalyticsService {
   _TestAnalyticsService() : super(analytics: null);
 
   @override
-  Future<void> logEncounterAction({
-    required String action,
-    String? encounterId,
-    int? cardOrder,
-  }) async {}
+  Future<void> logEncounterOpened({required String encounterId}) async {}
+
+  @override
+  Future<void> logEncounterStarted({required String encounterId}) async {}
+
+  @override
+  Future<void> logEncounterCompleted({required String encounterId}) async {}
+
+  @override
+  Future<void> logEncounterViewToggle({required String view}) async {}
 
   @override
   Future<void> logBottomBarAction({required String action}) async {}
