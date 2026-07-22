@@ -24,7 +24,7 @@ jobs:
           echo "⚙️  WORKFLOW FROM: main (always)"
 
       - name: Cache Flutter dependencies (optimized)
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ~/.pub-cache
