@@ -162,6 +162,7 @@ Future<void> setupServiceLocator() async {
   locator.registerLazySingleton<OnboardingService>(
     () => OnboardingService.create(
       remoteConfigService: locator.get<RemoteConfigService>(),
+      statsService: locator.get<ISpiritualStatsService>(),
     ),
   );
   locator.registerLazySingleton<http.Client>(() => http.Client());

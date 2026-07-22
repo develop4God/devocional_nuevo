@@ -2,13 +2,37 @@
 library;
 
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_models.dart';
+import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../helpers/test_helpers.dart';
 import 'remote_config_service_test.mocks.dart';
+
+/// Fake stats service with a settable devotional read count, so tests can
+/// simulate an "existing user" (>=5 devotionals read) for the onboarding
+/// backfill without depending on the shared [FakeSpiritualStatsService],
+/// which always returns a fixed zero-value [SpiritualStats].
+class _FakeStatsServiceWithCount extends FakeSpiritualStatsService {
+  _FakeStatsServiceWithCount(this.totalDevocionalesRead);
+
+  final int totalDevocionalesRead;
+
+  @override
+  Future<SpiritualStats> getStats() async =>
+      SpiritualStats(totalDevocionalesRead: totalDevocionalesRead);
+}
+
+/// Fake stats service whose [getStats] always throws, to exercise the
+/// backfill's error path.
+class _ThrowingStatsService extends FakeSpiritualStatsService {
+  @override
+  Future<SpiritualStats> getStats() async =>
+      throw Exception('stats read failed');
+}
 
 void main() {
   group('OnboardingService.shouldShowOnboarding', () {
@@ -30,6 +54,7 @@ void main() {
       await remoteConfigService.initialize();
       service = OnboardingService.create(
         remoteConfigService: remoteConfigService,
+        statsService: FakeSpiritualStatsService(),
       );
     });
 
@@ -39,6 +64,7 @@ void main() {
       );
       final unreadyService = OnboardingService.create(
         remoteConfigService: unreadyRemoteConfigService,
+        statsService: FakeSpiritualStatsService(),
       );
 
       expect(await unreadyService.shouldShowOnboarding(), false);
@@ -84,6 +110,132 @@ void main() {
     });
   });
 
+  group('OnboardingService existing-user backfill', () {
+    late MockFirebaseRemoteConfig mockRemoteConfig;
+    late RemoteConfigService remoteConfigService;
+
+    Future<OnboardingService> buildService(int totalDevocionalesRead) async {
+      SharedPreferences.setMockInitialValues({});
+      mockRemoteConfig = MockFirebaseRemoteConfig();
+      remoteConfigService = RemoteConfigService.create(
+        remoteConfig: mockRemoteConfig,
+      );
+      when(mockRemoteConfig.setDefaults(any)).thenAnswer((_) => Future.value());
+      when(
+        mockRemoteConfig.setConfigSettings(any),
+      ).thenAnswer((_) => Future.value());
+      when(mockRemoteConfig.fetchAndActivate()).thenAnswer((_) async => true);
+      await remoteConfigService.initialize();
+      when(
+        mockRemoteConfig.getBool('enable_onboarding_flow'),
+      ).thenReturn(true);
+
+      return OnboardingService.create(
+        remoteConfigService: remoteConfigService,
+        statsService: _FakeStatsServiceWithCount(totalDevocionalesRead),
+      );
+    }
+
+    test(
+      'marks onboarding complete for a device with 5+ devotionals read',
+      () async {
+        final service = await buildService(5);
+
+        expect(await service.isOnboardingComplete(), true);
+        expect(await service.shouldShowOnboarding(), false);
+      },
+    );
+
+    test(
+      'does not mark onboarding complete for a device with under 5 '
+      'devotionals read',
+      () async {
+        final service = await buildService(4);
+
+        expect(await service.isOnboardingComplete(), false);
+        expect(await service.shouldShowOnboarding(), true);
+      },
+    );
+
+    test(
+      'backfill runs only once — later reading history does not '
+      'retroactively complete onboarding after the first check',
+      () async {
+        final service = await buildService(0);
+
+        // First check: under threshold, not completed, backfill flag set.
+        expect(await service.isOnboardingComplete(), false);
+
+        // Simulate the user reading past the threshold afterwards; the
+        // one-time backfill must not run again and flip this to true.
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getBool('onboarding_backfill_applied'), true);
+      },
+    );
+
+    test(
+      'a failing stats read during backfill does not propagate, and the '
+      'backfill is still marked applied (no retry on transient errors)',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final throwingRemoteConfig = MockFirebaseRemoteConfig();
+        final throwingRemoteConfigService = RemoteConfigService.create(
+          remoteConfig: throwingRemoteConfig,
+        );
+        when(
+          throwingRemoteConfig.setDefaults(any),
+        ).thenAnswer((_) => Future.value());
+        when(
+          throwingRemoteConfig.setConfigSettings(any),
+        ).thenAnswer((_) => Future.value());
+        when(
+          throwingRemoteConfig.fetchAndActivate(),
+        ).thenAnswer((_) async => true);
+        await throwingRemoteConfigService.initialize();
+        when(
+          throwingRemoteConfig.getBool('enable_onboarding_flow'),
+        ).thenReturn(true);
+
+        final service = OnboardingService.create(
+          remoteConfigService: throwingRemoteConfigService,
+          statsService: _ThrowingStatsService(),
+        );
+
+        // Exception from getStats() must not propagate out of the check.
+        expect(await service.isOnboardingComplete(), false);
+
+        // The backfill must still be marked applied so it doesn't retry
+        // forever on a device with a permanently failing stats read.
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getBool('onboarding_backfill_applied'), true);
+        expect(prefs.getBool('onboarding_complete'), isNot(true));
+      },
+    );
+
+    test(
+      'resetOnboarding preserves the backfill-applied flag so a QA reset '
+      'on a device with real reading history is not immediately '
+      're-backfilled to complete',
+      () async {
+        final service = await buildService(5);
+
+        // Triggers the backfill and marks it applied.
+        await service.isOnboardingComplete();
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getBool('onboarding_backfill_applied'), true);
+
+        await service.resetOnboarding();
+
+        expect(
+          prefs.getBool('onboarding_backfill_applied'),
+          true,
+          reason: 'resetOnboarding must not clear the backfill flag',
+        );
+        expect(await service.isOnboardingComplete(), false);
+      },
+    );
+  });
+
   group('OnboardingService configuration/progress persistence', () {
     late MockFirebaseRemoteConfig mockRemoteConfig;
     late RemoteConfigService remoteConfigService;
@@ -97,6 +249,7 @@ void main() {
       );
       service = OnboardingService.create(
         remoteConfigService: remoteConfigService,
+        statsService: FakeSpiritualStatsService(),
       );
     });
 
