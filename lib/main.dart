@@ -25,6 +25,7 @@ import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
@@ -253,6 +254,7 @@ void main() async {
               repository: getService<EncounterRepository>(),
               progressService: getService<IEncounterProgressService>(),
               cacheManager: getService<BaseCacheManager>(),
+              analyticsService: getService<IAnalyticsService>(),
             ),
           ),
         BlocProvider(

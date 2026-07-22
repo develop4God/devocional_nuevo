@@ -6,6 +6,7 @@ import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/i_encounter_progress_service.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
   final EncounterRepository repository;
   final IEncounterProgressService progressService;
   final BaseCacheManager cacheManager;
+  final IAnalyticsService analyticsService;
 
   bool _disposed = false;
 
@@ -26,6 +28,7 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
     required this.repository,
     required this.progressService,
     required this.cacheManager,
+    required this.analyticsService,
   }) : super(EncounterInitial()) {
     on<LoadEncounterIndex>(_onLoadEncounterIndex);
     on<LoadEncounterStudy>(_onLoadEncounterStudy);
@@ -219,6 +222,11 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
     if (currentState is EncounterLoaded) {
       // Persist to SharedPreferences first
       await progressService.markCompleted(event.id);
+
+      await analyticsService.logEncounterAction(
+        action: 'encounter_completed',
+        encounterId: event.id,
+      );
 
       final updated = Set<String>.from(currentState.completedIds);
       updated.add(event.id);

@@ -10,6 +10,7 @@ import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/services/encounter_progress_service.dart';
+import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -20,6 +21,8 @@ class MockEncounterProgressService extends Mock
     implements EncounterProgressService {}
 
 class MockBaseCacheManager extends Mock implements BaseCacheManager {}
+
+class MockAnalyticsService extends Mock implements IAnalyticsService {}
 
 // --- Helpers ---
 
@@ -54,16 +57,25 @@ void main() {
   late MockEncounterRepository mockRepository;
   late MockEncounterProgressService mockProgressService;
   late MockBaseCacheManager mockCacheManager;
+  late MockAnalyticsService mockAnalyticsService;
 
   setUp(() {
     mockRepository = MockEncounterRepository();
     mockProgressService = MockEncounterProgressService();
     mockCacheManager = MockBaseCacheManager();
+    mockAnalyticsService = MockAnalyticsService();
     when(
       () => mockProgressService.loadCompletedIds(),
     ).thenAnswer((_) async => {});
     when(
       () => mockProgressService.markCompleted(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockAnalyticsService.logEncounterAction(
+        action: any(named: 'action'),
+        encounterId: any(named: 'encounterId'),
+        cardOrder: any(named: 'cardOrder'),
+      ),
     ).thenAnswer((_) async {});
   });
 
@@ -80,6 +92,7 @@ void main() {
           repository: mockRepository,
           progressService: mockProgressService,
           cacheManager: mockCacheManager,
+          analyticsService: mockAnalyticsService,
         );
       },
       act: (bloc) => bloc.add(LoadEncounterIndex()),
@@ -96,6 +109,7 @@ void main() {
           repository: mockRepository,
           progressService: mockProgressService,
           cacheManager: mockCacheManager,
+          analyticsService: mockAnalyticsService,
         );
       },
       act: (bloc) => bloc.add(LoadEncounterIndex()),
@@ -112,6 +126,7 @@ void main() {
           repository: mockRepository,
           progressService: mockProgressService,
           cacheManager: mockCacheManager,
+          analyticsService: mockAnalyticsService,
         );
       },
       act: (bloc) => bloc.add(LoadEncounterIndex()),
@@ -134,6 +149,7 @@ void main() {
           repository: mockRepository,
           progressService: mockProgressService,
           cacheManager: mockCacheManager,
+          analyticsService: mockAnalyticsService,
         );
       },
       act: (bloc) => bloc.add(LoadEncounterIndex()),
@@ -167,6 +183,7 @@ void main() {
           repository: mockRepository,
           progressService: mockProgressService,
           cacheManager: mockCacheManager,
+          analyticsService: mockAnalyticsService,
         );
       },
       seed: () => EncounterLoaded(index: [_fakeEntry()]),
@@ -195,6 +212,7 @@ void main() {
           repository: mockRepository,
           progressService: mockProgressService,
           cacheManager: mockCacheManager,
+          analyticsService: mockAnalyticsService,
         );
       },
       seed: () => EncounterLoaded(
@@ -225,6 +243,7 @@ void main() {
         repository: mockRepository,
         progressService: mockProgressService,
         cacheManager: mockCacheManager,
+        analyticsService: mockAnalyticsService,
       ),
       seed: () => EncounterLoaded(index: [_fakeEntry()]),
       act: (bloc) => bloc.add(CompleteEncounter('test_001')),
@@ -235,8 +254,15 @@ void main() {
           true,
         ),
       ],
-      verify: (_) =>
-          verify(() => mockProgressService.markCompleted('test_001')).called(1),
+      verify: (_) {
+        verify(() => mockProgressService.markCompleted('test_001')).called(1);
+        verify(
+          () => mockAnalyticsService.logEncounterAction(
+            action: 'encounter_completed',
+            encounterId: 'test_001',
+          ),
+        ).called(1);
+      },
     );
 
     blocTest<EncounterBloc, EncounterState>(
@@ -245,6 +271,7 @@ void main() {
         repository: mockRepository,
         progressService: mockProgressService,
         cacheManager: mockCacheManager,
+        analyticsService: mockAnalyticsService,
       ),
       seed: () => EncounterLoaded(index: [_fakeEntry()]),
       act: (bloc) async {
@@ -328,6 +355,7 @@ void main() {
           repository: mockRepository,
           progressService: mockProgressService,
           cacheManager: mockCacheManager,
+          analyticsService: mockAnalyticsService,
         );
       },
       act: (bloc) => bloc.add(LoadEncounterIndex()),
@@ -355,6 +383,7 @@ void main() {
           repository: mockRepository,
           progressService: mockProgressService,
           cacheManager: mockCacheManager,
+          analyticsService: mockAnalyticsService,
         );
       },
       act: (bloc) => bloc.add(LoadEncounterIndex()),
