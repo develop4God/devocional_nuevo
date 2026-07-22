@@ -71,10 +71,8 @@ void main() {
       () => mockProgressService.markCompleted(any()),
     ).thenAnswer((_) async {});
     when(
-      () => mockAnalyticsService.logEncounterAction(
-        action: any(named: 'action'),
+      () => mockAnalyticsService.logEncounterCompleted(
         encounterId: any(named: 'encounterId'),
-        cardOrder: any(named: 'cardOrder'),
       ),
     ).thenAnswer((_) async {});
   });
@@ -257,8 +255,7 @@ void main() {
       verify: (_) {
         verify(() => mockProgressService.markCompleted('test_001')).called(1);
         verify(
-          () => mockAnalyticsService.logEncounterAction(
-            action: 'encounter_completed',
+          () => mockAnalyticsService.logEncounterCompleted(
             encounterId: 'test_001',
           ),
         ).called(1);
