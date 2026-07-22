@@ -276,16 +276,31 @@ jobs:
 
           summary = f"{icon} Coverage: {pct}% ({h}/{total} lines)"
 
-          dirs = subprocess.run(
-            ['lcov', '--ignore-errors', 'unused', '--list', 'coverage/lcov_filtered.info'],
-            capture_output=True, text=True
-          ).stdout
-          lines = [l for l in dirs.splitlines() if '%' in l]
-          low = [(l.split('|')[0].strip(), l.split('|')[1].strip())
-                 for l in lines if re.search(r'[\d.]+', l.split('|')[1]) and
-                 float(re.search(r'[\d.]+', l.split('|')[1]).group()) < 50]
-          low.sort(key=lambda x: float(re.search(r'[\d.]+', x[1]).group()))
-          top3 = '\n'.join(f"  🔴 {d}: {p}" for d, p in low[:3])
+          # Parse the .info file directly instead of `lcov --list`, whose
+          # percentage column misreports 0.0% for some files under lcov 2.0-1
+          # even though the underlying LF:/LH: data is correct.
+          per_file = {}
+          cur = None
+          with open('coverage/lcov_filtered.info') as f:
+              for line in f:
+                  line = line.strip()
+                  if line.startswith('SF:'):
+                      cur = line[3:]
+                  elif line.startswith('LF:') and cur:
+                      per_file.setdefault(cur, {})['lf'] = int(line[3:])
+                  elif line.startswith('LH:') and cur:
+                      per_file.setdefault(cur, {})['lh'] = int(line[3:])
+
+          low = []
+          for path, counts in per_file.items():
+              lf, lh = counts.get('lf', 0), counts.get('lh', 0)
+              if lf == 0:
+                  continue
+              file_pct = (lh / lf) * 100
+              if file_pct < 50:
+                  low.append((path, file_pct, lf))
+          low.sort(key=lambda x: x[1])
+          top3 = '\n'.join(f"  🔴 {d}: {p:.1f}%   {n}" for d, p, n in low[:3])
           pain = f"Top gaps:\n{top3}" if top3 else "No critical gaps below 50%"
 
           output = f"{summary}\n{pain}"
