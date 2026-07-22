@@ -61,7 +61,7 @@ jobs:
           cache: true
 
       - name: 📦 Cache dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ~/.pub-cache
@@ -203,7 +203,7 @@ jobs:
           cache: true
 
       - name: 📦 Cache dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ~/.pub-cache
@@ -235,7 +235,7 @@ jobs:
 
       - name: 📋 Upload test output
         if: success()
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: test-output
           path: test_output.txt
@@ -315,7 +315,7 @@ jobs:
 
       - name: 📋 Upload coverage artifacts
         if: success()
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: coverage-report
           path: coverage/
