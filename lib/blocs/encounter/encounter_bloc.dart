@@ -223,10 +223,7 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
       // Persist to SharedPreferences first
       await progressService.markCompleted(event.id);
 
-      await analyticsService.logEncounterAction(
-        action: 'encounter_completed',
-        encounterId: event.id,
-      );
+      await analyticsService.logEncounterCompleted(encounterId: event.id);
 
       final updated = Set<String>.from(currentState.completedIds);
       updated.add(event.id);
