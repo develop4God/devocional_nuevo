@@ -47,5 +47,25 @@ if ! dart analyze "$REPO_ROOT" 2>&1; then
   exit 1
 fi
 
+# ── 3. GitHub Actions workflow lint — only staged workflow files ──────────────
+mapfile -d '' -t STAGED_WORKFLOWS < <(git -c core.quotepath=false diff --cached --name-only --diff-filter=ACMR -z \
+  | grep -zE '^\.github/workflows/.*\.ya?ml$' \
+  || true)
+
+if [[ ${#STAGED_WORKFLOWS[@]} -eq 0 ]]; then
+  echo "[pre-commit] ℹ️  No staged workflow files — skipping actionlint."
+elif ! command -v actionlint &>/dev/null; then
+  echo "[pre-commit] ⚠️  actionlint not found in PATH — skipping workflow lint." >&2
+  echo "[pre-commit]    Install: https://github.com/rhysd/actionlint" >&2
+else
+  STAGED_WORKFLOW_PATHS=("${STAGED_WORKFLOWS[@]/#/$REPO_ROOT/}")
+  if ! actionlint "${STAGED_WORKFLOW_PATHS[@]}"; then
+    echo "" >&2
+    echo "[pre-commit] ❌ actionlint found issues in staged workflow files." >&2
+    exit 1
+  fi
+  echo "[pre-commit] ✅ Workflow lint OK"
+fi
+
 echo "[pre-commit] ✅ Fast checks passed — commit allowed."
 exit 0
