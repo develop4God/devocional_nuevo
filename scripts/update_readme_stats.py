@@ -56,8 +56,12 @@ def build_test_tree_block() -> str:
     lines = ["test/"]
     for i, d in enumerate(dirs):
         connector = "└──" if i == len(dirs) - 1 else "├──"
-        count = len(list(d.rglob("*_test.dart")))
-        lines.append(f"{connector} {d.name}/  ({count} tests)")
+        test_count = len(list(d.rglob("*_test.dart")))
+        if test_count > 0:
+            lines.append(f"{connector} {d.name}/  ({test_count} tests)")
+        else:
+            file_count = len(list(d.rglob("*.dart")))
+            lines.append(f"{connector} {d.name}/  ({file_count} files)")
     return "\n".join(lines)
 
 
@@ -179,6 +183,11 @@ def main():
             content,
         )
         content = re.sub(
+            r"[0-9.]+% de cobertura\*\* \([0-9,]+ de [0-9,]+ líneas\)",
+            f"{coverage_pct}% de cobertura** ({hit_fmt} de {total_fmt} líneas)",
+            content,
+        )
+        content = re.sub(
             r"\| Test Coverage(\s*)\| [0-9.]+% \([0-9,]+/[0-9,]+ lines\) \|",
             lambda m: f"| Test Coverage{m.group(1)}| {coverage_pct}% ({hit_fmt}/{total_fmt} lines) |",
             content,
@@ -202,6 +211,11 @@ def main():
             content,
         )
         content = re.sub(
+            r"\*\*[0-9,]+ tests\*\* con 100% de tasa de aprobación",
+            f"**{test_count_fmt} tests** con 100% de tasa de aprobación",
+            content,
+        )
+        content = re.sub(
             r"\| Total Tests(\s*)\| [0-9,]+ tests \(100% passing ✅\) \|",
             lambda m: f"| Total Tests{m.group(1)}| {test_count_fmt} tests (100% passing ✅) |",
             content,
@@ -215,6 +229,11 @@ def main():
     content = re.sub(
         r"\*\*[0-9,]+ test files\*\*",
         f"**{test_files} test files**",
+        content,
+    )
+    content = re.sub(
+        r"\*\*[0-9,]+ archivos de prueba\*\*",
+        f"**{test_files} archivos de prueba**",
         content,
     )
     content = re.sub(
