@@ -2,7 +2,7 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.9-blue.svg)](https://flutter.dev/)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Tests](https://img.shields.io/badge/Tests-3157+-brightgreen.svg)](#-testing--pruebas)
+[![Tests](https://img.shields.io/badge/Tests-1457+-brightgreen.svg)](#-testing--pruebas)
 [![Coverage](https://img.shields.io/badge/Coverage-51.9%25-yellow.svg)](#-testing--pruebas)
 [![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](#)
 
@@ -63,7 +63,7 @@ favorites, spiritual tracking, and intelligent review system.
 |---------------------|------------------------------|
 | Source Files (lib/) | 242 Dart files               |
 | Test Files          | 241 test files               |
-| Total Tests         | 3,157 tests (100% passing ✅) |
+| Total Tests         | 1,457 tests (100% passing ✅) |
 | Test Coverage       | 51.9% (10,725/20,666 lines)   |
 | Supported Languages | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Static Analysis     | ✅ All checks passing         |
@@ -185,7 +185,7 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 |------------------------|------------------------------------|
 | Archivos Fuente (lib/) | 242 archivos Dart                  |
 | Archivos de Test       | 241 archivos                       |
-| Total de Tests         | 3,157 tests (100% aprobados ✅)     |
+| Total de Tests         | 1,457 tests (100% aprobados ✅)     |
 | Cobertura de Tests     | 51.9% (10,725/20,666 líneas)        |
 | Idiomas Soportados     | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Análisis Estático      | ✅ Todas las verificaciones pasando |
