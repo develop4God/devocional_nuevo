@@ -98,6 +98,87 @@ def build_language_list(existing_list: str, actual_codes: list[str]) -> str:
     return ", ".join(existing_codes + missing)
 
 
+def extract_links(content: str) -> list[tuple[str, str]]:
+    """Returns (text, target) pairs for every markdown link and bare URL in
+    the README. Badge images (![...](...)) are skipped — their link target
+    is the badge SVG service, not a doc/page worth validating here."""
+    links = []
+    for m in re.finditer(r"(?<!!)\[([^\]]*)\]\(([^)]+)\)", content):
+        links.append((m.group(1), m.group(2)))
+    for m in re.finditer(r"(?<![(\[])https?://[^\s)]+", content):
+        links.append((m.group(0), m.group(0)))
+    # Bare "www.example.com" mentions with no scheme and no markdown link
+    # syntax around them — easy to write, easy to forget has no http(s)://
+    # prefix, and would otherwise silently never get checked.
+    for m in re.finditer(r"(?<![\w/.\-])www\.[a-zA-Z0-9\-]+\.[a-zA-Z]{2,}\b", content):
+        links.append((m.group(0), "https://" + m.group(0)))
+    return links
+
+
+def github_slugify(heading: str) -> str:
+    """Mimics GitHub's markdown heading-anchor algorithm: lowercase, drop
+    emoji glyphs but KEEP variation-selector characters (U+FE0F etc — they're
+    invisible but GitHub's real anchors retain them, confirmed against
+    rendered HTML: "### 🏗️ Architecture" produces id="...-️-architecture",
+    href="#️-architecture", not "#-architecture" or "#architecture"), strip
+    remaining punctuation, spaces to hyphens."""
+    s = heading.lower()
+    s = "".join(
+        "" if (0x1F000 <= ord(c) <= 0x1FFFF or 0x2600 <= ord(c) <= 0x27BF)
+        else c
+        for c in s
+    )
+    s = re.sub(r"[^\w\s\-︀-️]", "", s)
+    s = re.sub(r"\s+", "-", s.strip())
+    return s
+
+
+def check_links(content: str) -> list[str]:
+    """Validates every link in the README: internal paths must exist on
+    disk, anchors must match a real heading, external URLs must resolve
+    with a live HTTP request. Returns a list of human-readable problems;
+    empty means everything checked out."""
+    import urllib.error
+    import urllib.parse
+    import urllib.request
+
+    problems = []
+    headings = set()
+    for m in re.finditer(r"^#{1,6}\s+(.+)$", content, re.MULTILINE):
+        headings.add(github_slugify(m.group(1)))
+
+    seen = set()
+    for text, target in extract_links(content):
+        if target in seen:
+            continue
+        seen.add(target)
+
+        if target.startswith("#"):
+            anchor = target[1:].lower()
+            if anchor not in headings:
+                problems.append(f"Broken anchor [{text}]({target}) — no matching heading")
+        elif target.startswith("http://") or target.startswith("https://"):
+            if urllib.parse.urlparse(target).hostname == "img.shields.io":
+                continue  # badge service, not a doc link
+            try:
+                req = urllib.request.Request(target, method="HEAD",
+                                              headers={"User-Agent": "Mozilla/5.0"})
+                urllib.request.urlopen(req, timeout=10)
+            except urllib.error.HTTPError as e:
+                if e.code in (403, 405):
+                    continue  # some hosts block HEAD; not a real 404
+                problems.append(f"Broken link [{text}]({target}) — HTTP {e.code}")
+            except Exception as e:
+                problems.append(f"Broken link [{text}]({target}) — {e}")
+        else:
+            clean_target = target.split("#")[0]
+            local_path = (README_PATH.parent / clean_target).resolve()
+            if not local_path.exists():
+                problems.append(f"Broken local link [{text}]({target}) — path does not exist")
+
+    return problems
+
+
 def run_lcov_summary(info_path: Path) -> tuple[str, str, str]:
     result = subprocess.run(
         ["lcov", "--ignore-errors", "unused", "--summary", str(info_path)],
@@ -128,7 +209,24 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--coverage-info", type=Path, default=None)
     parser.add_argument("--test-count", type=int, default=None)
+    parser.add_argument(
+        "--check-links",
+        action="store_true",
+        help="Validate every link in README.md (internal paths, anchors, "
+             "external URLs) and exit non-zero if any are broken. Does not "
+             "modify the file.",
+    )
     args = parser.parse_args()
+
+    if args.check_links:
+        problems = check_links(README_PATH.read_text())
+        if problems:
+            print(f"❌ {len(problems)} broken link(s) found in README.md:\n")
+            for p in problems:
+                print(f"  - {p}")
+            raise SystemExit(1)
+        print("✅ All README.md links are valid.")
+        return
 
     lib_files = count_dart_files_recursive(REPO_ROOT / "lib")
     test_files = count_test_files_recursive(REPO_ROOT / "test")
@@ -272,9 +370,21 @@ def main():
         content,
     )
 
+    # Reverse validation: check the generated content BEFORE writing it to
+    # disk. A bug in any substitution above (bad regex, wrong slug, stray
+    # broken link) should never silently ship — fail loudly here instead.
+    problems = check_links(content)
+    if problems:
+        print(f"❌ Refusing to write README.md — {len(problems)} broken link(s) "
+              f"in the generated content:\n")
+        for p in problems:
+            print(f"  - {p}")
+        raise SystemExit(1)
+
     README_PATH.write_text(content)
     print(f"lib files: {lib_files}, test files: {test_files}, languages: {languages}")
     print("README.md stats updated.")
+    print("✅ Reverse validation passed — no broken links in generated content.")
 
 
 if __name__ == "__main__":
