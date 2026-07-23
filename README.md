@@ -195,11 +195,11 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 La aplicación sigue una arquitectura **híbrida Provider + Patrón BLoC** con clara separación de
 responsabilidades:
 
-See [Architecture](#-architecture) above (folder structure is language-agnostic).
+See the Architecture section above (folder structure is language-agnostic).
 
 ### 🧪 Testing / Pruebas
 
-See [Test Structure](#-testing) above (folder structure is language-agnostic).
+See the Testing section above (folder structure is language-agnostic).
 
 ### 📱 Requisitos
 
@@ -308,7 +308,7 @@ Para el texto completo de la licencia, ver el archivo [LICENSE](./LICENSE) o vis
 ## 📬 Contact / Contacto
 
 Questions or support / Preguntas o soporte: develop4god@gmail.com
-Website / Sitio web: www.develop4God.com
+Website / Sitio web: https://www.develop4God.com
 
 ---
 
