@@ -187,7 +187,17 @@ jobs:
           # repo — run it against a throwaway copy and fail if it would have
           # changed anything, so drift must be fixed and reviewed locally.
           cp -r i18n /tmp/i18n_check
-          dart run lib/utils/translation_validator.dart > /tmp/translation_report.txt 2>&1 || true
+          set +e
+          dart run lib/utils/translation_validator.dart > /tmp/translation_report.txt 2>&1
+          VALIDATOR_EXIT=$?
+          set -e
+          if [ "$VALIDATOR_EXIT" -ne 0 ]; then
+            echo "❌ translation_validator.dart crashed (exit $VALIDATOR_EXIT) — not a sync issue, a real error:"
+            echo ""
+            cat /tmp/translation_report.txt
+            git checkout -- i18n
+            exit 1
+          fi
           if ! diff -rq /tmp/i18n_check i18n > /tmp/i18n_diff.txt; then
             echo "❌ Translation files are out of sync with i18n/en.json:"
             echo ""
@@ -200,6 +210,9 @@ jobs:
           fi
           git checkout -- i18n
           echo "✅ All translation files in sync with i18n/en.json"
+
+      - name: 🔗 Validate README links
+        run: python3 scripts/update_readme_stats.py --check-links
 
       - name: 📋 Check pub.dev score
         if: success()
@@ -403,17 +416,17 @@ jobs:
   comment:
     name: 💬 PR Comment
     runs-on: ubuntu-latest
-    needs: [ gate ]
+    needs: [ gate, analyze, test ]
     if: github.event_name == 'pull_request' && needs.gate.result == 'success'
     steps:
       - name: 📥 Download coverage
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v6.0.0
         with:
           name: coverage-report
         continue-on-error: true
 
       - name: 💬 Comment PR
-        uses: actions/github-script@v7.0.1
+        uses: actions/github-script@v8
         with:
           script: |
             const analyzeStatus = '${{ needs.analyze.result }}';
