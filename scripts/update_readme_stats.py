@@ -139,6 +139,7 @@ def check_links(content: str) -> list[str]:
     with a live HTTP request. Returns a list of human-readable problems;
     empty means everything checked out."""
     import urllib.error
+    import urllib.parse
     import urllib.request
 
     problems = []
@@ -157,7 +158,7 @@ def check_links(content: str) -> list[str]:
             if anchor not in headings:
                 problems.append(f"Broken anchor [{text}]({target}) — no matching heading")
         elif target.startswith("http://") or target.startswith("https://"):
-            if "img.shields.io" in target:
+            if urllib.parse.urlparse(target).hostname == "img.shields.io":
                 continue  # badge service, not a doc link
             try:
                 req = urllib.request.Request(target, method="HEAD",
