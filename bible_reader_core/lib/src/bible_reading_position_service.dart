@@ -45,6 +45,12 @@ class BibleReadingPositionService {
       return null;
     }
 
+    // The English bible DB was renamed KJV → KJ2000 (the SQLite content was
+    // always King James 2000). Remap positions saved before the rename so
+    // users keep their reading position.
+    const legacyVersionFiles = {'KJV_en.SQLite3': 'KJ2000_en.SQLite3'};
+    final resolvedVersion = legacyVersionFiles[version] ?? version;
+
     // If a previously saved position points to a deuterocanonical book
     // (possible for LU17/MBB05 users before the canon filter was added),
     // reset silently to Genesis ch.1 rather than crashing navigation.
@@ -59,7 +65,7 @@ class BibleReadingPositionService {
       'bookNumber': safeBookNumber,
       'chapter': safeChapter,
       'verse': verse ?? 1,
-      'version': version,
+      'version': resolvedVersion,
       'languageCode': languageCode,
     };
   }

@@ -180,8 +180,15 @@ void main() {
 
     test('English versions expand correctly', () {
       final expansions = BibleTextFormatter.getBibleVersionExpansions('en');
-      expect(expansions['KJV'], 'King James Version');
+      expect(expansions['KJ2000'], 'King James two thousand');
       expect(expansions['NIV'], 'New International Version');
+    });
+
+    test('legacy KJV code expands to King James 2000 name', () {
+      // Devotional JSON content still labels verses KJV until migrated;
+      // TTS must speak the actual bible version (King James 2000).
+      final expansions = BibleTextFormatter.getBibleVersionExpansions('en');
+      expect(expansions['KJV'], 'King James two thousand');
     });
 
     test('Portuguese versions expand correctly', () {
@@ -307,11 +314,20 @@ void main() {
 
     test('normalizes complete English reference', () {
       final result = BibleTextFormatter.normalizeTtsText(
+        '1 Peter 3:16 KJ2000',
+        'en',
+      );
+      expect(result, contains('First Peter'));
+      expect(result, contains('King James two thousand'));
+    });
+
+    test('normalizes English reference with legacy KJV label', () {
+      final result = BibleTextFormatter.normalizeTtsText(
         '1 Peter 3:16 KJV',
         'en',
       );
       expect(result, contains('First Peter'));
-      expect(result, contains('King James Version'));
+      expect(result, contains('King James two thousand'));
     });
 
     test('normalizes complete Chinese reference', () {
@@ -471,13 +487,13 @@ void main() {
 
     test('English: ordinal + chapter:verse + version expansion', () {
       final result = BibleTextFormatter.normalizeTtsText(
-        '1 Peter 3:16 KJV',
+        '1 Peter 3:16 KJ2000',
         'en',
       );
       expect(result, contains('First Peter'));
       expect(result, contains('chapter'));
       expect(result, contains('verse'));
-      expect(result, contains('King James Version'));
+      expect(result, contains('King James two thousand'));
     });
 
     test('Portuguese: ordinal + chapter:verse + version expansion', () {
@@ -660,7 +676,7 @@ void main() {
         final result = BibleTextFormatter.normalizeTtsText(
           'God ⓐ said: "Let there be light ⓑ."',
           'en',
-          'KJV',
+          'KJ2000',
         );
         expect(result, isNot(contains('ⓐ')));
         expect(result, isNot(contains('ⓑ')));

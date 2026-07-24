@@ -150,7 +150,7 @@ void main() {
       'CNVS_zh.SQLite3.gz',
       'CUV1919_zh.SQLite3.gz',
       'JCB_ja.SQLite3.gz',
-      'KJV_en.SQLite3.gz',
+      'KJ2000_en.SQLite3.gz',
       'LSG1910_fr.SQLite3.gz',
       'NIV_en.SQLite3.gz',
       'NVI_es.SQLite3.gz',

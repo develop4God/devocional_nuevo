@@ -56,11 +56,11 @@ void main() {
 
     test('should create BibleVersion with isDownloaded flag', () {
       final version = BibleVersion(
-        name: 'KJV',
+        name: 'KJ2000',
         language: 'English',
         languageCode: 'en',
-        assetPath: 'assets/biblia/KJV_en.SQLite3',
-        dbFileName: 'KJV_en.SQLite3',
+        assetPath: 'assets/biblia/KJ2000_en.SQLite3',
+        dbFileName: 'KJ2000_en.SQLite3',
         isDownloaded: false,
       );
 

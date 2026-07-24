@@ -286,7 +286,10 @@ class BibleTextFormatter {
         };
       case 'en':
         return {
-          'KJV': 'King James Version',
+          'KJ2000': 'King James two thousand',
+          // Legacy alias: devotional JSON content still labels verses KJV
+          // until Devocionales-json migrates KJV → KJ2000.
+          'KJV': 'King James two thousand',
           'NIV': 'New International Version',
           'ESV': 'English Standard Version',
         };

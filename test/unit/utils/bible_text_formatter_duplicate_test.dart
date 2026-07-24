@@ -165,7 +165,9 @@ void main() {
       final englishExpansions = BibleTextFormatter.getBibleVersionExpansions(
         'en',
       );
-      expect(englishExpansions['KJV'], equals('King James Version'));
+      expect(englishExpansions['KJ2000'], equals('King James two thousand'));
+      // Legacy alias until devotional JSON migrates KJV → KJ2000
+      expect(englishExpansions['KJV'], equals('King James two thousand'));
       expect(englishExpansions['NIV'], equals('New International Version'));
 
       // Test Portuguese expansions

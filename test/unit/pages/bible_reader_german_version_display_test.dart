@@ -123,13 +123,13 @@ void main() {
       );
     });
 
-    test('English KJV picker label remains correct', () {
+    test('English KJ2000 picker label remains correct', () {
       final version = _makeVersion(
-        name: 'King James Version (KJV)',
+        name: 'King James 2000 (KJ2000)',
         languageCode: 'en',
-        dbFileName: 'KJV_en.SQLite3',
+        dbFileName: 'KJ2000_en.SQLite3',
       );
-      expect(versionPickerLabel(version), equals('King James Version · KJV'));
+      expect(versionPickerLabel(version), equals('King James 2000 · KJ2000'));
     });
 
     test('French LSG1910 picker label remains correct', () {

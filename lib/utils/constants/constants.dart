@@ -13,6 +13,19 @@ class Constants {
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/Devocional_year_$year.json';
   }
 
+  // TEMPORARY: the devotional JSON repo (Devocionales-json) still uses the
+  // legacy KJV code, while the app now uses KJ2000 (the English SQLite bible
+  // content is King James 2000). Remove this map once the devotional JSON
+  // files and index.json migrate KJV → KJ2000.
+  static const Map<String, String> legacyDevotionalApiVersionCodes = {
+    'KJ2000': 'KJV',
+  };
+
+  /// Maps an app version code to the code used by the devotional content API.
+  static String devotionalApiVersionCode(String versionCode) {
+    return legacyDevotionalApiVersionCodes[versionCode] ?? versionCode;
+  }
+
   // ✅ NEW METHOD for multilingual support
   static String getDevocionalesApiUrlMultilingual(
     int year,
@@ -26,8 +39,10 @@ class Constants {
       return getDevocionalesApiUrl(year); // Use original method
     }
 
+    final apiVersionCode = devotionalApiVersionCode(versionCode);
+
     // New format for other languages/versions
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/Devocional_year_${year}_${languageCode}_$versionCode.json';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/Devocional_year_${year}_${languageCode}_$apiVersionCode.json';
   }
 
   /// MAPAS DE IDIOMAS Y VERSIONES
@@ -68,7 +83,7 @@ class Constants {
   // Available versions by language / Drawer menu options (SRP: single source of truth for all version lists)
   static const Map<String, List<String>> bibleVersionsByLanguage = {
     'es': ['RVR1960', 'NVI'], //> ,'NTV' not available on drawer yet
-    'en': ['KJV', 'NIV'], //> ,'ESV'not available on drawer yet
+    'en': ['KJ2000', 'NIV'], //> ,'ESV'not available on drawer yet
     'pt': ['ARC', 'NVI'],
     'fr': ['LSG1910', 'TOB'],
     'ja': ['新改訳2003', 'リビングバイブル'], // Japanese versions
@@ -85,7 +100,7 @@ class Constants {
   // Versión de Biblia por defecto por idioma
   static const Map<String, String> defaultVersionByLanguage = {
     'es': 'RVR1960',
-    'en': 'KJV',
+    'en': 'KJ2000',
     'pt': 'ARC',
     'fr': 'LSG1910',
     'ja': '新改訳2003', // Default Japanese version

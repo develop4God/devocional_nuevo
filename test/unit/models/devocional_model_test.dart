@@ -55,7 +55,7 @@ void main() {
         paraMeditar: [ParaMeditar(cita: 'JSON 1:1', texto: 'JSON meditation')],
         oracion: 'JSON test prayer',
         date: DateTime(2025, 1, 15),
-        version: 'KJV',
+        version: 'KJ2000',
         language: 'en',
       );
 
@@ -66,7 +66,7 @@ void main() {
       expect(json['versiculo'], equals('JSON test verse'));
       expect(json['reflexion'], equals('JSON test reflection'));
       expect(json['oracion'], equals('JSON test prayer'));
-      expect(json['version'], equals('KJV'));
+      expect(json['version'], equals('KJ2000'));
       expect(json['language'], equals('en'));
       expect(json['para_meditar'], isA<List>());
     });

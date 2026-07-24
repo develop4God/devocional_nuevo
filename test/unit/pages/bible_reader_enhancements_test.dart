@@ -197,7 +197,7 @@ void main() {
       await prefs.setInt('bible_last_book_number', 10);
       await prefs.setInt('bible_last_chapter', 1);
       await prefs.setInt('bible_last_verse', 1);
-      await prefs.setString('bible_last_version', 'KJV');
+      await prefs.setString('bible_last_version', 'KJ2000');
       await prefs.setString('bible_last_language', 'en');
 
       // Load position
@@ -209,7 +209,7 @@ void main() {
       expect(bookName, 'Genesis');
       expect(bookNumber, 10);
       expect(chapter, 1);
-      expect(version, 'KJV');
+      expect(version, 'KJ2000');
     });
 
     test(

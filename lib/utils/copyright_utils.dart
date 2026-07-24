@@ -34,7 +34,12 @@ class CopyrightUtils {
             'El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
       },
       'en': {
-        'KJV': 'The biblical text King James Version® Public Domain.',
+        'KJ2000':
+            'The biblical text King James 2000® © 2000, 2003 Robert A. Couric. Used by permission.',
+        // Legacy alias: devotional JSON content still labels verses KJV
+        // until Devocionales-json migrates KJV → KJ2000.
+        'KJV':
+            'The biblical text King James 2000® © 2000, 2003 Robert A. Couric. Used by permission.',
         'NIV':
             'The biblical text New International Version® © 2011 Biblica, Inc. All rights reserved.',
         'ESV':
@@ -43,7 +48,8 @@ class CopyrightUtils {
             'The Holy Bible, English Standard Version® © 2001, 2007, 2011 Crossway, a publishing ministry of Good News Publishers. All rights reserved.',
         'English Standard Version (ESV)':
             'The Holy Bible, English Standard Version® © 2001, 2007, 2011 Crossway, a publishing ministry of Good News Publishers. All rights reserved.',
-        'default': 'The biblical text King James Version® Public Domain.',
+        'default':
+            'The biblical text King James 2000® © 2000, 2003 Robert A. Couric. Used by permission.',
       },
       'pt': {
         'ARC': 'O texto bíblico Almeida Revista e Corrigida® Domínio Público.',

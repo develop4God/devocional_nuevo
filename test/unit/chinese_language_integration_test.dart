@@ -39,7 +39,7 @@ void main() {
                     'versiculo': '约翰 1:1',
                     'texto': '测试文本',
                     'language': 'zh',
-                    'version': 'KJV',
+                    'version': 'KJ2000',
                   },
                 ],
               },

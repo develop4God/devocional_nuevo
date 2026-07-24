@@ -99,7 +99,7 @@ void main() {
           bookName: 'Exodus',
           bookNumber: 20,
           chapter: 20,
-          version: 'KJV',
+          version: 'KJ2000',
           languageCode: 'en',
         );
 

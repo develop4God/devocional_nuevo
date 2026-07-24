@@ -97,6 +97,13 @@ void main() {
       expect(result, equals('2026-03-03'));
     });
 
+    // getFileDate — legacy mapping: index.json still uses KJV until the
+    // Devocionales-json repo migrates KJV → KJ2000
+    test('getFileDate maps KJ2000 to legacy KJV index key', () {
+      final result = service.getFileDate(validIndex, 'en', 'KJ2000', '2025');
+      expect(result, equals('2026-03-03'));
+    });
+
     // AC6 — missing language key → null
     test('getFileDate returns null for missing language', () {
       final result = service.getFileDate(validIndex, 'hi', 'HBSI2002', '2025');
@@ -159,7 +166,7 @@ void main() {
 
     // sidecar schema fields present
     test('written sidecar contains all required fields', () async {
-      final path = contentPath('devocional_2026_en_KJV.json');
+      final path = contentPath('devocional_2026_en_KJ2000.json');
       await service.writeMetadata(path, '2026-03-10');
 
       final sidecarPath = '${path.substring(0, path.length - 5)}.meta.json';

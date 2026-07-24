@@ -536,7 +536,7 @@ void main() {
         completionVerse: VerseRef(
           reference: 'Matt 14:33',
           text: 'Truly you are the Son of God.',
-          bibleVersion: 'KJV',
+          bibleVersion: 'KJ2000',
         ),
       );
 
@@ -686,7 +686,7 @@ void main() {
         completionVerse: VerseRef(
           reference: 'Matthew 14:33',
           text: 'Truly you are the Son of God.',
-          bibleVersion: 'KJV',
+          bibleVersion: 'KJ2000',
         ),
       );
 
@@ -695,14 +695,14 @@ void main() {
           create: (_) => DevocionalProvider(),
           child: const MaterialApp(
             home: Scaffold(
-              body: CompletionCard(card: card, bibleVersion: 'KJV'),
+              body: CompletionCard(card: card, bibleVersion: 'KJ2000'),
             ),
           ),
         ),
       );
       await tester.pump(const Duration(milliseconds: 1400));
 
-      expect(find.text('KJV'), findsOneWidget);
+      expect(find.text('KJ2000'), findsOneWidget);
       expect(find.text('"Truly you are the Son of God."'), findsOneWidget);
       expect(find.text('— Matthew 14:33'), findsOneWidget);
     });
@@ -921,7 +921,7 @@ void main() {
       const study = EncounterStudy(
         id: 'test_001',
         language: 'en',
-        bibleVersion: 'KJV',
+        bibleVersion: 'KJ2000',
         cards: [EncounterCard(order: 1, type: 'completion', title: 'Done')],
       );
       final entry = _makeEntry();
@@ -967,7 +967,7 @@ void main() {
       const study = EncounterStudy(
         id: 'test_001',
         language: 'en',
-        bibleVersion: 'KJV',
+        bibleVersion: 'KJ2000',
         cards: [EncounterCard(order: 1, type: 'completion', title: 'Done')],
       );
       final entry = _makeEntry();
@@ -1033,7 +1033,7 @@ void main() {
             home: Scaffold(
               body: CompletionCard(
                 card: card,
-                bibleVersion: 'KJV',
+                bibleVersion: 'KJ2000',
                 language: 'en',
               ),
             ),

@@ -49,7 +49,7 @@ void main() {
       final versions = await BibleVersionRegistry.getVersionsForLanguage('en');
 
       expect(versions, isNotEmpty);
-      expect(versions.any((v) => v.name == 'King James Version (KJV)'), isTrue);
+      expect(versions.any((v) => v.name == 'King James 2000 (KJ2000)'), isTrue);
       expect(
         versions.any((v) => v.name == 'New International Version (NIV)'),
         isTrue,
@@ -136,7 +136,7 @@ void main() {
         versions.any((v) => v.name == 'Reina Valera 1960 (RVR1960)'),
         isTrue,
       );
-      expect(versions.any((v) => v.name == 'King James Version (KJV)'), isTrue);
+      expect(versions.any((v) => v.name == 'King James 2000 (KJ2000)'), isTrue);
       expect(
         versions.any((v) => v.name == 'Almeida Revista e Corrigida (ARC)'),
         isTrue,

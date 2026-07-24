@@ -107,6 +107,9 @@ class DevocionalIndexService {
     String version,
     String year,
   ) {
+    // index.json still uses legacy devotional version codes (e.g. KJV)
+    // until the Devocionales-json repo migrates to KJ2000.
+    final apiVersion = Constants.devotionalApiVersionCode(version);
     try {
       final files = index['files'] as Map<String, dynamic>?;
       if (files == null) return null;
@@ -114,16 +117,16 @@ class DevocionalIndexService {
       final langMap = files[language] as Map<String, dynamic>?;
       if (langMap == null) {
         developer.log(
-          '⚠️ [INDEX] Key not found: $language/$version/$year — treating as fresh',
+          '⚠️ [INDEX] Key not found: $language/$apiVersion/$year — treating as fresh',
           name: 'DevocionalIndex',
         );
         return null;
       }
 
-      final versionMap = langMap[version] as Map<String, dynamic>?;
+      final versionMap = langMap[apiVersion] as Map<String, dynamic>?;
       if (versionMap == null) {
         developer.log(
-          '⚠️ [INDEX] Key not found: $language/$version/$year — treating as fresh',
+          '⚠️ [INDEX] Key not found: $language/$apiVersion/$year — treating as fresh',
           name: 'DevocionalIndex',
         );
         return null;
@@ -132,7 +135,7 @@ class DevocionalIndexService {
       final date = versionMap[year] as String?;
       if (date == null) {
         developer.log(
-          '⚠️ [INDEX] Key not found: $language/$version/$year — treating as fresh',
+          '⚠️ [INDEX] Key not found: $language/$apiVersion/$year — treating as fresh',
           name: 'DevocionalIndex',
         );
       }

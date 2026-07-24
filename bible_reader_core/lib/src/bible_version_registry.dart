@@ -27,7 +27,8 @@ class BibleVersionRegistry {
       {'name': 'Nueva Traducción Viviente (NTV)', 'dbFile': 'NTV_es.SQLite3'},
     ],
     'en': [
-      {'name': 'King James Version (KJV)', 'dbFile': 'KJV_en.SQLite3'},
+      // Content is King James 2000 (the file was historically misnamed KJV)
+      {'name': 'King James 2000 (KJ2000)', 'dbFile': 'KJ2000_en.SQLite3'},
       {'name': 'New International Version (NIV)', 'dbFile': 'NIV_en.SQLite3'},
       {'name': 'English Standard Version (ESV)', 'dbFile': 'ESV_en.SQLite3'},
     ],

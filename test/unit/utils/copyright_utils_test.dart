@@ -73,9 +73,29 @@ void main() {
       expect(text, contains('Lutherbibel'));
     });
 
+    test('returns English KJ2000 copyright disclaimer', () {
+      final text = CopyrightUtils.getCopyrightText('en', 'KJ2000');
+      expect(text, contains('King James 2000'));
+    });
+
+    test('returns KJ2000 copyright with display name', () {
+      final text = CopyrightUtils.getCopyrightText(
+        'en',
+        'King James 2000 (KJ2000)',
+      );
+      expect(text, contains('King James 2000'));
+    });
+
+    test('legacy KJV code maps to King James 2000 copyright', () {
+      // Devotional JSON content still labels verses KJV until migrated;
+      // the actual bible content is King James 2000.
+      final text = CopyrightUtils.getCopyrightText('en', 'KJV');
+      expect(text, contains('King James 2000'));
+    });
+
     test('fallback to en when language missing', () {
-      final text = CopyrightUtils.getCopyrightText('xx', 'KJV');
-      expect(text, contains('King James'));
+      final text = CopyrightUtils.getCopyrightText('xx', 'UNKNOWN');
+      expect(text, contains('King James 2000'));
     });
 
     test('returns Filipino ASND copyright disclaimer', () {
