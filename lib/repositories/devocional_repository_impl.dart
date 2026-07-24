@@ -135,15 +135,9 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
         debugPrint(
           'Loading from API for year $year, language: $language, version: $version',
         );
-        final String url = Constants.getDevocionalesApiUrlMultilingual(
-          year,
-          language,
-          version,
-        );
-        debugPrint('🔍 Requesting URL: $url');
-        final response = await _httpClient.get(Uri.parse(url));
+        final response = await _fetchYearJson(year, language, version);
 
-        if (response.statusCode == 200) {
+        if (response != null && response.statusCode == 200) {
           final String responseBody = utf8.decode(response.bodyBytes);
           final Map<String, dynamic> data = json.decode(responseBody);
           final List<Devocional> yearDevocionales =
@@ -154,7 +148,7 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
           return yearDevocionales;
         } else {
           debugPrint(
-            '⚠️ Failed to load year $year from API: ${response.statusCode}',
+            '⚠️ Failed to load year $year from API: ${response?.statusCode}',
           );
           if (hasLocal) {
             final Map<String, dynamic>? localData = await _loadFromLocalStorage(
@@ -325,6 +319,55 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
     }
   }
 
+  /// Fetches the devotional year JSON for [version].
+  ///
+  /// CONTINGENCY: requests the current version name first (e.g. KJ2000) and
+  /// falls back to the legacy code (e.g. KJV) when the primary file is
+  /// unavailable, so devotionals keep working before, during, and after the
+  /// Devocionales-json repo migrates KJV → KJ2000. Returns null when the
+  /// primary request throws and no legacy fallback succeeds.
+  Future<http.Response?> _fetchYearJson(
+    int year,
+    String language,
+    String version,
+  ) async {
+    final String primaryUrl = Constants.getDevocionalesApiUrlMultilingual(
+      year,
+      language,
+      version,
+    );
+    debugPrint('🔍 Requesting URL: $primaryUrl');
+    http.Response? response;
+    try {
+      response = await _httpClient.get(Uri.parse(primaryUrl));
+    } catch (e) {
+      debugPrint('⚠️ Primary version request failed: $e');
+    }
+    if (response != null && response.statusCode == 200) return response;
+
+    final String? legacyVersion =
+        Constants.legacyDevotionalApiVersionCode(version);
+    if (legacyVersion == null) return response;
+
+    final String legacyUrl = Constants.getDevocionalesApiUrlMultilingual(
+      year,
+      language,
+      legacyVersion,
+    );
+    debugPrint(
+      '🔁 $version file unavailable — falling back to legacy $legacyVersion: $legacyUrl',
+    );
+    try {
+      final legacyResponse = await _httpClient.get(Uri.parse(legacyUrl));
+      if (legacyResponse.statusCode == 200) return legacyResponse;
+      // Prefer reporting the legacy status when the primary threw.
+      return response ?? legacyResponse;
+    } catch (e) {
+      debugPrint('⚠️ Legacy version request failed: $e');
+      return response;
+    }
+  }
+
   @override
   Future<bool> downloadAndStoreDevocionales(
     int year,
@@ -332,15 +375,12 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
     String version,
   ) async {
     try {
-      final String url = Constants.getDevocionalesApiUrlMultilingual(
-        year,
-        language,
-        version,
-      );
-      debugPrint('🔍 Requesting URL: $url');
       debugPrint('🔍 Language: $language, Version: $version');
-      final response = await _httpClient.get(Uri.parse(url));
+      final response = await _fetchYearJson(year, language, version);
 
+      if (response == null) {
+        throw Exception('Network error for $language $version year $year');
+      }
       if (response.statusCode == 404) {
         debugPrint('❌ File not found (404): $language $version year $year');
         throw Exception('File not available for $language $version year $year');

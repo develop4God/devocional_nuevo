@@ -77,15 +77,18 @@ void main() {
       },
     );
 
-    test('devotionalApiVersionCode maps KJ2000 to legacy KJV', () {
-      // TEMPORARY mapping: remove once Devocionales-json migrates KJV → KJ2000
-      expect(Constants.devotionalApiVersionCode('KJ2000'), equals('KJV'));
+    test('legacyDevotionalApiVersionCode returns KJV fallback for KJ2000', () {
+      // CONTINGENCY: remove once Devocionales-json migrates KJV → KJ2000
+      expect(
+        Constants.legacyDevotionalApiVersionCode('KJ2000'),
+        equals('KJV'),
+      );
     });
 
-    test('devotionalApiVersionCode passes through non-legacy codes', () {
-      expect(Constants.devotionalApiVersionCode('NIV'), equals('NIV'));
-      expect(Constants.devotionalApiVersionCode('RVR1960'), equals('RVR1960'));
-      expect(Constants.devotionalApiVersionCode('MBB05'), equals('MBB05'));
+    test('legacyDevotionalApiVersionCode is null for non-legacy codes', () {
+      expect(Constants.legacyDevotionalApiVersionCode('NIV'), isNull);
+      expect(Constants.legacyDevotionalApiVersionCode('RVR1960'), isNull);
+      expect(Constants.legacyDevotionalApiVersionCode('MBB05'), isNull);
     });
 
     test('getDevocionalesApiUrlMultilingual generates correct URLs', () {
@@ -119,9 +122,8 @@ void main() {
         reason: 'Spanish NVI URL should use new format',
       );
 
-      // Test English with KJ2000 — devotional JSON files still use the
-      // legacy KJV code, so the URL must map KJ2000 → KJV until the
-      // Devocionales-json repo migrates.
+      // Test English with KJ2000 — the URL uses the current version name;
+      // the repository falls back to the legacy KJV file on failure.
       final englishKj2000Url = Constants.getDevocionalesApiUrlMultilingual(
         testYear,
         'en',
@@ -130,9 +132,9 @@ void main() {
       expect(
         englishKj2000Url,
         equals(
-          'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${testYear}_en_KJV.json',
+          'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${testYear}_en_KJ2000.json',
         ),
-        reason: 'English KJ2000 URL must map to legacy KJV devotional file',
+        reason: 'English KJ2000 URL should use the current version name',
       );
 
       // Test English with NIV

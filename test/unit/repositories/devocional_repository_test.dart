@@ -9,6 +9,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
 import 'package:devocional_nuevo/services/devocional_index_service.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
@@ -172,6 +173,120 @@ void main() {
       final result = await repository.fetchAll(2099, 'en', 'NIV');
 
       expect(result, isEmpty);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // fetchAll — legacy version contingency (KJ2000 → KJV)
+  // ---------------------------------------------------------------------------
+
+  group('fetchAll — legacy version contingency', () {
+    final kj2000Url = Uri.parse(
+      Constants.getDevocionalesApiUrlMultilingual(2025, 'en', 'KJ2000'),
+    );
+    final kjvUrl = Uri.parse(
+      Constants.getDevocionalesApiUrlMultilingual(2025, 'en', 'KJV'),
+    );
+
+    test('falls back to legacy KJV file when KJ2000 file is missing', () async {
+      final legacyBody = json.encode(
+        _buildApiResponse(language: 'en', version: 'KJV'),
+      );
+
+      when(
+        () => mockHttpClient.get(kj2000Url),
+      ).thenAnswer((_) async => http.Response('Not Found', 404));
+      when(() => mockHttpClient.get(kjvUrl)).thenAnswer(
+        (_) async => http.Response.bytes(
+          utf8.encode(legacyBody),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        ),
+      );
+
+      final result = await repository.fetchAll(2025, 'en', 'KJ2000');
+
+      expect(result, isNotEmpty);
+      expect(result.length, 2);
+      verify(() => mockHttpClient.get(kj2000Url)).called(1);
+      verify(() => mockHttpClient.get(kjvUrl)).called(1);
+    });
+
+    test('does not request legacy file when KJ2000 file exists', () async {
+      final body = json.encode(
+        _buildApiResponse(language: 'en', version: 'KJ2000'),
+      );
+
+      when(() => mockHttpClient.get(kj2000Url)).thenAnswer(
+        (_) async => http.Response.bytes(
+          utf8.encode(body),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        ),
+      );
+
+      final result = await repository.fetchAll(2025, 'en', 'KJ2000');
+
+      expect(result, isNotEmpty);
+      verify(() => mockHttpClient.get(kj2000Url)).called(1);
+      verifyNever(() => mockHttpClient.get(kjvUrl));
+    });
+
+    test('falls back to legacy KJV file when KJ2000 request throws', () async {
+      final legacyBody = json.encode(
+        _buildApiResponse(language: 'en', version: 'KJV'),
+      );
+
+      when(
+        () => mockHttpClient.get(kj2000Url),
+      ).thenThrow(Exception('Network error'));
+      when(() => mockHttpClient.get(kjvUrl)).thenAnswer(
+        (_) async => http.Response.bytes(
+          utf8.encode(legacyBody),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        ),
+      );
+
+      final result = await repository.fetchAll(2025, 'en', 'KJ2000');
+
+      expect(result, isNotEmpty);
+      verify(() => mockHttpClient.get(kjvUrl)).called(1);
+    });
+
+    test('returns empty when both KJ2000 and legacy KJV fail', () async {
+      when(
+        () => mockHttpClient.get(any()),
+      ).thenAnswer((_) async => http.Response('Not Found', 404));
+
+      final result = await repository.fetchAll(2099, 'en', 'KJ2000');
+
+      expect(result, isEmpty);
+    });
+
+    test('downloadAndStoreDevocionales succeeds via legacy KJV fallback',
+        () async {
+      final legacyBody = json.encode(
+        _buildApiResponse(language: 'en', version: 'KJV'),
+      );
+
+      when(
+        () => mockHttpClient.get(kj2000Url),
+      ).thenAnswer((_) async => http.Response('Not Found', 404));
+      when(() => mockHttpClient.get(kjvUrl)).thenAnswer(
+        (_) async => http.Response.bytes(
+          utf8.encode(legacyBody),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        ),
+      );
+
+      final success =
+          await repository.downloadAndStoreDevocionales(2025, 'en', 'KJ2000');
+
+      expect(success, isTrue);
+      // Cache is stored under the app version name, not the legacy name.
+      expect(await repository.hasLocalData(2025, 'en', 'KJ2000'), isTrue);
     });
   });
 

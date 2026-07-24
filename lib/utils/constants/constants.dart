@@ -13,17 +13,20 @@ class Constants {
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/Devocional_year_$year.json';
   }
 
-  // TEMPORARY: the devotional JSON repo (Devocionales-json) still uses the
-  // legacy KJV code, while the app now uses KJ2000 (the English SQLite bible
-  // content is King James 2000). Remove this map once the devotional JSON
-  // files and index.json migrate KJV → KJ2000.
+  // CONTINGENCY: the devotional JSON repo (Devocionales-json) historically
+  // uses the legacy KJV code, while the app uses KJ2000 (the English SQLite
+  // bible content is King James 2000). Consumers request the KJ2000-named
+  // resource first and fall back to the legacy KJV name when it is missing,
+  // so the app works before, during, and after the JSON repo migration.
+  // Remove this map once Devocionales-json fully migrates KJV → KJ2000.
   static const Map<String, String> legacyDevotionalApiVersionCodes = {
     'KJ2000': 'KJV',
   };
 
-  /// Maps an app version code to the code used by the devotional content API.
-  static String devotionalApiVersionCode(String versionCode) {
-    return legacyDevotionalApiVersionCodes[versionCode] ?? versionCode;
+  /// Returns the legacy devotional API code for [versionCode] (e.g.
+  /// KJ2000 → KJV), or null when the code has no legacy alias.
+  static String? legacyDevotionalApiVersionCode(String versionCode) {
+    return legacyDevotionalApiVersionCodes[versionCode];
   }
 
   // ✅ NEW METHOD for multilingual support
@@ -39,10 +42,8 @@ class Constants {
       return getDevocionalesApiUrl(year); // Use original method
     }
 
-    final apiVersionCode = devotionalApiVersionCode(versionCode);
-
     // New format for other languages/versions
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/Devocional_year_${year}_${languageCode}_$apiVersionCode.json';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/Devocional_year_${year}_${languageCode}_$versionCode.json';
   }
 
   /// MAPAS DE IDIOMAS Y VERSIONES

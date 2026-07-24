@@ -97,11 +97,25 @@ void main() {
       expect(result, equals('2026-03-03'));
     });
 
-    // getFileDate — legacy mapping: index.json still uses KJV until the
+    // getFileDate — contingency: index.json still uses KJV until the
     // Devocionales-json repo migrates KJV → KJ2000
-    test('getFileDate maps KJ2000 to legacy KJV index key', () {
+    test('getFileDate falls back to legacy KJV index key for KJ2000', () {
       final result = service.getFileDate(validIndex, 'en', 'KJ2000', '2025');
       expect(result, equals('2026-03-03'));
+    });
+
+    test('getFileDate prefers KJ2000 index key when present', () {
+      final migratedIndex = {
+        'schema_version': 1,
+        'files': {
+          'en': {
+            'KJ2000': {'2025': '2026-06-01'},
+            'KJV': {'2025': '2026-03-03'},
+          },
+        },
+      };
+      final result = service.getFileDate(migratedIndex, 'en', 'KJ2000', '2025');
+      expect(result, equals('2026-06-01'));
     });
 
     // AC6 — missing language key → null
