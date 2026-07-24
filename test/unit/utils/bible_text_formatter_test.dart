@@ -220,6 +220,28 @@ void main() {
       expect(expansions['OV'], 'पुराना संस्करण');
     });
 
+    test(
+      'Hindi long-form version string expands once via normalizeTtsText, not double',
+      () {
+        // Regression test for a double-expansion bug: HindiTtsNormalizer
+        // used to expand 'ओ.वी.' standalone before the main version-
+        // expansion loop ran, turning 'पवित्र बाइबिल (ओ.वी.)' into
+        // 'पवित्र बाइबिल (पवित्र बाइबिल पुराना संस्करण)' before the loop
+        // even saw it. Separately, the hi expansion map's own keys
+        // overlap as substrings ('पवित्र बाइबिल' inside 'पवित्र बाइबिल
+        // (ओ.वी.)', 'OV' inside 'HIOV'), and the loop scanned every key
+        // unconditionally, so a shorter key could re-match a longer
+        // key's own replacement output. Fixed by removing the standalone
+        // shortcut and sorting keys longest-first with an early exit.
+        final result = BibleTextFormatter.normalizeTtsText(
+          'पवित्र बाइबिल (ओ.वी.)',
+          'hi',
+          'HIOV',
+        );
+        expect(result, 'पवित्र बाइबिल पुराना संस्करण');
+      },
+    );
+
     test('unknown language falls back to Spanish', () {
       final expansions = BibleTextFormatter.getBibleVersionExpansions('xx');
       expect(expansions['RVR1960'], 'Reina Valera mil novecientos sesenta');
