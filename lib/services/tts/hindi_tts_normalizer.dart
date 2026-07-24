@@ -35,7 +35,6 @@ class HindiTtsNormalizer {
   /// Expand Hindi Bible version abbreviations not covered by shared map
   static String expandVersionAbbreviations(String text) {
     const Map<String, String> extraKeys = {
-      'ओ.वी.': 'पवित्र बाइबिल पुराना संस्करण',
       'HIOV_hi.SQLite3': 'पवित्र बाइबिल पुराना संस्करण',
       'HERV_hi.SQLite3': 'पवित्र बाइबिल हिंदी आसान पठन संस्करण',
     };
