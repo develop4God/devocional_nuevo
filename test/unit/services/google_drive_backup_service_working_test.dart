@@ -710,6 +710,12 @@ void main() {
             (jsonDecode(thanksgivingsJson) as List<dynamic>).length;
       }
 
+      int notesCount = 0;
+      final notesJson = prefs.getString('devotional_notes');
+      if (notesJson != null) {
+        notesCount = (jsonDecode(notesJson) as List<dynamic>).length;
+      }
+
       int testimoniesCount = 0;
       final testimoniesJson = prefs.getString('testimonies');
       if (testimoniesJson != null) {
@@ -737,6 +743,7 @@ void main() {
       return BackupContentSummary(
         prayersCount: prayersCount,
         thanksgivingsCount: thanksgivingsCount,
+        notesCount: notesCount,
         testimoniesCount: testimoniesCount,
         favoritesCount: favoritesCount,
         encountersCount: encountersCount,
@@ -767,6 +774,20 @@ void main() {
       final summary = await simulateGetBackupContentSummary();
       expect(summary.prayersCount, 3);
       expect(summary.isEmpty, isFalse);
+    });
+
+    test('counts devotional notes correctly from SharedPreferences', () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'devotional_notes',
+        jsonEncode([
+          {'devocionalId': 'devocional-1', 'text': 'Note 1'},
+          {'devocionalId': 'devocional-2', 'text': 'Note 2'},
+        ]),
+      );
+
+      final summary = await simulateGetBackupContentSummary();
+      expect(summary.notesCount, 2);
     });
 
     test('counts marked bible verses correctly', () async {

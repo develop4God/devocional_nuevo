@@ -17,6 +17,9 @@ class BackupContentSummary extends Equatable {
   /// Number of saved thanksgivings (`thanksgiving.thanksgivings`).
   final int thanksgivingsCount;
 
+  /// Number of devotional notes (`devotional_notes`).
+  final int notesCount;
+
   /// Number of testimonies (`testimony.testimonies`).
   final int testimoniesCount;
 
@@ -41,6 +44,7 @@ class BackupContentSummary extends Equatable {
   const BackupContentSummary({
     required this.prayersCount,
     required this.thanksgivingsCount,
+    this.notesCount = 0,
     required this.testimoniesCount,
     required this.favoritesCount,
     required this.encountersCount,
@@ -54,6 +58,7 @@ class BackupContentSummary extends Equatable {
   bool get isEmpty =>
       prayersCount == 0 &&
       thanksgivingsCount == 0 &&
+      notesCount == 0 &&
       testimoniesCount == 0 &&
       favoritesCount == 0 &&
       encountersCount == 0 &&
@@ -66,6 +71,7 @@ class BackupContentSummary extends Equatable {
   int get totalItems =>
       prayersCount +
       thanksgivingsCount +
+      notesCount +
       testimoniesCount +
       favoritesCount +
       encountersCount +
@@ -78,6 +84,7 @@ class BackupContentSummary extends Equatable {
   List<Object?> get props => [
         prayersCount,
         thanksgivingsCount,
+        notesCount,
         testimoniesCount,
         favoritesCount,
         encountersCount,

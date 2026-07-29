@@ -8,6 +8,7 @@ abstract class BackupKeys {
   static const String favoriteDevotionals = 'favorite_devotionals';
   static const String savedPrayers = 'saved_prayers';
   static const String savedThanksgivings = 'saved_thanksgivings';
+  static const String devotionalNotes = 'devotional_notes';
 
   // New fields
   static const String completedEncounters = 'completed_encounters';

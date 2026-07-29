@@ -20,6 +20,7 @@ import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/discovery_actions_bar.dart';
 import 'package:devocional_nuevo/widgets/discovery_card_premium.dart';
 import 'package:devocional_nuevo/widgets/discovery_grid_overlay.dart';
+import 'package:devocional_nuevo/widgets/delete_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -368,9 +369,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           // Inject isNew
           isDark: isDark,
           onTap: () => _navigateToDetail(context, studyId),
-          onFavoriteToggle: () {
-            context.read<DiscoveryBloc>().add(ToggleDiscoveryFavorite(studyId));
-          },
+          onFavoriteToggle: () => _handleStudyFavoriteToggle(
+            context,
+            studyId,
+            isFavorite: isFavorite,
+          ),
         );
       },
       itemCount: studyIds.length,
@@ -394,6 +397,23 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         }
       },
     );
+  }
+
+  Future<void> _handleStudyFavoriteToggle(
+    BuildContext context,
+    String studyId, {
+    required bool isFavorite,
+  }) async {
+    if (isFavorite) {
+      final confirmed = await DeleteConfirmationDialog.show(
+        context: context,
+        titleKey: 'devotionals.remove_from_favorites',
+        contentKey: 'discovery.remove_from_favorites_confirmation',
+      );
+      if (!confirmed || !context.mounted) return;
+    }
+
+    context.read<DiscoveryBloc>().add(ToggleDiscoveryFavorite(studyId));
   }
 
   Widget _buildBottomActionBar(DiscoveryLoaded state) {

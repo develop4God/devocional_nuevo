@@ -11,7 +11,6 @@ import 'package:flutter/services.dart';
 /// Deep link handler service for Firebase In-App Messaging and other deep links
 ///
 /// Supported deep link patterns:
-/// - https://www.develop4god.com/devotional - Navigate to devotional page
 /// - https://www.develop4god.com/progress - Navigate to progress page
 /// - https://www.develop4god.com/prayers - Navigate to prayers page
 /// - https://www.develop4god.com/testimonies - Navigate to testimonies page
@@ -197,12 +196,6 @@ class DeepLinkHandler {
     debugPrint('🔗 [DeepLink] Resolved route="$route" → dispatching...');
     try {
       switch (route) {
-        case 'devotional':
-          return await _handleDevotionalDeepLink(
-            context,
-            uri.pathSegments,
-            uri.queryParameters,
-          );
         case 'progress':
           return await _handleProgressDeepLink(context);
         case 'prayers':
@@ -248,27 +241,6 @@ class DeepLinkHandler {
       _pendingLink = null;
       await handleDeepLink(uri);
     }
-  }
-
-  /// Handle devotional deep link
-  /// Format: devocional://devotional/{date}?action=read
-  Future<bool> _handleDevotionalDeepLink(
-    BuildContext context,
-    List<String> pathSegments,
-    Map<String, String> queryParams,
-  ) async {
-    try {
-      // Reset the navigation stack and navigate to the main devotional page
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil('devotional', (route) => false);
-    } catch (e) {
-      developer.log('Navigation error: $e', name: 'DeepLinkHandler', error: e);
-    }
-
-    developer.log('Navigated to devotional page', name: 'DeepLinkHandler');
-
-    return true;
   }
 
   /// Handle progress deep link
