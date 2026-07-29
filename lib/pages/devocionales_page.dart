@@ -39,7 +39,6 @@ import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:devocional_nuevo/widgets/delete_confirmation_dialog.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -978,19 +977,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   ),
                                   isFavorite: isFavorite,
                                   onFavoriteToggle: () async {
-                                    if (isFavorite) {
-                                      final confirmed =
-                                          await DeleteConfirmationDialog.show(
-                                        context: context,
-                                        titleKey:
-                                            'devotionals.remove_from_favorites',
-                                        contentKey:
-                                            'devotionals.remove_from_favorites_confirmation',
-                                      );
-                                      if (!confirmed || !context.mounted) {
-                                        return;
-                                      }
-                                    }
                                     final wasAdded =
                                         await devocionalProvider.toggleFavorite(
                                       currentDevocional.id,
