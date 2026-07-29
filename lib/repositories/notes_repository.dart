@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/models/devotional_note.dart';
 import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
@@ -51,14 +52,22 @@ class NotesRepository implements INotesRepository {
     final notesJson = prefs.getString(_notesKey);
     if (notesJson == null || notesJson.isEmpty) return [];
 
-    final decodedNotes = json.decode(notesJson) as List<dynamic>;
-    return decodedNotes
-        .map(
-          (note) => DevotionalNote.fromJson(
-            Map<String, dynamic>.from(note as Map),
-          ),
-        )
-        .toList();
+    try {
+      final decodedNotes = json.decode(notesJson) as List<dynamic>;
+      return decodedNotes
+          .map(
+            (note) => DevotionalNote.fromJson(
+              Map<String, dynamic>.from(note as Map),
+            ),
+          )
+          .toList();
+    } catch (error) {
+      developer.log(
+        '❌NOTES_ERROR: Failed decoding $_notesKey: $error',
+        name: 'Notes',
+      );
+      return [];
+    }
   }
 
   Future<void> _writeNotes(
