@@ -325,6 +325,7 @@
     "save": "Enregistrer",
     "hint": "Écrivez vos notes, commentaires et réflexions...",
     "saved_message": "Note enregistrée",
+    "loading_error": "Erreur lors du chargement des notes",
     "add_action": "Ajouter une note personnelle",
     "view_action": "Votre note",
     "delete_confirmation": "Êtes-vous sûr de vouloir supprimer cette note ? Cette action est irréversible.",
