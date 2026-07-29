@@ -594,28 +594,23 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
   }
 
   int _calculateCurrentStreak(List<DateTime> readDates) {
+    // Robust date-only streak calculation that is tolerant to ordering,
+    // duplicates and minor time component differences (timezones).
+    // Returns the number of consecutive days ending today that have a
+    // recorded read date.
     if (readDates.isEmpty) return 0;
 
-    readDates.sort((a, b) => b.compareTo(a));
     final today = DateTime.now();
-    final todayDateOnly = DateTime(today.year, today.month, today.day);
+    DateTime current = DateTime(today.year, today.month, today.day);
+
+    // Normalize all read dates to date-only and use a Set for O(1) lookup.
+    final readDateSet =
+        readDates.map((d) => DateTime(d.year, d.month, d.day)).toSet();
 
     int streak = 0;
-    DateTime currentDate = todayDateOnly;
-
-    for (final readDate in readDates) {
-      final readDateOnly = DateTime(
-        readDate.year,
-        readDate.month,
-        readDate.day,
-      );
-
-      if (readDateOnly.isAtSameMomentAs(currentDate)) {
-        streak++;
-        currentDate = currentDate.subtract(const Duration(days: 1));
-      } else if (readDateOnly.isBefore(currentDate)) {
-        break;
-      }
+    while (readDateSet.contains(current)) {
+      streak++;
+      current = current.subtract(const Duration(days: 1));
     }
 
     return streak;
