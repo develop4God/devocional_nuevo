@@ -5,6 +5,8 @@ import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
+import 'package:devocional_nuevo/blocs/note_bloc.dart';
+import 'package:devocional_nuevo/blocs/note_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_event.dart';
@@ -24,6 +26,7 @@ import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
+import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
@@ -239,6 +242,11 @@ void main() async {
         ),
         BlocProvider(create: (context) => ThanksgivingBloc()),
         BlocProvider(create: (context) => TestimonyBloc()),
+        BlocProvider(
+          create: (context) => NoteBloc(
+            notesRepository: getService<INotesRepository>(),
+          )..add(LoadNotes()),
+        ),
         if (Constants.enableDiscoveryFeature)
           BlocProvider(
             create: (context) => DiscoveryBloc(

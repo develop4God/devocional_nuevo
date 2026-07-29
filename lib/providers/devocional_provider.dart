@@ -7,7 +7,6 @@ import 'dart:developer' as developer;
 import 'package:devocional_nuevo/controllers/audio_controller.dart'; // NEW
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/models/devotional_note.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
@@ -33,15 +32,12 @@ import 'package:synchronized/synchronized.dart';
 class DevocionalProvider with ChangeNotifier {
   // ========== CONCURRENCY PROTECTION ==========
   final _favoritesLock = Lock();
-  final _notesLock = Lock();
 
   // ========== CORE DATA ==========
   List<Devocional> _allDevocionalesForCurrentLanguage = [];
   List<Devocional> _filteredDevocionales = [];
   List<Devocional> _favoriteDevocionales = [];
   Set<String> _favoriteIds = {}; // ID-based favorites storage
-  // Per-devocional notes persisted as a JSON array under 'devotional_notes'.
-  Map<String, DevotionalNote> _devocionalNotes = {};
 
   bool _isLoading = false;
   bool _isInitialized = false;
@@ -249,7 +245,6 @@ class DevocionalProvider with ChangeNotifier {
       }
 
       await _loadFavorites();
-      await _loadNotes();
       await _loadInvitationDialogPreference();
       debugPrint(
         '🌍 [INIT] About to fetch devotionals for language: $_selectedLanguage, version: $_selectedVersion',
@@ -884,85 +879,6 @@ class DevocionalProvider with ChangeNotifier {
       _statsService.updateFavoritesCount(count);
       notifyListeners();
     }
-  }
-
-  // ========== NOTES MANAGEMENT ==========
-  /// Loads devotional notes from SharedPreferences. Stored as a JSON array
-  /// under the key 'devotional_notes'. This method acquires _notesLock
-  /// while mutating in-memory state.
-  Future<void> _loadNotes() async {
-    await _notesLock.synchronized(() async {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final String? notesJson = prefs.getString('devotional_notes');
-        if (notesJson != null) {
-          final notes = (json.decode(notesJson) as List<dynamic>)
-              .map(
-                (note) => DevotionalNote.fromJson(
-                  note as Map<String, dynamic>,
-                ),
-              )
-              .toList();
-          _devocionalNotes = {
-            for (final note in notes) note.devocionalId: note,
-          };
-          developer.log('[NOTES] Loaded ${_devocionalNotes.length} notes',
-              name: 'DevocionalProvider');
-        } else {
-          _devocionalNotes = {};
-        }
-      } catch (e) {
-        developer.log('❌NOTES_ERROR: Failed to load notes: $e', name: 'Notes');
-        _devocionalNotes = {};
-      }
-    });
-  }
-
-  /// Internal save method for notes. Caller must already hold _notesLock
-  /// before calling this — it does not acquire any lock itself.
-  Future<void> _saveNotesInternal() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-        'devotional_notes',
-        json.encode(
-            _devocionalNotes.values.map((note) => note.toJson()).toList()),
-      );
-      developer.log(
-        '⭐NOTES_SAVE: ${_devocionalNotes.length} notes saved',
-        name: 'Notes',
-      );
-    } catch (e) {
-      developer.log('❌NOTES_ERROR: Save failed: $e', name: 'Notes');
-      rethrow;
-    }
-  }
-
-  /// Public API: save or remove a note for a devotional. If [note] is null or
-  /// empty the note is removed. Notifies listeners after persistence.
-  Future<void> saveNoteForDevocional(String id, String? note) async {
-    if (id.isEmpty) return;
-
-    await _notesLock.synchronized(() async {
-      if (note == null || note.trim().isEmpty) {
-        _devocionalNotes.remove(id);
-      } else {
-        _devocionalNotes[id] = DevotionalNote(
-          devocionalId: id,
-          text: note.trim(),
-          lastModifiedDate: DateTime.now(),
-        );
-      }
-      await _saveNotesInternal();
-    });
-
-    notifyListeners();
-  }
-
-  /// Public API: retrieve note for a devotional or null if none exists.
-  String? getNoteForDevocional(String id) {
-    if (id.isEmpty) return null;
-    return _devocionalNotes[id]?.text;
   }
 
   void _syncFavoritesWithLoadedDevotionals() {
