@@ -329,7 +329,9 @@
     "add_action": "Agregar una nota personal",
     "view_action": "Tu nota",
     "delete_confirmation": "¿Estás seguro de que deseas eliminar esta nota? Esta acción no se puede deshacer.",
-    "save_error": "Error al guardar la nota"
+    "save_error": "Error al guardar la nota",
+    "enter_note_text_error": "Por favor, escribe una nota",
+    "note_min_length_error": "La nota debe tener al menos 10 caracteres"
   },
   "contact": {
     "bugs": "Errores/Bugs",
