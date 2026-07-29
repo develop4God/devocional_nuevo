@@ -332,7 +332,9 @@
     "delete_confirmation": "Möchten Sie diese Notiz wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
     "save_error": "Fehler beim Speichern der Notiz",
     "enter_note_text_error": "Bitte gib eine Notiz ein",
-    "note_min_length_error": "Die Notiz muss mindestens 10 Zeichen haben"
+    "note_min_length_error": "Die Notiz muss mindestens 10 Zeichen haben",
+    "empty_title": "Sie haben noch keine Notizen.",
+    "empty_description": "Tippen Sie bei einer Andacht auf das Notizsymbol, um Ihre Gedanken hier zu speichern."
   },
   "contact": {
     "bugs": "Fehler/Bugs",

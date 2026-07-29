@@ -332,7 +332,9 @@
     "delete_confirmation": "Are you sure you want to delete this note? This action cannot be undone.",
     "save_error": "Error saving note",
     "enter_note_text_error": "Please enter a note",
-    "note_min_length_error": "Note must have at least 10 characters"
+    "note_min_length_error": "Note must have at least 10 characters",
+    "empty_title": "You don't have any notes yet.",
+    "empty_description": "Tap the note icon on a devotional to save your reflections here."
   },
   "contact": {
     "bugs": "Bugs/Errors",

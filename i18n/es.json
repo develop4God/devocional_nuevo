@@ -332,7 +332,9 @@
     "delete_confirmation": "¿Estás seguro de que deseas eliminar esta nota? Esta acción no se puede deshacer.",
     "save_error": "Error al guardar la nota",
     "enter_note_text_error": "Por favor, escribe una nota",
-    "note_min_length_error": "La nota debe tener al menos 10 caracteres"
+    "note_min_length_error": "La nota debe tener al menos 10 caracteres",
+    "empty_title": "Aún no tienes notas.",
+    "empty_description": "Toca el ícono de nota en un devocional para guardar tus reflexiones aquí."
   },
   "contact": {
     "bugs": "Errores/Bugs",
