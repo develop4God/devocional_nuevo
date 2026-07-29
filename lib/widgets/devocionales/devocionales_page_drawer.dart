@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
+import 'package:devocional_nuevo/pages/devocionales_notes_page.dart';
 import 'package:devocional_nuevo/pages/notification_config_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
@@ -516,6 +517,36 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (_) => const FavoritesPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        // --- Mis notas ---
+                        drawerRow(
+                          key: const Key('drawer_my_notes'),
+                          icon: Icons.sticky_note_2_outlined,
+                          iconColor: colorScheme.primary,
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'drawer.my_notes'.tr(),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 16,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ).newBubbleWithId('drawer_notes_bubble'),
+                            ],
+                          ),
+                          onTap: () async {
+                            await BubbleUtils.markAsShown(
+                                'drawer_notes_bubble');
+                            if (!context.mounted) return;
+                            Navigator.of(context).pop();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const DevocionalesNotesPage(),
                               ),
                             );
                           },

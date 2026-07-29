@@ -75,6 +75,11 @@ class DevocionalProvider with ChangeNotifier {
   // ========== GETTERS ==========
   List<Devocional> get devocionales => _filteredDevocionales;
 
+  /// All devotionals loaded for the selected language, including entries that
+  /// are outside the main reader's filtered date range.
+  List<Devocional> get allDevocionalesForCurrentLanguage =>
+      List.unmodifiable(_allDevocionalesForCurrentLanguage);
+
   bool get isLoading => _isLoading;
 
   bool get isSwitchingVersion => _isSwitchingVersion;
