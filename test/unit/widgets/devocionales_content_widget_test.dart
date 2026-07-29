@@ -2,8 +2,11 @@
 library;
 
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
+import 'package:devocional_nuevo/blocs/note_bloc.dart';
+import 'package:devocional_nuevo/models/devotional_note.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
@@ -40,6 +43,17 @@ class FakeLocalizationService extends LocalizationService {
     }
     return key;
   }
+}
+
+class FakeNotesRepository implements INotesRepository {
+  @override
+  Future<void> deleteNote(String devocionalId) async {}
+
+  @override
+  Future<List<DevotionalNote>> loadNotes() async => [];
+
+  @override
+  Future<void> saveNote(DevotionalNote note) async {}
 }
 
 void main() {
@@ -94,20 +108,23 @@ void main() {
     }) {
       return MaterialApp(
         home: Scaffold(
-          body: ChangeNotifierProvider<DevocionalProvider>.value(
-            value: fakeProvider,
-            child: DevocionalesContentWidget(
-              devocional: devocional,
-              fontSize: 16,
-              onStreakBadgeTap: () => streakTapped = true,
-              currentStreak: streak,
-              streakFuture: streakFuture ?? Future.value(streak),
-              getLocalizedDateFormat: (_) =>
-                  formattedDate ?? '25 de diciembre de 2025',
-              isFavorite: isFavorite,
-              onFavoriteToggle: () => favoriteToggled = true,
-              onShare: () => shared = true,
-              petService: petService,
+          body: BlocProvider(
+            create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
+            child: ChangeNotifierProvider<DevocionalProvider>.value(
+              value: fakeProvider,
+              child: DevocionalesContentWidget(
+                devocional: devocional,
+                fontSize: 16,
+                onStreakBadgeTap: () => streakTapped = true,
+                currentStreak: streak,
+                streakFuture: streakFuture ?? Future.value(streak),
+                getLocalizedDateFormat: (_) =>
+                    formattedDate ?? '25 de diciembre de 2025',
+                isFavorite: isFavorite,
+                onFavoriteToggle: () => favoriteToggled = true,
+                onShare: () => shared = true,
+                petService: petService,
+              ),
             ),
           ),
         ),
@@ -135,20 +152,23 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ChangeNotifierProvider<DevocionalProvider>.value(
-              value: fakeProvider,
-              child: DevocionalesContentWidget(
-                devocional: devocional,
-                fontSize: 16,
-                onStreakBadgeTap: () => streakTapped = true,
-                currentStreak: 5,
-                streakFuture: Future.value(5),
-                getLocalizedDateFormat: (_) => '25 de diciembre de 2025',
-                showDate: false,
-                isFavorite: false,
-                onFavoriteToggle: () => favoriteToggled = true,
-                onShare: () => shared = true,
-                petService: petService,
+            body: BlocProvider(
+              create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
+              child: ChangeNotifierProvider<DevocionalProvider>.value(
+                value: fakeProvider,
+                child: DevocionalesContentWidget(
+                  devocional: devocional,
+                  fontSize: 16,
+                  onStreakBadgeTap: () => streakTapped = true,
+                  currentStreak: 5,
+                  streakFuture: Future.value(5),
+                  getLocalizedDateFormat: (_) => '25 de diciembre de 2025',
+                  showDate: false,
+                  isFavorite: false,
+                  onFavoriteToggle: () => favoriteToggled = true,
+                  onShare: () => shared = true,
+                  petService: petService,
+                ),
               ),
             ),
           ),
@@ -207,21 +227,24 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: ChangeNotifierProvider<DevocionalProvider>.value(
-                value: fakeProvider,
-                child: BlocProvider<SupporterBloc>.value(
-                  value: supporterBloc,
-                  child: DevocionalesContentWidget(
-                    devocional: devocional,
-                    fontSize: 16,
-                    onStreakBadgeTap: () => streakTapped = true,
-                    currentStreak: 5,
-                    streakFuture: Future.value(5),
-                    getLocalizedDateFormat: (_) => '25 de diciembre de 2025',
-                    isFavorite: false,
-                    onFavoriteToggle: () => favoriteToggled = true,
-                    onShare: () => shared = true,
-                    petService: petService,
+              body: BlocProvider(
+                create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
+                child: ChangeNotifierProvider<DevocionalProvider>.value(
+                  value: fakeProvider,
+                  child: BlocProvider<SupporterBloc>.value(
+                    value: supporterBloc,
+                    child: DevocionalesContentWidget(
+                      devocional: devocional,
+                      fontSize: 16,
+                      onStreakBadgeTap: () => streakTapped = true,
+                      currentStreak: 5,
+                      streakFuture: Future.value(5),
+                      getLocalizedDateFormat: (_) => '25 de diciembre de 2025',
+                      isFavorite: false,
+                      onFavoriteToggle: () => favoriteToggled = true,
+                      onShare: () => shared = true,
+                      petService: petService,
+                    ),
                   ),
                 ),
               ),
@@ -235,7 +258,8 @@ void main() {
         // AppNavigationShell.selectTab is a documented safe no-op when no
         // shell is mounted (as in this isolated widget test) -- this
         // confirms the tap wires through without throwing.
-        expect(() => tester.tap(find.byType(PetHeroSection)), returnsNormally);
+        await tester.tap(find.byType(PetHeroSection));
+        await tester.pump();
       },
     );
 

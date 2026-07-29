@@ -1,4 +1,4 @@
-@Tags(['unit', 'widgets'])
+@Tags(['unit', 'pages'])
 library;
 
 // test/unit/pages/favorite_devocional_detail_page_test.dart
@@ -10,10 +10,14 @@ library;
 
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
+import 'package:devocional_nuevo/blocs/note_bloc.dart';
+import 'package:devocional_nuevo/models/devotional_note.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/favorite_devocional_detail_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
+import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -47,6 +51,17 @@ class FakeThemeBloc extends Fake implements ThemeBloc {
   Future<void> close() async {}
 }
 
+class FakeNotesRepository implements INotesRepository {
+  @override
+  Future<void> deleteNote(String devocionalId) async {}
+
+  @override
+  Future<List<DevotionalNote>> loadNotes() async => [];
+
+  @override
+  Future<void> saveNote(DevotionalNote note) async {}
+}
+
 void main() {
   group('FavoriteDevocionalDetailPage', () {
     late Devocional devocional;
@@ -78,8 +93,13 @@ void main() {
             value: mockDevocionalProvider,
           ),
         ],
-        child: BlocProvider<ThemeBloc>.value(
-          value: FakeThemeBloc(),
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<ThemeBloc>.value(value: FakeThemeBloc()),
+            BlocProvider(
+              create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
+            ),
+          ],
           child: MaterialApp(
             home: FavoriteDevocionalDetailPage(devocional: devocional),
           ),
@@ -133,8 +153,17 @@ void main() {
       await tester.pumpWidget(buildPage());
       await tester.pump();
 
-      await tester.tap(find.byIcon(Icons.star_rounded));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(DevocionalHeaderWidget),
+          matching: find.byIcon(Icons.star_rounded),
+        ),
+      );
       await tester.pump();
+
+      await tester.tap(
+        find.text('devotionals.remove_from_favorites').last,
+      );
       await tester.pump();
 
       verify(mockDevocionalProvider.toggleFavorite('fav-1')).called(1);
