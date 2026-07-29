@@ -9,12 +9,15 @@ library;
 //   3. Settings page switch uses activeColor instead of activeThumbColor
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:devocional_nuevo/blocs/note_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
+import 'package:devocional_nuevo/models/devotional_note.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/models/supporter_pet.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
@@ -47,6 +50,17 @@ class FakeDevocionalProvider extends ChangeNotifier
 class FakeLocalizationService extends LocalizationService {
   @override
   String translate(String key, [Map<String, dynamic>? params]) => key;
+}
+
+class FakeNotesRepository implements INotesRepository {
+  @override
+  Future<void> deleteNote(String devocionalId) async {}
+
+  @override
+  Future<List<DevotionalNote>> loadNotes() async => [];
+
+  @override
+  Future<void> saveNote(DevotionalNote note) async {}
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -116,21 +130,24 @@ void main() {
 
       return MaterialApp(
         home: Scaffold(
-          body: BlocProvider<SupporterBloc>.value(
-            value: bloc..emit(loadedState),
-            child: ChangeNotifierProvider<DevocionalProvider>.value(
-              value: fakeProvider,
-              child: DevocionalesContentWidget(
-                devocional: devocional,
-                fontSize: 16,
-                onStreakBadgeTap: () {},
-                currentStreak: 1,
-                streakFuture: Future.value(1),
-                getLocalizedDateFormat: (_) => '1 de enero de 2025',
-                isFavorite: false,
-                onFavoriteToggle: () {},
-                onShare: () {},
-                petService: petService,
+          body: BlocProvider(
+            create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
+            child: BlocProvider<SupporterBloc>.value(
+              value: bloc..emit(loadedState),
+              child: ChangeNotifierProvider<DevocionalProvider>.value(
+                value: fakeProvider,
+                child: DevocionalesContentWidget(
+                  devocional: devocional,
+                  fontSize: 16,
+                  onStreakBadgeTap: () {},
+                  currentStreak: 1,
+                  streakFuture: Future.value(1),
+                  getLocalizedDateFormat: (_) => '1 de enero de 2025',
+                  isFavorite: false,
+                  onFavoriteToggle: () {},
+                  onShare: () {},
+                  petService: petService,
+                ),
               ),
             ),
           ),
