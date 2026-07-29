@@ -6,6 +6,8 @@ import 'package:devocional_nuevo/blocs/note_event.dart';
 import 'package:devocional_nuevo/blocs/note_state.dart';
 import 'package:devocional_nuevo/models/devotional_note.dart';
 import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class FakeNotesRepository implements INotesRepository {
@@ -41,11 +43,18 @@ void main() {
     late NoteBloc bloc;
 
     setUp(() {
+      ServiceLocator().reset();
+      ServiceLocator().registerSingleton<LocalizationService>(
+        LocalizationService(),
+      );
       repository = FakeNotesRepository();
       bloc = NoteBloc(notesRepository: repository);
     });
 
-    tearDown(() => bloc.close());
+    tearDown(() async {
+      await bloc.close();
+      ServiceLocator().reset();
+    });
 
     test('loads persisted notes', () async {
       await repository.saveNote(

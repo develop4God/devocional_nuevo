@@ -325,6 +325,7 @@
     "save": "Guardar",
     "hint": "Escribe tus notas, comentarios y reflexiones...",
     "saved_message": "Nota guardada",
+    "loading_error": "Error al cargar las notas",
     "add_action": "Agregar una nota personal",
     "view_action": "Tu nota",
     "delete_confirmation": "¿Estás seguro de que deseas eliminar esta nota? Esta acción no se puede deshacer.",
