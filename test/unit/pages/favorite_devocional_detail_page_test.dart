@@ -1,4 +1,4 @@
-@Tags(['unit', 'pages'])
+@Tags(['unit', 'pages', 'favorites'])
 library;
 
 // test/unit/pages/favorite_devocional_detail_page_test.dart
