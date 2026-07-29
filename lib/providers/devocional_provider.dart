@@ -7,6 +7,7 @@ import 'dart:developer' as developer;
 import 'package:devocional_nuevo/controllers/audio_controller.dart'; // NEW
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/models/devotional_note.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
@@ -39,9 +40,8 @@ class DevocionalProvider with ChangeNotifier {
   List<Devocional> _filteredDevocionales = [];
   List<Devocional> _favoriteDevocionales = [];
   Set<String> _favoriteIds = {}; // ID-based favorites storage
-  // Per-devocional free-text notes persisted to SharedPreferences under key
-  // 'devotional_notes' as a JSON map { id: note }
-  Map<String, String> _devocionalNotes = {};
+  // Per-devocional notes persisted as a JSON array under 'devotional_notes'.
+  Map<String, DevotionalNote> _devocionalNotes = {};
 
   bool _isLoading = false;
   bool _isInitialized = false;
@@ -887,7 +887,7 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // ========== NOTES MANAGEMENT ==========
-  /// Loads devotional notes from SharedPreferences. Stored as a JSON map
+  /// Loads devotional notes from SharedPreferences. Stored as a JSON array
   /// under the key 'devotional_notes'. This method acquires _notesLock
   /// while mutating in-memory state.
   Future<void> _loadNotes() async {
@@ -896,8 +896,16 @@ class DevocionalProvider with ChangeNotifier {
         final prefs = await SharedPreferences.getInstance();
         final String? notesJson = prefs.getString('devotional_notes');
         if (notesJson != null) {
-          final Map<String, dynamic> decoded = json.decode(notesJson);
-          _devocionalNotes = decoded.map((k, v) => MapEntry(k, v as String));
+          final notes = (json.decode(notesJson) as List<dynamic>)
+              .map(
+                (note) => DevotionalNote.fromJson(
+                  note as Map<String, dynamic>,
+                ),
+              )
+              .toList();
+          _devocionalNotes = {
+            for (final note in notes) note.devocionalId: note,
+          };
           developer.log('[NOTES] Loaded ${_devocionalNotes.length} notes',
               name: 'DevocionalProvider');
         } else {
@@ -915,7 +923,11 @@ class DevocionalProvider with ChangeNotifier {
   Future<void> _saveNotesInternal() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('devotional_notes', json.encode(_devocionalNotes));
+      await prefs.setString(
+        'devotional_notes',
+        json.encode(
+            _devocionalNotes.values.map((note) => note.toJson()).toList()),
+      );
       developer.log(
         '⭐NOTES_SAVE: ${_devocionalNotes.length} notes saved',
         name: 'Notes',
@@ -935,7 +947,11 @@ class DevocionalProvider with ChangeNotifier {
       if (note == null || note.trim().isEmpty) {
         _devocionalNotes.remove(id);
       } else {
-        _devocionalNotes[id] = note.trim();
+        _devocionalNotes[id] = DevotionalNote(
+          devocionalId: id,
+          text: note.trim(),
+          lastModifiedDate: DateTime.now(),
+        );
       }
       await _saveNotesInternal();
     });
@@ -946,7 +962,7 @@ class DevocionalProvider with ChangeNotifier {
   /// Public API: retrieve note for a devotional or null if none exists.
   String? getNoteForDevocional(String id) {
     if (id.isEmpty) return null;
-    return _devocionalNotes[id];
+    return _devocionalNotes[id]?.text;
   }
 
   void _syncFavoritesWithLoadedDevotionals() {

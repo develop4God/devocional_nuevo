@@ -287,8 +287,11 @@ void main() {
       final savedJson = prefs.getString('devotional_notes');
       expect(savedJson, isNotNull);
 
-      final decoded = json.decode(savedJson!) as Map<String, dynamic>;
-      expect(decoded[devocionalId], equals(noteText));
+      final decoded = json.decode(savedJson!) as List<dynamic>;
+      expect(decoded, hasLength(1));
+      expect(decoded.single['devocionalId'], equals(devocionalId));
+      expect(decoded.single['text'], equals(noteText));
+      expect(decoded.single['lastModifiedDate'], isNotEmpty);
     });
   });
 
@@ -316,10 +319,13 @@ void main() {
     test('notes with non-string values in JSON are handled', () async {
       // Set up with invalid value types
       SharedPreferences.setMockInitialValues({
-        'devotional_notes': json.encode({
-          'id-1': 'valid string',
-          'id-2': 123, // This should cause issues during cast
-        }),
+        'devotional_notes': json.encode([
+          {
+            'devocionalId': 'id-1',
+            'text': 'valid string',
+            'lastModifiedDate': 'not a date',
+          },
+        ]),
       });
 
       final provider = await _createProvider();
