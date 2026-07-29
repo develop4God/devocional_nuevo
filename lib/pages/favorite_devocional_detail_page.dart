@@ -27,8 +27,13 @@ import 'package:share_plus/share_plus.dart';
 /// reading flow.
 class FavoriteDevocionalDetailPage extends StatefulWidget {
   final Devocional devocional;
+  final String titleKey;
 
-  const FavoriteDevocionalDetailPage({super.key, required this.devocional});
+  const FavoriteDevocionalDetailPage({
+    super.key,
+    required this.devocional,
+    this.titleKey = 'favorites.title',
+  });
 
   @override
   State<FavoriteDevocionalDetailPage> createState() =>
@@ -64,7 +69,7 @@ class _FavoriteDevocionalDetailPageState
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themeState.systemUiOverlayStyle,
       child: Scaffold(
-        appBar: CustomAppBar(titleText: 'favorites.title'.tr()),
+        appBar: CustomAppBar(titleText: widget.titleKey.tr()),
         body: Consumer<DevocionalProvider>(
           builder: (context, devocionalProvider, child) {
             final isFavorite = devocionalProvider.isFavorite(widget.devocional);
