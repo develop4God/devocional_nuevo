@@ -1,5 +1,6 @@
 // lib/widgets/devotional_note_viewer.dart
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:flutter/material.dart';
 
@@ -70,7 +71,7 @@ class DevotionalNoteViewer extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Mi Nota',
+                  'notes.title'.tr(),
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
@@ -121,7 +122,7 @@ class DevotionalNoteViewer extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    'Cerrar',
+                    'notes.close'.tr(),
                     style: textTheme.labelLarge?.copyWith(
                       color: colorScheme.onSurface,
                     ),
@@ -144,7 +145,7 @@ class DevotionalNoteViewer extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    'Editar',
+                    'notes.edit'.tr(),
                     style: textTheme.labelLarge?.copyWith(
                       color: colorScheme.onPrimary,
                       fontWeight: FontWeight.w600,

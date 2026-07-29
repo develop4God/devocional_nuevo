@@ -1,5 +1,6 @@
 // lib/widgets/devotional_notes_modal.dart
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
@@ -81,7 +82,7 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
         Navigator.of(context).pop();
         AppSnackBar.show(
           context,
-          'Nota guardada',
+          'notes.saved_message'.tr(),
           icon: Icons.check_circle_outline,
         );
       }
@@ -92,7 +93,7 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
         });
         AppSnackBar.show(
           context,
-          'Error al guardar la nota',
+          'notes.save_error'.tr(),
           type: AppSnackBarType.error,
         );
       }
@@ -131,7 +132,7 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Mi Nota',
+                  'notes.title'.tr(),
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
@@ -161,7 +162,7 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
               color: colorScheme.onSurface,
             ),
             decoration: InputDecoration(
-              hintText: 'Escribe tus pensamientos, reflexiones u oraciones...',
+              hintText: 'notes.hint'.tr(),
               filled: true,
               fillColor: colorScheme.surface,
               border: OutlineInputBorder(
@@ -196,7 +197,7 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
                     ),
                   ),
                   child: Text(
-                    'Cancelar',
+                    'notes.cancel'.tr(),
                     style: textTheme.labelLarge?.copyWith(
                       color: colorScheme.onSurface,
                     ),
@@ -225,7 +226,7 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
                           ),
                         )
                       : Text(
-                          'Guardar',
+                          'notes.save'.tr(),
                           style: textTheme.labelLarge?.copyWith(
                             color: colorScheme.onPrimary,
                             fontWeight: FontWeight.w600,
