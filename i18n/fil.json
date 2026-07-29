@@ -332,7 +332,9 @@
     "delete_confirmation": "Sigurado ka bang gusto mong tanggalin ang talang ito? Hindi na maibabalik ang pagkilos na ito.",
     "save_error": "Pagkakamali sa pag-save ng tala",
     "enter_note_text_error": "Mangyaring maglagay ng tala",
-    "note_min_length_error": "Ang tala ay dapat may hindi bababa sa 10 na karakter"
+    "note_min_length_error": "Ang tala ay dapat may hindi bababa sa 10 na karakter",
+    "empty_title": "Wala ka pang mga tala.",
+    "empty_description": "I-tap ang icon ng tala sa isang debosyonal upang i-save ang iyong mga pagninilay dito."
   },
   "contact": {
     "bugs": "Mga Bug/Error",

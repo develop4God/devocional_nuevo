@@ -332,7 +332,9 @@
     "delete_confirmation": "Êtes-vous sûr de vouloir supprimer cette note ? Cette action est irréversible.",
     "save_error": "Erreur lors de l'enregistrement de la note",
     "enter_note_text_error": "Veuillez saisir une note",
-    "note_min_length_error": "La note doit comporter au moins 10 caractères"
+    "note_min_length_error": "La note doit comporter au moins 10 caractères",
+    "empty_title": "Vous n'avez pas encore de notes.",
+    "empty_description": "Touchez l'icône de note d'une méditation pour enregistrer vos réflexions ici."
   },
   "contact": {
     "bugs": "Erreurs/Bugs",

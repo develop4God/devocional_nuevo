@@ -332,7 +332,9 @@
     "delete_confirmation": "您确定要删除此笔记吗？此操作无法撤销。",
     "save_error": "保存笔记出错",
     "enter_note_text_error": "请输入笔记",
-    "note_min_length_error": "笔记必须至少有10个字符"
+    "note_min_length_error": "笔记必须至少有10个字符",
+    "empty_title": "您还没有笔记。",
+    "empty_description": "点击灵修内容中的笔记图标，即可在此保存您的感想。"
   },
   "contact": {
     "bugs": "错误/漏洞",
