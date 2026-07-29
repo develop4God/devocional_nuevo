@@ -64,6 +64,7 @@
     "favorite": "पसंदीदा",
     "add_to_favorites": "पसंदीदा में जोड़ें",
     "remove_from_favorites": "पसंदीदा से हटाएं",
+    "remove_from_favorites_confirmation": "क्या आप वाकई इस भक्ति को अपने पसंदीदा से हटाना चाहते हैं?",
     "save_as_favorite": "पसंदीदा के रूप में सहेजें",
     "remove_from_favorites_short": "पसंदीदा से हटाएं",
     "added_to_favorites": "पसंदीदा में जोड़ा गया",
@@ -324,6 +325,8 @@
     "save": "सहेजें",
     "hint": "अपनी नोट्स, टिप्पणियां और प्रतिबिंब लिखें...",
     "saved_message": "नोट सहेजा गया",
+    "add_action": "एक व्यक्तिगत नोट जोड़ें",
+    "view_action": "आपका नोट",
     "delete_confirmation": "क्या आप वाकई इस नोट को हटाना चाहते हैं? इस कार्रवाई को पूर्ववत नहीं किया जा सकता।",
     "save_error": "नोट सहेजने में त्रुटि"
   },

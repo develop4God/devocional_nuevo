@@ -64,6 +64,7 @@
     "favorite": "Favorito",
     "add_to_favorites": "Adicionar aos favoritos",
     "remove_from_favorites": "Remover dos favoritos",
+    "remove_from_favorites_confirmation": "Tem certeza de que deseja remover este devocional dos seus favoritos?",
     "save_as_favorite": "Salvar como favorito",
     "remove_from_favorites_short": "Remover dos favoritos",
     "added_to_favorites": "Adicionado aos favoritos",
@@ -324,6 +325,8 @@
     "save": "Salvar",
     "hint": "Escreva suas anotações, comentários e reflexões...",
     "saved_message": "Nota salva",
+    "add_action": "Adicionar uma nota pessoal",
+    "view_action": "Sua nota",
     "delete_confirmation": "Tem certeza de que deseja excluir esta nota? Esta ação não pode ser desfeita.",
     "save_error": "Erro ao salvar a nota"
   },
