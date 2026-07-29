@@ -64,6 +64,7 @@
     "favorite": "Favorite",
     "add_to_favorites": "Add to favorites",
     "remove_from_favorites": "Remove from favorites",
+    "remove_from_favorites_confirmation": "Are you sure you want to remove this devotional from your favorites?",
     "save_as_favorite": "Save as favorite",
     "remove_from_favorites_short": "Remove from favorites",
     "added_to_favorites": "Added to favorites",
@@ -324,6 +325,8 @@
     "save": "Save",
     "hint": "Write your notes, comments and reflections...",
     "saved_message": "Note saved",
+    "add_action": "Add a personal note",
+    "view_action": "Your note",
     "delete_confirmation": "Are you sure you want to delete this note? This action cannot be undone.",
     "save_error": "Error saving note"
   },

@@ -64,6 +64,7 @@
     "favorite": "المفضلة",
     "add_to_favorites": "إضافة إلى المفضلة",
     "remove_from_favorites": "إزالة من المفضلة",
+    "remove_from_favorites_confirmation": "هل أنت متأكد أنك تريد إزالة هذا التأمل من المفضلة؟",
     "save_as_favorite": "حفظ في المفضلة",
     "remove_from_favorites_short": "إزالة من المفضلة",
     "added_to_favorites": "تمت الإضافة إلى المفضلة",
@@ -324,6 +325,8 @@
     "save": "حفظ",
     "hint": "اكتب ملاحظاتك وتعليقاتك وتأملاتك...",
     "saved_message": "تم حفظ الملاحظة",
+    "add_action": "أضف ملاحظة شخصية",
+    "view_action": "ملاحظتك",
     "delete_confirmation": "هل أنت متأكد أنك تريد حذف هذه الملاحظة؟ لا يمكن التراجع عن هذا الإجراء.",
     "save_error": "خطأ في حفظ الملاحظة"
   },

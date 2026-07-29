@@ -64,6 +64,7 @@
     "favorite": "お気に入り",
     "add_to_favorites": "お気に入りに追加",
     "remove_from_favorites": "お気に入りから削除",
+    "remove_from_favorites_confirmation": "このデボーションをお気に入りから削除してもよろしいですか？",
     "save_as_favorite": "お気に入りとして保存",
     "remove_from_favorites_short": "お気に入りから削除",
     "added_to_favorites": "お気に入りに追加されました",
@@ -324,6 +325,8 @@
     "save": "保存",
     "hint": "メモ、コメント、振り返りを記入してください...",
     "saved_message": "メモが保存されました",
+    "add_action": "個人的なメモを追加",
+    "view_action": "あなたのメモ",
     "delete_confirmation": "このメモを削除してもよろしいですか？この操作は元に戻せません。",
     "save_error": "メモの保存エラー"
   },

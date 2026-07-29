@@ -64,6 +64,7 @@
     "favorite": "Paborito",
     "add_to_favorites": "Idagdag sa mga paborito",
     "remove_from_favorites": "Alisin sa mga paborito",
+    "remove_from_favorites_confirmation": "Sigurado ka bang gusto mong alisin ang debosyonal na ito sa iyong mga paborito?",
     "save_as_favorite": "I-save bilang paborito",
     "remove_from_favorites_short": "Alisin sa mga paborito",
     "added_to_favorites": "Naidagdag sa mga paborito",
@@ -324,6 +325,8 @@
     "save": "I-save",
     "hint": "Isulat ang iyong mga tala, komento at pagninilay...",
     "saved_message": "Ang tala ay na-save",
+    "add_action": "Magdagdag ng personal na tala",
+    "view_action": "Iyong tala",
     "delete_confirmation": "Sigurado ka bang gusto mong tanggalin ang talang ito? Hindi na maibabalik ang pagkilos na ito.",
     "save_error": "Pagkakamali sa pag-save ng tala"
   },

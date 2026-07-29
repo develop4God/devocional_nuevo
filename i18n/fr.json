@@ -64,6 +64,7 @@
     "favorite": "Favori",
     "add_to_favorites": "Ajouter aux favoris",
     "remove_from_favorites": "Retirer des favoris",
+    "remove_from_favorites_confirmation": "Êtes-vous sûr de vouloir retirer cette méditation de vos favoris ?",
     "save_as_favorite": "Enregistrer comme favori",
     "remove_from_favorites_short": "Retirer des favoris",
     "added_to_favorites": "Ajouté aux favoris",
@@ -324,6 +325,8 @@
     "save": "Enregistrer",
     "hint": "Écrivez vos notes, commentaires et réflexions...",
     "saved_message": "Note enregistrée",
+    "add_action": "Ajouter une note personnelle",
+    "view_action": "Votre note",
     "delete_confirmation": "Êtes-vous sûr de vouloir supprimer cette note ? Cette action est irréversible.",
     "save_error": "Erreur lors de l'enregistrement de la note"
   },

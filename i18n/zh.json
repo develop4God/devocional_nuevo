@@ -64,6 +64,7 @@
     "favorite": "收藏",
     "add_to_favorites": "添加到收藏",
     "remove_from_favorites": "从收藏中移除",
+    "remove_from_favorites_confirmation": "您确定要从收藏中移除此灵修吗？",
     "save_as_favorite": "保存为收藏",
     "remove_from_favorites_short": "从收藏中移除",
     "added_to_favorites": "已添加到收藏",
@@ -324,6 +325,8 @@
     "save": "保存",
     "hint": "写下您的笔记、评论和反思...",
     "saved_message": "笔记已保存",
+    "add_action": "添加个人笔记",
+    "view_action": "您的笔记",
     "delete_confirmation": "您确定要删除此笔记吗？此操作无法撤销。",
     "save_error": "保存笔记出错"
   },
