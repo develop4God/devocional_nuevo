@@ -1,6 +1,7 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/widgets/delete_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
@@ -100,12 +101,12 @@ class DevocionalHeaderWidget extends StatelessWidget {
                     size: 26,
                   ),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   getService<IAnalyticsService>().logBottomBarAction(
                     action: 'favorite',
                   );
                   HapticFeedback.mediumImpact();
-                  onFavoriteToggle();
+                  await _handleFavoriteToggle(context);
                 },
                 tooltip: isFavorite
                     ? 'devotionals.remove_from_favorites_short'.tr()
@@ -133,6 +134,21 @@ class DevocionalHeaderWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _handleFavoriteToggle(BuildContext context) async {
+    if (!isFavorite) {
+      onFavoriteToggle();
+      return;
+    }
+
+    final confirmed = await DeleteConfirmationDialog.show(
+      context: context,
+      titleKey: 'devotionals.remove_from_favorites',
+      contentKey: 'devotionals.remove_from_favorites_confirmation',
+    );
+
+    if (confirmed == true) onFavoriteToggle();
   }
 
   Widget _buildModernActionButton(

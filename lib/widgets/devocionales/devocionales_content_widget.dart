@@ -6,6 +6,8 @@ import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
+import 'package:devocional_nuevo/widgets/devotional_note_viewer.dart';
+import 'package:devocional_nuevo/widgets/devotional_notes_modal.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/copyable_verse_card.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.dart';
@@ -99,6 +101,8 @@ class DevocionalesContentWidget extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          const SizedBox(height: 12),
+          _DevotionalNoteAction(devocional: devocional),
           const SizedBox(height: 20),
           Text(
             'devotionals.reflection'.tr(),
@@ -218,6 +222,108 @@ class DevocionalesContentWidget extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+class _DevotionalNoteAction extends StatelessWidget {
+  final Devocional devocional;
+
+  const _DevotionalNoteAction({required this.devocional});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Consumer<DevocionalProvider>(
+      builder: (context, provider, child) {
+        final note = provider.getNoteForDevocional(devocional.id);
+        final hasNote = note?.isNotEmpty == true;
+
+        return Semantics(
+          button: true,
+          label: hasNote ? 'notes.view_action'.tr() : 'notes.add_action'.tr(),
+          child: Material(
+            color: hasNote
+                ? colorScheme.primaryContainer.withValues(alpha: 0.35)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: () {
+                if (hasNote) {
+                  DevotionalNoteViewer.show(
+                    context,
+                    devocional: devocional,
+                    note: note!,
+                    onEdit: () => DevotionalNotesModal.show(
+                      context,
+                      devocional: devocional,
+                      initialNote: note,
+                    ),
+                  );
+                } else {
+                  DevotionalNotesModal.show(
+                    context,
+                    devocional: devocional,
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: hasNote
+                        ? colorScheme.primary.withValues(alpha: 0.35)
+                        : colorScheme.outline.withValues(alpha: 0.45),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      hasNote
+                          ? Icons.sticky_note_2_rounded
+                          : Icons.note_add_outlined,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        hasNote
+                            ? 'notes.view_action'.tr()
+                            : 'notes.add_action'.tr(),
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: colorScheme.onSurface,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                    if (hasNote)
+                      Container(
+                        width: 8,
+                        height: 8,
+                        margin: const EdgeInsets.only(right: 10),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

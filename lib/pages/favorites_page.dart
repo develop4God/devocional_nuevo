@@ -10,6 +10,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_detail_page.dart';
 import 'package:devocional_nuevo/pages/favorite_devocional_detail_page.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
@@ -22,7 +23,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/devocional_provider.dart';
+import 'package:devocional_nuevo/widgets/delete_confirmation_dialog.dart';
 
 class FavoritesPage extends StatefulWidget {
   final int initialIndex;
@@ -337,7 +338,11 @@ class _FavoritesPageState extends State<FavoritesPage>
                       Icons.favorite_rounded,
                       color: Colors.redAccent,
                     ),
-                    onPressed: () => provider.toggleFavorite(devocional.id),
+                    onPressed: () => _showRemoveFavoriteConfirmation(
+                      context,
+                      devocional,
+                      provider,
+                    ),
                   ),
                 ],
               ),
@@ -376,6 +381,37 @@ class _FavoritesPageState extends State<FavoritesPage>
       devocional: devocional,
       initialNote: provider.getNoteForDevocional(devocional.id),
     );
+  }
+
+  Future<void> _showRemoveFavoriteConfirmation(
+    BuildContext context,
+    Devocional devocional,
+    DevocionalProvider provider,
+  ) async {
+    final confirmed = await DeleteConfirmationDialog.show(
+      context: context,
+      titleKey: 'devotionals.remove_from_favorites',
+      contentKey: 'devotionals.remove_from_favorites_confirmation',
+    );
+
+    if (confirmed && context.mounted) {
+      provider.toggleFavorite(devocional.id);
+    }
+  }
+
+  Future<void> _showRemoveStudyFavoriteConfirmation(
+    BuildContext context,
+    String id,
+  ) async {
+    final confirmed = await DeleteConfirmationDialog.show(
+      context: context,
+      titleKey: 'devotionals.remove_from_favorites',
+      contentKey: 'discovery.remove_from_favorites_confirmation',
+    );
+
+    if (confirmed && context.mounted) {
+      context.read<DiscoveryBloc>().add(ToggleDiscoveryFavorite(id));
+    }
   }
 
   Widget _buildMinimalistStudyRow(
@@ -467,9 +503,10 @@ class _FavoritesPageState extends State<FavoritesPage>
                   color: Colors.amber,
                   size: 30,
                 ),
-                onPressed: () => context.read<DiscoveryBloc>().add(
-                      ToggleDiscoveryFavorite(id),
-                    ),
+                onPressed: () => _showRemoveStudyFavoriteConfirmation(
+                  context,
+                  id,
+                ),
               ),
             ],
           ),
