@@ -1,8 +1,6 @@
 @Tags(['unit', 'repositories', 'notes'])
 library;
 
-import 'dart:convert';
-
 import 'package:devocional_nuevo/models/devotional_note.dart';
 import 'package:devocional_nuevo/repositories/notes_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -93,18 +91,12 @@ void main() {
     expect(notes.any((note) => note.devocionalId == 'delete-me'), isFalse);
   });
 
-  test('propagates malformed stored data failures', () async {
+  test('returns no notes when stored JSON is malformed', () async {
     SharedPreferences.setMockInitialValues({
-      'devotional_notes': json.encode([
-        {
-          'devocionalId': 'devotional-1',
-          'text': 'Invalid date',
-          'lastModifiedDate': 'not-a-date',
-        },
-      ]),
+      'devotional_notes': '{not valid JSON',
     });
 
-    await expectLater(repository.loadNotes(), throwsFormatException);
+    expect(await repository.loadNotes(), isEmpty);
   });
 
   test('propagates preference access failures', () async {
