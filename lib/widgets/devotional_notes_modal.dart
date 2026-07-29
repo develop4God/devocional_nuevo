@@ -1,16 +1,17 @@
 // lib/widgets/devotional_notes_modal.dart
 
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/blocs/note_bloc.dart';
+import 'package:devocional_nuevo/blocs/note_event.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Stateful modal widget for editing notes on a devotional.
 ///
 /// Encapsulates the notes editor UI and lifecycle (auto-focus, save/cancel flow).
-/// Handles persistence via DevocionalProvider.saveNoteForDevocional().
+/// Handles persistence through [NoteBloc].
 /// Displays feedback via SnackBar (success/error).
 class DevotionalNotesModal extends StatefulWidget {
   final Devocional devocional;
@@ -68,16 +69,15 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
   }
 
   Future<void> _saveNote() async {
-    final provider = context.read<DevocionalProvider>();
     setState(() {
       _isSaving = true;
     });
 
     try {
-      await provider.saveNoteForDevocional(
-        widget.devocional.id,
-        _noteController.text.trim(),
-      );
+      context.read<NoteBloc>().add(SaveNoteForDevocional(
+            widget.devocional.id,
+            _noteController.text.trim(),
+          ));
       if (mounted) {
         Navigator.of(context).pop();
         AppSnackBar.show(
@@ -124,11 +124,12 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
 
     if (confirmed != true || !mounted) return;
 
-    final provider = context.read<DevocionalProvider>();
     setState(() => _isSaving = true);
 
     try {
-      await provider.saveNoteForDevocional(widget.devocional.id, null);
+      context.read<NoteBloc>().add(
+            SaveNoteForDevocional(widget.devocional.id, null),
+          );
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {

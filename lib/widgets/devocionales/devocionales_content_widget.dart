@@ -1,5 +1,7 @@
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
+import 'package:devocional_nuevo/blocs/note_bloc.dart';
+import 'package:devocional_nuevo/blocs/note_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
@@ -235,9 +237,11 @@ class _DevotionalNoteAction extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer<DevocionalProvider>(
-      builder: (context, provider, child) {
-        final note = provider.getNoteForDevocional(devocional.id);
+    return BlocBuilder<NoteBloc, NoteState>(
+      builder: (context, state) {
+        final note = state is NoteLoaded
+            ? state.getNoteForDevocional(devocional.id)
+            : null;
         final hasNote = note?.isNotEmpty == true;
 
         return Semantics(

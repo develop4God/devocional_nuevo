@@ -1,11 +1,12 @@
 // lib/widgets/devotional_note_viewer.dart
 
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/blocs/note_bloc.dart';
+import 'package:devocional_nuevo/blocs/note_event.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Read-only modal widget for viewing a devotional note.
 ///
@@ -48,10 +49,7 @@ class DevotionalNoteViewer extends StatelessWidget {
     if (confirmed != true || !context.mounted) return;
 
     try {
-      await context.read<DevocionalProvider>().saveNoteForDevocional(
-            devocional.id,
-            null,
-          );
+      context.read<NoteBloc>().add(SaveNoteForDevocional(devocional.id, null));
       if (context.mounted) Navigator.of(context).pop();
     } catch (e) {
       if (context.mounted) {

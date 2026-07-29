@@ -3,6 +3,8 @@
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
+import 'package:devocional_nuevo/blocs/note_bloc.dart';
+import 'package:devocional_nuevo/blocs/note_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -320,18 +322,22 @@ class _FavoritesPageState extends State<FavoritesPage>
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    icon: Icon(
-                      provider
-                                  .getNoteForDevocional(devocional.id)
-                                  ?.isNotEmpty ==
-                              true
-                          ? Icons.sticky_note_2_rounded
-                          : Icons.sticky_note_2_outlined,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    onPressed: () =>
-                        _handleNoteIconTap(context, devocional, provider),
+                  BlocBuilder<NoteBloc, NoteState>(
+                    builder: (context, state) {
+                      final note = state is NoteLoaded
+                          ? state.getNoteForDevocional(devocional.id)
+                          : null;
+                      return IconButton(
+                        icon: Icon(
+                          note?.isNotEmpty == true
+                              ? Icons.sticky_note_2_rounded
+                              : Icons.sticky_note_2_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        onPressed: () =>
+                            _handleNoteIconTap(context, devocional, note),
+                      );
+                    },
                   ),
                   IconButton(
                     icon: const Icon(
@@ -356,10 +362,8 @@ class _FavoritesPageState extends State<FavoritesPage>
   void _handleNoteIconTap(
     BuildContext context,
     Devocional devocional,
-    DevocionalProvider provider,
+    String? note,
   ) {
-    final note = provider.getNoteForDevocional(devocional.id);
-
     // If note exists and is not empty, show viewer (read-only)
     if (note != null && note.isNotEmpty) {
       DevotionalNoteViewer.show(
@@ -375,11 +379,13 @@ class _FavoritesPageState extends State<FavoritesPage>
   }
 
   void _showNoteEditor(BuildContext context, Devocional devocional) {
-    final provider = context.read<DevocionalProvider>();
+    final state = context.read<NoteBloc>().state;
     DevotionalNotesModal.show(
       context,
       devocional: devocional,
-      initialNote: provider.getNoteForDevocional(devocional.id),
+      initialNote: state is NoteLoaded
+          ? state.getNoteForDevocional(devocional.id)
+          : null,
     );
   }
 
