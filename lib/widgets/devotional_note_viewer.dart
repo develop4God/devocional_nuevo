@@ -2,7 +2,10 @@
 
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 /// Read-only modal widget for viewing a devotional note.
 ///
@@ -19,6 +22,47 @@ class DevotionalNoteViewer extends StatelessWidget {
     required this.note,
     required this.onEdit,
   });
+
+  Future<void> _confirmDeleteNote(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('notes.title'.tr()),
+        content: Text('notes.delete_confirmation'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text('notes.cancel'.tr()),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            child: Text('app.delete'.tr()),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await context.read<DevocionalProvider>().saveNoteForDevocional(
+            devocional.id,
+            null,
+          );
+      if (context.mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (context.mounted) {
+        AppSnackBar.show(
+          context,
+          'notes.save_error'.tr(),
+          type: AppSnackBarType.error,
+        );
+      }
+    }
+  }
 
   /// Show the viewer modal in a clean, static way.
   static Future<void> show(
@@ -76,6 +120,14 @@ class DevotionalNoteViewer extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
                   ),
+                ),
+              ),
+              IconButton(
+                onPressed: () => _confirmDeleteNote(context),
+                tooltip: 'app.delete'.tr(),
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: colorScheme.error,
                 ),
               ),
               IconButton(

@@ -324,6 +324,7 @@
     "save": "保存",
     "hint": "写下您的笔记、评论和反思...",
     "saved_message": "笔记已保存",
+    "delete_confirmation": "您确定要删除此笔记吗？此操作无法撤销。",
     "save_error": "保存笔记出错"
   },
   "contact": {

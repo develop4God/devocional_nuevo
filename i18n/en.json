@@ -324,6 +324,7 @@
     "save": "Save",
     "hint": "Write your notes, comments and reflections...",
     "saved_message": "Note saved",
+    "delete_confirmation": "Are you sure you want to delete this note? This action cannot be undone.",
     "save_error": "Error saving note"
   },
   "contact": {

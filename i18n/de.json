@@ -324,6 +324,7 @@
     "save": "Speichern",
     "hint": "Schreiben Sie Ihre Notizen, Kommentare und Reflexionen...",
     "saved_message": "Notiz gespeichert",
+    "delete_confirmation": "Möchten Sie diese Notiz wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
     "save_error": "Fehler beim Speichern der Notiz"
   },
   "contact": {

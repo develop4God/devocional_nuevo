@@ -324,6 +324,7 @@
     "save": "Guardar",
     "hint": "Escribe tus notas, comentarios y reflexiones...",
     "saved_message": "Nota guardada",
+    "delete_confirmation": "¿Estás seguro de que deseas eliminar esta nota? Esta acción no se puede deshacer.",
     "save_error": "Error al guardar la nota"
   },
   "contact": {
