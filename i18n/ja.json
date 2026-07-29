@@ -316,6 +316,16 @@
     "remove_tooltip": "お気に入りから削除",
     "removed_message": "\"{verse}\"がお気に入りから削除されました。"
   },
+  "notes": {
+    "title": "私のメモ",
+    "close": "閉じる",
+    "edit": "編集",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "hint": "あなたの思い、考え、祈りを書いてください...",
+    "saved_message": "メモが保存されました",
+    "save_error": "メモの保存エラー"
+  },
   "contact": {
     "bugs": "エラー/バグ",
     "feedback": "意見/フィードバック",

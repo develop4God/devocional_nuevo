@@ -316,6 +316,16 @@
     "remove_tooltip": "Alisin sa mga paborito",
     "removed_message": "Naalis ang \"{verse}\" sa mga paborito."
   },
+  "notes": {
+    "title": "Ang Aking Tala",
+    "close": "Isara",
+    "edit": "I-edit",
+    "cancel": "Kanselahin",
+    "save": "I-save",
+    "hint": "Isulat ang iyong mga pag-iisip, pagmumuni-muni o panalangin...",
+    "saved_message": "Ang tala ay na-save",
+    "save_error": "Pagkakamali sa pag-save ng tala"
+  },
   "contact": {
     "bugs": "Mga Bug/Error",
     "feedback": "Feedback/Opinyon",

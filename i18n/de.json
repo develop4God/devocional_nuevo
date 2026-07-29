@@ -316,6 +316,16 @@
     "remove_tooltip": "Aus Favoriten entfernen",
     "removed_message": "\"{verse}\" aus Favoriten entfernt."
   },
+  "notes": {
+    "title": "Meine Notiz",
+    "close": "Schließen",
+    "edit": "Bearbeiten",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "hint": "Schreiben Sie Ihre Gedanken, Überlegungen oder Gebete...",
+    "saved_message": "Notiz gespeichert",
+    "save_error": "Fehler beim Speichern der Notiz"
+  },
   "contact": {
     "bugs": "Fehler/Bugs",
     "feedback": "Feedback/Meinung",

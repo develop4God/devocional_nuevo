@@ -316,6 +316,16 @@
     "remove_tooltip": "Remove from favorites",
     "removed_message": "\"{verse}\" removed from favorites."
   },
+  "notes": {
+    "title": "My Note",
+    "close": "Close",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "hint": "Write your thoughts, reflections or prayers...",
+    "saved_message": "Note saved",
+    "save_error": "Error saving note"
+  },
   "contact": {
     "bugs": "Bugs/Errors",
     "feedback": "Feedback/Opinion",
