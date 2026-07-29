@@ -48,6 +48,7 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
   late TextEditingController _noteController;
   late FocusNode _focusNode;
   bool _isSaving = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -69,6 +70,20 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
   }
 
   Future<void> _saveNote() async {
+    final text = _noteController.text.trim();
+
+    setState(() => _errorMessage = null);
+
+    if (text.isEmpty) {
+      setState(() => _errorMessage = 'notes.enter_note_text_error'.tr());
+      return;
+    }
+
+    if (text.length < 10) {
+      setState(() => _errorMessage = 'notes.note_min_length_error'.tr());
+      return;
+    }
+
     setState(() {
       _isSaving = true;
     });
@@ -76,7 +91,7 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
     try {
       context.read<NoteBloc>().add(SaveNoteForDevocional(
             widget.devocional.id,
-            _noteController.text.trim(),
+            text,
           ));
       if (mounted) {
         Navigator.of(context).pop();
@@ -233,6 +248,14 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
             ),
           ),
           const SizedBox(height: 16),
+
+          if (_errorMessage != null) ...[
+            Text(
+              _errorMessage!,
+              style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Buttons
           Row(
