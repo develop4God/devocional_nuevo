@@ -775,6 +775,7 @@
     "read": "阅读",
     "no_favorites_title": "暂无收藏的研读",
     "no_favorites_description": "您还没有将圣经研读添加到收藏夹。",
+    "remove_from_favorites_confirmation": "您确定要将这项圣经学习从收藏夹中移除吗？",
     "favorite_studies": "收藏的研读",
     "download_study": "下载研读",
     "scripture_connections": "圣经关联",

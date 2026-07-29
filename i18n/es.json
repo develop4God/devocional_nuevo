@@ -775,6 +775,7 @@
     "read": "Leer",
     "no_favorites_title": "Aún no hay estudios favoritos",
     "no_favorites_description": "Marca el ícono de estrella en un estudio para guardarlo aquí.",
+    "remove_from_favorites_confirmation": "¿Estás seguro de que deseas quitar este estudio bíblico de tus favoritos?",
     "favorite_studies": "Estudios Favoritos",
     "download_study": "Descargar",
     "scripture_connections": "Conexiones Bíblicas",
