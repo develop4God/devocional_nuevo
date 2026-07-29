@@ -107,7 +107,7 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('User taps a devotional deep link', (
+    testWidgets('User taps an unsupported devotional deep link', (
       WidgetTester tester,
     ) async {
       // GIVEN: App is open on Home Page
@@ -118,12 +118,11 @@ void main() {
       final uri = Uri.parse('devocional://devotional');
       final result = await deepLinkHandler.handleDeepLink(uri);
 
-      // THEN: It returns true and navigates
-      expect(result, isTrue);
+      // THEN: It is ignored and the current page remains visible.
+      expect(result, isFalse);
       await tester.pumpAndSettle();
 
-      // In pumpTestApp, we mock the devotional route to return a Scaffold with title "devotional"
-      expect(find.text('Page: devotional'), findsOneWidget);
+      expect(find.text('Home Page'), findsOneWidget);
     });
 
     testWidgets('User taps a progress deep link', (WidgetTester tester) async {
