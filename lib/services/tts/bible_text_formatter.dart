@@ -348,12 +348,21 @@ class BibleTextFormatter {
     // 1. Formatear libros bíblicos PRIMERO (con RegExp corregido)
     normalized = formatBibleBook(normalized, language);
     // 2. Expandir versiones bíblicas
+    // Sorted longest-first and stopped after the first match: some
+    // languages' keys are substrings of each other (e.g. hi's 'पवित्र
+    // बाइबिल' inside 'पवित्र बाइबिल (ओ.वी.)', or 'OV' inside 'HIOV').
+    // Matching the longest key first and stopping prevents a shorter key
+    // from re-matching text that a longer key's expansion just produced.
     final bibleVersions = getBibleVersionExpansions(language);
-    bibleVersions.forEach((versionKey, expansion) {
+    final sortedKeys = bibleVersions.keys.toList()
+      ..sort((a, b) => b.length.compareTo(a.length));
+    for (final versionKey in sortedKeys) {
       if (normalized.contains(versionKey)) {
-        normalized = normalized.replaceAll(versionKey, expansion);
+        normalized =
+            normalized.replaceAll(versionKey, bibleVersions[versionKey]!);
+        break;
       }
-    });
+    }
     // 3. Formatear referencias bíblicas básicas (capítulo:versículo)
     normalized = formatBibleReferences(normalized, language);
     // Clean up whitespace

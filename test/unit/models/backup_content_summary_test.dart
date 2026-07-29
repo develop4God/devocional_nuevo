@@ -15,6 +15,7 @@ void main() {
   BackupContentSummary filled() => const BackupContentSummary(
         prayersCount: 5,
         thanksgivingsCount: 3,
+        notesCount: 8,
         testimoniesCount: 2,
         favoritesCount: 10,
         encountersCount: 4,
@@ -121,8 +122,8 @@ void main() {
     });
 
     test('returns sum of all counters', () {
-      // 5+3+2+10+4+1+7+0+6 = 38
-      expect(filled().totalItems, equals(38));
+      // 5+3+8+2+10+4+1+7+0+6 = 46
+      expect(filled().totalItems, equals(46));
     });
 
     test('single-item summary has totalItems of 1', () {
@@ -142,13 +143,14 @@ void main() {
 
   // ---------------------------------------------------------------------------
   group('BackupContentSummary — props contract (Equatable)', () {
-    test('props contains all 9 fields in declaration order', () {
+    test('props contains all 10 fields in declaration order', () {
       final s = filled();
       expect(
         s.props,
         equals([
           s.prayersCount,
           s.thanksgivingsCount,
+          s.notesCount,
           s.testimoniesCount,
           s.favoritesCount,
           s.encountersCount,
@@ -167,6 +169,7 @@ void main() {
       final s = filled();
       expect(s.prayersCount, 5);
       expect(s.thanksgivingsCount, 3);
+      expect(s.notesCount, 8);
       expect(s.testimoniesCount, 2);
       expect(s.favoritesCount, 10);
       expect(s.encountersCount, 4);
