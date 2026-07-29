@@ -3,6 +3,8 @@
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
+import 'package:devocional_nuevo/blocs/note_bloc.dart';
+import 'package:devocional_nuevo/blocs/note_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -10,17 +12,20 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_detail_page.dart';
 import 'package:devocional_nuevo/pages/favorite_devocional_detail_page.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/devotional_note_viewer.dart';
+import 'package:devocional_nuevo/widgets/devotional_notes_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/devocional_provider.dart';
+import 'package:devocional_nuevo/widgets/delete_confirmation_dialog.dart';
 
 class FavoritesPage extends StatefulWidget {
   final int initialIndex;
@@ -314,18 +319,105 @@ class _FavoritesPageState extends State<FavoritesPage>
                   ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(
-                  Icons.favorite_rounded,
-                  color: Colors.redAccent,
-                ),
-                onPressed: () => provider.toggleFavorite(devocional.id),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  BlocBuilder<NoteBloc, NoteState>(
+                    builder: (context, state) {
+                      final note = state is NoteLoaded
+                          ? state.getNoteForDevocional(devocional.id)
+                          : null;
+                      return IconButton(
+                        icon: Icon(
+                          note?.isNotEmpty == true
+                              ? Icons.sticky_note_2_rounded
+                              : Icons.sticky_note_2_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        onPressed: () =>
+                            _handleNoteIconTap(context, devocional, note),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.favorite_rounded,
+                      color: Colors.redAccent,
+                    ),
+                    onPressed: () => _showRemoveFavoriteConfirmation(
+                      context,
+                      devocional,
+                      provider,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void _handleNoteIconTap(
+    BuildContext context,
+    Devocional devocional,
+    String? note,
+  ) {
+    // If note exists and is not empty, show viewer (read-only)
+    if (note != null && note.isNotEmpty) {
+      DevotionalNoteViewer.show(
+        context,
+        devocional: devocional,
+        note: note,
+        onEdit: () => _showNoteEditor(context, devocional),
+      );
+    } else {
+      // If no note, show editor directly
+      _showNoteEditor(context, devocional);
+    }
+  }
+
+  void _showNoteEditor(BuildContext context, Devocional devocional) {
+    final state = context.read<NoteBloc>().state;
+    DevotionalNotesModal.show(
+      context,
+      devocional: devocional,
+      initialNote: state is NoteLoaded
+          ? state.getNoteForDevocional(devocional.id)
+          : null,
+    );
+  }
+
+  Future<void> _showRemoveFavoriteConfirmation(
+    BuildContext context,
+    Devocional devocional,
+    DevocionalProvider provider,
+  ) async {
+    final confirmed = await DeleteConfirmationDialog.show(
+      context: context,
+      titleKey: 'devotionals.remove_from_favorites',
+      contentKey: 'devotionals.remove_from_favorites_confirmation',
+    );
+
+    if (confirmed && context.mounted) {
+      provider.toggleFavorite(devocional.id);
+    }
+  }
+
+  Future<void> _showRemoveStudyFavoriteConfirmation(
+    BuildContext context,
+    String id,
+  ) async {
+    final confirmed = await DeleteConfirmationDialog.show(
+      context: context,
+      titleKey: 'devotionals.remove_from_favorites',
+      contentKey: 'discovery.remove_from_favorites_confirmation',
+    );
+
+    if (confirmed && context.mounted) {
+      context.read<DiscoveryBloc>().add(ToggleDiscoveryFavorite(id));
+    }
   }
 
   Widget _buildMinimalistStudyRow(
@@ -417,9 +509,10 @@ class _FavoritesPageState extends State<FavoritesPage>
                   color: Colors.amber,
                   size: 30,
                 ),
-                onPressed: () => context.read<DiscoveryBloc>().add(
-                      ToggleDiscoveryFavorite(id),
-                    ),
+                onPressed: () => _showRemoveStudyFavoriteConfirmation(
+                  context,
+                  id,
+                ),
               ),
             ],
           ),

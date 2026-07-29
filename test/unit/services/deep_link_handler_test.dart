@@ -62,7 +62,7 @@ void main() {
         expect(result, isFalse);
       });
 
-      testWidgets('should handle devotional deep link', (
+      testWidgets('should reject devotional deep link', (
         WidgetTester tester,
       ) async {
         await pumpReady(tester);
@@ -70,7 +70,7 @@ void main() {
         final uri = Uri.parse('devocional://devotional');
         final result = await deepLinkHandler.handleDeepLink(uri);
 
-        expect(result, isTrue);
+        expect(result, isFalse);
       });
 
       testWidgets('should handle progress deep link', (
@@ -131,7 +131,7 @@ void main() {
       ) async {
         // Do NOT pump a widget — navigatorKey.currentContext stays null.
 
-        final uri = Uri.parse('devocional://devotional');
+        final uri = Uri.parse('devocional://progress');
         final result = await deepLinkHandler.handleDeepLink(uri);
 
         expect(result, isFalse);
@@ -168,7 +168,7 @@ void main() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
           if (methodCall.method == 'getInitialLink') {
-            return 'devocional://devotional';
+            return 'devocional://progress';
           }
           return null;
         });

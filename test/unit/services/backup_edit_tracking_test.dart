@@ -8,6 +8,7 @@ library;
 // tracked and merged across devices based on modification timestamps.
 
 import 'package:devocional_nuevo/models/prayer_model.dart';
+import 'package:devocional_nuevo/models/devotional_note.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/models/testimony_model.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -136,6 +137,19 @@ void main() {
       });
     });
 
+    group('DevotionalNote Model lastModifiedDate', () {
+      test('DevotionalNote includes lastModifiedDate in serialization', () {
+        final now = DateTime(2026, 5, 31, 10, 0, 0);
+        final note = DevotionalNote(
+          devocionalId: 'devocional1',
+          text: 'Test note',
+          lastModifiedDate: now,
+        );
+
+        expect(note.toJson()['lastModifiedDate'], now.toIso8601String());
+      });
+    });
+
     group('Testimony Model lastModifiedDate', () {
       test('Testimony includes lastModifiedDate in serialization', () {
         final now = DateTime(2026, 5, 31, 10, 0, 0);
@@ -224,6 +238,27 @@ void main() {
 
         expect(merged.length, equals(1));
         expect(merged[0]['text'], equals('Edited thanksgiving'));
+      });
+
+      test('Devotional notes: newer version wins during merge', () {
+        final olderVersion = {
+          'devocionalId': 'devocional1',
+          'text': 'Old note',
+          'lastModifiedDate': '2026-05-01T10:00:00.000',
+        };
+        final newerVersion = {
+          'devocionalId': 'devocional1',
+          'text': 'Edited note',
+          'lastModifiedDate': '2026-05-20T08:00:00.000',
+        };
+
+        final merged = _mergeNotesByTimestamp(
+          remote: [olderVersion],
+          local: [newerVersion],
+        );
+
+        expect(merged, hasLength(1));
+        expect(merged.single['text'], equals('Edited note'));
       });
 
       test('Testimonies: newer version wins during merge', () {
@@ -359,6 +394,33 @@ List<Map<String, dynamic>> _mergePrayersByTimestamp({
     }
   }
   return itemsById.values.toList();
+}
+
+/// Helper function to simulate backup merge logic for devotional notes
+/// (matches the logic in google_drive_backup_service.dart).
+List<Map<String, dynamic>> _mergeNotesByTimestamp({
+  required List<Map<String, dynamic>> remote,
+  required List<Map<String, dynamic>> local,
+}) {
+  final notesByDevocionalId = <String, Map<String, dynamic>>{};
+  for (final item in [...remote, ...local]) {
+    if (item.containsKey('devocionalId')) {
+      final devocionalId = item['devocionalId'].toString();
+      final existing = notesByDevocionalId[devocionalId];
+      if (existing == null) {
+        notesByDevocionalId[devocionalId] = item;
+      } else {
+        // Compare lastModifiedDate and keep newer version
+        final existingDate = _parseDateTime(existing['lastModifiedDate']);
+        final currentDate = _parseDateTime(item['lastModifiedDate']);
+        if (currentDate != null &&
+            (existingDate == null || currentDate.isAfter(existingDate))) {
+          notesByDevocionalId[devocionalId] = item;
+        }
+      }
+    }
+  }
+  return notesByDevocionalId.values.toList();
 }
 
 /// Helper to parse DateTime from JSON

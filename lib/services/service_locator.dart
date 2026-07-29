@@ -8,7 +8,9 @@ import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
+import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
 import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
+import 'package:devocional_nuevo/repositories/notes_repository.dart';
 import 'package:devocional_nuevo/repositories/prayer_wall_repository.dart';
 import 'package:devocional_nuevo/services/auth_service.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
@@ -258,6 +260,12 @@ Future<void> setupServiceLocator() async {
   // ✅ REGISTER PRAYER WALL REPOSITORY (via interface — DIP)
   locator.registerLazySingleton<IPrayerWallRepository>(
     () => PrayerWallRepository(),
+  );
+
+  locator.registerLazySingleton<INotesRepository>(
+    () => NotesRepository(
+      prefsFactory: () async => locator.get<SharedPreferences>(),
+    ),
   );
 
   // ✅ REGISTER DEVOCIONAL REPOSITORY (via interface — DIP)

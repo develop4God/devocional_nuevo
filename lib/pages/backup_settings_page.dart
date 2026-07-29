@@ -41,6 +41,11 @@ List<({IconData icon, String label, int count})> _summaryItems(
         count: summary.thanksgivingsCount,
       ),
       (
+        icon: Icons.sticky_note_2_outlined,
+        label: 'notes.title'.tr(),
+        count: summary.notesCount,
+      ),
+      (
         icon: Icons.photo_filter_outlined,
         label: 'testimony.testimonies'.tr(),
         count: summary.testimoniesCount,
