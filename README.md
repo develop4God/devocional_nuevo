@@ -30,6 +30,7 @@ favorites, spiritual tracking, and intelligent review system.
 
 **🙏 Personal Journey**
 - **Favorites**: Save your favorite devotionals, Bible studies, Encounters, and Bible verses
+- **Personal Notes**: Add private reflections to any devotional, view all devotionals with notes in one place, and edit them whenever you need
 - **Spiritual Tracking**: Reading statistics and progress
 - **Prayer, Thanksgiving & Testimony**: Your personal journey
 
@@ -152,6 +153,7 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 
 **🙏 Journey Personal**
 - **Favoritos**: Guarda tus devocionales, estudios bíblicos, Encuentros y versículos favoritos
+- **Notas Personales**: Añade reflexiones privadas a cualquier devocional, consulta todos los devocionales con notas en un solo lugar y edítalas cuando lo necesites
 - **Tracking Espiritual**: Estadísticas de lectura y progreso
 - **Oración, Acción de Gracias y Testimonio**: Tu journey personal
 
