@@ -329,7 +329,9 @@
     "add_action": "個人的なメモを追加",
     "view_action": "あなたのメモ",
     "delete_confirmation": "このメモを削除してもよろしいですか？この操作は元に戻せません。",
-    "save_error": "メモの保存エラー"
+    "save_error": "メモの保存エラー",
+    "enter_note_text_error": "メモを入力してください",
+    "note_min_length_error": "メモは少なくとも10文字必要です"
   },
   "contact": {
     "bugs": "エラー/バグ",

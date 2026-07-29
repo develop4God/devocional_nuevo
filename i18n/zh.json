@@ -329,7 +329,9 @@
     "add_action": "添加个人笔记",
     "view_action": "您的笔记",
     "delete_confirmation": "您确定要删除此笔记吗？此操作无法撤销。",
-    "save_error": "保存笔记出错"
+    "save_error": "保存笔记出错",
+    "enter_note_text_error": "请输入笔记",
+    "note_min_length_error": "笔记必须至少有10个字符"
   },
   "contact": {
     "bugs": "错误/漏洞",
