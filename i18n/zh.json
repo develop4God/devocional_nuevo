@@ -316,6 +316,16 @@
     "remove_tooltip": "从收藏中移除",
     "removed_message": "「{verse}」已从收藏中移除。"
   },
+  "notes": {
+    "title": "我的笔记",
+    "close": "关闭",
+    "edit": "编辑",
+    "cancel": "取消",
+    "save": "保存",
+    "hint": "写下您的想法、反思或祈祷...",
+    "saved_message": "笔记已保存",
+    "save_error": "保存笔记出错"
+  },
   "contact": {
     "bugs": "错误/漏洞",
     "feedback": "意见/反馈",

@@ -316,6 +316,16 @@
     "remove_tooltip": "Quitar de favoritos",
     "removed_message": "\"{verse}\" eliminado de favoritos."
   },
+  "notes": {
+    "title": "Mi Nota",
+    "close": "Cerrar",
+    "edit": "Editar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "hint": "Escribe tus pensamientos, reflexiones u oraciones...",
+    "saved_message": "Nota guardada",
+    "save_error": "Error al guardar la nota"
+  },
   "contact": {
     "bugs": "Errores/Bugs",
     "feedback": "Opinión/Feedback",
