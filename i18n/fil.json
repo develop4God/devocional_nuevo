@@ -324,6 +324,7 @@
     "save": "I-save",
     "hint": "Isulat ang iyong mga tala, komento at pagninilay...",
     "saved_message": "Ang tala ay na-save",
+    "delete_confirmation": "Sigurado ka bang gusto mong tanggalin ang talang ito? Hindi na maibabalik ang pagkilos na ito.",
     "save_error": "Pagkakamali sa pag-save ng tala"
   },
   "contact": {

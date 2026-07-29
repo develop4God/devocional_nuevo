@@ -100,6 +100,48 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
     }
   }
 
+  Future<void> _confirmDeleteNote() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('notes.title'.tr()),
+        content: Text('notes.delete_confirmation'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text('notes.cancel'.tr()),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            child: Text('app.delete'.tr()),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final provider = context.read<DevocionalProvider>();
+    setState(() => _isSaving = true);
+
+    try {
+      await provider.saveNoteForDevocional(widget.devocional.id, null);
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        AppSnackBar.show(
+          context,
+          'notes.save_error'.tr(),
+          type: AppSnackBarType.error,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -139,8 +181,17 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
                   ),
                 ),
               ),
+              if (widget.initialNote?.trim().isNotEmpty == true)
+                IconButton(
+                  onPressed: _isSaving ? null : _confirmDeleteNote,
+                  tooltip: 'app.delete'.tr(),
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: colorScheme.error,
+                  ),
+                ),
               IconButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
                 icon: Icon(
                   Icons.close,
                   color: colorScheme.onSurface.withValues(alpha: 0.6),

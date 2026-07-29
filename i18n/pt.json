@@ -324,6 +324,7 @@
     "save": "Salvar",
     "hint": "Escreva suas anotações, comentários e reflexões...",
     "saved_message": "Nota salva",
+    "delete_confirmation": "Tem certeza de que deseja excluir esta nota? Esta ação não pode ser desfeita.",
     "save_error": "Erro ao salvar a nota"
   },
   "contact": {
