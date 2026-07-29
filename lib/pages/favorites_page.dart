@@ -14,6 +14,8 @@ import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/devotional_note_viewer.dart';
+import 'package:devocional_nuevo/widgets/devotional_notes_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -314,17 +316,65 @@ class _FavoritesPageState extends State<FavoritesPage>
                   ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(
-                  Icons.favorite_rounded,
-                  color: Colors.redAccent,
-                ),
-                onPressed: () => provider.toggleFavorite(devocional.id),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      provider
+                                  .getNoteForDevocional(devocional.id)
+                                  ?.isNotEmpty ==
+                              true
+                          ? Icons.sticky_note_2_rounded
+                          : Icons.sticky_note_2_outlined,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    onPressed: () =>
+                        _handleNoteIconTap(context, devocional, provider),
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.favorite_rounded,
+                      color: Colors.redAccent,
+                    ),
+                    onPressed: () => provider.toggleFavorite(devocional.id),
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  void _handleNoteIconTap(
+    BuildContext context,
+    Devocional devocional,
+    DevocionalProvider provider,
+  ) {
+    final note = provider.getNoteForDevocional(devocional.id);
+
+    // If note exists and is not empty, show viewer (read-only)
+    if (note != null && note.isNotEmpty) {
+      DevotionalNoteViewer.show(
+        context,
+        devocional: devocional,
+        note: note,
+        onEdit: () => _showNoteEditor(context, devocional),
+      );
+    } else {
+      // If no note, show editor directly
+      _showNoteEditor(context, devocional);
+    }
+  }
+
+  void _showNoteEditor(BuildContext context, Devocional devocional) {
+    final provider = context.read<DevocionalProvider>();
+    DevotionalNotesModal.show(
+      context,
+      devocional: devocional,
+      initialNote: provider.getNoteForDevocional(devocional.id),
     );
   }
 
