@@ -775,6 +775,7 @@
     "read": "قراءة",
     "no_favorites_title": "لا توجد دراسات مفضلة بعد",
     "no_favorites_description": "انقر على أيقونة النجمة في أي دراسة لحفظها هنا.",
+    "remove_from_favorites_confirmation": "هل أنت متأكد أنك تريد إزالة دراسة الكتاب المقدس هذه من المفضلة؟",
     "favorite_studies": "الدراسات المفضلة",
     "download_study": "تحميل",
     "scripture_connections": "روابط كتابية",

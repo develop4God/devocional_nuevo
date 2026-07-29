@@ -775,6 +775,7 @@
     "read": "पढ़ें",
     "no_favorites_title": "अभी तक कोई पसंदीदा अध्ययन नहीं",
     "no_favorites_description": "इसे यहाँ सहेजने के लिए अध्ययन पर तारा चिह्न लगाएं।",
+    "remove_from_favorites_confirmation": "क्या आप वाकई इस बाइबल अध्ययन को अपने पसंदीदा से हटाना चाहते हैं?",
     "favorite_studies": "पसंदीदा अध्ययन",
     "download_study": "डाउनलोड करें",
     "scripture_connections": "बाइबिल संबंध",

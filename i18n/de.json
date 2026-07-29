@@ -775,6 +775,7 @@
     "read": "Lesen",
     "no_favorites_title": "Noch keine Lieblingsstudien",
     "no_favorites_description": "Markiere das Sternsymbol bei einem Studium, um es hier zu speichern.",
+    "remove_from_favorites_confirmation": "Möchtest du diese Bibelstudie wirklich aus deinen Favoriten entfernen?",
     "favorite_studies": "Lieblingsstudien",
     "download_study": "Herunterladen",
     "scripture_connections": "Bibelverbindungen",

@@ -775,6 +775,7 @@
     "read": "Read",
     "no_favorites_title": "No favorite studies yet",
     "no_favorites_description": "Mark the star icon on a study to save it here.",
+    "remove_from_favorites_confirmation": "Are you sure you want to remove this Bible study from your favorites?",
     "favorite_studies": "Favorite Studies",
     "download_study": "Download",
     "scripture_connections": "Bible Connections",

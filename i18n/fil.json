@@ -775,6 +775,7 @@
     "read": "Basahin",
     "no_favorites_title": "Wala pang mga paboritong pag-aaral",
     "no_favorites_description": "Markahan ang icon na bituin sa isang pag-aaral upang i-save ito dito.",
+    "remove_from_favorites_confirmation": "Sigurado ka bang gusto mong alisin ang pag-aaral na ito ng Bibliya mula sa iyong mga paborito?",
     "favorite_studies": "Mga Paboritong Pag-aaral",
     "download_study": "I-download",
     "scripture_connections": "Mga Ugnayan sa Biblia",
