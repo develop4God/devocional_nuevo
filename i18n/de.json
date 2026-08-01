@@ -334,7 +334,8 @@
     "enter_note_text_error": "Bitte gib eine Notiz ein",
     "note_min_length_error": "Die Notiz muss mindestens 10 Zeichen haben",
     "empty_title": "Sie haben noch keine Notizen.",
-    "empty_description": "Tippen Sie bei einer Andacht auf das Notizsymbol, um Ihre Gedanken hier zu speichern."
+    "empty_description": "Tippen Sie bei einer Andacht auf das Notizsymbol, um Ihre Gedanken hier zu speichern.",
+    "bible_empty_description": "Tippe auf das Notizsymbol bei einem Vers, um deine Gedanken hier zu speichern."
   },
   "contact": {
     "bugs": "Fehler/Bugs",
@@ -692,7 +693,8 @@
     "download_dialog_title": "Bibelversionen herunterladen",
     "download_dialog_content": "Wähle Versionen zum Herunterladen und Offline-Lesen. Downloads werden im Hintergrund durchgeführt.",
     "download_error": "Fehler beim Laden der verfügbaren Versionen",
-    "no_versions_available": "Keine Versionen zum Herunterladen verfügbar"
+    "no_versions_available": "Keine Versionen zum Herunterladen verfügbar",
+    "note": "Notiz"
   },
   "bible_version": {
     "title": "Bibelversionen",

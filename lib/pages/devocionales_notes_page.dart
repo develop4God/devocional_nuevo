@@ -33,37 +33,7 @@ class DevocionalesNotesPage extends StatelessWidget {
       value: themeState.systemUiOverlayStyle,
       child: Scaffold(
         appBar: CustomAppBar(titleText: 'drawer.my_notes'.tr()),
-        body: BlocBuilder<NoteBloc, NoteState>(
-          builder: (context, noteState) {
-            if (noteState is NoteLoading || noteState is NoteInitial) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (noteState is NoteError) {
-              return _EmptyNotesState(message: noteState.message);
-            }
-
-            final noteIds = (noteState as NoteLoaded)
-                .notes
-                .where((note) => note.text.trim().isNotEmpty)
-                .map((note) => note.devocionalId)
-                .toSet();
-            return Consumer<DevocionalProvider>(
-              builder: (context, provider, _) {
-                final devotionals = provider.allDevocionalesForCurrentLanguage
-                    .where((devocional) => noteIds.contains(devocional.id))
-                    .toList();
-                if (devotionals.isEmpty) return const _EmptyNotesState();
-
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  itemCount: devotionals.length,
-                  itemBuilder: (context, index) =>
-                      _DevotionalNoteCard(devocional: devotionals[index]),
-                );
-              },
-            );
-          },
-        ),
+        body: const DevocionalNotesListView(),
         bottomNavigationBar: AppBottomNavBar(
           currentTab: null,
           onSelectTab: (tab) {
@@ -72,6 +42,49 @@ class DevocionalesNotesPage extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+}
+
+/// Body content listing devotionals that have a saved personal note.
+///
+/// Extracted from [DevocionalesNotesPage] so it can be reused as a tab body
+/// (see [NotesPage]).
+class DevocionalNotesListView extends StatelessWidget {
+  const DevocionalNotesListView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<NoteBloc, NoteState>(
+      builder: (context, noteState) {
+        if (noteState is NoteLoading || noteState is NoteInitial) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (noteState is NoteError) {
+          return _EmptyNotesState(message: noteState.message);
+        }
+
+        final noteIds = (noteState as NoteLoaded)
+            .notes
+            .where((note) => note.text.trim().isNotEmpty)
+            .map((note) => note.devocionalId)
+            .toSet();
+        return Consumer<DevocionalProvider>(
+          builder: (context, provider, _) {
+            final devotionals = provider.allDevocionalesForCurrentLanguage
+                .where((devocional) => noteIds.contains(devocional.id))
+                .toList();
+            if (devotionals.isEmpty) return const _EmptyNotesState();
+
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              itemCount: devotionals.length,
+              itemBuilder: (context, index) =>
+                  _DevotionalNoteCard(devocional: devotionals[index]),
+            );
+          },
+        );
+      },
     );
   }
 }
