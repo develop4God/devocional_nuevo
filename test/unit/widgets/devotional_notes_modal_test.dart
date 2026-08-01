@@ -19,9 +19,12 @@ class FakeLocalizationService extends LocalizationService {
 
 class FakeNotesRepository implements INotesRepository {
   int saveCalls = 0;
+  int deleteCalls = 0;
 
   @override
-  Future<void> deleteNote(String devocionalId) async {}
+  Future<void> deleteNote(String devocionalId) async {
+    deleteCalls++;
+  }
 
   @override
   Future<List<DevotionalNote>> loadNotes() async => [];
@@ -53,7 +56,7 @@ void main() {
       ServiceLocator().reset();
     });
 
-    Widget buildWidget() {
+    Widget buildWidget({String? initialNote}) {
       return MaterialApp(
         home: Scaffold(
           body: BlocProvider.value(
@@ -67,6 +70,7 @@ void main() {
                 oracion: 'Prayer',
                 date: DateTime(2026, 7, 29),
               ),
+              initialNote: initialNote,
             ),
           ),
         ),
@@ -84,6 +88,20 @@ void main() {
 
       expect(find.text('notes.note_min_length_error'), findsOneWidget);
       expect(repository.saveCalls, 0);
+    });
+
+    testWidgets('shows a delete confirmation snackbar when confirmed', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildWidget(initialNote: 'Existing note'));
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('app.delete'));
+      await tester.pump();
+
+      expect(repository.deleteCalls, 1);
+      expect(find.text('notes.deleted_message'), findsOneWidget);
     });
   });
 }
