@@ -26,6 +26,7 @@ import 'package:devocional_nuevo/widgets/bible/bible_reader_action_modal.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_search_overlay.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_grid_selector.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_verse_note_indicator.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:devocional_nuevo/widgets/modern_voice_feature_dialog.dart';
@@ -347,11 +348,23 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     final sortedVerses = selectedVerses.toList()..sort();
     final firstParts = sortedVerses.first.split('|');
     final lastParts = sortedVerses.last.split('|');
+
+    if (firstParts.length < 3 || lastParts.length < 3) {
+      return null;
+    }
+
+    final chapter = int.tryParse(firstParts[1]);
+    final startVerse = int.tryParse(firstParts[2]);
+    final endVerse = int.tryParse(lastParts[2]);
+    if (chapter == null || startVerse == null || endVerse == null) {
+      return null;
+    }
+
     return (
       bookName: firstParts[0],
-      chapter: int.parse(firstParts[1]),
-      startVerse: int.parse(firstParts[2]),
-      endVerse: int.parse(lastParts[2]),
+      chapter: chapter,
+      startVerse: startVerse,
+      endVerse: endVerse,
     );
   }
 
@@ -1113,7 +1126,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   // Versos
                                   final verse = state.verses[idx - 1];
                                   final verseNumber = verse['verse'];
-                                  final verseNum = verseNumber as int;
+                                  final verseNum = verseNumber is int
+                                      ? verseNumber
+                                      : int.parse(verseNumber.toString());
                                   final key =
                                       "${state.selectedBookName}|${state.selectedChapter}|$verseNumber";
                                   final isSelected =
@@ -1194,45 +1209,31 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                                 height: 1.6,
                                               ),
                                               children: [
-                                                TextSpan(
-                                                  text: "${verse['verse']} ",
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
+                                                WidgetSpan(
+                                                  alignment:
+                                                      PlaceholderAlignment
+                                                          .middle,
+                                                  child:
+                                                      BibleVerseNoteIndicator(
+                                                    verseNumber: verseNum,
                                                     color: colorScheme.primary,
-                                                    fontSize: 14,
+                                                    hasNote: hasNote,
+                                                    onTap: hasNote &&
+                                                            state.selectedBookName !=
+                                                                null &&
+                                                            state.selectedChapter !=
+                                                                null
+                                                        ? () =>
+                                                            _openNoteForVerse(
+                                                              state
+                                                                  .selectedBookName!,
+                                                              state
+                                                                  .selectedChapter!,
+                                                              verseNum,
+                                                            )
+                                                        : null,
                                                   ),
                                                 ),
-                                                if (hasNote &&
-                                                    state.selectedBookName !=
-                                                        null &&
-                                                    state.selectedChapter !=
-                                                        null)
-                                                  WidgetSpan(
-                                                    alignment:
-                                                        PlaceholderAlignment
-                                                            .middle,
-                                                    child: GestureDetector(
-                                                      onTap: () =>
-                                                          _openNoteForVerse(
-                                                        state.selectedBookName!,
-                                                        state.selectedChapter!,
-                                                        verseNum,
-                                                      ),
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .only(
-                                                          right: 4,
-                                                        ),
-                                                        child: Icon(
-                                                          Icons.chat_bubble,
-                                                          size: 14,
-                                                          color: colorScheme
-                                                              .primary,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
                                                 TextSpan(
                                                   text: _cleanVerseText(
                                                     verse['text'],
