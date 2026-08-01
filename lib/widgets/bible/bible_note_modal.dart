@@ -2,6 +2,7 @@
 
 import 'package:devocional_nuevo/blocs/bible_note_bloc.dart';
 import 'package:devocional_nuevo/blocs/bible_note_event.dart';
+import 'package:devocional_nuevo/blocs/bible_note_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:flutter/material.dart';
@@ -63,6 +64,7 @@ class _BibleNoteModalState extends State<BibleNoteModal> {
   late TextEditingController _noteController;
   late FocusNode _focusNode;
   bool _isSaving = false;
+  bool _isDeleting = false;
   String? _errorMessage;
 
   @override
@@ -100,34 +102,19 @@ class _BibleNoteModalState extends State<BibleNoteModal> {
 
     setState(() {
       _isSaving = true;
+      _isDeleting = false;
     });
 
-    try {
-      context.read<BibleNoteBloc>().add(
-            SaveBibleNoteForRange(
-              bookName: widget.bookName,
-              chapter: widget.chapter,
-              startVerse: widget.startVerse,
-              endVerse: widget.endVerse,
-              text: text,
-            ),
-          );
-      Navigator.of(context).pop();
-      AppSnackBar.show(
-        context,
-        'notes.saved_message'.tr(),
-        icon: Icons.check_circle_outline,
-      );
-    } catch (e) {
-      setState(() {
-        _isSaving = false;
-      });
-      AppSnackBar.show(
-        context,
-        'notes.save_error'.tr(),
-        type: AppSnackBarType.error,
-      );
-    }
+    context.read<BibleNoteBloc>().add(
+          SaveBibleNoteForRange(
+            bookName: widget.bookName,
+            chapter: widget.chapter,
+            startVerse: widget.startVerse,
+            endVerse: widget.endVerse,
+            text: text,
+          ),
+        );
+    // Navigation and snackbar now handled by the BlocListener in build().
   }
 
   Future<void> _confirmDeleteNote() async {
@@ -154,29 +141,21 @@ class _BibleNoteModalState extends State<BibleNoteModal> {
 
     if (confirmed != true || !mounted) return;
 
-    setState(() => _isSaving = true);
+    setState(() {
+      _isSaving = true;
+      _isDeleting = true;
+    });
 
-    try {
-      context.read<BibleNoteBloc>().add(
-            SaveBibleNoteForRange(
-              bookName: widget.bookName,
-              chapter: widget.chapter,
-              startVerse: widget.startVerse,
-              endVerse: widget.endVerse,
-              text: null,
-            ),
-          );
-      Navigator.of(context).pop();
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isSaving = false);
-        AppSnackBar.show(
-          context,
-          'notes.save_error'.tr(),
-          type: AppSnackBarType.error,
+    context.read<BibleNoteBloc>().add(
+          SaveBibleNoteForRange(
+            bookName: widget.bookName,
+            chapter: widget.chapter,
+            startVerse: widget.startVerse,
+            endVerse: widget.endVerse,
+            text: null,
+          ),
         );
-      }
-    }
+    // Navigation and snackbar now handled by the BlocListener in build().
   }
 
   @override
@@ -185,167 +164,191 @@ class _BibleNoteModalState extends State<BibleNoteModal> {
     final textTheme = Theme.of(context).textTheme;
     final mediaQuery = MediaQuery.of(context);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: mediaQuery.viewInsets.bottom + 20,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header: icon + title/reference + close button
-          Row(
-            children: [
-              Icon(
-                Icons.chat_bubble_outline,
-                color: colorScheme.primary,
-                size: 28,
+    return BlocListener<BibleNoteBloc, BibleNoteState>(
+      listener: (context, state) {
+        if (!_isSaving) return;
+        if (state is BibleNoteLoaded) {
+          setState(() => _isSaving = false);
+          Navigator.of(context).pop();
+          AppSnackBar.show(
+            context,
+            _isDeleting
+                ? 'notes.saved_message'.tr()
+                : 'notes.saved_message'.tr(),
+            icon: Icons.check_circle_outline,
+          );
+        } else if (state is BibleNoteError) {
+          setState(() => _isSaving = false);
+          AppSnackBar.show(
+            context,
+            state.message,
+            type: AppSnackBarType.error,
+          );
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: mediaQuery.viewInsets.bottom + 20,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header: icon + title/reference + close button
+            Row(
+              children: [
+                Icon(
+                  Icons.chat_bubble_outline,
+                  color: colorScheme.primary,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'notes.title'.tr(),
+                        style: textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        widget.referenceLabel,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (widget.initialNote?.trim().isNotEmpty == true)
+                  IconButton(
+                    onPressed: _isSaving ? null : _confirmDeleteNote,
+                    tooltip: 'app.delete'.tr(),
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: colorScheme.error,
+                    ),
+                  ),
+                IconButton(
+                  onPressed:
+                      _isSaving ? null : () => Navigator.of(context).pop(),
+                  icon: Icon(
+                    Icons.close,
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Text field
+            TextField(
+              controller: _noteController,
+              focusNode: _focusNode,
+              maxLines: 8,
+              maxLength: 1000,
+              textCapitalization: TextCapitalization.sentences,
+              style: textTheme.bodyMedium?.copyWith(
+                height: 1.4,
+                color: colorScheme.onSurface,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'notes.title'.tr(),
-                      style: textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+              decoration: InputDecoration(
+                hintText: 'notes.hint'.tr(),
+                filled: true,
+                fillColor: colorScheme.surface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: colorScheme.outline),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: colorScheme.outline),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                ),
+                contentPadding: const EdgeInsets.all(16),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            if (_errorMessage != null) ...[
+              Text(
+                _errorMessage!,
+                style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed:
+                        _isSaving ? null : () => Navigator.of(context).pop(),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: colorScheme.outline),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'notes.cancel'.tr(),
+                      style: textTheme.labelLarge?.copyWith(
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    Text(
-                      widget.referenceLabel,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _isSaving ? null : _saveNote,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              if (widget.initialNote?.trim().isNotEmpty == true)
-                IconButton(
-                  onPressed: _isSaving ? null : _confirmDeleteNote,
-                  tooltip: 'app.delete'.tr(),
-                  icon: Icon(
-                    Icons.delete_outline,
-                    color: colorScheme.error,
+                    child: _isSaving
+                        ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.onPrimary,
+                            ),
+                          )
+                        : Text(
+                            'notes.save'.tr(),
+                            style: textTheme.labelLarge?.copyWith(
+                              color: colorScheme.onPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
                 ),
-              IconButton(
-                onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-                icon: Icon(
-                  Icons.close,
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+              ],
+            ),
 
-          // Text field
-          TextField(
-            controller: _noteController,
-            focusNode: _focusNode,
-            maxLines: 8,
-            maxLength: 1000,
-            textCapitalization: TextCapitalization.sentences,
-            style: textTheme.bodyMedium?.copyWith(
-              height: 1.4,
-              color: colorScheme.onSurface,
-            ),
-            decoration: InputDecoration(
-              hintText: 'notes.hint'.tr(),
-              filled: true,
-              fillColor: colorScheme.surface,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: colorScheme.outline),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: colorScheme.outline),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: colorScheme.primary, width: 2),
-              ),
-              contentPadding: const EdgeInsets.all(16),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          if (_errorMessage != null) ...[
-            Text(
-              _errorMessage!,
-              style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
-            ),
-            const SizedBox(height: 16),
+            SizedBox(height: mediaQuery.viewInsets.bottom > 0 ? 0 : 20),
           ],
-
-          // Buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed:
-                      _isSaving ? null : () => Navigator.of(context).pop(),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: colorScheme.outline),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'notes.cancel'.tr(),
-                    style: textTheme.labelLarge?.copyWith(
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _isSaving ? null : _saveNote,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: _isSaving
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colorScheme.onPrimary,
-                          ),
-                        )
-                      : Text(
-                          'notes.save'.tr(),
-                          style: textTheme.labelLarge?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                ),
-              ),
-            ],
-          ),
-
-          SizedBox(height: mediaQuery.viewInsets.bottom > 0 ? 0 : 20),
-        ],
+        ),
       ),
     );
   }

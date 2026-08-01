@@ -30,13 +30,15 @@ class BibleNote extends Equatable {
   }
 
   factory BibleNote.fromJson(Map<String, dynamic> json) {
+    final rawDate = json['lastModifiedDate'] as String?;
     return BibleNote(
       bookName: json['bookName'] ?? '',
       chapter: json['chapter'] ?? 0,
       startVerse: json['startVerse'] ?? 0,
       endVerse: json['endVerse'] ?? 0,
       text: json['text'] ?? '',
-      lastModifiedDate: DateTime.parse(json['lastModifiedDate']),
+      lastModifiedDate:
+          rawDate != null ? DateTime.parse(rawDate) : DateTime.now(),
     );
   }
 

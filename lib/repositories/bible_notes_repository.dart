@@ -51,15 +51,9 @@ class BibleNotesRepository implements IBibleNotesRepository {
     final notesJson = prefs.getString(_notesKey);
     if (notesJson == null || notesJson.isEmpty) return [];
 
+    List<dynamic> decodedNotes;
     try {
-      final decodedNotes = json.decode(notesJson) as List<dynamic>;
-      return decodedNotes
-          .map(
-            (note) => BibleNote.fromJson(
-              Map<String, dynamic>.from(note as Map),
-            ),
-          )
-          .toList();
+      decodedNotes = json.decode(notesJson) as List<dynamic>;
     } catch (error) {
       developer.log(
         '❌BIBLE_NOTES_ERROR: Failed decoding $_notesKey: $error',
@@ -67,6 +61,21 @@ class BibleNotesRepository implements IBibleNotesRepository {
       );
       return [];
     }
+
+    final notes = <BibleNote>[];
+    for (final rawNote in decodedNotes) {
+      try {
+        notes.add(
+          BibleNote.fromJson(Map<String, dynamic>.from(rawNote as Map)),
+        );
+      } catch (error) {
+        developer.log(
+          '❌BIBLE_NOTES_ERROR: Skipping corrupt note: $error',
+          name: 'BibleNotes',
+        );
+      }
+    }
+    return notes;
   }
 
   Future<void> _writeNotes(
