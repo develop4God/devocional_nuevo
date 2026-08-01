@@ -83,6 +83,7 @@ void main() {
       expect(find.text('Newer note'), findsOneWidget);
       expect(find.text('Older note'), findsOneWidget);
       expect(find.text('   '), findsNothing);
+      expect(find.textContaining('Mateo'), findsNothing);
 
       final newerFinder = tester.getTopLeft(find.text('Newer note'));
       final olderFinder = tester.getTopLeft(find.text('Older note'));
