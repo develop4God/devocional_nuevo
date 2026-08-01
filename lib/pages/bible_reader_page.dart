@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/blocs/bible_note_bloc.dart';
+import 'package:devocional_nuevo/blocs/bible_note_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
@@ -19,6 +21,7 @@ import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_book_selector_dialog.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_chapter_grid_selector.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_note_modal.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_action_modal.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_search_overlay.dart';
@@ -335,6 +338,23 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
   }
 
+  /// The book/chapter/verse range covered by the current verse selection.
+  ({String bookName, int chapter, int startVerse, int endVerse})?
+      _getSelectedVerseRange() {
+    final selectedVerses = _controller.state.selectedVerses;
+    if (selectedVerses.isEmpty) return null;
+
+    final sortedVerses = selectedVerses.toList()..sort();
+    final firstParts = sortedVerses.first.split('|');
+    final lastParts = sortedVerses.last.split('|');
+    return (
+      bookName: firstParts[0],
+      chapter: int.parse(firstParts[1]),
+      startVerse: int.parse(firstParts[2]),
+      endVerse: int.parse(lastParts[2]),
+    );
+  }
+
   void _showBottomSheet() {
     _bottomSheetOpen = true;
 
@@ -344,6 +364,18 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     final areVersesSaved = selectedVerses.every(
       (key) => persistentlyMarkedVerses.contains(key),
     );
+
+    final range = _getSelectedVerseRange();
+    final noteState = context.read<BibleNoteBloc>().state;
+    final hasNote = range != null &&
+        noteState is BibleNoteLoaded &&
+        noteState.getNoteForRange(
+              range.bookName,
+              range.chapter,
+              range.startVerse,
+              range.endVerse,
+            ) !=
+            null;
 
     showModalBottomSheet(
       context: context,
@@ -360,7 +392,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             Navigator.pop(context);
             _controller.clearSelectedVerses();
           },
+          onNote: () => _openNoteEditor(context),
           areVersesSaved: areVersesSaved,
+          hasNote: hasNote,
           onDeleteSaved:
               areVersesSaved ? () => _deleteSelectedVerses(context) : null,
         );
@@ -368,6 +402,58 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     ).whenComplete(() {
       _bottomSheetOpen = false;
     });
+  }
+
+  void _openNoteEditor(BuildContext modalContext) {
+    final range = _getSelectedVerseRange();
+    if (range == null) return;
+
+    final referenceLabel = _getSelectedVersesReference();
+    final noteState = context.read<BibleNoteBloc>().state;
+    final existingNote = noteState is BibleNoteLoaded
+        ? noteState.getNoteForRange(
+            range.bookName,
+            range.chapter,
+            range.startVerse,
+            range.endVerse,
+          )
+        : null;
+
+    Navigator.pop(modalContext);
+    _controller.clearSelectedVerses();
+
+    BibleNoteModal.show(
+      context,
+      bookName: range.bookName,
+      chapter: range.chapter,
+      startVerse: range.startVerse,
+      endVerse: range.endVerse,
+      referenceLabel: referenceLabel,
+      initialNote: existingNote?.text,
+    );
+  }
+
+  void _openNoteForVerse(String bookName, int chapter, int verseNumber) {
+    final noteState = context.read<BibleNoteBloc>().state;
+    final existingNote = noteState is BibleNoteLoaded
+        ? noteState.getNoteForVerse(bookName, chapter, verseNumber)
+        : null;
+
+    final startVerse = existingNote?.startVerse ?? verseNumber;
+    final endVerse = existingNote?.endVerse ?? verseNumber;
+    final referenceLabel = startVerse == endVerse
+        ? '$bookName $chapter:$startVerse'
+        : '$bookName $chapter:$startVerse-$endVerse';
+
+    BibleNoteModal.show(
+      context,
+      bookName: bookName,
+      chapter: chapter,
+      startVerse: startVerse,
+      endVerse: endVerse,
+      referenceLabel: referenceLabel,
+      initialNote: existingNote?.text,
+    );
   }
 
   String _cleanVerseText(dynamic text) {
@@ -714,6 +800,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       builder: (context, snapshot) {
         final state = snapshot.data ?? _controller.state;
         final colorScheme = Theme.of(context).colorScheme;
+        final bibleNoteState = context.watch<BibleNoteBloc>().state;
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (state.selectedVerse != null &&
@@ -1026,6 +1113,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   // Versos
                                   final verse = state.verses[idx - 1];
                                   final verseNumber = verse['verse'];
+                                  final verseNum = verseNumber as int;
                                   final key =
                                       "${state.selectedBookName}|${state.selectedChapter}|$verseNumber";
                                   final isSelected =
@@ -1033,6 +1121,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   final isPersistentlyMarked = state
                                       .persistentlyMarkedVerses
                                       .contains(key);
+                                  final hasNote =
+                                      bibleNoteState is BibleNoteLoaded &&
+                                          state.selectedBookName != null &&
+                                          state.selectedChapter != null &&
+                                          bibleNoteState.getNoteForVerse(
+                                                state.selectedBookName!,
+                                                state.selectedChapter!,
+                                                verseNum,
+                                              ) !=
+                                              null;
 
                                   // Get section titles for this verse
                                   final titlesForVerse = state.sectionTitles
@@ -1104,6 +1202,37 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                                     fontSize: 14,
                                                   ),
                                                 ),
+                                                if (hasNote &&
+                                                    state.selectedBookName !=
+                                                        null &&
+                                                    state.selectedChapter !=
+                                                        null)
+                                                  WidgetSpan(
+                                                    alignment:
+                                                        PlaceholderAlignment
+                                                            .middle,
+                                                    child: GestureDetector(
+                                                      onTap: () =>
+                                                          _openNoteForVerse(
+                                                        state.selectedBookName!,
+                                                        state.selectedChapter!,
+                                                        verseNum,
+                                                      ),
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(
+                                                          right: 4,
+                                                        ),
+                                                        child: Icon(
+                                                          Icons.chat_bubble,
+                                                          size: 14,
+                                                          color: colorScheme
+                                                              .primary,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
                                                 TextSpan(
                                                   text: _cleanVerseText(
                                                     verse['text'],

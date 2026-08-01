@@ -8,7 +8,9 @@ class BibleReaderActionModal extends StatelessWidget {
   final VoidCallback onCopy;
   final VoidCallback onShare;
   final VoidCallback onImage;
+  final VoidCallback onNote;
   final bool areVersesSaved;
+  final bool hasNote;
   final VoidCallback? onDeleteSaved;
 
   const BibleReaderActionModal({
@@ -19,7 +21,9 @@ class BibleReaderActionModal extends StatelessWidget {
     required this.onCopy,
     required this.onShare,
     required this.onImage,
+    required this.onNote,
     this.areVersesSaved = false,
+    this.hasNote = false,
     this.onDeleteSaved,
   });
 
@@ -163,6 +167,12 @@ class BibleReaderActionModal extends StatelessWidget {
                   icon: Icons.share,
                   label: 'bible.share'.tr(),
                   onTap: onShare,
+                ),
+                _buildActionButton(
+                  context: context,
+                  icon: hasNote ? Icons.chat_bubble : Icons.chat_bubble_outline,
+                  label: 'bible.note'.tr(),
+                  onTap: onNote,
                 ),
                 /*_buildActionButton( //Comming soon
           context: context,

@@ -4,7 +4,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
-import 'package:devocional_nuevo/pages/devocionales_notes_page.dart';
+import 'package:devocional_nuevo/pages/notes_page.dart';
 import 'package:devocional_nuevo/pages/notification_config_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
@@ -546,7 +546,7 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                             Navigator.of(context).pop();
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => const DevocionalesNotesPage(),
+                                builder: (_) => const NotesPage(),
                               ),
                             );
                           },

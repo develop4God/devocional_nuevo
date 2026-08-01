@@ -334,7 +334,8 @@
     "enter_note_text_error": "Veuillez saisir une note",
     "note_min_length_error": "La note doit comporter au moins 10 caractères",
     "empty_title": "Vous n'avez pas encore de notes.",
-    "empty_description": "Touchez l'icône de note d'une méditation pour enregistrer vos réflexions ici."
+    "empty_description": "Touchez l'icône de note d'une méditation pour enregistrer vos réflexions ici.",
+    "bible_empty_description": "Appuyez sur l'icône de note sur un verset pour enregistrer vos réflexions ici."
   },
   "contact": {
     "bugs": "Erreurs/Bugs",
@@ -692,7 +693,8 @@
     "download_dialog_title": "Télécharger des Versions de de Bible",
     "download_dialog_content": "Sélectionnez de versions à télécharger pour une lecture hors ligne. Les téléchargements se font en arrière-plan.",
     "download_error": "Erreur lors du chargement des versions disponibles",
-    "no_versions_available": "Aucune version disponible au téléchargement"
+    "no_versions_available": "Aucune version disponible au téléchargement",
+    "note": "Note"
   },
   "bible_version": {
     "title": "Versions de de Bible",

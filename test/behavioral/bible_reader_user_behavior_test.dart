@@ -2,9 +2,12 @@
 library;
 
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/blocs/bible_note_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
+import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
+import 'package:devocional_nuevo/models/bible_note.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,6 +27,17 @@ class MockBiblePreferencesService extends Mock
 class MockBibleDbService extends Mock implements BibleDbService {}
 
 class MockLocalizationService extends Mock implements LocalizationService {}
+
+class FakeBibleNotesRepository implements IBibleNotesRepository {
+  @override
+  Future<void> deleteNote(String noteId) async {}
+
+  @override
+  Future<List<BibleNote>> loadNotes() async => [];
+
+  @override
+  Future<void> saveNote(BibleNote note) async {}
+}
 
 void main() {
   group('BibleReaderPage Behavioral Tests', () {
@@ -147,8 +161,15 @@ void main() {
     Future<void> pumpBiblePage(WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: BlocProvider<ThemeBloc>.value(
-            value: mockThemeBloc,
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<ThemeBloc>.value(value: mockThemeBloc),
+              BlocProvider<BibleNoteBloc>(
+                create: (_) => BibleNoteBloc(
+                  bibleNotesRepository: FakeBibleNotesRepository(),
+                ),
+              ),
+            ],
             child: BibleReaderPage(
               versions: mockVersions,
               readerService: mockReaderService,
