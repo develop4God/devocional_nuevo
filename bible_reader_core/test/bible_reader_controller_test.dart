@@ -309,6 +309,20 @@ void main() {
     });
   });
 
+  group('BibleReaderController Navigate To Reference Tests', () {
+    test('does nothing when the book is not found', () async {
+      final stateBefore = controller.state;
+
+      await controller.navigateToReference(
+        bookName: 'Unknown',
+        chapter: 1,
+        verse: 1,
+      );
+
+      expect(controller.state, same(stateBefore));
+    });
+  });
+
   group('BibleReaderController State Management Tests', () {
     test('should maintain state immutability', () {
       final originalState = controller.state;
