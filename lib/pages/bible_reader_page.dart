@@ -49,12 +49,17 @@ class BibleReaderPage extends StatefulWidget {
   /// When null a new instance is created internally in [initState].
   final FlutterTts? flutterTts;
 
+  /// Optional book/chapter/verse to jump to on open, e.g. when arriving from
+  /// a saved note. Applied once, after the reader finishes loading.
+  final ({String bookName, int chapter, int verse})? initialReference;
+
   const BibleReaderPage({
     super.key,
     required this.versions,
     this.readerService,
     this.preferencesService,
     this.flutterTts,
+    this.initialReference,
   });
 
   @override
@@ -75,6 +80,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   late final VoiceSettingsService _voiceSettingsService;
   // Guards addPostFrameCallback callbacks after dispose().
   bool _disposed = false;
+  // Set while an initialReference scroll-into-view is still owed, so the
+  // post-frame callback in build() knows to act once verses finish loading.
+  bool _pendingReferenceScroll = false;
 
   @override
   void initState() {
@@ -122,7 +130,20 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     // Initialize controller with device language
     final deviceLanguage = ui.PlatformDispatcher.instance.locale.languageCode;
-    _controller.initialize(deviceLanguage);
+    final initialReference = widget.initialReference;
+    if (initialReference != null) {
+      _pendingReferenceScroll = true;
+      _controller.initialize(deviceLanguage).then((_) {
+        if (_disposed) return;
+        _controller.navigateToReference(
+          bookName: initialReference.bookName,
+          chapter: initialReference.chapter,
+          verse: initialReference.verse,
+        );
+      });
+    } else {
+      _controller.initialize(deviceLanguage);
+    }
   }
 
   @override
@@ -816,7 +837,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         final bibleNoteState = context.watch<BibleNoteBloc>().state;
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (state.selectedVerse != null &&
+          if (_pendingReferenceScroll &&
+              state.selectedVerse != null &&
+              state.verses.any((v) => v['verse'] == state.selectedVerse)) {
+            _pendingReferenceScroll = false;
+            _scrollToVerse(state.selectedVerse!);
+          } else if (state.selectedVerse != null &&
               state.verses.any((v) => v['verse'] == state.selectedVerse) &&
               state.isSearching) {
             _scrollToVerse(state.selectedVerse!);

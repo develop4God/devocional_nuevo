@@ -408,6 +408,38 @@ class BibleReaderController {
     }
   }
 
+  /// Navigate directly to a book/chapter/verse reference, e.g. from an
+  /// external entry point (a saved note, a deep link). [bookName] is matched
+  /// against each book's `short_name`, the same identifier used throughout
+  /// this controller's state. Must be called after [initialize] has
+  /// populated `books`; no-ops if [bookName] isn't found.
+  Future<void> navigateToReference({
+    required String bookName,
+    required int chapter,
+    required int verse,
+  }) async {
+    final matches = _state.books.where((b) => b['short_name'] == bookName);
+    if (matches.isEmpty) return;
+    final book = matches.first;
+
+    _emit(
+      _state.copyWith(
+        selectedBookName: book['short_name'],
+        selectedBookNumber: book['book_number'],
+        selectedChapter: chapter,
+        selectedVerse: verse,
+        selectedVerses: {},
+      ),
+    );
+
+    final maxChapter = await _state.selectedVersion!.service!.getMaxChapter(
+      book['book_number'],
+    );
+    _emit(_state.copyWith(maxChapter: maxChapter));
+
+    await _loadChapterData();
+  }
+
   /// Jump to a search result
   Future<void> jumpToSearchResult(Map<String, dynamic> result) async {
     final bookNumber = result['book_number'] as int;

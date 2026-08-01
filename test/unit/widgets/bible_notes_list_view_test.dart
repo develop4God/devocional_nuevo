@@ -5,10 +5,18 @@ import 'package:devocional_nuevo/blocs/bible_note_bloc.dart';
 import 'package:devocional_nuevo/blocs/bible_note_event.dart';
 import 'package:devocional_nuevo/models/bible_note.dart';
 import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_note_modal.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_notes_list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+class FakeLocalizationService extends LocalizationService {
+  @override
+  String translate(String key, [Map<String, dynamic>? params]) => key;
+}
 
 class FakeBibleNotesRepository implements IBibleNotesRepository {
   final List<BibleNote> notes;
@@ -30,8 +38,16 @@ void main() {
 
   late BibleNoteBloc bloc;
 
+  setUp(() {
+    ServiceLocator().reset();
+    ServiceLocator().registerSingleton<LocalizationService>(
+      FakeLocalizationService(),
+    );
+  });
+
   tearDown(() async {
     await bloc.close();
+    ServiceLocator().reset();
   });
 
   testWidgets(
@@ -67,12 +83,10 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: BlocProvider.value(
-              value: bloc,
-              child: const BibleNotesListView(),
-            ),
+        BlocProvider.value(
+          value: bloc,
+          child: const MaterialApp(
+            home: Scaffold(body: BibleNotesListView()),
           ),
         ),
       );
@@ -90,4 +104,45 @@ void main() {
       expect(newerFinder.dy, lessThan(olderFinder.dy));
     },
   );
+
+  testWidgets('tapping the edit icon opens the note editor for that note', (
+    tester,
+  ) async {
+    final note = BibleNote(
+      bookName: 'Juan',
+      chapter: 3,
+      startVerse: 16,
+      endVerse: 16,
+      text: 'Existing reflection',
+      lastModifiedDate: DateTime(2026, 1, 1),
+    );
+
+    bloc = BibleNoteBloc(
+      bibleNotesRepository: FakeBibleNotesRepository([note]),
+    );
+
+    await tester.pumpWidget(
+      BlocProvider.value(
+        value: bloc,
+        child: const MaterialApp(
+          home: Scaffold(body: BibleNotesListView()),
+        ),
+      ),
+    );
+    bloc.add(LoadBibleNotes());
+    await tester.pump();
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.chat_bubble));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BibleNoteModal), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(BibleNoteModal),
+        matching: find.text('Existing reflection'),
+      ),
+      findsOneWidget,
+    );
+  });
 }

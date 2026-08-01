@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/blocs/bible_note_bloc.dart';
 import 'package:devocional_nuevo/blocs/bible_note_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/bible_note.dart';
+import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_note_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -93,14 +94,10 @@ class _BibleNoteCard extends StatelessWidget {
         side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.1)),
       ),
       child: InkWell(
-        onTap: () => BibleNoteModal.show(
-          context,
+        onTap: () => AppNavigationShell.navigateToBibleReference(
           bookName: note.bookName,
           chapter: note.chapter,
-          startVerse: note.startVerse,
-          endVerse: note.endVerse,
-          referenceLabel: _reference,
-          initialNote: note.text,
+          verse: note.startVerse,
         ),
         borderRadius: BorderRadius.circular(20),
         child: Padding(
@@ -131,7 +128,19 @@ class _BibleNoteCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chat_bubble, color: theme.colorScheme.primary),
+              IconButton(
+                tooltip: 'notes.edit'.tr(),
+                icon: Icon(Icons.chat_bubble, color: theme.colorScheme.primary),
+                onPressed: () => BibleNoteModal.show(
+                  context,
+                  bookName: note.bookName,
+                  chapter: note.chapter,
+                  startVerse: note.startVerse,
+                  endVerse: note.endVerse,
+                  referenceLabel: _reference,
+                  initialNote: note.text,
+                ),
+              ),
             ],
           ),
         ),
