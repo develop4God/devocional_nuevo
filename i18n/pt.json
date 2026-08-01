@@ -330,6 +330,7 @@
     "add_action": "Adicionar uma nota pessoal",
     "view_action": "Sua nota",
     "delete_confirmation": "Tem certeza de que deseja excluir esta nota? Esta ação não pode ser desfeita.",
+    "deleted_message": "Nota excluída",
     "save_error": "Erro ao salvar a nota",
     "enter_note_text_error": "Por favor, escreva uma nota",
     "note_min_length_error": "A nota deve ter pelo menos 10 caracteres",

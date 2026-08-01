@@ -145,7 +145,14 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
       context.read<NoteBloc>().add(
             SaveNoteForDevocional(widget.devocional.id, null),
           );
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) {
+        Navigator.of(context).pop();
+        AppSnackBar.show(
+          context,
+          'notes.deleted_message'.tr(),
+          icon: Icons.check_circle_outline,
+        );
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);

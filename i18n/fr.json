@@ -330,6 +330,7 @@
     "add_action": "Ajouter une note personnelle",
     "view_action": "Votre note",
     "delete_confirmation": "Êtes-vous sûr de vouloir supprimer cette note ? Cette action est irréversible.",
+    "deleted_message": "Note supprimée",
     "save_error": "Erreur lors de l'enregistrement de la note",
     "enter_note_text_error": "Veuillez saisir une note",
     "note_min_length_error": "La note doit comporter au moins 10 caractères",

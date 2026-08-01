@@ -173,7 +173,7 @@ class _BibleNoteModalState extends State<BibleNoteModal> {
           AppSnackBar.show(
             context,
             _isDeleting
-                ? 'notes.saved_message'.tr()
+                ? 'notes.deleted_message'.tr()
                 : 'notes.saved_message'.tr(),
             icon: Icons.check_circle_outline,
           );
