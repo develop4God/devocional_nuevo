@@ -1209,31 +1209,39 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                                 height: 1.6,
                                               ),
                                               children: [
-                                                WidgetSpan(
-                                                  alignment:
-                                                      PlaceholderAlignment
-                                                          .middle,
-                                                  child:
-                                                      BibleVerseNoteIndicator(
-                                                    verseNumber: verseNum,
-                                                    color: colorScheme.primary,
-                                                    hasNote: hasNote,
-                                                    onTap: hasNote &&
-                                                            state.selectedBookName !=
-                                                                null &&
-                                                            state.selectedChapter !=
-                                                                null
-                                                        ? () =>
-                                                            _openNoteForVerse(
-                                                              state
-                                                                  .selectedBookName!,
-                                                              state
-                                                                  .selectedChapter!,
-                                                              verseNum,
-                                                            )
-                                                        : null,
+                                                if (hasNote &&
+                                                    state.selectedBookName !=
+                                                        null &&
+                                                    state.selectedChapter !=
+                                                        null)
+                                                  WidgetSpan(
+                                                    alignment:
+                                                        PlaceholderAlignment
+                                                            .middle,
+                                                    child:
+                                                        BibleVerseNoteIndicator(
+                                                      verseNumber: verseNum,
+                                                      color:
+                                                          colorScheme.primary,
+                                                      onTap: () =>
+                                                          _openNoteForVerse(
+                                                        state.selectedBookName!,
+                                                        state.selectedChapter!,
+                                                        verseNum,
+                                                      ),
+                                                    ),
+                                                  )
+                                                else
+                                                  TextSpan(
+                                                    text: "$verseNum ",
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          colorScheme.primary,
+                                                      fontSize: 14,
+                                                    ),
                                                   ),
-                                                ),
                                                 TextSpan(
                                                   text: _cleanVerseText(
                                                     verse['text'],
