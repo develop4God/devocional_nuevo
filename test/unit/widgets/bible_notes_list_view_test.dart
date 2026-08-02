@@ -4,6 +4,7 @@ library;
 import 'package:devocional_nuevo/blocs/bible_note_bloc.dart';
 import 'package:devocional_nuevo/blocs/bible_note_event.dart';
 import 'package:devocional_nuevo/models/bible_note.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -12,6 +13,9 @@ import 'package:devocional_nuevo/widgets/bible/bible_notes_list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+
+import '../../helpers/test_helpers.dart';
 
 class FakeLocalizationService extends LocalizationService {
   @override
@@ -38,8 +42,9 @@ void main() {
 
   late BibleNoteBloc bloc;
 
-  setUp(() {
-    ServiceLocator().reset();
+  setUp(() async {
+    await registerTestServices();
+    ServiceLocator().unregister<LocalizationService>();
     ServiceLocator().registerSingleton<LocalizationService>(
       FakeLocalizationService(),
     );
@@ -49,6 +54,13 @@ void main() {
     await bloc.close();
     ServiceLocator().reset();
   });
+
+  Widget wrapWithProvider(Widget child) {
+    return ChangeNotifierProvider<DevocionalProvider>(
+      create: (_) => DevocionalProvider(enableAudio: false),
+      child: child,
+    );
+  }
 
   testWidgets(
     'filters blank notes and sorts remaining notes by most recent first',
@@ -83,10 +95,12 @@ void main() {
       );
 
       await tester.pumpWidget(
-        BlocProvider.value(
-          value: bloc,
-          child: const MaterialApp(
-            home: Scaffold(body: BibleNotesListView()),
+        wrapWithProvider(
+          BlocProvider.value(
+            value: bloc,
+            child: const MaterialApp(
+              home: Scaffold(body: BibleNotesListView()),
+            ),
           ),
         ),
       );
@@ -122,10 +136,12 @@ void main() {
     );
 
     await tester.pumpWidget(
-      BlocProvider.value(
-        value: bloc,
-        child: const MaterialApp(
-          home: Scaffold(body: BibleNotesListView()),
+      wrapWithProvider(
+        BlocProvider.value(
+          value: bloc,
+          child: const MaterialApp(
+            home: Scaffold(body: BibleNotesListView()),
+          ),
         ),
       ),
     );
