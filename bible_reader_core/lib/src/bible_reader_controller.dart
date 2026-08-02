@@ -422,6 +422,11 @@ class BibleReaderController {
     if (matches.isEmpty) return;
     final book = matches.first;
 
+    if (_state.selectedVersion == null ||
+        _state.selectedVersion!.service == null) {
+      return;
+    }
+
     _emit(
       _state.copyWith(
         selectedBookName: book['short_name'],

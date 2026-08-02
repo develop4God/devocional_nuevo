@@ -158,7 +158,10 @@ void main() {
       ).thenAnswer((_) async => {});
     });
 
-    Future<void> pumpBiblePage(WidgetTester tester) async {
+    Future<void> pumpBiblePage(
+      WidgetTester tester, {
+      ({String bookName, int chapter, int verse})? initialReference,
+    }) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MultiBlocProvider(
@@ -174,6 +177,7 @@ void main() {
               versions: mockVersions,
               readerService: mockReaderService,
               preferencesService: mockPreferencesService,
+              initialReference: initialReference,
             ),
           ),
         ),
@@ -275,5 +279,19 @@ void main() {
         ),
       ).called(1);
     });
+
+    testWidgets(
+      'BibleReaderPage jumps to the initialReference verse after loading',
+      (WidgetTester tester) async {
+        // GIVEN: BibleReaderPage is loaded with an initialReference
+        await pumpBiblePage(
+          tester,
+          initialReference: (bookName: 'GN', chapter: 1, verse: 2),
+        );
+
+        // THEN: The verse selector button reflects the referenced verse
+        expect(find.text('V. 2'), findsOneWidget);
+      },
+    );
   });
 }

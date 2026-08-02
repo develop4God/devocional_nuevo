@@ -321,6 +321,33 @@ void main() {
 
       expect(controller.state, same(stateBefore));
     });
+
+    test('does nothing and does not throw when selectedVersion is null',
+        () async {
+      controller = BibleReaderController(
+        allVersions: testVersions,
+        readerService: readerService,
+        preferencesService: preferencesService,
+        initialState: controller.state.copyWith(
+          books: [
+            {'book_number': 1, 'short_name': 'Genesis', 'long_name': 'Genesis'},
+          ],
+        ),
+      );
+
+      expect(controller.state.selectedVersion, isNull);
+
+      await expectLater(
+        controller.navigateToReference(
+          bookName: 'Genesis',
+          chapter: 1,
+          verse: 1,
+        ),
+        completes,
+      );
+
+      expect(controller.state.selectedVersion, isNull);
+    });
   });
 
   group('BibleReaderController State Management Tests', () {
