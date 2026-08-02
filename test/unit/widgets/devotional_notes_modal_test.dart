@@ -1,4 +1,4 @@
-@Tags(['unit', 'widgets'])
+@Tags(['unit', 'widgets', 'notes'])
 library;
 
 import 'package:devocional_nuevo/blocs/note_bloc.dart';

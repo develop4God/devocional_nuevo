@@ -87,7 +87,7 @@ class _NotesPageState extends State<NotesPage>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.menu_book_rounded, size: 24),
+                        const Icon(Icons.auto_stories_outlined, size: 24),
                         const SizedBox(height: 4),
                         Text(
                           'bible.title'.tr(),

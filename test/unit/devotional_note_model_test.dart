@@ -1,4 +1,4 @@
-@Tags(['unit', 'models'])
+@Tags(['unit', 'models', 'notes'])
 library;
 
 import 'package:devocional_nuevo/models/devotional_note.dart';
