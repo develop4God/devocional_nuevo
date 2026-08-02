@@ -133,13 +133,17 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     final initialReference = widget.initialReference;
     if (initialReference != null) {
       _pendingReferenceScroll = true;
-      _controller.initialize(deviceLanguage).then((_) {
+      _controller.initialize(deviceLanguage).then((_) async {
         if (_disposed) return;
-        _controller.navigateToReference(
-          bookName: initialReference.bookName,
-          chapter: initialReference.chapter,
-          verse: initialReference.verse,
-        );
+        try {
+          await _controller.navigateToReference(
+            bookName: initialReference.bookName,
+            chapter: initialReference.chapter,
+            verse: initialReference.verse,
+          );
+        } catch (e) {
+          debugPrint('[BibleReaderPage] navigateToReference failed: $e');
+        }
       });
     } else {
       _controller.initialize(deviceLanguage);
