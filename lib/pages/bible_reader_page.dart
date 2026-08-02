@@ -131,16 +131,30 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     // Initialize controller with device language
     final deviceLanguage = ui.PlatformDispatcher.instance.locale.languageCode;
     final initialReference = widget.initialReference;
+    debugPrint(
+        '[BibleReaderPage] initState initialReference=$initialReference');
     if (initialReference != null) {
       _pendingReferenceScroll = true;
       _controller.initialize(deviceLanguage).then((_) async {
-        if (_disposed) return;
+        if (_disposed) {
+          debugPrint(
+            '[BibleReaderPage] navigateToReference skipped: page disposed',
+          );
+          return;
+        }
         try {
+          debugPrint(
+            '[BibleReaderPage] calling navigateToReference '
+            'book=${initialReference.bookName} '
+            'chapter=${initialReference.chapter} '
+            'verse=${initialReference.verse}',
+          );
           await _controller.navigateToReference(
             bookName: initialReference.bookName,
             chapter: initialReference.chapter,
             verse: initialReference.verse,
           );
+          debugPrint('[BibleReaderPage] navigateToReference completed');
         } catch (e) {
           debugPrint('[BibleReaderPage] navigateToReference failed: $e');
         }

@@ -50,6 +50,13 @@ class AppNavigationShell extends StatefulWidget {
     required int verse,
   }) {
     final state = shellKey.currentState;
+    debugPrint(
+      '[AppNavigationShell] navigateToBibleReference called: '
+      'book=$bookName chapter=$chapter verse=$verse, '
+      'state=${state == null ? 'null' : 'found'}, '
+      'bibleTabEnabled=${state?._tabs.contains(AppTab.bible)}, '
+      'currentTab=${state?._currentTab}',
+    );
     if (state == null || !state._tabs.contains(AppTab.bible)) return;
     state._pendingBibleReference = (
       bookName: bookName,
@@ -104,7 +111,12 @@ class AppNavigationShellState extends State<AppNavigationShell> {
   final ValueNotifier<bool> _supporterTabActive = ValueNotifier<bool>(false);
 
   void _selectTab(AppTab tab) {
-    if (tab == _currentTab) return;
+    if (tab == _currentTab) {
+      debugPrint(
+        '[AppNavigationShell] _selectTab($tab) no-op: already current tab',
+      );
+      return;
+    }
     setState(() {
       // The bible page owns a FlutterTts engine, and flutter_tts routes
       // platform events to the most recently created instance. Keeping the
@@ -134,6 +146,10 @@ class AppNavigationShellState extends State<AppNavigationShell> {
       case AppTab.bible:
         final initialReference = _pendingBibleReference;
         _pendingBibleReference = null;
+        debugPrint(
+          '[AppNavigationShell] building bible tab with '
+          'initialReference=$initialReference',
+        );
         return _BibleTab(initialReference: initialReference);
       case AppTab.discovery:
         return const DiscoveryListPage();
