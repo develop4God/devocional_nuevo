@@ -272,9 +272,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         return BibleVerseGridSelector(
           totalVerses: state.maxVerse,
           selectedVerse: state.selectedVerse ?? 1,
-          bookName: state.books.firstWhere(
-            (b) => b['short_name'] == state.selectedBookName,
-          )['long_name'],
+          bookName: BibleVerseFormatter.resolveBookName(
+            state.books,
+            state.selectedBookName!,
+          ),
           chapterNumber: state.selectedChapter!,
           onVerseSelected: (verseNumber) {
             Navigator.of(context).pop();
@@ -298,9 +299,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         return BibleChapterGridSelector(
           totalChapters: state.maxChapter,
           selectedChapter: state.selectedChapter ?? 1,
-          bookName: state.books.firstWhere(
-            (b) => b['short_name'] == state.selectedBookName,
-          )['long_name'],
+          bookName: BibleVerseFormatter.resolveBookName(
+            state.books,
+            state.selectedBookName!,
+          ),
           onChapterSelected: (chapterNumber) async {
             Navigator.of(context).pop();
             await _controller.selectChapter(chapterNumber);
@@ -507,14 +509,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
   }
 
-  String _fullBookName(String shortName) {
-    final books = _controller.state.books;
-    return books.firstWhere(
-      (b) => b['short_name'] == shortName,
-      orElse: () => {'long_name': shortName},
-    )['long_name'] as String;
-  }
-
   void _openNoteForVerse(String bookName, int chapter, int verseNumber) {
     final noteState = context.read<BibleNoteBloc>().state;
     final existingNote = noteState is BibleNoteLoaded
@@ -523,7 +517,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     final startVerse = existingNote?.startVerse ?? verseNumber;
     final endVerse = existingNote?.endVerse ?? verseNumber;
-    final fullBookName = _fullBookName(bookName);
+    final fullBookName = BibleVerseFormatter.resolveBookName(
+      _controller.state.books,
+      bookName,
+    );
     final referenceLabel = startVerse == endVerse
         ? '$fullBookName $chapter:$startVerse'
         : '$fullBookName $chapter:$startVerse-$endVerse';
@@ -587,7 +584,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     final sortedVerses = selectedVerses.toList()..sort();
     final parts = sortedVerses.first.split('|');
-    final book = _fullBookName(parts[0]);
+    final book = BibleVerseFormatter.resolveBookName(
+      _controller.state.books,
+      parts[0],
+    );
     final chapter = parts[1];
 
     if (selectedVerses.length == 1) {
@@ -1073,11 +1073,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                       Expanded(
                                         child: Text(
                                           state.selectedBookName != null
-                                              ? state.books.firstWhere(
-                                                  (b) =>
-                                                      b['short_name'] ==
-                                                      state.selectedBookName,
-                                                )['long_name']
+                                              ? BibleVerseFormatter
+                                                  .resolveBookName(
+                                                  state.books,
+                                                  state.selectedBookName!,
+                                                )
                                               : 'Seleccionar libro',
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
@@ -1180,10 +1180,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                       child: Text(
                                         state.selectedBookName != null &&
                                                 state.selectedChapter != null
-                                            ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
-                                                  'long_name':
-                                                      state.selectedBookName
-                                                })['long_name']} ${state.selectedChapter}'
+                                            ? '${BibleVerseFormatter.resolveBookName(state.books, state.selectedBookName!)} ${state.selectedChapter}'
                                             : '',
                                         style: Theme.of(context)
                                             .textTheme
@@ -1443,10 +1440,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                       fit: BoxFit.scaleDown,
                                       child: AutoSizeText(
                                         state.selectedBookName != null
-                                            ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => <String, dynamic>{
-                                                  'long_name':
-                                                      state.selectedBookName
-                                                })['long_name']} ${state.selectedChapter}'
+                                            ? '${BibleVerseFormatter.resolveBookName(state.books, state.selectedBookName!)} ${state.selectedChapter}'
                                             : '',
                                         textAlign: TextAlign.center,
                                         style: Theme.of(context)
