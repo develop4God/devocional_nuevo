@@ -22,6 +22,7 @@ import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_book_selector_dialog.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_chapter_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_note_modal.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_note_viewer.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_action_modal.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_search_overlay.dart';
@@ -474,15 +475,36 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     Navigator.pop(modalContext);
     _controller.clearSelectedVerses();
 
-    BibleNoteModal.show(
-      context,
-      bookName: range.bookName,
-      chapter: range.chapter,
-      startVerse: range.startVerse,
-      endVerse: range.endVerse,
-      referenceLabel: referenceLabel,
-      initialNote: existingNote?.text,
-    );
+    if (existingNote != null && existingNote.text.isNotEmpty) {
+      BibleNoteViewer.show(
+        context,
+        bookName: range.bookName,
+        chapter: range.chapter,
+        startVerse: range.startVerse,
+        endVerse: range.endVerse,
+        referenceLabel: referenceLabel,
+        note: existingNote.text,
+        onEdit: () => BibleNoteModal.show(
+          context,
+          bookName: range.bookName,
+          chapter: range.chapter,
+          startVerse: range.startVerse,
+          endVerse: range.endVerse,
+          referenceLabel: referenceLabel,
+          initialNote: existingNote.text,
+        ),
+      );
+    } else {
+      BibleNoteModal.show(
+        context,
+        bookName: range.bookName,
+        chapter: range.chapter,
+        startVerse: range.startVerse,
+        endVerse: range.endVerse,
+        referenceLabel: referenceLabel,
+        initialNote: existingNote?.text,
+      );
+    }
   }
 
   void _openNoteForVerse(String bookName, int chapter, int verseNumber) {
@@ -497,15 +519,36 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         ? '$bookName $chapter:$startVerse'
         : '$bookName $chapter:$startVerse-$endVerse';
 
-    BibleNoteModal.show(
-      context,
-      bookName: bookName,
-      chapter: chapter,
-      startVerse: startVerse,
-      endVerse: endVerse,
-      referenceLabel: referenceLabel,
-      initialNote: existingNote?.text,
-    );
+    if (existingNote != null && existingNote.text.isNotEmpty) {
+      BibleNoteViewer.show(
+        context,
+        bookName: bookName,
+        chapter: chapter,
+        startVerse: startVerse,
+        endVerse: endVerse,
+        referenceLabel: referenceLabel,
+        note: existingNote.text,
+        onEdit: () => BibleNoteModal.show(
+          context,
+          bookName: bookName,
+          chapter: chapter,
+          startVerse: startVerse,
+          endVerse: endVerse,
+          referenceLabel: referenceLabel,
+          initialNote: existingNote.text,
+        ),
+      );
+    } else {
+      BibleNoteModal.show(
+        context,
+        bookName: bookName,
+        chapter: chapter,
+        startVerse: startVerse,
+        endVerse: endVerse,
+        referenceLabel: referenceLabel,
+        initialNote: existingNote?.text,
+      );
+    }
   }
 
   String _cleanVerseText(dynamic text) {
