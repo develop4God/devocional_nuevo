@@ -419,11 +419,23 @@ class BibleReaderController {
     required int verse,
   }) async {
     final matches = _state.books.where((b) => b['short_name'] == bookName);
-    if (matches.isEmpty) return;
+    if (matches.isEmpty) {
+      // ignore: avoid_print
+      print(
+        '[BibleReaderController] navigateToReference: no book match for '
+        '"$bookName" among ${_state.books.length} loaded books',
+      );
+      return;
+    }
     final book = matches.first;
 
     if (_state.selectedVersion == null ||
         _state.selectedVersion!.service == null) {
+      // ignore: avoid_print
+      print(
+        '[BibleReaderController] navigateToReference: no selectedVersion/'
+        'service yet (selectedVersion=${_state.selectedVersion})',
+      );
       return;
     }
 

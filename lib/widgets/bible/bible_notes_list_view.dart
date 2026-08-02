@@ -94,11 +94,18 @@ class _BibleNoteCard extends StatelessWidget {
         side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.1)),
       ),
       child: InkWell(
-        onTap: () => AppNavigationShell.navigateToBibleReference(
-          bookName: note.bookName,
-          chapter: note.chapter,
-          verse: note.startVerse,
-        ),
+        onTap: () {
+          debugPrint(
+            '[BibleNotesListView] tapped note -> book=${note.bookName} '
+            'chapter=${note.chapter} verse=${note.startVerse}',
+          );
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          AppNavigationShell.navigateToBibleReference(
+            bookName: note.bookName,
+            chapter: note.chapter,
+            verse: note.startVerse,
+          );
+        },
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(16),
