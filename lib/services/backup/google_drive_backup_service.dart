@@ -106,6 +106,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       BackupKeys.savedPrayers: true,
       BackupKeys.savedThanksgivings: true,
       BackupKeys.devotionalNotes: true,
+      BackupKeys.bibleNotes: true,
       BackupKeys.completedEncounters: true,
       BackupKeys.discoveryProgress: true,
       BackupKeys.discoveryFavorites: true,
@@ -190,11 +191,15 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
             (json.decode(thanksgivingsJson) as List<dynamic>).length;
       }
 
-      // Devotional notes
+      // Devotional notes + Bible notes (combined into a single count)
       int notesCount = 0;
       final notesJson = prefs.getString(BackupKeys.devotionalNotes);
       if (notesJson != null) {
-        notesCount = (json.decode(notesJson) as List<dynamic>).length;
+        notesCount += (json.decode(notesJson) as List<dynamic>).length;
+      }
+      final bibleNotesJson = prefs.getString(BackupKeys.bibleNotes);
+      if (bibleNotesJson != null) {
+        notesCount += (json.decode(bibleNotesJson) as List<dynamic>).length;
       }
 
       // Testimonies
@@ -486,6 +491,28 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     }
     final mergedNotes = notesByDevocionalId.values.toList();
 
+    // --- Bible notes merge (union by id, keeping newer version based on lastModifiedDate) ---
+    final bibleNotesById = <String, Map<String, dynamic>>{};
+    for (final p in [
+      ...(remote[BackupKeys.bibleNotes] as List<dynamic>?) ?? [],
+      ...(local[BackupKeys.bibleNotes] as List<dynamic>?) ?? [],
+    ].whereType<Map<String, dynamic>>()) {
+      final id =
+          '${p['bookName']}|${p['chapter']}|${p['startVerse']}-${p['endVerse']}';
+      final existing = bibleNotesById[id];
+      if (existing == null) {
+        bibleNotesById[id] = p;
+      } else {
+        final existingDate = _parseDateTime(existing['lastModifiedDate']);
+        final currentDate = _parseDateTime(p['lastModifiedDate']);
+        if (currentDate != null &&
+            (existingDate == null || currentDate.isAfter(existingDate))) {
+          bibleNotesById[id] = p;
+        }
+      }
+    }
+    final mergedBibleNotes = bibleNotesById.values.toList();
+
     // --- Testimonies merge (union by id, keeping newer version based on lastModifiedDate) ---
     final testimoniesById = <String, Map<String, dynamic>>{};
     for (final p in [
@@ -544,6 +571,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       BackupKeys.savedPrayers: mergedPrayers,
       BackupKeys.savedThanksgivings: mergedThanksgivings,
       BackupKeys.devotionalNotes: mergedNotes,
+      BackupKeys.bibleNotes: mergedBibleNotes,
       BackupKeys.completedEncounters: mergedEncounters,
       BackupKeys.discoveryProgress: mergedProgress,
       BackupKeys.discoveryFavorites: mergedDiscoveryFavs,
@@ -802,6 +830,20 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       }
     }
 
+    // Include bible notes if enabled
+    if (options[BackupKeys.bibleNotes] == true) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final bibleNotesJson = prefs.getString(BackupKeys.bibleNotes) ?? '[]';
+        final bibleNotesList = json.decode(bibleNotesJson) as List<dynamic>;
+        backupData[BackupKeys.bibleNotes] = bibleNotesList;
+        debugPrint('[BACKUP] Included ${bibleNotesList.length} bible notes');
+      } catch (e) {
+        debugPrint('[BACKUP] ❌ Error getting bible notes: $e');
+        backupData[BackupKeys.bibleNotes] = [];
+      }
+    }
+
     // Include testimonies if enabled
     if (options[BackupKeys.testimonies] == true) {
       try {
@@ -917,6 +959,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       BackupKeys.savedPrayers,
       BackupKeys.savedThanksgivings,
       BackupKeys.devotionalNotes,
+      BackupKeys.bibleNotes,
       BackupKeys.completedEncounters,
       BackupKeys.discoveryProgress,
       BackupKeys.discoveryFavorites,
@@ -1179,6 +1222,18 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           debugPrint('[RESTORE] ✅ Restored ${notes.length} devotional notes');
         } catch (e) {
           debugPrint('[RESTORE] ❌ Error restoring devotional notes: $e');
+        }
+      }
+
+      // Restore bible notes
+      if (data.containsKey(BackupKeys.bibleNotes)) {
+        try {
+          final bibleNotes = data[BackupKeys.bibleNotes] as List<dynamic>;
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(BackupKeys.bibleNotes, json.encode(bibleNotes));
+          debugPrint('[RESTORE] ✅ Restored ${bibleNotes.length} bible notes');
+        } catch (e) {
+          debugPrint('[RESTORE] ❌ Error restoring bible notes: $e');
         }
       }
 
