@@ -507,6 +507,14 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
   }
 
+  String _fullBookName(String shortName) {
+    final books = _controller.state.books;
+    return books.firstWhere(
+      (b) => b['short_name'] == shortName,
+      orElse: () => {'long_name': shortName},
+    )['long_name'] as String;
+  }
+
   void _openNoteForVerse(String bookName, int chapter, int verseNumber) {
     final noteState = context.read<BibleNoteBloc>().state;
     final existingNote = noteState is BibleNoteLoaded
@@ -515,9 +523,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     final startVerse = existingNote?.startVerse ?? verseNumber;
     final endVerse = existingNote?.endVerse ?? verseNumber;
+    final fullBookName = _fullBookName(bookName);
     final referenceLabel = startVerse == endVerse
-        ? '$bookName $chapter:$startVerse'
-        : '$bookName $chapter:$startVerse-$endVerse';
+        ? '$fullBookName $chapter:$startVerse'
+        : '$fullBookName $chapter:$startVerse-$endVerse';
 
     if (existingNote != null && existingNote.text.isNotEmpty) {
       BibleNoteViewer.show(
@@ -578,7 +587,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     final sortedVerses = selectedVerses.toList()..sort();
     final parts = sortedVerses.first.split('|');
-    final book = parts[0];
+    final book = _fullBookName(parts[0]);
     final chapter = parts[1];
 
     if (selectedVerses.length == 1) {
