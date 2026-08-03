@@ -411,7 +411,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   Future<int> _loadStreak() async {
-    final stats = await SpiritualStatsService().getStats();
+    final spiritualStatsService = SpiritualStatsService();
+    // Ensure a new calendar day crossed while backgrounded is registered
+    // (streak/visit are otherwise only recorded on cold-start initState).
+    await spiritualStatsService.recordDailyAppVisit();
+    final stats = await spiritualStatsService.getStats();
     if (!mounted) return 0;
     // Update the currentStreak state to ensure UI reflects latest value
     final streak = stats.currentStreak;

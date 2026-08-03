@@ -28,5 +28,27 @@ void main() {
       final s31 = await statsService.addStreakDay();
       expect(s31.currentStreak, equals(31));
     });
+
+    test(
+      'recordDailyAppVisit is idempotent when called repeatedly the same day',
+      () async {
+        // Regression: streak refresh is now triggered on every app resume
+        // (not just cold start), so recordDailyAppVisit can be invoked many
+        // times per day. It must not duplicate today's read-date entry or
+        // inflate the streak.
+        await statsService.recordDailyAppVisit();
+        final readDatesAfterFirst =
+            await statsService.getReadDatesForVisualization();
+
+        await statsService.recordDailyAppVisit();
+        await statsService.recordDailyAppVisit();
+        final readDatesAfterRepeat =
+            await statsService.getReadDatesForVisualization();
+
+        expect(readDatesAfterRepeat.length, equals(readDatesAfterFirst.length));
+        final stats = await statsService.getStats();
+        expect(stats.currentStreak, equals(1));
+      },
+    );
   });
 }
