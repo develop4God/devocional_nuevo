@@ -47,8 +47,12 @@ class BibleNoteBloc extends Bloc<BibleNoteEvent, BibleNoteState> {
 
     try {
       final text = event.text?.trim();
-      final noteId =
-          '${event.bookName}|${event.chapter}|${event.startVerse}-${event.endVerse}';
+      final noteId = BibleNote.idFor(
+        event.bookName,
+        event.chapter,
+        event.startVerse,
+        event.endVerse,
+      );
       if (text == null || text.isEmpty) {
         await _bibleNotesRepository.deleteNote(noteId);
       } else {
