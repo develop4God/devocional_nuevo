@@ -11,6 +11,7 @@ import 'i_backup_settings_service.dart';
 import '../../blocs/prayer_bloc.dart';
 import '../../blocs/prayer_event.dart';
 import '../../models/backup_content_summary.dart';
+import '../../models/bible_note.dart';
 import '../../models/spiritual_stats_model.dart';
 import '../../providers/devocional_provider.dart';
 import '../i_spiritual_stats_service.dart';
@@ -497,8 +498,12 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       ...(remote[BackupKeys.bibleNotes] as List<dynamic>?) ?? [],
       ...(local[BackupKeys.bibleNotes] as List<dynamic>?) ?? [],
     ].whereType<Map<String, dynamic>>()) {
-      final id =
-          '${p['bookName']}|${p['chapter']}|${p['startVerse']}-${p['endVerse']}';
+      final id = BibleNote.idFor(
+        p['bookName'] as String,
+        p['chapter'] as int,
+        p['startVerse'] as int,
+        p['endVerse'] as int,
+      );
       final existing = bibleNotesById[id];
       if (existing == null) {
         bibleNotesById[id] = p;

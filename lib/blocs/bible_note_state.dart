@@ -27,7 +27,7 @@ class BibleNoteLoaded extends BibleNoteState {
     int startVerse,
     int endVerse,
   ) {
-    final id = '$bookName|$chapter|$startVerse-$endVerse';
+    final id = BibleNote.idFor(bookName, chapter, startVerse, endVerse);
     for (final note in notes) {
       if (note.id == id) return note;
     }

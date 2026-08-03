@@ -19,7 +19,16 @@ class BibleNote extends Equatable {
   });
 
   /// Unique key identifying the verse range this note covers.
-  String get id => '$bookName|$chapter|$startVerse-$endVerse';
+  String get id => idFor(bookName, chapter, startVerse, endVerse);
+
+  /// Builds the same unique key as [id] without needing a [BibleNote] instance.
+  static String idFor(
+    String bookName,
+    int chapter,
+    int startVerse,
+    int endVerse,
+  ) =>
+      '$bookName|$chapter|$startVerse-$endVerse';
 
   /// Whether this note's range includes [verse] in [bookName]/[chapter].
   bool coversVerse(String bookName, int chapter, int verse) {

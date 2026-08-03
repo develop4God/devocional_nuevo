@@ -1,6 +1,4 @@
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/services/localization_service.dart';
-import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -45,9 +43,7 @@ class DevotionalFavoriteCard extends StatelessWidget {
                     Text(
                       DateFormat(
                         'EEEE, d MMMM yyyy',
-                        getService<LocalizationService>()
-                            .currentLocale
-                            .languageCode,
+                        Localizations.localeOf(context).languageCode,
                       ).format(devocional.date),
                       style: TextStyle(
                         color: theme.colorScheme.primary,
