@@ -160,21 +160,19 @@ void main() {
       await tester.tap(find.byIcon(Icons.delete_outline));
       await tester.pumpAndSettle();
 
-      final deleted = expectLater(
-        bloc.stream,
-        emits(
-          isA<BibleNoteLoaded>().having(
-            (state) => state.getNoteForVerse('Juan', 3, 16),
-            'deleted note',
-            isNull,
-          ),
-        ),
-      );
-
       await tester.tap(find.text('app.delete'));
+      // The delete handler's second `await` (loadNotes after deleteNote)
+      // needs real event-loop turns that FakeAsync's pump() doesn't
+      // reliably drain -- runAsync steps outside FakeAsync so the bloc's
+      // Future chain actually resolves before we assert on it.
+      await tester.runAsync(() => bloc.stream.first);
       await tester.pumpAndSettle();
-      await deleted;
 
+      expect(bloc.state, isA<BibleNoteLoaded>());
+      expect(
+        (bloc.state as BibleNoteLoaded).getNoteForVerse('Juan', 3, 16),
+        isNull,
+      );
       expect(find.byType(BibleNoteViewer), findsNothing);
       expect(find.text('notes.deleted_message'), findsOneWidget);
     },
