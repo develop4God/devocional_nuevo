@@ -326,6 +326,7 @@
     "save": "保存",
     "hint": "メモ、コメント、振り返りを記入してください...",
     "saved_message": "メモが保存されました",
+    "added_message": "メモを追加しました",
     "loading_error": "メモの読み込みエラー",
     "add_action": "個人的なメモを追加",
     "view_action": "あなたのメモ",

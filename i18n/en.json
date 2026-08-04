@@ -326,6 +326,7 @@
     "save": "Save",
     "hint": "Write your notes, comments and reflections...",
     "saved_message": "Note saved",
+    "added_message": "Note added",
     "loading_error": "Error loading notes",
     "add_action": "Add a personal note",
     "view_action": "Your note",

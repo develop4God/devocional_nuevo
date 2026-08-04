@@ -99,9 +99,49 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('app.delete'));
       await tester.pump();
+      await tester.runAsync(() => noteBloc.stream.first);
+      await tester.pump();
 
       expect(repository.deleteCalls, 1);
       expect(find.text('notes.deleted_message'), findsOneWidget);
+    });
+
+    testWidgets('shows the "added" message when saving a brand-new note', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildWidget());
+
+      await tester.enterText(
+        find.byType(TextField),
+        'This is a brand new note',
+      );
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.runAsync(() => noteBloc.stream.first);
+      await tester.pump();
+
+      expect(repository.saveCalls, 1);
+      expect(find.text('notes.added_message'), findsOneWidget);
+      expect(find.text('notes.saved_message'), findsNothing);
+    });
+
+    testWidgets('shows the "saved" message when editing an existing note', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildWidget(initialNote: 'Existing note'));
+
+      await tester.enterText(
+        find.byType(TextField),
+        'This note has been edited',
+      );
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.runAsync(() => noteBloc.stream.first);
+      await tester.pump();
+
+      expect(repository.saveCalls, 1);
+      expect(find.text('notes.saved_message'), findsOneWidget);
+      expect(find.text('notes.added_message'), findsNothing);
     });
   });
 }
