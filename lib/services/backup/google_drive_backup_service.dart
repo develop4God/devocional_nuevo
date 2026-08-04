@@ -14,11 +14,13 @@ import '../../models/backup_content_summary.dart';
 import '../../models/bible_note.dart';
 import '../../models/spiritual_stats_model.dart';
 import '../../providers/devocional_provider.dart';
+import '../../repositories/i_bible_notes_repository.dart';
 import '../i_spiritual_stats_service.dart';
 import 'compression_service.dart';
 import '../i_connectivity_service.dart';
 import 'i_google_drive_auth_service.dart';
 import 'i_google_drive_backup_service.dart';
+import 'repository_backed_restore.dart';
 import '../discovery_progress_tracker.dart';
 import '../i_localization_service.dart';
 import 'package:devocional_nuevo/utils/constants/backup_keys_constants.dart';
@@ -39,6 +41,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
   final ISpiritualStatsService _statsService;
   final ILocalizationService _localizationService;
   final IBackupSettingsService _settingsService;
+  final IBibleNotesRepository _bibleNotesRepository;
 
   GoogleDriveBackupService({
     required IGoogleDriveAuthService authService,
@@ -46,11 +49,13 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     required ISpiritualStatsService statsService,
     required ILocalizationService localizationService,
     required IBackupSettingsService settingsService,
+    required IBibleNotesRepository bibleNotesRepository,
   })  : _authService = authService,
         _connectivityService = connectivityService,
         _statsService = statsService,
         _localizationService = localizationService,
-        _settingsService = settingsService;
+        _settingsService = settingsService,
+        _bibleNotesRepository = bibleNotesRepository;
 
   /// Check if Google Drive backup is enabled
   @override
@@ -1230,13 +1235,19 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         }
       }
 
-      // Restore bible notes
+      // Restore bible notes — routed through IBibleNotesRepository so each
+      // entry is decoded/validated individually (see RepositoryBackedRestore)
+      // instead of writing the raw list straight to SharedPreferences.
       if (data.containsKey(BackupKeys.bibleNotes)) {
         try {
-          final bibleNotes = data[BackupKeys.bibleNotes] as List<dynamic>;
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(BackupKeys.bibleNotes, json.encode(bibleNotes));
-          debugPrint('[RESTORE] ✅ Restored ${bibleNotes.length} bible notes');
+          final rawBibleNotes = data[BackupKeys.bibleNotes] as List<dynamic>;
+          final restoredCount = await RepositoryBackedRestore.run<BibleNote>(
+            rawList: rawBibleNotes,
+            decode: BibleNote.fromJson,
+            persist: _bibleNotesRepository.saveNote,
+            onEntryError: (message) => debugPrint('[RESTORE] ❌ $message'),
+          );
+          debugPrint('[RESTORE] ✅ Restored $restoredCount bible notes');
         } catch (e) {
           debugPrint('[RESTORE] ❌ Error restoring bible notes: $e');
         }
