@@ -1,4 +1,6 @@
 // bubble_constants.dart
+import 'dart:async';
+
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -129,6 +131,7 @@ class _BubbleOverlayState extends State<_BubbleOverlay>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
+  Timer? _showDelayTimer;
 
   @override
   void initState() {
@@ -156,10 +159,11 @@ class _BubbleOverlayState extends State<_BubbleOverlay>
     final shouldShow = await _BubbleManager().shouldShowBubble(widget.bubbleId);
     if (shouldShow && mounted) {
       setState(() => _showBubble = true);
-      await Future.delayed(BubbleConstants.delayBeforeShow);
-      if (mounted) {
-        _animationController.forward();
-      }
+      _showDelayTimer = Timer(BubbleConstants.delayBeforeShow, () {
+        if (mounted) {
+          _animationController.forward();
+        }
+      });
     }
   }
 
@@ -208,6 +212,7 @@ class _BubbleOverlayState extends State<_BubbleOverlay>
 
   @override
   void dispose() {
+    _showDelayTimer?.cancel();
     _animationController.dispose();
     super.dispose();
   }
@@ -235,6 +240,7 @@ class _IconBadgeOverlayState extends State<_IconBadgeOverlay>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
+  Timer? _showDelayTimer;
 
   @override
   void initState() {
@@ -278,10 +284,11 @@ class _IconBadgeOverlayState extends State<_IconBadgeOverlay>
     final shouldShow = await _BubbleManager().shouldShowBubble(widget.bubbleId);
     if (shouldShow && mounted) {
       setState(() => _showBadge = true);
-      await Future.delayed(BubbleConstants.delayBeforeShow);
-      if (mounted) {
-        _animationController.forward();
-      }
+      _showDelayTimer = Timer(BubbleConstants.delayBeforeShow, () {
+        if (mounted) {
+          _animationController.forward();
+        }
+      });
     }
   }
 
@@ -322,6 +329,7 @@ class _IconBadgeOverlayState extends State<_IconBadgeOverlay>
 
   @override
   void dispose() {
+    _showDelayTimer?.cancel();
     _BubbleManager().removeListener(_onBubbleChanged);
     _animationController.dispose();
     super.dispose();

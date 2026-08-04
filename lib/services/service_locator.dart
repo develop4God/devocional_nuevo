@@ -6,8 +6,10 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/debug/i_debug_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
+import 'package:devocional_nuevo/repositories/bible_notes_repository.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
+import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
 import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
 import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
 import 'package:devocional_nuevo/repositories/notes_repository.dart';
@@ -239,6 +241,7 @@ Future<void> setupServiceLocator() async {
       statsService: locator.get<ISpiritualStatsService>(),
       localizationService: locator.get<ILocalizationService>(),
       settingsService: locator.get<IBackupSettingsService>(),
+      bibleNotesRepository: locator.get<IBibleNotesRepository>(),
     ),
   );
 
@@ -264,6 +267,12 @@ Future<void> setupServiceLocator() async {
 
   locator.registerLazySingleton<INotesRepository>(
     () => NotesRepository(
+      prefsFactory: () async => locator.get<SharedPreferences>(),
+    ),
+  );
+
+  locator.registerLazySingleton<IBibleNotesRepository>(
+    () => BibleNotesRepository(
       prefsFactory: () async => locator.get<SharedPreferences>(),
     ),
   );

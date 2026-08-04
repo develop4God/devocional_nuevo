@@ -26,4 +26,19 @@ void main() {
       );
     });
   });
+
+  group('AppNavigationShell.navigateToBibleReference', () {
+    test('is a safe no-op when no shell is mounted', () {
+      // Mirrors selectTab's no-op guard — a saved note or deep link may fire
+      // this when the shell is gone (e.g. during app teardown).
+      expect(
+        () => AppNavigationShell.navigateToBibleReference(
+          bookName: 'Genesis',
+          chapter: 1,
+          verse: 1,
+        ),
+        returnsNormally,
+      );
+    });
+  });
 }

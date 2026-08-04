@@ -330,11 +330,13 @@
     "add_action": "Add a personal note",
     "view_action": "Your note",
     "delete_confirmation": "Are you sure you want to delete this note? This action cannot be undone.",
+    "deleted_message": "Note deleted",
     "save_error": "Error saving note",
     "enter_note_text_error": "Please enter a note",
     "note_min_length_error": "Note must have at least 10 characters",
     "empty_title": "You don't have any notes yet.",
-    "empty_description": "Tap the note icon on a devotional to save your reflections here."
+    "empty_description": "Tap the note icon on a devotional to save your reflections here.",
+    "bible_empty_description": "Tap the note icon on a verse to save your reflections here."
   },
   "contact": {
     "bugs": "Bugs/Errors",
@@ -692,7 +694,8 @@
     "download_dialog_title": "Download Bible Versions",
     "download_dialog_content": "Select versions to download and read offline. Downloads are performed in the background.",
     "download_error": "Error loading available versions",
-    "no_versions_available": "No versions available to download"
+    "no_versions_available": "No versions available to download",
+    "note": "Note"
   },
   "bible_version": {
     "title": "Bible Versions",

@@ -330,11 +330,13 @@
     "add_action": "Adicionar uma nota pessoal",
     "view_action": "Sua nota",
     "delete_confirmation": "Tem certeza de que deseja excluir esta nota? Esta ação não pode ser desfeita.",
+    "deleted_message": "Nota excluída",
     "save_error": "Erro ao salvar a nota",
     "enter_note_text_error": "Por favor, escreva uma nota",
     "note_min_length_error": "A nota deve ter pelo menos 10 caracteres",
     "empty_title": "Você ainda não tem anotações.",
-    "empty_description": "Toque no ícone de nota em um devocional para salvar suas reflexões aqui."
+    "empty_description": "Toque no ícone de nota em um devocional para salvar suas reflexões aqui.",
+    "bible_empty_description": "Toque no ícone de nota em um versículo para salvar suas reflexões aqui."
   },
   "contact": {
     "bugs": "Erros/Bugs",
@@ -692,7 +694,8 @@
     "download_dialog_title": "Baixar Versões da Bíblia",
     "download_dialog_content": "Selecione versões para baixar para leitura offline. Os downloads ocorrem em segundo plano.",
     "download_error": "Erro ao carregar versões disponíveis",
-    "no_versions_available": "Nenhuma versão disponível para download"
+    "no_versions_available": "Nenhuma versão disponível para download",
+    "note": "Nota"
   },
   "bible_version": {
     "title": "Versões da Bíblia",

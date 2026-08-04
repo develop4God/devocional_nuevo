@@ -2,9 +2,16 @@
 library;
 
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/blocs/bible_note_bloc.dart';
+import 'package:devocional_nuevo/blocs/bible_note_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
+import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
+import 'package:devocional_nuevo/models/bible_note.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_note_modal.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_note_viewer.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_verse_note_indicator.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,6 +31,21 @@ class MockBiblePreferencesService extends Mock
 class MockBibleDbService extends Mock implements BibleDbService {}
 
 class MockLocalizationService extends Mock implements LocalizationService {}
+
+class FakeBibleNotesRepository implements IBibleNotesRepository {
+  final List<BibleNote> notes;
+
+  FakeBibleNotesRepository([this.notes = const []]);
+
+  @override
+  Future<void> deleteNote(String noteId) async {}
+
+  @override
+  Future<List<BibleNote>> loadNotes() async => notes;
+
+  @override
+  Future<void> saveNote(BibleNote note) async {}
+}
 
 void main() {
   group('BibleReaderPage Behavioral Tests', () {
@@ -144,15 +166,31 @@ void main() {
       ).thenAnswer((_) async => {});
     });
 
-    Future<void> pumpBiblePage(WidgetTester tester) async {
+    Future<void> pumpBiblePage(
+      WidgetTester tester, {
+      ({String bookName, int chapter, int verse})? initialReference,
+      List<BibleNote> notes = const [],
+    }) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: BlocProvider<ThemeBloc>.value(
-            value: mockThemeBloc,
-            child: BibleReaderPage(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<ThemeBloc>.value(value: mockThemeBloc),
+            BlocProvider<BibleNoteBloc>(
+              create: (_) => BibleNoteBloc(
+                bibleNotesRepository: FakeBibleNotesRepository(notes),
+              )..add(LoadBibleNotes()),
+            ),
+          ],
+          // Providers must wrap MaterialApp (not sit inside `home:`), matching
+          // main.dart's tree — otherwise a modal route opened from within
+          // another modal route (viewer -> editor) lands as a sibling route
+          // without these ancestors, throwing ProviderNotFoundException.
+          child: MaterialApp(
+            home: BibleReaderPage(
               versions: mockVersions,
               readerService: mockReaderService,
               preferencesService: mockPreferencesService,
+              initialReference: initialReference,
             ),
           ),
         ),
@@ -254,5 +292,109 @@ void main() {
         ),
       ).called(1);
     });
+
+    testWidgets(
+      'BibleReaderPage jumps to the initialReference verse after loading',
+      (WidgetTester tester) async {
+        // GIVEN: BibleReaderPage is loaded with an initialReference
+        await pumpBiblePage(
+          tester,
+          initialReference: (bookName: 'GN', chapter: 1, verse: 2),
+        );
+
+        // THEN: The verse selector button reflects the referenced verse
+        expect(find.text('V. 2'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'tapping the verse note indicator opens the read-only viewer, '
+      'and Edit opens the note editor',
+      (WidgetTester tester) async {
+        // GIVEN: verse 1 already has a saved note
+        final note = BibleNote(
+          bookName: 'GN',
+          chapter: 1,
+          startVerse: 1,
+          endVerse: 1,
+          text: 'My reflection on creation',
+          lastModifiedDate: DateTime(2026, 1, 1),
+        );
+        await pumpBiblePage(tester, notes: [note]);
+
+        // WHEN: user taps the note indicator badge next to verse 1
+        await tester.tap(find.byType(BibleVerseNoteIndicator));
+        await tester.pumpAndSettle();
+
+        // THEN: the read-only viewer opens with the note text, not the editor
+        expect(find.byType(BibleNoteViewer), findsOneWidget);
+        expect(find.byType(BibleNoteModal), findsNothing);
+        expect(
+          find.descendant(
+            of: find.byType(BibleNoteViewer),
+            matching: find.text('My reflection on creation'),
+          ),
+          findsOneWidget,
+        );
+
+        // WHEN: user taps Edit inside the viewer
+        await tester.tap(find.text('notes.edit'));
+        await tester.pumpAndSettle();
+
+        // THEN: the editor opens pre-filled with the existing note
+        expect(find.byType(BibleNoteModal), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(BibleNoteModal),
+            matching: find.text('My reflection on creation'),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'tapping the note icon in the verse selection action sheet opens the '
+      'read-only viewer when a note already exists',
+      (WidgetTester tester) async {
+        // GIVEN: verse 1 already has a saved note
+        final note = BibleNote(
+          bookName: 'GN',
+          chapter: 1,
+          startVerse: 1,
+          endVerse: 1,
+          text: 'My reflection on creation',
+          lastModifiedDate: DateTime(2026, 1, 1),
+        );
+        await pumpBiblePage(tester, notes: [note]);
+
+        // WHEN: user taps verse 1 to select it, opening the action sheet
+        await tester.tap(
+          find.textContaining(
+            'En el principio creó Dios',
+            findRichText: true,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // THEN: the action sheet shows the filled note icon (hasNote: true)
+        expect(find.byIcon(Icons.chat_bubble), findsOneWidget);
+
+        // WHEN: user taps the note icon
+        await tester.tap(find.byIcon(Icons.chat_bubble));
+        await tester.pumpAndSettle();
+
+        // THEN: the read-only viewer opens instead of the editor
+        expect(find.byType(BibleNoteViewer), findsOneWidget);
+        expect(find.byType(BibleNoteModal), findsNothing);
+        expect(
+          find.descendant(
+            of: find.byType(BibleNoteViewer),
+            matching: find.text('My reflection on creation'),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

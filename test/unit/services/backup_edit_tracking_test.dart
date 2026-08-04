@@ -261,6 +261,62 @@ void main() {
         expect(merged.single['text'], equals('Edited note'));
       });
 
+      test('Bible notes: newer version wins during merge', () {
+        final olderVersion = {
+          'bookName': 'Genesis',
+          'chapter': 1,
+          'startVerse': 1,
+          'endVerse': 3,
+          'text': 'Old bible note',
+          'lastModifiedDate': '2026-05-01T10:00:00.000',
+        };
+        final newerVersion = {
+          'bookName': 'Genesis',
+          'chapter': 1,
+          'startVerse': 1,
+          'endVerse': 3,
+          'text': 'Edited bible note',
+          'lastModifiedDate': '2026-05-20T08:00:00.000',
+        };
+
+        final merged = _mergeBibleNotesByTimestamp(
+          remote: [olderVersion],
+          local: [newerVersion],
+        );
+
+        expect(merged, hasLength(1));
+        expect(merged.single['text'], equals('Edited bible note'));
+      });
+
+      test(
+        'Bible notes: different verse ranges are both preserved',
+        () {
+          final deviceANote = {
+            'bookName': 'Genesis',
+            'chapter': 1,
+            'startVerse': 1,
+            'endVerse': 3,
+            'text': 'Note on Genesis 1:1-3',
+            'lastModifiedDate': '2026-05-01T10:00:00.000',
+          };
+          final deviceBNote = {
+            'bookName': 'Genesis',
+            'chapter': 2,
+            'startVerse': 1,
+            'endVerse': 5,
+            'text': 'Note on Genesis 2:1-5',
+            'lastModifiedDate': '2026-05-02T10:00:00.000',
+          };
+
+          final merged = _mergeBibleNotesByTimestamp(
+            remote: [deviceANote],
+            local: [deviceBNote],
+          );
+
+          expect(merged, hasLength(2));
+        },
+      );
+
       test('Testimonies: newer version wins during merge', () {
         final olderVersion = {
           'id': 'testimony1',
@@ -421,6 +477,32 @@ List<Map<String, dynamic>> _mergeNotesByTimestamp({
     }
   }
   return notesByDevocionalId.values.toList();
+}
+
+/// Helper function to simulate backup merge logic for bible notes
+/// (matches the logic in google_drive_backup_service.dart).
+List<Map<String, dynamic>> _mergeBibleNotesByTimestamp({
+  required List<Map<String, dynamic>> remote,
+  required List<Map<String, dynamic>> local,
+}) {
+  final bibleNotesById = <String, Map<String, dynamic>>{};
+  for (final item in [...remote, ...local]) {
+    final id =
+        '${item['bookName']}|${item['chapter']}|${item['startVerse']}-${item['endVerse']}';
+    final existing = bibleNotesById[id];
+    if (existing == null) {
+      bibleNotesById[id] = item;
+    } else {
+      // Compare lastModifiedDate and keep newer version
+      final existingDate = _parseDateTime(existing['lastModifiedDate']);
+      final currentDate = _parseDateTime(item['lastModifiedDate']);
+      if (currentDate != null &&
+          (existingDate == null || currentDate.isAfter(existingDate))) {
+        bibleNotesById[id] = item;
+      }
+    }
+  }
+  return bibleNotesById.values.toList();
 }
 
 /// Helper to parse DateTime from JSON

@@ -1,4 +1,5 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
 import 'package:flutter/material.dart';
 
 class BibleReaderActionModal extends StatelessWidget {
@@ -8,7 +9,9 @@ class BibleReaderActionModal extends StatelessWidget {
   final VoidCallback onCopy;
   final VoidCallback onShare;
   final VoidCallback onImage;
+  final VoidCallback onNote;
   final bool areVersesSaved;
+  final bool hasNote;
   final VoidCallback? onDeleteSaved;
 
   const BibleReaderActionModal({
@@ -19,7 +22,9 @@ class BibleReaderActionModal extends StatelessWidget {
     required this.onCopy,
     required this.onShare,
     required this.onImage,
+    required this.onNote,
     this.areVersesSaved = false,
+    this.hasNote = false,
     this.onDeleteSaved,
   });
 
@@ -164,6 +169,13 @@ class BibleReaderActionModal extends StatelessWidget {
                   label: 'bible.share'.tr(),
                   onTap: onShare,
                 ),
+                _buildActionButton(
+                  context: context,
+                  icon: hasNote ? Icons.chat_bubble : Icons.chat_bubble_outline,
+                  label: 'bible.note'.tr(),
+                  onTap: onNote,
+                  bubbleId: 'bible_reader_note_bubble',
+                ),
                 /*_buildActionButton( //Comming soon
           context: context,
           icon: Icons.image_outlined,
@@ -184,11 +196,17 @@ class BibleReaderActionModal extends StatelessWidget {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    String? bubbleId,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return InkWell(
-      onTap: onTap,
+      onTap: bubbleId == null
+          ? onTap
+          : () async {
+              await BubbleUtils.markAsShown(bubbleId);
+              onTap();
+            },
       borderRadius: BorderRadius.circular(12),
       child: Padding(
         padding: const EdgeInsets.only(bottom: 24.0), // Move icon up a bit
@@ -196,20 +214,55 @@ class BibleReaderActionModal extends StatelessWidget {
           width: 70,
           padding: const EdgeInsets.symmetric(vertical: 4),
           // less bottom padding
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              Icon(icon, size: 28, color: colorScheme.onSurface),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: Theme.of(
-                  context,
-                ).textTheme.labelSmall?.copyWith(color: colorScheme.onSurface),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 28, color: colorScheme.onSurface),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurface,
+                        ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
+              if (bubbleId != null)
+                Positioned(
+                  top: -6,
+                  right: 4,
+                  child: FutureBuilder<bool>(
+                    future: BubbleUtils.shouldShowBubble(bubbleId),
+                    builder: (context, snapshot) {
+                      if (snapshot.data != true) return const SizedBox.shrink();
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: BubbleConstants.newFeatureColor,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: BubbleConstants.bubbleShadow,
+                        ),
+                        child: Text(
+                          'bubble_constants.new_feature'.tr(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
             ],
           ),
         ),
