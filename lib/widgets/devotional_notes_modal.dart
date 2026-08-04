@@ -88,6 +88,8 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
       _isSaving = true;
     });
 
+    final isNewNote = widget.initialNote?.trim().isEmpty ?? true;
+
     try {
       context.read<NoteBloc>().add(SaveNoteForDevocional(
             widget.devocional.id,
@@ -97,7 +99,7 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
         Navigator.of(context).pop();
         AppSnackBar.show(
           context,
-          'notes.saved_message'.tr(),
+          isNewNote ? 'notes.added_message'.tr() : 'notes.saved_message'.tr(),
           icon: Icons.check_circle_outline,
         );
       }
