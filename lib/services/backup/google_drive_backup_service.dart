@@ -1152,6 +1152,20 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     }
   }
 
+  /// Restores [rawBibleNotes] (the decoded `BackupKeys.bibleNotes` list from
+  /// a backup file) through [IBibleNotesRepository], one entry at a time.
+  /// Returns the count actually restored. Extracted as its own method (not
+  /// inlined in [_restoreBackupData]) so it's directly unit-testable with a
+  /// fake repository, without needing to drive a full Drive-API download.
+  Future<int> restoreBibleNotes(List<dynamic> rawBibleNotes) {
+    return RepositoryBackedRestore.run<BibleNote>(
+      rawList: rawBibleNotes,
+      decode: BibleNote.fromJson,
+      persist: _bibleNotesRepository.saveNote,
+      onEntryError: (message) => debugPrint('[RESTORE] ❌ $message'),
+    );
+  }
+
   /// Restore backup data to local storage
   Future<void> _restoreBackupData(Map<String, dynamic> data) async {
     try {
@@ -1240,12 +1254,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       // instead of writing the raw list straight to SharedPreferences.
       if (data.containsKey(BackupKeys.bibleNotes)) {
         try {
-          final rawBibleNotes = data[BackupKeys.bibleNotes] as List<dynamic>;
-          final restoredCount = await RepositoryBackedRestore.run<BibleNote>(
-            rawList: rawBibleNotes,
-            decode: BibleNote.fromJson,
-            persist: _bibleNotesRepository.saveNote,
-            onEntryError: (message) => debugPrint('[RESTORE] ❌ $message'),
+          final restoredCount = await restoreBibleNotes(
+            data[BackupKeys.bibleNotes] as List<dynamic>,
           );
           debugPrint('[RESTORE] ✅ Restored $restoredCount bible notes');
         } catch (e) {

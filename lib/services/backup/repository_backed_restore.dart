@@ -21,6 +21,11 @@ class RepositoryBackedRestore {
     var restoredCount = 0;
     for (final raw in rawList) {
       try {
+        // `raw as Map` intentionally accepts any Map subtype (e.g. the
+        // LinkedHashMap<dynamic, dynamic> that json.decode produces) — the
+        // cast below normalizes it to Map<String, dynamic> for [decode].
+        // A non-Map entry throws here and is caught below like any other
+        // malformed entry.
         final item = decode(Map<String, dynamic>.from(raw as Map));
         await persist(item);
         restoredCount++;
