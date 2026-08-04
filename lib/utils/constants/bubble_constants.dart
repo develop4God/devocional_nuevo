@@ -228,6 +228,7 @@ class _BubbleOverlayState extends State<_BubbleOverlay>
   @override
   void dispose() {
     _showDelayTimer?.cancel();
+    _BubbleManager().removeListener(_onBubbleChanged);
     _animationController.dispose();
     super.dispose();
   }

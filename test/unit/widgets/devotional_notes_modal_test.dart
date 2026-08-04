@@ -99,6 +99,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('app.delete'));
       await tester.pump();
+      await tester.runAsync(() => noteBloc.stream.first);
+      await tester.pump();
 
       expect(repository.deleteCalls, 1);
       expect(find.text('notes.deleted_message'), findsOneWidget);
@@ -114,6 +116,8 @@ void main() {
         'This is a brand new note',
       );
       await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.runAsync(() => noteBloc.stream.first);
       await tester.pump();
 
       expect(repository.saveCalls, 1);
@@ -131,6 +135,8 @@ void main() {
         'This note has been edited',
       );
       await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.runAsync(() => noteBloc.stream.first);
       await tester.pump();
 
       expect(repository.saveCalls, 1);
