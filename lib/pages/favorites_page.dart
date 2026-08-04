@@ -3,8 +3,6 @@
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
-import 'package:devocional_nuevo/blocs/note_bloc.dart';
-import 'package:devocional_nuevo/blocs/note_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -16,8 +14,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devotional_favorite_card.dart';
-import 'package:devocional_nuevo/widgets/devotional_note_viewer.dart';
-import 'package:devocional_nuevo/widgets/devotional_notes_modal.dart';
+import 'package:devocional_nuevo/widgets/devotional_note_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -271,22 +268,7 @@ class _FavoritesPageState extends State<FavoritesPage>
         ),
       ),
       actions: [
-        BlocBuilder<NoteBloc, NoteState>(
-          builder: (context, state) {
-            final note = state is NoteLoaded
-                ? state.getNoteForDevocional(devocional.id)
-                : null;
-            return IconButton(
-              icon: Icon(
-                note?.isNotEmpty == true
-                    ? Icons.sticky_note_2_rounded
-                    : Icons.sticky_note_2_outlined,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              onPressed: () => _handleNoteIconTap(context, devocional, note),
-            );
-          },
-        ),
+        DevotionalNoteIconButton(devocional: devocional),
         IconButton(
           icon: const Icon(
             Icons.favorite_rounded,
@@ -296,36 +278,6 @@ class _FavoritesPageState extends State<FavoritesPage>
               _showRemoveFavoriteConfirmation(context, devocional, provider),
         ),
       ],
-    );
-  }
-
-  void _handleNoteIconTap(
-    BuildContext context,
-    Devocional devocional,
-    String? note,
-  ) {
-    // If note exists and is not empty, show viewer (read-only)
-    if (note != null && note.isNotEmpty) {
-      DevotionalNoteViewer.show(
-        context,
-        devocional: devocional,
-        note: note,
-        onEdit: () => _showNoteEditor(context, devocional),
-      );
-    } else {
-      // If no note, show editor directly
-      _showNoteEditor(context, devocional);
-    }
-  }
-
-  void _showNoteEditor(BuildContext context, Devocional devocional) {
-    final state = context.read<NoteBloc>().state;
-    DevotionalNotesModal.show(
-      context,
-      devocional: devocional,
-      initialNote: state is NoteLoaded
-          ? state.getNoteForDevocional(devocional.id)
-          : null,
     );
   }
 
