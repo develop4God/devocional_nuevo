@@ -326,6 +326,7 @@
     "save": "I-save",
     "hint": "Isulat ang iyong mga tala, komento at pagninilay...",
     "saved_message": "Ang tala ay na-save",
+    "added_message": "Naidagdag ang tala",
     "loading_error": "Error sa pag-load ng mga tala",
     "add_action": "Magdagdag ng personal na tala",
     "view_action": "Iyong tala",
