@@ -1,4 +1,4 @@
-@Tags(['behavioral'])
+@Tags(['behavioral', 'pages', 'notes'])
 library;
 
 import 'package:bible_reader_core/bible_reader_core.dart';
