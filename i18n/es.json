@@ -326,6 +326,7 @@
     "save": "Guardar",
     "hint": "Escribe tus notas, comentarios y reflexiones...",
     "saved_message": "Nota guardada",
+    "added_message": "Nota agregada",
     "loading_error": "Error al cargar las notas",
     "add_action": "Agregar una nota personal",
     "view_action": "Tu nota",

@@ -136,6 +136,20 @@ void main() {
     expect(editTapped, isTrue);
   });
 
+  testWidgets(
+    'tapping the header edit icon dismisses the viewer and invokes onEdit',
+    (tester) async {
+      var editTapped = false;
+      await openViewer(tester, onEdit: () => editTapped = true);
+
+      await tester.tap(find.byIcon(Icons.edit_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BibleNoteViewer), findsNothing);
+      expect(editTapped, isTrue);
+    },
+  );
+
   testWidgets('tapping delete then cancel keeps the viewer open', (
     tester,
   ) async {
