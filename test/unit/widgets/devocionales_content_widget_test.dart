@@ -107,13 +107,13 @@ void main() {
       Future<int>? streakFuture,
       bool isFavorite = false,
     }) {
-      return MaterialApp(
-        home: Scaffold(
-          body: BlocProvider(
-            create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
-            child: ChangeNotifierProvider<DevocionalProvider>.value(
-              value: fakeProvider,
-              child: DevocionalesContentWidget(
+      return BlocProvider(
+        create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
+        child: ChangeNotifierProvider<DevocionalProvider>.value(
+          value: fakeProvider,
+          child: MaterialApp(
+            home: Scaffold(
+              body: DevocionalesContentWidget(
                 devocional: devocional,
                 fontSize: 16,
                 onStreakBadgeTap: () => streakTapped = true,
