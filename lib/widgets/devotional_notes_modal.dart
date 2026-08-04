@@ -5,6 +5,7 @@ import 'package:devocional_nuevo/blocs/note_bloc.dart';
 import 'package:devocional_nuevo/blocs/note_event.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
+import 'package:devocional_nuevo/widgets/notes/note_editor_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -169,161 +170,15 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final mediaQuery = MediaQuery.of(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: mediaQuery.viewInsets.bottom + 20,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header: icon + title + close button
-          Row(
-            children: [
-              Icon(
-                Icons.note_alt_outlined,
-                color: colorScheme.primary,
-                size: 28,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'notes.title'.tr(),
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ),
-              if (widget.initialNote?.trim().isNotEmpty == true)
-                IconButton(
-                  onPressed: _isSaving ? null : _confirmDeleteNote,
-                  tooltip: 'app.delete'.tr(),
-                  icon: Icon(
-                    Icons.delete_outline,
-                    color: colorScheme.error,
-                  ),
-                ),
-              IconButton(
-                onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-                icon: Icon(
-                  Icons.close,
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Text field
-          TextField(
-            controller: _noteController,
-            focusNode: _focusNode,
-            maxLines: 8,
-            maxLength: 1000,
-            textCapitalization: TextCapitalization.sentences,
-            style: textTheme.bodyMedium?.copyWith(
-              height: 1.4,
-              color: colorScheme.onSurface,
-            ),
-            decoration: InputDecoration(
-              hintText: 'notes.hint'.tr(),
-              filled: true,
-              fillColor: colorScheme.surface,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: colorScheme.outline),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: colorScheme.outline),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: colorScheme.primary, width: 2),
-              ),
-              contentPadding: const EdgeInsets.all(16),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          if (_errorMessage != null) ...[
-            Text(
-              _errorMessage!,
-              style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          // Buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed:
-                      _isSaving ? null : () => Navigator.of(context).pop(),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: colorScheme.outline),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'notes.cancel'.tr(),
-                    style: textTheme.labelLarge?.copyWith(
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _isSaving ? null : _saveNote,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: _isSaving
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colorScheme.onPrimary,
-                          ),
-                        )
-                      : Text(
-                          'notes.save'.tr(),
-                          style: textTheme.labelLarge?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                ),
-              ),
-            ],
-          ),
-
-          SizedBox(height: mediaQuery.viewInsets.bottom > 0 ? 0 : 20),
-        ],
-      ),
+    return NoteEditorSheet(
+      title: 'notes.title'.tr(),
+      controller: _noteController,
+      focusNode: _focusNode,
+      errorMessage: _errorMessage,
+      isSaving: _isSaving,
+      showDelete: widget.initialNote?.trim().isNotEmpty == true,
+      onDelete: _confirmDeleteNote,
+      onSave: _saveNote,
     );
   }
 }

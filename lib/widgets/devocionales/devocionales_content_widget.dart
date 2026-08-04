@@ -14,6 +14,7 @@ import 'package:devocional_nuevo/widgets/devotional_notes_modal.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/copyable_verse_card.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.dart';
+import 'package:devocional_nuevo/widgets/notes/note_icons.dart';
 import 'package:devocional_nuevo/widgets/supporter/pet_hero_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -292,9 +293,7 @@ class _DevotionalNoteAction extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      hasNote
-                          ? Icons.sticky_note_2_rounded
-                          : Icons.note_add_outlined,
+                      NoteIcons.forState(hasNote),
                       color: colorScheme.primary,
                     ),
                     const SizedBox(width: 10),

@@ -142,7 +142,7 @@ void main() {
       var editTapped = false;
       await openViewer(tester, onEdit: () => editTapped = true);
 
-      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.tap(find.byIcon(Icons.edit_rounded));
       await tester.pumpAndSettle();
 
       expect(find.byType(BibleNoteViewer), findsNothing);

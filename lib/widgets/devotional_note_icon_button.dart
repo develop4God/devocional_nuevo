@@ -6,15 +6,14 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/widgets/devotional_note_viewer.dart';
 import 'package:devocional_nuevo/widgets/devotional_notes_modal.dart';
+import 'package:devocional_nuevo/widgets/notes/note_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Icon button for a devotional's personal note, shared across pages that
 /// list devotionals (Favorites, Notes) so the icon and tap behavior stay
-/// identical everywhere, matching the Bible reader's note action:
-/// [Icons.note_add_outlined] opens the editor when there is no note yet,
-/// [Icons.sticky_note_2_rounded] opens the read-only viewer (with an edit
-/// action) when a note already exists.
+/// identical everywhere. Uses [NoteIcons] to match the Bible reader's note
+/// action and the Bible notes list.
 class DevotionalNoteIconButton extends StatelessWidget {
   final Devocional devocional;
 
@@ -31,7 +30,7 @@ class DevotionalNoteIconButton extends StatelessWidget {
 
         return IconButton(
           icon: Icon(
-            hasNote ? Icons.sticky_note_2_rounded : Icons.note_add_outlined,
+            NoteIcons.forState(hasNote),
             color: Theme.of(context).colorScheme.primary,
           ),
           tooltip: hasNote ? 'notes.view_action'.tr() : 'notes.add_action'.tr(),
