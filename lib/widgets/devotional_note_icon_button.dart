@@ -11,9 +11,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Icon button for a devotional's personal note, shared across pages that
 /// list devotionals (Favorites, Notes) so the icon and tap behavior stay
-/// identical everywhere: [Icons.note_add_outlined] opens the editor when
-/// there is no note yet, [Icons.sticky_note_2_rounded] opens the read-only
-/// viewer (with an edit action) when a note already exists.
+/// identical everywhere, matching the Bible reader's note action:
+/// [Icons.note_add_outlined] opens the editor when there is no note yet,
+/// [Icons.sticky_note_2_rounded] opens the read-only viewer (with an edit
+/// action) when a note already exists.
 class DevotionalNoteIconButton extends StatelessWidget {
   final Devocional devocional;
 
