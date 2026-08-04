@@ -138,6 +138,21 @@ class _BubbleOverlayState extends State<_BubbleOverlay>
     super.initState();
     _setupAnimations();
     _checkIfShouldShow();
+    _BubbleManager().addListener(_onBubbleChanged);
+  }
+
+  void _onBubbleChanged() {
+    _checkIfShouldShowAndUpdate();
+  }
+
+  Future<void> _checkIfShouldShowAndUpdate() async {
+    final shouldShow = await _BubbleManager().shouldShowBubble(widget.bubbleId);
+    if (mounted) {
+      setState(() => _showBubble = shouldShow);
+      if (!shouldShow && _animationController.isCompleted) {
+        _animationController.reverse();
+      }
+    }
   }
 
   void _setupAnimations() {
@@ -213,6 +228,7 @@ class _BubbleOverlayState extends State<_BubbleOverlay>
   @override
   void dispose() {
     _showDelayTimer?.cancel();
+    _BubbleManager().removeListener(_onBubbleChanged);
     _animationController.dispose();
     super.dispose();
   }

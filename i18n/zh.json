@@ -326,6 +326,7 @@
     "save": "保存",
     "hint": "写下您的笔记、评论和反思...",
     "saved_message": "笔记已保存",
+    "added_message": "笔记已添加",
     "loading_error": "加载笔记时出错",
     "add_action": "添加个人笔记",
     "view_action": "您的笔记",

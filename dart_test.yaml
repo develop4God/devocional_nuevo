@@ -39,6 +39,9 @@ tags:
   utils:
     # Utility and helper function tests
     # Example: @Tags(['unit', 'utils'])
+  notes:
+    # Devotional and Bible note feature tests (cross-cuts blocs/widgets/pages/models/repositories)
+    # Example: @Tags(['unit', 'widgets', 'notes'])
   iap:
     # In-app purchase tests
     # Example: @Tags(['unit', 'iap'])

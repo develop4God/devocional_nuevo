@@ -12,8 +12,7 @@ import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/delete_confirmation_dialog.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devotional_favorite_card.dart';
-import 'package:devocional_nuevo/widgets/devotional_note_viewer.dart';
-import 'package:devocional_nuevo/widgets/devotional_notes_modal.dart';
+import 'package:devocional_nuevo/widgets/devotional_note_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -138,11 +137,7 @@ class _DevotionalNoteCard extends StatelessWidget {
         ),
       ),
       actions: [
-        IconButton(
-          icon: Icon(Icons.sticky_note_2_rounded,
-              color: theme.colorScheme.primary),
-          onPressed: () => _openNote(context),
-        ),
+        DevotionalNoteIconButton(devocional: devocional),
         IconButton(
           icon: Icon(
             isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
@@ -151,23 +146,6 @@ class _DevotionalNoteCard extends StatelessWidget {
           onPressed: () => _toggleFavorite(context, provider, isFavorite),
         ),
       ],
-    );
-  }
-
-  void _openNote(BuildContext context) {
-    final state = context.read<NoteBloc>().state;
-    final note =
-        state is NoteLoaded ? state.getNoteForDevocional(devocional.id) : null;
-    if (note == null || note.isEmpty) return;
-    DevotionalNoteViewer.show(
-      context,
-      devocional: devocional,
-      note: note,
-      onEdit: () => DevotionalNotesModal.show(
-        context,
-        devocional: devocional,
-        initialNote: note,
-      ),
     );
   }
 

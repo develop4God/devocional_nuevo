@@ -107,13 +107,13 @@ void main() {
       Future<int>? streakFuture,
       bool isFavorite = false,
     }) {
-      return MaterialApp(
-        home: Scaffold(
-          body: BlocProvider(
-            create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
-            child: ChangeNotifierProvider<DevocionalProvider>.value(
-              value: fakeProvider,
-              child: DevocionalesContentWidget(
+      return BlocProvider(
+        create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
+        child: ChangeNotifierProvider<DevocionalProvider>.value(
+          value: fakeProvider,
+          child: MaterialApp(
+            home: Scaffold(
+              body: DevocionalesContentWidget(
                 devocional: devocional,
                 fontSize: 16,
                 onStreakBadgeTap: () => streakTapped = true,
@@ -309,5 +309,28 @@ void main() {
         expect(find.byIcon(Icons.star_rounded), findsNothing);
       });
     });
+
+    testWidgets(
+      'notes "new" badge disappears immediately after tap, without navigating away',
+      (tester) async {
+        await tester.pumpWidget(buildWidget());
+        await tester.pump(BubbleConstants.delayBeforeShow);
+        await tester.pump(BubbleConstants.animationDuration);
+
+        expect(find.text('bubble_constants.new_feature'), findsOneWidget);
+
+        final noteAction = find.ancestor(
+          of: find.byIcon(Icons.note_add_outlined),
+          matching: find.byType(InkWell),
+        );
+        await tester.tap(noteAction);
+        // Let markAsShown's SharedPreferences write + listener notification
+        // and the bubble's reverse animation complete.
+        await tester.pump();
+        await tester.pump(BubbleConstants.animationDuration);
+
+        expect(find.text('bubble_constants.new_feature'), findsNothing);
+      },
+    );
   });
 }

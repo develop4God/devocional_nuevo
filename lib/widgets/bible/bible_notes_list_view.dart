@@ -9,6 +9,7 @@ import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_note_modal.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_note_viewer.dart';
+import 'package:devocional_nuevo/widgets/notes/note_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -201,7 +202,7 @@ class _BibleNoteCard extends StatelessWidget {
               ),
               IconButton(
                 tooltip: 'notes.title'.tr(),
-                icon: Icon(Icons.chat_bubble, color: theme.colorScheme.primary),
+                icon: Icon(NoteIcons.hasNote, color: theme.colorScheme.primary),
                 onPressed: () => BibleNoteViewer.show(
                   context,
                   bookName: note.bookName,
