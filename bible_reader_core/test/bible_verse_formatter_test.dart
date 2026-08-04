@@ -1,3 +1,6 @@
+@Tags(['unit', 'utils'])
+library;
+
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 
