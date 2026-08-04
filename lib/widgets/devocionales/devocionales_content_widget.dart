@@ -7,6 +7,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
+import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:devocional_nuevo/widgets/devotional_note_viewer.dart';
 import 'package:devocional_nuevo/widgets/devotional_notes_modal.dart';
@@ -254,6 +255,7 @@ class _DevotionalNoteAction extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
               onTap: () {
+                BubbleUtils.markAsShown('devocionales_note_bubble');
                 if (hasNote) {
                   DevotionalNoteViewer.show(
                     context,
@@ -305,7 +307,7 @@ class _DevotionalNoteAction extends StatelessWidget {
                               color: colorScheme.onSurface,
                               fontWeight: FontWeight.w600,
                             ),
-                      ),
+                      ).newBubbleWithId('devocionales_note_bubble'),
                     ),
                     if (hasNote)
                       Container(

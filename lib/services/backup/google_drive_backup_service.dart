@@ -11,13 +11,16 @@ import 'i_backup_settings_service.dart';
 import '../../blocs/prayer_bloc.dart';
 import '../../blocs/prayer_event.dart';
 import '../../models/backup_content_summary.dart';
+import '../../models/bible_note.dart';
 import '../../models/spiritual_stats_model.dart';
 import '../../providers/devocional_provider.dart';
+import '../../repositories/i_bible_notes_repository.dart';
 import '../i_spiritual_stats_service.dart';
 import 'compression_service.dart';
 import '../i_connectivity_service.dart';
 import 'i_google_drive_auth_service.dart';
 import 'i_google_drive_backup_service.dart';
+import 'repository_backed_restore.dart';
 import '../discovery_progress_tracker.dart';
 import '../i_localization_service.dart';
 import 'package:devocional_nuevo/utils/constants/backup_keys_constants.dart';
@@ -38,6 +41,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
   final ISpiritualStatsService _statsService;
   final ILocalizationService _localizationService;
   final IBackupSettingsService _settingsService;
+  final IBibleNotesRepository _bibleNotesRepository;
 
   GoogleDriveBackupService({
     required IGoogleDriveAuthService authService,
@@ -45,11 +49,13 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     required ISpiritualStatsService statsService,
     required ILocalizationService localizationService,
     required IBackupSettingsService settingsService,
+    required IBibleNotesRepository bibleNotesRepository,
   })  : _authService = authService,
         _connectivityService = connectivityService,
         _statsService = statsService,
         _localizationService = localizationService,
-        _settingsService = settingsService;
+        _settingsService = settingsService,
+        _bibleNotesRepository = bibleNotesRepository;
 
   /// Check if Google Drive backup is enabled
   @override
@@ -106,6 +112,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       BackupKeys.savedPrayers: true,
       BackupKeys.savedThanksgivings: true,
       BackupKeys.devotionalNotes: true,
+      BackupKeys.bibleNotes: true,
       BackupKeys.completedEncounters: true,
       BackupKeys.discoveryProgress: true,
       BackupKeys.discoveryFavorites: true,
@@ -190,11 +197,15 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
             (json.decode(thanksgivingsJson) as List<dynamic>).length;
       }
 
-      // Devotional notes
+      // Devotional notes + Bible notes (combined into a single count)
       int notesCount = 0;
       final notesJson = prefs.getString(BackupKeys.devotionalNotes);
       if (notesJson != null) {
-        notesCount = (json.decode(notesJson) as List<dynamic>).length;
+        notesCount += (json.decode(notesJson) as List<dynamic>).length;
+      }
+      final bibleNotesJson = prefs.getString(BackupKeys.bibleNotes);
+      if (bibleNotesJson != null) {
+        notesCount += (json.decode(bibleNotesJson) as List<dynamic>).length;
       }
 
       // Testimonies
@@ -486,6 +497,32 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     }
     final mergedNotes = notesByDevocionalId.values.toList();
 
+    // --- Bible notes merge (union by id, keeping newer version based on lastModifiedDate) ---
+    final bibleNotesById = <String, Map<String, dynamic>>{};
+    for (final p in [
+      ...(remote[BackupKeys.bibleNotes] as List<dynamic>?) ?? [],
+      ...(local[BackupKeys.bibleNotes] as List<dynamic>?) ?? [],
+    ].whereType<Map<String, dynamic>>()) {
+      final id = BibleNote.idFor(
+        p['bookName'] as String,
+        p['chapter'] as int,
+        p['startVerse'] as int,
+        p['endVerse'] as int,
+      );
+      final existing = bibleNotesById[id];
+      if (existing == null) {
+        bibleNotesById[id] = p;
+      } else {
+        final existingDate = _parseDateTime(existing['lastModifiedDate']);
+        final currentDate = _parseDateTime(p['lastModifiedDate']);
+        if (currentDate != null &&
+            (existingDate == null || currentDate.isAfter(existingDate))) {
+          bibleNotesById[id] = p;
+        }
+      }
+    }
+    final mergedBibleNotes = bibleNotesById.values.toList();
+
     // --- Testimonies merge (union by id, keeping newer version based on lastModifiedDate) ---
     final testimoniesById = <String, Map<String, dynamic>>{};
     for (final p in [
@@ -544,6 +581,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       BackupKeys.savedPrayers: mergedPrayers,
       BackupKeys.savedThanksgivings: mergedThanksgivings,
       BackupKeys.devotionalNotes: mergedNotes,
+      BackupKeys.bibleNotes: mergedBibleNotes,
       BackupKeys.completedEncounters: mergedEncounters,
       BackupKeys.discoveryProgress: mergedProgress,
       BackupKeys.discoveryFavorites: mergedDiscoveryFavs,
@@ -802,6 +840,20 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       }
     }
 
+    // Include bible notes if enabled
+    if (options[BackupKeys.bibleNotes] == true) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final bibleNotesJson = prefs.getString(BackupKeys.bibleNotes) ?? '[]';
+        final bibleNotesList = json.decode(bibleNotesJson) as List<dynamic>;
+        backupData[BackupKeys.bibleNotes] = bibleNotesList;
+        debugPrint('[BACKUP] Included ${bibleNotesList.length} bible notes');
+      } catch (e) {
+        debugPrint('[BACKUP] ❌ Error getting bible notes: $e');
+        backupData[BackupKeys.bibleNotes] = [];
+      }
+    }
+
     // Include testimonies if enabled
     if (options[BackupKeys.testimonies] == true) {
       try {
@@ -917,6 +969,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       BackupKeys.savedPrayers,
       BackupKeys.savedThanksgivings,
       BackupKeys.devotionalNotes,
+      BackupKeys.bibleNotes,
       BackupKeys.completedEncounters,
       BackupKeys.discoveryProgress,
       BackupKeys.discoveryFavorites,
@@ -1099,6 +1152,20 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     }
   }
 
+  /// Restores [rawBibleNotes] (the decoded `BackupKeys.bibleNotes` list from
+  /// a backup file) through [IBibleNotesRepository], one entry at a time.
+  /// Returns the count actually restored. Extracted as its own method (not
+  /// inlined in [_restoreBackupData]) so it's directly unit-testable with a
+  /// fake repository, without needing to drive a full Drive-API download.
+  Future<int> restoreBibleNotes(List<dynamic> rawBibleNotes) {
+    return RepositoryBackedRestore.run<BibleNote>(
+      rawList: rawBibleNotes,
+      decode: BibleNote.fromJson,
+      persist: _bibleNotesRepository.saveNote,
+      onEntryError: (message) => debugPrint('[RESTORE] ❌ $message'),
+    );
+  }
+
   /// Restore backup data to local storage
   Future<void> _restoreBackupData(Map<String, dynamic> data) async {
     try {
@@ -1179,6 +1246,20 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
           debugPrint('[RESTORE] ✅ Restored ${notes.length} devotional notes');
         } catch (e) {
           debugPrint('[RESTORE] ❌ Error restoring devotional notes: $e');
+        }
+      }
+
+      // Restore bible notes — routed through IBibleNotesRepository so each
+      // entry is decoded/validated individually (see RepositoryBackedRestore)
+      // instead of writing the raw list straight to SharedPreferences.
+      if (data.containsKey(BackupKeys.bibleNotes)) {
+        try {
+          final restoredCount = await restoreBibleNotes(
+            data[BackupKeys.bibleNotes] as List<dynamic>,
+          );
+          debugPrint('[RESTORE] ✅ Restored $restoredCount bible notes');
+        } catch (e) {
+          debugPrint('[RESTORE] ❌ Error restoring bible notes: $e');
         }
       }
 

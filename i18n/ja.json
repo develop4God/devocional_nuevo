@@ -330,11 +330,13 @@
     "add_action": "個人的なメモを追加",
     "view_action": "あなたのメモ",
     "delete_confirmation": "このメモを削除してもよろしいですか？この操作は元に戻せません。",
+    "deleted_message": "メモが削除されました",
     "save_error": "メモの保存エラー",
     "enter_note_text_error": "メモを入力してください",
     "note_min_length_error": "メモは少なくとも10文字必要です",
     "empty_title": "まだメモはありません。",
-    "empty_description": "デボーションのメモアイコンをタップすると、あなたの振り返りをここに保存できます。"
+    "empty_description": "デボーションのメモアイコンをタップすると、あなたの振り返りをここに保存できます。",
+    "bible_empty_description": "聖句のメモアイコンをタップすると、ここに感想を保存できます。"
   },
   "contact": {
     "bugs": "エラー/バグ",
@@ -692,7 +694,8 @@
     "download_dialog_title": "聖書のバージョンをダウンロード",
     "download_dialog_content": "オフラインで読むためのバージョンを選択してください。ダウンロードはバックグラウンドで行われます。",
     "download_error": "利用可能なバージョンの読み込みエラー",
-    "no_versions_available": "ダウンロードできるバージョンがありません"
+    "no_versions_available": "ダウンロードできるバージョンがありません",
+    "note": "メモ"
   },
   "bible_version": {
     "title": "聖書のバージョン",

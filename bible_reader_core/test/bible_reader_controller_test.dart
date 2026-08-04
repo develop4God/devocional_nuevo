@@ -309,6 +309,47 @@ void main() {
     });
   });
 
+  group('BibleReaderController Navigate To Reference Tests', () {
+    test('does nothing when the book is not found', () async {
+      final stateBefore = controller.state;
+
+      await controller.navigateToReference(
+        bookName: 'Unknown',
+        chapter: 1,
+        verse: 1,
+      );
+
+      expect(controller.state, same(stateBefore));
+    });
+
+    test('does nothing and does not throw when selectedVersion is null',
+        () async {
+      controller = BibleReaderController(
+        allVersions: testVersions,
+        readerService: readerService,
+        preferencesService: preferencesService,
+        initialState: controller.state.copyWith(
+          books: [
+            {'book_number': 1, 'short_name': 'Genesis', 'long_name': 'Genesis'},
+          ],
+        ),
+      );
+
+      expect(controller.state.selectedVersion, isNull);
+
+      await expectLater(
+        controller.navigateToReference(
+          bookName: 'Genesis',
+          chapter: 1,
+          verse: 1,
+        ),
+        completes,
+      );
+
+      expect(controller.state.selectedVersion, isNull);
+    });
+  });
+
   group('BibleReaderController State Management Tests', () {
     test('should maintain state immutability', () {
       final originalState = controller.state;

@@ -2,6 +2,8 @@ import 'dart:async' show TimeoutException, unawaited;
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
+import 'package:devocional_nuevo/blocs/bible_note_bloc.dart';
+import 'package:devocional_nuevo/blocs/bible_note_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
@@ -26,6 +28,7 @@ import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
+import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
 import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
@@ -246,6 +249,11 @@ void main() async {
           create: (context) => NoteBloc(
             notesRepository: getService<INotesRepository>(),
           )..add(LoadNotes()),
+        ),
+        BlocProvider(
+          create: (context) => BibleNoteBloc(
+            bibleNotesRepository: getService<IBibleNotesRepository>(),
+          )..add(LoadBibleNotes()),
         ),
         if (Constants.enableDiscoveryFeature)
           BlocProvider(

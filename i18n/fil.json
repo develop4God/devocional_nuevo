@@ -330,11 +330,13 @@
     "add_action": "Magdagdag ng personal na tala",
     "view_action": "Iyong tala",
     "delete_confirmation": "Sigurado ka bang gusto mong tanggalin ang talang ito? Hindi na maibabalik ang pagkilos na ito.",
+    "deleted_message": "Ang tala ay natanggal",
     "save_error": "Pagkakamali sa pag-save ng tala",
     "enter_note_text_error": "Mangyaring maglagay ng tala",
     "note_min_length_error": "Ang tala ay dapat may hindi bababa sa 10 na karakter",
     "empty_title": "Wala ka pang mga tala.",
-    "empty_description": "I-tap ang icon ng tala sa isang debosyonal upang i-save ang iyong mga pagninilay dito."
+    "empty_description": "I-tap ang icon ng tala sa isang debosyonal upang i-save ang iyong mga pagninilay dito.",
+    "bible_empty_description": "I-tap ang icon ng tala sa isang talata para i-save ang iyong mga pagninilay dito."
   },
   "contact": {
     "bugs": "Mga Bug/Error",
@@ -692,7 +694,8 @@
     "download_dialog_title": "I-download ang Mga Bersyon ng Biblia",
     "download_dialog_content": "Pumili ng mga bersyon upang i-download at basahin nang walang internet. Ginagawa ang mga pag-download sa background.",
     "download_error": "Error sa pag-load ng mga bersyon na makukuha",
-    "no_versions_available": "Walang bersyon na makukuha para i-download"
+    "no_versions_available": "Walang bersyon na makukuha para i-download",
+    "note": "Tala"
   },
   "bible_version": {
     "title": "Mga Bersyon ng Biblia",

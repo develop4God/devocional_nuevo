@@ -50,7 +50,14 @@ class DevotionalNoteViewer extends StatelessWidget {
 
     try {
       context.read<NoteBloc>().add(SaveNoteForDevocional(devocional.id, null));
-      if (context.mounted) Navigator.of(context).pop();
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        AppSnackBar.show(
+          context,
+          'notes.deleted_message'.tr(),
+          icon: Icons.check_circle_outline,
+        );
+      }
     } catch (e) {
       if (context.mounted) {
         AppSnackBar.show(
