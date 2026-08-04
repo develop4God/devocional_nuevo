@@ -3,6 +3,20 @@
 library;
 
 class BibleVerseFormatter {
+  /// Resolves the full book name for [shortName] from [books].
+  ///
+  /// [books]: List of maps, each {'short_name': ..., 'long_name': ...}
+  /// Falls back to [shortName] itself when no match is found.
+  static String resolveBookName(
+    List<Map<String, dynamic>> books,
+    String shortName,
+  ) {
+    return books.firstWhere(
+      (b) => b['short_name'] == shortName,
+      orElse: () => {'long_name': shortName},
+    )['long_name'] as String;
+  }
+
   /// Formats selected verses for sharing/copy, using full book name and version.
   ///
   /// [selectedVerseKeys]: e.g. ["Jn|3|16"]
@@ -28,10 +42,7 @@ class BibleVerseFormatter {
       final verseNum = int.tryParse(parts[2]);
       if (verseNum == null) continue;
 
-      final longBookName = books.firstWhere(
-        (b) => b['short_name'] == bookAbbrev,
-        orElse: () => {'long_name': bookAbbrev},
-      )['long_name'];
+      final longBookName = resolveBookName(books, bookAbbrev);
 
       final verse = verses.firstWhere(
         (v) => v['verse'] == verseNum,

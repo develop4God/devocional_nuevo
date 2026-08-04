@@ -330,11 +330,13 @@
     "add_action": "添加个人笔记",
     "view_action": "您的笔记",
     "delete_confirmation": "您确定要删除此笔记吗？此操作无法撤销。",
+    "deleted_message": "笔记已删除",
     "save_error": "保存笔记出错",
     "enter_note_text_error": "请输入笔记",
     "note_min_length_error": "笔记必须至少有10个字符",
     "empty_title": "您还没有笔记。",
-    "empty_description": "点击灵修内容中的笔记图标，即可在此保存您的感想。"
+    "empty_description": "点击灵修内容中的笔记图标，即可在此保存您的感想。",
+    "bible_empty_description": "点击经文旁的笔记图标即可在此保存你的感想。"
   },
   "contact": {
     "bugs": "错误/漏洞",
@@ -692,7 +694,8 @@
     "download_dialog_title": "下载圣经版本",
     "download_dialog_content": "选择要下载的版本以供离线阅读。下载在后台进行。",
     "download_error": "加载可用版本时出错",
-    "no_versions_available": "没有可下载的版本"
+    "no_versions_available": "没有可下载的版本",
+    "note": "笔记"
   },
   "bible_version": {
     "title": "圣经版本",

@@ -37,6 +37,46 @@ void main() {
       expect(content.contains('NotesRepository('), isFalse);
     });
 
+    test('IBibleNotesRepository is registered in ServiceLocator', () async {
+      final file = File('lib/services/service_locator.dart');
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('registerLazySingleton<IBibleNotesRepository>'),
+        isTrue,
+        reason: 'IBibleNotesRepository must be registered by interface type',
+      );
+    });
+
+    test('BibleNotesRepository has no static singleton antipattern', () async {
+      final file = File('lib/repositories/bible_notes_repository.dart');
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('static BibleNotesRepository? _instance'),
+        isFalse,
+      );
+      expect(
+        content.contains('static BibleNotesRepository get instance'),
+        isFalse,
+      );
+    });
+
+    test(
+        'BibleNoteBloc depends on IBibleNotesRepository instead of BibleNotesRepository',
+        () async {
+      final file = File('lib/blocs/bible_note_bloc.dart');
+      final content = await file.readAsString();
+
+      expect(
+        content.contains(
+          'final IBibleNotesRepository _bibleNotesRepository',
+        ),
+        isTrue,
+      );
+      expect(content.contains('BibleNotesRepository('), isFalse);
+    });
+
     test(
       'LocalizationService has no static _instance field or instance getter',
       () async {

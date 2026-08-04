@@ -41,6 +41,31 @@ class AppNavigationShell extends StatefulWidget {
     state._selectTab(tab);
   }
 
+  /// Switches to the Bible tab and jumps it to [bookName]/[chapter]/[verse],
+  /// e.g. from a saved note. No-op if no shell is mounted or the Bible tab
+  /// is disabled by feature flags.
+  static void navigateToBibleReference({
+    required String bookName,
+    required int chapter,
+    required int verse,
+  }) {
+    final state = shellKey.currentState;
+    debugPrint(
+      '[AppNavigationShell] navigateToBibleReference called: '
+      'book=$bookName chapter=$chapter verse=$verse, '
+      'state=${state == null ? 'null' : 'found'}, '
+      'bibleTabEnabled=${state?._tabs.contains(AppTab.bible)}, '
+      'currentTab=${state?._currentTab}',
+    );
+    if (state == null || !state._tabs.contains(AppTab.bible)) return;
+    state._pendingBibleReference = (
+      bookName: bookName,
+      chapter: chapter,
+      verse: verse,
+    );
+    state._selectTab(AppTab.bible);
+  }
+
   @override
   State<AppNavigationShell> createState() => AppNavigationShellState();
 }
@@ -51,6 +76,11 @@ class AppNavigationShellState extends State<AppNavigationShell> {
   late final List<AppTab> _tabs = enabledAppTabs();
 
   AppTab _currentTab = AppTab.home;
+
+  // Set by [AppNavigationShell.navigateToBibleReference] just before
+  // switching to the Bible tab; consumed (and cleared) the next time that
+  // tab is built so a later, unrelated switch to Bible doesn't reapply it.
+  ({String bookName, int chapter, int verse})? _pendingBibleReference;
 
   // Tabs already visited — unvisited tabs stay as empty placeholders so
   // startup only builds the home tab.
@@ -81,7 +111,12 @@ class AppNavigationShellState extends State<AppNavigationShell> {
   final ValueNotifier<bool> _supporterTabActive = ValueNotifier<bool>(false);
 
   void _selectTab(AppTab tab) {
-    if (tab == _currentTab) return;
+    if (tab == _currentTab) {
+      debugPrint(
+        '[AppNavigationShell] _selectTab($tab) no-op: already current tab',
+      );
+      return;
+    }
     setState(() {
       // The bible page owns a FlutterTts engine, and flutter_tts routes
       // platform events to the most recently created instance. Keeping the
@@ -109,7 +144,13 @@ class AppNavigationShellState extends State<AppNavigationShell> {
       case AppTab.prayers:
         return const PrayersPage();
       case AppTab.bible:
-        return const _BibleTab();
+        final initialReference = _pendingBibleReference;
+        _pendingBibleReference = null;
+        debugPrint(
+          '[AppNavigationShell] building bible tab with '
+          'initialReference=$initialReference',
+        );
+        return _BibleTab(initialReference: initialReference);
       case AppTab.discovery:
         return const DiscoveryListPage();
       case AppTab.encounters:
@@ -162,7 +203,9 @@ class AppNavigationShellState extends State<AppNavigationShell> {
 /// Bible tab wrapper — resolves the available bible versions for the current
 /// app language (with fallbacks) before showing [BibleReaderPage].
 class _BibleTab extends StatefulWidget {
-  const _BibleTab();
+  final ({String bookName, int chapter, int verse})? initialReference;
+
+  const _BibleTab({this.initialReference});
 
   @override
   State<_BibleTab> createState() => _BibleTabState();
@@ -208,6 +251,7 @@ class _BibleTabState extends State<_BibleTab> {
         return BibleReaderPage(
           key: ValueKey('bible_reader_$_language'),
           versions: snapshot.data ?? const [],
+          initialReference: widget.initialReference,
         );
       },
     );

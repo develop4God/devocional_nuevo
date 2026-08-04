@@ -71,14 +71,8 @@ class BibleReaderTtsTextBuilder {
 
   /// Resolve the long book name from state.books using selectedBookName.
   static String _resolveBookLongName(BibleReaderState state) {
-    if (state.selectedBookName == null || state.books.isEmpty) return '';
-    try {
-      final book = state.books.firstWhere(
-        (b) => b['short_name'] == state.selectedBookName,
-      );
-      return book['long_name']?.toString() ?? state.selectedBookName ?? '';
-    } catch (_) {
-      return state.selectedBookName ?? '';
-    }
+    final shortName = state.selectedBookName;
+    if (shortName == null || state.books.isEmpty) return '';
+    return BibleVerseFormatter.resolveBookName(state.books, shortName);
   }
 }

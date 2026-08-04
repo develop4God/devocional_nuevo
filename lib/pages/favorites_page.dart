@@ -13,16 +13,14 @@ import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_detail_page.dart';
 import 'package:devocional_nuevo/pages/favorite_devocional_detail_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/services/localization_service.dart';
-import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/devocionales/devotional_favorite_card.dart';
 import 'package:devocional_nuevo/widgets/devotional_note_viewer.dart';
 import 'package:devocional_nuevo/widgets/devotional_notes_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:devocional_nuevo/widgets/delete_confirmation_dialog.dart';
@@ -170,7 +168,6 @@ class _FavoritesPageState extends State<FavoritesPage>
               context,
               devocional,
               devocionalProvider,
-              theme,
             );
           },
         );
@@ -264,98 +261,41 @@ class _FavoritesPageState extends State<FavoritesPage>
     BuildContext context,
     Devocional devocional,
     DevocionalProvider provider,
-    ThemeData theme,
   ) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      elevation: 0,
-      color: theme.colorScheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.1)),
-      ),
-      child: InkWell(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (c) =>
-                FavoriteDevocionalDetailPage(devocional: devocional),
-          ),
-        ),
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      DateFormat(
-                        'EEEE, d MMMM yyyy',
-                        getService<LocalizationService>()
-                            .currentLocale
-                            .languageCode,
-                      ).format(devocional.date),
-                      style: TextStyle(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 11,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      devocional.versiculo,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  BlocBuilder<NoteBloc, NoteState>(
-                    builder: (context, state) {
-                      final note = state is NoteLoaded
-                          ? state.getNoteForDevocional(devocional.id)
-                          : null;
-                      return IconButton(
-                        icon: Icon(
-                          note?.isNotEmpty == true
-                              ? Icons.sticky_note_2_rounded
-                              : Icons.sticky_note_2_outlined,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        onPressed: () =>
-                            _handleNoteIconTap(context, devocional, note),
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.favorite_rounded,
-                      color: Colors.redAccent,
-                    ),
-                    onPressed: () => _showRemoveFavoriteConfirmation(
-                      context,
-                      devocional,
-                      provider,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+    return DevotionalFavoriteCard(
+      devocional: devocional,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (c) => FavoriteDevocionalDetailPage(devocional: devocional),
         ),
       ),
+      actions: [
+        BlocBuilder<NoteBloc, NoteState>(
+          builder: (context, state) {
+            final note = state is NoteLoaded
+                ? state.getNoteForDevocional(devocional.id)
+                : null;
+            return IconButton(
+              icon: Icon(
+                note?.isNotEmpty == true
+                    ? Icons.sticky_note_2_rounded
+                    : Icons.sticky_note_2_outlined,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              onPressed: () => _handleNoteIconTap(context, devocional, note),
+            );
+          },
+        ),
+        IconButton(
+          icon: const Icon(
+            Icons.favorite_rounded,
+            color: Colors.redAccent,
+          ),
+          onPressed: () =>
+              _showRemoveFavoriteConfirmation(context, devocional, provider),
+        ),
+      ],
     );
   }
 
