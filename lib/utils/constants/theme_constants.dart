@@ -117,6 +117,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         onSurface: Colors.black87,
         error: Colors.red,
         onError: Colors.white,
+        outline: Colors.black26,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -187,6 +188,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         onSurface: Colors.white,
         error: Colors.redAccent,
         onError: Colors.white,
+        outline: Colors.white24,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -256,6 +258,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         onSurface: Colors.black87,
         error: Colors.red,
         onError: Colors.white,
+        outline: Colors.black26,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -321,6 +324,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         onSurface: Colors.white,
         error: Colors.redAccent,
         onError: Colors.white,
+        outline: Colors.white24,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -390,6 +394,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         onSurface: Colors.black87,
         error: Colors.red,
         onError: Colors.white,
+        outline: Colors.black26,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -455,6 +460,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         onSurface: Colors.white,
         error: Colors.redAccent,
         onError: Colors.white,
+        outline: Colors.white24,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -524,6 +530,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         onSurface: Colors.black87,
         error: Colors.red,
         onError: Colors.white,
+        outline: Colors.black26,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -589,6 +596,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         onSurface: Colors.white,
         error: Colors.redAccent,
         onError: Colors.white,
+        outline: Colors.white24,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -665,6 +673,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         onSurface: Colors.black87,
         error: Colors.red,
         onError: Colors.white,
+        outline: Colors.black26,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -744,6 +753,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         onSurface: Colors.white,
         error: Colors.redAccent,
         onError: Colors.white,
+        outline: Colors.white24,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -820,6 +830,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         onSurface: Colors.black87,
         error: Colors.red,
         onError: Colors.white,
+        outline: Colors.black26,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -890,6 +901,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         onSurface: Colors.white,
         error: Colors.redAccent,
         onError: Colors.white,
+        outline: Colors.white24,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/blocs/bible_note_bloc.dart';
+import 'package:devocional_nuevo/blocs/bible_note_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
@@ -13,16 +15,18 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_reader_tts_text_builder.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
-import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_book_selector_dialog.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_chapter_grid_selector.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_note_modal.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_note_viewer.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_action_modal.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_search_overlay.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_grid_selector.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_verse_note_indicator.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:devocional_nuevo/widgets/modern_voice_feature_dialog.dart';
@@ -45,12 +49,17 @@ class BibleReaderPage extends StatefulWidget {
   /// When null a new instance is created internally in [initState].
   final FlutterTts? flutterTts;
 
+  /// Optional book/chapter/verse to jump to on open, e.g. when arriving from
+  /// a saved note. Applied once, after the reader finishes loading.
+  final ({String bookName, int chapter, int verse})? initialReference;
+
   const BibleReaderPage({
     super.key,
     required this.versions,
     this.readerService,
     this.preferencesService,
     this.flutterTts,
+    this.initialReference,
   });
 
   @override
@@ -71,6 +80,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   late final VoiceSettingsService _voiceSettingsService;
   // Guards addPostFrameCallback callbacks after dispose().
   bool _disposed = false;
+  // Set while an initialReference scroll-into-view is still owed, so the
+  // post-frame callback in build() knows to act once verses finish loading.
+  bool _pendingReferenceScroll = false;
 
   @override
   void initState() {
@@ -118,7 +130,38 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     // Initialize controller with device language
     final deviceLanguage = ui.PlatformDispatcher.instance.locale.languageCode;
-    _controller.initialize(deviceLanguage);
+    final initialReference = widget.initialReference;
+    debugPrint(
+        '[BibleReaderPage] initState initialReference=$initialReference');
+    if (initialReference != null) {
+      _pendingReferenceScroll = true;
+      _controller.initialize(deviceLanguage).then((_) async {
+        if (_disposed) {
+          debugPrint(
+            '[BibleReaderPage] navigateToReference skipped: page disposed',
+          );
+          return;
+        }
+        try {
+          debugPrint(
+            '[BibleReaderPage] calling navigateToReference '
+            'book=${initialReference.bookName} '
+            'chapter=${initialReference.chapter} '
+            'verse=${initialReference.verse}',
+          );
+          await _controller.navigateToReference(
+            bookName: initialReference.bookName,
+            chapter: initialReference.chapter,
+            verse: initialReference.verse,
+          );
+          debugPrint('[BibleReaderPage] navigateToReference completed');
+        } catch (e) {
+          debugPrint('[BibleReaderPage] navigateToReference failed: $e');
+        }
+      });
+    } else {
+      _controller.initialize(deviceLanguage);
+    }
   }
 
   @override
@@ -228,9 +271,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         return BibleVerseGridSelector(
           totalVerses: state.maxVerse,
           selectedVerse: state.selectedVerse ?? 1,
-          bookName: state.books.firstWhere(
-            (b) => b['short_name'] == state.selectedBookName,
-          )['long_name'],
+          bookName: BibleVerseFormatter.resolveBookName(
+            state.books,
+            state.selectedBookName!,
+          ),
           chapterNumber: state.selectedChapter!,
           onVerseSelected: (verseNumber) {
             Navigator.of(context).pop();
@@ -254,9 +298,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         return BibleChapterGridSelector(
           totalChapters: state.maxChapter,
           selectedChapter: state.selectedChapter ?? 1,
-          bookName: state.books.firstWhere(
-            (b) => b['short_name'] == state.selectedBookName,
-          )['long_name'],
+          bookName: BibleVerseFormatter.resolveBookName(
+            state.books,
+            state.selectedBookName!,
+          ),
           onChapterSelected: (chapterNumber) async {
             Navigator.of(context).pop();
             await _controller.selectChapter(chapterNumber);
@@ -335,6 +380,35 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
   }
 
+  /// The book/chapter/verse range covered by the current verse selection.
+  ({String bookName, int chapter, int startVerse, int endVerse})?
+      _getSelectedVerseRange() {
+    final selectedVerses = _controller.state.selectedVerses;
+    if (selectedVerses.isEmpty) return null;
+
+    final sortedVerses = selectedVerses.toList()..sort();
+    final firstParts = sortedVerses.first.split('|');
+    final lastParts = sortedVerses.last.split('|');
+
+    if (firstParts.length < 3 || lastParts.length < 3) {
+      return null;
+    }
+
+    final chapter = int.tryParse(firstParts[1]);
+    final startVerse = int.tryParse(firstParts[2]);
+    final endVerse = int.tryParse(lastParts[2]);
+    if (chapter == null || startVerse == null || endVerse == null) {
+      return null;
+    }
+
+    return (
+      bookName: firstParts[0],
+      chapter: chapter,
+      startVerse: startVerse,
+      endVerse: endVerse,
+    );
+  }
+
   void _showBottomSheet() {
     _bottomSheetOpen = true;
 
@@ -344,6 +418,18 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     final areVersesSaved = selectedVerses.every(
       (key) => persistentlyMarkedVerses.contains(key),
     );
+
+    final range = _getSelectedVerseRange();
+    final noteState = context.read<BibleNoteBloc>().state;
+    final hasNote = range != null &&
+        noteState is BibleNoteLoaded &&
+        noteState.getNoteForRange(
+              range.bookName,
+              range.chapter,
+              range.startVerse,
+              range.endVerse,
+            ) !=
+            null;
 
     showModalBottomSheet(
       context: context,
@@ -360,7 +446,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             Navigator.pop(context);
             _controller.clearSelectedVerses();
           },
+          onNote: () => _openNoteEditor(context),
           areVersesSaved: areVersesSaved,
+          hasNote: hasNote,
           onDeleteSaved:
               areVersesSaved ? () => _deleteSelectedVerses(context) : null,
         );
@@ -368,6 +456,104 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     ).whenComplete(() {
       _bottomSheetOpen = false;
     });
+  }
+
+  void _openNoteEditor(BuildContext modalContext) {
+    final range = _getSelectedVerseRange();
+    if (range == null) return;
+
+    final referenceLabel = _getSelectedVersesReference();
+    final noteState = context.read<BibleNoteBloc>().state;
+    final existingNote = noteState is BibleNoteLoaded
+        ? noteState.getNoteForRange(
+            range.bookName,
+            range.chapter,
+            range.startVerse,
+            range.endVerse,
+          )
+        : null;
+
+    Navigator.pop(modalContext);
+    _controller.clearSelectedVerses();
+
+    if (existingNote != null && existingNote.text.isNotEmpty) {
+      BibleNoteViewer.show(
+        context,
+        bookName: range.bookName,
+        chapter: range.chapter,
+        startVerse: range.startVerse,
+        endVerse: range.endVerse,
+        referenceLabel: referenceLabel,
+        note: existingNote.text,
+        onEdit: () => BibleNoteModal.show(
+          context,
+          bookName: range.bookName,
+          chapter: range.chapter,
+          startVerse: range.startVerse,
+          endVerse: range.endVerse,
+          referenceLabel: referenceLabel,
+          initialNote: existingNote.text,
+        ),
+      );
+    } else {
+      BibleNoteModal.show(
+        context,
+        bookName: range.bookName,
+        chapter: range.chapter,
+        startVerse: range.startVerse,
+        endVerse: range.endVerse,
+        referenceLabel: referenceLabel,
+        initialNote: existingNote?.text,
+      );
+    }
+  }
+
+  void _openNoteForVerse(String bookName, int chapter, int verseNumber) {
+    final noteState = context.read<BibleNoteBloc>().state;
+    final existingNote = noteState is BibleNoteLoaded
+        ? noteState.getNoteForVerse(bookName, chapter, verseNumber)
+        : null;
+
+    final startVerse = existingNote?.startVerse ?? verseNumber;
+    final endVerse = existingNote?.endVerse ?? verseNumber;
+    final fullBookName = BibleVerseFormatter.resolveBookName(
+      _controller.state.books,
+      bookName,
+    );
+    final referenceLabel = startVerse == endVerse
+        ? '$fullBookName $chapter:$startVerse'
+        : '$fullBookName $chapter:$startVerse-$endVerse';
+
+    if (existingNote != null && existingNote.text.isNotEmpty) {
+      BibleNoteViewer.show(
+        context,
+        bookName: bookName,
+        chapter: chapter,
+        startVerse: startVerse,
+        endVerse: endVerse,
+        referenceLabel: referenceLabel,
+        note: existingNote.text,
+        onEdit: () => BibleNoteModal.show(
+          context,
+          bookName: bookName,
+          chapter: chapter,
+          startVerse: startVerse,
+          endVerse: endVerse,
+          referenceLabel: referenceLabel,
+          initialNote: existingNote.text,
+        ),
+      );
+    } else {
+      BibleNoteModal.show(
+        context,
+        bookName: bookName,
+        chapter: chapter,
+        startVerse: startVerse,
+        endVerse: endVerse,
+        referenceLabel: referenceLabel,
+        initialNote: existingNote?.text,
+      );
+    }
   }
 
   String _cleanVerseText(dynamic text) {
@@ -397,7 +583,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     final sortedVerses = selectedVerses.toList()..sort();
     final parts = sortedVerses.first.split('|');
-    final book = parts[0];
+    final book = BibleVerseFormatter.resolveBookName(
+      _controller.state.books,
+      parts[0],
+    );
     final chapter = parts[1];
 
     if (selectedVerses.length == 1) {
@@ -714,9 +903,15 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       builder: (context, snapshot) {
         final state = snapshot.data ?? _controller.state;
         final colorScheme = Theme.of(context).colorScheme;
+        final bibleNoteState = context.watch<BibleNoteBloc>().state;
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (state.selectedVerse != null &&
+          if (_pendingReferenceScroll &&
+              state.selectedVerse != null &&
+              state.verses.any((v) => v['verse'] == state.selectedVerse)) {
+            _pendingReferenceScroll = false;
+            _scrollToVerse(state.selectedVerse!);
+          } else if (state.selectedVerse != null &&
               state.verses.any((v) => v['verse'] == state.selectedVerse) &&
               state.isSearching) {
             _scrollToVerse(state.selectedVerse!);
@@ -877,11 +1072,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                       Expanded(
                                         child: Text(
                                           state.selectedBookName != null
-                                              ? state.books.firstWhere(
-                                                  (b) =>
-                                                      b['short_name'] ==
-                                                      state.selectedBookName,
-                                                )['long_name']
+                                              ? BibleVerseFormatter
+                                                  .resolveBookName(
+                                                  state.books,
+                                                  state.selectedBookName!,
+                                                )
                                               : 'Seleccionar libro',
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
@@ -984,10 +1179,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                       child: Text(
                                         state.selectedBookName != null &&
                                                 state.selectedChapter != null
-                                            ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
-                                                  'long_name':
-                                                      state.selectedBookName
-                                                })['long_name']} ${state.selectedChapter}'
+                                            ? '${BibleVerseFormatter.resolveBookName(state.books, state.selectedBookName!)} ${state.selectedChapter}'
                                             : '',
                                         style: Theme.of(context)
                                             .textTheme
@@ -1026,6 +1218,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   // Versos
                                   final verse = state.verses[idx - 1];
                                   final verseNumber = verse['verse'];
+                                  final verseNum = verseNumber is int
+                                      ? verseNumber
+                                      : int.parse(verseNumber.toString());
                                   final key =
                                       "${state.selectedBookName}|${state.selectedChapter}|$verseNumber";
                                   final isSelected =
@@ -1033,6 +1228,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   final isPersistentlyMarked = state
                                       .persistentlyMarkedVerses
                                       .contains(key);
+                                  final hasNote =
+                                      bibleNoteState is BibleNoteLoaded &&
+                                          state.selectedBookName != null &&
+                                          state.selectedChapter != null &&
+                                          bibleNoteState.getNoteForVerse(
+                                                state.selectedBookName!,
+                                                state.selectedChapter!,
+                                                verseNum,
+                                              ) !=
+                                              null;
 
                                   // Get section titles for this verse
                                   final titlesForVerse = state.sectionTitles
@@ -1096,14 +1301,39 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                                 height: 1.6,
                                               ),
                                               children: [
-                                                TextSpan(
-                                                  text: "${verse['verse']} ",
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: colorScheme.primary,
-                                                    fontSize: 14,
+                                                if (hasNote &&
+                                                    state.selectedBookName !=
+                                                        null &&
+                                                    state.selectedChapter !=
+                                                        null)
+                                                  WidgetSpan(
+                                                    alignment:
+                                                        PlaceholderAlignment
+                                                            .middle,
+                                                    child:
+                                                        BibleVerseNoteIndicator(
+                                                      verseNumber: verseNum,
+                                                      color:
+                                                          colorScheme.primary,
+                                                      onTap: () =>
+                                                          _openNoteForVerse(
+                                                        state.selectedBookName!,
+                                                        state.selectedChapter!,
+                                                        verseNum,
+                                                      ),
+                                                    ),
+                                                  )
+                                                else
+                                                  TextSpan(
+                                                    text: "$verseNum ",
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          colorScheme.primary,
+                                                      fontSize: 14,
+                                                    ),
                                                   ),
-                                                ),
                                                 TextSpan(
                                                   text: _cleanVerseText(
                                                     verse['text'],
@@ -1209,10 +1439,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                       fit: BoxFit.scaleDown,
                                       child: AutoSizeText(
                                         state.selectedBookName != null
-                                            ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => <String, dynamic>{
-                                                  'long_name':
-                                                      state.selectedBookName
-                                                })['long_name']} ${state.selectedChapter}'
+                                            ? '${BibleVerseFormatter.resolveBookName(state.books, state.selectedBookName!)} ${state.selectedChapter}'
                                             : '',
                                         textAlign: TextAlign.center,
                                         style: Theme.of(context)
@@ -1265,95 +1492,54 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     BibleReaderState readerState,
     ColorScheme colorScheme,
   ) {
-    const bubbleId = 'bible_reader_tts_play_bubble';
-    return FutureBuilder<bool>(
-      future: BubbleUtils.shouldShowBubble(bubbleId),
-      builder: (context, snapshot) {
-        final showBubble = snapshot.data ?? false;
-        return ValueListenableBuilder<TtsPlayerState>(
-          valueListenable: _ttsAudioController.state,
-          builder: (context, ttsState, _) {
-            final themeColor = colorScheme.primary;
-            const borderWidth = 2.0;
+    return ValueListenableBuilder<TtsPlayerState>(
+      valueListenable: _ttsAudioController.state,
+      builder: (context, ttsState, _) {
+        final themeColor = colorScheme.primary;
+        const borderWidth = 2.0;
 
-            Widget mainIcon;
-            BoxDecoration decoration;
+        Widget mainIcon;
+        BoxDecoration decoration;
 
-            if (ttsState == TtsPlayerState.loading) {
-              mainIcon = const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              );
-              decoration = BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: themeColor, width: borderWidth),
-              );
-            } else if (ttsState == TtsPlayerState.playing) {
-              mainIcon = Icon(Icons.pause, size: 28, color: themeColor);
-              decoration = BoxDecoration(
-                border: Border.all(color: themeColor, width: borderWidth),
-                borderRadius: BorderRadius.circular(12),
-              );
-            } else {
-              mainIcon = Icon(Icons.play_arrow, size: 28, color: themeColor);
-              decoration = BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: themeColor, width: borderWidth),
-              );
-            }
+        if (ttsState == TtsPlayerState.loading) {
+          mainIcon = const SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          );
+          decoration = BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: themeColor, width: borderWidth),
+          );
+        } else if (ttsState == TtsPlayerState.playing) {
+          mainIcon = Icon(Icons.pause, size: 28, color: themeColor);
+          decoration = BoxDecoration(
+            border: Border.all(color: themeColor, width: borderWidth),
+            borderRadius: BorderRadius.circular(12),
+          );
+        } else {
+          mainIcon = Icon(Icons.play_arrow, size: 28, color: themeColor);
+          decoration = BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: themeColor, width: borderWidth),
+          );
+        }
 
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Material(
-                  color: Colors.transparent,
-                  elevation: 0,
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: readerState.verses.isNotEmpty
-                        ? () async {
-                            await BubbleUtils.markAsShown(bubbleId);
-                            if (mounted) {
-                              _handleTtsPlayPause(readerState);
-                            }
-                          }
-                        : null,
-                    child: Container(
-                      decoration: decoration,
-                      width: 44,
-                      height: 44,
-                      child: Center(child: mainIcon),
-                    ),
-                  ),
-                ),
-                if (showBubble && ttsState == TtsPlayerState.idle)
-                  Positioned(
-                    top: -10,
-                    right: -10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: BubbleConstants.newFeatureColor,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: BubbleConstants.bubbleShadow,
-                      ),
-                      child: Text(
-                        'bubble_constants.new_feature'.tr(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
+        return Material(
+          color: Colors.transparent,
+          elevation: 0,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: readerState.verses.isNotEmpty
+                ? () => _handleTtsPlayPause(readerState)
+                : null,
+            child: Container(
+              decoration: decoration,
+              width: 44,
+              height: 44,
+              child: Center(child: mainIcon),
+            ),
+          ),
         );
       },
     );

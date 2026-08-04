@@ -10,6 +10,7 @@ import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
+import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
 import 'package:devocional_nuevo/widgets/supporter/pet_hero_section.dart';
 import 'package:flutter/material.dart';
@@ -135,6 +136,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(buildWidget());
+      await tester.pump(BubbleConstants.delayBeforeShow);
       expect(find.text('Juan 3:16'), findsOneWidget);
       expect(find.text('Reflexión de prueba'), findsOneWidget);
       expect(find.textContaining('Salmo 23:1'), findsOneWidget);
@@ -174,6 +176,7 @@ void main() {
           ),
         ),
       );
+      await tester.pump(BubbleConstants.delayBeforeShow);
 
       expect(find.text('25 de diciembre de 2025'), findsNothing);
       // Everything else still renders normally.
@@ -183,6 +186,7 @@ void main() {
 
     testWidgets('verse card shows copy icon', (tester) async {
       await tester.pumpWidget(buildWidget());
+      await tester.pump(BubbleConstants.delayBeforeShow);
       expect(find.byIcon(Icons.copy_outlined), findsWidgets);
     });
 
@@ -190,6 +194,7 @@ void main() {
       'calls onFavoriteToggle and onShare when header buttons tapped',
       (tester) async {
         await tester.pumpWidget(buildWidget());
+        await tester.pump(BubbleConstants.delayBeforeShow);
 
         await tester.tap(find.byIcon(Icons.favorite_border_rounded));
         expect(favoriteToggled, isTrue);
@@ -204,7 +209,7 @@ void main() {
     ) async {
       await tester.pumpWidget(buildWidget());
       // Use pump() instead of pumpAndSettle() to avoid Lottie animation timeout
-      await tester.pump();
+      await tester.pump(BubbleConstants.delayBeforeShow);
 
       // The streak badge is the first InkWell in the header
       final inkWellFinder = find.byType(InkWell);
@@ -251,7 +256,7 @@ void main() {
             ),
           ),
         );
-        await tester.pump();
+        await tester.pump(BubbleConstants.delayBeforeShow);
 
         expect(find.byType(PetHeroSection), findsOneWidget);
 
@@ -265,7 +270,7 @@ void main() {
 
     testWidgets('shows placeholder if streak is zero', (tester) async {
       await tester.pumpWidget(buildWidget(streak: 0));
-      await tester.pump();
+      await tester.pump(BubbleConstants.delayBeforeShow);
       // In the new header, it returns a SizedBox(width: 48) if streak <= 0
       expect(find.byType(Lottie), findsNothing);
     });
@@ -285,18 +290,21 @@ void main() {
         tags: [],
       );
       await tester.pumpWidget(buildWidget());
+      await tester.pump(BubbleConstants.delayBeforeShow);
       expect(find.textContaining('devotionals.topics'), findsNothing);
       expect(find.textContaining('devotionals.version'), findsNothing);
     });
     group('Modernized Header Visuals', () {
       testWidgets('shows star icon when isFavorite is true', (tester) async {
         await tester.pumpWidget(buildWidget(isFavorite: true));
+        await tester.pump(BubbleConstants.delayBeforeShow);
         expect(find.byIcon(Icons.star_rounded), findsOneWidget);
         expect(find.byIcon(Icons.favorite_border_rounded), findsNothing);
       });
 
       testWidgets('shows heart icon when isFavorite is false', (tester) async {
         await tester.pumpWidget(buildWidget(isFavorite: false));
+        await tester.pump(BubbleConstants.delayBeforeShow);
         expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
         expect(find.byIcon(Icons.star_rounded), findsNothing);
       });
