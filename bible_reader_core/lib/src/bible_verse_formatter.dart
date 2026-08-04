@@ -40,11 +40,9 @@ class BibleVerseFormatter {
     required String versionName,
     required String Function(dynamic text) cleanText,
   }) {
-    final sortedVerses = selectedVerseKeys.toList()..sort();
-
     final List<({String bookAbbrev, String chapter, int verseNum, String text})>
         entries = [];
-    for (final key in sortedVerses) {
+    for (final key in selectedVerseKeys) {
       final parts = key.split('|');
       if (parts.length != 3) continue;
       final verseNum = int.tryParse(parts[2]);
@@ -63,6 +61,8 @@ class BibleVerseFormatter {
         text: cleanText(verse['text']),
       ));
     }
+
+    entries.sort((a, b) => a.verseNum.compareTo(b.verseNum));
 
     if (entries.isEmpty) return '';
 

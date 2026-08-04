@@ -56,11 +56,15 @@ void main() {
   });
 
   Widget buildWidget(NoteBloc noteBloc) {
-    return MaterialApp(
-      home: Scaffold(
-        body: BlocProvider.value(
-          value: noteBloc,
-          child: DevotionalNoteIconButton(devocional: devocional),
+    // BlocProvider must wrap MaterialApp (not just the Scaffold body) so it
+    // stays visible to routes pushed via showModalBottomSheet, which live in
+    // a sibling Overlay entry rather than nested under the page that opened
+    // them.
+    return BlocProvider.value(
+      value: noteBloc,
+      child: MaterialApp(
+        home: Scaffold(
+          body: DevotionalNoteIconButton(devocional: devocional),
         ),
       ),
     );

@@ -113,6 +113,30 @@ void main() {
       );
     });
 
+    test('orders verses numerically across a digit-width boundary', () {
+      final boundaryVerses = <Map<String, dynamic>>[
+        {'verse': 9, 'text': 'Verso nueve.'},
+        {'verse': 10, 'text': 'Verso diez.'},
+        {'verse': 11, 'text': 'Verso once.'},
+      ];
+
+      final result = BibleVerseFormatter.formatVerses(
+        selectedVerseKeys: ['Jn|3|9', 'Jn|3|10', 'Jn|3|11'],
+        verses: boundaryVerses,
+        books: books,
+        versionName: 'RVR1960',
+        cleanText: cleanText,
+      );
+
+      expect(
+        result,
+        'Juan 3:9-11 (RVR1960)\n'
+        '[9] Verso nueve.\n'
+        '[10] Verso diez.\n'
+        '[11] Verso once.',
+      );
+    });
+
     test('returns empty string when no verses match', () {
       final result = BibleVerseFormatter.formatVerses(
         selectedVerseKeys: ['Jn|3|99'],

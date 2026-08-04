@@ -3,6 +3,7 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/blocs/note_bloc.dart';
 import 'package:devocional_nuevo/blocs/note_event.dart';
+import 'package:devocional_nuevo/blocs/note_state.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/notes/note_editor_sheet.dart';
@@ -49,6 +50,7 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
   late TextEditingController _noteController;
   late FocusNode _focusNode;
   bool _isSaving = false;
+  bool _isDeleting = false;
   String? _errorMessage;
 
   @override
@@ -70,7 +72,7 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
     super.dispose();
   }
 
-  Future<void> _saveNote() async {
+  void _saveNote() {
     final text = _noteController.text.trim();
 
     setState(() => _errorMessage = null);
@@ -87,35 +89,13 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
 
     setState(() {
       _isSaving = true;
+      _isDeleting = false;
     });
 
-    final isNewNote = widget.initialNote?.trim().isEmpty ?? true;
-
-    try {
-      context.read<NoteBloc>().add(SaveNoteForDevocional(
-            widget.devocional.id,
-            text,
-          ));
-      if (mounted) {
-        Navigator.of(context).pop();
-        AppSnackBar.show(
-          context,
-          isNewNote ? 'notes.added_message'.tr() : 'notes.saved_message'.tr(),
-          icon: Icons.check_circle_outline,
+    context.read<NoteBloc>().add(
+          SaveNoteForDevocional(widget.devocional.id, text),
         );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isSaving = false;
-        });
-        AppSnackBar.show(
-          context,
-          'notes.save_error'.tr(),
-          type: AppSnackBarType.error,
-        );
-      }
-    }
+    // Navigation and snackbar now handled by the BlocListener in build().
   }
 
   Future<void> _confirmDeleteNote() async {
@@ -142,43 +122,54 @@ class _DevotionalNotesModalState extends State<DevotionalNotesModal> {
 
     if (confirmed != true || !mounted) return;
 
-    setState(() => _isSaving = true);
+    setState(() {
+      _isSaving = true;
+      _isDeleting = true;
+    });
 
-    try {
-      context.read<NoteBloc>().add(
-            SaveNoteForDevocional(widget.devocional.id, null),
-          );
-      if (mounted) {
-        Navigator.of(context).pop();
-        AppSnackBar.show(
-          context,
-          'notes.deleted_message'.tr(),
-          icon: Icons.check_circle_outline,
+    context.read<NoteBloc>().add(
+          SaveNoteForDevocional(widget.devocional.id, null),
         );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isSaving = false);
-        AppSnackBar.show(
-          context,
-          'notes.save_error'.tr(),
-          type: AppSnackBarType.error,
-        );
-      }
-    }
+    // Navigation and snackbar now handled by the BlocListener in build().
   }
 
   @override
   Widget build(BuildContext context) {
-    return NoteEditorSheet(
-      title: 'notes.title'.tr(),
-      controller: _noteController,
-      focusNode: _focusNode,
-      errorMessage: _errorMessage,
-      isSaving: _isSaving,
-      showDelete: widget.initialNote?.trim().isNotEmpty == true,
-      onDelete: _confirmDeleteNote,
-      onSave: _saveNote,
+    return BlocListener<NoteBloc, NoteState>(
+      listener: (context, state) {
+        if (!_isSaving) return;
+        if (state is NoteLoaded) {
+          setState(() => _isSaving = false);
+          Navigator.of(context).pop();
+          final isNewNote = widget.initialNote?.trim().isEmpty ?? true;
+          AppSnackBar.show(
+            context,
+            _isDeleting
+                ? 'notes.deleted_message'.tr()
+                : (isNewNote
+                    ? 'notes.added_message'.tr()
+                    : 'notes.saved_message'.tr()),
+            icon: Icons.check_circle_outline,
+          );
+        } else if (state is NoteError) {
+          setState(() => _isSaving = false);
+          AppSnackBar.show(
+            context,
+            state.message,
+            type: AppSnackBarType.error,
+          );
+        }
+      },
+      child: NoteEditorSheet(
+        title: 'notes.title'.tr(),
+        controller: _noteController,
+        focusNode: _focusNode,
+        errorMessage: _errorMessage,
+        isSaving: _isSaving,
+        showDelete: widget.initialNote?.trim().isNotEmpty == true,
+        onDelete: _confirmDeleteNote,
+        onSave: _saveNote,
+      ),
     );
   }
 }
