@@ -76,7 +76,7 @@ void main() {
         await tester.pump();
 
         expect(find.byIcon(Icons.note_add_outlined), findsOneWidget);
-        expect(find.byIcon(Icons.sticky_note_2_rounded), findsNothing);
+        expect(find.byIcon(Icons.chat_bubble), findsNothing);
 
         await tester.tap(find.byIcon(Icons.note_add_outlined));
         await tester.pumpAndSettle();
@@ -87,7 +87,7 @@ void main() {
     );
 
     testWidgets(
-      'shows sticky_note_2_rounded and opens the viewer when a note exists',
+      'shows chat_bubble and opens the viewer when a note exists',
       (tester) async {
         final noteBloc = NoteBloc(
           notesRepository: FakeNotesRepository(
@@ -104,10 +104,10 @@ void main() {
         await tester.pumpWidget(buildWidget(noteBloc));
         await tester.pump();
 
-        expect(find.byIcon(Icons.sticky_note_2_rounded), findsOneWidget);
+        expect(find.byIcon(Icons.chat_bubble), findsOneWidget);
         expect(find.byIcon(Icons.note_add_outlined), findsNothing);
 
-        await tester.tap(find.byIcon(Icons.sticky_note_2_rounded));
+        await tester.tap(find.byIcon(Icons.chat_bubble));
         await tester.pumpAndSettle();
 
         // The read-only viewer is shown first, not the editable text field.

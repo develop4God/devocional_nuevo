@@ -1,5 +1,6 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
+import 'package:devocional_nuevo/widgets/notes/note_icons.dart';
 import 'package:flutter/material.dart';
 
 class BibleReaderActionModal extends StatelessWidget {
@@ -171,9 +172,7 @@ class BibleReaderActionModal extends StatelessWidget {
                 ),
                 _buildActionButton(
                   context: context,
-                  icon: hasNote
-                      ? Icons.sticky_note_2_rounded
-                      : Icons.note_add_outlined,
+                  icon: NoteIcons.forState(hasNote),
                   label: 'bible.note'.tr(),
                   onTap: onNote,
                   bubbleId: 'bible_reader_note_bubble',

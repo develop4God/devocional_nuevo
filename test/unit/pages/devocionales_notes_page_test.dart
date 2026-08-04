@@ -243,7 +243,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byIcon(Icons.sticky_note_2_rounded));
+    await tester.tap(find.byIcon(Icons.chat_bubble));
     await tester.pumpAndSettle();
 
     expect(find.byType(DevotionalNoteViewer), findsOneWidget);

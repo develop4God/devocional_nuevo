@@ -82,7 +82,7 @@ class NoteViewerSheet extends StatelessWidget {
                   onEdit();
                 },
                 tooltip: 'notes.edit'.tr(),
-                icon: Icon(Icons.edit_outlined, color: colorScheme.primary),
+                icon: Icon(Icons.edit_rounded, color: colorScheme.primary),
               ),
               IconButton(
                 onPressed: onDelete,
