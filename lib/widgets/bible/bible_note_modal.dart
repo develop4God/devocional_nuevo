@@ -170,11 +170,14 @@ class _BibleNoteModalState extends State<BibleNoteModal> {
         if (state is BibleNoteLoaded) {
           setState(() => _isSaving = false);
           Navigator.of(context).pop();
+          final isNewNote = widget.initialNote?.trim().isEmpty ?? true;
           AppSnackBar.show(
             context,
             _isDeleting
                 ? 'notes.deleted_message'.tr()
-                : 'notes.saved_message'.tr(),
+                : (isNewNote
+                    ? 'notes.added_message'.tr()
+                    : 'notes.saved_message'.tr()),
             icon: Icons.check_circle_outline,
           );
         } else if (state is BibleNoteError) {
@@ -205,7 +208,7 @@ class _BibleNoteModalState extends State<BibleNoteModal> {
             Row(
               children: [
                 Icon(
-                  Icons.chat_bubble_outline,
+                  Icons.note_alt_outlined,
                   color: colorScheme.primary,
                   size: 28,
                 ),

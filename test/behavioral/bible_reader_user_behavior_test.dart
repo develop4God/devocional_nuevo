@@ -378,10 +378,10 @@ void main() {
         await tester.pumpAndSettle();
 
         // THEN: the action sheet shows the filled note icon (hasNote: true)
-        expect(find.byIcon(Icons.chat_bubble), findsOneWidget);
+        expect(find.byIcon(Icons.sticky_note_2_rounded), findsOneWidget);
 
         // WHEN: user taps the note icon
-        await tester.tap(find.byIcon(Icons.chat_bubble));
+        await tester.tap(find.byIcon(Icons.sticky_note_2_rounded));
         await tester.pumpAndSettle();
 
         // THEN: the read-only viewer opens instead of the editor

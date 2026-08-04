@@ -136,7 +136,7 @@ class BibleNoteViewer extends StatelessWidget {
           Row(
             children: [
               Icon(
-                Icons.chat_bubble_outline,
+                Icons.note_alt_rounded,
                 color: colorScheme.primary,
                 size: 28,
               ),
