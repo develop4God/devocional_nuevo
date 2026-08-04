@@ -171,7 +171,9 @@ class BibleReaderActionModal extends StatelessWidget {
                 ),
                 _buildActionButton(
                   context: context,
-                  icon: hasNote ? Icons.chat_bubble : Icons.chat_bubble_outline,
+                  icon: hasNote
+                      ? Icons.sticky_note_2_rounded
+                      : Icons.note_add_outlined,
                   label: 'bible.note'.tr(),
                   onTap: onNote,
                   bubbleId: 'bible_reader_note_bubble',
