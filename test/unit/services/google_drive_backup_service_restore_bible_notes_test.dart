@@ -103,10 +103,9 @@ void main() {
 
       final restoredCount = await service.restoreBibleNotes(rawNotes);
 
-      // BibleNote.fromJson defaults missing fields rather than throwing, so
-      // the malformed map still decodes — assert on what actually persists.
-      expect(restoredCount, 3);
-      expect(fakeRepository.saved, hasLength(3));
+      expect(restoredCount, 2);
+      expect(fakeRepository.saved, hasLength(2));
+      expect(fakeRepository.saved.map((n) => n.startVerse), [16, 18]);
     });
 
     test('skips an entry that fails to persist and keeps the rest', () async {
