@@ -39,12 +39,27 @@ class BibleNote extends Equatable {
   }
 
   factory BibleNote.fromJson(Map<String, dynamic> json) {
+    final bookName = json['bookName'] as String?;
+    final chapter = json['chapter'] as int?;
+    final startVerse = json['startVerse'] as int?;
+    final endVerse = json['endVerse'] as int?;
+
+    if (bookName == null ||
+        bookName.isEmpty ||
+        chapter == null ||
+        startVerse == null ||
+        endVerse == null) {
+      throw FormatException(
+        'BibleNote.fromJson: missing required verse-range field(s) in $json',
+      );
+    }
+
     final rawDate = json['lastModifiedDate'] as String?;
     return BibleNote(
-      bookName: json['bookName'] ?? '',
-      chapter: json['chapter'] ?? 0,
-      startVerse: json['startVerse'] ?? 0,
-      endVerse: json['endVerse'] ?? 0,
+      bookName: bookName,
+      chapter: chapter,
+      startVerse: startVerse,
+      endVerse: endVerse,
       text: json['text'] ?? '',
       lastModifiedDate:
           rawDate != null ? DateTime.parse(rawDate) : DateTime.now(),
