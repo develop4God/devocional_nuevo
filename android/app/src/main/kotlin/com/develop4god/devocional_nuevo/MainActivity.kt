@@ -10,10 +10,20 @@ import android.os.Bundle
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.core.view.WindowCompat
 import com.google.firebase.crashlytics.FirebaseCrashlytics // ¡Añade esta importación!
 
 class MainActivity : FlutterActivity() {
+
+    // Mirrors resume-watchdog breadcrumbs to logcat in addition to Crashlytics.
+    // Crashlytics.log() only uploads with the next crash/non-fatal report, so it's
+    // invisible in a live `flutter run`/logcat session — this makes the watchdog's
+    // otherwise-silent trigger/outcome observable while testing on a real device.
+    private fun logWatchdog(message: String) {
+        Log.d("ResumeWatchdog", message)
+        FirebaseCrashlytics.getInstance().log(message)
+    }
 
     // Method channels
     private val CRASHLYTICS_CHANNEL = "com.develop4god.devocional_nuevo/crashlytics"
@@ -85,25 +95,26 @@ class MainActivity : FlutterActivity() {
     private var resumeConfirmed = false
     private val resumeWatchdogHandler = Handler(Looper.getMainLooper())
     private val resumeTimeoutRunnable = Runnable {
-        if (!resumeConfirmed && !watchdogPrefs.getBoolean(prefKeyRecreateAttempted, false)) {
-            watchdogPrefs.edit().putBoolean(prefKeyRecreateAttempted, true).apply()
-            FirebaseCrashlytics.getInstance().log(
-                "resume_watchdog: triggered, resume not confirmed within ${resumeConfirmTimeoutMs}ms, calling recreate()"
-            )
-            // recreate() can throw if the activity is already finishing/destroyed by
-            // the time this delayed callback fires (e.g. user navigated away in the
-            // interim). Never let a failed recovery attempt crash the app outright —
-            // the existing reportStaleResumeMarkerIfAny() path still catches this case
-            // via ApplicationExitInfo on the next cold start if recovery didn't work.
-            try {
-                recreate()
-                FirebaseCrashlytics.getInstance().log("resume_watchdog: recreate() call returned normally")
-            } catch (e: Exception) {
-                FirebaseCrashlytics.getInstance().log(
-                    "resume_watchdog: recreate() threw: ${e.javaClass.simpleName}: ${e.message}"
-                )
-                FirebaseCrashlytics.getInstance().recordException(e)
-            }
+        if (resumeConfirmed) return@Runnable
+        if (watchdogPrefs.getBoolean(prefKeyRecreateAttempted, false)) {
+            logWatchdog("resume_watchdog: timeout fired again but recreate() already attempted this cycle — not looping")
+            return@Runnable
+        }
+        watchdogPrefs.edit().putBoolean(prefKeyRecreateAttempted, true).apply()
+        logWatchdog(
+            "resume_watchdog: triggered, resume not confirmed within ${resumeConfirmTimeoutMs}ms, calling recreate()"
+        )
+        // recreate() can throw if the activity is already finishing/destroyed by
+        // the time this delayed callback fires (e.g. user navigated away in the
+        // interim). Never let a failed recovery attempt crash the app outright —
+        // the existing reportStaleResumeMarkerIfAny() path still catches this case
+        // via ApplicationExitInfo on the next cold start if recovery didn't work.
+        try {
+            recreate()
+            logWatchdog("resume_watchdog: recreate() call returned normally")
+        } catch (e: Exception) {
+            logWatchdog("resume_watchdog: recreate() threw: ${e.javaClass.simpleName}: ${e.message}")
+            FirebaseCrashlytics.getInstance().recordException(e)
         }
     }
 
@@ -167,16 +178,23 @@ class MainActivity : FlutterActivity() {
 
         val pendingSinceMs = watchdogPrefs.getLong(prefKeyPendingSince, 0L)
         val staleForMs = if (pendingSinceMs > 0) System.currentTimeMillis() - pendingSinceMs else -1L
-        watchdogPrefs.edit().clear().apply()
+        // Clear only the staleness-tracking keys, not prefKeyRecreateAttempted: this
+        // runs on every cold start, including the one recreate() itself triggers when
+        // the live-recovery timeout fires. Wiping the whole prefs file here would erase
+        // the one-attempt guard on that exact cold start, letting onResume() re-arm the
+        // timeout and call recreate() again if the underlying freeze persists — an
+        // unbounded recreate loop instead of a single bounded attempt.
+        watchdogPrefs.edit()
+            .remove(prefKeyPending)
+            .remove(prefKeyPendingSince)
+            .apply()
 
         if (!likelyMatchesBlackScreenExit()) return
 
         FirebaseCrashlytics.getInstance().recordException(
             Exception("Resume never confirmed drawn before app restart (possible black-screen-on-resume)")
         )
-        FirebaseCrashlytics.getInstance().log(
-            "resume_watchdog: unconfirmed resume detected on cold start, staleForMs=$staleForMs"
-        )
+        logWatchdog("resume_watchdog: unconfirmed resume detected on cold start, staleForMs=$staleForMs")
     }
 
     // Returns true only if the most recent process exit reason plausibly
@@ -217,18 +235,14 @@ class MainActivity : FlutterActivity() {
                     // verbatim instead of silently lumping it in with the
                     // known-excluded cases, so an unexpected pattern is
                     // visible if it starts showing up in Crashlytics.
-                    FirebaseCrashlytics.getInstance().log(
-                        "resume_watchdog: unrecognized exit reason code=$lastReason"
-                    )
+                    logWatchdog("resume_watchdog: unrecognized exit reason code=$lastReason")
                     false
                 }
             }
         } catch (e: Exception) {
             // Never let a telemetry read failure affect startup; fail open
             // so the underlying signal still gets reported rather than lost.
-            FirebaseCrashlytics.getInstance().log(
-                "resume_watchdog: error reading exit reason: ${e.message}"
-            )
+            logWatchdog("resume_watchdog: error reading exit reason: ${e.message}")
             true
         }
     }
@@ -279,9 +293,7 @@ class MainActivity : FlutterActivity() {
                 call, result ->
             if (call.method == "confirmResumeDrawn") {
                 if (watchdogPrefs.getBoolean(prefKeyRecreateAttempted, false)) {
-                    FirebaseCrashlytics.getInstance().log(
-                        "resume_watchdog: resume confirmed after recreate() — recovery succeeded"
-                    )
+                    logWatchdog("resume_watchdog: resume confirmed after recreate() — recovery succeeded")
                 }
                 watchdogPrefs.edit().clear().apply()
                 resumeConfirmed = true
