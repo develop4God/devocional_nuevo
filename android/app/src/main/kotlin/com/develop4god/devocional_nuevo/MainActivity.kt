@@ -45,27 +45,67 @@ class MainActivity : FlutterActivity() {
     // signal (confirmed: zero Dart log output, unresponsive to input, even the
     // Flutter debugger can't attach).
     //
-    // Because the freeze is in the very thread that would need to detect and act on
-    // it, there is no reliable way to auto-recover live. Instead, this records whether
-    // a resume was ever confirmed as actually drawn; if the app is killed while stuck
-    // (as users do today via force-close) and relaunched, the next cold start checks
+    // The freeze itself is in Flutter's raster/UI thread, which can't detect or act on
+    // its own hang — but this activity's Android platform thread is separate and stays
+    // responsive, which is what the "Live auto-recovery" block below uses to recover
+    // live (see that comment for the active mitigation). This block instead records
+    // whether a resume was ever confirmed as actually drawn, for the case where the
+    // live recovery attempt doesn't help and the app is later killed while still stuck
+    // (as users do today via force-close) and relaunched: the next cold start checks
     // ApplicationExitInfo (API 30+) to see if the previous exit actually looks like
     // this bug (ANR/crash/signal) rather than an ordinary OS-reaped background kill
     // or the user just closing the app normally, and reports it to Crashlytics as a
-    // non-fatal event if so.
-    //
-    // This is deliberately a temporary diagnostic, not permanent instrumentation:
-    // once there's enough production data to know whether this is worth an active
-    // fix, remove this block (this comment, the prefs, onPause/onFlutterSurfaceView-
-    // Created's watchdog wiring, reportStaleResumeMarkerIfAny, the resume_watchdog
-    // channel, and the matching Dart side in main.dart's _confirmResumeDrawn). The
-    // requestLayout() nudge in onResume() below is a separate, permanent mitigation
-    // and should stay regardless of what this telemetry finds.
+    // non-fatal event if so — this remains the production signal for how often live
+    // recovery isn't enough.
     private val watchdogPrefs: SharedPreferences by lazy {
         getSharedPreferences("resume_watchdog", MODE_PRIVATE)
     }
     private val prefKeyPending = "resume_pending"
     private val prefKeyPendingSince = "resume_pending_since_ms"
+
+    // ---- Live auto-recovery ----
+    // Added 2026-08-05, after production telemetry (573+ affected users, spanning
+    // Android 8-16 and all major OEMs, correlated with low free RAM) confirmed this
+    // is a real, frequent failure rather than a rare edge case. The freeze itself
+    // (Flutter's raster/UI thread stuck, per the diagnostic above) can't detect or
+    // fix itself — but this timer runs on the Android platform main thread, which is
+    // separate from Flutter's engine threads, so it keeps running even while Flutter
+    // is frozen. If no confirmResumeDrawn() call arrives within resumeConfirmTimeoutMs,
+    // this activity is recreated once to force the engine's surface to reattach
+    // cleanly.
+    //
+    // recreate() can destroy this Activity instance and create a fresh one, so the
+    // one-attempt guard is persisted in prefs (survives instance recreation) rather
+    // than kept as a plain field. It's cleared on a confirmed-drawn resume or a fresh
+    // cold start; if recreate() doesn't fix it, the guard stays set so this fires at
+    // most once per stuck cycle, and onCreate()'s reportStaleResumeMarkerIfAny() still
+    // reports to Crashlytics on the next cold start instead of looping.
+    private val prefKeyRecreateAttempted = "resume_recreate_attempted"
+    private val resumeConfirmTimeoutMs = 3000L
+    private var resumeConfirmed = false
+    private val resumeWatchdogHandler = Handler(Looper.getMainLooper())
+    private val resumeTimeoutRunnable = Runnable {
+        if (!resumeConfirmed && !watchdogPrefs.getBoolean(prefKeyRecreateAttempted, false)) {
+            watchdogPrefs.edit().putBoolean(prefKeyRecreateAttempted, true).apply()
+            FirebaseCrashlytics.getInstance().log(
+                "resume_watchdog: triggered, resume not confirmed within ${resumeConfirmTimeoutMs}ms, calling recreate()"
+            )
+            // recreate() can throw if the activity is already finishing/destroyed by
+            // the time this delayed callback fires (e.g. user navigated away in the
+            // interim). Never let a failed recovery attempt crash the app outright —
+            // the existing reportStaleResumeMarkerIfAny() path still catches this case
+            // via ApplicationExitInfo on the next cold start if recovery didn't work.
+            try {
+                recreate()
+                FirebaseCrashlytics.getInstance().log("resume_watchdog: recreate() call returned normally")
+            } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().log(
+                    "resume_watchdog: recreate() threw: ${e.javaClass.simpleName}: ${e.message}"
+                )
+                FirebaseCrashlytics.getInstance().recordException(e)
+            }
+        }
+    }
 
     // --- INICIO: Soporte para Firebase Test Lab Game Loop y Edge-to-Edge ---
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -238,7 +278,14 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, RESUME_WATCHDOG_CHANNEL).setMethodCallHandler {
                 call, result ->
             if (call.method == "confirmResumeDrawn") {
+                if (watchdogPrefs.getBoolean(prefKeyRecreateAttempted, false)) {
+                    FirebaseCrashlytics.getInstance().log(
+                        "resume_watchdog: resume confirmed after recreate() — recovery succeeded"
+                    )
+                }
                 watchdogPrefs.edit().clear().apply()
+                resumeConfirmed = true
+                resumeWatchdogHandler.removeCallbacks(resumeTimeoutRunnable)
                 result.success(null)
             } else {
                 result.notImplemented()
@@ -274,6 +321,8 @@ class MainActivity : FlutterActivity() {
             .putBoolean(prefKeyPending, true)
             .putLong(prefKeyPendingSince, System.currentTimeMillis())
             .apply()
+
+        resumeWatchdogHandler.removeCallbacks(resumeTimeoutRunnable)
     }
 
     override fun onResume() {
@@ -290,6 +339,12 @@ class MainActivity : FlutterActivity() {
         Handler(Looper.getMainLooper()).postDelayed({
             flutterSurfaceView?.requestLayout()
         }, 1)
+
+        // Arm the live auto-recovery timeout for this resume cycle. Cancelled by
+        // confirmResumeDrawn() if a frame actually renders in time; otherwise fires
+        // recreate() once. See the "Live auto-recovery" comment above for context.
+        resumeConfirmed = false
+        resumeWatchdogHandler.postDelayed(resumeTimeoutRunnable, resumeConfirmTimeoutMs)
 
         // Dispatch any warm-start deep link now that the Flutter engine is in
         // "resumed" state and Navigator transitions will render correctly.
