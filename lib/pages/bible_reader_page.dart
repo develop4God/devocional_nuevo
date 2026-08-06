@@ -23,6 +23,7 @@ import 'package:devocional_nuevo/widgets/bible/bible_chapter_grid_selector.dart'
 import 'package:devocional_nuevo/widgets/bible/bible_note_modal.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_note_viewer.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_action_modal.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_reader_drawer.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_search_overlay.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_grid_selector.dart';
@@ -53,6 +54,11 @@ class BibleReaderPage extends StatefulWidget {
   /// a saved note. Applied once, after the reader finishes loading.
   final ({String bookName, int chapter, int verse})? initialReference;
 
+  /// Called after the drawer's "Download Bible versions" flow closes, so
+  /// the parent (e.g. app_navigation_shell's Bible tab) can refresh its
+  /// version list. Optional so BibleReaderPage remains usable standalone.
+  final VoidCallback? onVersionsMayHaveChanged;
+
   const BibleReaderPage({
     super.key,
     required this.versions,
@@ -60,6 +66,7 @@ class BibleReaderPage extends StatefulWidget {
     this.preferencesService,
     this.flutterTts,
     this.initialReference,
+    this.onVersionsMayHaveChanged,
   });
 
   @override
@@ -927,6 +934,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         return AnnotatedRegion<SystemUiOverlayStyle>(
           value: themeState.systemUiOverlayStyle,
           child: Scaffold(
+            drawer: BibleReaderDrawer(
+              languageCode: state.selectedVersion?.languageCode ??
+                  ui.PlatformDispatcher.instance.locale.languageCode,
+              onVersionsMayHaveChanged: () {
+                widget.onVersionsMayHaveChanged?.call();
+              },
+            ),
             appBar: PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight),
               child: CustomAppBar(

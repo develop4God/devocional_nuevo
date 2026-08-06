@@ -215,6 +215,11 @@ class _BibleTabState extends State<_BibleTab> {
   String? _language;
   Future<List<BibleVersion>>? _versionsFuture;
 
+  // Bumped by [_refreshVersions] (e.g. after a remote version download) to
+  // force both a fresh registry fetch and a new BibleReaderPage key, so a
+  // newly downloaded version shows up without an app restart.
+  int _refreshCounter = 0;
+
   Future<List<BibleVersion>> _loadVersions(String appLanguage) async {
     List<BibleVersion> versions =
         await BibleVersionRegistry.getVersionsForLanguage(appLanguage);
@@ -225,6 +230,14 @@ class _BibleTabState extends State<_BibleTab> {
       versions = await BibleVersionRegistry.getAllVersions();
     }
     return versions;
+  }
+
+  void _refreshVersions() {
+    if (!mounted || _language == null) return;
+    setState(() {
+      _refreshCounter++;
+      _versionsFuture = _loadVersions(_language!);
+    });
   }
 
   @override
@@ -249,9 +262,10 @@ class _BibleTabState extends State<_BibleTab> {
           );
         }
         return BibleReaderPage(
-          key: ValueKey('bible_reader_$_language'),
+          key: ValueKey('bible_reader_${_language}_$_refreshCounter'),
           versions: snapshot.data ?? const [],
           initialReference: widget.initialReference,
+          onVersionsMayHaveChanged: _refreshVersions,
         );
       },
     );

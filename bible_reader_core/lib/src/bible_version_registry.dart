@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'bible_version.dart';
 
@@ -71,7 +73,12 @@ class BibleVersionRegistry {
     ], // Added Filipino (fil)
   };
 
-  /// Get all Bible versions for a specific language
+  /// SharedPreferences key for the `{dbFileName: displayName}` map of
+  /// downloaded remote versions. Written by the download flow, read here.
+  static const String _remoteVersionNamesPrefKey = 'bible_remote_version_names';
+
+  /// Get all Bible versions for a specific language — bundled assets plus
+  /// any remote versions the user has already downloaded.
   static Future<List<BibleVersion>> getVersionsForLanguage(
     String languageCode,
   ) async {
@@ -94,7 +101,62 @@ class BibleVersionRegistry {
       );
     }
 
+    bibleVersions.addAll(
+      await getDownloadedRemoteVersionsForLanguage(languageCode),
+    );
+
     return bibleVersions;
+  }
+
+  /// Enumerates downloaded remote (non-bundled) Bible version database
+  /// files for [languageCode] in the app documents directory, matching
+  /// `*_$languageCode.SQLite3` and not already present in
+  /// [_versionsByLanguage]. Display names come from the
+  /// `bible_remote_version_names` SharedPreferences map, written at
+  /// successful download time by the download flow.
+  static Future<List<BibleVersion>> getDownloadedRemoteVersionsForLanguage(
+    String languageCode,
+  ) async {
+    final bundledFileNames = (_versionsByLanguage[languageCode] ?? [])
+        .map((v) => v['dbFile'])
+        .toSet();
+
+    try {
+      final documentsDirectory = await getApplicationDocumentsDirectory();
+      final dir = Directory(documentsDirectory.path);
+      if (!dir.existsSync()) return [];
+
+      final prefs = await SharedPreferences.getInstance();
+      final namesJson = prefs.getString(_remoteVersionNamesPrefKey);
+      final Map<String, dynamic> names = namesJson != null
+          ? jsonDecode(namesJson) as Map<String, dynamic>
+          : {};
+
+      final suffix = '_$languageCode.SQLite3';
+      final List<BibleVersion> result = [];
+
+      for (final entity in dir.listSync()) {
+        if (entity is! File) continue;
+        final fileName = basename(entity.path);
+        if (!fileName.endsWith(suffix)) continue;
+        if (bundledFileNames.contains(fileName)) continue;
+
+        result.add(
+          BibleVersion(
+            name: names[fileName] as String? ?? fileName,
+            language: _languageNames[languageCode] ?? languageCode,
+            languageCode: languageCode,
+            assetPath: '',
+            dbFileName: fileName,
+            isDownloaded: true,
+          ),
+        );
+      }
+
+      return result;
+    } catch (e) {
+      return [];
+    }
   }
 
   /// Get all available Bible versions across all languages
