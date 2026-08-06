@@ -4,8 +4,7 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 /// versions from the remote bible_versions index.
 abstract class IBibleVersionRepository {
   /// Fetches the remote versions available for [languageCode], excluding
-  /// versions already bundled as app assets and versions not on the
-  /// remote-download allowlist.
+  /// versions already bundled as app assets.
   Future<List<BibleVersion>> fetchRemoteVersions(String languageCode);
 
   /// Downloads and installs [version]'s remote database.
