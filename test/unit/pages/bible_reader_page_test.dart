@@ -719,6 +719,34 @@ void main() {
           controller.dispose();
         },
       );
+
+      test(
+        'Switching to a version not yet in availableVersions appends it '
+        'and marks it selected',
+        () async {
+          // Simulates switching to a just-downloaded version, before the
+          // caller has had a chance to supply a refreshed availableVersions
+          // list — the drawer must still show it as the current selection.
+          final rvr = _makeVersion(name: 'RVR1960');
+          final controller = _makeController(versions: [rvr]);
+          await controller.initialize('es');
+
+          expect(controller.state.availableVersions, hasLength(1));
+
+          final kj2000 = _makeVersion(
+            name: 'KJ2000',
+            dbFileName: 'KJ2000_es.db',
+          );
+          await controller.switchVersion(kj2000);
+
+          expect(
+            controller.state.availableVersions.map((v) => v.dbFileName),
+            containsAll(['RVR1960.db', 'KJ2000_es.db']),
+          );
+          expect(controller.state.selectedVersion?.dbFileName, 'KJ2000_es.db');
+          controller.dispose();
+        },
+      );
     });
 
     // ── Font controls visibility ─────────────────────────────────────────

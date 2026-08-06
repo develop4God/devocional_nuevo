@@ -2,6 +2,7 @@
 library;
 
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_state.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,8 +30,10 @@ void main() {
     WidgetTester tester, {
     required List<BibleVersion> versions,
     BibleVersion? selectedVersion,
+    List<BibleVersion> downloadableVersions = const [],
+    Map<String, VersionDownloadStatus> downloadStatuses = const {},
     ValueChanged<BibleVersion>? onVersionSelected,
-    VoidCallback? onDownloadMoreVersions,
+    ValueChanged<BibleVersion>? onDownloadVersion,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -38,9 +41,11 @@ void main() {
           drawer: BibleReaderDrawer(
             availableVersions: versions,
             selectedVersion: selectedVersion,
+            downloadableVersions: downloadableVersions,
+            downloadStatuses: downloadStatuses,
             versionLabelBuilder: (v) => v.name,
             onVersionSelected: onVersionSelected ?? (_) {},
-            onDownloadMoreVersions: onDownloadMoreVersions ?? () {},
+            onDownloadVersion: onDownloadVersion ?? (_) {},
           ),
           body: Builder(
             builder: (context) => ElevatedButton(
@@ -125,28 +130,6 @@ void main() {
     expect(callbackInvoked, isFalse);
   });
 
-  testWidgets(
-      'tapping download-more-versions closes the drawer and invokes callback',
-      (tester) async {
-    final versionA = _version('A_xx.SQLite3', name: 'Version A');
-    bool downloadInvoked = false;
-
-    await pumpDrawer(
-      tester,
-      versions: [versionA],
-      selectedVersion: versionA,
-      onDownloadMoreVersions: () => downloadInvoked = true,
-    );
-
-    await tester.tap(
-      find.byKey(const Key('bible_reader_drawer_download_more')),
-    );
-    await tester.pumpAndSettle();
-
-    expect(downloadInvoked, isTrue);
-    expect(find.byType(Drawer), findsNothing);
-  });
-
   testWidgets('close button closes the drawer', (tester) async {
     final versionA = _version('A_xx.SQLite3', name: 'Version A');
 
@@ -164,5 +147,116 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(Drawer), findsNothing);
+  });
+
+  testWidgets(
+      'lists downloadable versions inline with a download icon; tapping '
+      'closes the drawer and invokes the download callback', (tester) async {
+    final versionA = _version('A_xx.SQLite3', name: 'Version A');
+    final downloadable = _version('KJ2000_xx.SQLite3', name: 'KJ2000');
+    BibleVersion? downloadRequested;
+
+    await pumpDrawer(
+      tester,
+      versions: [versionA],
+      selectedVersion: versionA,
+      downloadableVersions: [downloadable],
+      onDownloadVersion: (v) => downloadRequested = v,
+    );
+
+    expect(find.text('KJ2000'), findsOneWidget);
+    final tileFinder = find.byKey(
+      const Key('bible_reader_drawer_downloadable_KJ2000_xx.SQLite3'),
+    );
+    expect(
+      find.descendant(
+        of: tileFinder,
+        matching: find.byIcon(Icons.file_download_outlined),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('KJ2000'));
+    await tester.pumpAndSettle();
+
+    expect(downloadRequested, downloadable);
+    expect(find.byType(Drawer), findsNothing);
+  });
+
+  testWidgets('shows progress indicator while a version is downloading',
+      (tester) async {
+    final versionA = _version('A_xx.SQLite3', name: 'Version A');
+    final downloadable = _version('KJ2000_xx.SQLite3', name: 'KJ2000');
+
+    await pumpDrawer(
+      tester,
+      versions: [versionA],
+      selectedVersion: versionA,
+      downloadableVersions: [downloadable],
+      downloadStatuses: const {
+        'KJ2000_xx.SQLite3': VersionDownloadStatus(progress: 0.5),
+      },
+    );
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets(
+      'tapping a downloadable version mid-download does not re-trigger download',
+      (tester) async {
+    final versionA = _version('A_xx.SQLite3', name: 'Version A');
+    final downloadable = _version('KJ2000_xx.SQLite3', name: 'KJ2000');
+    bool downloadRequested = false;
+
+    await pumpDrawer(
+      tester,
+      versions: [versionA],
+      selectedVersion: versionA,
+      downloadableVersions: [downloadable],
+      downloadStatuses: const {
+        'KJ2000_xx.SQLite3': VersionDownloadStatus(progress: 0.5),
+      },
+      onDownloadVersion: (_) => downloadRequested = true,
+    );
+
+    await tester.tap(find.text('KJ2000'));
+    await tester.pumpAndSettle();
+
+    expect(downloadRequested, isFalse);
+  });
+
+  testWidgets('shows a retry icon and allows re-tap after a failed download',
+      (tester) async {
+    final versionA = _version('A_xx.SQLite3', name: 'Version A');
+    final downloadable = _version('KJ2000_xx.SQLite3', name: 'KJ2000');
+    BibleVersion? downloadRequested;
+
+    await pumpDrawer(
+      tester,
+      versions: [versionA],
+      selectedVersion: versionA,
+      downloadableVersions: [downloadable],
+      downloadStatuses: const {
+        'KJ2000_xx.SQLite3': VersionDownloadStatus(
+            errorMessageKey: 'bible.download_error_network'),
+      },
+      onDownloadVersion: (v) => downloadRequested = v,
+    );
+
+    final tileFinder = find.byKey(
+      const Key('bible_reader_drawer_downloadable_KJ2000_xx.SQLite3'),
+    );
+    expect(
+      find.descendant(
+        of: tileFinder,
+        matching: find.byIcon(Icons.refresh_outlined),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('KJ2000'));
+    await tester.pumpAndSettle();
+
+    expect(downloadRequested, downloadable);
   });
 }
