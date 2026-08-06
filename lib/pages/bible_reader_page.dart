@@ -33,6 +33,7 @@ import 'package:devocional_nuevo/widgets/bible/bible_reader_tts_miniplayer_prese
 import 'package:devocional_nuevo/widgets/bible/bible_search_overlay.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_note_indicator.dart';
+import 'package:devocional_nuevo/widgets/bible/kjv_kj2000_banner.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:devocional_nuevo/widgets/modern_voice_feature_dialog.dart';
@@ -44,6 +45,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Pure UI presentation layer for Bible Reader
 /// All business logic is handled by BibleReaderController
@@ -96,6 +98,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   // Set while an initialReference scroll-into-view is still owed, so the
   // post-frame callback in build() knows to act once verses finish loading.
   bool _pendingReferenceScroll = false;
+
+  // One-time notice about the KJV/KJ2000 relabeling fix (see commit
+  // 9c26f98a and related). Shown only to English readers until dismissed.
+  static const String _kjvBannerDismissedKey = 'kjv_kj2000_banner_dismissed';
+  bool _showKjvBanner = false;
 
   @override
   void initState() {
@@ -186,6 +193,24 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     } else {
       _controller.initialize(deviceLanguage);
     }
+
+    if (versionsLanguageCode == 'en') {
+      _checkKjvBannerVisibility();
+    }
+  }
+
+  Future<void> _checkKjvBannerVisibility() async {
+    final prefs = await SharedPreferences.getInstance();
+    final dismissed = prefs.getBool(_kjvBannerDismissedKey) ?? false;
+    if (!dismissed && mounted) {
+      setState(() => _showKjvBanner = true);
+    }
+  }
+
+  Future<void> _dismissKjvBanner() async {
+    setState(() => _showKjvBanner = false);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kjvBannerDismissedKey, true);
   }
 
   @override
@@ -1098,6 +1123,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                 SafeArea(
                   child: Column(
                     children: [
+                      if (_showKjvBanner)
+                        KjvKj2000Banner(onDismiss: _dismissKjvBanner),
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
