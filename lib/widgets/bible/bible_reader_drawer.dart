@@ -6,8 +6,9 @@ import 'package:flutter/material.dart';
 /// Left-side navigation drawer for the Bible reader page: lists downloaded
 /// versions for the current language (current version highlighted) plus any
 /// remote versions still available to download, each with a download icon.
-/// Tapping a downloadable version downloads it in place; the caller is
-/// responsible for switching to it once the download completes.
+/// Tapping a downloadable version starts the download in place, showing
+/// progress on that item's icon; the drawer stays open (and cannot be
+/// dismissed) until the caller closes it once the download completes.
 class BibleReaderDrawer extends StatelessWidget {
   final List<BibleVersion> availableVersions;
   final BibleVersion? selectedVersion;
@@ -28,111 +29,119 @@ class BibleReaderDrawer extends StatelessWidget {
     required this.onDownloadVersion,
   });
 
+  bool get _isDownloading => downloadStatuses.values.any(
+        (status) => status.errorMessageKey == null && !status.isComplete,
+      );
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return Drawer(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 56,
-              width: double.infinity,
-              color: colorScheme.primary,
-              child: Stack(
-                children: [
-                  Center(
-                    child: Text(
-                      'bible.select_version'.tr(),
-                      style: textTheme.titleMedium?.copyWith(
-                        fontSize: 18,
-                        color: colorScheme.onPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: 8,
-                    top: 0,
-                    bottom: 0,
-                    child: IconButton(
-                      key: const Key('bible_reader_drawer_close_button'),
-                      icon: const Icon(
-                        Icons.close_outlined,
-                        color: Colors.white,
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
-                      tooltip: 'drawer.close'.tr(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                children: [
-                  ...availableVersions.map((version) {
-                    final isSelected =
-                        version.dbFileName == selectedVersion?.dbFileName;
-                    return ListTile(
-                      key: Key(
-                        'bible_reader_drawer_version_${version.dbFileName}',
-                      ),
-                      leading: Icon(
-                        isSelected
-                            ? Icons.radio_button_checked
-                            : Icons.radio_button_off,
-                        color: isSelected
-                            ? colorScheme.primary
-                            : colorScheme.onSurface.withValues(alpha: 0.5),
-                      ),
-                      title: Text(
-                        versionLabelBuilder(version),
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 16,
-                          color: colorScheme.onSurface,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w400,
+    return PopScope(
+      canPop: !_isDownloading,
+      child: Drawer(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 56,
+                width: double.infinity,
+                color: colorScheme.primary,
+                child: Stack(
+                  children: [
+                    Center(
+                      child: Text(
+                        'bible.select_version'.tr(),
+                        style: textTheme.titleMedium?.copyWith(
+                          fontSize: 18,
+                          color: colorScheme.onPrimary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        if (!isSelected) onVersionSelected(version);
-                      },
-                    );
-                  }),
-                  ...downloadableVersions.map((version) {
-                    final status = downloadStatuses[version.dbFileName];
-                    return ListTile(
-                      key: Key(
-                        'bible_reader_drawer_downloadable_${version.dbFileName}',
-                      ),
-                      title: Text(
-                        versionLabelBuilder(version),
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 16,
-                          color: colorScheme.onSurface,
+                    ),
+                    Positioned(
+                      right: 8,
+                      top: 0,
+                      bottom: 0,
+                      child: IconButton(
+                        key: const Key('bible_reader_drawer_close_button'),
+                        icon: const Icon(
+                          Icons.close_outlined,
+                          color: Colors.white,
                         ),
+                        onPressed: _isDownloading
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        tooltip: 'drawer.close'.tr(),
                       ),
-                      trailing: _downloadTrailing(colorScheme, status),
-                      onTap: status == null || status.errorMessageKey != null
-                          ? () {
-                              Navigator.of(context).pop();
-                              onDownloadVersion(version);
-                            }
-                          : null,
-                    );
-                  }),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  children: [
+                    ...availableVersions.map((version) {
+                      final isSelected =
+                          version.dbFileName == selectedVersion?.dbFileName;
+                      return ListTile(
+                        key: Key(
+                          'bible_reader_drawer_version_${version.dbFileName}',
+                        ),
+                        leading: Icon(
+                          isSelected
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_off,
+                          color: isSelected
+                              ? colorScheme.primary
+                              : colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
+                        title: Text(
+                          versionLabelBuilder(version),
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 16,
+                            color: colorScheme.onSurface,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.w400,
+                          ),
+                        ),
+                        onTap: _isDownloading
+                            ? null
+                            : () {
+                                Navigator.of(context).pop();
+                                if (!isSelected) onVersionSelected(version);
+                              },
+                      );
+                    }),
+                    ...downloadableVersions.map((version) {
+                      final status = downloadStatuses[version.dbFileName];
+                      return ListTile(
+                        key: Key(
+                          'bible_reader_drawer_downloadable_${version.dbFileName}',
+                        ),
+                        title: Text(
+                          versionLabelBuilder(version),
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 16,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        trailing: _downloadTrailing(colorScheme, status),
+                        onTap: status == null || status.errorMessageKey != null
+                            ? () => onDownloadVersion(version)
+                            : null,
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

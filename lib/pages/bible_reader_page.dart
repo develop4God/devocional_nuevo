@@ -960,6 +960,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         unawaited(_downloadSubscription?.cancel());
         _downloadSubscription = null;
         if (!mounted) return;
+        // Close the drawer now that the download finished — it was kept
+        // open (and undismissable) so the user could see the progress
+        // indicator while downloading.
+        if (context.mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
         // Switch first, so the new version's reading position is saved
         // before onVersionsMayHaveChanged() below remounts this page with a
         // fresh key — otherwise the remount restores the previous version.
