@@ -147,6 +147,59 @@ void main() {
       );
     });
 
+    test('parses disclaimer when present on the index entry', () async {
+      final index = {
+        'languages': {
+          'es': {
+            'versions': {
+              'RVR1909': {
+                'name': 'Reina-Valera 1909 (con Números Strong)',
+                'file': 'RVR1909_es.SQLite3.gz',
+                'url': 'https://raw.githubusercontent.com/develop4God/'
+                    'bible_versions/main/es/RVR1909_es.SQLite3.gz',
+                'disclaimer': 'Texto de dominio público (Reina-Valera 1909).',
+              },
+            },
+          },
+        },
+      };
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => http.Response(jsonEncode(index), 200));
+
+      final result = await repository.fetchRemoteVersions('es');
+
+      expect(result, hasLength(1));
+      expect(
+        result.first.disclaimer,
+        'Texto de dominio público (Reina-Valera 1909).',
+      );
+    });
+
+    test('leaves disclaimer null when absent on the index entry', () async {
+      final index = {
+        'languages': {
+          'de': {
+            'versions': {
+              // Not bundled for 'de' (bundled are LU17/SCH2000).
+              'NGU': {
+                'name': 'Neue Genfer Übersetzung',
+                'file': 'NGU_de.SQLite3.gz',
+                'url': 'https://raw.githubusercontent.com/develop4God/'
+                    'bible_versions/main/de/NGU_de.SQLite3.gz',
+              },
+            },
+          },
+        },
+      };
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => http.Response(jsonEncode(index), 200));
+
+      final result = await repository.fetchRemoteVersions('de');
+
+      expect(result, isNotEmpty);
+      expect(result.every((v) => v.disclaimer == null), isTrue);
+    });
+
     test('session cache avoids a second network call', () async {
       when(() => mockHttpClient.get(any()))
           .thenAnswer((_) async => http.Response(jsonEncode(fullIndex), 200));
@@ -270,6 +323,47 @@ void main() {
 
       expect(progressValues, isNotEmpty);
       expect(progressValues.every((p) => p == null), isTrue);
+    });
+
+    test('persists the disclaimer alongside the name on successful download',
+        () async {
+      final gzipBytes = _validGzipBytes();
+      when(() => mockHttpClient.send(any())).thenAnswer(
+        (_) async => http.StreamedResponse(
+          Stream.value(gzipBytes),
+          200,
+          contentLength: gzipBytes.length,
+        ),
+      );
+
+      final version = BibleVersion(
+        name: 'Reina-Valera 1909 (con Números Strong)',
+        language: 'Español',
+        languageCode: 'es',
+        assetPath: '',
+        dbFileName: 'DISCLAIM_xx.SQLite3',
+        isDownloaded: false,
+        remoteUrl: 'https://example.com/rvr1909.gz',
+        disclaimer: 'Texto de dominio público (Reina-Valera 1909).',
+      );
+
+      await repository.downloadVersion(version);
+
+      final prefs = await SharedPreferences.getInstance();
+      final stored = jsonDecode(prefs.getString('bible_remote_version_names')!)
+          as Map<String, dynamic>;
+
+      expect(
+        stored['DISCLAIM_xx.SQLite3'],
+        {
+          'name': 'Reina-Valera 1909 (con Números Strong)',
+          'disclaimer': 'Texto de dominio público (Reina-Valera 1909).',
+        },
+      );
+
+      final installedFile =
+          File('${Directory.systemTemp.path}/DISCLAIM_xx.SQLite3');
+      if (installedFile.existsSync()) installedFile.deleteSync();
     });
   });
 }

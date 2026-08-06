@@ -141,14 +141,27 @@ class BibleVersionRegistry {
         if (!fileName.endsWith(suffix)) continue;
         if (bundledFileNames.contains(fileName)) continue;
 
+        // Entries may be a plain display-name string (legacy) or a
+        // {"name": ..., "disclaimer": ...} map (current format).
+        final stored = names[fileName];
+        String displayName = fileName;
+        String? disclaimer;
+        if (stored is String) {
+          displayName = stored;
+        } else if (stored is Map) {
+          displayName = stored['name'] as String? ?? fileName;
+          disclaimer = stored['disclaimer'] as String?;
+        }
+
         result.add(
           BibleVersion(
-            name: names[fileName] as String? ?? fileName,
+            name: displayName,
             language: _languageNames[languageCode] ?? languageCode,
             languageCode: languageCode,
             assetPath: '',
             dbFileName: fileName,
             isDownloaded: true,
+            disclaimer: disclaimer,
           ),
         );
       }
