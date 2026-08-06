@@ -1367,6 +1367,32 @@ void main() {
         );
       },
     );
+
+    test('IBibleVersionRepository is registered in ServiceLocator', () async {
+      final file = File('lib/services/service_locator.dart');
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('registerLazySingleton<IBibleVersionRepository>'),
+        isTrue,
+        reason: 'IBibleVersionRepository must be registered by interface type',
+      );
+    });
+
+    test('BibleVersionRepository has no static singleton antipattern',
+        () async {
+      final file = File('lib/repositories/bible_version_repository.dart');
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('static BibleVersionRepository? _instance'),
+        isFalse,
+      );
+      expect(
+        content.contains('static BibleVersionRepository get instance'),
+        isFalse,
+      );
+    });
   });
 }
 

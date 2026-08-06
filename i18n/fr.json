@@ -695,6 +695,9 @@
     "download_dialog_title": "Télécharger des Versions de de Bible",
     "download_dialog_content": "Sélectionnez de versions à télécharger pour une lecture hors ligne. Les téléchargements se font en arrière-plan.",
     "download_error": "Erreur lors du chargement des versions disponibles",
+    "download_error_network": "Erreur réseau. Vérifiez votre connexion et réessayez.",
+    "download_error_corrupt": "Le fichier téléchargé était corrompu. Veuillez réessayer.",
+    "download_error_storage": "Espace de stockage insuffisant pour enregistrer cette version.",
     "no_versions_available": "Aucune version disponible au téléchargement",
     "note": "Note"
   },

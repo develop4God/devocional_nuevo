@@ -695,6 +695,9 @@
     "download_dialog_title": "Baixar Versões da Bíblia",
     "download_dialog_content": "Selecione versões para baixar para leitura offline. Os downloads ocorrem em segundo plano.",
     "download_error": "Erro ao carregar versões disponíveis",
+    "download_error_network": "Erro de rede. Verifique sua conexão e tente novamente.",
+    "download_error_corrupt": "O arquivo baixado estava corrompido. Tente novamente.",
+    "download_error_storage": "Espaço de armazenamento insuficiente para salvar esta versão.",
     "no_versions_available": "Nenhuma versão disponível para download",
     "note": "Nota"
   },

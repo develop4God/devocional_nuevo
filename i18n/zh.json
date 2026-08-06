@@ -695,6 +695,9 @@
     "download_dialog_title": "下载圣经版本",
     "download_dialog_content": "选择要下载的版本以供离线阅读。下载在后台进行。",
     "download_error": "加载可用版本时出错",
+    "download_error_network": "网络错误。请检查您的连接并重试。",
+    "download_error_corrupt": "下载的文件已损坏。请重试。",
+    "download_error_storage": "存储空间不足，无法保存此版本。",
     "no_versions_available": "没有可下载的版本",
     "note": "笔记"
   },
