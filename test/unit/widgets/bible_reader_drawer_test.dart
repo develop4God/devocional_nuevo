@@ -151,7 +151,8 @@ void main() {
 
   testWidgets(
       'lists downloadable versions inline with a download icon; tapping '
-      'closes the drawer and invokes the download callback', (tester) async {
+      'invokes the download callback and keeps the drawer open',
+      (tester) async {
     final versionA = _version('A_xx.SQLite3', name: 'Version A');
     final downloadable = _version('KJ2000_xx.SQLite3', name: 'KJ2000');
     BibleVersion? downloadRequested;
@@ -180,7 +181,33 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(downloadRequested, downloadable);
-    expect(find.byType(Drawer), findsNothing);
+    expect(find.byType(Drawer), findsOneWidget);
+  });
+
+  testWidgets(
+      'close button and back gesture are disabled while a download is in flight',
+      (tester) async {
+    final versionA = _version('A_xx.SQLite3', name: 'Version A');
+    final downloadable = _version('KJ2000_xx.SQLite3', name: 'KJ2000');
+
+    await pumpDrawer(
+      tester,
+      versions: [versionA],
+      selectedVersion: versionA,
+      downloadableVersions: [downloadable],
+      downloadStatuses: const {
+        'KJ2000_xx.SQLite3': VersionDownloadStatus(progress: 0.5),
+      },
+    );
+
+    final closeButton = tester.widget<IconButton>(
+      find.byKey(const Key('bible_reader_drawer_close_button')),
+    );
+    expect(closeButton.onPressed, isNull);
+
+    await tester.tap(find.byKey(const Key('bible_reader_drawer_close_button')));
+    await tester.pumpAndSettle();
+    expect(find.byType(Drawer), findsOneWidget);
   });
 
   testWidgets('shows progress indicator while a version is downloading',
