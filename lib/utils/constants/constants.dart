@@ -202,14 +202,17 @@ class Constants {
   // Remote Bible Versions (bible_versions repo)
   // ---------------------------------------------------------------------------
 
-  /// Version codes eligible for remote download — public-domain-leaning only.
+  /// Version codes eligible for remote download.
   /// LEGAL: expanding this set requires product sign-off.
+  /// NBS (Nouvelle Bible Segond, fr) is commercially licensed, not public
+  /// domain — added 2026-08-05 with explicit product approval.
   static const Set<String> remoteDownloadAllowlist = {
     'KJV',
     'LSG1910',
     'CUV1919',
     'SVDA',
     'HIOV',
+    'NBS',
   };
 
   /// Obtiene la URL del índice de versiones bíblicas remotas descargables.
