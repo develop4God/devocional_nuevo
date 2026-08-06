@@ -107,5 +107,71 @@ void main() {
       expect(result, isNot(contains('ⓐ')));
       expect(result, contains('Sinabi'));
     });
+
+    test('removes Strong\'s number tags <S>1234</S> as a single unit', () {
+      const text = 'creó<S>1254</S> Dios<S>430</S> los cielos<S>8064</S>';
+      final result = BibleTextNormalizer.clean(text);
+      expect(result, 'creó Dios los cielos');
+    });
+
+    test(
+      'cleans real RV09+ verse text with Strong\'s numbers (Genesis 1:1)',
+      () {
+        const text =
+            'En el principio<S>7225</S> creó<S>1254</S> Dios<S>430</S> '
+            'los cielos<S>8064</S> y la tierra.<S>776</S> ';
+        final result = BibleTextNormalizer.clean(text);
+        expect(result, 'En el principio creó Dios los cielos y la tierra.');
+      },
+    );
+  });
+
+  group('BibleTextNormalizer.stripStrongTags Tests', () {
+    test('removes Strong\'s tags without affecting other markup', () {
+      const text = 'creó<S>1254</S> Dios<S>430</S> [1] <pb/>';
+      expect(
+        BibleTextNormalizer.stripStrongTags(text),
+        'creó Dios [1] <pb/>',
+      );
+    });
+
+    test('returns text unchanged when no Strong\'s tags present', () {
+      const text = 'Clean verse text';
+      expect(BibleTextNormalizer.stripStrongTags(text), text);
+    });
+  });
+
+  group('BibleTextNormalizer.parseStrongTags Tests', () {
+    test('extracts Strong\'s numbers in order with cleaned text', () {
+      const text = 'creó<S>1254</S> Dios<S>430</S>';
+      final (cleanedText, matches) = BibleTextNormalizer.parseStrongTags(
+        text,
+      );
+      expect(cleanedText, 'creó Dios');
+      expect(matches, hasLength(2));
+      expect(matches[0].number, '1254');
+      expect(matches[1].number, '430');
+    });
+
+    test('records offsets relative to the cleaned text', () {
+      const text = 'creó<S>1254</S> Dios<S>430</S>';
+      final (cleanedText, matches) = BibleTextNormalizer.parseStrongTags(
+        text,
+      );
+      expect(cleanedText.substring(0, matches[0].offset), 'creó');
+      expect(
+        cleanedText.substring(matches[0].offset, matches[1].offset),
+        ' Dios',
+      );
+    });
+
+    test('returns no matches for text without Strong\'s tags', () {
+      const text = 'Clean verse text';
+      final (cleanedText, matches) = BibleTextNormalizer.parseStrongTags(
+        text,
+      );
+      expect(cleanedText, text);
+      expect(matches, isEmpty);
+    });
   });
 }
