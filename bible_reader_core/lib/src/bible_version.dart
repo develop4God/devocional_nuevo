@@ -8,6 +8,11 @@ class BibleVersion {
   final String dbFileName;
   final bool isDownloaded;
   final String? remoteUrl;
+
+  /// Copyright/licensing disclaimer for remote versions whose text isn't
+  /// covered by `CopyrightUtils`'s bundled-version lookup. Null for all
+  /// bundled/asset versions.
+  final String? disclaimer;
   BibleDbService? service;
 
   BibleVersion({
@@ -18,6 +23,7 @@ class BibleVersion {
     required this.dbFileName,
     this.isDownloaded = true,
     this.remoteUrl,
+    this.disclaimer,
     this.service,
   });
 
@@ -34,6 +40,7 @@ class BibleVersion {
     String? dbFileName,
     bool? isDownloaded,
     String? remoteUrl,
+    String? disclaimer,
     BibleDbService? service,
   }) {
     return BibleVersion(
@@ -44,6 +51,7 @@ class BibleVersion {
       dbFileName: dbFileName ?? this.dbFileName,
       isDownloaded: isDownloaded ?? this.isDownloaded,
       remoteUrl: remoteUrl ?? this.remoteUrl,
+      disclaimer: disclaimer ?? this.disclaimer,
       service: service ?? this.service,
     );
   }
