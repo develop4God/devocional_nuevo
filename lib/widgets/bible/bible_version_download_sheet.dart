@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Bottom sheet listing remote Bible versions available for download for
-/// [languageCode]. Opened from the Bible reader drawer's "Download Bible
-/// versions" entry.
+/// [languageCode]. Opened from the Bible reader's version-picker popup
+/// menu, via its "Download Bible versions" entry.
 class BibleVersionDownloadSheet extends StatelessWidget {
   final String languageCode;
 
