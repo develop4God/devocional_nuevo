@@ -51,6 +51,9 @@ tags:
   backup:
     # Backup and restore flow tests
     # Example: @Tags(['unit', 'services', 'backup'])
+  repositories:
+    # Repository layer tests (data access, caching, network)
+    # Example: @Tags(['unit', 'repositories'])
 
   integration:
     # Integration tests across multiple components

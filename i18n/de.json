@@ -695,6 +695,9 @@
     "download_dialog_title": "Bibelversionen herunterladen",
     "download_dialog_content": "Wähle Versionen zum Herunterladen und Offline-Lesen. Downloads werden im Hintergrund durchgeführt.",
     "download_error": "Fehler beim Laden der verfügbaren Versionen",
+    "download_error_network": "Netzwerkfehler. Überprüfe deine Verbindung und versuche es erneut.",
+    "download_error_corrupt": "Die heruntergeladene Datei war beschädigt. Bitte versuche es erneut.",
+    "download_error_storage": "Nicht genügend Speicherplatz, um diese Version zu speichern.",
     "no_versions_available": "Keine Versionen zum Herunterladen verfügbar",
     "note": "Notiz"
   },

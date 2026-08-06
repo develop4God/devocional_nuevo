@@ -21,14 +21,40 @@ class BibleDbService {
       final data = await rootBundle.load(compressedAssetPath);
       final compressedBytes = data.buffer.asUint8List();
 
-      // Decompress using GZip decoder
-      final bytes = GZipDecoder().decodeBytes(compressedBytes);
-
-      // Write decompressed database to local storage
-      await File(dbPath).writeAsBytes(bytes, flush: true);
+      await installFromGzipBytes(compressedBytes, dbName);
     }
 
     _db = await openDatabase(dbPath, readOnly: true);
+  }
+
+  /// Decompresses [compressedBytes] (gzip) and writes the result to
+  /// `documents/$dbName`, via an atomic rename from a `.part` sibling file.
+  /// Returns the final installed path.
+  ///
+  /// On decompression failure, any leftover `.part` file is deleted and the
+  /// error is rethrown.
+  static Future<String> installFromGzipBytes(
+    List<int> compressedBytes,
+    String dbName, {
+    Directory? targetDir,
+  }) async {
+    final documentsDirectory =
+        targetDir ?? await getApplicationDocumentsDirectory();
+    final dbPath = join(documentsDirectory.path, dbName);
+    final partPath = '$dbPath.part';
+
+    try {
+      final bytes = GZipDecoder().decodeBytes(compressedBytes);
+      await File(partPath).writeAsBytes(bytes, flush: true);
+    } catch (e) {
+      if (File(partPath).existsSync()) {
+        await File(partPath).delete();
+      }
+      rethrow;
+    }
+
+    await File(partPath).rename(dbPath);
+    return dbPath;
   }
 
   // Get all books

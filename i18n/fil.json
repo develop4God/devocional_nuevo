@@ -695,6 +695,9 @@
     "download_dialog_title": "I-download ang Mga Bersyon ng Biblia",
     "download_dialog_content": "Pumili ng mga bersyon upang i-download at basahin nang walang internet. Ginagawa ang mga pag-download sa background.",
     "download_error": "Error sa pag-load ng mga bersyon na makukuha",
+    "download_error_network": "Error sa network. Suriin ang iyong koneksyon at subukan muli.",
+    "download_error_corrupt": "Sira ang na-download na file. Pakisubukan muli.",
+    "download_error_storage": "Hindi sapat ang storage space upang i-save ang bersyong ito.",
     "no_versions_available": "Walang bersyon na makukuha para i-download",
     "note": "Tala"
   },
