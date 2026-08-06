@@ -5,11 +5,13 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/bible_note_bloc.dart';
 import 'package:devocional_nuevo/blocs/bible_note_state.dart';
+import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/repositories/i_bible_version_repository.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_reader_tts_text_builder.dart';
@@ -23,8 +25,8 @@ import 'package:devocional_nuevo/widgets/bible/bible_chapter_grid_selector.dart'
 import 'package:devocional_nuevo/widgets/bible/bible_note_modal.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_note_viewer.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_action_modal.dart';
-import 'package:devocional_nuevo/widgets/bible/bible_reader_drawer.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_tts_miniplayer_presenter.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_version_download_sheet.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_search_overlay.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_note_indicator.dart';
@@ -40,6 +42,10 @@ import 'package:lottie/lottie.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
+/// Sentinel selected value for the "download more versions" entry appended
+/// to the version-picker popup menu.
+const Object _kDownloadMoreVersionsSentinel = 'download_more_versions';
+
 /// Pure UI presentation layer for Bible Reader
 /// All business logic is handled by BibleReaderController
 class BibleReaderPage extends StatefulWidget {
@@ -54,9 +60,9 @@ class BibleReaderPage extends StatefulWidget {
   /// a saved note. Applied once, after the reader finishes loading.
   final ({String bookName, int chapter, int verse})? initialReference;
 
-  /// Called after the drawer's "Download Bible versions" flow closes, so
-  /// the parent (e.g. app_navigation_shell's Bible tab) can refresh its
-  /// version list. Optional so BibleReaderPage remains usable standalone.
+  /// Called after the "Download Bible versions" flow closes, so the parent
+  /// (e.g. app_navigation_shell's Bible tab) can refresh its version list.
+  /// Optional so BibleReaderPage remains usable standalone.
   final VoidCallback? onVersionsMayHaveChanged;
 
   const BibleReaderPage({
@@ -934,13 +940,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         return AnnotatedRegion<SystemUiOverlayStyle>(
           value: themeState.systemUiOverlayStyle,
           child: Scaffold(
-            drawer: BibleReaderDrawer(
-              languageCode: state.selectedVersion?.languageCode ??
-                  ui.PlatformDispatcher.instance.locale.languageCode,
-              onVersionsMayHaveChanged: () {
-                widget.onVersionsMayHaveChanged?.call();
-              },
-            ),
             appBar: PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight),
               child: CustomAppBar(
@@ -989,14 +988,30 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                     onPressed: () => _controller.toggleFontControls(),
                   ),
                   // Version menu (rightmost in RTL, leftmost action in LTR)
-                  if (state.availableVersions.length > 1)
-                    PopupMenuButton<BibleVersion>(
+                  if (state.availableVersions.isNotEmpty)
+                    PopupMenuButton<Object>(
                       icon: Icon(
                         Icons.menu,
                         color: Theme.of(context).colorScheme.onPrimary,
                       ),
                       tooltip: 'bible.select_version'.tr(),
-                      onSelected: (version) async {
+                      onSelected: (selection) async {
+                        if (selection == _kDownloadMoreVersionsSentinel) {
+                          final languageCode =
+                              state.selectedVersion?.languageCode ??
+                                  ui.PlatformDispatcher.instance.locale
+                                      .languageCode;
+                          await BibleVersionDownloadSheet.show(
+                            context,
+                            languageCode: languageCode,
+                            createBloc: () => BibleVersionsBloc(
+                              repository: getService<IBibleVersionRepository>(),
+                            ),
+                          );
+                          widget.onVersionsMayHaveChanged?.call();
+                          return;
+                        }
+                        final version = selection as BibleVersion;
                         await _controller.switchVersion(version);
                         if (!context.mounted) return;
                         AppSnackBar.show(
@@ -1004,33 +1019,54 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                           'bible.loading_version'.tr({'version': version.name}),
                         );
                       },
-                      itemBuilder: (context) => state.availableVersions.map((
-                        version,
-                      ) {
-                        return PopupMenuItem<BibleVersion>(
-                          value: version,
+                      itemBuilder: (context) => [
+                        ...state.availableVersions.map((version) {
+                          return PopupMenuItem<Object>(
+                            value: version,
+                            child: Row(
+                              children: [
+                                if (version.dbFileName ==
+                                    state.selectedVersion?.dbFileName)
+                                  Icon(
+                                    Icons.check,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                    size: 20,
+                                  )
+                                else
+                                  const SizedBox(width: 20),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    _versionPickerLabel(version),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                        const PopupMenuDivider(),
+                        PopupMenuItem<Object>(
+                          value: _kDownloadMoreVersionsSentinel,
                           child: Row(
                             children: [
-                              if (version.dbFileName ==
-                                  state.selectedVersion?.dbFileName)
-                                Icon(
-                                  Icons.check,
-                                  color: Theme.of(context).colorScheme.primary,
-                                  size: 20,
-                                )
-                              else
-                                const SizedBox(width: 20),
+                              Icon(
+                                Icons.download_for_offline_outlined,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 20,
+                              ),
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
-                                  _versionPickerLabel(version),
+                                  'bible.download_versions'.tr(),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
                           ),
-                        );
-                      }).toList(),
+                        ),
+                      ],
                     ),
                 ],
               ),
