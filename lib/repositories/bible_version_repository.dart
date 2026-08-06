@@ -63,7 +63,6 @@ class BibleVersionRepository implements IBibleVersionRepository {
       final versionEntry = entry.value;
 
       if (bundledCodes.contains(code)) continue;
-      if (!Constants.remoteDownloadAllowlist.contains(code)) continue;
 
       // A debug-branch index still points its own `url` field at `main`, so
       // when testing a debug branch the download URL must be built from the

@@ -96,8 +96,7 @@ void main() {
   };
 
   group('fetchRemoteVersions', () {
-    test('parses index and returns allowlisted, non-bundled versions',
-        () async {
+    test('excludes versions already bundled as app assets', () async {
       when(() => mockHttpClient.get(any()))
           .thenAnswer((_) async => http.Response(jsonEncode(fullIndex), 200));
 
@@ -105,15 +104,9 @@ void main() {
       // all three are bundled, so nothing should be eligible for 'en'.
       final enResult = await repository.fetchRemoteVersions('en');
       expect(enResult, isEmpty);
-    });
 
-    test('excludes versions already bundled as app assets', () async {
-      when(() => mockHttpClient.get(any()))
-          .thenAnswer((_) async => http.Response(jsonEncode(fullIndex), 200));
-
-      // 'fr' bundled versions are LSG1910/BDS — both bundled, so the
-      // fr result should also exclude them despite LSG1910 being
-      // allowlisted (bundled wins).
+      // 'fr' bundled versions are LSG1910/BDS — both bundled, so the fr
+      // result should exclude them too.
       final frResult = await repository.fetchRemoteVersions('fr');
       expect(
         frResult.any((v) => v.dbFileName.startsWith('LSG1910')),
@@ -121,17 +114,19 @@ void main() {
       );
     });
 
-    test('filters remote versions through the allowlist', () async {
+    test('includes a non-bundled version from the index with remoteUrl set',
+        () async {
       final index = {
         'languages': {
           'de': {
             'versions': {
-              // Not bundled for 'de' (bundled are LU17/SCH2000) and NOT on
-              // the allowlist — must be excluded.
-              'NOTALLOWED': {
-                'name': 'Not Allowed Version',
-                'file': 'NOTALLOWED_de.SQLite3.gz',
-                'url': 'https://example.com/NOTALLOWED_de.SQLite3.gz',
+              // Not bundled for 'de' (bundled are LU17/SCH2000) — must be
+              // offered for download regardless of version code.
+              'NGU': {
+                'name': 'Neue Genfer Übersetzung',
+                'file': 'NGU_de.SQLite3.gz',
+                'url': 'https://raw.githubusercontent.com/develop4God/'
+                    'bible_versions/main/de/NGU_de.SQLite3.gz',
               },
             },
           },
@@ -141,42 +136,14 @@ void main() {
           .thenAnswer((_) async => http.Response(jsonEncode(index), 200));
 
       final result = await repository.fetchRemoteVersions('de');
-      expect(result, isEmpty);
-    });
-
-    test('includes an allowlisted, non-bundled version with remoteUrl set',
-        () async {
-      // Every allowlisted code (KJV, LSG1910, CUV1919, SVDA, HIOV) is
-      // already bundled for its real language in BibleVersionRegistry, so
-      // to exercise the genuinely-eligible path (allowlisted AND not
-      // bundled) this uses a language code with no bundled versions at
-      // all — the version is still on the allowlist by code ('KJV').
-      final index = {
-        'languages': {
-          'xx': {
-            'versions': {
-              'KJV': {
-                'name': 'King James Version (test lang)',
-                'file': 'KJV_xx.SQLite3.gz',
-                'url': 'https://raw.githubusercontent.com/develop4God/'
-                    'bible_versions/main/xx/KJV_xx.SQLite3.gz',
-              },
-            },
-          },
-        },
-      };
-      when(() => mockHttpClient.get(any()))
-          .thenAnswer((_) async => http.Response(jsonEncode(index), 200));
-
-      final result = await repository.fetchRemoteVersions('xx');
 
       expect(result, hasLength(1));
-      expect(result.first.dbFileName, 'KJV_xx.SQLite3');
+      expect(result.first.dbFileName, 'NGU_de.SQLite3');
       expect(result.first.isRemote, isTrue);
       expect(
         result.first.remoteUrl,
         'https://raw.githubusercontent.com/develop4God/'
-        'bible_versions/main/xx/KJV_xx.SQLite3.gz',
+        'bible_versions/main/de/NGU_de.SQLite3.gz',
       );
     });
 
