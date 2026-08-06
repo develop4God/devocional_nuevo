@@ -95,10 +95,28 @@ void main() {
     },
   };
 
+  /// Stubs the conditional-GET flow used by _fetchIndex: httpClient.send()
+  /// returning a StreamedResponse built from [body]/[statusCode]/[headers].
+  void stubIndexResponse(
+    String body, {
+    int statusCode = 200,
+    Map<String, String> headers = const {},
+  }) {
+    when(() => mockHttpClient.send(any())).thenAnswer(
+      (_) async => http.StreamedResponse(
+        Stream.value(utf8.encode(body)),
+        statusCode,
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+          ...headers
+        },
+      ),
+    );
+  }
+
   group('fetchRemoteVersions', () {
     test('excludes versions already bundled as app assets', () async {
-      when(() => mockHttpClient.get(any()))
-          .thenAnswer((_) async => http.Response(jsonEncode(fullIndex), 200));
+      stubIndexResponse(jsonEncode(fullIndex));
 
       // 'en' bundled versions are KJV/NIV/ESV (see BibleVersionRegistry) —
       // all three are bundled, so nothing should be eligible for 'en'.
@@ -132,8 +150,7 @@ void main() {
           },
         },
       };
-      when(() => mockHttpClient.get(any()))
-          .thenAnswer((_) async => http.Response(jsonEncode(index), 200));
+      stubIndexResponse(jsonEncode(index));
 
       final result = await repository.fetchRemoteVersions('de');
 
@@ -163,8 +180,7 @@ void main() {
           },
         },
       };
-      when(() => mockHttpClient.get(any()))
-          .thenAnswer((_) async => http.Response(jsonEncode(index), 200));
+      stubIndexResponse(jsonEncode(index));
 
       final result = await repository.fetchRemoteVersions('es');
 
@@ -191,8 +207,7 @@ void main() {
           },
         },
       };
-      when(() => mockHttpClient.get(any()))
-          .thenAnswer((_) async => http.Response(jsonEncode(index), 200));
+      stubIndexResponse(jsonEncode(index));
 
       final result = await repository.fetchRemoteVersions('de');
 
@@ -200,14 +215,56 @@ void main() {
       expect(result.every((v) => v.disclaimer == null), isTrue);
     });
 
-    test('session cache avoids a second network call', () async {
-      when(() => mockHttpClient.get(any()))
-          .thenAnswer((_) async => http.Response(jsonEncode(fullIndex), 200));
+    test(
+        'a fresh 200 is fetched on every call — a same-session cache must '
+        'never suppress a newer index', () async {
+      stubIndexResponse(jsonEncode(fullIndex));
 
       await repository.fetchRemoteVersions('en');
       await repository.fetchRemoteVersions('fr');
 
-      verify(() => mockHttpClient.get(any())).called(1);
+      // Two calls, not deduped by a same-session flag — see _fetchIndex's
+      // doc comment for why a stale cache must never win silently.
+      verify(() => mockHttpClient.send(any())).called(2);
+    });
+
+    test(
+        'sends If-None-Match with the cached ETag and reuses the cached '
+        'body on 304', () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'bible_versions_index_cache_main',
+        jsonEncode(fullIndex),
+      );
+      await prefs.setString('bible_versions_index_etag_main', '"abc123"');
+
+      when(() => mockHttpClient.send(any())).thenAnswer((invocation) async {
+        final request = invocation.positionalArguments[0] as http.Request;
+        expect(request.headers['If-None-Match'], '"abc123"');
+        return http.StreamedResponse(const Stream.empty(), 304);
+      });
+
+      final result = await repository.fetchRemoteVersions('en');
+      expect(result, isEmpty); // en is fully bundled per fullIndex
+    });
+
+    test('a 200 response with a new ETag overwrites the cached ETag and body',
+        () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('bible_versions_index_etag_main', '"old-etag"');
+
+      stubIndexResponse(
+        jsonEncode(fullIndex),
+        headers: {'etag': '"new-etag"'},
+      );
+
+      await repository.fetchRemoteVersions('en');
+
+      expect(prefs.getString('bible_versions_index_etag_main'), '"new-etag"');
+      expect(
+        prefs.getString('bible_versions_index_cache_main'),
+        jsonEncode(fullIndex),
+      );
     });
 
     test('falls back to stale cache on network failure', () async {
@@ -217,7 +274,7 @@ void main() {
         jsonEncode(fullIndex),
       );
 
-      when(() => mockHttpClient.get(any()))
+      when(() => mockHttpClient.send(any()))
           .thenThrow(Exception('network down'));
 
       // Should not throw — falls back to the stale cache above.
