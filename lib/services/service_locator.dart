@@ -9,7 +9,9 @@ import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/repositories/bible_notes_repository.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
+import 'package:devocional_nuevo/repositories/bible_version_repository.dart';
 import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
+import 'package:devocional_nuevo/repositories/i_bible_version_repository.dart';
 import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
 import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
 import 'package:devocional_nuevo/repositories/notes_repository.dart';
@@ -179,6 +181,10 @@ Future<void> setupServiceLocator() async {
 
   locator.registerLazySingleton<EncounterRepository>(
     () => EncounterRepository(httpClient: locator.get<http.Client>()),
+  );
+
+  locator.registerLazySingleton<IBibleVersionRepository>(
+    () => BibleVersionRepository(httpClient: locator.get<http.Client>()),
   );
 
   locator.registerLazySingleton<IEncounterProgressService>(
