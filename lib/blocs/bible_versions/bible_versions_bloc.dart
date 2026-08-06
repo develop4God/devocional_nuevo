@@ -43,6 +43,12 @@ class BibleVersionsBloc extends Bloc<BibleVersionsEvent, BibleVersionsState> {
     if (currentState is! BibleVersionsLoaded) return;
 
     final dbFileName = event.version.dbFileName;
+    final existingStatus = currentState.downloadStatuses[dbFileName];
+    final alreadyInFlight = existingStatus != null &&
+        !existingStatus.isComplete &&
+        existingStatus.errorMessageKey == null;
+    if (alreadyInFlight) return;
+
     emit(
       currentState.copyWith(
         downloadStatuses: {

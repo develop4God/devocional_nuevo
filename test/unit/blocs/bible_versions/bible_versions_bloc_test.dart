@@ -23,6 +23,10 @@ class FakeBibleVersionRepository implements IBibleVersionRepository {
   final Map<String, Future<void> Function(void Function(double?)? onProgress)>
       downloadBehaviors = {};
 
+  /// Counts invocations of [downloadVersion] per dbFileName, so tests can
+  /// assert a download was not started more than once concurrently.
+  final Map<String, int> downloadCallCounts = {};
+
   @override
   Future<List<BibleVersion>> fetchRemoteVersions(String languageCode) async {
     if (fetchError != null) throw fetchError!;
@@ -34,6 +38,8 @@ class FakeBibleVersionRepository implements IBibleVersionRepository {
     BibleVersion version, {
     void Function(double? progress)? onProgress,
   }) async {
+    downloadCallCounts[version.dbFileName] =
+        (downloadCallCounts[version.dbFileName] ?? 0) + 1;
     final behavior = downloadBehaviors[version.dbFileName];
     if (behavior == null) {
       throw StateError('No behavior configured for ${version.dbFileName}');
@@ -201,6 +207,37 @@ void main() {
 
         expect(statusA!.isComplete, isTrue);
         expect(statusB!.isComplete, isTrue);
+      },
+    );
+
+    blocTest<BibleVersionsBloc, BibleVersionsState>(
+      'duplicate download requests for the same version are ignored while in flight',
+      build: () {
+        final version = _version('KJV_xx.SQLite3');
+        repository.versionsToReturn = [version];
+
+        final completer = Completer<void>();
+        repository.downloadBehaviors['KJV_xx.SQLite3'] = (onProgress) async {
+          onProgress?.call(0.5);
+          await completer.future;
+          onProgress?.call(1.0);
+        };
+
+        Future<void>.delayed(const Duration(milliseconds: 5), () {
+          completer.complete();
+        });
+
+        return BibleVersionsBloc(repository: repository);
+      },
+      act: (bloc) async {
+        bloc.add(const LoadAvailableVersions(languageCode: 'xx'));
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(DownloadBibleVersion(_version('KJV_xx.SQLite3')));
+        bloc.add(DownloadBibleVersion(_version('KJV_xx.SQLite3')));
+      },
+      wait: const Duration(milliseconds: 20),
+      verify: (bloc) {
+        expect(repository.downloadCallCounts['KJV_xx.SQLite3'], 1);
       },
     );
   });
