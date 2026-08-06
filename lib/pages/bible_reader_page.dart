@@ -99,6 +99,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   // post-frame callback in build() knows to act once verses finish loading.
   bool _pendingReferenceScroll = false;
 
+  // Tracks the in-flight download listener from _handleDownloadVersion, so
+  // dispose() can cancel it if the page is left mid-download.
+  StreamSubscription<BibleVersionsState>? _downloadSubscription;
+
   // One-time notice about the KJV/KJ2000 relabeling fix (see commit
   // 9c26f98a and related). Shown only to English readers until dismissed.
   static const String _kjvBannerDismissedKey = 'kjv_kj2000_banner_dismissed';
@@ -223,6 +227,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     _ttsMiniplayerPresenter.dispose();
     _ttsAudioController.dispose();
     _controller.dispose();
+    _downloadSubscription?.cancel();
     _versionsBloc.close();
     super.dispose();
   }
@@ -940,8 +945,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     BuildContext context,
     BibleVersion version,
   ) async {
-    late final StreamSubscription<BibleVersionsState> subscription;
-    subscription = _versionsBloc.stream.listen((state) async {
+    // Cancel any previous in-flight listener before starting a new one, so
+    // at most one download listener is ever tracked/live at a time.
+    unawaited(_downloadSubscription?.cancel());
+    _downloadSubscription = _versionsBloc.stream.listen((state) async {
       if (state is! BibleVersionsLoaded) return;
       final status = state.downloadStatuses[version.dbFileName];
       if (status == null) return;
@@ -950,7 +957,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         // Fire-and-forget: awaiting cancel() from within this stream's own
         // onData callback deadlocks, since the controller waits for this
         // callback to return before finalizing the cancellation.
-        unawaited(subscription.cancel());
+        unawaited(_downloadSubscription?.cancel());
+        _downloadSubscription = null;
         if (!mounted) return;
         // Switch first, so the new version's reading position is saved
         // before onVersionsMayHaveChanged() below remounts this page with a
@@ -963,7 +971,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           'bible.loading_version'.tr({'version': version.name}),
         );
       } else if (status.errorMessageKey != null) {
-        unawaited(subscription.cancel());
+        unawaited(_downloadSubscription?.cancel());
+        _downloadSubscription = null;
         if (!context.mounted) return;
         AppSnackBar.show(context, status.errorMessageKey!.tr());
       }

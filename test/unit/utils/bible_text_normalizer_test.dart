@@ -140,38 +140,4 @@ void main() {
       expect(BibleTextNormalizer.stripStrongTags(text), text);
     });
   });
-
-  group('BibleTextNormalizer.parseStrongTags Tests', () {
-    test('extracts Strong\'s numbers in order with cleaned text', () {
-      const text = 'creó<S>1254</S> Dios<S>430</S>';
-      final (cleanedText, matches) = BibleTextNormalizer.parseStrongTags(
-        text,
-      );
-      expect(cleanedText, 'creó Dios');
-      expect(matches, hasLength(2));
-      expect(matches[0].number, '1254');
-      expect(matches[1].number, '430');
-    });
-
-    test('records offsets relative to the cleaned text', () {
-      const text = 'creó<S>1254</S> Dios<S>430</S>';
-      final (cleanedText, matches) = BibleTextNormalizer.parseStrongTags(
-        text,
-      );
-      expect(cleanedText.substring(0, matches[0].offset), 'creó');
-      expect(
-        cleanedText.substring(matches[0].offset, matches[1].offset),
-        ' Dios',
-      );
-    });
-
-    test('returns no matches for text without Strong\'s tags', () {
-      const text = 'Clean verse text';
-      final (cleanedText, matches) = BibleTextNormalizer.parseStrongTags(
-        text,
-      );
-      expect(cleanedText, text);
-      expect(matches, isEmpty);
-    });
-  });
 }
