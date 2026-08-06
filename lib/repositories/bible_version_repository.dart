@@ -83,6 +83,7 @@ class BibleVersionRepository implements IBibleVersionRepository {
           dbFileName: versionEntry.file.replaceAll('.gz', ''),
           isDownloaded: false,
           remoteUrl: url,
+          disclaimer: versionEntry.disclaimer,
         ),
       );
     }
@@ -156,29 +157,42 @@ class BibleVersionRepository implements IBibleVersionRepository {
       );
     }
 
-    await _saveDownloadedVersionName(version.dbFileName, version.name);
+    await _saveDownloadedVersionName(
+      version.dbFileName,
+      version.name,
+      version.disclaimer,
+    );
 
     if (contentLength != null && contentLength > 0) {
       onProgress?.call(1.0);
     }
   }
 
-  /// Persists the display name for a downloaded remote version, keyed by
-  /// its dbFileName, in the `bible_remote_version_names` SharedPreferences
-  /// map. [BibleVersionRegistry.getDownloadedRemoteVersionsForLanguage]
-  /// reads this map to label downloaded remote versions — this repository
-  /// owns writing it, since it owns the download side-effect that produces
-  /// the file in the first place (SRP).
+  /// Persists the display name (and optional copyright disclaimer) for a
+  /// downloaded remote version, keyed by its dbFileName, in the
+  /// `bible_remote_version_names` SharedPreferences map.
+  /// [BibleVersionRegistry.getDownloadedRemoteVersionsForLanguage] reads
+  /// this map to label downloaded remote versions — this repository owns
+  /// writing it, since it owns the download side-effect that produces the
+  /// file in the first place (SRP).
+  ///
+  /// Existing entries were plain `dbFileName: displayName` strings; new
+  /// entries are stored as `{"name": ..., "disclaimer": ...}` so old data
+  /// keeps parsing without migration.
   Future<void> _saveDownloadedVersionName(
     String dbFileName,
     String displayName,
+    String? disclaimer,
   ) async {
     final prefs = await SharedPreferences.getInstance();
     final existingJson = prefs.getString(_remoteVersionNamesPrefKey);
     final Map<String, dynamic> names = existingJson != null
         ? jsonDecode(existingJson) as Map<String, dynamic>
         : {};
-    names[dbFileName] = displayName;
+    names[dbFileName] = {
+      'name': displayName,
+      if (disclaimer != null) 'disclaimer': disclaimer,
+    };
     await prefs.setString(_remoteVersionNamesPrefKey, jsonEncode(names));
   }
 

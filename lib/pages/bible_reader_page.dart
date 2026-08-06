@@ -1205,10 +1205,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                     return Padding(
                                       padding: const EdgeInsets.only(top: 24),
                                       child: Text(
-                                        CopyrightUtils.getCopyrightText(
-                                          state.selectedVersion!.languageCode,
-                                          state.selectedVersion!.name,
-                                        ),
+                                        state.selectedVersion!.disclaimer ??
+                                            CopyrightUtils.getCopyrightText(
+                                              state.selectedVersion!
+                                                  .languageCode,
+                                              state.selectedVersion!.name,
+                                            ),
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall

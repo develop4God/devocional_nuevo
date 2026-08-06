@@ -43,10 +43,16 @@ class RemoteBibleVersionEntry {
   final String file;
   final String url;
 
+  /// Copyright/licensing disclaimer, e.g. for public-domain texts not
+  /// covered by the app's bundled-version copyright lookup. Absent for
+  /// most entries.
+  final String? disclaimer;
+
   RemoteBibleVersionEntry({
     required this.name,
     required this.file,
     required this.url,
+    this.disclaimer,
   });
 
   factory RemoteBibleVersionEntry.fromJson(Map<String, dynamic> json) {
@@ -54,6 +60,7 @@ class RemoteBibleVersionEntry {
       name: json['name'] as String,
       file: json['file'] as String,
       url: json['url'] as String,
+      disclaimer: json['disclaimer'] as String?,
     );
   }
 }

@@ -97,6 +97,35 @@ void main() {
       expect(result, isEmpty);
     });
 
+    test('reads name and disclaimer from the current map-shaped stored entry',
+        () async {
+      final file = File('${tempDir.path}/RVR1909_es.SQLite3');
+      await file.writeAsBytes([1, 2, 3]);
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'bible_remote_version_names',
+        jsonEncode({
+          'RVR1909_es.SQLite3': {
+            'name': 'Reina-Valera 1909 (con Números Strong)',
+            'disclaimer': 'Texto de dominio público (Reina-Valera 1909).',
+          },
+        }),
+      );
+
+      final result =
+          await BibleVersionRegistry.getDownloadedRemoteVersionsForLanguage(
+        'es',
+      );
+
+      expect(result, hasLength(1));
+      expect(result.first.name, 'Reina-Valera 1909 (con Números Strong)');
+      expect(
+        result.first.disclaimer,
+        'Texto de dominio público (Reina-Valera 1909).',
+      );
+    });
+
     test('getVersionsForLanguage includes downloaded remote versions',
         () async {
       final file = File('${tempDir.path}/CUSTOM_fr.SQLite3');
