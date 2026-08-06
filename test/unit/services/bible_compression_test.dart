@@ -1,4 +1,4 @@
-@Tags(['unit', 'bible'])
+@Tags(['unit', 'services'])
 library;
 
 import 'package:archive/archive.dart';
