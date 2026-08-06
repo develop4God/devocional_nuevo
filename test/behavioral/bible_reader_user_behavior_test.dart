@@ -27,10 +27,13 @@ import '../helpers/test_helpers.dart';
 /// deterministically without a real network call.
 class _FakeBibleVersionRepository implements IBibleVersionRepository {
   List<BibleVersion> versionsToReturn = [];
+  String? lastRequestedLanguageCode;
 
   @override
-  Future<List<BibleVersion>> fetchRemoteVersions(String languageCode) async =>
-      versionsToReturn;
+  Future<List<BibleVersion>> fetchRemoteVersions(String languageCode) async {
+    lastRequestedLanguageCode = languageCode;
+    return versionsToReturn;
+  }
 
   @override
   Future<void> downloadVersion(
@@ -386,6 +389,22 @@ void main() {
           ),
         );
         expect((currentTile.leading as Icon).icon, Icons.radio_button_checked);
+      },
+    );
+
+    testWidgets(
+      'BibleReaderPage requests remote versions for the content language, '
+      'not the device locale',
+      (WidgetTester tester) async {
+        // GIVEN: BibleReaderPage is loaded with Spanish-language versions
+        // (mockVersions is 'es' — see setUp), while the test harness's
+        // platform locale defaults to 'en'.
+        await pumpBiblePage(tester);
+
+        // THEN: the versions bloc fetched remote versions for 'es' (the
+        // language of the content actually being read), not the device
+        // locale.
+        expect(fakeVersionRepository.lastRequestedLanguageCode, 'es');
       },
     );
 

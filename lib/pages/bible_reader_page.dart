@@ -117,8 +117,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       preferencesService: preferencesService,
     );
 
-    final versionsLanguageCode =
-        ui.PlatformDispatcher.instance.locale.languageCode;
+    final versionsLanguageCode = widget.versions.isNotEmpty
+        ? widget.versions.first.languageCode
+        : ui.PlatformDispatcher.instance.locale.languageCode;
     debugPrint(
       '[BibleReaderPage] dispatching LoadAvailableVersions('
       'languageCode=$versionsLanguageCode)',
