@@ -156,13 +156,17 @@ class BibleVerseGridSelector extends StatelessWidget {
                 : null,
           ),
           child: Center(
-            child: Text(
-              verseNumber.toString(),
-              style: textTheme.bodyMedium?.copyWith(
-                color:
-                    isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 18,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                verseNumber.toString(),
+                style: textTheme.bodyMedium?.copyWith(
+                  color: isSelected
+                      ? colorScheme.onPrimary
+                      : colorScheme.onSurface,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 18,
+                ),
               ),
             ),
           ),
