@@ -31,14 +31,12 @@ class BibleVersionDownloadException implements Exception {
 class BibleVersionRepository implements IBibleVersionRepository {
   final http.Client httpClient;
   static const String _indexCacheKeyPrefix = 'bible_versions_index_cache_';
+  static const String _indexEtagKeyPrefix = 'bible_versions_index_etag_';
 
   /// Must match [BibleVersionRegistry]'s private
   /// `_remoteVersionNamesPrefKey` — the registry reads what this repository
   /// writes.
   static const String _remoteVersionNamesPrefKey = 'bible_remote_version_names';
-
-  /// Fetched at most once per app session — reset on every cold start.
-  static bool _indexFetchedThisSession = false;
 
   BibleVersionRepository({required this.httpClient});
 
@@ -46,14 +44,32 @@ class BibleVersionRepository implements IBibleVersionRepository {
   Future<List<BibleVersion>> fetchRemoteVersions(String languageCode) async {
     final branch = kDebugMode ? DebugFlags.debugBibleVersionsBranch : 'main';
     final index = await _fetchIndex(branch);
+    debugPrint(
+      '[BibleVersionRepository] fetchRemoteVersions($languageCode) '
+      'branch=$branch languagesInIndex=${index.languages.keys.toList()}',
+    );
 
     final language = index.languages[languageCode];
-    if (language == null) return [];
+    if (language == null) {
+      debugPrint(
+        '[BibleVersionRepository] no "$languageCode" entry in index — '
+        'returning []',
+      );
+      return [];
+    }
+    debugPrint(
+      '[BibleVersionRepository] index versions for $languageCode: '
+      '${language.versions.keys.toList()}',
+    );
 
     final bundledVersions =
         await BibleVersionRegistry.getVersionsForLanguage(languageCode);
     final bundledCodes =
         bundledVersions.map((v) => v.dbFileName.split('_').first).toSet();
+    debugPrint(
+      '[BibleVersionRepository] bundled/downloaded codes for '
+      '$languageCode: $bundledCodes',
+    );
 
     final onMain = branch == 'main';
     final List<BibleVersion> result = [];
@@ -62,7 +78,12 @@ class BibleVersionRepository implements IBibleVersionRepository {
       final code = entry.key;
       final versionEntry = entry.value;
 
-      if (bundledCodes.contains(code)) continue;
+      if (bundledCodes.contains(code)) {
+        debugPrint(
+          '[BibleVersionRepository] skipping $code — already bundled/downloaded',
+        );
+        continue;
+      }
 
       // A debug-branch index still points its own `url` field at `main`, so
       // when testing a debug branch the download URL must be built from the
@@ -88,6 +109,10 @@ class BibleVersionRepository implements IBibleVersionRepository {
       );
     }
 
+    debugPrint(
+      '[BibleVersionRepository] fetchRemoteVersions($languageCode) '
+      'returning ${result.map((v) => v.dbFileName).toList()}',
+    );
     return result;
   }
 
@@ -196,33 +221,58 @@ class BibleVersionRepository implements IBibleVersionRepository {
     await prefs.setString(_remoteVersionNamesPrefKey, jsonEncode(names));
   }
 
+  /// Fetches the index, always hitting the network with a conditional
+  /// request rather than trusting a same-session flag: a stale local cache
+  /// must never suppress a newer index (e.g. a newly added version) for the
+  /// rest of the app session or across restarts. An ETag makes repeat calls
+  /// cheap — the server returns 304 with no body when nothing changed, so
+  /// this is not a full re-download on every drawer open.
   Future<RemoteBibleIndex> _fetchIndex(String branch) async {
     final prefs = await SharedPreferences.getInstance();
     final cacheKey = '$_indexCacheKeyPrefix$branch';
-
-    if (_indexFetchedThisSession) {
-      final cached = prefs.getString(cacheKey);
-      if (cached != null) {
-        return RemoteBibleIndex.fromJson(
-          jsonDecode(cached) as Map<String, dynamic>,
-        );
-      }
-    }
+    final etagKey = '$_indexEtagKeyPrefix$branch';
+    final cachedEtag = prefs.getString(etagKey);
 
     try {
       final url = Constants.getBibleVersionsIndexUrl();
-      final response = await httpClient.get(Uri.parse(url));
+      final request = http.Request('GET', Uri.parse(url));
+      if (cachedEtag != null) {
+        request.headers['If-None-Match'] = cachedEtag;
+      }
+      final streamedResponse = await httpClient.send(request);
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 304) {
+        debugPrint(
+            '[BibleVersionRepository] index unchanged (304), using cache');
+        final cached = prefs.getString(cacheKey);
+        if (cached != null) {
+          return RemoteBibleIndex.fromJson(
+            jsonDecode(cached) as Map<String, dynamic>,
+          );
+        }
+        // No cached body despite a cached ETag — fall through to error path.
+        throw Exception('304 received but no cached body for $cacheKey');
+      }
 
       if (response.statusCode == 200) {
         await prefs.setString(cacheKey, response.body);
-        _indexFetchedThisSession = true;
+        final newEtag = response.headers['etag'];
+        if (newEtag != null) {
+          await prefs.setString(etagKey, newEtag);
+        } else {
+          await prefs.remove(etagKey);
+        }
+        debugPrint('[BibleVersionRepository] index fetched fresh (200)');
         return RemoteBibleIndex.fromJson(
           jsonDecode(response.body) as Map<String, dynamic>,
         );
-      } else {
-        throw Exception('Server error: ${response.statusCode}');
       }
+
+      throw Exception('Server error: ${response.statusCode}');
     } catch (e) {
+      debugPrint(
+          '[BibleVersionRepository] index fetch failed: $e — falling back to cache');
       final cached = prefs.getString(cacheKey);
       if (cached != null) {
         return RemoteBibleIndex.fromJson(

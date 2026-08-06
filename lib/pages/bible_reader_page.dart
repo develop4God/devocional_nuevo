@@ -1,4 +1,5 @@
 //bible_reader_page.dart - Pure UI presentation layer
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:auto_size_text/auto_size_text.dart';
@@ -6,6 +7,8 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/bible_note_bloc.dart';
 import 'package:devocional_nuevo/blocs/bible_note_state.dart';
 import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_bloc.dart';
+import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_event.dart';
+import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
@@ -27,7 +30,6 @@ import 'package:devocional_nuevo/widgets/bible/bible_note_viewer.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_action_modal.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_drawer.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_tts_miniplayer_presenter.dart';
-import 'package:devocional_nuevo/widgets/bible/bible_version_download_sheet.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_search_overlay.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_note_indicator.dart';
@@ -57,9 +59,9 @@ class BibleReaderPage extends StatefulWidget {
   /// a saved note. Applied once, after the reader finishes loading.
   final ({String bookName, int chapter, int verse})? initialReference;
 
-  /// Called after the "Download Bible versions" flow closes, so the parent
-  /// (e.g. app_navigation_shell's Bible tab) can refresh its version list.
-  /// Optional so BibleReaderPage remains usable standalone.
+  /// Called after a version finishes downloading from the drawer, so the
+  /// parent (e.g. app_navigation_shell's Bible tab) can refresh its version
+  /// list. Optional so BibleReaderPage remains usable standalone.
   final VoidCallback? onVersionsMayHaveChanged;
 
   const BibleReaderPage({
@@ -78,6 +80,7 @@ class BibleReaderPage extends StatefulWidget {
 
 class _BibleReaderPageState extends State<BibleReaderPage> {
   late BibleReaderController _controller;
+  late BibleVersionsBloc _versionsBloc;
   bool _bottomSheetOpen = false;
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
@@ -113,6 +116,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       readerService: readerService,
       preferencesService: preferencesService,
     );
+
+    final versionsLanguageCode =
+        ui.PlatformDispatcher.instance.locale.languageCode;
+    debugPrint(
+      '[BibleReaderPage] dispatching LoadAvailableVersions('
+      'languageCode=$versionsLanguageCode)',
+    );
+    _versionsBloc = BibleVersionsBloc(
+      repository: getService<IBibleVersionRepository>(),
+    )..add(LoadAvailableVersions(languageCode: versionsLanguageCode));
 
     // ── TTS ──────────────────────────────────────────────────────────────────
     // Resolve all TTS dependencies once at init-time, never inside handlers.
@@ -184,6 +197,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     _ttsMiniplayerPresenter.dispose();
     _ttsAudioController.dispose();
     _controller.dispose();
+    _versionsBloc.close();
     super.dispose();
   }
 
@@ -893,20 +907,43 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
   }
 
-  Future<void> _handleDownloadMoreVersions(
+  /// Downloads [version] via [_versionsBloc], then switches the reader to
+  /// it and notifies the parent so its cached version list picks up the new
+  /// file (and its disclaimer) on the next drawer open.
+  Future<void> _handleDownloadVersion(
     BuildContext context,
-    BibleReaderState state,
+    BibleVersion version,
   ) async {
-    final languageCode = state.selectedVersion?.languageCode ??
-        ui.PlatformDispatcher.instance.locale.languageCode;
-    await BibleVersionDownloadSheet.show(
-      context,
-      languageCode: languageCode,
-      createBloc: () => BibleVersionsBloc(
-        repository: getService<IBibleVersionRepository>(),
-      ),
-    );
-    widget.onVersionsMayHaveChanged?.call();
+    late final StreamSubscription<BibleVersionsState> subscription;
+    subscription = _versionsBloc.stream.listen((state) async {
+      if (state is! BibleVersionsLoaded) return;
+      final status = state.downloadStatuses[version.dbFileName];
+      if (status == null) return;
+
+      if (status.isComplete) {
+        // Fire-and-forget: awaiting cancel() from within this stream's own
+        // onData callback deadlocks, since the controller waits for this
+        // callback to return before finalizing the cancellation.
+        unawaited(subscription.cancel());
+        if (!mounted) return;
+        // Switch first, so the new version's reading position is saved
+        // before onVersionsMayHaveChanged() below remounts this page with a
+        // fresh key — otherwise the remount restores the previous version.
+        await _controller.switchVersion(version);
+        widget.onVersionsMayHaveChanged?.call();
+        if (!context.mounted) return;
+        AppSnackBar.show(
+          context,
+          'bible.loading_version'.tr({'version': version.name}),
+        );
+      } else if (status.errorMessageKey != null) {
+        unawaited(subscription.cancel());
+        if (!context.mounted) return;
+        AppSnackBar.show(context, status.errorMessageKey!.tr());
+      }
+    });
+
+    _versionsBloc.add(DownloadBibleVersion(version));
   }
 
   /// Extract display name from version name
@@ -1016,14 +1053,43 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
               ),
             ),
             drawer: state.availableVersions.isNotEmpty
-                ? BibleReaderDrawer(
-                    availableVersions: state.availableVersions,
-                    selectedVersion: state.selectedVersion,
-                    versionLabelBuilder: _versionPickerLabel,
-                    onVersionSelected: (version) =>
-                        _handleVersionSelected(context, version),
-                    onDownloadMoreVersions: () =>
-                        _handleDownloadMoreVersions(context, state),
+                ? BlocBuilder<BibleVersionsBloc, BibleVersionsState>(
+                    bloc: _versionsBloc,
+                    builder: (context, versionsState) {
+                      final downloadedFileNames = state.availableVersions
+                          .map((v) => v.dbFileName)
+                          .toSet();
+                      final downloadableVersions = versionsState
+                              is BibleVersionsLoaded
+                          ? versionsState.remoteVersions
+                              .where((v) =>
+                                  !downloadedFileNames.contains(v.dbFileName))
+                              .toList()
+                          : const <BibleVersion>[];
+                      final downloadStatuses =
+                          versionsState is BibleVersionsLoaded
+                              ? versionsState.downloadStatuses
+                              : const <String, VersionDownloadStatus>{};
+
+                      debugPrint(
+                        '[BibleReaderDrawer build] versionsState=$versionsState '
+                        'availableVersions=${state.availableVersions.map((v) => v.dbFileName).toList()} '
+                        'downloadedFileNames=$downloadedFileNames '
+                        'downloadableVersions=${downloadableVersions.map((v) => v.dbFileName).toList()}',
+                      );
+
+                      return BibleReaderDrawer(
+                        availableVersions: state.availableVersions,
+                        selectedVersion: state.selectedVersion,
+                        downloadableVersions: downloadableVersions,
+                        downloadStatuses: downloadStatuses,
+                        versionLabelBuilder: _versionPickerLabel,
+                        onVersionSelected: (version) =>
+                            _handleVersionSelected(context, version),
+                        onDownloadVersion: (version) =>
+                            _handleDownloadVersion(context, version),
+                      );
+                    },
                   )
                 : null,
             body: Stack(

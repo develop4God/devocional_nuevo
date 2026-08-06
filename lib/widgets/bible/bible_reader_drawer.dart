@@ -1,25 +1,31 @@
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 
-/// Left-side navigation drawer for the Bible reader page: lists the
-/// available versions for the current language (current version
-/// highlighted) and offers a "download more versions" action, replacing
-/// the previous version-picker [PopupMenuButton].
+/// Left-side navigation drawer for the Bible reader page: lists downloaded
+/// versions for the current language (current version highlighted) plus any
+/// remote versions still available to download, each with a download icon.
+/// Tapping a downloadable version downloads it in place; the caller is
+/// responsible for switching to it once the download completes.
 class BibleReaderDrawer extends StatelessWidget {
   final List<BibleVersion> availableVersions;
   final BibleVersion? selectedVersion;
+  final List<BibleVersion> downloadableVersions;
+  final Map<String, VersionDownloadStatus> downloadStatuses;
   final String Function(BibleVersion version) versionLabelBuilder;
   final ValueChanged<BibleVersion> onVersionSelected;
-  final VoidCallback onDownloadMoreVersions;
+  final ValueChanged<BibleVersion> onDownloadVersion;
 
   const BibleReaderDrawer({
     super.key,
     required this.availableVersions,
     required this.selectedVersion,
+    this.downloadableVersions = const [],
+    this.downloadStatuses = const {},
     required this.versionLabelBuilder,
     required this.onVersionSelected,
-    required this.onDownloadMoreVersions,
+    required this.onDownloadVersion,
   });
 
   @override
@@ -101,30 +107,81 @@ class BibleReaderDrawer extends StatelessWidget {
                       },
                     );
                   }),
-                  const Divider(height: 24),
-                  ListTile(
-                    key: const Key('bible_reader_drawer_download_more'),
-                    leading: Icon(
-                      Icons.download_for_offline_outlined,
-                      color: colorScheme.primary,
-                    ),
-                    title: Text(
-                      'bible.download_versions'.tr(),
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontSize: 16,
-                        color: colorScheme.onSurface,
+                  ...downloadableVersions.map((version) {
+                    final status = downloadStatuses[version.dbFileName];
+                    return ListTile(
+                      key: Key(
+                        'bible_reader_drawer_downloadable_${version.dbFileName}',
                       ),
-                    ),
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      onDownloadMoreVersions();
-                    },
-                  ),
+                      title: Text(
+                        versionLabelBuilder(version),
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 16,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      trailing: _downloadTrailing(colorScheme, status),
+                      onTap: status == null || status.errorMessageKey != null
+                          ? () {
+                              Navigator.of(context).pop();
+                              onDownloadVersion(version);
+                            }
+                          : null,
+                    );
+                  }),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Same circular bordered icon treatment as the app language settings
+  /// page's download trailing widget, for a consistent download affordance.
+  Widget _downloadTrailing(
+    ColorScheme colorScheme,
+    VersionDownloadStatus? status,
+  ) {
+    if (status != null &&
+        status.errorMessageKey == null &&
+        !status.isComplete) {
+      return Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border:
+              Border.all(color: colorScheme.primary.withAlpha(100), width: 2),
+        ),
+        child: Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              value: status.progress,
+              strokeWidth: 2,
+              color: colorScheme.primary,
+            ),
+          ),
+        ),
+      );
+    }
+
+    final iconData = status?.errorMessageKey != null
+        ? Icons.refresh_outlined
+        : Icons.file_download_outlined;
+
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: colorScheme.primary.withAlpha(180), width: 2),
+      ),
+      child: Center(
+        child: Icon(iconData, color: colorScheme.primary, size: 20),
       ),
     );
   }
