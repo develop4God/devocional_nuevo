@@ -1139,7 +1139,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                   child: Column(
                     children: [
                       if (_showKjvBanner)
-                        KjvKj2000Banner(onDismiss: _dismissKjvBanner),
+                        Builder(
+                          builder: (context) => KjvKj2000Banner(
+                            onDismiss: _dismissKjvBanner,
+                            onOpenDrawer: () =>
+                                Scaffold.of(context).openDrawer(),
+                          ),
+                        ),
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
