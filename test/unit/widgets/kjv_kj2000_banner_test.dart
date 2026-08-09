@@ -9,11 +9,15 @@ void main() {
   Future<void> pumpBanner(
     WidgetTester tester, {
     required VoidCallback onDismiss,
+    VoidCallback? onOpenDrawer,
   }) {
     return tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: KjvKj2000Banner(onDismiss: onDismiss),
+          body: KjvKj2000Banner(
+            onDismiss: onDismiss,
+            onOpenDrawer: onOpenDrawer ?? () {},
+          ),
         ),
       ),
     );
@@ -36,5 +40,21 @@ void main() {
     await tester.pump();
 
     expect(dismissed, isTrue);
+  });
+
+  testWidgets('tapping the banner invokes onOpenDrawer', (tester) async {
+    var opened = false;
+    await pumpBanner(
+      tester,
+      onDismiss: () {},
+      onOpenDrawer: () => opened = true,
+    );
+
+    await tester.tap(
+      find.textContaining('KJV now shows the authentic King James Version'),
+    );
+    await tester.pump();
+
+    expect(opened, isTrue);
   });
 }
