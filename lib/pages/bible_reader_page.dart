@@ -1097,7 +1097,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                 ],
               ),
             ),
-            drawer: state.availableVersions.isNotEmpty
+            endDrawer: state.availableVersions.isNotEmpty
                 ? BlocBuilder<BibleVersionsBloc, BibleVersionsState>(
                     bloc: _versionsBloc,
                     builder: (context, versionsState) {
@@ -1147,7 +1147,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                           builder: (context) => KjvKj2000Banner(
                             onDismiss: _dismissKjvBanner,
                             onOpenDrawer: () =>
-                                Scaffold.of(context).openDrawer(),
+                                Scaffold.of(context).openEndDrawer(),
                           ),
                         ),
                       Container(
