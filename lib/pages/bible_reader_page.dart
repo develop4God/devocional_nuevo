@@ -16,6 +16,7 @@ import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/repositories/i_bible_version_repository.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
+import 'package:devocional_nuevo/services/i_user_recency_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_reader_tts_text_builder.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
@@ -203,10 +204,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
   }
 
+  // Only existing users could have seen the old mislabeled KJV text, so a
+  // brand-new user has nothing to be notified about.
   Future<void> _checkKjvBannerVisibility() async {
     final prefs = await SharedPreferences.getInstance();
     final dismissed = prefs.getBool(_kjvBannerDismissedKey) ?? false;
-    if (!dismissed && mounted) {
+    final isNewUser = await getService<IUserRecencyService>().isNewUser();
+    if (!dismissed && !isNewUser && mounted) {
       setState(() => _showKjvBanner = true);
     }
   }
