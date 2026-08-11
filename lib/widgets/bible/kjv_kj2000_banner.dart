@@ -65,7 +65,7 @@ class KjvKj2000Banner extends StatelessWidget {
                           ),
                         ),
                         const TextSpan(
-                          text: " in the top-left corner and choose KJ2000.",
+                          text: " in the top-right corner and choose KJ2000.",
                         ),
                       ],
                     ),
