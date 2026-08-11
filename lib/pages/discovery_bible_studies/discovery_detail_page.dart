@@ -15,6 +15,7 @@ import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/discovery_section_card.dart';
 import 'package:devocional_nuevo/widgets/key_verse_card.dart';
+import 'package:devocional_nuevo/widgets/markdown_emphasis_text.dart';
 import 'package:devocional_nuevo/widgets/scripture/resolved_verse_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -592,7 +593,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           ],
           const SizedBox(height: 24),
           if (card.content != null)
-            _buildBoldMarkdownText(
+            buildEmphasisMarkdownText(
               card.content!,
               style: theme.textTheme.bodyLarge?.copyWith(
                 height: 1.6,
@@ -642,6 +643,10 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             const SizedBox(height: 32),
             _buildScriptureAnchorTile(card.scriptureAnchor!, theme),
           ],
+          if (card.identityStatement != null) ...[
+            const SizedBox(height: 32),
+            _buildIdentityStatementTile(card.identityStatement!, theme),
+          ],
           if (card.scriptureConnections != null) ...[
             const SizedBox(height: 32),
             ...card.scriptureConnections!.map(
@@ -657,6 +662,12 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           if (card.greekWords != null) ...[
             const SizedBox(height: 32),
             ...card.greekWords!.map((word) => _buildGreekWordTile(word, theme)),
+          ],
+          if (card.hebrewWords != null) ...[
+            const SizedBox(height: 32),
+            ...card.hebrewWords!.map(
+              (word) => _buildGreekWordTile(word, theme),
+            ),
           ],
           if (card.discoveryQuestions != null) ...[
             const SizedBox(height: 32),
@@ -728,31 +739,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  /// Renders text containing `**bold**` markers as a [Text.rich] with the
-  /// marked segments bolded, since the JSON content uses lightweight
-  /// markdown-style emphasis that plain [Text] does not parse.
-  Widget _buildBoldMarkdownText(String text, {TextStyle? style}) {
-    final boldPattern = RegExp(r'\*\*(.+?)\*\*');
-    final spans = <TextSpan>[];
-    var lastEnd = 0;
-    for (final match in boldPattern.allMatches(text)) {
-      if (match.start > lastEnd) {
-        spans.add(TextSpan(text: text.substring(lastEnd, match.start)));
-      }
-      spans.add(
-        TextSpan(
-          text: match.group(1),
-          style: const TextStyle(fontWeight: FontWeight.w800),
-        ),
-      );
-      lastEnd = match.end;
-    }
-    if (lastEnd < text.length) {
-      spans.add(TextSpan(text: text.substring(lastEnd)));
-    }
-    return Text.rich(TextSpan(style: style, children: spans));
-  }
-
   Widget _buildScriptureTile(VerseRef s, ThemeData theme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -817,7 +803,44 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  Widget _buildGreekWordTile(GreekWord word, ThemeData theme) {
+  Widget _buildIdentityStatementTile(
+      String identityStatement, ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.tertiary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.tertiary.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.auto_awesome_rounded,
+            size: 24,
+            color: theme.colorScheme.tertiary,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              identityStatement,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                height: 1.4,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGreekWordTile(LexiconWord word, ThemeData theme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
@@ -857,6 +880,27 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                   ),
                 ),
               ],
+              if (word.strong != null) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    word.strong!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 12),
@@ -866,6 +910,14 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           ),
           const SizedBox(height: 8),
           Text('${'discovery.revelation'.tr()}: ${word.revelation}'),
+          if (word.reference.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text('${'discovery.reference'.tr()}: ${word.reference}'),
+          ],
+          if (word.application.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text('${'discovery.application'.tr()}: ${word.application}'),
+          ],
         ],
       ),
     );

@@ -1,16 +1,23 @@
 //bible_reader_page.dart - Pure UI presentation layer
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/bible_note_bloc.dart';
 import 'package:devocional_nuevo/blocs/bible_note_state.dart';
+import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_bloc.dart';
+import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_event.dart';
+import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
+import 'package:devocional_nuevo/repositories/i_bible_version_repository.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
+import 'package:devocional_nuevo/services/i_user_recency_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_reader_tts_text_builder.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
@@ -23,10 +30,12 @@ import 'package:devocional_nuevo/widgets/bible/bible_chapter_grid_selector.dart'
 import 'package:devocional_nuevo/widgets/bible/bible_note_modal.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_note_viewer.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_action_modal.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_reader_drawer.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_search_overlay.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_note_indicator.dart';
+import 'package:devocional_nuevo/widgets/bible/kjv_kj2000_banner.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:devocional_nuevo/widgets/modern_voice_feature_dialog.dart';
@@ -38,6 +47,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Pure UI presentation layer for Bible Reader
 /// All business logic is handled by BibleReaderController
@@ -53,6 +63,11 @@ class BibleReaderPage extends StatefulWidget {
   /// a saved note. Applied once, after the reader finishes loading.
   final ({String bookName, int chapter, int verse})? initialReference;
 
+  /// Called after a version finishes downloading from the drawer, so the
+  /// parent (e.g. app_navigation_shell's Bible tab) can refresh its version
+  /// list. Optional so BibleReaderPage remains usable standalone.
+  final VoidCallback? onVersionsMayHaveChanged;
+
   const BibleReaderPage({
     super.key,
     required this.versions,
@@ -60,6 +75,7 @@ class BibleReaderPage extends StatefulWidget {
     this.preferencesService,
     this.flutterTts,
     this.initialReference,
+    this.onVersionsMayHaveChanged,
   });
 
   @override
@@ -68,6 +84,7 @@ class BibleReaderPage extends StatefulWidget {
 
 class _BibleReaderPageState extends State<BibleReaderPage> {
   late BibleReaderController _controller;
+  late BibleVersionsBloc _versionsBloc;
   bool _bottomSheetOpen = false;
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
@@ -83,6 +100,15 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   // Set while an initialReference scroll-into-view is still owed, so the
   // post-frame callback in build() knows to act once verses finish loading.
   bool _pendingReferenceScroll = false;
+
+  // Tracks the in-flight download listener from _handleDownloadVersion, so
+  // dispose() can cancel it if the page is left mid-download.
+  StreamSubscription<BibleVersionsState>? _downloadSubscription;
+
+  // One-time notice about the KJV/KJ2000 relabeling fix (see commit
+  // 9c26f98a and related). Shown only to English readers until dismissed.
+  static const String _kjvBannerDismissedKey = 'kjv_kj2000_banner_dismissed';
+  bool _showKjvBanner = false;
 
   @override
   void initState() {
@@ -103,6 +129,17 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       readerService: readerService,
       preferencesService: preferencesService,
     );
+
+    final versionsLanguageCode = widget.versions.isNotEmpty
+        ? widget.versions.first.languageCode
+        : ui.PlatformDispatcher.instance.locale.languageCode;
+    debugPrint(
+      '[BibleReaderPage] dispatching LoadAvailableVersions('
+      'languageCode=$versionsLanguageCode)',
+    );
+    _versionsBloc = BibleVersionsBloc(
+      repository: getService<IBibleVersionRepository>(),
+    )..add(LoadAvailableVersions(languageCode: versionsLanguageCode));
 
     // ── TTS ──────────────────────────────────────────────────────────────────
     // Resolve all TTS dependencies once at init-time, never inside handlers.
@@ -162,6 +199,27 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     } else {
       _controller.initialize(deviceLanguage);
     }
+
+    if (versionsLanguageCode == 'en') {
+      _checkKjvBannerVisibility();
+    }
+  }
+
+  // Only existing users could have seen the old mislabeled KJV text, so a
+  // brand-new user has nothing to be notified about.
+  Future<void> _checkKjvBannerVisibility() async {
+    final prefs = await SharedPreferences.getInstance();
+    final dismissed = prefs.getBool(_kjvBannerDismissedKey) ?? false;
+    final isNewUser = await getService<IUserRecencyService>().isNewUser();
+    if (!dismissed && !isNewUser && mounted) {
+      setState(() => _showKjvBanner = true);
+    }
+  }
+
+  Future<void> _dismissKjvBanner() async {
+    setState(() => _showKjvBanner = false);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kjvBannerDismissedKey, true);
   }
 
   @override
@@ -174,6 +232,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     _ttsMiniplayerPresenter.dispose();
     _ttsAudioController.dispose();
     _controller.dispose();
+    _downloadSubscription?.cancel();
+    _versionsBloc.close();
     super.dispose();
   }
 
@@ -871,6 +931,67 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     return '$displayName · $abbr';
   }
 
+  Future<void> _handleVersionSelected(
+    BuildContext context,
+    BibleVersion version,
+  ) async {
+    await _controller.switchVersion(version);
+    if (!context.mounted) return;
+    AppSnackBar.show(
+      context,
+      'bible.loading_version'.tr({'version': version.name}),
+    );
+  }
+
+  /// Downloads [version] via [_versionsBloc], then switches the reader to
+  /// it and notifies the parent so its cached version list picks up the new
+  /// file (and its disclaimer) on the next drawer open.
+  Future<void> _handleDownloadVersion(
+    BuildContext context,
+    BibleVersion version,
+  ) async {
+    // Cancel any previous in-flight listener before starting a new one, so
+    // at most one download listener is ever tracked/live at a time.
+    unawaited(_downloadSubscription?.cancel());
+    _downloadSubscription = _versionsBloc.stream.listen((state) async {
+      if (state is! BibleVersionsLoaded) return;
+      final status = state.downloadStatuses[version.dbFileName];
+      if (status == null) return;
+
+      if (status.isComplete) {
+        // Fire-and-forget: awaiting cancel() from within this stream's own
+        // onData callback deadlocks, since the controller waits for this
+        // callback to return before finalizing the cancellation.
+        unawaited(_downloadSubscription?.cancel());
+        _downloadSubscription = null;
+        if (!mounted) return;
+        // Close the drawer now that the download finished — it was kept
+        // open (and undismissable) so the user could see the progress
+        // indicator while downloading.
+        if (context.mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+        // Switch first, so the new version's reading position is saved
+        // before onVersionsMayHaveChanged() below remounts this page with a
+        // fresh key — otherwise the remount restores the previous version.
+        await _controller.switchVersion(version);
+        widget.onVersionsMayHaveChanged?.call();
+        if (!context.mounted) return;
+        AppSnackBar.show(
+          context,
+          'bible.loading_version'.tr({'version': version.name}),
+        );
+      } else if (status.errorMessageKey != null) {
+        unawaited(_downloadSubscription?.cancel());
+        _downloadSubscription = null;
+        if (!context.mounted) return;
+        AppSnackBar.show(context, status.errorMessageKey!.tr());
+      }
+    });
+
+    _versionsBloc.add(DownloadBibleVersion(version));
+  }
+
   /// Extract display name from version name
   /// - For Latin-script languages (es, en, pt, fr, de): removes trailing "(CODE)"
   ///   e.g. "Lutherbibel 2017 (LU17)" → "Lutherbibel 2017"
@@ -974,58 +1095,80 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                     tooltip: 'bible.adjust_font_size'.tr(),
                     onPressed: () => _controller.toggleFontControls(),
                   ),
-                  // Version menu (rightmost in RTL, leftmost action in LTR)
-                  if (state.availableVersions.length > 1)
-                    PopupMenuButton<BibleVersion>(
+                  // Versions end drawer trigger. Scaffold only auto-generates
+                  // a hamburger icon for `drawer`, never for `endDrawer`, so
+                  // this button must be added explicitly.
+                  Builder(
+                    builder: (context) => IconButton(
                       icon: Icon(
                         Icons.menu,
                         color: Theme.of(context).colorScheme.onPrimary,
-                      ),
+                      ).newIconBadge,
                       tooltip: 'bible.select_version'.tr(),
-                      onSelected: (version) async {
-                        await _controller.switchVersion(version);
-                        if (!context.mounted) return;
-                        AppSnackBar.show(
-                          context,
-                          'bible.loading_version'.tr({'version': version.name}),
+                      onPressed: () {
+                        BubbleUtils.markAsShown(
+                          BubbleUtils.getIconBubbleId(Icons.menu, 'new'),
                         );
+                        Scaffold.of(context).openEndDrawer();
                       },
-                      itemBuilder: (context) => state.availableVersions.map((
-                        version,
-                      ) {
-                        return PopupMenuItem<BibleVersion>(
-                          value: version,
-                          child: Row(
-                            children: [
-                              if (version.dbFileName ==
-                                  state.selectedVersion?.dbFileName)
-                                Icon(
-                                  Icons.check,
-                                  color: Theme.of(context).colorScheme.primary,
-                                  size: 20,
-                                )
-                              else
-                                const SizedBox(width: 20),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  _versionPickerLabel(version),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
                     ),
+                  ),
                 ],
               ),
             ),
+            endDrawer: state.availableVersions.isNotEmpty
+                ? BlocBuilder<BibleVersionsBloc, BibleVersionsState>(
+                    bloc: _versionsBloc,
+                    builder: (context, versionsState) {
+                      final downloadedFileNames = state.availableVersions
+                          .map((v) => v.dbFileName)
+                          .toSet();
+                      final downloadableVersions = versionsState
+                              is BibleVersionsLoaded
+                          ? versionsState.remoteVersions
+                              .where((v) =>
+                                  !downloadedFileNames.contains(v.dbFileName))
+                              .toList()
+                          : const <BibleVersion>[];
+                      final downloadStatuses =
+                          versionsState is BibleVersionsLoaded
+                              ? versionsState.downloadStatuses
+                              : const <String, VersionDownloadStatus>{};
+
+                      debugPrint(
+                        '[BibleReaderDrawer build] versionsState=$versionsState '
+                        'availableVersions=${state.availableVersions.map((v) => v.dbFileName).toList()} '
+                        'downloadedFileNames=$downloadedFileNames '
+                        'downloadableVersions=${downloadableVersions.map((v) => v.dbFileName).toList()}',
+                      );
+
+                      return BibleReaderDrawer(
+                        availableVersions: state.availableVersions,
+                        selectedVersion: state.selectedVersion,
+                        downloadableVersions: downloadableVersions,
+                        downloadStatuses: downloadStatuses,
+                        versionLabelBuilder: _versionPickerLabel,
+                        onVersionSelected: (version) =>
+                            _handleVersionSelected(context, version),
+                        onDownloadVersion: (version) =>
+                            _handleDownloadVersion(context, version),
+                      );
+                    },
+                  )
+                : null,
             body: Stack(
               children: [
                 SafeArea(
                   child: Column(
                     children: [
+                      if (_showKjvBanner)
+                        Builder(
+                          builder: (context) => KjvKj2000Banner(
+                            onDismiss: _dismissKjvBanner,
+                            onOpenDrawer: () =>
+                                Scaffold.of(context).openEndDrawer(),
+                          ),
+                        ),
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -1200,10 +1343,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                     return Padding(
                                       padding: const EdgeInsets.only(top: 24),
                                       child: Text(
-                                        CopyrightUtils.getCopyrightText(
-                                          state.selectedVersion!.languageCode,
-                                          state.selectedVersion!.name,
-                                        ),
+                                        state.selectedVersion!.disclaimer ??
+                                            CopyrightUtils.getCopyrightText(
+                                              state.selectedVersion!
+                                                  .languageCode,
+                                              state.selectedVersion!.name,
+                                            ),
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall

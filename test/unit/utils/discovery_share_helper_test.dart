@@ -47,7 +47,7 @@ void main() {
             icon: '🔤',
             title: 'Palabras Griegas Clave',
             greekWords: [
-              GreekWord(
+              LexiconWord(
                 word: 'Phōsphoros',
                 transliteration: 'Φωσφόρος',
                 reference: '2 Pedro 1:19',

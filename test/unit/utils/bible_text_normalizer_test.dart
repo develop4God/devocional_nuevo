@@ -107,5 +107,37 @@ void main() {
       expect(result, isNot(contains('ⓐ')));
       expect(result, contains('Sinabi'));
     });
+
+    test('removes Strong\'s number tags <S>1234</S> as a single unit', () {
+      const text = 'creó<S>1254</S> Dios<S>430</S> los cielos<S>8064</S>';
+      final result = BibleTextNormalizer.clean(text);
+      expect(result, 'creó Dios los cielos');
+    });
+
+    test(
+      'cleans real RV09+ verse text with Strong\'s numbers (Genesis 1:1)',
+      () {
+        const text =
+            'En el principio<S>7225</S> creó<S>1254</S> Dios<S>430</S> '
+            'los cielos<S>8064</S> y la tierra.<S>776</S> ';
+        final result = BibleTextNormalizer.clean(text);
+        expect(result, 'En el principio creó Dios los cielos y la tierra.');
+      },
+    );
+  });
+
+  group('BibleTextNormalizer.stripStrongTags Tests', () {
+    test('removes Strong\'s tags without affecting other markup', () {
+      const text = 'creó<S>1254</S> Dios<S>430</S> [1] <pb/>';
+      expect(
+        BibleTextNormalizer.stripStrongTags(text),
+        'creó Dios [1] <pb/>',
+      );
+    });
+
+    test('returns text unchanged when no Strong\'s tags present', () {
+      const text = 'Clean verse text';
+      expect(BibleTextNormalizer.stripStrongTags(text), text);
+    });
   });
 }

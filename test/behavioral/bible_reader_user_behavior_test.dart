@@ -8,18 +8,44 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
 import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
+import 'package:devocional_nuevo/repositories/i_bible_version_repository.dart';
 import 'package:devocional_nuevo/models/bible_note.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_note_modal.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_note_viewer.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_reader_drawer.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_note_indicator.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
+import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/widgets/bible/kjv_kj2000_banner.dart';
 import '../helpers/test_helpers.dart';
+
+/// Hand-written fake so the drawer download flow can be driven
+/// deterministically without a real network call.
+class _FakeBibleVersionRepository implements IBibleVersionRepository {
+  List<BibleVersion> versionsToReturn = [];
+  String? lastRequestedLanguageCode;
+
+  @override
+  Future<List<BibleVersion>> fetchRemoteVersions(String languageCode) async {
+    lastRequestedLanguageCode = languageCode;
+    return versionsToReturn;
+  }
+
+  @override
+  Future<void> downloadVersion(
+    BibleVersion version, {
+    void Function(double? progress)? onProgress,
+  }) async {
+    onProgress?.call(1.0);
+  }
+}
 
 class MockThemeBloc extends Mock implements ThemeBloc {}
 
@@ -55,6 +81,7 @@ void main() {
     late MockBibleDbService mockDbService;
     late MockLocalizationService mockLocalizationService;
     late List<BibleVersion> mockVersions;
+    late _FakeBibleVersionRepository fakeVersionRepository;
 
     setUpAll(() {
       registerFallbackValue(const BibleReaderState());
@@ -70,6 +97,17 @@ void main() {
       }
       ServiceLocator().registerSingleton<LocalizationService>(
         mockLocalizationService,
+      );
+
+      // Override the remote-version repository so the drawer's downloadable
+      // list and download flow are driven deterministically, without a
+      // real network call.
+      fakeVersionRepository = _FakeBibleVersionRepository();
+      if (ServiceLocator().isRegistered<IBibleVersionRepository>()) {
+        ServiceLocator().unregister<IBibleVersionRepository>();
+      }
+      ServiceLocator().registerSingleton<IBibleVersionRepository>(
+        fakeVersionRepository,
       );
 
       when(
@@ -294,6 +332,86 @@ void main() {
     });
 
     testWidgets(
+      'tapping a downloadable version in the drawer downloads it and '
+      'switches the reader to it',
+      (WidgetTester tester) async {
+        // GIVEN: a remote version not yet downloaded is available
+        final remoteVersion = BibleVersion(
+          name: 'KJ2000',
+          language: 'Español',
+          languageCode: 'es',
+          assetPath: '',
+          dbFileName: 'KJ2000_es.SQLite3',
+          isDownloaded: false,
+          remoteUrl: 'https://example.com/KJ2000_es.SQLite3.gz',
+          disclaimer: 'Public domain — KJ2000',
+          service: mockDbService,
+        );
+        fakeVersionRepository.versionsToReturn = [remoteVersion];
+
+        await pumpBiblePage(tester);
+        await tester.pump(const Duration(milliseconds: 50));
+
+        // WHEN: the user opens the drawer
+        expect(find.byIcon(Icons.menu), findsOneWidget);
+        await tester.tap(find.byIcon(Icons.menu));
+        await tester.pumpAndSettle();
+        expect(find.byType(BibleReaderDrawer), findsOneWidget);
+
+        // THEN: the not-yet-downloaded version is listed with a download icon
+        final downloadTileFinder = find.byKey(
+          const Key('bible_reader_drawer_downloadable_KJ2000_es.SQLite3'),
+        );
+        expect(downloadTileFinder, findsOneWidget);
+        expect(
+          find.descendant(
+            of: downloadTileFinder,
+            matching: find.byIcon(Icons.file_download_outlined),
+          ),
+          findsOneWidget,
+        );
+
+        // WHEN: the user taps it to download
+        await tester.tap(downloadTileFinder);
+        await tester.pumpAndSettle();
+
+        // THEN: the reader switches to the newly downloaded version
+        expect(find.byType(BibleReaderDrawer), findsNothing);
+        // Called twice: once for the version's own service, once for
+        // readerService.dbService — see _initializeVersionService.
+        verify(
+          () => mockDbService.initDb(any(), 'KJ2000_es.SQLite3'),
+        ).called(2);
+
+        // AND: reopening the drawer shows KJ2000 as the current selection
+        await tester.tap(find.byIcon(Icons.menu));
+        await tester.pumpAndSettle();
+        final currentTile = tester.widget<ListTile>(
+          find.byKey(
+            const Key('bible_reader_drawer_version_KJ2000_es.SQLite3'),
+          ),
+        );
+        expect((currentTile.leading as Icon).icon, Icons.radio_button_checked);
+      },
+    );
+
+    testWidgets(
+      'BibleReaderPage requests remote versions for the content language, '
+      'not the device locale',
+      (WidgetTester tester) async {
+        // GIVEN: BibleReaderPage is loaded with Spanish-language versions
+        // (mockVersions is 'es' — see setUp), while the test harness's
+        // platform locale defaults to 'en'.
+        await pumpBiblePage(tester);
+
+        // THEN: the versions bloc fetched remote versions for 'es' (the
+        // language of the content actually being read), not the device
+        // locale.
+        expect(fakeVersionRepository.lastRequestedLanguageCode, 'es');
+      },
+    );
+
+    testWidgets(
       'BibleReaderPage jumps to the initialReference verse after loading',
       (WidgetTester tester) async {
         // GIVEN: BibleReaderPage is loaded with an initialReference
@@ -396,5 +514,83 @@ void main() {
         );
       },
     );
+
+    group('KJV/KJ2000 banner visibility', () {
+      Future<void> pumpEnglishBiblePage(
+        WidgetTester tester, {
+        required int totalDevocionalesRead,
+      }) async {
+        if (ServiceLocator().isRegistered<ISpiritualStatsService>()) {
+          ServiceLocator().unregister<ISpiritualStatsService>();
+        }
+        ServiceLocator().registerSingleton<ISpiritualStatsService>(
+          _FakeStatsServiceWithCount(totalDevocionalesRead),
+        );
+
+        final englishVersion = BibleVersion(
+          name: 'King James Version',
+          language: 'English',
+          languageCode: 'en',
+          assetPath: 'assets/biblia/KJV_en.SQLite3',
+          dbFileName: 'KJV_en.SQLite3',
+          service: mockDbService,
+        );
+
+        await tester.pumpWidget(
+          MultiBlocProvider(
+            providers: [
+              BlocProvider<ThemeBloc>.value(value: mockThemeBloc),
+              BlocProvider<BibleNoteBloc>(
+                create: (_) => BibleNoteBloc(
+                  bibleNotesRepository: FakeBibleNotesRepository(),
+                )..add(LoadBibleNotes()),
+              ),
+            ],
+            child: MaterialApp(
+              home: BibleReaderPage(
+                versions: [englishVersion],
+                readerService: mockReaderService,
+                preferencesService: mockPreferencesService,
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets(
+        'is shown to an existing user (5+ devotionals read) reading '
+        'an English version',
+        (tester) async {
+          await pumpEnglishBiblePage(tester, totalDevocionalesRead: 5);
+
+          expect(find.byType(KjvKj2000Banner), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'is not shown to a new user (under 5 devotionals read) reading '
+        'an English version',
+        (tester) async {
+          await pumpEnglishBiblePage(tester, totalDevocionalesRead: 0);
+
+          expect(find.byType(KjvKj2000Banner), findsNothing);
+        },
+      );
+    });
   });
+}
+
+/// Fake stats service with a settable devotional read count, used to drive
+/// the KJV/KJ2000 banner's existing-user gate deterministically.
+class _FakeStatsServiceWithCount extends FakeSpiritualStatsService {
+  _FakeStatsServiceWithCount(this.totalDevocionalesRead);
+
+  final int totalDevocionalesRead;
+
+  @override
+  Future<SpiritualStats> getStats() async =>
+      SpiritualStats(totalDevocionalesRead: totalDevocionalesRead);
 }

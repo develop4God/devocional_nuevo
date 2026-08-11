@@ -1367,6 +1367,69 @@ void main() {
         );
       },
     );
+
+    test('IBibleVersionRepository is registered in ServiceLocator', () async {
+      final file = File('lib/services/service_locator.dart');
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('registerLazySingleton<IBibleVersionRepository>'),
+        isTrue,
+        reason: 'IBibleVersionRepository must be registered by interface type',
+      );
+    });
+
+    test('BibleVersionRepository has no static singleton antipattern',
+        () async {
+      final file = File('lib/repositories/bible_version_repository.dart');
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('static BibleVersionRepository? _instance'),
+        isFalse,
+      );
+      expect(
+        content.contains('static BibleVersionRepository get instance'),
+        isFalse,
+      );
+    });
+
+    test('IUserRecencyService is registered in ServiceLocator', () async {
+      final file = File('lib/services/service_locator.dart');
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('registerLazySingleton<IUserRecencyService>'),
+        isTrue,
+        reason: 'IUserRecencyService must be registered by interface type',
+      );
+    });
+
+    test('UserRecencyService implements IUserRecencyService', () async {
+      final file = File('lib/services/user_recency_service.dart');
+      expect(await file.exists(), isTrue);
+      final content = await file.readAsString();
+
+      expect(
+        content.contains(
+          'class UserRecencyService implements IUserRecencyService',
+        ),
+        isTrue,
+        reason:
+            'UserRecencyService must implement IUserRecencyService interface',
+      );
+    });
+
+    test('UserRecencyService has no static singleton antipattern', () async {
+      final file = File('lib/services/user_recency_service.dart');
+      final content = await file.readAsString();
+
+      expect(content.contains('static UserRecencyService? _instance'), isFalse);
+      expect(
+        content.contains('static UserRecencyService get instance'),
+        isFalse,
+      );
+    });
   });
 }
 
