@@ -2,72 +2,76 @@
 library;
 
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_models.dart';
-import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
+import 'package:devocional_nuevo/services/i_user_recency_service.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../helpers/test_helpers.dart';
 import 'remote_config_service_test.mocks.dart';
 
-/// Fake stats service with a settable devotional read count, so tests can
-/// simulate an "existing user" (>=5 devotionals read) for the onboarding
-/// backfill without depending on the shared [FakeSpiritualStatsService],
-/// which always returns a fixed zero-value [SpiritualStats].
-class _FakeStatsServiceWithCount extends FakeSpiritualStatsService {
-  _FakeStatsServiceWithCount(this.totalDevocionalesRead);
-
-  final int totalDevocionalesRead;
-
+/// Fake recency service that always classifies the user as new.
+class _FakeNewUserRecencyService implements IUserRecencyService {
   @override
-  Future<SpiritualStats> getStats() async =>
-      SpiritualStats(totalDevocionalesRead: totalDevocionalesRead);
+  Future<bool> isNewUser() async => true;
 }
 
-/// Fake stats service whose [getStats] always throws, to exercise the
+/// Fake recency service with a settable classification, so tests can
+/// simulate an "existing user" for the onboarding backfill.
+class _FakeUserRecencyServiceWithResult implements IUserRecencyService {
+  _FakeUserRecencyServiceWithResult(this._isNewUser);
+
+  final bool _isNewUser;
+
+  @override
+  Future<bool> isNewUser() async => _isNewUser;
+}
+
+/// Fake recency service whose [isNewUser] always throws, to exercise the
 /// backfill's error path.
-class _ThrowingStatsService extends FakeSpiritualStatsService {
+class _ThrowingUserRecencyService implements IUserRecencyService {
   @override
-  Future<SpiritualStats> getStats() async =>
-      throw Exception('stats read failed');
+  Future<bool> isNewUser() async => throw Exception('stats read failed');
 }
 
-/// Fake stats service that fails the first [failFirst] calls, then
-/// succeeds with [thenReturns] devotionals read on every call after.
+/// Fake recency service that fails the first [failFirst] calls, then
+/// succeeds classifying the user per [thenIsNewUser] on every call after.
 /// Tracks [callCount] so tests can assert exactly how many times the
-/// backfill actually invoked [getStats].
-class _FlakyStatsService extends FakeSpiritualStatsService {
-  _FlakyStatsService({required this.failFirst, required this.thenReturns});
+/// backfill actually invoked [isNewUser].
+class _FlakyUserRecencyService implements IUserRecencyService {
+  _FlakyUserRecencyService({
+    required this.failFirst,
+    required this.thenIsNewUser,
+  });
 
   final int failFirst;
-  final int thenReturns;
+  final bool thenIsNewUser;
   int callCount = 0;
 
   @override
-  Future<SpiritualStats> getStats() async {
+  Future<bool> isNewUser() async {
     callCount++;
     if (callCount <= failFirst) {
       throw Exception('stats read failed');
     }
-    return SpiritualStats(totalDevocionalesRead: thenReturns);
+    return thenIsNewUser;
   }
 }
 
-/// Fake stats service that counts how many times [getStats] is invoked,
+/// Fake recency service that counts how many times [isNewUser] is invoked,
 /// used to verify the backfill's write-serialization actually prevents a
 /// duplicate stats read when two checks race on the same instance.
-class _CountingStatsService extends FakeSpiritualStatsService {
-  _CountingStatsService(this.totalDevocionalesRead);
+class _CountingUserRecencyService implements IUserRecencyService {
+  _CountingUserRecencyService(this._isNewUser);
 
-  final int totalDevocionalesRead;
+  final bool _isNewUser;
   int callCount = 0;
 
   @override
-  Future<SpiritualStats> getStats() async {
+  Future<bool> isNewUser() async {
     callCount++;
-    return SpiritualStats(totalDevocionalesRead: totalDevocionalesRead);
+    return _isNewUser;
   }
 }
 
@@ -91,7 +95,7 @@ void main() {
       await remoteConfigService.initialize();
       service = OnboardingService.create(
         remoteConfigService: remoteConfigService,
-        statsService: FakeSpiritualStatsService(),
+        userRecencyService: _FakeNewUserRecencyService(),
       );
     });
 
@@ -101,7 +105,7 @@ void main() {
       );
       final unreadyService = OnboardingService.create(
         remoteConfigService: unreadyRemoteConfigService,
-        statsService: FakeSpiritualStatsService(),
+        userRecencyService: _FakeNewUserRecencyService(),
       );
 
       expect(await unreadyService.shouldShowOnboarding(), false);
@@ -169,7 +173,9 @@ void main() {
 
       return OnboardingService.create(
         remoteConfigService: remoteConfigService,
-        statsService: _FakeStatsServiceWithCount(totalDevocionalesRead),
+        userRecencyService: _FakeUserRecencyServiceWithResult(
+          totalDevocionalesRead < 5,
+        ),
       );
     }
 
@@ -235,7 +241,7 @@ void main() {
 
         final service = OnboardingService.create(
           remoteConfigService: throwingRemoteConfigService,
-          statsService: _ThrowingStatsService(),
+          userRecencyService: _ThrowingUserRecencyService(),
         );
 
         // Exception from getStats() must not propagate out of the check.
@@ -271,10 +277,13 @@ void main() {
           mockRemoteConfig.getBool('enable_onboarding_flow'),
         ).thenReturn(true);
 
-        final flakyStats = _FlakyStatsService(failFirst: 2, thenReturns: 5);
+        final flakyStats = _FlakyUserRecencyService(
+          failFirst: 2,
+          thenIsNewUser: false,
+        );
         final service = OnboardingService.create(
           remoteConfigService: remoteConfigService,
-          statsService: flakyStats,
+          userRecencyService: flakyStats,
         );
 
         // First two checks: stats read fails, backfill not applied yet.
@@ -310,10 +319,10 @@ void main() {
           mockRemoteConfig.getBool('enable_onboarding_flow'),
         ).thenReturn(true);
 
-        final countingStats = _CountingStatsService(5);
+        final countingStats = _CountingUserRecencyService(false);
         final service = OnboardingService.create(
           remoteConfigService: remoteConfigService,
-          statsService: countingStats,
+          userRecencyService: countingStats,
         );
 
         final results = await Future.wait([
@@ -371,7 +380,7 @@ void main() {
       );
       service = OnboardingService.create(
         remoteConfigService: remoteConfigService,
-        statsService: FakeSpiritualStatsService(),
+        userRecencyService: _FakeNewUserRecencyService(),
       );
     });
 

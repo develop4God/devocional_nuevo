@@ -233,7 +233,11 @@ class BibleReaderController {
     }
   }
 
-  /// Switch to a different Bible version
+  /// Switch to a different Bible version. If [newVersion] isn't already in
+  /// [BibleReaderState.availableVersions] — e.g. it was just downloaded —
+  /// it's appended, so the caller's version list reflects it as current
+  /// immediately, without waiting for a fresh [availableVersions] to be
+  /// supplied from outside.
   Future<void> switchVersion(BibleVersion newVersion) async {
     if (newVersion.dbFileName == _state.selectedVersion?.dbFileName) return;
 
@@ -243,8 +247,15 @@ class BibleReaderController {
 
     final books = await newVersion.service!.getAllBooks();
 
+    final alreadyListed = _state.availableVersions
+        .any((v) => v.dbFileName == newVersion.dbFileName);
+    final availableVersions = alreadyListed
+        ? _state.availableVersions
+        : [..._state.availableVersions, newVersion];
+
     _emit(
       _state.copyWith(
+        availableVersions: availableVersions,
         selectedVersion: newVersion,
         books: books,
         selectedBookName: books.isNotEmpty ? books[0]['short_name'] : null,

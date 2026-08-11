@@ -198,6 +198,25 @@ class Constants {
   /// Number of prayers to fetch per page in the Prayer Wall
   static const int prayerWallPageSize = 20;
 
+  // ---------------------------------------------------------------------------
+  // Remote Bible Versions (bible_versions repo)
+  // ---------------------------------------------------------------------------
+
+  /// Obtiene la URL del índice de versiones bíblicas remotas descargables.
+  static String getBibleVersionsIndexUrl() {
+    final branch = kDebugMode ? DebugFlags.debugBibleVersionsBranch : 'main';
+    return 'https://raw.githubusercontent.com/develop4God/bible_versions/$branch/index.json';
+  }
+
+  /// Obtiene la URL de descarga de un archivo de versión bíblica remota.
+  static String getBibleVersionDownloadUrl(
+    String languageCode,
+    String fileName,
+  ) {
+    final branch = kDebugMode ? DebugFlags.debugBibleVersionsBranch : 'main';
+    return 'https://raw.githubusercontent.com/develop4God/bible_versions/$branch/$languageCode/$fileName';
+  }
+
   /// Extracts display abbreviation from a BibleVersion's database filename.
   /// Returns display abbreviation derived from dbFileName.
   /// Returns '' for languages where name is self-describing (ja, zh).

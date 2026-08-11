@@ -15,7 +15,9 @@ import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
+import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_card_widgets.dart';
+import 'package:devocional_nuevo/widgets/key_verse_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,22 +52,38 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
   /// Guards the one-time study-ready debug log inside the BlocBuilder.
   bool _studyLoggedOnce = false;
 
+  /// Whether this study has a key verse to show as its own leading page,
+  /// mirroring Discovery's _hasKeyVerseCard/_getTotalPages pattern.
+  bool _hasKeyVerse(EncounterStudy study) => study.keyVerse != null;
+
+  /// Total swipeable pages, including the key verse page if present.
+  int _totalPages(EncounterStudy study) =>
+      _hasKeyVerse(study) ? study.cards.length + 1 : study.cards.length;
+
   @override
   void initState() {
     super.initState();
-    // Guarantee card[1] preload on first frame, before user can swipe.
-    // This is safer than relying on _studyLoggedOnce inside BlocBuilder,
-    // which rebuilds after state changes and may miss the window on fast devices.
+    // Guarantee the first-visible-card preload on first frame, before the
+    // user can swipe. This is safer than relying on _studyLoggedOnce inside
+    // BlocBuilder, which rebuilds after state changes and may miss the
+    // window on fast devices.
+    //
+    // When a key verse page leads (page 0), the first card page is page 1
+    // showing cards[0]; otherwise page 0 shows cards[0] directly and the
+    // card to preload ahead of time is cards[1].
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final state = context.read<EncounterBloc>().state;
       if (state is EncounterLoaded) {
         final study = state.getStudy(widget.entry.id);
-        if (study != null && study.cards.length > 1) {
-          _preloadCardImage(study.cards, 1);
-          debugPrint(
-            '🔐 [Detail/${widget.entry.id}] Safety preload card[1] triggered from initState',
-          );
+        if (study != null && study.cards.isNotEmpty) {
+          final preloadIndex = _hasKeyVerse(study) ? 0 : 1;
+          if (preloadIndex < study.cards.length) {
+            _preloadCardImage(study.cards, preloadIndex);
+            debugPrint(
+              '🔐 [Detail/${widget.entry.id}] Safety preload card[$preloadIndex] triggered from initState',
+            );
+          }
         }
       }
     });
@@ -128,6 +146,38 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
     ).then(
       (_) => debugPrint(
         '✅ [Detail/${widget.entry.id}] card[$targetIndex] preload DONE',
+      ),
+    );
+  }
+
+  Widget _buildKeyVersePage(EncounterStudy study) {
+    final selectedVersion = context.read<DevocionalProvider>().selectedVersion;
+    final displayVersion =
+        selectedVersion.isNotEmpty ? selectedVersion : study.bibleVersion;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 100, 16, 120),
+      child: Material(
+        // Encounter card pages always paint their own dark (mood-colored)
+        // background explicitly -- this page is the one exception that
+        // relied on Material's theme-derived default, which is light here
+        // regardless of the app's dark UI, leaving a stray white card.
+        color: const Color(0xFF0a0e1a),
+        elevation: 4,
+        borderRadius: BorderRadius.circular(32),
+        shadowColor: Colors.black.withValues(alpha: 0.08),
+        clipBehavior: Clip.antiAlias,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: KeyVerseCard(
+              keyVerse: study.keyVerse!,
+              version: displayVersion,
+              label: 'encounters.key_verse'.tr(),
+              forceDark: true,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -281,7 +331,9 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
             );
           }
 
-          final isLast = _currentIndex == cards.length - 1;
+          final hasKeyVerse = _hasKeyVerse(study);
+          final totalPages = _totalPages(study);
+          final isLast = _currentIndex == totalPages - 1;
 
           return Stack(
             children: [
@@ -290,15 +342,24 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                 controller: _pageController,
                 onPageChanged: (index) {
                   debugPrint(
-                    '📖 [Detail/${widget.entry.id}] swiped → card[$index] / ${cards.length}',
+                    '📖 [Detail/${widget.entry.id}] swiped → page[$index] / $totalPages',
                   );
                   setState(() => _currentIndex = index);
                   // JIT: cards already in scope — no extra context.read needed.
-                  _preloadCardImage(cards, index + 1);
+                  // Translate the next PAGE index into a card index: when a
+                  // key verse page leads, page N shows cards[N-1], so the
+                  // next card to preload is cards[index] (== page index+1
+                  // translated back by the same -1 offset).
+                  final nextCardIndex = hasKeyVerse ? index : index + 1;
+                  _preloadCardImage(cards, nextCardIndex);
                 },
                 physics: const BouncingScrollPhysics(),
-                itemCount: cards.length,
+                itemCount: totalPages,
                 itemBuilder: (context, index) {
+                  if (hasKeyVerse && index == 0) {
+                    return _buildKeyVersePage(study);
+                  }
+                  final contentIndex = hasKeyVerse ? index - 1 : index;
                   return AnimatedBuilder(
                     animation: _pageController,
                     builder: (context, child) {
@@ -322,7 +383,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 100, 16, 120),
                       child: buildEncounterCardWidget(
-                        cards[index],
+                        cards[contentIndex],
                         onBackToEncounters: _onCompleteEncounter,
                         bibleVersion: () {
                           final v = context
@@ -346,7 +407,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                 left: 24,
                 right: 24,
                 child: Row(
-                  children: List.generate(cards.length, (index) {
+                  children: List.generate(totalPages, (index) {
                     return Expanded(
                       child: Container(
                         height: 4,
@@ -411,7 +472,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
                       ],
                     ),
                     child: Text(
-                      '${_currentIndex + 1} / ${cards.length}',
+                      '${_currentIndex + 1} / $totalPages',
                       style: const TextStyle(
                         color: Color(0xFF0a0e1a),
                         fontSize: 12,

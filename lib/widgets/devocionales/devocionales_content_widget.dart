@@ -14,6 +14,7 @@ import 'package:devocional_nuevo/widgets/devotional_notes_modal.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/copyable_verse_card.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.dart';
+import 'package:devocional_nuevo/widgets/markdown_emphasis_text.dart';
 import 'package:devocional_nuevo/widgets/notes/note_icons.dart';
 import 'package:devocional_nuevo/widgets/supporter/pet_hero_section.dart';
 import 'package:flutter/material.dart';
@@ -116,7 +117,7 @@ class DevocionalesContentWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Text(
+          buildEmphasisMarkdownText(
             devocional.reflexion,
             style: textTheme.bodyMedium?.copyWith(
               fontSize: fontSize,
@@ -160,7 +161,7 @@ class DevocionalesContentWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Text(
+          buildEmphasisMarkdownText(
             devocional.oracion,
             style: textTheme.bodyMedium?.copyWith(
               fontSize: fontSize,

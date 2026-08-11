@@ -2,9 +2,8 @@
 import 'dart:convert';
 
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_models.dart';
-import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/i_user_recency_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
-import 'package:devocional_nuevo/utils/constants/engagement_constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,21 +13,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Usage: `getService<OnboardingService>()`
 class OnboardingService {
   final RemoteConfigService _remoteConfigService;
-  final ISpiritualStatsService _statsService;
+  final IUserRecencyService _userRecencyService;
 
   OnboardingService._({
     required RemoteConfigService remoteConfigService,
-    required ISpiritualStatsService statsService,
+    required IUserRecencyService userRecencyService,
   })  : _remoteConfigService = remoteConfigService,
-        _statsService = statsService;
+        _userRecencyService = userRecencyService;
 
   factory OnboardingService.create({
     required RemoteConfigService remoteConfigService,
-    required ISpiritualStatsService statsService,
+    required IUserRecencyService userRecencyService,
   }) {
     return OnboardingService._(
       remoteConfigService: remoteConfigService,
-      statsService: statsService,
+      userRecencyService: userRecencyService,
     );
   }
 
@@ -42,14 +41,6 @@ class OnboardingService {
 
   // Current onboarding version
   static const int _currentVersion = 1;
-
-  // Onboarding didn't exist for most of this app's lifetime, so no existing
-  // user has ever completed it. Reuses the shared "engaged user" threshold
-  // (see EngagementThresholds) already established by InAppReviewService's
-  // first-time milestone check, to avoid showing onboarding to people who
-  // installed the app long before this flow existed.
-  static const int _existingUserDevocionalThreshold =
-      EngagementThresholds.engagedUserDevocionalThreshold;
 
   // Configuration/progress persistence keys
   static const String _configurationKey = 'onboarding_configuration';
@@ -129,13 +120,13 @@ class OnboardingService {
     if (prefs.getBool(_onboardingBackfillAppliedKey) ?? false) return;
 
     try {
-      final stats = await _statsService.getStats();
-      if (stats.totalDevocionalesRead >= _existingUserDevocionalThreshold) {
+      final isNewUser = await _userRecencyService.isNewUser();
+      if (!isNewUser) {
         await prefs.setBool(_onboardingCompleteKey, true);
         await prefs.setInt(_onboardingVersionKey, _currentVersion);
         debugPrint(
           '🔄 [OnboardingService] Backfilled onboarding_complete for '
-          'existing user (${stats.totalDevocionalesRead} devotionals read)',
+          'existing user',
         );
       }
       await prefs.setBool(_onboardingBackfillAppliedKey, true);

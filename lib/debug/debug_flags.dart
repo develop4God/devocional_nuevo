@@ -28,4 +28,8 @@ class DebugFlags {
   /// Branch used for devotional content index in debug mode.
   /// Default: 'main'
   static String debugBranchDevotionals = 'main';
+
+  /// Branch used for the remote Bible versions index/downloads in debug mode.
+  /// Default: 'main'
+  static String debugBibleVersionsBranch = 'main';
 }

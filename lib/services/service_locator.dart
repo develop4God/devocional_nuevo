@@ -9,7 +9,9 @@ import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/repositories/bible_notes_repository.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
+import 'package:devocional_nuevo/repositories/bible_version_repository.dart';
 import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
+import 'package:devocional_nuevo/repositories/i_bible_version_repository.dart';
 import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
 import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
 import 'package:devocional_nuevo/repositories/notes_repository.dart';
@@ -52,7 +54,9 @@ import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
+import 'package:devocional_nuevo/services/i_user_recency_service.dart';
 import 'package:devocional_nuevo/services/user_profile_store.dart';
+import 'package:devocional_nuevo/services/user_recency_service.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -166,7 +170,7 @@ Future<void> setupServiceLocator() async {
   locator.registerLazySingleton<OnboardingService>(
     () => OnboardingService.create(
       remoteConfigService: locator.get<RemoteConfigService>(),
-      statsService: locator.get<ISpiritualStatsService>(),
+      userRecencyService: locator.get<IUserRecencyService>(),
     ),
   );
   locator.registerLazySingleton<http.Client>(() => http.Client());
@@ -179,6 +183,10 @@ Future<void> setupServiceLocator() async {
 
   locator.registerLazySingleton<EncounterRepository>(
     () => EncounterRepository(httpClient: locator.get<http.Client>()),
+  );
+
+  locator.registerLazySingleton<IBibleVersionRepository>(
+    () => BibleVersionRepository(httpClient: locator.get<http.Client>()),
   );
 
   locator.registerLazySingleton<IEncounterProgressService>(
@@ -215,6 +223,13 @@ Future<void> setupServiceLocator() async {
   locator.registerSingleton<IDebugSpiritualStatsService>(statsService);
   locator.registerLazySingleton<IStartupMigrationService>(
     () => StartupMigrationService(
+      statsService: locator.get<ISpiritualStatsService>(),
+    ),
+  );
+
+  // ✅ REGISTER USER RECENCY SERVICE
+  locator.registerLazySingleton<IUserRecencyService>(
+    () => UserRecencyService(
       statsService: locator.get<ISpiritualStatsService>(),
     ),
   );
