@@ -8,11 +8,7 @@ import '../../blocs/backup_state.dart';
 import '../../blocs/onboarding/onboarding_bloc.dart';
 import '../../blocs/onboarding/onboarding_event.dart';
 import '../../blocs/onboarding/onboarding_state.dart';
-import '../../blocs/prayer_bloc.dart';
 import '../../extensions/string_extensions.dart';
-import '../../providers/devocional_provider.dart';
-import '../../services/backup/i_google_drive_backup_service.dart';
-import '../../services/service_locator.dart';
 import '../../widgets/backup_settings_content.dart';
 
 class OnboardingBackupConfigurationPage extends StatefulWidget {
@@ -55,15 +51,12 @@ class _OnboardingBackupConfigurationPageState
 
   @override
   Widget build(BuildContext context) {
-    // Use services from the service locator
-    final backupService = getService<IGoogleDriveBackupService>();
-
-    return BlocProvider(
-      create: (context) => BackupBloc(
-        backupService: backupService,
-        devocionalProvider: context.read<DevocionalProvider>(),
-        prayerBloc: context.read<PrayerBloc>(),
-      )..add(const LoadBackupSettings()),
+    // Reuse the single app-level BackupBloc (provided in main.dart) instead
+    // of constructing a second instance here — a second instance's
+    // constructor also fires CheckStartupBackup, which races against
+    // SignInToGoogleDrive and causes a duplicate Drive backup upload cycle.
+    return BlocProvider.value(
+      value: context.read<BackupBloc>()..add(const LoadBackupSettings()),
       child: BlocListener<BackupBloc, BackupState>(
         listener: (context, state) {
           if (state is BackupError && !_isNavigating) {
