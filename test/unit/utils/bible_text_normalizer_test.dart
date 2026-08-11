@@ -125,42 +125,33 @@ void main() {
       },
     );
 
-    test(
-      'strips glued LBLA morphology codes from real Genesis 1:1-2 text',
-      () {
-        const text =
-            'EnP el principioNCFSA creóVaP3MS DiosNCMPAPO losA cielosNCMPA '
-            'yCPO laA tierraNC-SA. YC laA tierraNC-SA estabaVaP3FS sin '
-            'ordenNC-SA yC vacíaNC-SA, yC las tinieblasNC-SA cubríanP la '
-            'superficieNCMPC del abismoNC-SA, yC el EspírituNC-SC de '
-            'DiosNCMPA se movíaVbR-FSA sobreP la superficieNCMPC de lasA '
-            'aguasNCMPA.';
-        final result = BibleTextNormalizer.clean(text);
-        expect(
-          result,
-          'En el principio creó Dios los cielos y la tierra. Y la tierra '
-          'estaba sin orden y vacía, y las tinieblas cubrían la superficie '
-          'del abismo, y el Espíritu de Dios se movía sobre la superficie '
-          'de las aguas.',
-        );
-      },
-    );
-
-    test('strips glued morphology code with hyphen and trailing suffix', () {
-      const text = 'SeaVaI3MS-J la luzNC-SA. YC huboVaW3MS luzNC-SA.';
+    test('strips glued LBLA morphology codes from real Genesis 1:1-2 text', () {
+      const text =
+          'EnP el principioNCFSA creóVaP3MS DiosNCMPAPO losA cielosNCMPA '
+          'yCPO laA tierraNC-SA. YC laA tierraNC-SA estabaVaP3FS sin '
+          'ordenNC-SA yC vacíaNC-SA, yC las tinieblasNC-SA cubríanP la '
+          'superficieNCMPC del abismoNC-SA, yC el EspírituNC-SC de '
+          'DiosNCMPA se movíaVbR-FSA sobreP la superficieNCMPC de lasA '
+          'aguasNCMPA.';
+      final result = BibleTextNormalizer.clean(text);
       expect(
-        BibleTextNormalizer.clean(text),
-        'Sea la luz. Y hubo luz.',
+        result,
+        'En el principio creó Dios los cielos y la tierra. Y la tierra '
+        'estaba sin orden y vacía, y las tinieblas cubrían la superficie '
+        'del abismo, y el Espíritu de Dios se movía sobre la superficie '
+        'de las aguas.',
       );
     });
 
-    test(
-      'preserves normal capitalized words when no glued code follows',
-      () {
-        const text = 'Dios dijo: Sea la luz.';
-        expect(BibleTextNormalizer.clean(text), text);
-      },
-    );
+    test('strips glued morphology code with hyphen and trailing suffix', () {
+      const text = 'SeaVaI3MS-J la luzNC-SA. YC huboVaW3MS luzNC-SA.';
+      expect(BibleTextNormalizer.clean(text), 'Sea la luz. Y hubo luz.');
+    });
+
+    test('preserves normal capitalized words when no glued code follows', () {
+      const text = 'Dios dijo: Sea la luz.';
+      expect(BibleTextNormalizer.clean(text), text);
+    });
   });
 
   group('BibleTextNormalizer.stripGluedMorphologyCodes Tests', () {
@@ -180,10 +171,7 @@ void main() {
   group('BibleTextNormalizer.stripStrongTags Tests', () {
     test('removes Strong\'s tags without affecting other markup', () {
       const text = 'creó<S>1254</S> Dios<S>430</S> [1] <pb/>';
-      expect(
-        BibleTextNormalizer.stripStrongTags(text),
-        'creó Dios [1] <pb/>',
-      );
+      expect(BibleTextNormalizer.stripStrongTags(text), 'creó Dios [1] <pb/>');
     });
 
     test('returns text unchanged when no Strong\'s tags present', () {

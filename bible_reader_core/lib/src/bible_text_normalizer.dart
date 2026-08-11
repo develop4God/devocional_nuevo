@@ -3,16 +3,10 @@
 /// Strong).
 final RegExp _strongTagPattern = RegExp(r'<S>(\d+)</S>');
 
-/// Matches Hebrew/Greek morphology codes glued directly onto the end of a
-/// word with no delimiter, as found in some LBLA ("La Biblia de las
-/// Américas") download modules, e.g. `principioNCFSA`, `creóVaP3MS`. The
-/// codes always begin with an uppercase letter immediately following the
-/// lowercase letter that ends the real word, so that transition is used as
-/// the split point.
-final RegExp _gluedMorphologyCodePattern = RegExp(
-  r'\p{Ll}\p{Lu}[\p{L}\p{N}-]*',
-  unicode: true,
-);
+/// Matches a run of letters/digits/hyphens, used to locate word tokens that
+/// may have a Hebrew/Greek morphology code glued onto their end (see
+/// [BibleTextNormalizer.stripGluedMorphologyCodes]).
+final RegExp _wordRunPattern = RegExp(r'[\p{L}\p{N}-]+', unicode: true);
 
 class BibleTextNormalizer {
   /// Removes Strong's number tags (`<S>1234</S>`) as a single unit, so the
@@ -46,14 +40,23 @@ class BibleTextNormalizer {
   }
 
   /// Strips Hebrew/Greek morphology codes glued directly onto words with no
-  /// delimiter, as seen in some LBLA download modules (Genesis 1:1 example:
-  /// `EnP el principioNCFSA cre\u00F3VaP3MS DiosNCMPAPO...`). The word/code
-  /// boundary is detected as a lowercase-to-uppercase letter transition
-  /// within the same run of characters.
+  /// delimiter, as seen in some LBLA download modules (Genesis 1:1-2
+  /// example: `EnP el principioNCFSA cre\u00F3VaP3MS DiosNCMPAPO... YC la...`).
+  /// Within each word/digit/hyphen run, the code always starts at the first
+  /// uppercase letter found after the first character (covering both a
+  /// lowercase-to-uppercase transition like `principioNCFSA`, and a
+  /// single-letter capitalized word like `Y` glued straight to an uppercase
+  /// code as in `YC`); everything from that point on is dropped.
   static String stripGluedMorphologyCodes(String text) {
-    return text.replaceAllMapped(
-      _gluedMorphologyCodePattern,
-      (match) => match.group(0)![0],
-    );
+    return text.replaceAllMapped(_wordRunPattern, (match) {
+      final token = match.group(0)!;
+      for (var i = 1; i < token.length; i++) {
+        final char = token[i];
+        if (char != char.toLowerCase() && char == char.toUpperCase()) {
+          return token.substring(0, i);
+        }
+      }
+      return token;
+    });
   }
 }
