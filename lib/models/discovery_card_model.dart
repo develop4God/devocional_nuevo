@@ -28,6 +28,9 @@ class DiscoveryCard {
   // For type: greek_exegesis
   final List<GreekWord>? greekWords;
 
+  // For type: hebrew_exegesis
+  final List<GreekWord>? hebrewWords;
+
   // For type: prophetic_promise
   final ScriptureAnchor? scriptureAnchor;
   final String? identityStatement;
@@ -47,6 +50,7 @@ class DiscoveryCard {
     this.scriptureConnections,
     this.scriptureReferences,
     this.greekWords,
+    this.hebrewWords,
     this.scriptureAnchor,
     this.identityStatement,
     this.discoveryQuestions,
@@ -70,6 +74,9 @@ class DiscoveryCard {
           ?.map((e) => VerseRef.fromJson(e as Map<String, dynamic>))
           .toList(),
       greekWords: (json['greek_words'] as List<dynamic>?)
+          ?.map((e) => GreekWord.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      hebrewWords: (json['hebrew_words'] as List<dynamic>?)
           ?.map((e) => GreekWord.fromJson(e as Map<String, dynamic>))
           .toList(),
       scriptureAnchor: json['scripture_anchor'] != null
@@ -102,6 +109,7 @@ class DiscoveryCard {
       'scripture_references':
           scriptureReferences?.map((e) => e.toJson()).toList(),
       'greek_words': greekWords?.map((e) => e.toJson()).toList(),
+      'hebrew_words': hebrewWords?.map((e) => e.toJson()).toList(),
       'scripture_anchor': scriptureAnchor?.toJson(),
       'identity_statement': identityStatement,
       'discovery_questions':

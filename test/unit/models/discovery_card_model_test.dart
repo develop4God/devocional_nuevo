@@ -99,6 +99,34 @@ void main() {
       expect(card.greekWords![1].strong, isNull);
     });
 
+    test('should create hebrew_exegesis card with hebrew words', () {
+      final json = {
+        'order': 3,
+        'type': 'hebrew_exegesis',
+        'icon': '📜',
+        'title': 'La Palabra Hebrea',
+        'hebrew_words': [
+          {
+            'word': 'חָבַשׁ',
+            'transliteration': 'châbash',
+            'strong': 'H2280',
+            'meaning': 'Ensillar, aparejar',
+            'revelation': 'La urgencia de Balaam revela su codicia.',
+          },
+        ],
+      };
+
+      final card = DiscoveryCard.fromJson(json);
+
+      expect(card.order, equals(3));
+      expect(card.type, equals('hebrew_exegesis'));
+      expect(card.hebrewWords, hasLength(1));
+      expect(card.hebrewWords![0].word, equals('חָבַשׁ'));
+      expect(card.hebrewWords![0].transliteration, equals('châbash'));
+      expect(card.hebrewWords![0].strong, equals('H2280'));
+      expect(card.hebrewWords![0].meaning, equals('Ensillar, aparejar'));
+    });
+
     test('should create prophetic_promise card with scripture anchor', () {
       final json = {
         'order': 4,
@@ -246,6 +274,7 @@ void main() {
       expect(card.scriptureConnections, isNull);
       expect(card.scriptureReferences, isNull);
       expect(card.greekWords, isNull);
+      expect(card.hebrewWords, isNull);
     });
   });
 
