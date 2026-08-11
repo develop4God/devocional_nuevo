@@ -157,11 +157,20 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 100, 16, 120),
-      child: SingleChildScrollView(
-        child: KeyVerseCard(
-          keyVerse: study.keyVerse!,
-          version: displayVersion,
-          label: 'encounters.key_verse'.tr(),
+      child: Material(
+        elevation: 4,
+        borderRadius: BorderRadius.circular(32),
+        shadowColor: Colors.black.withValues(alpha: 0.08),
+        clipBehavior: Clip.antiAlias,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: KeyVerseCard(
+              keyVerse: study.keyVerse!,
+              version: displayVersion,
+              label: 'encounters.key_verse'.tr(),
+            ),
+          ),
         ),
       ),
     );
