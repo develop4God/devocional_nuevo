@@ -14,6 +14,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
 import 'package:devocional_nuevo/repositories/i_bible_version_repository.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/i_user_recency_service.dart';
@@ -1093,6 +1094,24 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                     ),
                     tooltip: 'bible.adjust_font_size'.tr(),
                     onPressed: () => _controller.toggleFontControls(),
+                  ),
+                  // Versions end drawer trigger. Scaffold only auto-generates
+                  // a hamburger icon for `drawer`, never for `endDrawer`, so
+                  // this button must be added explicitly.
+                  Builder(
+                    builder: (context) => IconButton(
+                      icon: Icon(
+                        Icons.menu,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ).newIconBadge,
+                      tooltip: 'bible.select_version'.tr(),
+                      onPressed: () {
+                        BubbleUtils.markAsShown(
+                          BubbleUtils.getIconBubbleId(Icons.menu, 'new'),
+                        );
+                        Scaffold.of(context).openEndDrawer();
+                      },
+                    ),
                   ),
                 ],
               ),

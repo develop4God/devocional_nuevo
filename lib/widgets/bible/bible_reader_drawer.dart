@@ -1,6 +1,7 @@
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
 import 'package:flutter/material.dart';
 
 /// Left-side navigation drawer for the Bible reader page: lists downloaded
@@ -120,20 +121,59 @@ class BibleReaderDrawer extends StatelessWidget {
                     }),
                     ...downloadableVersions.map((version) {
                       final status = downloadStatuses[version.dbFileName];
+                      final bubbleId =
+                          'bible_reader_drawer_remote_${version.dbFileName}';
                       return ListTile(
                         key: Key(
                           'bible_reader_drawer_downloadable_${version.dbFileName}',
                         ),
-                        title: Text(
-                          versionLabelBuilder(version),
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontSize: 16,
-                            color: colorScheme.onSurface,
-                          ),
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FutureBuilder<bool>(
+                              future: BubbleUtils.shouldShowBubble(bubbleId),
+                              builder: (context, snapshot) {
+                                if (snapshot.data != true) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 2),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: BubbleConstants.newFeatureColor,
+                                      borderRadius: BorderRadius.circular(
+                                        BubbleConstants.widgetBubbleRadius,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'bubble_constants.new_feature'.tr(),
+                                      style:
+                                          BubbleConstants.widgetBubbleTextStyle,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            Text(
+                              versionLabelBuilder(version),
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontSize: 16,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                          ],
                         ),
                         trailing: _downloadTrailing(colorScheme, status),
                         onTap: status == null || status.errorMessageKey != null
-                            ? () => onDownloadVersion(version)
+                            ? () {
+                                BubbleUtils.markAsShown(bubbleId);
+                                onDownloadVersion(version);
+                              }
                             : null,
                       );
                     }),
