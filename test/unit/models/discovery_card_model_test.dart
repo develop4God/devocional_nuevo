@@ -69,6 +69,7 @@ void main() {
           {
             'word': 'Logos',
             'transliteration': 'Λόγος',
+            'strong': 'G3056',
             'reference': 'Juan 1:1',
             'meaning': 'La Palabra',
             'revelation': 'Él es la expresión del pensamiento de Dios',
@@ -93,7 +94,9 @@ void main() {
       expect(card.greekWords, hasLength(2));
       expect(card.greekWords![0].word, equals('Logos'));
       expect(card.greekWords![0].transliteration, equals('Λόγος'));
+      expect(card.greekWords![0].strong, equals('G3056'));
       expect(card.greekWords![1].relatedVerb, equals('Skēnē'));
+      expect(card.greekWords![1].strong, isNull);
     });
 
     test('should create prophetic_promise card with scripture anchor', () {
@@ -291,6 +294,7 @@ void main() {
       final json = {
         'word': 'Agape',
         'transliteration': 'Ἀγάπη',
+        'strong': 'G26',
         'reference': '1 Juan 4:8',
         'meaning': 'Amor divino',
         'revelation': 'Amor incondicional',
@@ -302,6 +306,21 @@ void main() {
 
       expect(word.word, equals('Agape'));
       expect(serialized['transliteration'], equals('Ἀγάπη'));
+      expect(word.strong, equals('G26'));
+      expect(serialized['strong'], equals('G26'));
+    });
+
+    test('GreekWord should handle missing strong number gracefully', () {
+      final json = {
+        'word': 'Agape',
+        'meaning': 'Amor divino',
+        'revelation': 'Amor incondicional',
+        'application': 'Ama como Dios ama',
+      };
+
+      final word = GreekWord.fromJson(json);
+
+      expect(word.strong, isNull);
     });
 
     test('DiscoveryQuestion should serialize and deserialize', () {

@@ -643,6 +643,10 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             const SizedBox(height: 32),
             _buildScriptureAnchorTile(card.scriptureAnchor!, theme),
           ],
+          if (card.identityStatement != null) ...[
+            const SizedBox(height: 32),
+            _buildIdentityStatementTile(card.identityStatement!, theme),
+          ],
           if (card.scriptureConnections != null) ...[
             const SizedBox(height: 32),
             ...card.scriptureConnections!.map(
@@ -793,6 +797,43 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
+  Widget _buildIdentityStatementTile(
+      String identityStatement, ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.tertiary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.tertiary.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.auto_awesome_rounded,
+            size: 24,
+            color: theme.colorScheme.tertiary,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              identityStatement,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                height: 1.4,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildGreekWordTile(GreekWord word, ThemeData theme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -833,6 +874,27 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                   ),
                 ),
               ],
+              if (word.strong != null) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    word.strong!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 12),
@@ -842,6 +904,14 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           ),
           const SizedBox(height: 8),
           Text('${'discovery.revelation'.tr()}: ${word.revelation}'),
+          if (word.reference.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text('${'discovery.reference'.tr()}: ${word.reference}'),
+          ],
+          if (word.application.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text('${'discovery.application'.tr()}: ${word.application}'),
+          ],
         ],
       ),
     );
