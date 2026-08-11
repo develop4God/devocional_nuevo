@@ -115,6 +115,7 @@ class DiscoveryCard {
 class GreekWord {
   final String word;
   final String? transliteration;
+  final String? strong;
   final String reference;
   final String meaning;
   final String? relatedVerb;
@@ -124,6 +125,7 @@ class GreekWord {
   GreekWord({
     required this.word,
     this.transliteration,
+    this.strong,
     required this.reference,
     required this.meaning,
     this.relatedVerb,
@@ -135,6 +137,7 @@ class GreekWord {
     return GreekWord(
       word: json['word'] as String? ?? '',
       transliteration: json['transliteration'] as String?,
+      strong: json['strong'] as String?,
       reference: json['reference'] as String? ?? '',
       meaning: json['meaning'] as String? ?? '',
       relatedVerb: json['related_verb'] as String?,
@@ -147,6 +150,7 @@ class GreekWord {
     return {
       'word': word,
       'transliteration': transliteration,
+      'strong': strong,
       'reference': reference,
       'meaning': meaning,
       'related_verb': relatedVerb,
