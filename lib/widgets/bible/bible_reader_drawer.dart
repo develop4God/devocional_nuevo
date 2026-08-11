@@ -123,55 +123,18 @@ class BibleReaderDrawer extends StatelessWidget {
                       final status = downloadStatuses[version.dbFileName];
                       final bubbleId =
                           'bible_reader_drawer_remote_${version.dbFileName}';
-                      return ListTile(
+                      return _DownloadableVersionTile(
                         key: Key(
                           'bible_reader_drawer_downloadable_${version.dbFileName}',
                         ),
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            FutureBuilder<bool>(
-                              future: BubbleUtils.shouldShowBubble(bubbleId),
-                              builder: (context, snapshot) {
-                                if (snapshot.data != true) {
-                                  return const SizedBox.shrink();
-                                }
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 2),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: BubbleConstants.newFeatureColor,
-                                      borderRadius: BorderRadius.circular(
-                                        BubbleConstants.widgetBubbleRadius,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'bubble_constants.new_feature'.tr(),
-                                      style:
-                                          BubbleConstants.widgetBubbleTextStyle,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            Text(
-                              versionLabelBuilder(version),
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: _downloadTrailing(colorScheme, status),
+                        bubbleId: bubbleId,
+                        label: versionLabelBuilder(version),
+                        status: status,
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                        downloadTrailing: _downloadTrailing,
                         onTap: status == null || status.errorMessageKey != null
                             ? () {
-                                BubbleUtils.markAsShown(bubbleId);
                                 onDownloadVersion(version);
                               }
                             : null,
@@ -232,6 +195,93 @@ class BibleReaderDrawer extends StatelessWidget {
       child: Center(
         child: Icon(iconData, color: colorScheme.primary, size: 20),
       ),
+    );
+  }
+}
+
+/// A downloadable-version [ListTile] that owns the "new" chip's visibility
+/// as local state, so dismissing it (via [onTap]) hides it immediately
+/// instead of waiting for an unrelated rebuild to re-evaluate the bubble.
+class _DownloadableVersionTile extends StatefulWidget {
+  final String bubbleId;
+  final String label;
+  final VersionDownloadStatus? status;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+  final Widget Function(ColorScheme, VersionDownloadStatus?) downloadTrailing;
+  final VoidCallback? onTap;
+
+  const _DownloadableVersionTile({
+    super.key,
+    required this.bubbleId,
+    required this.label,
+    required this.status,
+    required this.colorScheme,
+    required this.textTheme,
+    required this.downloadTrailing,
+    required this.onTap,
+  });
+
+  @override
+  State<_DownloadableVersionTile> createState() =>
+      _DownloadableVersionTileState();
+}
+
+class _DownloadableVersionTileState extends State<_DownloadableVersionTile> {
+  bool? _showChip;
+
+  @override
+  void initState() {
+    super.initState();
+    BubbleUtils.shouldShowBubble(widget.bubbleId).then((shouldShow) {
+      if (mounted) setState(() => _showChip = shouldShow);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_showChip == true)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: BubbleConstants.newFeatureColor,
+                  borderRadius: BorderRadius.circular(
+                    BubbleConstants.widgetBubbleRadius,
+                  ),
+                ),
+                child: Text(
+                  'bubble_constants.new_feature'.tr(),
+                  style: BubbleConstants.widgetBubbleTextStyle,
+                ),
+              ),
+            ),
+          Text(
+            widget.label,
+            style: widget.textTheme.bodyMedium?.copyWith(
+              fontSize: 16,
+              color: widget.colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+      trailing: widget.downloadTrailing(widget.colorScheme, widget.status),
+      onTap: widget.onTap == null
+          ? null
+          : () {
+              BubbleUtils.markAsShown(widget.bubbleId);
+              setState(() => _showChip = false);
+              widget.onTap!();
+            },
     );
   }
 }
