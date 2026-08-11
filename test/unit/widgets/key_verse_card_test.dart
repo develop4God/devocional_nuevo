@@ -180,8 +180,7 @@ void main() {
       });
     });
 
-    testWidgets(
-        'forceDark should use white text regardless of ambient theme', (
+    testWidgets('forceDark should use white text regardless of ambient theme', (
       WidgetTester tester,
     ) async {
       await tester.runAsync(() async {
