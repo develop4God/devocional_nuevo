@@ -19,8 +19,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
+import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/widgets/bible/kjv_kj2000_banner.dart';
 import '../helpers/test_helpers.dart';
 
 /// Hand-written fake so the drawer download flow can be driven
@@ -511,5 +514,83 @@ void main() {
         );
       },
     );
+
+    group('KJV/KJ2000 banner visibility', () {
+      Future<void> pumpEnglishBiblePage(
+        WidgetTester tester, {
+        required int totalDevocionalesRead,
+      }) async {
+        if (ServiceLocator().isRegistered<ISpiritualStatsService>()) {
+          ServiceLocator().unregister<ISpiritualStatsService>();
+        }
+        ServiceLocator().registerSingleton<ISpiritualStatsService>(
+          _FakeStatsServiceWithCount(totalDevocionalesRead),
+        );
+
+        final englishVersion = BibleVersion(
+          name: 'King James Version',
+          language: 'English',
+          languageCode: 'en',
+          assetPath: 'assets/biblia/KJV_en.SQLite3',
+          dbFileName: 'KJV_en.SQLite3',
+          service: mockDbService,
+        );
+
+        await tester.pumpWidget(
+          MultiBlocProvider(
+            providers: [
+              BlocProvider<ThemeBloc>.value(value: mockThemeBloc),
+              BlocProvider<BibleNoteBloc>(
+                create: (_) => BibleNoteBloc(
+                  bibleNotesRepository: FakeBibleNotesRepository(),
+                )..add(LoadBibleNotes()),
+              ),
+            ],
+            child: MaterialApp(
+              home: BibleReaderPage(
+                versions: [englishVersion],
+                readerService: mockReaderService,
+                preferencesService: mockPreferencesService,
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets(
+        'is shown to an existing user (5+ devotionals read) reading '
+        'an English version',
+        (tester) async {
+          await pumpEnglishBiblePage(tester, totalDevocionalesRead: 5);
+
+          expect(find.byType(KjvKj2000Banner), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'is not shown to a new user (under 5 devotionals read) reading '
+        'an English version',
+        (tester) async {
+          await pumpEnglishBiblePage(tester, totalDevocionalesRead: 0);
+
+          expect(find.byType(KjvKj2000Banner), findsNothing);
+        },
+      );
+    });
   });
+}
+
+/// Fake stats service with a settable devotional read count, used to drive
+/// the KJV/KJ2000 banner's existing-user gate deterministically.
+class _FakeStatsServiceWithCount extends FakeSpiritualStatsService {
+  _FakeStatsServiceWithCount(this.totalDevocionalesRead);
+
+  final int totalDevocionalesRead;
+
+  @override
+  Future<SpiritualStats> getStats() async =>
+      SpiritualStats(totalDevocionalesRead: totalDevocionalesRead);
 }

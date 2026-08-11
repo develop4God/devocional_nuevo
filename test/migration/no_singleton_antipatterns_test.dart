@@ -1393,6 +1393,43 @@ void main() {
         isFalse,
       );
     });
+
+    test('IUserRecencyService is registered in ServiceLocator', () async {
+      final file = File('lib/services/service_locator.dart');
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('registerLazySingleton<IUserRecencyService>'),
+        isTrue,
+        reason: 'IUserRecencyService must be registered by interface type',
+      );
+    });
+
+    test('UserRecencyService implements IUserRecencyService', () async {
+      final file = File('lib/services/user_recency_service.dart');
+      expect(await file.exists(), isTrue);
+      final content = await file.readAsString();
+
+      expect(
+        content.contains(
+          'class UserRecencyService implements IUserRecencyService',
+        ),
+        isTrue,
+        reason:
+            'UserRecencyService must implement IUserRecencyService interface',
+      );
+    });
+
+    test('UserRecencyService has no static singleton antipattern', () async {
+      final file = File('lib/services/user_recency_service.dart');
+      final content = await file.readAsString();
+
+      expect(content.contains('static UserRecencyService? _instance'), isFalse);
+      expect(
+        content.contains('static UserRecencyService get instance'),
+        isFalse,
+      );
+    });
   });
 }
 
