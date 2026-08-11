@@ -158,6 +158,11 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 100, 16, 120),
       child: Material(
+        // Encounter card pages always paint their own dark (mood-colored)
+        // background explicitly -- this page is the one exception that
+        // relied on Material's theme-derived default, which is light here
+        // regardless of the app's dark UI, leaving a stray white card.
+        color: const Color(0xFF0a0e1a),
         elevation: 4,
         borderRadius: BorderRadius.circular(32),
         shadowColor: Colors.black.withValues(alpha: 0.08),

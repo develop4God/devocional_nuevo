@@ -142,6 +142,12 @@ class KeyVerseCard extends StatelessWidget {
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurface,
+                      shadows: [
+                        Shadow(
+                          color: Colors.white.withValues(alpha: 0.35),
+                          blurRadius: 8,
+                        ),
+                      ],
                     ),
                   ),
 
@@ -185,6 +191,12 @@ class KeyVerseCard extends StatelessWidget {
                           style: theme.textTheme.labelSmall?.copyWith(
                             fontWeight: FontWeight.w500,
                             color: colorScheme.onSurface.withValues(alpha: 0.4),
+                            shadows: [
+                              Shadow(
+                                color: Colors.white.withValues(alpha: 0.35),
+                                blurRadius: 8,
+                              ),
+                            ],
                           ),
                           textAlign: TextAlign.center,
                         ),
