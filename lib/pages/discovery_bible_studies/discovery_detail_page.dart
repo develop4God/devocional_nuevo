@@ -840,7 +840,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  Widget _buildGreekWordTile(GreekWord word, ThemeData theme) {
+  Widget _buildGreekWordTile(LexiconWord word, ThemeData theme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),

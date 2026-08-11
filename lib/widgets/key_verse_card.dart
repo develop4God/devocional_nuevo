@@ -19,19 +19,27 @@ class KeyVerseCard extends StatelessWidget {
   /// Encounters) should pass their own localized label.
   final String? label;
 
+  /// Forces the dark-surface color treatment regardless of the ambient
+  /// theme. Encounters' key verse page always sits on its own hardcoded
+  /// dark (mood-colored) card, so its text colors must not follow the
+  /// app's light/dark theme the way Discovery's does.
+  final bool forceDark;
+
   const KeyVerseCard({
     super.key,
     required this.keyVerse,
     this.version,
     this.margin,
     this.label,
+    this.forceDark = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = forceDark || theme.brightness == Brightness.dark;
+    final onSurface = forceDark ? Colors.white : colorScheme.onSurface;
 
     return Container(
       margin: margin ?? EdgeInsets.zero,
@@ -124,7 +132,7 @@ class KeyVerseCard extends StatelessWidget {
                           style: theme.textTheme.labelSmall?.copyWith(
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.8,
-                            color: colorScheme.onSurface.withValues(alpha: 0.6),
+                            color: onSurface.withValues(alpha: 0.6),
                           ),
                         ),
                       ],
@@ -141,7 +149,7 @@ class KeyVerseCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface,
+                      color: onSurface,
                     ),
                   ),
 
@@ -184,7 +192,7 @@ class KeyVerseCard extends StatelessWidget {
                           version!,
                           style: theme.textTheme.labelSmall?.copyWith(
                             fontWeight: FontWeight.w500,
-                            color: colorScheme.onSurface.withValues(alpha: 0.4),
+                            color: onSurface.withValues(alpha: 0.4),
                           ),
                           textAlign: TextAlign.center,
                         ),

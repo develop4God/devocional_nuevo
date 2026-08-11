@@ -26,10 +26,10 @@ class DiscoveryCard {
   final List<VerseRef>? scriptureReferences;
 
   // For type: greek_exegesis
-  final List<GreekWord>? greekWords;
+  final List<LexiconWord>? greekWords;
 
   // For type: hebrew_exegesis
-  final List<GreekWord>? hebrewWords;
+  final List<LexiconWord>? hebrewWords;
 
   // For type: prophetic_promise
   final ScriptureAnchor? scriptureAnchor;
@@ -74,10 +74,10 @@ class DiscoveryCard {
           ?.map((e) => VerseRef.fromJson(e as Map<String, dynamic>))
           .toList(),
       greekWords: (json['greek_words'] as List<dynamic>?)
-          ?.map((e) => GreekWord.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => LexiconWord.fromJson(e as Map<String, dynamic>))
           .toList(),
       hebrewWords: (json['hebrew_words'] as List<dynamic>?)
-          ?.map((e) => GreekWord.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => LexiconWord.fromJson(e as Map<String, dynamic>))
           .toList(),
       scriptureAnchor: json['scripture_anchor'] != null
           ? ScriptureAnchor.fromJson(
@@ -119,8 +119,8 @@ class DiscoveryCard {
   }
 }
 
-/// Modelo de datos para una palabra griega.
-class GreekWord {
+/// Modelo de datos para una palabra griega o hebrea.
+class LexiconWord {
   final String word;
   final String? transliteration;
   final String? strong;
@@ -130,7 +130,7 @@ class GreekWord {
   final String revelation;
   final String application;
 
-  GreekWord({
+  LexiconWord({
     required this.word,
     this.transliteration,
     this.strong,
@@ -141,8 +141,8 @@ class GreekWord {
     required this.application,
   });
 
-  factory GreekWord.fromJson(Map<String, dynamic> json) {
-    return GreekWord(
+  factory LexiconWord.fromJson(Map<String, dynamic> json) {
+    return LexiconWord(
       word: json['word'] as String? ?? '',
       transliteration: json['transliteration'] as String?,
       strong: json['strong'] as String?,
