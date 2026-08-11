@@ -124,6 +124,57 @@ void main() {
         expect(result, 'En el principio creó Dios los cielos y la tierra.');
       },
     );
+
+    test(
+      'strips glued LBLA morphology codes from real Genesis 1:1-2 text',
+      () {
+        const text =
+            'EnP el principioNCFSA creóVaP3MS DiosNCMPAPO losA cielosNCMPA '
+            'yCPO laA tierraNC-SA. YC laA tierraNC-SA estabaVaP3FS sin '
+            'ordenNC-SA yC vacíaNC-SA, yC las tinieblasNC-SA cubríanP la '
+            'superficieNCMPC del abismoNC-SA, yC el EspírituNC-SC de '
+            'DiosNCMPA se movíaVbR-FSA sobreP la superficieNCMPC de lasA '
+            'aguasNCMPA.';
+        final result = BibleTextNormalizer.clean(text);
+        expect(
+          result,
+          'En el principio creó Dios los cielos y la tierra. Y la tierra '
+          'estaba sin orden y vacía, y las tinieblas cubrían la superficie '
+          'del abismo, y el Espíritu de Dios se movía sobre la superficie '
+          'de las aguas.',
+        );
+      },
+    );
+
+    test('strips glued morphology code with hyphen and trailing suffix', () {
+      const text = 'SeaVaI3MS-J la luzNC-SA. YC huboVaW3MS luzNC-SA.';
+      expect(
+        BibleTextNormalizer.clean(text),
+        'Sea la luz. Y hubo luz.',
+      );
+    });
+
+    test(
+      'preserves normal capitalized words when no glued code follows',
+      () {
+        const text = 'Dios dijo: Sea la luz.';
+        expect(BibleTextNormalizer.clean(text), text);
+      },
+    );
+  });
+
+  group('BibleTextNormalizer.stripGluedMorphologyCodes Tests', () {
+    test('splits at lowercase-to-uppercase transition and keeps prefix', () {
+      expect(
+        BibleTextNormalizer.stripGluedMorphologyCodes('principioNCFSA'),
+        'principio',
+      );
+    });
+
+    test('leaves text unchanged when no glued code present', () {
+      const text = 'En el principio creó Dios';
+      expect(BibleTextNormalizer.stripGluedMorphologyCodes(text), text);
+    });
   });
 
   group('BibleTextNormalizer.stripStrongTags Tests', () {
