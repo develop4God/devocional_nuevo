@@ -11,6 +11,7 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
+import 'package:devocional_nuevo/widgets/markdown_emphasis_text.dart';
 import 'package:devocional_nuevo/widgets/scripture/resolved_verse_text.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
@@ -715,7 +716,7 @@ class CharacterMomentCard extends StatelessWidget {
           const SizedBox(height: 24),
           _DelayedEntry(
             delay: const Duration(milliseconds: 500),
-            child: Text(
+            child: buildEmphasisMarkdownText(
               card.content!,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.85),
@@ -784,7 +785,7 @@ class TheologicalDepthCard extends StatelessWidget {
           const SizedBox(height: 24),
           _DelayedEntry(
             delay: const Duration(milliseconds: 500),
-            child: Text(
+            child: buildEmphasisMarkdownText(
               card.content!,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.85),
@@ -1374,7 +1375,7 @@ class _ModernPrayerBox extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text(
+          buildEmphasisMarkdownText(
             prayer.content,
             style: const TextStyle(
               color: Colors.white,
