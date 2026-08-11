@@ -17,7 +17,7 @@ import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_card_widgets.dart';
-import 'package:devocional_nuevo/widgets/key_verse_card.dart';
+import 'package:devocional_nuevo/widgets/encounter/encounter_key_verse_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -170,7 +170,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-            child: KeyVerseCard(
+            child: EncounterKeyVerseCard(
               keyVerse: study.keyVerse!,
               version: displayVersion,
               label: 'encounters.key_verse'.tr(),
