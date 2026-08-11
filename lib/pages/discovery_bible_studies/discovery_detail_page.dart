@@ -663,6 +663,12 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             const SizedBox(height: 32),
             ...card.greekWords!.map((word) => _buildGreekWordTile(word, theme)),
           ],
+          if (card.hebrewWords != null) ...[
+            const SizedBox(height: 32),
+            ...card.hebrewWords!.map(
+              (word) => _buildGreekWordTile(word, theme),
+            ),
+          ],
           if (card.discoveryQuestions != null) ...[
             const SizedBox(height: 32),
             Text(
