@@ -153,6 +153,32 @@ void main() {
         expect(find.textContaining('En el principio'), findsOneWidget);
       });
     });
+
+    testWidgets('should use the provided label instead of the default', (
+      WidgetTester tester,
+    ) async {
+      await tester.runAsync(() async {
+        final keyVerse = VerseRef(
+          reference: 'Juan 3:16',
+          text: 'Porque de tal manera amó Dios al mundo...',
+        );
+
+        await tester.pumpWidget(
+          ChangeNotifierProvider(
+            create: (_) => DevocionalProvider(),
+            child: MaterialApp(
+              home: Scaffold(
+                body: KeyVerseCard(keyVerse: keyVerse, label: 'VERSO CLAVE'),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('VERSO CLAVE'), findsOneWidget);
+        expect(find.text('VERSÍCULO CLAVE'), findsNothing);
+      });
+    });
   });
 }
 

@@ -14,11 +14,17 @@ class KeyVerseCard extends StatelessWidget {
   final String? version;
   final EdgeInsetsGeometry? margin;
 
+  /// Top label text. Defaults to the Discovery-namespaced string for
+  /// backward compatibility with existing callers; other features (e.g.
+  /// Encounters) should pass their own localized label.
+  final String? label;
+
   const KeyVerseCard({
     super.key,
     required this.keyVerse,
     this.version,
     this.margin,
+    this.label,
   });
 
   @override
@@ -114,7 +120,7 @@ class KeyVerseCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          'discovery.key_verse'.tr(),
+                          label ?? 'discovery.key_verse'.tr(),
                           style: theme.textTheme.labelSmall?.copyWith(
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.8,
