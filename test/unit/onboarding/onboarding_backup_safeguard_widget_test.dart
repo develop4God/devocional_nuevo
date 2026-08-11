@@ -2,16 +2,17 @@
 library;
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:devocional_nuevo/blocs/backup_bloc.dart';
+import 'package:devocional_nuevo/blocs/backup_event.dart';
+import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_bloc.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_event.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_models.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_state.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/models/backup_content_summary.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_backup_configuration_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/services/backup/i_google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/material.dart';
@@ -22,11 +23,11 @@ import 'package:provider/provider.dart';
 
 import '../../helpers/test_helpers.dart';
 
-class MockGoogleDriveBackupService extends Mock
-    implements IGoogleDriveBackupService {}
-
 class MockOnboardingBloc extends MockBloc<OnboardingEvent, OnboardingState>
     implements OnboardingBloc {}
+
+class MockBackupBloc extends MockBloc<BackupEvent, BackupState>
+    implements BackupBloc {}
 
 class MockDevocionalProvider extends Mock implements DevocionalProvider {}
 
@@ -38,59 +39,13 @@ class MockDevocionalProvider extends Mock implements DevocionalProvider {}
 /// this step with no way forward (e.g. re-entering an already-configured
 /// step where the auto-advance guard no longer fires).
 void main() {
-  late MockGoogleDriveBackupService mockBackupService;
   late MockOnboardingBloc mockOnboardingBloc;
+  late MockBackupBloc mockBackupBloc;
   late MockDevocionalProvider mockDevocionalProvider;
 
   setUp(() async {
     await setupFirebaseMocks();
     await registerTestServices();
-
-    mockBackupService = MockGoogleDriveBackupService();
-    final locator = ServiceLocator();
-    if (locator.isRegistered<IGoogleDriveBackupService>()) {
-      locator.unregister<IGoogleDriveBackupService>();
-    }
-    locator.registerSingleton<IGoogleDriveBackupService>(mockBackupService);
-
-    when(
-      () => mockBackupService.isAutoBackupEnabled(),
-    ).thenAnswer((_) async => true);
-    when(
-      () => mockBackupService.getBackupFrequency(),
-    ).thenAnswer((_) async => 'daily');
-    when(
-      () => mockBackupService.isWifiOnlyEnabled(),
-    ).thenAnswer((_) async => false);
-    when(
-      () => mockBackupService.isCompressionEnabled(),
-    ).thenAnswer((_) async => false);
-    when(
-      () => mockBackupService.getBackupOptions(),
-    ).thenAnswer((_) async => <String, bool>{});
-    when(
-      () => mockBackupService.getLastBackupTime(),
-    ).thenAnswer((_) async => null);
-    when(
-      () => mockBackupService.getNextBackupTime(),
-    ).thenAnswer((_) async => null);
-    when(
-      () => mockBackupService.getEstimatedBackupSize(any()),
-    ).thenAnswer((_) async => 0);
-    when(
-      () => mockBackupService.getUserEmail(),
-    ).thenAnswer((_) async => 'user@example.com');
-    when(() => mockBackupService.getBackupContentSummary()).thenAnswer(
-      (_) async => const BackupContentSummary(
-        prayersCount: 0,
-        thanksgivingsCount: 0,
-        testimoniesCount: 0,
-        favoritesCount: 0,
-        encountersCount: 0,
-        discoveryCount: 0,
-        versesCount: 0,
-      ),
-    );
 
     mockDevocionalProvider = MockDevocionalProvider();
     when(
@@ -121,9 +76,22 @@ void main() {
     required bool isAuthenticated,
     VoidCallback? onNext,
   }) async {
-    when(
-      () => mockBackupService.isAuthenticated(),
-    ).thenAnswer((_) async => isAuthenticated);
+    mockBackupBloc = MockBackupBloc();
+    when(() => mockBackupBloc.state).thenReturn(
+      BackupLoaded(
+        isAuthenticated: isAuthenticated,
+        autoBackupEnabled: true,
+        wifiOnlyEnabled: false,
+        compressionEnabled: false,
+        backupFrequency: 'daily',
+        backupOptions: const {},
+        lastBackupTime: null,
+        nextBackupTime: null,
+        estimatedSize: 0,
+        userEmail: isAuthenticated ? 'user@example.com' : null,
+      ),
+    );
+    whenListen(mockBackupBloc, const Stream<BackupState>.empty());
 
     await tester.pumpWidget(
       MultiProvider(
@@ -136,6 +104,7 @@ void main() {
                 PrayerBloc(statsService: getService<ISpiritualStatsService>()),
           ),
           BlocProvider<OnboardingBloc>.value(value: mockOnboardingBloc),
+          BlocProvider<BackupBloc>.value(value: mockBackupBloc),
         ],
         child: MaterialApp(
           home: OnboardingBackupConfigurationPage(
@@ -188,4 +157,33 @@ void main() {
 
     expect(nextCalled, isTrue);
   });
+
+  testWidgets(
+    'reuses the ancestor BackupBloc instead of constructing a second one — '
+    'a second instance would re-fire CheckStartupBackup and race against '
+    'SignInToGoogleDrive, duplicating the Drive backup upload',
+    (tester) async {
+      late BackupBloc capturedBloc;
+
+      await pumpPage(tester, isAuthenticated: true);
+
+      final capturingContext = tester.element(
+        find.byType(OnboardingBackupConfigurationPage),
+      );
+      capturedBloc = capturingContext.read<BackupBloc>();
+
+      expect(
+        identical(capturedBloc, mockBackupBloc),
+        isTrue,
+        reason: 'OnboardingBackupConfigurationPage must reuse the '
+            'app-level BackupBloc found in its ancestor context rather '
+            'than creating its own instance',
+      );
+
+      // The only BackupBloc interaction the page itself should trigger is
+      // LoadBackupSettings on that same shared instance — never a second
+      // bloc's constructor-fired CheckStartupBackup.
+      verify(() => mockBackupBloc.add(const LoadBackupSettings())).called(1);
+    },
+  );
 }
