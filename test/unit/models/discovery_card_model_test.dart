@@ -330,7 +330,7 @@ void main() {
         'application': 'Ama como Dios ama',
       };
 
-      final word = GreekWord.fromJson(json);
+      final word = LexiconWord.fromJson(json);
       final serialized = word.toJson();
 
       expect(word.word, equals('Agape'));
@@ -347,7 +347,7 @@ void main() {
         'application': 'Ama como Dios ama',
       };
 
-      final word = GreekWord.fromJson(json);
+      final word = LexiconWord.fromJson(json);
 
       expect(word.strong, isNull);
     });

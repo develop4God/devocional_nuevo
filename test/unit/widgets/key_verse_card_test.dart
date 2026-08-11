@@ -179,6 +179,36 @@ void main() {
         expect(find.text('VERSÍCULO CLAVE'), findsNothing);
       });
     });
+
+    testWidgets(
+        'forceDark should use white text regardless of ambient theme', (
+      WidgetTester tester,
+    ) async {
+      await tester.runAsync(() async {
+        final keyVerse = VerseRef(
+          reference: 'Juan 3:16',
+          text: 'Porque de tal manera amó Dios al mundo...',
+        );
+
+        await tester.pumpWidget(
+          ChangeNotifierProvider(
+            create: (_) => DevocionalProvider(),
+            child: MaterialApp(
+              theme: ThemeData.light(),
+              home: Scaffold(
+                body: KeyVerseCard(keyVerse: keyVerse, forceDark: true),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        final verseText = tester.widget<Text>(
+          find.textContaining('Porque de tal manera'),
+        );
+        expect(verseText.style?.color, Colors.white);
+      });
+    });
   });
 }
 
