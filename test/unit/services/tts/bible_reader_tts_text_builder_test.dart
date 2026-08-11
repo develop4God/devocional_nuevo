@@ -1,3 +1,6 @@
+@Tags(['unit', 'services'])
+library;
+
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/services/tts/bible_reader_tts_text_builder.dart';
 import 'package:flutter_test/flutter_test.dart';

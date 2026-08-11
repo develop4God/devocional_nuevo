@@ -260,6 +260,65 @@ void main() {
       expect(find.byType(Scrollbar), findsOneWidget);
     });
 
+    testWidgets(
+      'Should render 3-digit verse numbers without overflow on small screens (Psalm 119)',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(320, 480);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: BibleVerseGridSelector(
+                totalVerses: 176,
+                selectedVerse: 1,
+                bookName: 'Psalms',
+                chapterNumber: 119,
+                onVerseSelected: (verse) {},
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+
+        // Scroll to reveal 3-digit verse numbers (100+).
+        await tester.dragUntilVisible(
+          find.text('100'),
+          find.byType(GridView),
+          const Offset(0, -100),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+
+        // The rendered text for a 3-digit verse must not be clipped: its
+        // laid-out width must fit within the cell that contains it.
+        final textFinder = find.text('100');
+        expect(textFinder, findsOneWidget);
+
+        final textWidget = tester.widget<Text>(textFinder);
+        final renderObject = tester.renderObject(textFinder) as RenderBox;
+
+        final painter = TextPainter(
+          text: TextSpan(text: textWidget.data, style: textWidget.style),
+          textDirection: TextDirection.ltr,
+        )..layout();
+
+        expect(
+          painter.width,
+          lessThanOrEqualTo(renderObject.size.width),
+          reason: 'Verse number "100" text width (${painter.width}) exceeds '
+              'its cell width (${renderObject.size.width}) on a small '
+              'screen — the digits will visually clip/overlap.',
+        );
+      },
+    );
+
     test('Grid should arrange verses in 8 columns', () {
       // Verify grid configuration
       const crossAxisCount = 8;
