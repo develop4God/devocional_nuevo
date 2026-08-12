@@ -125,33 +125,57 @@ void main() {
       },
     );
 
-    test('strips glued LBLA morphology codes from real Genesis 1:1-2 text', () {
-      const text =
-          'EnP el principioNCFSA creóVaP3MS DiosNCMPAPO losA cielosNCMPA '
-          'yCPO laA tierraNC-SA. YC laA tierraNC-SA estabaVaP3FS sin '
-          'ordenNC-SA yC vacíaNC-SA, yC las tinieblasNC-SA cubríanP la '
-          'superficieNCMPC del abismoNC-SA, yC el EspírituNC-SC de '
-          'DiosNCMPA se movíaVbR-FSA sobreP la superficieNCMPC de lasA '
-          'aguasNCMPA.';
+    test('removes morphology code tags <m>NCFSA</m> as a single unit', () {
+      const text = 'principio<m>NCFSA</m> creó<m>VaP3MS</m> Dios<m>NCMPA</m>';
       final result = BibleTextNormalizer.clean(text);
-      expect(
-        result,
-        'En el principio creó Dios los cielos y la tierra. Y la tierra '
-        'estaba sin orden y vacía, y las tinieblas cubrían la superficie '
-        'del abismo, y el Espíritu de Dios se movía sobre la superficie '
-        'de las aguas.',
-      );
+      expect(result, 'principio creó Dios');
     });
 
-    test('strips glued morphology code with hyphen and trailing suffix', () {
-      const text = 'SeaVaI3MS-J la luzNC-SA. YC huboVaW3MS luzNC-SA.';
-      expect(BibleTextNormalizer.clean(text), 'Sea la luz. Y hubo luz.');
-    });
+    test(
+      'cleans real LBLA verse text with Strong\'s and morphology tags '
+      '(Genesis 1:1)',
+      () {
+        const text = '<pb/>En<m>P</m> el principio<S>7225</S><m>NCFSA</m> '
+            'creó<S>1254</S><m>VaP3MS</m> Dios<S>430</S><m>NCMPA</m>'
+            '<S>853</S><m>PO</m> los<m>A</m> cielos<S>8064</S><m>NCMPA</m> '
+            'y<S>853</S><m>C</m><m>PO</m> la<m>A</m> '
+            'tierra<S>776</S><m>NC-SA</m>.';
+        final result = BibleTextNormalizer.clean(text);
+        expect(result, 'En el principio creó Dios los cielos y la tierra.');
+      },
+    );
 
-    test('preserves normal capitalized words when no glued code follows', () {
-      const text = 'Dios dijo: Sea la luz.';
-      expect(BibleTextNormalizer.clean(text), text);
-    });
+    test(
+      'preserves real all-caps Spanish words like SEÑOR (LBLA divine name '
+      'convention) instead of truncating them',
+      () {
+        const text = 'el SEÑOR<S>3068</S><m>NPMSA</m> dijo';
+        final result = BibleTextNormalizer.clean(text);
+        expect(result, 'el SEÑOR dijo');
+      },
+    );
+
+    test(
+      'cleans real LBLA verse text with SEÑOR and full tag markup '
+      '(Genesis 31:3)',
+      () {
+        const text = 'Entonces<m>C</m> el SEÑOR<S>3068</S><m>NPMSA</m> '
+            'dijo<S>559</S><m>VaW3MS</m> a<S>413</S><m>P</m> '
+            'Jacob<S>3290</S><m>NPMSA</m>: Vuelve<S>7725</S><m>VaM2MS</m> '
+            'a<S>413</S><m>P</m> la tierra<S>776</S><m>NC-SC</m> '
+            'de tus<S>859</S><m>RS2MS</m> padres<S>1</S><m>NCFPC</m> '
+            'y<m>C</m> a<m>P</m> tus<S>859</S><m>RS2MS</m> '
+            'familiares<S>4138</S><m>NCFSC</m>, y<m>C</m> '
+            'yo estaré<S>1961</S><m>Vaw1-S</m> '
+            'contigo<S>5973</S><S>859</S><m>P</m><m>RS2MS</m>.';
+        final result = BibleTextNormalizer.clean(text);
+        expect(
+          result,
+          'Entonces el SEÑOR dijo a Jacob: Vuelve a la tierra de tus '
+          'padres y a tus familiares, y yo estaré contigo.',
+        );
+      },
+    );
 
     test('removes stray bullet markers glued into LBLA verse text', () {
       const text = 'Y fue la • tarde y fue la • manana: un día.';
@@ -211,20 +235,6 @@ void main() {
     });
   });
 
-  group('BibleTextNormalizer.stripGluedMorphologyCodes Tests', () {
-    test('splits at lowercase-to-uppercase transition and keeps prefix', () {
-      expect(
-        BibleTextNormalizer.stripGluedMorphologyCodes('principioNCFSA'),
-        'principio',
-      );
-    });
-
-    test('leaves text unchanged when no glued code present', () {
-      const text = 'En el principio creó Dios';
-      expect(BibleTextNormalizer.stripGluedMorphologyCodes(text), text);
-    });
-  });
-
   group('BibleTextNormalizer.stripStrongTags Tests', () {
     test('removes Strong\'s tags without affecting other markup', () {
       const text = 'creó<S>1254</S> Dios<S>430</S> [1] <pb/>';
@@ -234,6 +244,26 @@ void main() {
     test('returns text unchanged when no Strong\'s tags present', () {
       const text = 'Clean verse text';
       expect(BibleTextNormalizer.stripStrongTags(text), text);
+    });
+  });
+
+  group('BibleTextNormalizer.stripMorphTags Tests', () {
+    test('removes morphology tags without affecting other markup', () {
+      const text = 'principio<m>NCFSA</m> creó<m>VaP3MS</m> [1] <pb/>';
+      expect(
+        BibleTextNormalizer.stripMorphTags(text),
+        'principio creó [1] <pb/>',
+      );
+    });
+
+    test('returns text unchanged when no morphology tags present', () {
+      const text = 'Clean verse text';
+      expect(BibleTextNormalizer.stripMorphTags(text), text);
+    });
+
+    test('does not truncate all-caps words adjacent to a morph tag', () {
+      const text = 'el SEÑOR<m>NPMSA</m> dijo';
+      expect(BibleTextNormalizer.stripMorphTags(text), 'el SEÑOR dijo');
     });
   });
 }
