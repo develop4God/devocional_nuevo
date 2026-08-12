@@ -152,6 +152,63 @@ void main() {
       const text = 'Dios dijo: Sea la luz.';
       expect(BibleTextNormalizer.clean(text), text);
     });
+
+    test('removes stray bullet markers glued into LBLA verse text', () {
+      const text = 'Y fue la • tarde y fue la • manana: un día.';
+      expect(
+        BibleTextNormalizer.clean(text),
+        'Y fue la tarde y fue la manana: un día.',
+      );
+    });
+
+    test('decodes literal &quot; entity to a straight double quote', () {
+      const text = '&quot;Yo soy el Dios de Betel&quot;.';
+      expect(BibleTextNormalizer.clean(text), '"Yo soy el Dios de Betel".');
+    });
+
+    test(
+        'cleans real LBLA verse text with tags and stray bullets (Genesis 1:5)',
+        () {
+      const text =
+          'Y<m>C</m> llamó<S>7121</S><m>VaW3MS</m> Dios<S>430</S><m>NCMPA</m> '
+          'a<S>7121</S><m>P</m> la<m>A</m> luz<S>216</S><m>NC-SA</m> '
+          'día<S>3117</S><m>NC-SA</m>, y<m>C</m> a<m>P</m> las<m>A</m> '
+          'tinieblas<S>2822</S><m>NC-SA</m> llamó<S>7121</S><m>VaP3MS</m> '
+          'noche<S>3915</S><m>NC-SA</m>. Y<m>C</m> fue<S>1961</S><m>VaW3MS</m> '
+          'la • tarde<S>6153</S><m>NC-SA</m> y<m>C</m> '
+          'fue<S>1961</S><m>VaW3MS</m> la • manana<S>1242</S><m>NC-SA</m>: '
+          'un<S>259</S><m>UC-SA</m> día<S>3117</S><m>NC-SA</m>.';
+      final result = BibleTextNormalizer.clean(text);
+      expect(result, isNot(contains('•')));
+      expect(result, contains('la tarde'));
+      expect(result, contains('la manana'));
+    });
+
+    test(
+        'cleans real LBLA verse text with tags, bullets, and &quot; entity '
+        '(Genesis 31:13)', () {
+      const text =
+          '&quot;Yo<S>595</S><m>RP1-S</m> soy • el<m>A</m> Dios<S>410</S>'
+          '<m>NC-SA</m> <i>de</i> Betel<S>1008</S><m>NP-SA</m>, '
+          'donde<S>834</S><m>CR</m> tú ungiste<S>4886</S><m>VaP2MS</m>'
+          '<S>8033</S><m>D</m> un pilar<S>4676</S><m>NCFSA</m>, '
+          'donde<S>834</S><m>CR</m> me<S>589</S><m>P</m><m>RS1-S</m> '
+          'hiciste<S>5087</S><m>VaP2MS</m><S>8033</S><m>D</m> un '
+          'voto<S>5088</S><m>NC-SA</m>. Levántate<S>6965</S><m>VaM2MS</m> '
+          'ahora<S>6258</S><m>D</m>, sal<S>3318</S><m>VaM2MS</m> '
+          'de<S>4480</S><m>P</m> esta<S>2063</S><m>A</m><m>RD-FS</m> '
+          'tierra<S>776</S><m>A</m><m>NC-SA</m>, y<m>C</m> '
+          'vuelve<S>7725</S><m>VaM2MS</m> a<S>413</S><m>P</m> '
+          'la tierra<S>776</S><m>NC-SC</m> donde • '
+          'naciste<S>4138</S><S>859</S><m>NCFSC</m><m>RS2MS</m>. "';
+      final result = BibleTextNormalizer.clean(text);
+      expect(
+        result,
+        '"Yo soy el Dios de Betel, donde tú ungiste un pilar, donde me '
+        'hiciste un voto. Levántate ahora, sal de esta tierra, y vuelve '
+        'a la tierra donde naciste. "',
+      );
+    });
   });
 
   group('BibleTextNormalizer.stripGluedMorphologyCodes Tests', () {
