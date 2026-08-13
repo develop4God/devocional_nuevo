@@ -286,4 +286,75 @@ void main() {
 
     expect(downloadRequested, downloadable);
   });
+
+  testWidgets(
+      'shows an update action for a downloaded version with hasUpdate; '
+      'tapping it invokes the download callback without changing selection',
+      (tester) async {
+    final versionA = _version('A_xx.SQLite3', name: 'Version A');
+    final outdated = _version('B_xx.SQLite3', name: 'Version B')
+        .copyWith(hasUpdate: true, isDownloaded: true);
+    BibleVersion? selected;
+    BibleVersion? downloadRequested;
+
+    await pumpDrawer(
+      tester,
+      versions: [versionA, outdated],
+      selectedVersion: versionA,
+      onVersionSelected: (v) => selected = v,
+      onDownloadVersion: (v) => downloadRequested = v,
+    );
+
+    final updateButton = find.byKey(
+      const Key('bible_reader_drawer_update_B_xx.SQLite3'),
+    );
+    expect(updateButton, findsOneWidget);
+    // A bare icon with only a long-press tooltip reads as an unlabeled
+    // decoration at a glance — the "Updated" chip must be visibly present
+    // as text, not only discoverable via tooltip.
+    expect(find.text('bubble_constants.update_available'), findsOneWidget);
+
+    await tester.tap(updateButton);
+    await tester.pumpAndSettle();
+
+    expect(downloadRequested, outdated);
+    expect(selected, isNull);
+    expect(find.byType(Drawer), findsOneWidget);
+  });
+
+  testWidgets(
+      'shows a progress ring on the update action while a redownload is '
+      'in flight, matching the same trailing treatment as a first-time '
+      'download', (tester) async {
+    final versionA = _version('A_xx.SQLite3', name: 'Version A');
+    final outdated = _version('B_xx.SQLite3', name: 'Version B')
+        .copyWith(hasUpdate: true, isDownloaded: true);
+
+    await pumpDrawer(
+      tester,
+      versions: [versionA, outdated],
+      selectedVersion: versionA,
+      downloadStatuses: const {
+        'B_xx.SQLite3': VersionDownloadStatus(progress: 0.5),
+      },
+    );
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('does not show an update action for a version without hasUpdate',
+      (tester) async {
+    final versionA = _version('A_xx.SQLite3', name: 'Version A');
+
+    await pumpDrawer(
+      tester,
+      versions: [versionA],
+      selectedVersion: versionA,
+    );
+
+    expect(
+      find.byKey(const Key('bible_reader_drawer_update_A_xx.SQLite3')),
+      findsNothing,
+    );
+  });
 }
