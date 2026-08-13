@@ -8,6 +8,38 @@ import 'package:bible_reader_core/src/bible_version.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// A no-op BibleDbService for switchVersion tests — initDb doesn't touch a
+/// real asset/file, and the book/chapter queries return just enough data
+/// for switchVersion's post-switch _loadChapterData() to complete.
+class _FakeBibleDbService extends BibleDbService {
+  @override
+  Future<void> initDb(String dbAssetPath, String dbName) async {}
+
+  @override
+  Future<List<Map<String, dynamic>>> getAllBooks() async => [
+        {'book_number': 1, 'short_name': 'GN', 'long_name': 'Genesis'},
+      ];
+
+  @override
+  Future<int> getMaxChapter(int bookNumber) async => 50;
+
+  @override
+  Future<List<Map<String, dynamic>>> getChapterVerses(
+    int bookNumber,
+    int chapter,
+  ) async =>
+      [
+        {'verse': 1, 'text': 'In the beginning...'},
+      ];
+
+  @override
+  Future<List<Map<String, dynamic>>> getSectionTitles({
+    required int bookNumber,
+    required int chapter,
+  }) async =>
+      [];
+}
+
 void main() {
   late BibleReaderController controller;
   late BibleReaderService readerService;
@@ -515,6 +547,95 @@ void main() {
       final state = controller.state;
       controller.toggleFontControls();
       expect(identical(state, controller.state), false);
+    });
+  });
+
+  group('BibleReaderController switchVersion Tests', () {
+    BibleVersion versionWith({
+      required String dbFileName,
+      bool hasUpdate = false,
+      String? remoteHash,
+    }) {
+      return BibleVersion(
+        name: dbFileName,
+        language: 'Español',
+        languageCode: 'es',
+        assetPath: 'assets/bible/$dbFileName',
+        dbFileName: dbFileName,
+        hasUpdate: hasUpdate,
+        remoteHash: remoteHash,
+        service: _FakeBibleDbService(),
+      );
+    }
+
+    test(
+        'replaces a stale already-listed entry with the fresh copy when '
+        'switching to a different version', () async {
+      final staleA = versionWith(dbFileName: 'A.SQLite3', hasUpdate: true);
+      final freshB = versionWith(dbFileName: 'B.SQLite3');
+      // _initializeVersionService also calls readerService.dbService.initDb
+      // — a real BibleDbService there would hit path_provider, which needs
+      // a Flutter binding this test doesn't set up. Use the fake here too.
+      final fakeReaderService = BibleReaderService(
+        dbService: _FakeBibleDbService(),
+        positionService: BibleReadingPositionService(),
+      );
+      controller = BibleReaderController(
+        allVersions: [staleA, freshB],
+        readerService: fakeReaderService,
+        preferencesService: preferencesService,
+        initialState: BibleReaderState(
+          availableVersions: [staleA, freshB],
+          selectedVersion: freshB,
+        ),
+      );
+
+      final freshA = versionWith(dbFileName: 'A.SQLite3', hasUpdate: false);
+      await controller.switchVersion(freshA);
+
+      final listed = controller.state.availableVersions
+          .firstWhere((v) => v.dbFileName == 'A.SQLite3');
+      expect(listed.hasUpdate, isFalse);
+      expect(controller.state.selectedVersion?.dbFileName, 'A.SQLite3');
+    });
+
+    test(
+        'refreshes the listed entry when re-downloading the ALREADY '
+        'SELECTED version, without resetting reading position', () async {
+      final staleSelected =
+          versionWith(dbFileName: 'A.SQLite3', hasUpdate: true);
+      controller = BibleReaderController(
+        allVersions: [staleSelected],
+        readerService: readerService,
+        preferencesService: preferencesService,
+        initialState: BibleReaderState(
+          availableVersions: [staleSelected],
+          selectedVersion: staleSelected,
+          selectedBookName: 'GN',
+          selectedBookNumber: 1,
+          selectedChapter: 3,
+          selectedVerse: 5,
+        ),
+      );
+
+      final freshSelected =
+          versionWith(dbFileName: 'A.SQLite3', hasUpdate: false);
+      await controller.switchVersion(freshSelected);
+
+      final listed = controller.state.availableVersions
+          .firstWhere((v) => v.dbFileName == 'A.SQLite3');
+      expect(
+        listed.hasUpdate,
+        isFalse,
+        reason: 'the stale hasUpdate: true copy must not survive a '
+            'redownload of the currently-selected version',
+      );
+      expect(controller.state.selectedVersion?.hasUpdate, isFalse);
+      // Reading position must be preserved — this is a metadata refresh,
+      // not a real version switch.
+      expect(controller.state.selectedBookName, 'GN');
+      expect(controller.state.selectedChapter, 3);
+      expect(controller.state.selectedVerse, 5);
     });
   });
 }
