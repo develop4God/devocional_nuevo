@@ -102,15 +102,69 @@ class BibleReaderDrawer extends StatelessWidget {
                               ? colorScheme.primary
                               : colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
-                        title: Text(
-                          versionLabelBuilder(version),
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontSize: 16,
-                            color: colorScheme.onSurface,
-                            fontWeight:
-                                isSelected ? FontWeight.w600 : FontWeight.w400,
-                          ),
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (version.hasUpdate)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 2),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: BubbleConstants
+                                        .contentUpdateAvailableColor,
+                                    borderRadius: BorderRadius.circular(
+                                      BubbleConstants.widgetBubbleRadius,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'bubble_constants.update_available'.tr(),
+                                    style:
+                                        BubbleConstants.widgetBubbleTextStyle,
+                                  ),
+                                ),
+                              ),
+                            Text(
+                              versionLabelBuilder(version),
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontSize: 16,
+                                color: colorScheme.onSurface,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                              ),
+                            ),
+                          ],
                         ),
+                        trailing: version.hasUpdate
+                            ? InkWell(
+                                key: Key(
+                                  'bible_reader_drawer_update_${version.dbFileName}',
+                                ),
+                                customBorder: const CircleBorder(),
+                                onTap: _isDownloading
+                                    ? null
+                                    : () {
+                                        debugPrint(
+                                          '[BibleReaderDrawer] update tapped '
+                                          'for ${version.dbFileName} — '
+                                          'remoteHash=${version.remoteHash}',
+                                        );
+                                        onDownloadVersion(version);
+                                      },
+                                child: _downloadTrailing(
+                                  colorScheme.copyWith(
+                                    primary: BubbleConstants
+                                        .contentUpdateAvailableColor,
+                                  ),
+                                  downloadStatuses[version.dbFileName],
+                                ),
+                              )
+                            : null,
                         onTap: _isDownloading
                             ? null
                             : () {
