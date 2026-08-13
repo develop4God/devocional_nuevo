@@ -626,21 +626,37 @@ void main() {
         controller.dispose();
       });
 
-      test('Switching to same version is a no-op', () async {
-        final rvr = _makeVersion(name: 'RVR1960');
-        final controller = _makeController(versions: [rvr]);
-        await controller.initialize('es');
+      test(
+        'Switching to same version refreshes metadata without reloading '
+        'reading state',
+        () async {
+          final rvr = _makeVersion(name: 'RVR1960');
+          final controller = _makeController(versions: [rvr]);
+          await controller.initialize('es');
 
-        final statesBefore = controller.state;
-        await controller.switchVersion(rvr);
+          final stateBefore = controller.state;
+          await controller.switchVersion(rvr);
 
-        expect(
-          controller.state,
-          same(statesBefore),
-          reason: 'Switching to current version should not emit new state',
-        );
-        controller.dispose();
-      });
+          expect(
+            controller.state.selectedVersion,
+            same(rvr),
+            reason: 'Re-selecting the same dbFileName should adopt the '
+                'passed-in version instance (metadata refresh)',
+          );
+          expect(
+            controller.state.selectedBookNumber,
+            stateBefore.selectedBookNumber,
+            reason: 'Re-selecting the current version must not reset '
+                'reading position',
+          );
+          expect(
+            controller.state.selectedChapter,
+            stateBefore.selectedChapter,
+          );
+          expect(controller.state.isLoading, isFalse);
+          controller.dispose();
+        },
+      );
 
       test('isLoading is false after version switch completes', () async {
         final rvr = _makeVersion(name: 'RVR1960');
@@ -693,11 +709,14 @@ void main() {
       );
 
       test(
-        'Different name, same dbFileName — controller treats them as same',
+        'Different name, same dbFileName — controller treats them as same '
+        'without reloading, but refreshes the listed metadata',
         () async {
           // Two version objects have different display names but identical
-          // dbFileName. The controller should consider them the same version
-          // and skip the switch entirely.
+          // dbFileName. The controller must use dbFileName (not name) as the
+          // identity key, so it should not re-initialize the DB or reset
+          // reading position — but it still adopts versionB's metadata,
+          // e.g. for a redownload that updates hasUpdate/remoteHash.
           final versionA = _makeVersion(
             name: 'RVR1960',
             dbFileName: 'shared.db',
@@ -710,12 +729,16 @@ void main() {
           await controller.switchVersion(versionB);
 
           expect(
-            controller.state,
-            same(stateBefore),
-            reason:
-                'Versions with the same dbFileName must be treated as identical '
-                '— switchVersion should be a no-op',
+            controller.state.selectedVersion,
+            same(versionB),
+            reason: 'dbFileName match should adopt the new version instance',
           );
+          expect(
+            controller.state.selectedBookNumber,
+            stateBefore.selectedBookNumber,
+            reason: 'Same dbFileName must not reset reading position',
+          );
+          expect(controller.state.isLoading, isFalse);
           controller.dispose();
         },
       );
