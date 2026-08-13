@@ -322,6 +322,26 @@ void main() {
     expect(find.byType(Drawer), findsOneWidget);
   });
 
+  testWidgets(
+      'shows a progress ring on the update action while a redownload is '
+      'in flight, matching the same trailing treatment as a first-time '
+      'download', (tester) async {
+    final versionA = _version('A_xx.SQLite3', name: 'Version A');
+    final outdated = _version('B_xx.SQLite3', name: 'Version B')
+        .copyWith(hasUpdate: true, isDownloaded: true);
+
+    await pumpDrawer(
+      tester,
+      versions: [versionA, outdated],
+      selectedVersion: versionA,
+      downloadStatuses: const {
+        'B_xx.SQLite3': VersionDownloadStatus(progress: 0.5),
+      },
+    );
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
   testWidgets('does not show an update action for a version without hasUpdate',
       (tester) async {
     final versionA = _version('A_xx.SQLite3', name: 'Version A');

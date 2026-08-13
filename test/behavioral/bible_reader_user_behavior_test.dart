@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
 import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
+import 'package:devocional_nuevo/repositories/bible_version_repository.dart';
 import 'package:devocional_nuevo/repositories/i_bible_version_repository.dart';
 import 'package:devocional_nuevo/models/bible_note.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_note_modal.dart';
@@ -43,6 +44,16 @@ class _FakeBibleVersionRepository implements IBibleVersionRepository {
     BibleVersion version, {
     void Function(double? progress)? onProgress,
   }) async {
+    // Mirrors BibleVersionRepository.downloadVersion's real guard — a
+    // version passed in with no remoteUrl (e.g. because a caller spliced
+    // together a BibleVersion missing that field) must fail the same way
+    // production does, not silently "succeed" and mask the bug.
+    if (version.remoteUrl == null) {
+      throw BibleVersionDownloadException(
+        BibleVersionDownloadErrorKind.network,
+        'Version has no remoteUrl',
+      );
+    }
     onProgress?.call(1.0);
   }
 }

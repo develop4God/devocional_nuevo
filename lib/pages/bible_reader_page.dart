@@ -1142,17 +1142,21 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       // Downloaded versions the index reports as changed
                       // since download — surfaced as an update badge on
                       // the existing availableVersions entry rather than a
-                      // separate downloadable tile.
-                      final updatedFileNames = remoteVersions
-                          .where((v) =>
-                              v.hasUpdate &&
+                      // separate downloadable tile. Keyed by dbFileName so
+                      // the full remote entry (with remoteUrl/remoteHash,
+                      // which the disk-scanned availableVersions entry
+                      // never has) can be used for the redownload — not
+                      // just its hasUpdate flag copied over, which would
+                      // leave remoteUrl null and make the redownload fail.
+                      final updatedVersionsByFileName = {
+                        for (final v in remoteVersions)
+                          if (v.hasUpdate &&
                               downloadedFileNames.contains(v.dbFileName))
-                          .map((v) => v.dbFileName)
-                          .toSet();
+                            v.dbFileName: v,
+                      };
                       final availableVersions = state.availableVersions
-                          .map((v) => updatedFileNames.contains(v.dbFileName)
-                              ? v.copyWith(hasUpdate: true)
-                              : v)
+                          .map((v) =>
+                              updatedVersionsByFileName[v.dbFileName] ?? v)
                           .toList();
                       final downloadStatuses =
                           versionsState is BibleVersionsLoaded
@@ -1164,7 +1168,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                         'availableVersions=${state.availableVersions.map((v) => v.dbFileName).toList()} '
                         'downloadedFileNames=$downloadedFileNames '
                         'downloadableVersions=${downloadableVersions.map((v) => v.dbFileName).toList()} '
-                        'updatedFileNames=$updatedFileNames',
+                        'updatedFileNames=${updatedVersionsByFileName.keys.toList()}',
                       );
 
                       return BibleReaderDrawer(

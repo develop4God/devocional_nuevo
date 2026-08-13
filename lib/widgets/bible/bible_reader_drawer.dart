@@ -141,18 +141,12 @@ class BibleReaderDrawer extends StatelessWidget {
                           ],
                         ),
                         trailing: version.hasUpdate
-                            ? IconButton(
+                            ? InkWell(
                                 key: Key(
                                   'bible_reader_drawer_update_${version.dbFileName}',
                                 ),
-                                icon: Icon(
-                                  Icons.system_update_alt_outlined,
-                                  color: BubbleConstants
-                                      .contentUpdateAvailableColor,
-                                ),
-                                tooltip:
-                                    'bubble_constants.update_available'.tr(),
-                                onPressed: _isDownloading
+                                customBorder: const CircleBorder(),
+                                onTap: _isDownloading
                                     ? null
                                     : () {
                                         debugPrint(
@@ -162,6 +156,13 @@ class BibleReaderDrawer extends StatelessWidget {
                                         );
                                         onDownloadVersion(version);
                                       },
+                                child: _downloadTrailing(
+                                  colorScheme.copyWith(
+                                    primary: BubbleConstants
+                                        .contentUpdateAvailableColor,
+                                  ),
+                                  downloadStatuses[version.dbFileName],
+                                ),
                               )
                             : null,
                         onTap: _isDownloading
