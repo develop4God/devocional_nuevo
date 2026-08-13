@@ -106,6 +106,64 @@ void main() {
       expect(builder.estimatedChildCount, equals(totalChapters));
     });
 
+    testWidgets(
+      'Should render 3-digit chapter numbers without overflow on small screens (Psalms 150)',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(320, 480);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: BibleChapterGridSelector(
+                totalChapters: 150,
+                selectedChapter: 1,
+                bookName: 'Psalms',
+                onChapterSelected: (chapter) {},
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+
+        // Scroll to reveal 3-digit chapter numbers (100+).
+        await tester.dragUntilVisible(
+          find.text('100'),
+          find.byType(GridView),
+          const Offset(0, -100),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+
+        // The rendered text for a 3-digit chapter must not be clipped: its
+        // laid-out width must fit within the cell that contains it.
+        final textFinder = find.text('100');
+        expect(textFinder, findsOneWidget);
+
+        final textWidget = tester.widget<Text>(textFinder);
+        final renderObject = tester.renderObject(textFinder) as RenderBox;
+
+        final painter = TextPainter(
+          text: TextSpan(text: textWidget.data, style: textWidget.style),
+          textDirection: TextDirection.ltr,
+        )..layout();
+
+        expect(
+          painter.width,
+          lessThanOrEqualTo(renderObject.size.width),
+          reason: 'Chapter number "100" text width (${painter.width}) '
+              'exceeds its cell width (${renderObject.size.width}) on a '
+              'small screen — the digits will visually clip/overlap.',
+        );
+      },
+    );
+
     testWidgets('Should call callback when chapter is tapped', (
       WidgetTester tester,
     ) async {
