@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -131,9 +132,24 @@ class BibleVersionRegistry {
       final Map<String, dynamic> names = namesJson != null
           ? jsonDecode(namesJson) as Map<String, dynamic>
           : {};
+      debugPrint(
+        '[BibleVersionRegistry] getDownloadedRemoteVersionsForLanguage('
+        '$languageCode) namesJson=$namesJson',
+      );
 
       final suffix = '_$languageCode.SQLite3';
       final List<BibleVersion> result = [];
+
+      final allFiles = dir
+          .listSync()
+          .whereType<File>()
+          .map((f) => basename(f.path))
+          .toList();
+      debugPrint(
+        '[BibleVersionRegistry] documents dir files matching *$suffix: '
+        '${allFiles.where((f) => f.endsWith(suffix)).toList()} '
+        '(bundledFileNames=$bundledFileNames)',
+      );
 
       for (final entity in dir.listSync()) {
         if (entity is! File) continue;
