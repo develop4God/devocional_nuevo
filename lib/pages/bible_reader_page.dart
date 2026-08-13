@@ -974,7 +974,15 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         // Switch first, so the new version's reading position is saved
         // before onVersionsMayHaveChanged() below remounts this page with a
         // fresh key — otherwise the remount restores the previous version.
-        await _controller.switchVersion(version);
+        // version may be the stale pre-download copy (e.g. a redownload
+        // triggered from the update badge): hasUpdate must be cleared so
+        // the controller's availableVersions doesn't keep showing an
+        // update as still pending for the file just downloaded. remoteHash
+        // is intentionally carried through as-is, since the file on disk
+        // now matches it.
+        await _controller.switchVersion(
+          version.copyWith(isDownloaded: true, hasUpdate: false),
+        );
         widget.onVersionsMayHaveChanged?.call();
         if (!context.mounted) return;
         AppSnackBar.show(
@@ -1123,27 +1131,40 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       final downloadedFileNames = state.availableVersions
                           .map((v) => v.dbFileName)
                           .toSet();
-                      final downloadableVersions = versionsState
-                              is BibleVersionsLoaded
-                          ? versionsState.remoteVersions
-                              .where((v) =>
-                                  !downloadedFileNames.contains(v.dbFileName))
-                              .toList()
-                          : const <BibleVersion>[];
+                      final remoteVersions =
+                          versionsState is BibleVersionsLoaded
+                              ? versionsState.remoteVersions
+                              : const <BibleVersion>[];
+                      final downloadableVersions = remoteVersions
+                          .where((v) =>
+                              !downloadedFileNames.contains(v.dbFileName))
+                          .toList();
+                      // Downloaded versions the index reports as changed
+                      // since download — surfaced as an update badge on
+                      // the existing availableVersions entry rather than a
+                      // separate downloadable tile. Keyed by dbFileName so
+                      // the full remote entry (with remoteUrl/remoteHash,
+                      // which the disk-scanned availableVersions entry
+                      // never has) can be used for the redownload — not
+                      // just its hasUpdate flag copied over, which would
+                      // leave remoteUrl null and make the redownload fail.
+                      final updatedVersionsByFileName = {
+                        for (final v in remoteVersions)
+                          if (v.hasUpdate &&
+                              downloadedFileNames.contains(v.dbFileName))
+                            v.dbFileName: v,
+                      };
+                      final availableVersions = state.availableVersions
+                          .map((v) =>
+                              updatedVersionsByFileName[v.dbFileName] ?? v)
+                          .toList();
                       final downloadStatuses =
                           versionsState is BibleVersionsLoaded
                               ? versionsState.downloadStatuses
                               : const <String, VersionDownloadStatus>{};
 
-                      debugPrint(
-                        '[BibleReaderDrawer build] versionsState=$versionsState '
-                        'availableVersions=${state.availableVersions.map((v) => v.dbFileName).toList()} '
-                        'downloadedFileNames=$downloadedFileNames '
-                        'downloadableVersions=${downloadableVersions.map((v) => v.dbFileName).toList()}',
-                      );
-
                       return BibleReaderDrawer(
-                        availableVersions: state.availableVersions,
+                        availableVersions: availableVersions,
                         selectedVersion: state.selectedVersion,
                         downloadableVersions: downloadableVersions,
                         downloadStatuses: downloadStatuses,

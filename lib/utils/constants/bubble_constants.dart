@@ -21,6 +21,12 @@ class BubbleConstants {
   ); //azul vibrante para nuevo
   static const Color updatedFeatureColor = Color(0xFF2196F3);
   static const Color notificationColor = Color(0xFFFF5722);
+  // Orange for "content needs action" prompts — e.g. a downloaded Bible
+  // version whose remote file has since changed. Distinct from
+  // updatedFeatureColor (a neutral "feature was updated" announcement)
+  // and notificationColor (red-orange, generic alerts): this one signals
+  // "the content you have may be incorrect, please update it."
+  static const Color contentUpdateAvailableColor = Color(0xFFFF9800);
 
   // Posiciones para diferentes tipos de widgets
   static const double widgetBubbleTop = -6;

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -131,9 +132,24 @@ class BibleVersionRegistry {
       final Map<String, dynamic> names = namesJson != null
           ? jsonDecode(namesJson) as Map<String, dynamic>
           : {};
+      debugPrint(
+        '[BibleVersionRegistry] getDownloadedRemoteVersionsForLanguage('
+        '$languageCode) namesJson=$namesJson',
+      );
 
       final suffix = '_$languageCode.SQLite3';
       final List<BibleVersion> result = [];
+
+      final allFiles = dir
+          .listSync()
+          .whereType<File>()
+          .map((f) => basename(f.path))
+          .toList();
+      debugPrint(
+        '[BibleVersionRegistry] documents dir files matching *$suffix: '
+        '${allFiles.where((f) => f.endsWith(suffix)).toList()} '
+        '(bundledFileNames=$bundledFileNames)',
+      );
 
       for (final entity in dir.listSync()) {
         if (entity is! File) continue;
@@ -142,15 +158,18 @@ class BibleVersionRegistry {
         if (bundledFileNames.contains(fileName)) continue;
 
         // Entries may be a plain display-name string (legacy) or a
-        // {"name": ..., "disclaimer": ...} map (current format).
+        // {"name": ..., "disclaimer": ..., "hash": ...} map (current
+        // format).
         final stored = names[fileName];
         String displayName = fileName;
         String? disclaimer;
+        String? hash;
         if (stored is String) {
           displayName = stored;
         } else if (stored is Map) {
           displayName = stored['name'] as String? ?? fileName;
           disclaimer = stored['disclaimer'] as String?;
+          hash = stored['hash'] as String?;
         }
 
         result.add(
@@ -162,6 +181,7 @@ class BibleVersionRegistry {
             dbFileName: fileName,
             isDownloaded: true,
             disclaimer: disclaimer,
+            remoteHash: hash,
           ),
         );
       }
