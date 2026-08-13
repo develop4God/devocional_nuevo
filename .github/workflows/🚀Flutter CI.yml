@@ -115,6 +115,7 @@ jobs:
                 # Only commit if source files changed (not just generated files)
                 if ! git diff --cached --quiet; then
                   git commit -m "🎨 Auto-format code with dart format [skip ci]"
+                  git pull --rebase origin "$BRANCH"
                   git push origin "$BRANCH"
                 else
                   echo "ℹ️ Only generated files were reformatted, skipping commit"
@@ -160,6 +161,7 @@ jobs:
               # Only commit if source files changed (not just generated files)
               if ! git diff --cached --quiet; then
                 git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
+                git pull --rebase origin "$BRANCH"
                 git push origin "$BRANCH"
               else
                 echo "ℹ️ Only generated files were modified, skipping commit"
@@ -370,6 +372,7 @@ jobs:
           git add README.md
           if ! git diff --cached --quiet; then
             git commit -m "📊 Update README: ${COVERAGE}% coverage · ${TEST_COUNT} tests [skip ci]"
+            git pull --rebase origin "${{ github.ref_name }}"
             git push
           else
             echo "ℹ️ Stats unchanged — skipping commit"
