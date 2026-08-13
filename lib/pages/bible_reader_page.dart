@@ -1163,14 +1163,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                               ? versionsState.downloadStatuses
                               : const <String, VersionDownloadStatus>{};
 
-                      debugPrint(
-                        '[BibleReaderDrawer build] versionsState=$versionsState '
-                        'availableVersions=${state.availableVersions.map((v) => v.dbFileName).toList()} '
-                        'downloadedFileNames=$downloadedFileNames '
-                        'downloadableVersions=${downloadableVersions.map((v) => v.dbFileName).toList()} '
-                        'updatedFileNames=${updatedVersionsByFileName.keys.toList()}',
-                      );
-
                       return BibleReaderDrawer(
                         availableVersions: availableVersions,
                         selectedVersion: state.selectedVersion,
