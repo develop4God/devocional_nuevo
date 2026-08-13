@@ -309,6 +309,10 @@ void main() {
       const Key('bible_reader_drawer_update_B_xx.SQLite3'),
     );
     expect(updateButton, findsOneWidget);
+    // A bare icon with only a long-press tooltip reads as an unlabeled
+    // decoration at a glance — the "Updated" chip must be visibly present
+    // as text, not only discoverable via tooltip.
+    expect(find.text('bubble_constants.updated_feature'), findsOneWidget);
 
     await tester.tap(updateButton);
     await tester.pumpAndSettle();
