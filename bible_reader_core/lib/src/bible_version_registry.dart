@@ -142,15 +142,18 @@ class BibleVersionRegistry {
         if (bundledFileNames.contains(fileName)) continue;
 
         // Entries may be a plain display-name string (legacy) or a
-        // {"name": ..., "disclaimer": ...} map (current format).
+        // {"name": ..., "disclaimer": ..., "hash": ...} map (current
+        // format).
         final stored = names[fileName];
         String displayName = fileName;
         String? disclaimer;
+        String? hash;
         if (stored is String) {
           displayName = stored;
         } else if (stored is Map) {
           displayName = stored['name'] as String? ?? fileName;
           disclaimer = stored['disclaimer'] as String?;
+          hash = stored['hash'] as String?;
         }
 
         result.add(
@@ -162,6 +165,7 @@ class BibleVersionRegistry {
             dbFileName: fileName,
             isDownloaded: true,
             disclaimer: disclaimer,
+            remoteHash: hash,
           ),
         );
       }
