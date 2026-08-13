@@ -152,13 +152,17 @@ class BibleChapterGridSelector extends StatelessWidget {
                 : null,
           ),
           child: Center(
-            child: Text(
-              chapterNumber.toString(),
-              style: textTheme.bodyMedium?.copyWith(
-                color:
-                    isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 18,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                chapterNumber.toString(),
+                style: textTheme.bodyMedium?.copyWith(
+                  color: isSelected
+                      ? colorScheme.onPrimary
+                      : colorScheme.onSurface,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 18,
+                ),
               ),
             ),
           ),
