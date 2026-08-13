@@ -466,7 +466,8 @@
   },
   "bubble_constants": {
     "new_feature": "Novo",
-    "updated_feature": "Actualização"
+    "updated_feature": "Actualização",
+    "update_available": "Atualizar"
   },
   "backup": {
     "title": "Backup",

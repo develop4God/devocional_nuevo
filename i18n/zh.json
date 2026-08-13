@@ -466,7 +466,8 @@
   },
   "bubble_constants": {
     "new_feature": "新",
-    "updated_feature": "更新"
+    "updated_feature": "更新",
+    "update_available": "更新"
   },
   "backup": {
     "title": "同步 和 保护",

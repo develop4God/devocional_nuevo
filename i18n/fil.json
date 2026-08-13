@@ -466,7 +466,8 @@
   },
   "bubble_constants": {
     "new_feature": "Bago",
-    "updated_feature": "Na-update"
+    "updated_feature": "Na-update",
+    "update_available": "I-update"
   },
   "backup": {
     "title": "Pag-sync at Proteksyon",

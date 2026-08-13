@@ -180,6 +180,10 @@ class BibleVersionRepository implements IBibleVersionRepository {
     void Function(double? progress)? onProgress,
   }) async {
     final url = version.remoteUrl;
+    debugPrint(
+      '[BibleVersionRepository] downloadVersion(${version.dbFileName}) '
+      'starting — url=$url incomingRemoteHash=${version.remoteHash}',
+    );
     if (url == null) {
       throw BibleVersionDownloadException(
         BibleVersionDownloadErrorKind.network,
@@ -245,6 +249,10 @@ class BibleVersionRepository implements IBibleVersionRepository {
       version.name,
       version.disclaimer,
       version.remoteHash,
+    );
+    debugPrint(
+      '[BibleVersionRepository] downloadVersion(${version.dbFileName}) '
+      'complete — persisted hash=${version.remoteHash} to prefs',
     );
 
     if (contentLength != null && contentLength > 0) {

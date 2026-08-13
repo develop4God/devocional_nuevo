@@ -466,7 +466,8 @@
   },
   "bubble_constants": {
     "new_feature": "جديد",
-    "updated_feature": "مُحدَّث"
+    "updated_feature": "مُحدَّث",
+    "update_available": "تحديث"
   },
   "backup": {
     "title": "المزامنة والحماية",

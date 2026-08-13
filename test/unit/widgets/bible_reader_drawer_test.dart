@@ -312,7 +312,7 @@ void main() {
     // A bare icon with only a long-press tooltip reads as an unlabeled
     // decoration at a glance — the "Updated" chip must be visibly present
     // as text, not only discoverable via tooltip.
-    expect(find.text('bubble_constants.updated_feature'), findsOneWidget);
+    expect(find.text('bubble_constants.update_available'), findsOneWidget);
 
     await tester.tap(updateButton);
     await tester.pumpAndSettle();
