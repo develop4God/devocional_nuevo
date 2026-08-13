@@ -126,6 +126,49 @@ void main() {
       );
     });
 
+    test('reads hash from the current map-shaped stored entry', () async {
+      final file = File('${tempDir.path}/RVR1909_es.SQLite3');
+      await file.writeAsBytes([1, 2, 3]);
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'bible_remote_version_names',
+        jsonEncode({
+          'RVR1909_es.SQLite3': {
+            'name': 'Reina-Valera 1909 (con Números Strong)',
+            'hash': 'abc123def456',
+          },
+        }),
+      );
+
+      final result =
+          await BibleVersionRegistry.getDownloadedRemoteVersionsForLanguage(
+        'es',
+      );
+
+      expect(result, hasLength(1));
+      expect(result.first.remoteHash, 'abc123def456');
+    });
+
+    test('leaves hash null for legacy plain-string stored entries', () async {
+      final file = File('${tempDir.path}/CUSTOM_fr.SQLite3');
+      await file.writeAsBytes([1, 2, 3]);
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'bible_remote_version_names',
+        jsonEncode({'CUSTOM_fr.SQLite3': 'Custom French Version'}),
+      );
+
+      final result =
+          await BibleVersionRegistry.getDownloadedRemoteVersionsForLanguage(
+        'fr',
+      );
+
+      expect(result, hasLength(1));
+      expect(result.first.remoteHash, isNull);
+    });
+
     test('getVersionsForLanguage includes downloaded remote versions',
         () async {
       final file = File('${tempDir.path}/CUSTOM_fr.SQLite3');

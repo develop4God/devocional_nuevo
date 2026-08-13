@@ -64,11 +64,31 @@ class BibleVersionRepository implements IBibleVersionRepository {
 
     final bundledVersions =
         await BibleVersionRegistry.getVersionsForLanguage(languageCode);
-    final bundledCodes =
-        bundledVersions.map((v) => v.dbFileName.split('_').first).toSet();
+    // Shipped-as-asset entries have a non-empty assetPath (see
+    // BibleVersionRegistry.getVersionsForLanguage); downloaded remote
+    // entries have an empty one. Neither has remoteUrl set at this point,
+    // so isRemote can't be used to tell them apart here.
+    // Shipped-as-asset codes are never re-offered — asset updates ship via
+    // app updates, not this download flow.
+    final assetCodes = bundledVersions
+        .where((v) => v.assetPath.isNotEmpty)
+        .map((v) => v.dbFileName.split('_').first)
+        .toSet();
+    // Already-downloaded remote versions, keyed by code, so a hash
+    // mismatch can be surfaced as an available update instead of the
+    // version being silently omitted forever, and so a legacy download
+    // (no stored hash yet) can be backfilled with a baseline below.
+    final downloadedRemoteVersions = {
+      for (final v in bundledVersions.where((v) => v.assetPath.isEmpty))
+        v.dbFileName.split('_').first: v,
+    };
+    final downloadedRemoteHashes = {
+      for (final entry in downloadedRemoteVersions.entries)
+        entry.key: entry.value.remoteHash,
+    };
     debugPrint(
-      '[BibleVersionRepository] bundled/downloaded codes for '
-      '$languageCode: $bundledCodes',
+      '[BibleVersionRepository] asset codes for $languageCode: $assetCodes; '
+      'downloaded remote codes: ${downloadedRemoteHashes.keys}',
     );
 
     final onMain = branch == 'main';
@@ -78,11 +98,47 @@ class BibleVersionRepository implements IBibleVersionRepository {
       final code = entry.key;
       final versionEntry = entry.value;
 
-      if (bundledCodes.contains(code)) {
+      if (assetCodes.contains(code)) {
         debugPrint(
-          '[BibleVersionRepository] skipping $code — already bundled/downloaded',
+          '[BibleVersionRepository] skipping $code — bundled as app asset',
         );
         continue;
+      }
+
+      final isDownloaded = downloadedRemoteHashes.containsKey(code);
+      final storedHash = downloadedRemoteHashes[code];
+
+      if (isDownloaded) {
+        debugPrint(
+          '[BibleVersionRepository] CHECK $code — '
+          'storedHash=$storedHash, indexHash=${versionEntry.hash}',
+        );
+      }
+
+      // Treated as "up to date" only when hashes match, or when both sides
+      // are null (no hash available anywhere to compare). A null stored
+      // hash is NOT assumed safe to backfill from the current index: the
+      // index may have already moved past the file actually on disk (the
+      // file changed between original download and this feature
+      // shipping), so silently adopting "whatever the index says now" as
+      // the baseline would wrongly mark a genuinely outdated file as up
+      // to date, with no way to ever detect the missed update. A legacy
+      // download with no stored hash always surfaces as hasUpdate: true
+      // against a non-null index hash, forcing one real redownload that
+      // correctly establishes a trustworthy hash going forward.
+      if (isDownloaded && (storedHash == versionEntry.hash)) {
+        debugPrint(
+          '[BibleVersionRepository] skipping $code — downloaded and '
+          'up to date (storedHash=$storedHash, indexHash=${versionEntry.hash})',
+        );
+        continue;
+      }
+
+      if (isDownloaded) {
+        debugPrint(
+          '[BibleVersionRepository] $code has an update — '
+          'storedHash=$storedHash, indexHash=${versionEntry.hash}',
+        );
       }
 
       // A debug-branch index still points its own `url` field at `main`, so
@@ -102,9 +158,11 @@ class BibleVersionRepository implements IBibleVersionRepository {
           languageCode: languageCode,
           assetPath: '',
           dbFileName: versionEntry.file.replaceAll('.gz', ''),
-          isDownloaded: false,
+          isDownloaded: isDownloaded,
           remoteUrl: url,
           disclaimer: versionEntry.disclaimer,
+          hasUpdate: isDownloaded,
+          remoteHash: versionEntry.hash,
         ),
       );
     }
@@ -122,6 +180,10 @@ class BibleVersionRepository implements IBibleVersionRepository {
     void Function(double? progress)? onProgress,
   }) async {
     final url = version.remoteUrl;
+    debugPrint(
+      '[BibleVersionRepository] downloadVersion(${version.dbFileName}) '
+      'starting — url=$url incomingRemoteHash=${version.remoteHash}',
+    );
     if (url == null) {
       throw BibleVersionDownloadException(
         BibleVersionDownloadErrorKind.network,
@@ -186,6 +248,11 @@ class BibleVersionRepository implements IBibleVersionRepository {
       version.dbFileName,
       version.name,
       version.disclaimer,
+      version.remoteHash,
+    );
+    debugPrint(
+      '[BibleVersionRepository] downloadVersion(${version.dbFileName}) '
+      'complete — persisted hash=${version.remoteHash} to prefs',
     );
 
     if (contentLength != null && contentLength > 0) {
@@ -193,21 +260,22 @@ class BibleVersionRepository implements IBibleVersionRepository {
     }
   }
 
-  /// Persists the display name (and optional copyright disclaimer) for a
-  /// downloaded remote version, keyed by its dbFileName, in the
-  /// `bible_remote_version_names` SharedPreferences map.
+  /// Persists the display name (and optional copyright disclaimer and
+  /// content hash) for a downloaded remote version, keyed by its
+  /// dbFileName, in the `bible_remote_version_names` SharedPreferences map.
   /// [BibleVersionRegistry.getDownloadedRemoteVersionsForLanguage] reads
   /// this map to label downloaded remote versions — this repository owns
   /// writing it, since it owns the download side-effect that produces the
   /// file in the first place (SRP).
   ///
   /// Existing entries were plain `dbFileName: displayName` strings; new
-  /// entries are stored as `{"name": ..., "disclaimer": ...}` so old data
-  /// keeps parsing without migration.
+  /// entries are stored as `{"name": ..., "disclaimer": ..., "hash": ...}`
+  /// so old data keeps parsing without migration.
   Future<void> _saveDownloadedVersionName(
     String dbFileName,
     String displayName,
     String? disclaimer,
+    String? hash,
   ) async {
     final prefs = await SharedPreferences.getInstance();
     final existingJson = prefs.getString(_remoteVersionNamesPrefKey);
@@ -217,6 +285,7 @@ class BibleVersionRepository implements IBibleVersionRepository {
     names[dbFileName] = {
       'name': displayName,
       if (disclaimer != null) 'disclaimer': disclaimer,
+      if (hash != null) 'hash': hash,
     };
     await prefs.setString(_remoteVersionNamesPrefKey, jsonEncode(names));
   }
@@ -227,6 +296,16 @@ class BibleVersionRepository implements IBibleVersionRepository {
   /// rest of the app session or across restarts. An ETag makes repeat calls
   /// cheap — the server returns 304 with no body when nothing changed, so
   /// this is not a full re-download on every drawer open.
+  /// Debug-only: prints the parsed LBLA/es hash from [index], so a device
+  /// log can be compared directly against the hash currently live on
+  /// GitHub without needing shell access to the device's SharedPreferences.
+  void _debugPrintLblaHash(String label, RemoteBibleIndex index) {
+    final lbla = index.languages['es']?.versions['LBLA'];
+    debugPrint(
+      '[BibleVersionRepository] $label — parsed LBLA hash=${lbla?.hash}',
+    );
+  }
+
   Future<RemoteBibleIndex> _fetchIndex(String branch) async {
     final prefs = await SharedPreferences.getInstance();
     final cacheKey = '$_indexCacheKeyPrefix$branch';
@@ -235,21 +314,31 @@ class BibleVersionRepository implements IBibleVersionRepository {
 
     try {
       final url = Constants.getBibleVersionsIndexUrl();
+      debugPrint(
+        '[BibleVersionRepository] _fetchIndex GET $url '
+        'If-None-Match=$cachedEtag',
+      );
       final request = http.Request('GET', Uri.parse(url));
       if (cachedEtag != null) {
         request.headers['If-None-Match'] = cachedEtag;
       }
       final streamedResponse = await httpClient.send(request);
       final response = await http.Response.fromStream(streamedResponse);
+      debugPrint(
+        '[BibleVersionRepository] _fetchIndex response status='
+        '${response.statusCode} etag=${response.headers['etag']}',
+      );
 
       if (response.statusCode == 304) {
         debugPrint(
             '[BibleVersionRepository] index unchanged (304), using cache');
         final cached = prefs.getString(cacheKey);
         if (cached != null) {
-          return RemoteBibleIndex.fromJson(
+          final index = RemoteBibleIndex.fromJson(
             jsonDecode(cached) as Map<String, dynamic>,
           );
+          _debugPrintLblaHash('304 cached body', index);
+          return index;
         }
         // No cached body despite a cached ETag — fall through to error path.
         throw Exception('304 received but no cached body for $cacheKey');
@@ -264,9 +353,11 @@ class BibleVersionRepository implements IBibleVersionRepository {
           await prefs.remove(etagKey);
         }
         debugPrint('[BibleVersionRepository] index fetched fresh (200)');
-        return RemoteBibleIndex.fromJson(
+        final index = RemoteBibleIndex.fromJson(
           jsonDecode(response.body) as Map<String, dynamic>,
         );
+        _debugPrintLblaHash('200 fresh body', index);
+        return index;
       }
 
       throw Exception('Server error: ${response.statusCode}');
@@ -275,9 +366,11 @@ class BibleVersionRepository implements IBibleVersionRepository {
           '[BibleVersionRepository] index fetch failed: $e — falling back to cache');
       final cached = prefs.getString(cacheKey);
       if (cached != null) {
-        return RemoteBibleIndex.fromJson(
+        final index = RemoteBibleIndex.fromJson(
           jsonDecode(cached) as Map<String, dynamic>,
         );
+        _debugPrintLblaHash('error-fallback cached body', index);
+        return index;
       }
       rethrow;
     }

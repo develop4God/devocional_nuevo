@@ -466,7 +466,8 @@
   },
   "bubble_constants": {
     "new_feature": "New",
-    "updated_feature": "Updated"
+    "updated_feature": "Updated",
+    "update_available": "Update"
   },
   "backup": {
     "title": "Sync and Protection",
