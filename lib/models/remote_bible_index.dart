@@ -48,11 +48,17 @@ class RemoteBibleVersionEntry {
   /// most entries.
   final String? disclaimer;
 
+  /// Content fingerprint of the version's .gz file, used to detect when an
+  /// already-downloaded version has a newer file available. Absent on
+  /// index entries generated before this field existed.
+  final String? hash;
+
   RemoteBibleVersionEntry({
     required this.name,
     required this.file,
     required this.url,
     this.disclaimer,
+    this.hash,
   });
 
   factory RemoteBibleVersionEntry.fromJson(Map<String, dynamic> json) {
@@ -61,6 +67,7 @@ class RemoteBibleVersionEntry {
       file: json['file'] as String,
       url: json['url'] as String,
       disclaimer: json['disclaimer'] as String?,
+      hash: json['hash'] as String?,
     );
   }
 }

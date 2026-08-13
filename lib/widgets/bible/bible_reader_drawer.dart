@@ -111,6 +111,22 @@ class BibleReaderDrawer extends StatelessWidget {
                                 isSelected ? FontWeight.w600 : FontWeight.w400,
                           ),
                         ),
+                        trailing: version.hasUpdate
+                            ? IconButton(
+                                key: Key(
+                                  'bible_reader_drawer_update_${version.dbFileName}',
+                                ),
+                                icon: Icon(
+                                  Icons.system_update_alt_outlined,
+                                  color: BubbleConstants.updatedFeatureColor,
+                                ),
+                                tooltip:
+                                    'bubble_constants.updated_feature'.tr(),
+                                onPressed: _isDownloading
+                                    ? null
+                                    : () => onDownloadVersion(version),
+                              )
+                            : null,
                         onTap: _isDownloading
                             ? null
                             : () {

@@ -1123,13 +1123,29 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       final downloadedFileNames = state.availableVersions
                           .map((v) => v.dbFileName)
                           .toSet();
-                      final downloadableVersions = versionsState
-                              is BibleVersionsLoaded
-                          ? versionsState.remoteVersions
-                              .where((v) =>
-                                  !downloadedFileNames.contains(v.dbFileName))
-                              .toList()
-                          : const <BibleVersion>[];
+                      final remoteVersions =
+                          versionsState is BibleVersionsLoaded
+                              ? versionsState.remoteVersions
+                              : const <BibleVersion>[];
+                      final downloadableVersions = remoteVersions
+                          .where((v) =>
+                              !downloadedFileNames.contains(v.dbFileName))
+                          .toList();
+                      // Downloaded versions the index reports as changed
+                      // since download — surfaced as an update badge on
+                      // the existing availableVersions entry rather than a
+                      // separate downloadable tile.
+                      final updatedFileNames = remoteVersions
+                          .where((v) =>
+                              v.hasUpdate &&
+                              downloadedFileNames.contains(v.dbFileName))
+                          .map((v) => v.dbFileName)
+                          .toSet();
+                      final availableVersions = state.availableVersions
+                          .map((v) => updatedFileNames.contains(v.dbFileName)
+                              ? v.copyWith(hasUpdate: true)
+                              : v)
+                          .toList();
                       final downloadStatuses =
                           versionsState is BibleVersionsLoaded
                               ? versionsState.downloadStatuses
@@ -1139,11 +1155,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                         '[BibleReaderDrawer build] versionsState=$versionsState '
                         'availableVersions=${state.availableVersions.map((v) => v.dbFileName).toList()} '
                         'downloadedFileNames=$downloadedFileNames '
-                        'downloadableVersions=${downloadableVersions.map((v) => v.dbFileName).toList()}',
+                        'downloadableVersions=${downloadableVersions.map((v) => v.dbFileName).toList()} '
+                        'updatedFileNames=$updatedFileNames',
                       );
 
                       return BibleReaderDrawer(
-                        availableVersions: state.availableVersions,
+                        availableVersions: availableVersions,
                         selectedVersion: state.selectedVersion,
                         downloadableVersions: downloadableVersions,
                         downloadStatuses: downloadStatuses,

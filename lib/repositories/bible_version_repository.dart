@@ -64,11 +64,26 @@ class BibleVersionRepository implements IBibleVersionRepository {
 
     final bundledVersions =
         await BibleVersionRegistry.getVersionsForLanguage(languageCode);
-    final bundledCodes =
-        bundledVersions.map((v) => v.dbFileName.split('_').first).toSet();
+    // Shipped-as-asset entries have a non-empty assetPath (see
+    // BibleVersionRegistry.getVersionsForLanguage); downloaded remote
+    // entries have an empty one. Neither has remoteUrl set at this point,
+    // so isRemote can't be used to tell them apart here.
+    // Shipped-as-asset codes are never re-offered — asset updates ship via
+    // app updates, not this download flow.
+    final assetCodes = bundledVersions
+        .where((v) => v.assetPath.isNotEmpty)
+        .map((v) => v.dbFileName.split('_').first)
+        .toSet();
+    // Already-downloaded remote codes, keyed to their stored content hash
+    // so an index hash mismatch can be surfaced as an available update
+    // instead of the version being silently omitted forever.
+    final downloadedRemoteHashes = {
+      for (final v in bundledVersions.where((v) => v.assetPath.isEmpty))
+        v.dbFileName.split('_').first: v.remoteHash,
+    };
     debugPrint(
-      '[BibleVersionRepository] bundled/downloaded codes for '
-      '$languageCode: $bundledCodes',
+      '[BibleVersionRepository] asset codes for $languageCode: $assetCodes; '
+      'downloaded remote codes: ${downloadedRemoteHashes.keys}',
     );
 
     final onMain = branch == 'main';
@@ -78,9 +93,18 @@ class BibleVersionRepository implements IBibleVersionRepository {
       final code = entry.key;
       final versionEntry = entry.value;
 
-      if (bundledCodes.contains(code)) {
+      if (assetCodes.contains(code)) {
         debugPrint(
-          '[BibleVersionRepository] skipping $code — already bundled/downloaded',
+          '[BibleVersionRepository] skipping $code — bundled as app asset',
+        );
+        continue;
+      }
+
+      final isDownloaded = downloadedRemoteHashes.containsKey(code);
+      if (isDownloaded && downloadedRemoteHashes[code] == versionEntry.hash) {
+        debugPrint(
+          '[BibleVersionRepository] skipping $code — downloaded and '
+          'up to date',
         );
         continue;
       }
@@ -102,9 +126,11 @@ class BibleVersionRepository implements IBibleVersionRepository {
           languageCode: languageCode,
           assetPath: '',
           dbFileName: versionEntry.file.replaceAll('.gz', ''),
-          isDownloaded: false,
+          isDownloaded: isDownloaded,
           remoteUrl: url,
           disclaimer: versionEntry.disclaimer,
+          hasUpdate: isDownloaded,
+          remoteHash: versionEntry.hash,
         ),
       );
     }
@@ -186,6 +212,7 @@ class BibleVersionRepository implements IBibleVersionRepository {
       version.dbFileName,
       version.name,
       version.disclaimer,
+      version.remoteHash,
     );
 
     if (contentLength != null && contentLength > 0) {
@@ -193,21 +220,22 @@ class BibleVersionRepository implements IBibleVersionRepository {
     }
   }
 
-  /// Persists the display name (and optional copyright disclaimer) for a
-  /// downloaded remote version, keyed by its dbFileName, in the
-  /// `bible_remote_version_names` SharedPreferences map.
+  /// Persists the display name (and optional copyright disclaimer and
+  /// content hash) for a downloaded remote version, keyed by its
+  /// dbFileName, in the `bible_remote_version_names` SharedPreferences map.
   /// [BibleVersionRegistry.getDownloadedRemoteVersionsForLanguage] reads
   /// this map to label downloaded remote versions — this repository owns
   /// writing it, since it owns the download side-effect that produces the
   /// file in the first place (SRP).
   ///
   /// Existing entries were plain `dbFileName: displayName` strings; new
-  /// entries are stored as `{"name": ..., "disclaimer": ...}` so old data
-  /// keeps parsing without migration.
+  /// entries are stored as `{"name": ..., "disclaimer": ..., "hash": ...}`
+  /// so old data keeps parsing without migration.
   Future<void> _saveDownloadedVersionName(
     String dbFileName,
     String displayName,
     String? disclaimer,
+    String? hash,
   ) async {
     final prefs = await SharedPreferences.getInstance();
     final existingJson = prefs.getString(_remoteVersionNamesPrefKey);
@@ -217,6 +245,7 @@ class BibleVersionRepository implements IBibleVersionRepository {
     names[dbFileName] = {
       'name': displayName,
       if (disclaimer != null) 'disclaimer': disclaimer,
+      if (hash != null) 'hash': hash,
     };
     await prefs.setString(_remoteVersionNamesPrefKey, jsonEncode(names));
   }

@@ -281,6 +281,120 @@ void main() {
       final result = await repository.fetchRemoteVersions('en');
       expect(result, isEmpty); // en is fully bundled per fullIndex
     });
+
+    test(
+        'surfaces an already-downloaded remote version with hasUpdate when '
+        'the index hash differs from the stored hash', () async {
+      final file = File('${Directory.systemTemp.path}/NGU_de.SQLite3');
+      addTearDown(() {
+        if (file.existsSync()) file.deleteSync();
+      });
+      await file.writeAsBytes([1, 2, 3]);
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'bible_remote_version_names',
+        jsonEncode({
+          'NGU_de.SQLite3': {'name': 'Neue Genfer Übersetzung', 'hash': 'old'},
+        }),
+      );
+
+      stubIndexResponse(jsonEncode({
+        'languages': {
+          'de': {
+            'versions': {
+              'NGU': {
+                'name': 'Neue Genfer Übersetzung',
+                'file': 'NGU_de.SQLite3.gz',
+                'url': 'https://raw.githubusercontent.com/develop4God/'
+                    'bible_versions/main/de/NGU_de.SQLite3.gz',
+                'hash': 'new',
+              },
+            },
+          },
+        },
+      }));
+
+      final result = await repository.fetchRemoteVersions('de');
+
+      expect(result, hasLength(1));
+      expect(result.first.dbFileName, 'NGU_de.SQLite3');
+      expect(result.first.hasUpdate, isTrue);
+      expect(result.first.isDownloaded, isTrue);
+    });
+
+    test(
+        'omits an already-downloaded remote version when the index hash '
+        'matches the stored hash', () async {
+      final file = File('${Directory.systemTemp.path}/NGU_de.SQLite3');
+      addTearDown(() {
+        if (file.existsSync()) file.deleteSync();
+      });
+      await file.writeAsBytes([1, 2, 3]);
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'bible_remote_version_names',
+        jsonEncode({
+          'NGU_de.SQLite3': {'name': 'Neue Genfer Übersetzung', 'hash': 'same'},
+        }),
+      );
+
+      stubIndexResponse(jsonEncode({
+        'languages': {
+          'de': {
+            'versions': {
+              'NGU': {
+                'name': 'Neue Genfer Übersetzung',
+                'file': 'NGU_de.SQLite3.gz',
+                'url': 'https://raw.githubusercontent.com/develop4God/'
+                    'bible_versions/main/de/NGU_de.SQLite3.gz',
+                'hash': 'same',
+              },
+            },
+          },
+        },
+      }));
+
+      final result = await repository.fetchRemoteVersions('de');
+
+      expect(result, isEmpty);
+    });
+
+    test(
+        'omits an already-downloaded remote version when neither stored '
+        'nor index hash is present (pre-fingerprint data)', () async {
+      final file = File('${Directory.systemTemp.path}/NGU_de.SQLite3');
+      addTearDown(() {
+        if (file.existsSync()) file.deleteSync();
+      });
+      await file.writeAsBytes([1, 2, 3]);
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'bible_remote_version_names',
+        jsonEncode({'NGU_de.SQLite3': 'Neue Genfer Übersetzung'}),
+      );
+
+      stubIndexResponse(jsonEncode({
+        'languages': {
+          'de': {
+            'versions': {
+              'NGU': {
+                'name': 'Neue Genfer Übersetzung',
+                'file': 'NGU_de.SQLite3.gz',
+                'url': 'https://raw.githubusercontent.com/develop4God/'
+                    'bible_versions/main/de/NGU_de.SQLite3.gz',
+              },
+            },
+          },
+        },
+      }));
+
+      final result = await repository.fetchRemoteVersions('de');
+
+      expect(result, isEmpty);
+    });
   });
 
   group('downloadVersion', () {
@@ -420,6 +534,44 @@ void main() {
 
       final installedFile =
           File('${Directory.systemTemp.path}/DISCLAIM_xx.SQLite3');
+      if (installedFile.existsSync()) installedFile.deleteSync();
+    });
+
+    test('persists the remote hash alongside the name on successful download',
+        () async {
+      final gzipBytes = _validGzipBytes();
+      when(() => mockHttpClient.send(any())).thenAnswer(
+        (_) async => http.StreamedResponse(
+          Stream.value(gzipBytes),
+          200,
+          contentLength: gzipBytes.length,
+        ),
+      );
+
+      final version = BibleVersion(
+        name: 'Neue Genfer Übersetzung',
+        language: 'Deutsch',
+        languageCode: 'de',
+        assetPath: '',
+        dbFileName: 'HASH_xx.SQLite3',
+        isDownloaded: false,
+        remoteUrl: 'https://example.com/ngu.gz',
+        remoteHash: 'abc123def456',
+      );
+
+      await repository.downloadVersion(version);
+
+      final prefs = await SharedPreferences.getInstance();
+      final stored = jsonDecode(prefs.getString('bible_remote_version_names')!)
+          as Map<String, dynamic>;
+
+      expect(
+        stored['HASH_xx.SQLite3'],
+        {'name': 'Neue Genfer Übersetzung', 'hash': 'abc123def456'},
+      );
+
+      final installedFile =
+          File('${Directory.systemTemp.path}/HASH_xx.SQLite3');
       if (installedFile.existsSync()) installedFile.deleteSync();
     });
   });

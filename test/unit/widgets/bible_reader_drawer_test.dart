@@ -286,4 +286,51 @@ void main() {
 
     expect(downloadRequested, downloadable);
   });
+
+  testWidgets(
+      'shows an update action for a downloaded version with hasUpdate; '
+      'tapping it invokes the download callback without changing selection',
+      (tester) async {
+    final versionA = _version('A_xx.SQLite3', name: 'Version A');
+    final outdated = _version('B_xx.SQLite3', name: 'Version B')
+        .copyWith(hasUpdate: true, isDownloaded: true);
+    BibleVersion? selected;
+    BibleVersion? downloadRequested;
+
+    await pumpDrawer(
+      tester,
+      versions: [versionA, outdated],
+      selectedVersion: versionA,
+      onVersionSelected: (v) => selected = v,
+      onDownloadVersion: (v) => downloadRequested = v,
+    );
+
+    final updateButton = find.byKey(
+      const Key('bible_reader_drawer_update_B_xx.SQLite3'),
+    );
+    expect(updateButton, findsOneWidget);
+
+    await tester.tap(updateButton);
+    await tester.pumpAndSettle();
+
+    expect(downloadRequested, outdated);
+    expect(selected, isNull);
+    expect(find.byType(Drawer), findsOneWidget);
+  });
+
+  testWidgets('does not show an update action for a version without hasUpdate',
+      (tester) async {
+    final versionA = _version('A_xx.SQLite3', name: 'Version A');
+
+    await pumpDrawer(
+      tester,
+      versions: [versionA],
+      selectedVersion: versionA,
+    );
+
+    expect(
+      find.byKey(const Key('bible_reader_drawer_update_A_xx.SQLite3')),
+      findsNothing,
+    );
+  });
 }
