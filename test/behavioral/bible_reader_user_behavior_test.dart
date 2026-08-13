@@ -396,6 +396,52 @@ void main() {
     );
 
     testWidgets(
+      'tapping the update action on an outdated downloaded version '
+      're-downloads it and clears the update badge',
+      (WidgetTester tester) async {
+        // GIVEN: the already-downloaded RVR1960 has a newer file available
+        // per the remote index (hasUpdate: true, matching dbFileName).
+        final outdatedRemoteEntry = BibleVersion(
+          name: 'Reina Valera 1960 (RVR1960)',
+          language: 'Español',
+          languageCode: 'es',
+          assetPath: '',
+          dbFileName: 'RVR1960_es.SQLite3',
+          isDownloaded: true,
+          remoteUrl: 'https://example.com/RVR1960_es.SQLite3.gz',
+          hasUpdate: true,
+          remoteHash: 'new-hash',
+          service: mockDbService,
+        );
+        fakeVersionRepository.versionsToReturn = [outdatedRemoteEntry];
+
+        await pumpBiblePage(tester);
+        await tester.pump(const Duration(milliseconds: 50));
+
+        // WHEN: the user opens the drawer
+        await tester.tap(find.byIcon(Icons.menu));
+        await tester.pumpAndSettle();
+        expect(find.byType(BibleReaderDrawer), findsOneWidget);
+
+        // THEN: the downloaded version shows an update action
+        final updateButtonFinder = find.byKey(
+          const Key('bible_reader_drawer_update_RVR1960_es.SQLite3'),
+        );
+        expect(updateButtonFinder, findsOneWidget);
+
+        // WHEN: the user taps it to re-download
+        await tester.tap(updateButtonFinder);
+        await tester.pumpAndSettle();
+
+        // THEN: the drawer closes and the version is re-initialized
+        expect(find.byType(BibleReaderDrawer), findsNothing);
+        verify(
+          () => mockDbService.initDb(any(), 'RVR1960_es.SQLite3'),
+        ).called(greaterThanOrEqualTo(2));
+      },
+    );
+
+    testWidgets(
       'BibleReaderPage requests remote versions for the content language, '
       'not the device locale',
       (WidgetTester tester) async {

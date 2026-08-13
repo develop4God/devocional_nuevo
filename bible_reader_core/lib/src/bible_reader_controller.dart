@@ -237,7 +237,11 @@ class BibleReaderController {
   /// [BibleReaderState.availableVersions] — e.g. it was just downloaded —
   /// it's appended, so the caller's version list reflects it as current
   /// immediately, without waiting for a fresh [availableVersions] to be
-  /// supplied from outside.
+  /// supplied from outside. If it's already listed, the existing entry is
+  /// replaced with [newVersion] rather than kept as-is — e.g. a
+  /// re-download to apply an update passes a fresh [newVersion] with
+  /// updated fields (hasUpdate, remoteHash) that must overwrite the stale
+  /// listed copy, not be discarded in favor of it.
   Future<void> switchVersion(BibleVersion newVersion) async {
     if (newVersion.dbFileName == _state.selectedVersion?.dbFileName) return;
 
@@ -251,6 +255,8 @@ class BibleReaderController {
         .any((v) => v.dbFileName == newVersion.dbFileName);
     final availableVersions = alreadyListed
         ? _state.availableVersions
+            .map((v) => v.dbFileName == newVersion.dbFileName ? newVersion : v)
+            .toList()
         : [..._state.availableVersions, newVersion];
 
     _emit(
