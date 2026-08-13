@@ -395,6 +395,55 @@ void main() {
 
       expect(result, isEmpty);
     });
+
+    test(
+        'surfaces hasUpdate for a legacy download (no stored hash) against '
+        'a non-null index hash, rather than silently adopting the index '
+        'hash as an unverified baseline — the index may have already '
+        'moved past what is actually on disk, so a null stored hash must '
+        'never be assumed safe', () async {
+      final file = File('${Directory.systemTemp.path}/NGU_de.SQLite3');
+      addTearDown(() {
+        if (file.existsSync()) file.deleteSync();
+      });
+      await file.writeAsBytes([1, 2, 3]);
+
+      final prefs = await SharedPreferences.getInstance();
+      // Legacy plain-string entry — predates the hash field entirely, so
+      // there's nothing to compare against yet.
+      await prefs.setString(
+        'bible_remote_version_names',
+        jsonEncode({'NGU_de.SQLite3': 'Neue Genfer Übersetzung'}),
+      );
+
+      stubIndexResponse(jsonEncode({
+        'languages': {
+          'de': {
+            'versions': {
+              'NGU': {
+                'name': 'Neue Genfer Übersetzung',
+                'file': 'NGU_de.SQLite3.gz',
+                'url': 'https://raw.githubusercontent.com/develop4God/'
+                    'bible_versions/main/de/NGU_de.SQLite3.gz',
+                'hash': 'current-index-hash',
+              },
+            },
+          },
+        },
+      }));
+
+      final result = await repository.fetchRemoteVersions('de');
+
+      expect(result, hasLength(1));
+      expect(result.first.dbFileName, 'NGU_de.SQLite3');
+      expect(result.first.hasUpdate, isTrue);
+
+      // No silent write to prefs — nothing is backfilled behind the
+      // user's back; the stored entry is untouched until they redownload.
+      final stored = jsonDecode(prefs.getString('bible_remote_version_names')!)
+          as Map<String, dynamic>;
+      expect(stored['NGU_de.SQLite3'], 'Neue Genfer Übersetzung');
+    });
   });
 
   group('downloadVersion', () {
