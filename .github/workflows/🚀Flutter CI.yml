@@ -68,8 +68,8 @@ jobs:
           path: |
             ~/.pub-cache
             .dart_tool
-          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
-          restore-keys: pub-${{ runner.os }}-
+          key: pub-${{ runner.os }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'trusted' }}-${{ hashFiles('pubspec.yaml') }}
+          restore-keys: pub-${{ runner.os }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'trusted' }}-
 
       - name: 📦 Get dependencies
         run: flutter pub get
@@ -244,8 +244,8 @@ jobs:
           path: |
             ~/.pub-cache
             .dart_tool
-          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
-          restore-keys: pub-${{ runner.os }}-
+          key: pub-${{ runner.os }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'trusted' }}-${{ hashFiles('pubspec.yaml') }}
+          restore-keys: pub-${{ runner.os }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'trusted' }}-
 
       - name: 📦 Get dependencies
         run: flutter pub get
