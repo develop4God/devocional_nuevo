@@ -115,13 +115,14 @@ class BibleReaderDrawer extends StatelessWidget {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: BubbleConstants.updatedFeatureColor,
+                                    color: BubbleConstants
+                                        .contentUpdateAvailableColor,
                                     borderRadius: BorderRadius.circular(
                                       BubbleConstants.widgetBubbleRadius,
                                     ),
                                   ),
                                   child: Text(
-                                    'bubble_constants.updated_feature'.tr(),
+                                    'bubble_constants.update_available'.tr(),
                                     style:
                                         BubbleConstants.widgetBubbleTextStyle,
                                   ),
@@ -146,13 +147,21 @@ class BibleReaderDrawer extends StatelessWidget {
                                 ),
                                 icon: Icon(
                                   Icons.system_update_alt_outlined,
-                                  color: BubbleConstants.updatedFeatureColor,
+                                  color: BubbleConstants
+                                      .contentUpdateAvailableColor,
                                 ),
                                 tooltip:
-                                    'bubble_constants.updated_feature'.tr(),
+                                    'bubble_constants.update_available'.tr(),
                                 onPressed: _isDownloading
                                     ? null
-                                    : () => onDownloadVersion(version),
+                                    : () {
+                                        debugPrint(
+                                          '[BibleReaderDrawer] update tapped '
+                                          'for ${version.dbFileName} — '
+                                          'remoteHash=${version.remoteHash}',
+                                        );
+                                        onDownloadVersion(version);
+                                      },
                               )
                             : null,
                         onTap: _isDownloading

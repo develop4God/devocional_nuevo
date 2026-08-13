@@ -466,7 +466,8 @@
   },
   "bubble_constants": {
     "new_feature": "नया",
-    "updated_feature": "अद्यतन"
+    "updated_feature": "अद्यतन",
+    "update_available": "अद्यतन करें"
   },
   "backup": {
     "title": "बैकअप",

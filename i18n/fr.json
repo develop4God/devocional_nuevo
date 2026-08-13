@@ -466,7 +466,8 @@
   },
   "bubble_constants": {
     "new_feature": "Nouveau",
-    "updated_feature": "Mise à jour"
+    "updated_feature": "Mise à jour",
+    "update_available": "Mettre à jour"
   },
   "backup": {
     "title": "Synchronisation et protection",

@@ -466,7 +466,8 @@
   },
   "bubble_constants": {
     "new_feature": "新機能",
-    "updated_feature": "更新"
+    "updated_feature": "更新",
+    "update_available": "更新する"
   },
   "backup": {
     "title": "バックアップ",
