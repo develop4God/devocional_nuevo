@@ -101,11 +101,17 @@ class BibleVersionRepository implements IBibleVersionRepository {
       }
 
       final isDownloaded = downloadedRemoteHashes.containsKey(code);
-      // Also treated as "up to date" when both sides are null — a version
-      // downloaded before the hash field existed, compared against an
-      // index that (for whatever reason) still lacks one, must not be
-      // flagged hasUpdate: true on a false positive.
-      if (isDownloaded && downloadedRemoteHashes[code] == versionEntry.hash) {
+      final storedHash = downloadedRemoteHashes[code];
+      // Treated as "up to date" when hashes match, or when the stored side
+      // is null — a version downloaded before the hash field existed has
+      // no fingerprint to compare, so there's no way to tell whether the
+      // remote file actually changed since. Flagging hasUpdate: true here
+      // would be a false positive for every pre-existing download on this
+      // feature's rollout, not a real update; treat it as a silent
+      // baseline instead of nagging. A subsequent real content change is
+      // caught once this version's stored hash is set (at next download).
+      if (isDownloaded &&
+          (storedHash == null || storedHash == versionEntry.hash)) {
         debugPrint(
           '[BibleVersionRepository] skipping $code — downloaded and '
           'up to date',

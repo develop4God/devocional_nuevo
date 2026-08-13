@@ -975,24 +975,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         // before onVersionsMayHaveChanged() below remounts this page with a
         // fresh key — otherwise the remount restores the previous version.
         // version may be the stale pre-download copy (e.g. a redownload
-        // triggered from the update badge): hasUpdate/remoteHash must be
-        // cleared so the controller's availableVersions doesn't keep
-        // showing an update as still pending for the file just downloaded.
-        // copyWith can't express "clear remoteHash" (its null-coalescing
-        // pattern treats a null argument as "keep existing"), so build the
-        // corrected version directly instead.
+        // triggered from the update badge): hasUpdate must be cleared so
+        // the controller's availableVersions doesn't keep showing an
+        // update as still pending for the file just downloaded. remoteHash
+        // is intentionally carried through as-is, since the file on disk
+        // now matches it.
         await _controller.switchVersion(
-          BibleVersion(
-            name: version.name,
-            language: version.language,
-            languageCode: version.languageCode,
-            assetPath: version.assetPath,
-            dbFileName: version.dbFileName,
-            isDownloaded: true,
-            remoteUrl: version.remoteUrl,
-            disclaimer: version.disclaimer,
-            service: version.service,
-          ),
+          version.copyWith(isDownloaded: true, hasUpdate: false),
         );
         widget.onVersionsMayHaveChanged?.call();
         if (!context.mounted) return;
