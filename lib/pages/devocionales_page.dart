@@ -23,6 +23,7 @@ import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
+import 'package:devocional_nuevo/services/tts/devocional_tts_sections.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/utils/devotional_share_helper.dart';
 import 'package:devocional_nuevo/utils/localized_date_formatter.dart';
@@ -96,6 +97,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   late final TtsAudioController _ttsAudioController;
   late final DevocionalTtsMiniplayerPresenter _ttsMiniplayerPresenter;
   late final TtsAutoScrollDriver _ttsAutoScrollDriver;
+
+  // Section currently read by TTS, for karaoke-style highlighting. Derived from
+  // the driver's resolved index and fed to DevocionalesContentWidget.
+  final ValueNotifier<DevotionalSection?> _currentSpokenSection =
+      ValueNotifier<DevotionalSection?>(null);
+
+  // Cached section resolver, rebuilt when the devotional/language changes.
+  DevocionalTtsSections? _cachedSections;
+  String? _cachedSectionsKey;
   final FontSizeController _fontSizeController = FontSizeController();
   final PostSplashAnimationController _splashAnimController =
       PostSplashAnimationController();
@@ -143,12 +153,20 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     _ttsMiniplayerPresenter = DevocionalTtsMiniplayerPresenter(
       ttsAudioController: _ttsAudioController,
     );
-    // Auto-scroll the devotional text to follow TTS playback. Only reads the
-    // controller's progress notifiers — never touches the TTS engine.
+    // Auto-scroll + section highlight following TTS playback. The section
+    // index maps the word-accurate offset (or estimated fraction) onto the
+    // devotional's coarse sections. Only reads the controller's notifiers.
     _ttsAutoScrollDriver = TtsAutoScrollDriver(
       controller: _ttsAudioController,
       target: ScrollControllerTarget(_scrollController),
+      indexForCharOffset: (offset) =>
+          _ttsSections()?.indexForCharOffset(offset),
+      indexForFraction: (fraction) =>
+          _ttsSections()?.indexForFraction(fraction),
+      itemCount: () => _ttsSections()?.length ?? 0,
     )..attach();
+    // Map the driver's resolved index → section enum for the content widget.
+    _ttsAutoScrollDriver.currentIndex.addListener(_updateSpokenSection);
     _navigationHelper = DevocionalNavigationHelper(
       getBloc: () => _navigationBloc!,
       getAudioController: () => _audioController,
@@ -604,7 +622,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _ttsAudioController.state.removeListener(_handleTtsStateChange);
     } catch (_) {}
     widget.isActive?.removeListener(_handleTabVisibilityChange);
+    _ttsAutoScrollDriver.currentIndex.removeListener(_updateSpokenSection);
     _ttsAutoScrollDriver.dispose();
+    _currentSpokenSection.dispose();
     _ttsAudioController.dispose();
     _ttsMiniplayerPresenter.dispose();
     _fontSizeController.removeListener(_onFontSizeChanged);
@@ -1000,6 +1020,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   onShare: () =>
                                       _shareAsText(currentDevocional),
                                   petService: _petService,
+                                  currentSpokenSection: _currentSpokenSection,
                                 ),
                               ),
                             ),
@@ -1117,5 +1138,35 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     return provider.devocionales.isNotEmpty
         ? provider.devocionales.first
         : null;
+  }
+
+  /// Builds (and caches) the section resolver for the current devotional,
+  /// matching the exact text TtsPlayerWidget speaks. Cached by devotional id +
+  /// language so it's not recomputed on every playback tick.
+  DevocionalTtsSections? _ttsSections() {
+    if (!mounted) return _cachedSections;
+    final devocional = _getCurrentDevocional();
+    if (devocional == null) return null;
+    final language = Localizations.localeOf(context).languageCode;
+    final key = '${devocional.id}|$language';
+    if (_cachedSectionsKey == key && _cachedSections != null) {
+      return _cachedSections;
+    }
+    final sections = DevocionalTtsSections.build(devocional, language);
+    _cachedSections = sections;
+    _cachedSectionsKey = key;
+    return sections;
+  }
+
+  /// Maps the driver's resolved section index onto the section enum for the
+  /// content widget's highlight.
+  void _updateSpokenSection() {
+    final index = _ttsAutoScrollDriver.currentIndex.value;
+    final sections = _cachedSections?.sections;
+    if (index == null || sections == null || index >= sections.length) {
+      _currentSpokenSection.value = null;
+      return;
+    }
+    _currentSpokenSection.value = sections[index];
   }
 }
