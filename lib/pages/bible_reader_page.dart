@@ -22,6 +22,7 @@ import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/i_user_recency_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_reader_tts_text_builder.dart';
+import 'package:devocional_nuevo/services/tts/tts_verse_index_resolver.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
@@ -98,6 +99,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   late final BibleReaderTtsMiniplayerPresenter _ttsMiniplayerPresenter;
   late final TtsAutoScrollDriver _ttsAutoScrollDriver;
   late final VoiceSettingsService _voiceSettingsService;
+
+  // Cached verse-index resolver for TTS highlight. Rebuilt when the verse list
+  // identity changes (a new chapter loads), keyed by identityHashCode so we
+  // don't recompute cumulative word counts on every playback tick.
+  TtsVerseIndexResolver? _cachedVerseResolver;
+  int? _cachedVersesId;
   // Guards addPostFrameCallback callbacks after dispose().
   bool _disposed = false;
   // Set while an initialReference scroll-into-view is still owed, so the
@@ -161,18 +168,21 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       onShowVoiceSelector: (ctx, lang, sampleText) =>
           _showBibleVoiceSelector(ctx, lang, sampleText),
     );
-    // Auto-scroll the chapter to follow TTS playback. Maps playback fraction
-    // onto the verse index; only reads the controller's progress notifiers.
+    // Auto-scroll + current-verse highlight following TTS playback. The
+    // highlight maps the playback fraction onto the verse via cumulative word
+    // counts (long verses take proportionally longer), matching the word-based
+    // position estimate; only reads the controller's progress notifiers.
     _ttsAutoScrollDriver = TtsAutoScrollDriver(
       controller: _ttsAudioController,
       // leadingCount: 1 — the chapter title occupies list index 0, so verse v
-      // renders at list index v + 1. Scroll and highlight share the verse count.
+      // renders at list index v + 1.
       target: ItemScrollControllerTarget(
         _itemScrollController,
         itemCount: () => _controller.state.verses.length,
         leadingCount: 1,
       ),
-      itemCount: () => _controller.state.verses.length,
+      indexForFraction: (fraction) =>
+          _verseIndexResolver()?.indexForFraction(fraction),
     )..attach();
 
     // Auto-open miniplayer when TTS starts playing — same pattern as
@@ -313,6 +323,47 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   // UI helper methods
+
+  /// Builds (and caches) a [TtsVerseIndexResolver] for the current chapter,
+  /// counting words the same way [BibleReaderTtsTextBuilder.build] produces the
+  /// spoken text: a "BookName N." header followed by each cleaned verse. Cached
+  /// by verse-list identity so it's not recomputed on every playback tick.
+  TtsVerseIndexResolver? _verseIndexResolver() {
+    final state = _controller.state;
+    final verses = state.verses;
+    if (verses.isEmpty) return null;
+
+    final versesId = identityHashCode(verses);
+    if (_cachedVersesId == versesId && _cachedVerseResolver != null) {
+      return _cachedVerseResolver;
+    }
+
+    // Header words: resolved book name + the chapter number token.
+    final bookName = state.selectedBookName != null && state.books.isNotEmpty
+        ? BibleVerseFormatter.resolveBookName(
+            state.books,
+            state.selectedBookName!,
+          )
+        : '';
+    final headerWords =
+        bookName.isEmpty ? 0 : TtsVerseIndexResolver.wordCount(bookName) + 1;
+
+    final verseWordCounts = verses
+        .map(
+          (v) => TtsVerseIndexResolver.wordCount(
+            BibleTextNormalizer.clean(v['text']?.toString()),
+          ),
+        )
+        .toList();
+
+    final resolver = TtsVerseIndexResolver.fromWordCounts(
+      verseWordCounts,
+      headerWords: headerWords,
+    );
+    _cachedVerseResolver = resolver;
+    _cachedVersesId = versesId;
+    return resolver;
+  }
 
   void _scrollToVerse(int verseNumber) async {
     final verses = _controller.state.verses;
