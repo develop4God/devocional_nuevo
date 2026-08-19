@@ -114,7 +114,8 @@ void main() {
       indexDriver = TtsAutoScrollDriver(
         controller: controller,
         target: target,
-        itemCount: () => 10, // 10 verses
+        // Flat 10-item mapping for these driver-level assertions.
+        indexForFraction: (f) => (f * 10).floor().clamp(0, 9),
       )..attach();
     });
 

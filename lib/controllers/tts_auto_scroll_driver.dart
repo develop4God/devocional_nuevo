@@ -23,13 +23,16 @@ class TtsAutoScrollDriver {
   final TtsAudioController controller;
   final TtsScrollTarget target;
 
-  /// Number of highlightable items (e.g. verse count). Read lazily because the
-  /// list length changes (a new chapter loads). When null, index tracking is
-  /// disabled and only scrolling runs.
-  final int Function()? itemCount;
+  /// Resolves the estimated current item index from the playback [fraction]
+  /// (0.0..1.0). Provided by the page so the mapping can honour real content
+  /// distribution — e.g. cumulative word counts per verse, so a long verse
+  /// occupies proportionally more of the timeline than a short one. Returns
+  /// null (or is itself null) when index tracking isn't available, in which
+  /// case only scrolling runs.
+  final int? Function(double fraction)? indexForFraction;
 
   /// Estimated index of the item currently being read (null when not playing or
-  /// when [itemCount] is unavailable). Pages listen to this to highlight.
+  /// when no resolver is available). Pages listen to this to highlight.
   final ValueNotifier<int?> currentIndex = ValueNotifier<int?>(null);
 
   bool _attached = false;
@@ -38,7 +41,7 @@ class TtsAutoScrollDriver {
   TtsAutoScrollDriver({
     required this.controller,
     required this.target,
-    this.itemCount,
+    this.indexForFraction,
   });
 
   /// Start following playback. Idempotent.
@@ -81,9 +84,9 @@ class TtsAutoScrollDriver {
 
     target.scrollToFraction(fraction);
 
-    final count = itemCount?.call() ?? 0;
-    if (count > 0) {
-      currentIndex.value = (fraction * count).floor().clamp(0, count - 1);
+    final index = indexForFraction?.call(fraction);
+    if (index != null) {
+      currentIndex.value = index;
     }
   }
 }
