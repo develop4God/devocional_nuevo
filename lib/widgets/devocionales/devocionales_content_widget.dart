@@ -5,6 +5,7 @@ import 'package:devocional_nuevo/blocs/note_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
+import 'package:devocional_nuevo/services/tts/devocional_tts_sections.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
@@ -17,6 +18,7 @@ import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.d
 import 'package:devocional_nuevo/widgets/markdown_emphasis_text.dart';
 import 'package:devocional_nuevo/widgets/notes/note_icons.dart';
 import 'package:devocional_nuevo/widgets/supporter/pet_hero_section.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -42,6 +44,11 @@ class DevocionalesContentWidget extends StatelessWidget {
   /// calls, which violates the project's DI rules.
   final SupporterPetService petService;
 
+  /// Section currently being read by TTS, for karaoke-style highlighting. When
+  /// non-null and a section is active, that section is shown full-strength and
+  /// the others dim. Null (or a null value) disables highlighting.
+  final ValueListenable<DevotionalSection?>? currentSpokenSection;
+
   const DevocionalesContentWidget({
     super.key,
     required this.devocional,
@@ -56,6 +63,7 @@ class DevocionalesContentWidget extends StatelessWidget {
     required this.onShare,
     required this.petService,
     this.showDate = true,
+    this.currentSpokenSection,
   });
 
   @override
@@ -100,72 +108,104 @@ class DevocionalesContentWidget extends StatelessWidget {
             onShare: onShare,
             onStreakTap: onStreakBadgeTap,
           ),
-          CopyableVerseCard(
-            text: devocional.versiculo,
-            textStyle: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
+          _SectionHighlight(
+            section: DevotionalSection.verse,
+            listenable: currentSpokenSection,
+            child: CopyableVerseCard(
+              text: devocional.versiculo,
+              textStyle: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           const SizedBox(height: 12),
           _DevotionalNoteAction(devocional: devocional),
           const SizedBox(height: 20),
-          Text(
-            'devotionals.reflection'.tr(),
-            style: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.primary,
-            ),
-          ),
-          const SizedBox(height: 10),
-          buildEmphasisMarkdownText(
-            devocional.reflexion,
-            style: textTheme.bodyMedium?.copyWith(
-              fontSize: fontSize,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'devotionals.to_meditate'.tr(),
-            style: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.primary,
-            ),
-          ),
-          const SizedBox(height: 10),
-          ...devocional.paraMeditar.map((item) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: CopyableVerseCard(
-                text: item.texto,
-                copyText: '${item.cita}: ${item.texto}',
-                textStyle: textTheme.bodyMedium?.copyWith(fontSize: fontSize),
-                maxLines: 8,
-                prefixSpan: TextSpan(
-                  text: '${item.cita}: ',
-                  style: textTheme.bodyMedium?.copyWith(
+          _SectionHighlight(
+            section: DevotionalSection.reflection,
+            listenable: currentSpokenSection,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'devotionals.reflection'.tr(),
+                  style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    fontSize: fontSize,
                     color: colorScheme.primary,
                   ),
                 ),
-              ),
-            );
-          }),
-          const SizedBox(height: 20),
-          Text(
-            'devotionals.prayer'.tr(),
-            style: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.primary,
+                const SizedBox(height: 10),
+                buildEmphasisMarkdownText(
+                  devocional.reflexion,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontSize: fontSize,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 10),
-          buildEmphasisMarkdownText(
-            devocional.oracion,
-            style: textTheme.bodyMedium?.copyWith(
-              fontSize: fontSize,
-              color: colorScheme.onSurface,
+          const SizedBox(height: 20),
+          _SectionHighlight(
+            section: DevotionalSection.meditate,
+            listenable: currentSpokenSection,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'devotionals.to_meditate'.tr(),
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ...devocional.paraMeditar.map((item) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: CopyableVerseCard(
+                      text: item.texto,
+                      copyText: '${item.cita}: ${item.texto}',
+                      textStyle:
+                          textTheme.bodyMedium?.copyWith(fontSize: fontSize),
+                      maxLines: 8,
+                      prefixSpan: TextSpan(
+                        text: '${item.cita}: ',
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: fontSize,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          _SectionHighlight(
+            section: DevotionalSection.prayer,
+            listenable: currentSpokenSection,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'devotionals.prayer'.tr(),
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                buildEmphasisMarkdownText(
+                  devocional.oracion,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontSize: fontSize,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 20),
@@ -227,6 +267,38 @@ class DevocionalesContentWidget extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// Dims [child] unless it is the [section] currently being read by TTS.
+///
+/// When [listenable] is null, or its value is null (nothing playing), the child
+/// renders at full strength — so the page looks unchanged when TTS is idle.
+class _SectionHighlight extends StatelessWidget {
+  final DevotionalSection section;
+  final ValueListenable<DevotionalSection?>? listenable;
+  final Widget child;
+
+  const _SectionHighlight({
+    required this.section,
+    required this.listenable,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (listenable == null) return child;
+    return ValueListenableBuilder<DevotionalSection?>(
+      valueListenable: listenable!,
+      builder: (context, current, _) {
+        final dim = current != null && current != section;
+        return AnimatedOpacity(
+          opacity: dim ? 0.4 : 1.0,
+          duration: const Duration(milliseconds: 250),
+          child: child,
+        );
+      },
     );
   }
 }
