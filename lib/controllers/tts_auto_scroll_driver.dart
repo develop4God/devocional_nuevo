@@ -32,6 +32,11 @@ class TtsAutoScrollDriver {
   /// (e.g. engines that emit no progress). Either resolver may be null.
   final int? Function(double fraction)? indexForFraction;
 
+  /// Total highlightable items, read lazily. Used to translate a resolved index
+  /// into a scroll position so the scroll follows the same signal as the
+  /// highlight. Null when the page has no discrete item count.
+  final int Function()? itemCount;
+
   /// Index of the item currently being read (null when not playing or when no
   /// resolver produces one). Pages listen to this to highlight.
   final ValueNotifier<int?> currentIndex = ValueNotifier<int?>(null);
@@ -44,6 +49,7 @@ class TtsAutoScrollDriver {
     required this.target,
     this.indexForCharOffset,
     this.indexForFraction,
+    this.itemCount,
   });
 
   /// Start following playback. Idempotent.
@@ -86,16 +92,27 @@ class TtsAutoScrollDriver {
     final pos = controller.currentPosition.value.inMilliseconds;
     final fraction = (pos / total).clamp(0.0, 1.0);
 
-    target.scrollToFraction(fraction);
-
-    // Prefer the word-accurate offset; fall back to the estimated fraction.
+    // Resolve the current item: prefer the word-accurate offset, fall back to
+    // the estimated fraction.
     final charOffset = controller.wordTracker.spokenCharOffset.value;
+    final bool wordAccurate = charOffset >= 0 && indexForCharOffset != null;
     int? index;
-    if (charOffset >= 0 && indexForCharOffset != null) {
+    if (wordAccurate) {
       index = indexForCharOffset!(charOffset);
     } else if (indexForFraction != null) {
       index = indexForFraction!(fraction);
     }
+
+    // Scroll from the SAME signal as the highlight: when we have an accurate
+    // index, scroll to it (so scroll and highlight stay locked together);
+    // otherwise fall back to the estimated fraction.
+    final count = itemCount?.call();
+    if (index != null && count != null && count > 0) {
+      target.scrollToIndex(index, count);
+    } else {
+      target.scrollToFraction(fraction);
+    }
+
     if (index != null) {
       currentIndex.value = index;
     }

@@ -186,6 +186,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           _verseIndexResolver()?.indexForCharOffset(offset),
       indexForFraction: (fraction) =>
           _verseIndexResolver()?.indexForFraction(fraction),
+      // Verse count so the scroll follows the resolved verse index (same signal
+      // as the highlight), not the faster-running estimated fraction.
+      itemCount: () => _controller.state.verses.length,
     )..attach();
 
     // Auto-open miniplayer when TTS starts playing — same pattern as

@@ -12,10 +12,17 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 /// some other way.
 abstract class TtsScrollTarget {
   /// Scroll so that the given playback [fraction] (0.0..1.0) is in view.
+  /// Used as the estimated fallback when no word-accurate index is available.
   ///
   /// Implementations decide the pixel-vs-index mapping and must no-op safely
   /// when the scroll view is not attached or not ready.
   void scrollToFraction(double fraction);
+
+  /// Scroll so that item [itemIndex] (of [itemCount] highlightable items) is in
+  /// view. Preferred over [scrollToFraction] when the driver has a word-accurate
+  /// current index, so the scroll follows the *same* signal as the highlight
+  /// instead of the faster-running estimate.
+  void scrollToIndex(int itemIndex, int itemCount);
 }
 
 /// Scrolls a pixel-based scroll view (e.g. a `SingleChildScrollView`) by mapping
@@ -34,8 +41,7 @@ class ScrollControllerTarget implements TtsScrollTarget {
     this.curve = Curves.easeOut,
   });
 
-  @override
-  void scrollToFraction(double fraction) {
+  void _animateToFraction(double fraction) {
     if (!controller.hasClients) return;
     final position = controller.position;
     // Skip while the user is dragging so auto-scroll yields to manual reading.
@@ -44,6 +50,17 @@ class ScrollControllerTarget implements TtsScrollTarget {
     final target = (fraction * position.maxScrollExtent)
         .clamp(0.0, position.maxScrollExtent);
     controller.animateTo(target, duration: duration, curve: curve);
+  }
+
+  @override
+  void scrollToFraction(double fraction) => _animateToFraction(fraction);
+
+  @override
+  void scrollToIndex(int itemIndex, int itemCount) {
+    if (itemCount <= 0) return;
+    // No discrete items in a pixel-based view — map the index to a fraction so
+    // the scroll follows the same word-accurate signal as the highlight.
+    _animateToFraction(itemIndex / itemCount);
   }
 }
 
@@ -73,18 +90,24 @@ class ItemScrollControllerTarget implements TtsScrollTarget {
     this.alignment = 0.1,
   });
 
-  @override
-  void scrollToFraction(double fraction) {
-    if (!controller.isAttached) return;
-    final count = itemCount();
-    if (count <= 0) return;
-
-    final itemIndex = (fraction * count).floor().clamp(0, count - 1);
+  void _scrollTo(int itemIndex, int count) {
+    if (!controller.isAttached || count <= 0) return;
+    final clamped = itemIndex.clamp(0, count - 1);
     controller.scrollTo(
-      index: itemIndex + leadingCount,
+      index: clamped + leadingCount,
       duration: duration,
       curve: curve,
       alignment: alignment,
     );
   }
+
+  @override
+  void scrollToFraction(double fraction) {
+    final count = itemCount();
+    if (count <= 0) return;
+    _scrollTo((fraction * count).floor(), count);
+  }
+
+  @override
+  void scrollToIndex(int itemIndex, int count) => _scrollTo(itemIndex, count);
 }
