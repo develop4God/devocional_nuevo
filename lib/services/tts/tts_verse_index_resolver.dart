@@ -1,70 +1,65 @@
-/// Maps a TTS playback fraction (0.0..1.0) onto the verse being read, using
-/// cumulative word counts so long verses occupy proportionally more of the
-/// timeline than short ones.
+/// Maps a TTS playback signal onto the verse being read.
 ///
-/// The TTS position estimate is word-based (see `TtsDurationEstimator`), and the
-/// spoken text is a header followed by every verse concatenated (see
-/// `BibleReaderTtsTextBuilder.build`). A flat `fraction * verseCount` mapping
-/// assumes equal words per verse and desyncs badly on real chapters. This
-/// resolver aligns the highlight to the same word unit the estimate advances in.
+/// Built from the *character* length each verse contributes to the spoken text
+/// (plus a header), because both signals it consumes are character-based:
+///  * the word-accurate progress offset from the TTS engine, and
+///  * a proportional fraction fallback (position estimate).
+///
+/// Character ranges honour real content distribution, so a long verse occupies
+/// proportionally more of the timeline than a short one — a flat
+/// `fraction * verseCount` mapping desyncs badly on real chapters.
+///
+/// The spoken text is a header followed by every verse concatenated (see
+/// `BibleReaderTtsTextBuilder.build`).
 class TtsVerseIndexResolver {
-  /// Cumulative word count at the END of each verse, in verse order.
-  /// `_cumulative[i]` = words spoken once verse `i` finishes (header included).
+  /// Cumulative character count at the END of each verse, header included.
   final List<int> _cumulative;
-
-  /// Words spoken before the first verse (the "BookName N." header).
-  final int _headerWords;
-
-  final int _totalWords;
+  final int _headerChars;
+  final int _totalChars;
 
   TtsVerseIndexResolver._(
     this._cumulative,
-    this._headerWords,
-    this._totalWords,
+    this._headerChars,
+    this._totalChars,
   );
 
-  /// Build a resolver from the ordered [verseWordCounts] (one entry per verse,
-  /// in display order) and the [headerWords] spoken before verse 1.
-  factory TtsVerseIndexResolver.fromWordCounts(
-    List<int> verseWordCounts, {
-    required int headerWords,
+  /// Build from the ordered [verseCharCounts] (one per verse, display order)
+  /// and the [headerChars] spoken before verse 1.
+  factory TtsVerseIndexResolver.fromCharCounts(
+    List<int> verseCharCounts, {
+    required int headerChars,
   }) {
     final cumulative = <int>[];
-    int running = headerWords;
-    for (final w in verseWordCounts) {
-      running += w;
+    int running = headerChars;
+    for (final c in verseCharCounts) {
+      running += c;
       cumulative.add(running);
     }
-    return TtsVerseIndexResolver._(cumulative, headerWords, running);
+    return TtsVerseIndexResolver._(cumulative, headerChars, running);
   }
 
-  /// Number of verses this resolver covers.
-  int get verseCount => _cumulative.length;
+  int get length => _cumulative.length;
 
-  /// Returns the 0-based index of the verse being read at [fraction], or null
-  /// when there are no verses. The result is clamped to the verse range.
-  int? indexForFraction(double fraction) {
-    if (_cumulative.isEmpty || _totalWords <= 0) return null;
-
-    final f = fraction.clamp(0.0, 1.0);
-    final wordPos = f * _totalWords;
-
-    // Still inside the header → first verse.
-    if (wordPos <= _headerWords) return 0;
-
-    // Find the first verse whose cumulative end is past the current word.
+  /// Verse index for a global [charOffset] (from the TTS progress handler),
+  /// or null when there are no verses. Clamped to the verse range.
+  int? indexForCharOffset(int charOffset) {
+    if (_cumulative.isEmpty) return null;
+    if (charOffset < _headerChars) return 0;
     for (int i = 0; i < _cumulative.length; i++) {
-      if (wordPos <= _cumulative[i]) return i;
+      if (charOffset < _cumulative[i]) return i;
     }
     return _cumulative.length - 1;
   }
 
-  /// Counts words in [text] the same way the duration estimator does
-  /// (whitespace-split). Returns 0 for null/blank.
-  static int wordCount(String? text) {
-    if (text == null) return 0;
-    final trimmed = text.trim();
-    if (trimmed.isEmpty) return 0;
-    return trimmed.split(RegExp(r'\s+')).length;
+  /// Verse index for a playback [fraction] (0.0..1.0) — the estimated fallback
+  /// used when no word-accurate offset is available. Maps the fraction across
+  /// the same character span so it stays consistent with the offset path.
+  int? indexForFraction(double fraction) {
+    if (_cumulative.isEmpty || _totalChars <= 0) return null;
+    final charOffset = (fraction.clamp(0.0, 1.0) * _totalChars).round();
+    return indexForCharOffset(charOffset);
   }
+
+  /// Character length of [text] after trimming. Returns 0 for null/blank.
+  static int charCount(String? text) => text?.trim().length ?? 0;
 }

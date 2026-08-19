@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
+import 'package:devocional_nuevo/controllers/tts_word_tracker.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_duration_estimator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -53,6 +54,12 @@ class TtsAudioController {
   final ValueNotifier<Duration> currentPosition = ValueNotifier(Duration.zero);
   final ValueNotifier<Duration> totalDuration = ValueNotifier(Duration.zero);
   final ValueNotifier<double> playbackRate = ValueNotifier(1.0);
+
+  /// Tracks the word being spoken and publishes its global character offset.
+  /// ADDITIVE and decoupled: the controller only forwards raw progress events
+  /// to it and tells it the current segment. Nothing in the playback path reads
+  /// [TtsWordTracker.spokenCharOffset], so it cannot affect play/pause/stop/seek.
+  final TtsWordTracker wordTracker = TtsWordTracker();
 
   Timer? _progressTimer;
   DateTime? _playStartTime;
@@ -238,6 +245,15 @@ class TtsAudioController {
         _setStateIfNotDisposed(TtsPlayerState.error);
       }
     });
+
+    // ADDITIVE: word-level progress for the auto-scroll highlight. Pure
+    // listener — it only publishes the global character offset of the word
+    // being spoken and never calls back into playback. [start] is relative to
+    // the current speak() call, so add [_spokenBaseOffset] to make it global.
+    flutterTts.setProgressHandler((text, start, end, word) {
+      if (_isPlayingSample) return;
+      wordTracker.onProgress(start);
+    });
   }
 
   void setText(String text, {String languageCode = 'es'}) {
@@ -368,6 +384,9 @@ class TtsAudioController {
         final remainingWords = fullWords.skip(skipWords).toList();
         _currentText = remainingWords.join(' ');
 
+        // Word tracker: this utterance starts partway through the full text.
+        wordTracker.beginSegment(_fullText!.length - _currentText!.length);
+
         // Update position tracking for resume (will be used by _startProgressTimer)
         currentPosition.value = accumulatedPosition;
 
@@ -378,6 +397,7 @@ class TtsAudioController {
         // Starting fresh from beginning
         debugPrint('▶️ [TTS Controller] INICIANDO desde el principio');
         _currentText = _fullText;
+        wordTracker.beginSegment(0);
         accumulatedPosition = Duration.zero;
         currentPosition.value = Duration.zero;
       }
@@ -681,6 +701,7 @@ class TtsAudioController {
     stopProgressTimer();
     _setNotifierIfNotDisposed(currentPosition, Duration.zero);
     accumulatedPosition = Duration.zero;
+    wordTracker.reset();
     debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
 
@@ -832,6 +853,10 @@ class TtsAudioController {
 
     // Update current text and durations
     _currentText = remainingText;
+    // Word tracker: after a seek the utterance starts partway through.
+    wordTracker.beginSegment(_fullText != null && _fullText!.isNotEmpty
+        ? _fullText!.length - remainingText.length
+        : 0);
     // Keep totalDuration as the full duration for UI slider consistency
     totalDuration.value = _fullDuration;
     currentPosition.value = position;
@@ -957,6 +982,7 @@ class TtsAudioController {
     currentPosition.dispose();
     totalDuration.dispose();
     playbackRate.dispose();
+    wordTracker.dispose();
     stopProgressTimer();
   }
 }

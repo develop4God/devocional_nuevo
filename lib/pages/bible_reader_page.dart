@@ -181,6 +181,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         itemCount: () => _controller.state.verses.length,
         leadingCount: 1,
       ),
+      // Prefer the word-accurate progress offset; fall back to the estimate.
+      indexForCharOffset: (offset) =>
+          _verseIndexResolver()?.indexForCharOffset(offset),
       indexForFraction: (fraction) =>
           _verseIndexResolver()?.indexForFraction(fraction),
     )..attach();
@@ -338,27 +341,28 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       return _cachedVerseResolver;
     }
 
-    // Header words: resolved book name + the chapter number token.
+    // Mirror BibleReaderTtsTextBuilder.build char-for-char so the offsets the
+    // TTS progress handler reports line up with these verse ranges.
+    // Header: "BookName N.\n" (only when a book name resolves).
     final bookName = state.selectedBookName != null && state.books.isNotEmpty
         ? BibleVerseFormatter.resolveBookName(
             state.books,
             state.selectedBookName!,
           )
         : '';
-    final headerWords =
-        bookName.isEmpty ? 0 : TtsVerseIndexResolver.wordCount(bookName) + 1;
+    final chapter = state.selectedChapter ?? 1;
+    final headerChars = bookName.isEmpty ? 0 : '$bookName $chapter.\n'.length;
 
-    final verseWordCounts = verses
-        .map(
-          (v) => TtsVerseIndexResolver.wordCount(
-            BibleTextNormalizer.clean(v['text']?.toString()),
-          ),
-        )
-        .toList();
+    // Each verse contributes "cleanedText\n" (blank verses contribute nothing,
+    // matching the builder which skips empty text).
+    final verseCharCounts = verses.map((v) {
+      final text = BibleTextNormalizer.clean(v['text']?.toString());
+      return text.isEmpty ? 0 : text.length + 1; // +1 for the trailing newline
+    }).toList();
 
-    final resolver = TtsVerseIndexResolver.fromWordCounts(
-      verseWordCounts,
-      headerWords: headerWords,
+    final resolver = TtsVerseIndexResolver.fromCharCounts(
+      verseCharCounts,
+      headerChars: headerChars,
     );
     _cachedVerseResolver = resolver;
     _cachedVersesId = versesId;

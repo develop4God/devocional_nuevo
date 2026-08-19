@@ -23,16 +23,17 @@ class TtsAutoScrollDriver {
   final TtsAudioController controller;
   final TtsScrollTarget target;
 
-  /// Resolves the estimated current item index from the playback [fraction]
-  /// (0.0..1.0). Provided by the page so the mapping can honour real content
-  /// distribution — e.g. cumulative word counts per verse, so a long verse
-  /// occupies proportionally more of the timeline than a short one. Returns
-  /// null (or is itself null) when index tracking isn't available, in which
-  /// case only scrolling runs.
+  /// Word-accurate resolver: current item index from a global character offset
+  /// (from the TTS progress handler). Preferred when available.
+  final int? Function(int charOffset)? indexForCharOffset;
+
+  /// Estimated fallback resolver: current item index from the playback
+  /// [fraction] (0.0..1.0). Used when no word-accurate offset is available
+  /// (e.g. engines that emit no progress). Either resolver may be null.
   final int? Function(double fraction)? indexForFraction;
 
-  /// Estimated index of the item currently being read (null when not playing or
-  /// when no resolver is available). Pages listen to this to highlight.
+  /// Index of the item currently being read (null when not playing or when no
+  /// resolver produces one). Pages listen to this to highlight.
   final ValueNotifier<int?> currentIndex = ValueNotifier<int?>(null);
 
   bool _attached = false;
@@ -41,6 +42,7 @@ class TtsAutoScrollDriver {
   TtsAutoScrollDriver({
     required this.controller,
     required this.target,
+    this.indexForCharOffset,
     this.indexForFraction,
   });
 
@@ -49,6 +51,7 @@ class TtsAutoScrollDriver {
     if (_attached) return;
     controller.currentPosition.addListener(_onTick);
     controller.state.addListener(_onTick);
+    controller.wordTracker.spokenCharOffset.addListener(_onTick);
     _attached = true;
   }
 
@@ -60,6 +63,7 @@ class TtsAutoScrollDriver {
       try {
         controller.currentPosition.removeListener(_onTick);
         controller.state.removeListener(_onTick);
+        controller.wordTracker.spokenCharOffset.removeListener(_onTick);
       } catch (e) {
         debugPrint('⚠️ [TtsAutoScroll] Error removing listeners: $e');
       }
@@ -84,7 +88,14 @@ class TtsAutoScrollDriver {
 
     target.scrollToFraction(fraction);
 
-    final index = indexForFraction?.call(fraction);
+    // Prefer the word-accurate offset; fall back to the estimated fraction.
+    final charOffset = controller.wordTracker.spokenCharOffset.value;
+    int? index;
+    if (charOffset >= 0 && indexForCharOffset != null) {
+      index = indexForCharOffset!(charOffset);
+    } else if (indexForFraction != null) {
+      index = indexForFraction!(fraction);
+    }
     if (index != null) {
       currentIndex.value = index;
     }
