@@ -15,9 +15,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// position→scroll mapping without a real scroll view.
 class FakeScrollTarget implements TtsScrollTarget {
   final List<double> fractions = [];
+  final List<int> indices = [];
 
   @override
   void scrollToFraction(double fraction) => fractions.add(fraction);
+
+  @override
+  void scrollToIndex(int itemIndex, int itemCount) => indices.add(itemIndex);
 }
 
 void main() {
@@ -146,6 +150,74 @@ void main() {
       controller.state.value = TtsPlayerState.paused;
 
       expect(indexDriver.currentIndex.value, isNull);
+    });
+  });
+
+  group('scroll follows the resolved index (not the estimate)', () {
+    // Isolated controller/target/driver so the outer setUp's driver (which
+    // shares the top-level controller+target) can't pollute these assertions.
+    late TtsAudioController c;
+    late FakeScrollTarget t;
+    late TtsAutoScrollDriver d;
+
+    setUp(() {
+      c = TtsAudioController(
+        flutterTts: FlutterTts(),
+        voiceSettingsService: VoiceSettingsService(),
+      );
+      t = FakeScrollTarget();
+      d = TtsAutoScrollDriver(
+        controller: c,
+        target: t,
+        indexForCharOffset: (offset) => 3, // word-accurate → verse 3
+        indexForFraction: (f) => 0,
+        itemCount: () => 10,
+      )..attach();
+    });
+
+    tearDown(() {
+      d.dispose();
+      c.dispose();
+    });
+
+    test('scrolls by index when a word-accurate offset is available', () {
+      c.totalDuration.value = const Duration(seconds: 100);
+      c.state.value = TtsPlayerState.playing;
+      c.wordTracker.beginSegment(0);
+
+      c.wordTracker.onProgress(30); // char offset ≥ 0 → word-accurate
+
+      expect(t.indices.last, 3);
+      // The fast estimated fraction must NOT drive the scroll here.
+      expect(t.fractions, isEmpty);
+    });
+
+    test('uses the estimated fraction index when offset is unknown (-1)', () {
+      c.totalDuration.value = const Duration(seconds: 100);
+      c.state.value = TtsPlayerState.playing;
+      // No progress event → spokenCharOffset stays -1, so the estimated
+      // fraction resolver drives the index (here it returns 0).
+      c.currentPosition.value = const Duration(seconds: 50);
+
+      expect(t.indices, everyElement(0));
+      expect(t.indices, isNotEmpty);
+    });
+
+    test('pure fraction scroll when no resolver/itemCount is available', () {
+      final t2 = FakeScrollTarget();
+      final d2 = TtsAutoScrollDriver(
+        controller: c,
+        target: t2,
+        // No resolvers, no itemCount → fraction path only.
+      )..attach();
+      addTearDown(d2.dispose);
+
+      c.totalDuration.value = const Duration(seconds: 100);
+      c.state.value = TtsPlayerState.playing;
+      c.currentPosition.value = const Duration(seconds: 50);
+
+      expect(t2.fractions, isNotEmpty);
+      expect(t2.indices, isEmpty);
     });
   });
 }
