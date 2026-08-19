@@ -2,26 +2,44 @@ import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/controllers/tts_scroll_target.dart';
 import 'package:flutter/foundation.dart';
 
-/// Drives auto-scroll of a page's text so it follows TTS playback.
+/// Drives auto-scroll and current-item tracking so a page's text follows TTS
+/// playback, karaoke-style.
 ///
 /// Listens to the existing [TtsAudioController] progress notifiers
 /// ([TtsAudioController.currentPosition] / [TtsAudioController.totalDuration])
-/// and, while playback is active, maps the elapsed fraction onto the page via a
-/// [TtsScrollTarget]. It only *reads* the controller — it never calls play,
-/// pause, seek, or otherwise touches the TTS engine, so it cannot affect
-/// playback.
+/// and, while playback is active, maps the elapsed fraction onto the page:
+///  * scrolls via a [TtsScrollTarget], and
+///  * publishes the estimated current item index via [currentIndex], which the
+///    page reads to highlight the verse/line being read.
 ///
-/// Position is estimated (word-fraction of an estimated duration), so scrolling
-/// tracks proportionally and may drift from the exact spoken word. This is the
+/// It only *reads* the controller — it never calls play, pause, seek, or
+/// otherwise touches the TTS engine, so it cannot affect playback.
+///
+/// Position is estimated (word-fraction of an estimated duration), so tracking
+/// is proportional and may drift from the exact spoken item. This is the
 /// shared, engine-untouched foundation; word-accurate progress can be layered
 /// on later as an additive signal.
 class TtsAutoScrollDriver {
   final TtsAudioController controller;
   final TtsScrollTarget target;
 
-  bool _attached = false;
+  /// Number of highlightable items (e.g. verse count). Read lazily because the
+  /// list length changes (a new chapter loads). When null, index tracking is
+  /// disabled and only scrolling runs.
+  final int Function()? itemCount;
 
-  TtsAutoScrollDriver({required this.controller, required this.target});
+  /// Estimated index of the item currently being read (null when not playing or
+  /// when [itemCount] is unavailable). Pages listen to this to highlight.
+  final ValueNotifier<int?> currentIndex = ValueNotifier<int?>(null);
+
+  bool _attached = false;
+  bool _disposed = false;
+
+  TtsAutoScrollDriver({
+    required this.controller,
+    required this.target,
+    this.itemCount,
+  });
 
   /// Start following playback. Idempotent.
   void attach() {
@@ -33,26 +51,39 @@ class TtsAutoScrollDriver {
 
   /// Stop following playback and release listeners. Idempotent.
   void dispose() {
-    if (!_attached) return;
-    try {
-      controller.currentPosition.removeListener(_onTick);
-      controller.state.removeListener(_onTick);
-    } catch (e) {
-      debugPrint('⚠️ [TtsAutoScroll] Error removing listeners: $e');
+    if (_disposed) return;
+    _disposed = true;
+    if (_attached) {
+      try {
+        controller.currentPosition.removeListener(_onTick);
+        controller.state.removeListener(_onTick);
+      } catch (e) {
+        debugPrint('⚠️ [TtsAutoScroll] Error removing listeners: $e');
+      }
+      _attached = false;
     }
-    _attached = false;
+    currentIndex.dispose();
   }
 
   void _onTick() {
-    // Only scroll while actively playing — not while loading, paused, idle,
+    // Only track while actively playing — not while loading, paused, idle,
     // completed, or errored.
-    if (controller.state.value != TtsPlayerState.playing) return;
+    if (controller.state.value != TtsPlayerState.playing) {
+      currentIndex.value = null;
+      return;
+    }
 
     final total = controller.totalDuration.value.inMilliseconds;
     if (total <= 0) return;
 
     final pos = controller.currentPosition.value.inMilliseconds;
     final fraction = (pos / total).clamp(0.0, 1.0);
+
     target.scrollToFraction(fraction);
+
+    final count = itemCount?.call() ?? 0;
+    if (count > 0) {
+      currentIndex.value = (fraction * count).floor().clamp(0, count - 1);
+    }
   }
 }

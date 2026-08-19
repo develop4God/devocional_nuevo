@@ -106,4 +106,45 @@ void main() {
 
     expect(target.fractions, isEmpty);
   });
+
+  group('currentIndex', () {
+    late TtsAutoScrollDriver indexDriver;
+
+    setUp(() {
+      indexDriver = TtsAutoScrollDriver(
+        controller: controller,
+        target: target,
+        itemCount: () => 10, // 10 verses
+      )..attach();
+    });
+
+    tearDown(() => indexDriver.dispose());
+
+    test('maps fraction to floored verse index while playing', () {
+      controller.totalDuration.value = const Duration(seconds: 100);
+      controller.state.value = TtsPlayerState.playing;
+
+      controller.currentPosition.value = const Duration(seconds: 25);
+      expect(indexDriver.currentIndex.value, 2); // 0.25 * 10 = 2.5 -> 2
+
+      controller.currentPosition.value = const Duration(seconds: 58);
+      expect(indexDriver.currentIndex.value, 5); // 0.58 * 10 = 5.8 -> 5
+    });
+
+    test('clamps index to last verse when position exceeds total', () {
+      controller.totalDuration.value = const Duration(seconds: 100);
+      controller.state.value = TtsPlayerState.playing;
+
+      controller.currentPosition.value = const Duration(seconds: 150);
+      expect(indexDriver.currentIndex.value, 9); // clamp to count-1
+    });
+
+    test('is null when not playing', () {
+      controller.totalDuration.value = const Duration(seconds: 100);
+      controller.currentPosition.value = const Duration(seconds: 50);
+      controller.state.value = TtsPlayerState.paused;
+
+      expect(indexDriver.currentIndex.value, isNull);
+    });
+  });
 }

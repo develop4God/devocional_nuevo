@@ -50,11 +50,16 @@ class ScrollControllerTarget implements TtsScrollTarget {
 /// Scrolls an index-based [ScrollablePositionedList] by mapping the playback
 /// fraction onto the item count.
 ///
-/// [itemCount] is read lazily each call because the list length changes (e.g.
-/// a new bible chapter loads).
+/// [itemCount] is the number of *highlightable* items (e.g. verses), read
+/// lazily because the list length changes when a new chapter loads. Lists that
+/// prepend leading widgets (a chapter title) before the items pass
+/// [leadingCount] so the fraction maps to the correct list index.
 class ItemScrollControllerTarget implements TtsScrollTarget {
   final ItemScrollController controller;
   final int Function() itemCount;
+
+  /// Number of non-item widgets before the first item (e.g. a title at index 0).
+  final int leadingCount;
   final Duration duration;
   final Curve curve;
   final double alignment;
@@ -62,6 +67,7 @@ class ItemScrollControllerTarget implements TtsScrollTarget {
   ItemScrollControllerTarget(
     this.controller, {
     required this.itemCount,
+    this.leadingCount = 0,
     this.duration = const Duration(milliseconds: 400),
     this.curve = Curves.easeInOut,
     this.alignment = 0.1,
@@ -73,9 +79,9 @@ class ItemScrollControllerTarget implements TtsScrollTarget {
     final count = itemCount();
     if (count <= 0) return;
 
-    final index = (fraction * count).floor().clamp(0, count - 1);
+    final itemIndex = (fraction * count).floor().clamp(0, count - 1);
     controller.scrollTo(
-      index: index,
+      index: itemIndex + leadingCount,
       duration: duration,
       curve: curve,
       alignment: alignment,
