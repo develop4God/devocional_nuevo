@@ -207,14 +207,14 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Swipe indicator
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(180),
-                  borderRadius: BorderRadius.circular(2),
+              // Swipe-down cue: a downward chevron signals the sheet can be
+              // pulled down to reveal (and follow) the reading text behind it.
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 32,
+                  color: Colors.white.withAlpha(200),
                 ),
               ),
 
