@@ -8,6 +8,8 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/font_size_controller.dart';
 import 'package:devocional_nuevo/controllers/post_splash_animation_controller.dart';
+import 'package:devocional_nuevo/controllers/tts_auto_scroll_driver.dart';
+import 'package:devocional_nuevo/controllers/tts_scroll_target.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/helpers/devocional_navigation_helper.dart';
 import 'package:devocional_nuevo/main.dart';
@@ -93,6 +95,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   final FlutterTts _flutterTts = FlutterTts();
   late final TtsAudioController _ttsAudioController;
   late final DevocionalTtsMiniplayerPresenter _ttsMiniplayerPresenter;
+  late final TtsAutoScrollDriver _ttsAutoScrollDriver;
   final FontSizeController _fontSizeController = FontSizeController();
   final PostSplashAnimationController _splashAnimController =
       PostSplashAnimationController();
@@ -140,6 +143,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     _ttsMiniplayerPresenter = DevocionalTtsMiniplayerPresenter(
       ttsAudioController: _ttsAudioController,
     );
+    // Auto-scroll the devotional text to follow TTS playback. Only reads the
+    // controller's progress notifiers — never touches the TTS engine.
+    _ttsAutoScrollDriver = TtsAutoScrollDriver(
+      controller: _ttsAudioController,
+      target: ScrollControllerTarget(_scrollController),
+    )..attach();
     _navigationHelper = DevocionalNavigationHelper(
       getBloc: () => _navigationBloc!,
       getAudioController: () => _audioController,
@@ -595,6 +604,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _ttsAudioController.state.removeListener(_handleTtsStateChange);
     } catch (_) {}
     widget.isActive?.removeListener(_handleTabVisibilityChange);
+    _ttsAutoScrollDriver.dispose();
     _ttsAudioController.dispose();
     _ttsMiniplayerPresenter.dispose();
     _fontSizeController.removeListener(_onFontSizeChanged);

@@ -12,6 +12,8 @@ import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_state.dart'
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
+import 'package:devocional_nuevo/controllers/tts_auto_scroll_driver.dart';
+import 'package:devocional_nuevo/controllers/tts_scroll_target.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
@@ -94,6 +96,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   // that an injected instance from widget.flutterTts takes precedence.
   late final TtsAudioController _ttsAudioController;
   late final BibleReaderTtsMiniplayerPresenter _ttsMiniplayerPresenter;
+  late final TtsAutoScrollDriver _ttsAutoScrollDriver;
   late final VoiceSettingsService _voiceSettingsService;
   // Guards addPostFrameCallback callbacks after dispose().
   bool _disposed = false;
@@ -158,6 +161,15 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       onShowVoiceSelector: (ctx, lang, sampleText) =>
           _showBibleVoiceSelector(ctx, lang, sampleText),
     );
+    // Auto-scroll the chapter to follow TTS playback. Maps playback fraction
+    // onto the verse index; only reads the controller's progress notifiers.
+    _ttsAutoScrollDriver = TtsAutoScrollDriver(
+      controller: _ttsAudioController,
+      target: ItemScrollControllerTarget(
+        _itemScrollController,
+        itemCount: () => _controller.state.verses.length,
+      ),
+    )..attach();
 
     // Auto-open miniplayer when TTS starts playing — same pattern as
     // devocionales_page (tested by 3000+ users in production).
@@ -229,6 +241,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     try {
       _ttsAudioController.state.removeListener(_handleTtsStateChange);
     } catch (_) {}
+    _ttsAutoScrollDriver.dispose();
     _ttsMiniplayerPresenter.dispose();
     _ttsAudioController.dispose();
     _controller.dispose();
