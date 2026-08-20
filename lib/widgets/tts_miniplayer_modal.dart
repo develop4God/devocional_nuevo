@@ -65,7 +65,8 @@ class TtsMiniplayerModal extends StatefulWidget {
   State<TtsMiniplayerModal> createState() => _TtsMiniplayerModalState();
 }
 
-class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
+class _TtsMiniplayerModalState extends State<TtsMiniplayerModal>
+    with SingleTickerProviderStateMixin {
   double? _sliderValue;
   bool _isSeeking = false;
 
@@ -73,15 +74,27 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
   late final VoidCallback _combinedListener;
   _TtsPlayerSnapshot? _cachedSnapshot;
 
+  // Pulse animation for the swipe-down chevron cue
+  late final AnimationController _chevronPulseController;
+  late final Animation<double> _chevronPulseAnimation;
+
   @override
   void initState() {
     super.initState();
     _attachListeners();
+    _chevronPulseController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+    _chevronPulseAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(parent: _chevronPulseController, curve: Curves.easeInOut),
+    );
   }
 
   @override
   void dispose() {
     _detachListeners();
+    _chevronPulseController.dispose();
     super.dispose();
   }
 
@@ -209,13 +222,31 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
             children: [
               // Swipe-down cue: a wide downward chevron (spanning the old
               // handle's width) signals the sheet can be pulled down to reveal
-              // and follow the reading text behind it.
+              // and follow the reading text behind it. It pulses to draw
+              // attention, and can also be tapped to dismiss the sheet.
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 44,
-                  color: Colors.white.withAlpha(200),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () => Navigator.of(context).maybePop(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: AnimatedBuilder(
+                        animation: _chevronPulseAnimation,
+                        builder: (context, child) => Transform.scale(
+                          scale: _chevronPulseAnimation.value,
+                          child: child,
+                        ),
+                        child: Icon(
+                          Icons.swipe_down_rounded,
+                          size: 32,
+                          color: Colors.white.withAlpha(200),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
 
