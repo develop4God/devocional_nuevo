@@ -74,6 +74,15 @@ class TtsAutoScrollDriver {
     this.scrollFractionForOffset,
   });
 
+  /// Clears the resolved index immediately, e.g. when the caller's content
+  /// (devotional/chapter) changes mid-playback and its own resolver cache
+  /// hasn't rebuilt yet — without this the next tick can briefly resolve an
+  /// index against the new content using a still-in-flight offset from the
+  /// old one, flashing the wrong item highlighted for one tick.
+  void resetIndex() {
+    currentIndex.value = null;
+  }
+
   /// Start following playback. Idempotent.
   void attach() {
     if (_attached) return;

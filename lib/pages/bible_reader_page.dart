@@ -42,6 +42,7 @@ import 'package:devocional_nuevo/widgets/bible/kjv_kj2000_banner.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:devocional_nuevo/widgets/modern_voice_feature_dialog.dart';
+import 'package:devocional_nuevo/widgets/tts_highlight_style.dart';
 import 'package:devocional_nuevo/widgets/voice_selector_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -101,10 +102,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   late final VoiceSettingsService _voiceSettingsService;
 
   // Cached verse-index resolver for TTS highlight. Rebuilt when the verse list
-  // identity changes (a new chapter loads), keyed by identityHashCode so we
-  // don't recompute cumulative word counts on every playback tick.
+  // identity changes (a new chapter loads), keyed by the verses list
+  // reference itself (compared via identical()) so we don't recompute
+  // cumulative word counts on every playback tick.
   TtsVerseIndexResolver? _cachedVerseResolver;
-  int? _cachedVersesId;
+  List<Map<String, dynamic>>? _cachedVerses;
   // Guards addPostFrameCallback callbacks after dispose().
   bool _disposed = false;
   // Set while an initialReference scroll-into-view is still owed, so the
@@ -339,8 +341,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     final verses = state.verses;
     if (verses.isEmpty) return null;
 
-    final versesId = identityHashCode(verses);
-    if (_cachedVersesId == versesId && _cachedVerseResolver != null) {
+    if (identical(_cachedVerses, verses) && _cachedVerseResolver != null) {
       return _cachedVerseResolver;
     }
 
@@ -357,18 +358,24 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     final headerChars = bookName.isEmpty ? 0 : '$bookName $chapter.\n'.length;
 
     // Each verse contributes "cleanedText\n" (blank verses contribute nothing,
-    // matching the builder which skips empty text).
+    // matching the builder which skips empty text). The builder trims the
+    // whole spoken text at the end, stripping the trailing newline after the
+    // last non-empty verse, so that verse's count must match (no +1).
     final verseCharCounts = verses.map((v) {
       final text = BibleTextNormalizer.clean(v['text']?.toString());
       return text.isEmpty ? 0 : text.length + 1; // +1 for the trailing newline
     }).toList();
+    final lastNonEmpty = verseCharCounts.lastIndexWhere((c) => c > 0);
+    if (lastNonEmpty != -1) {
+      verseCharCounts[lastNonEmpty] -= 1;
+    }
 
     final resolver = TtsVerseIndexResolver.fromCharCounts(
       verseCharCounts,
       headerChars: headerChars,
     );
     _cachedVerseResolver = resolver;
-    _cachedVersesId = versesId;
+    _cachedVerses = verses;
     return resolver;
   }
 
@@ -1477,12 +1484,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                       // idx-1 is the 0-based verse index; the driver
                                       // publishes the estimated verse being read.
                                       // Highlight it and dim the others.
-                                      final isCurrentlySpoken =
-                                          currentSpokenVerseIndex != null &&
-                                              currentSpokenVerseIndex ==
-                                                  idx - 1;
-                                      final hasSpokenVerse =
-                                          currentSpokenVerseIndex != null;
+                                      final highlightStyle =
+                                          TtsHighlightStyle.forIndex(
+                                        currentSpokenVerseIndex,
+                                        idx - 1,
+                                      );
                                       final isPersistentlyMarked = state
                                           .persistentlyMarkedVerses
                                           .contains(key);
@@ -1566,18 +1572,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                                     // verse is being read, keep it
                                                     // full-strength (bold) and dim
                                                     // the others so the eye follows.
-                                                    color: hasSpokenVerse &&
-                                                            !isCurrentlySpoken
-                                                        ? colorScheme.onSurface
-                                                            .withValues(
-                                                            alpha: TtsHighlight
-                                                                .dimOpacity,
-                                                          )
-                                                        : colorScheme.onSurface,
-                                                    fontWeight:
-                                                        isCurrentlySpoken
-                                                            ? FontWeight.bold
-                                                            : null,
+                                                    color: colorScheme.onSurface
+                                                        .withValues(
+                                                      alpha: highlightStyle
+                                                          .opacity,
+                                                    ),
+                                                    fontWeight: highlightStyle
+                                                        .fontWeight,
                                                     height: 1.6,
                                                   ),
                                                   children: [

@@ -19,6 +19,7 @@ import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.d
 import 'package:devocional_nuevo/widgets/markdown_emphasis_text.dart';
 import 'package:devocional_nuevo/widgets/notes/note_icons.dart';
 import 'package:devocional_nuevo/widgets/supporter/pet_hero_section.dart';
+import 'package:devocional_nuevo/widgets/tts_highlight_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -200,7 +201,8 @@ class DevocionalesContentWidget extends StatelessWidget {
         _UnitHighlight(
           index: i,
           currentIndex: currentUnitIndex,
-          child: _buildUnit(unit, colorScheme, textTheme),
+          builder: (isCurrent) =>
+              _buildUnit(unit, colorScheme, textTheme, isCurrent: isCurrent),
         ),
       );
       // Keep the note action between the verse and the reflection.
@@ -225,8 +227,9 @@ class DevocionalesContentWidget extends StatelessWidget {
   Widget _buildUnit(
     DevotionalUnit unit,
     ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
+    TextTheme textTheme, {
+    required bool isCurrent,
+  }) {
     switch (unit.kind) {
       case DevotionalUnitKind.label:
         return Text(
@@ -249,6 +252,9 @@ class DevocionalesContentWidget extends StatelessWidget {
           style: textTheme.bodyMedium?.copyWith(
             fontSize: fontSize,
             color: colorScheme.onSurface,
+            // Karaoke highlight: bold the sentence currently being read, same
+            // as the Bible reader's per-verse highlight.
+            fontWeight: isCurrent ? FontWeight.bold : null,
           ),
         );
       case DevotionalUnitKind.meditateItem:
@@ -332,33 +338,35 @@ class DevocionalesContentWidget extends StatelessWidget {
   }
 }
 
-/// Dims [child] unless its [index] is the unit currently being read by TTS.
+/// Dims the built child unless its [index] is the unit currently being read
+/// by TTS, and lets [builder] bold the current one — same treatment as the
+/// Bible reader's per-verse highlight.
 ///
 /// When [currentIndex] is null, or its value is null (nothing playing), the
 /// child renders at full strength — so the page looks unchanged when TTS is
-/// idle. Matches the Bible reader's per-verse highlight.
+/// idle.
 class _UnitHighlight extends StatelessWidget {
   final int index;
   final ValueListenable<int?>? currentIndex;
-  final Widget child;
+  final Widget Function(bool isCurrent) builder;
 
   const _UnitHighlight({
     required this.index,
     required this.currentIndex,
-    required this.child,
+    required this.builder,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (currentIndex == null) return child;
+    if (currentIndex == null) return builder(false);
     return ValueListenableBuilder<int?>(
       valueListenable: currentIndex!,
       builder: (context, current, _) {
-        final dim = current != null && current != index;
+        final style = TtsHighlightStyle.forIndex(current, index);
         return AnimatedOpacity(
-          opacity: dim ? TtsHighlight.dimOpacity : 1.0,
+          opacity: style.opacity,
           duration: TtsHighlight.fadeDuration,
-          child: child,
+          child: builder(style.isCurrent),
         );
       },
     );
