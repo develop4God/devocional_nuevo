@@ -158,8 +158,14 @@ class DevocionalTtsSections {
 
   /// Adds a label unit then one unit per sentence of [body]. The [labelPrefix]
   /// (spoken but not part of the rendered sentence) is folded into the label
-  /// unit's char length. Sentence char lengths are computed on the *normalized*
-  /// (spoken) text but split from the *rendered* text — for prose these align.
+  /// unit's char length. Rendered sentence text is split from the *raw* body
+  /// (unchanged rendering), but char lengths come from the *whole-body
+  /// normalized* text — matching `TtsPlayerWidget._buildTtsText`, which
+  /// normalizes the entire body in one call rather than per sentence — split
+  /// at the same sentence boundaries, so each unit's length is the real gap to
+  /// the next sentence (or to the end) instead of a fixed "+1" guess for the
+  /// separator. Keeps the running total exactly equal to the real spoken
+  /// length instead of drifting as sentence count grows.
   static void _addLabelAndSentences({
     required void Function(DevotionalUnit, int) add,
     required String Function(String) norm,
@@ -172,13 +178,26 @@ class DevocionalTtsSections {
       labelPrefix.length,
     );
     final sentences = TtsVerseIndexResolver.splitSentences(body);
-    for (final sentence in sentences) {
+    if (sentences.isEmpty) return;
+
+    // Split the whole-body normalized text (what's actually spoken) at the
+    // same sentence-boundary pattern used to split the raw body, so each
+    // sentence's char length is its real length in the spoken text plus the
+    // real trailing separator — no fixed "+1" guess.
+    final normalizedSentences =
+        TtsVerseIndexResolver.splitSentences(norm(body));
+    final sameSplit = normalizedSentences.length == sentences.length;
+
+    for (int i = 0; i < sentences.length; i++) {
+      final spokenChars = sameSplit
+          ? normalizedSentences[i].length + (i == sentences.length - 1 ? 0 : 1)
+          // +1 approximates the whitespace the splitter consumed between
+          // sentences; harmless for mapping and keeps the running total
+          // close to the spoken length.
+          : norm(sentences[i]).length + 1;
       add(
-        DevotionalUnit(kind: DevotionalUnitKind.sentence, text: sentence),
-        // +1 approximates the whitespace the splitter consumed between
-        // sentences; harmless for mapping and keeps the running total close to
-        // the spoken length.
-        norm(sentence).length + 1,
+        DevotionalUnit(kind: DevotionalUnitKind.sentence, text: sentences[i]),
+        spokenChars,
       );
     }
   }

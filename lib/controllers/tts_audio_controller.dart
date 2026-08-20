@@ -374,29 +374,32 @@ class TtsAudioController {
           '▶️ [TTS Controller] REANUDANDO desde posición: ${accumulatedPosition.inSeconds}s',
         );
 
-        // Calculate which words to skip based on accumulated position
-        final fullWords = _fullText!
-            .split(RegExp(r"\s+"))
-            .where((w) => w.isNotEmpty)
-            .toList();
+        // Calculate which words to skip based on accumulated position.
+        // Use real match positions (not split+rejoin) so the resume offset
+        // and the resumed text stay a true substring of _fullText, including
+        // its original whitespace/newlines between devotional sections.
+        final wordMatches = RegExp(r"\S+").allMatches(_fullText!).toList();
         final fullSeconds =
             _fullDuration.inSeconds > 0 ? _fullDuration.inSeconds : 1;
         final ratio = accumulatedPosition.inSeconds / fullSeconds;
         final skipWords =
-            (fullWords.length * ratio).clamp(0, fullWords.length).round();
+            (wordMatches.length * ratio).clamp(0, wordMatches.length).round();
 
-        // Build remaining text from skipWords
-        final remainingWords = fullWords.skip(skipWords).toList();
-        _currentText = remainingWords.join(' ');
+        // Build remaining text as the true suffix of _fullText starting at
+        // the skipWords-th word's real character offset.
+        final resumeOffset = skipWords < wordMatches.length
+            ? wordMatches[skipWords].start
+            : _fullText!.length;
+        _currentText = _fullText!.substring(resumeOffset);
 
         // Word tracker: this utterance starts partway through the full text.
-        wordTracker.beginSegment(_fullText!.length - _currentText!.length);
+        wordTracker.beginSegment(resumeOffset);
 
         // Update position tracking for resume (will be used by _startProgressTimer)
         currentPosition.value = accumulatedPosition;
 
         debugPrint(
-          '▶️ [TTS Controller] Saltando $skipWords/${fullWords.length} palabras, quedan ${remainingWords.length} palabras',
+          '▶️ [TTS Controller] Saltando $skipWords/${wordMatches.length} palabras, quedan ${wordMatches.length - skipWords} palabras',
         );
       } else {
         // Starting fresh from beginning
@@ -841,27 +844,29 @@ class TtsAudioController {
 
     if (position > _fullDuration) position = _fullDuration;
 
-    // Calculate proportion and estimate words to skip
-    final fullWords = (_fullText ?? '')
-        .split(RegExp(r"\s+"))
-        .where((w) => w.isNotEmpty)
-        .toList();
+    // Calculate proportion and estimate words to skip. Use real match
+    // positions (not split+rejoin) so the seek offset and the resumed text
+    // stay a true substring of _fullText, including its original
+    // whitespace/newlines between devotional sections.
+    final fullText = _fullText ?? '';
+    final wordMatches = RegExp(r"\S+").allMatches(fullText).toList();
     final fullSeconds =
         _fullDuration.inSeconds > 0 ? _fullDuration.inSeconds : 1;
     final ratio = position.inSeconds / fullSeconds;
     final skipWords =
-        (fullWords.length * ratio).clamp(0, fullWords.length).round();
+        (wordMatches.length * ratio).clamp(0, wordMatches.length).round();
 
-    // Build remaining text from skipWords
-    final remainingWords = fullWords.skip(skipWords).toList();
-    final remainingText = remainingWords.join(' ');
+    // Build remaining text as the true suffix of _fullText starting at the
+    // skipWords-th word's real character offset.
+    final seekOffset = skipWords < wordMatches.length
+        ? wordMatches[skipWords].start
+        : fullText.length;
+    final remainingText = fullText.substring(seekOffset);
 
     // Update current text and durations
     _currentText = remainingText;
     // Word tracker: after a seek the utterance starts partway through.
-    wordTracker.beginSegment(_fullText != null && _fullText!.isNotEmpty
-        ? _fullText!.length - remainingText.length
-        : 0);
+    wordTracker.beginSegment(seekOffset);
     // Keep totalDuration as the full duration for UI slider consistency
     totalDuration.value = _fullDuration;
     currentPosition.value = position;

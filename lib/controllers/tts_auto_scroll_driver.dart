@@ -63,6 +63,7 @@ class TtsAutoScrollDriver {
 
   bool _attached = false;
   bool _disposed = false;
+  DateTime? _lastTick;
 
   TtsAutoScrollDriver({
     required this.controller,
@@ -78,7 +79,12 @@ class TtsAutoScrollDriver {
     if (_attached) return;
     controller.currentPosition.addListener(_onTick);
     controller.state.addListener(_onTick);
-    controller.wordTracker.spokenCharOffset.addListener(_onTick);
+    // wordTracker.spokenCharOffset fires on every native word-progress event
+    // (several times/sec), far more often than the intended tick cadence, so
+    // it gets its own throttled listener — currentPosition/state already tick
+    // at the intended cadence (the 500ms progress timer, or one-off state
+    // changes) and must stay unthrottled.
+    controller.wordTracker.spokenCharOffset.addListener(_onWordProgressTick);
     _attached = true;
   }
 
@@ -90,13 +96,27 @@ class TtsAutoScrollDriver {
       try {
         controller.currentPosition.removeListener(_onTick);
         controller.state.removeListener(_onTick);
-        controller.wordTracker.spokenCharOffset.removeListener(_onTick);
+        controller.wordTracker.spokenCharOffset
+            .removeListener(_onWordProgressTick);
       } catch (e) {
         debugPrint('⚠️ [TtsAutoScroll] Error removing listeners: $e');
       }
       _attached = false;
     }
     currentIndex.dispose();
+  }
+
+  void _onWordProgressTick() {
+    // Throttle to progressTickInterval so scroll animations (already tuned
+    // to that cadence, see _kAutoScrollAnimDuration) aren't restarted
+    // mid-flight by every word-progress event.
+    final now = DateTime.now();
+    if (_lastTick != null &&
+        now.difference(_lastTick!) < TtsAudioController.progressTickInterval) {
+      return;
+    }
+    _lastTick = now;
+    _onTick();
   }
 
   void _onTick() {
