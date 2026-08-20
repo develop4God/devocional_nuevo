@@ -1,5 +1,17 @@
-import 'package:devocional_nuevo/controllers/tts_auto_scroll_driver.dart';
 import 'package:flutter/material.dart';
+
+/// Shared visual constants for the TTS follow-along highlight, so the devotional
+/// and bible readers dim/fade identically instead of each hardcoding values.
+class TtsHighlight {
+  const TtsHighlight._();
+
+  /// Opacity of items NOT currently being read (the current one stays at 1.0).
+  static const double dimOpacity = 0.4;
+
+  /// Fade duration when the highlighted item changes. Half the progress tick so
+  /// the fade settles well before the next update, keeping the motion legible.
+  static const Duration fadeDuration = Duration(milliseconds: 250);
+}
 
 /// Resolved style for one item in a TTS karaoke highlight: dim everything
 /// except the item currently being read, and bold that one. Shared decision

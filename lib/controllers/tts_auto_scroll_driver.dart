@@ -19,19 +19,6 @@ import 'package:flutter/foundation.dart';
 /// is proportional and may drift from the exact spoken item. This is the
 /// shared, engine-untouched foundation; word-accurate progress can be layered
 /// on later as an additive signal.
-/// Shared visual constants for the TTS follow-along highlight, so the devotional
-/// and bible readers dim/fade identically instead of each hardcoding values.
-class TtsHighlight {
-  const TtsHighlight._();
-
-  /// Opacity of items NOT currently being read (the current one stays at 1.0).
-  static const double dimOpacity = 0.4;
-
-  /// Fade duration when the highlighted item changes. Half the progress tick so
-  /// the fade settles well before the next update, keeping the motion legible.
-  static const Duration fadeDuration = Duration(milliseconds: 250);
-}
-
 class TtsAutoScrollDriver {
   final TtsAudioController controller;
   final TtsScrollTarget target;
