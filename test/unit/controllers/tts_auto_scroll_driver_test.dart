@@ -100,6 +100,15 @@ void main() {
     expect(target.fractions, [1.0]);
   });
 
+  test('resetIndex clears currentIndex so a stale index cannot linger', () {
+    controller.totalDuration.value = const Duration(seconds: 100);
+    controller.state.value = TtsPlayerState.playing;
+
+    driver.resetIndex();
+
+    expect(driver.currentIndex.value, isNull);
+  });
+
   test('stops scrolling after dispose', () {
     controller.totalDuration.value = const Duration(seconds: 100);
     controller.state.value = TtsPlayerState.playing;

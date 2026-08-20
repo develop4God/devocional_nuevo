@@ -1151,6 +1151,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final sections = DevocionalTtsSections.build(devocional, language);
     _cachedSections = sections;
     _cachedSectionsKey = key;
+    // The resolver just changed identity — clear any index resolved against
+    // the previous devotional so the highlight doesn't flash a stale item
+    // before the next tick recomputes against the new one.
+    _ttsAutoScrollDriver.resetIndex();
     return sections;
   }
 }
