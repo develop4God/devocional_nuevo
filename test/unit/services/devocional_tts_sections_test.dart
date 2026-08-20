@@ -2,6 +2,7 @@
 library;
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/devocional_tts_sections.dart';
 import 'package:devocional_nuevo/services/tts/tts_verse_index_resolver.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -113,5 +114,39 @@ void main() {
       expect(sentenceIdxs.length, 5);
       expect(sentenceIdxs.toSet().length, 5);
     });
+
+    test(
+      'reflection char-length sum matches the whole-block normalized length '
+      'exactly, not the old +1-per-sentence approximation',
+      () {
+        // "1 Corintios" starting the 2nd sentence is where the old code
+        // (normalizing each raw sentence independently, then summing
+        // length+1 as a fixed separator guess) drifted from the real spoken
+        // text: normalizing the whole reflection as one block (as
+        // TtsPlayerWidget does) can produce a different total length than
+        // summing per-sentence-normalized lengths plus a guessed separator.
+        const reflexion =
+            'Reflexionemos hoy. 1 Corintios habla de amor. Que Dios nos bendiga.';
+        final devocional = _devocional(reflexion: reflexion);
+
+        final s = DevocionalTtsSections.build(devocional, 'es');
+        // An otherwise-identical devotional with an empty reflection: still
+        // emits the reflection's label unit (fixed overhead) but zero
+        // sentence units, isolating exactly the reflection's contribution.
+        final emptyReflection =
+            DevocionalTtsSections.build(_devocional(reflexion: ''), 'es');
+
+        final wholeBlockReflectionLen = BibleTextFormatter.normalizeTtsText(
+          reflexion,
+          'es',
+          devocional.version,
+        ).length;
+
+        final reflectionContribution =
+            s.totalChars - emptyReflection.totalChars;
+
+        expect(reflectionContribution, wholeBlockReflectionLen);
+      },
+    );
   });
 }

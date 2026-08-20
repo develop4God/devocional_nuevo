@@ -219,5 +219,35 @@ void main() {
       expect(t2.fractions, isNotEmpty);
       expect(t2.indices, isEmpty);
     });
+
+    test(
+      'throttles rapid word-progress events instead of scrolling on every one',
+      () {
+        // Native engines fire wordTracker progress several times/sec — far
+        // faster than the driver's intended ~2/sec tick cadence (matched to
+        // TtsAudioController.progressTickInterval, 500ms). Without a
+        // throttle, each one restarts the scroll animation.
+        c.totalDuration.value = const Duration(seconds: 100);
+        c.state.value = TtsPlayerState.playing;
+        c.wordTracker.beginSegment(0);
+        t.indices.clear();
+
+        // Five rapid progress events, back-to-back (no real delay between
+        // them) — simulating several native callbacks landing well within
+        // one throttle window.
+        c.wordTracker.onProgress(10);
+        c.wordTracker.onProgress(11);
+        c.wordTracker.onProgress(12);
+        c.wordTracker.onProgress(13);
+        c.wordTracker.onProgress(14);
+
+        expect(
+          t.indices.length,
+          1,
+          reason: 'Only the first of several rapid word-progress events '
+              'within one throttle window should trigger a scroll call.',
+        );
+      },
+    );
   });
 }
