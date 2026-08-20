@@ -29,6 +29,17 @@ class DevocionalTtsSections {
 
   int get length => sections.length;
 
+  /// Total spoken-text character span, for continuous scroll mapping.
+  int get totalChars => _resolver.totalChars;
+
+  /// Continuous scroll fraction (0.0..1.0) for a global char [offset], so the
+  /// scroll creeps smoothly with the words instead of jumping per section.
+  double? scrollFractionForOffset(int offset) {
+    final total = _resolver.totalChars;
+    if (total <= 0) return null;
+    return (offset / total).clamp(0.0, 1.0);
+  }
+
   /// Section index for a global character [charOffset] from the TTS progress
   /// handler, or null when empty.
   int? indexForCharOffset(int charOffset) =>

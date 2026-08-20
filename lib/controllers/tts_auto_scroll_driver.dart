@@ -19,6 +19,19 @@ import 'package:flutter/foundation.dart';
 /// is proportional and may drift from the exact spoken item. This is the
 /// shared, engine-untouched foundation; word-accurate progress can be layered
 /// on later as an additive signal.
+/// Shared visual constants for the TTS follow-along highlight, so the devotional
+/// and bible readers dim/fade identically instead of each hardcoding values.
+class TtsHighlight {
+  const TtsHighlight._();
+
+  /// Opacity of items NOT currently being read (the current one stays at 1.0).
+  static const double dimOpacity = 0.4;
+
+  /// Fade duration when the highlighted item changes. Half the progress tick so
+  /// the fade settles well before the next update, keeping the motion legible.
+  static const Duration fadeDuration = Duration(milliseconds: 250);
+}
+
 class TtsAutoScrollDriver {
   final TtsAudioController controller;
   final TtsScrollTarget target;
@@ -37,6 +50,13 @@ class TtsAutoScrollDriver {
   /// highlight. Null when the page has no discrete item count.
   final int Function()? itemCount;
 
+  /// Continuous scroll fraction (0.0..1.0) from the word-accurate char offset.
+  /// When provided, the scroll follows this smooth signal instead of the
+  /// discrete item index — so prose pages (few, large sections) keep creeping
+  /// as the words are read instead of jumping once per section then sitting
+  /// static. Preferred over index/fraction scrolling when a word offset exists.
+  final double? Function(int charOffset)? scrollFractionForOffset;
+
   /// Index of the item currently being read (null when not playing or when no
   /// resolver produces one). Pages listen to this to highlight.
   final ValueNotifier<int?> currentIndex = ValueNotifier<int?>(null);
@@ -50,6 +70,7 @@ class TtsAutoScrollDriver {
     this.indexForCharOffset,
     this.indexForFraction,
     this.itemCount,
+    this.scrollFractionForOffset,
   });
 
   /// Start following playback. Idempotent.
@@ -103,11 +124,16 @@ class TtsAutoScrollDriver {
       index = indexForFraction!(fraction);
     }
 
-    // Scroll from the SAME signal as the highlight: when we have an accurate
-    // index, scroll to it (so scroll and highlight stay locked together);
-    // otherwise fall back to the estimated fraction.
+    // Scroll from the SAME signal as the highlight.
+    // 1) Continuous char-fraction (smooth creep for prose) when available.
+    // 2) Else discrete item index (verse rows) so scroll locks to the highlight.
+    // 3) Else the estimated fraction fallback.
+    final double? scrollFraction =
+        wordAccurate ? scrollFractionForOffset?.call(charOffset) : null;
     final count = itemCount?.call();
-    if (index != null && count != null && count > 0) {
+    if (scrollFraction != null) {
+      target.scrollToFraction(scrollFraction.clamp(0.0, 1.0));
+    } else if (index != null && count != null && count > 0) {
       target.scrollToIndex(index, count);
     } else {
       target.scrollToFraction(fraction);
