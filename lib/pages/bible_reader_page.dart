@@ -12,6 +12,8 @@ import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_state.dart'
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
+import 'package:devocional_nuevo/controllers/tts_auto_scroll_driver.dart';
+import 'package:devocional_nuevo/controllers/tts_scroll_target.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
@@ -20,6 +22,7 @@ import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/i_user_recency_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_reader_tts_text_builder.dart';
+import 'package:devocional_nuevo/services/tts/tts_verse_index_resolver.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
@@ -39,6 +42,7 @@ import 'package:devocional_nuevo/widgets/bible/kjv_kj2000_banner.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:devocional_nuevo/widgets/modern_voice_feature_dialog.dart';
+import 'package:devocional_nuevo/widgets/tts_highlight_style.dart';
 import 'package:devocional_nuevo/widgets/voice_selector_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -94,7 +98,15 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   // that an injected instance from widget.flutterTts takes precedence.
   late final TtsAudioController _ttsAudioController;
   late final BibleReaderTtsMiniplayerPresenter _ttsMiniplayerPresenter;
+  late final TtsAutoScrollDriver _ttsAutoScrollDriver;
   late final VoiceSettingsService _voiceSettingsService;
+
+  // Cached verse-index resolver for TTS highlight. Rebuilt when the verse list
+  // identity changes (a new chapter loads), keyed by the verses list
+  // reference itself (compared via identical()) so we don't recompute
+  // cumulative word counts on every playback tick.
+  TtsVerseIndexResolver? _cachedVerseResolver;
+  List<Map<String, dynamic>>? _cachedVerses;
   // Guards addPostFrameCallback callbacks after dispose().
   bool _disposed = false;
   // Set while an initialReference scroll-into-view is still owed, so the
@@ -158,6 +170,28 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       onShowVoiceSelector: (ctx, lang, sampleText) =>
           _showBibleVoiceSelector(ctx, lang, sampleText),
     );
+    // Auto-scroll + current-verse highlight following TTS playback. The
+    // highlight maps the playback fraction onto the verse via cumulative word
+    // counts (long verses take proportionally longer), matching the word-based
+    // position estimate; only reads the controller's progress notifiers.
+    _ttsAutoScrollDriver = TtsAutoScrollDriver(
+      controller: _ttsAudioController,
+      // leadingCount: 1 — the chapter title occupies list index 0, so verse v
+      // renders at list index v + 1.
+      target: ItemScrollControllerTarget(
+        _itemScrollController,
+        itemCount: () => _controller.state.verses.length,
+        leadingCount: 1,
+      ),
+      // Prefer the word-accurate progress offset; fall back to the estimate.
+      indexForCharOffset: (offset) =>
+          _verseIndexResolver()?.indexForCharOffset(offset),
+      indexForFraction: (fraction) =>
+          _verseIndexResolver()?.indexForFraction(fraction),
+      // Verse count so the scroll follows the resolved verse index (same signal
+      // as the highlight), not the faster-running estimated fraction.
+      itemCount: () => _controller.state.verses.length,
+    )..attach();
 
     // Auto-open miniplayer when TTS starts playing — same pattern as
     // devocionales_page (tested by 3000+ users in production).
@@ -229,6 +263,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     try {
       _ttsAudioController.state.removeListener(_handleTtsStateChange);
     } catch (_) {}
+    _ttsAutoScrollDriver.dispose();
     _ttsMiniplayerPresenter.dispose();
     _ttsAudioController.dispose();
     _controller.dispose();
@@ -296,6 +331,53 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   // UI helper methods
+
+  /// Builds (and caches) a [TtsVerseIndexResolver] for the current chapter,
+  /// counting words the same way [BibleReaderTtsTextBuilder.build] produces the
+  /// spoken text: a "BookName N." header followed by each cleaned verse. Cached
+  /// by verse-list identity so it's not recomputed on every playback tick.
+  TtsVerseIndexResolver? _verseIndexResolver() {
+    final state = _controller.state;
+    final verses = state.verses;
+    if (verses.isEmpty) return null;
+
+    if (identical(_cachedVerses, verses) && _cachedVerseResolver != null) {
+      return _cachedVerseResolver;
+    }
+
+    // Mirror BibleReaderTtsTextBuilder.build char-for-char so the offsets the
+    // TTS progress handler reports line up with these verse ranges.
+    // Header: "BookName N.\n" (only when a book name resolves).
+    final bookName = state.selectedBookName != null && state.books.isNotEmpty
+        ? BibleVerseFormatter.resolveBookName(
+            state.books,
+            state.selectedBookName!,
+          )
+        : '';
+    final chapter = state.selectedChapter ?? 1;
+    final headerChars = bookName.isEmpty ? 0 : '$bookName $chapter.\n'.length;
+
+    // Each verse contributes "cleanedText\n" (blank verses contribute nothing,
+    // matching the builder which skips empty text). The builder trims the
+    // whole spoken text at the end, stripping the trailing newline after the
+    // last non-empty verse, so that verse's count must match (no +1).
+    final verseCharCounts = verses.map((v) {
+      final text = BibleTextNormalizer.clean(v['text']?.toString());
+      return text.isEmpty ? 0 : text.length + 1; // +1 for the trailing newline
+    }).toList();
+    final lastNonEmpty = verseCharCounts.lastIndexWhere((c) => c > 0);
+    if (lastNonEmpty != -1) {
+      verseCharCounts[lastNonEmpty] -= 1;
+    }
+
+    final resolver = TtsVerseIndexResolver.fromCharCounts(
+      verseCharCounts,
+      headerChars: headerChars,
+    );
+    _cachedVerseResolver = resolver;
+    _cachedVerses = verses;
+    return resolver;
+  }
 
   void _scrollToVerse(int verseNumber) async {
     final verses = _controller.state.verses;
@@ -1324,205 +1406,244 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   ],
                                 ),
                               )
-                            : ScrollablePositionedList.builder(
-                                itemScrollController: _itemScrollController,
-                                itemPositionsListener: _itemPositionsListener,
-                                padding: const EdgeInsets.fromLTRB(
-                                  16,
-                                  16,
-                                  16,
-                                  32,
-                                ),
-                                itemCount: state.verses.length + 2,
-                                // +1 título, +1 disclaimer
-                                itemBuilder: (context, idx) {
-                                  if (idx == 0) {
-                                    // Título como primer elemento scrollable
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 8),
-                                      child: Text(
-                                        state.selectedBookName != null &&
-                                                state.selectedChapter != null
-                                            ? '${BibleVerseFormatter.resolveBookName(state.books, state.selectedBookName!)} ${state.selectedChapter}'
-                                            : '',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleLarge
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              color: colorScheme.primary,
-                                            ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    );
-                                  }
-                                  // Último item: disclaimer de copyright
-                                  if (idx == state.verses.length + 1) {
-                                    if (state.selectedVersion == null) {
-                                      return const SizedBox.shrink();
-                                    }
-                                    return Padding(
-                                      padding: const EdgeInsets.only(top: 24),
-                                      child: Text(
-                                        state.selectedVersion!.disclaimer ??
-                                            CopyrightUtils.getCopyrightText(
-                                              state.selectedVersion!
-                                                  .languageCode,
-                                              state.selectedVersion!.name,
-                                            ),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(
-                                              color: colorScheme.onSurface
-                                                  .withValues(alpha: 153),
-                                            ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    );
-                                  }
-                                  // Versos
-                                  final verse = state.verses[idx - 1];
-                                  final verseNumber = verse['verse'];
-                                  final verseNum = verseNumber is int
-                                      ? verseNumber
-                                      : int.parse(verseNumber.toString());
-                                  final key =
-                                      "${state.selectedBookName}|${state.selectedChapter}|$verseNumber";
-                                  final isSelected =
-                                      state.selectedVerses.contains(key);
-                                  final isPersistentlyMarked = state
-                                      .persistentlyMarkedVerses
-                                      .contains(key);
-                                  final hasNote =
-                                      bibleNoteState is BibleNoteLoaded &&
-                                          state.selectedBookName != null &&
-                                          state.selectedChapter != null &&
-                                          bibleNoteState.getNoteForVerse(
-                                                state.selectedBookName!,
-                                                state.selectedChapter!,
-                                                verseNum,
-                                              ) !=
-                                              null;
-
-                                  // Get section titles for this verse
-                                  final titlesForVerse = state.sectionTitles
-                                      .where(
-                                        (title) =>
-                                            title['verse'] == verseNumber,
-                                      )
-                                      .toList();
-
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Display section titles if any
-                                      ...titlesForVerse.map(
-                                        (title) => Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 16,
-                                            bottom: 8,
-                                          ),
+                            : ValueListenableBuilder<int?>(
+                                valueListenable:
+                                    _ttsAutoScrollDriver.currentIndex,
+                                builder: (context, currentSpokenVerseIndex, _) {
+                                  return ScrollablePositionedList.builder(
+                                    itemScrollController: _itemScrollController,
+                                    itemPositionsListener:
+                                        _itemPositionsListener,
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      16,
+                                      16,
+                                      32,
+                                    ),
+                                    itemCount: state.verses.length + 2,
+                                    // +1 título, +1 disclaimer
+                                    itemBuilder: (context, idx) {
+                                      if (idx == 0) {
+                                        // Título como primer elemento scrollable
+                                        return Padding(
+                                          padding:
+                                              const EdgeInsets.only(bottom: 8),
                                           child: Text(
-                                            title['title'] as String,
+                                            state.selectedBookName != null &&
+                                                    state.selectedChapter !=
+                                                        null
+                                                ? '${BibleVerseFormatter.resolveBookName(state.books, state.selectedBookName!)} ${state.selectedChapter}'
+                                                : '',
                                             style: Theme.of(context)
                                                 .textTheme
-                                                .titleMedium
+                                                .titleLarge
                                                 ?.copyWith(
                                                   fontWeight: FontWeight.bold,
                                                   color: colorScheme.primary,
                                                 ),
+                                            textAlign: TextAlign.center,
                                           ),
-                                        ),
-                                      ),
-                                      // Verse content
-                                      GestureDetector(
-                                        onTap: () => _onVerseTap(verseNumber),
-                                        onLongPress: () => _controller
-                                            .togglePersistentMark(key),
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 8,
-                                            horizontal: 4,
+                                        );
+                                      }
+                                      // Último item: disclaimer de copyright
+                                      if (idx == state.verses.length + 1) {
+                                        if (state.selectedVersion == null) {
+                                          return const SizedBox.shrink();
+                                        }
+                                        return Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 24),
+                                          child: Text(
+                                            state.selectedVersion!.disclaimer ??
+                                                CopyrightUtils.getCopyrightText(
+                                                  state.selectedVersion!
+                                                      .languageCode,
+                                                  state.selectedVersion!.name,
+                                                ),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  color: colorScheme.onSurface
+                                                      .withValues(alpha: 153),
+                                                ),
+                                            textAlign: TextAlign.center,
                                           ),
-                                          decoration: isSelected
-                                              ? BoxDecoration(
-                                                  color: colorScheme
-                                                      .primaryContainer
-                                                      .withValues(alpha: 0.3),
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  border: Border.all(
-                                                    color: colorScheme.primary,
-                                                    width: 2,
-                                                  ),
-                                                )
-                                              : null,
-                                          child: RichText(
-                                            text: TextSpan(
-                                              style: TextStyle(
-                                                fontSize: state.fontSize,
-                                                color: colorScheme.onSurface,
-                                                height: 1.6,
+                                        );
+                                      }
+                                      // Versos
+                                      final verse = state.verses[idx - 1];
+                                      final verseNumber = verse['verse'];
+                                      final verseNum = verseNumber is int
+                                          ? verseNumber
+                                          : int.parse(verseNumber.toString());
+                                      final key =
+                                          "${state.selectedBookName}|${state.selectedChapter}|$verseNumber";
+                                      final isSelected =
+                                          state.selectedVerses.contains(key);
+                                      // idx-1 is the 0-based verse index; the driver
+                                      // publishes the estimated verse being read.
+                                      // Highlight it and dim the others.
+                                      final highlightStyle =
+                                          TtsHighlightStyle.forIndex(
+                                        currentSpokenVerseIndex,
+                                        idx - 1,
+                                      );
+                                      final isPersistentlyMarked = state
+                                          .persistentlyMarkedVerses
+                                          .contains(key);
+                                      final hasNote =
+                                          bibleNoteState is BibleNoteLoaded &&
+                                              state.selectedBookName != null &&
+                                              state.selectedChapter != null &&
+                                              bibleNoteState.getNoteForVerse(
+                                                    state.selectedBookName!,
+                                                    state.selectedChapter!,
+                                                    verseNum,
+                                                  ) !=
+                                                  null;
+
+                                      // Get section titles for this verse
+                                      final titlesForVerse = state.sectionTitles
+                                          .where(
+                                            (title) =>
+                                                title['verse'] == verseNumber,
+                                          )
+                                          .toList();
+
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Display section titles if any
+                                          ...titlesForVerse.map(
+                                            (title) => Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 16,
+                                                bottom: 8,
                                               ),
-                                              children: [
-                                                if (hasNote &&
-                                                    state.selectedBookName !=
-                                                        null &&
-                                                    state.selectedChapter !=
-                                                        null)
-                                                  WidgetSpan(
-                                                    alignment:
-                                                        PlaceholderAlignment
-                                                            .middle,
-                                                    child:
-                                                        BibleVerseNoteIndicator(
-                                                      verseNumber: verseNum,
-                                                      color:
-                                                          colorScheme.primary,
-                                                      onTap: () =>
-                                                          _openNoteForVerse(
-                                                        state.selectedBookName!,
-                                                        state.selectedChapter!,
-                                                        verseNum,
-                                                      ),
-                                                    ),
-                                                  )
-                                                else
-                                                  TextSpan(
-                                                    text: "$verseNum ",
-                                                    style: TextStyle(
+                                              child: Text(
+                                                title['title'] as String,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleMedium
+                                                    ?.copyWith(
                                                       fontWeight:
                                                           FontWeight.bold,
                                                       color:
                                                           colorScheme.primary,
-                                                      fontSize: 14,
                                                     ),
-                                                  ),
-                                                TextSpan(
-                                                  text: _cleanVerseText(
-                                                    verse['text'],
-                                                  ),
-                                                  style: isPersistentlyMarked
-                                                      ? TextStyle(
-                                                          backgroundColor:
-                                                              colorScheme
-                                                                  .secondary
-                                                                  .withValues(
-                                                            alpha: 0.25,
-                                                          ),
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                        )
-                                                      : null,
-                                                ),
-                                              ],
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                    ],
+                                          // Verse content
+                                          GestureDetector(
+                                            onTap: () =>
+                                                _onVerseTap(verseNumber),
+                                            onLongPress: () => _controller
+                                                .togglePersistentMark(key),
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                vertical: 8,
+                                                horizontal: 4,
+                                              ),
+                                              decoration: isSelected
+                                                  ? BoxDecoration(
+                                                      color: colorScheme
+                                                          .primaryContainer
+                                                          .withValues(
+                                                              alpha: 0.3),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      border: Border.all(
+                                                        color:
+                                                            colorScheme.primary,
+                                                        width: 2,
+                                                      ),
+                                                    )
+                                                  : null,
+                                              child: RichText(
+                                                text: TextSpan(
+                                                  style: TextStyle(
+                                                    fontSize: state.fontSize,
+                                                    // Karaoke highlight: while a
+                                                    // verse is being read, keep it
+                                                    // full-strength (bold) and dim
+                                                    // the others so the eye follows.
+                                                    color: colorScheme.onSurface
+                                                        .withValues(
+                                                      alpha: highlightStyle
+                                                          .opacity,
+                                                    ),
+                                                    fontWeight: highlightStyle
+                                                        .fontWeight,
+                                                    height: 1.6,
+                                                  ),
+                                                  children: [
+                                                    if (hasNote &&
+                                                        state.selectedBookName !=
+                                                            null &&
+                                                        state.selectedChapter !=
+                                                            null)
+                                                      WidgetSpan(
+                                                        alignment:
+                                                            PlaceholderAlignment
+                                                                .middle,
+                                                        child:
+                                                            BibleVerseNoteIndicator(
+                                                          verseNumber: verseNum,
+                                                          color: colorScheme
+                                                              .primary,
+                                                          onTap: () =>
+                                                              _openNoteForVerse(
+                                                            state
+                                                                .selectedBookName!,
+                                                            state
+                                                                .selectedChapter!,
+                                                            verseNum,
+                                                          ),
+                                                        ),
+                                                      )
+                                                    else
+                                                      TextSpan(
+                                                        text: "$verseNum ",
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: colorScheme
+                                                              .primary,
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                    TextSpan(
+                                                      text: _cleanVerseText(
+                                                        verse['text'],
+                                                      ),
+                                                      style:
+                                                          isPersistentlyMarked
+                                                              ? TextStyle(
+                                                                  backgroundColor:
+                                                                      colorScheme
+                                                                          .secondary
+                                                                          .withValues(
+                                                                    alpha: 0.25,
+                                                                  ),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                )
+                                                              : null,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
                                   );
                                 },
                               ),
