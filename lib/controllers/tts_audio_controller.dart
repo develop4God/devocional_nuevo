@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
+import 'package:devocional_nuevo/controllers/tts_word_tracker.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_duration_estimator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -53,6 +54,17 @@ class TtsAudioController {
   final ValueNotifier<Duration> currentPosition = ValueNotifier(Duration.zero);
   final ValueNotifier<Duration> totalDuration = ValueNotifier(Duration.zero);
   final ValueNotifier<double> playbackRate = ValueNotifier(1.0);
+
+  /// Tracks the word being spoken and publishes its global character offset.
+  /// ADDITIVE and decoupled: the controller only forwards raw progress events
+  /// to it and tells it the current segment. Nothing in the playback path reads
+  /// [TtsWordTracker.spokenCharOffset], so it cannot affect play/pause/stop/seek.
+  final TtsWordTracker wordTracker = TtsWordTracker();
+
+  /// Cadence of the progress timer, and therefore of the position/offset
+  /// updates that consumers (e.g. auto-scroll) react to. Named so consumers can
+  /// pace their own animations to the same interval instead of guessing.
+  static const Duration progressTickInterval = Duration(milliseconds: 500);
 
   Timer? _progressTimer;
   DateTime? _playStartTime;
@@ -238,6 +250,15 @@ class TtsAudioController {
         _setStateIfNotDisposed(TtsPlayerState.error);
       }
     });
+
+    // ADDITIVE: word-level progress for the auto-scroll highlight. Pure
+    // listener — it only publishes the global character offset of the word
+    // being spoken and never calls back into playback. [start] is relative to
+    // the current speak() call, so add [_spokenBaseOffset] to make it global.
+    flutterTts.setProgressHandler((text, start, end, word) {
+      if (_isPlayingSample) return;
+      wordTracker.onProgress(start);
+    });
   }
 
   void setText(String text, {String languageCode = 'es'}) {
@@ -353,31 +374,38 @@ class TtsAudioController {
           '▶️ [TTS Controller] REANUDANDO desde posición: ${accumulatedPosition.inSeconds}s',
         );
 
-        // Calculate which words to skip based on accumulated position
-        final fullWords = _fullText!
-            .split(RegExp(r"\s+"))
-            .where((w) => w.isNotEmpty)
-            .toList();
+        // Calculate which words to skip based on accumulated position.
+        // Use real match positions (not split+rejoin) so the resume offset
+        // and the resumed text stay a true substring of _fullText, including
+        // its original whitespace/newlines between devotional sections.
+        final wordMatches = RegExp(r"\S+").allMatches(_fullText!).toList();
         final fullSeconds =
             _fullDuration.inSeconds > 0 ? _fullDuration.inSeconds : 1;
         final ratio = accumulatedPosition.inSeconds / fullSeconds;
         final skipWords =
-            (fullWords.length * ratio).clamp(0, fullWords.length).round();
+            (wordMatches.length * ratio).clamp(0, wordMatches.length).round();
 
-        // Build remaining text from skipWords
-        final remainingWords = fullWords.skip(skipWords).toList();
-        _currentText = remainingWords.join(' ');
+        // Build remaining text as the true suffix of _fullText starting at
+        // the skipWords-th word's real character offset.
+        final resumeOffset = skipWords < wordMatches.length
+            ? wordMatches[skipWords].start
+            : _fullText!.length;
+        _currentText = _fullText!.substring(resumeOffset);
+
+        // Word tracker: this utterance starts partway through the full text.
+        wordTracker.beginSegment(resumeOffset);
 
         // Update position tracking for resume (will be used by _startProgressTimer)
         currentPosition.value = accumulatedPosition;
 
         debugPrint(
-          '▶️ [TTS Controller] Saltando $skipWords/${fullWords.length} palabras, quedan ${remainingWords.length} palabras',
+          '▶️ [TTS Controller] Saltando $skipWords/${wordMatches.length} palabras, quedan ${wordMatches.length - skipWords} palabras',
         );
       } else {
         // Starting fresh from beginning
         debugPrint('▶️ [TTS Controller] INICIANDO desde el principio');
         _currentText = _fullText;
+        wordTracker.beginSegment(0);
         accumulatedPosition = Duration.zero;
         currentPosition.value = Duration.zero;
       }
@@ -681,6 +709,7 @@ class TtsAudioController {
     stopProgressTimer();
     _setNotifierIfNotDisposed(currentPosition, Duration.zero);
     accumulatedPosition = Duration.zero;
+    wordTracker.reset();
     debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
 
@@ -737,7 +766,7 @@ class TtsAudioController {
       '⏱️ [TTS Controller] Duración total: ${totalDuration.value.inSeconds}s',
     );
 
-    _progressTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+    _progressTimer = Timer.periodic(progressTickInterval, (_) {
       // SAFEGUARD: bail out immediately if the controller was disposed between
       // when this tick was queued and when it actually runs.  Without this
       // guard, writing to a disposed ValueNotifier throws a Fatal Exception.
@@ -815,23 +844,29 @@ class TtsAudioController {
 
     if (position > _fullDuration) position = _fullDuration;
 
-    // Calculate proportion and estimate words to skip
-    final fullWords = (_fullText ?? '')
-        .split(RegExp(r"\s+"))
-        .where((w) => w.isNotEmpty)
-        .toList();
+    // Calculate proportion and estimate words to skip. Use real match
+    // positions (not split+rejoin) so the seek offset and the resumed text
+    // stay a true substring of _fullText, including its original
+    // whitespace/newlines between devotional sections.
+    final fullText = _fullText ?? '';
+    final wordMatches = RegExp(r"\S+").allMatches(fullText).toList();
     final fullSeconds =
         _fullDuration.inSeconds > 0 ? _fullDuration.inSeconds : 1;
     final ratio = position.inSeconds / fullSeconds;
     final skipWords =
-        (fullWords.length * ratio).clamp(0, fullWords.length).round();
+        (wordMatches.length * ratio).clamp(0, wordMatches.length).round();
 
-    // Build remaining text from skipWords
-    final remainingWords = fullWords.skip(skipWords).toList();
-    final remainingText = remainingWords.join(' ');
+    // Build remaining text as the true suffix of _fullText starting at the
+    // skipWords-th word's real character offset.
+    final seekOffset = skipWords < wordMatches.length
+        ? wordMatches[skipWords].start
+        : fullText.length;
+    final remainingText = fullText.substring(seekOffset);
 
     // Update current text and durations
     _currentText = remainingText;
+    // Word tracker: after a seek the utterance starts partway through.
+    wordTracker.beginSegment(seekOffset);
     // Keep totalDuration as the full duration for UI slider consistency
     totalDuration.value = _fullDuration;
     currentPosition.value = position;
@@ -957,6 +992,7 @@ class TtsAudioController {
     currentPosition.dispose();
     totalDuration.dispose();
     playbackRate.dispose();
+    wordTracker.dispose();
     stopProgressTimer();
   }
 }
