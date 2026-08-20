@@ -10,6 +10,7 @@ import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
+import 'package:devocional_nuevo/services/tts/devocional_tts_sections.dart';
 import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
 import 'package:devocional_nuevo/widgets/supporter/pet_hero_section.dart';
@@ -332,5 +333,99 @@ void main() {
         expect(find.text('bubble_constants.new_feature'), findsNothing);
       },
     );
+
+    group('TTS karaoke highlight', () {
+      Widget buildWithUnits({
+        required List<DevotionalUnit> units,
+        required ValueNotifier<int?> currentIndex,
+      }) {
+        return BlocProvider(
+          create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
+          child: ChangeNotifierProvider<DevocionalProvider>.value(
+            value: fakeProvider,
+            child: MaterialApp(
+              home: Scaffold(
+                body: DevocionalesContentWidget(
+                  devocional: devocional,
+                  fontSize: 16,
+                  onStreakBadgeTap: () {},
+                  currentStreak: 5,
+                  streakFuture: Future.value(5),
+                  getLocalizedDateFormat: (_) => '25 de diciembre de 2025',
+                  isFavorite: false,
+                  onFavoriteToggle: () {},
+                  onShare: () {},
+                  petService: petService,
+                  ttsUnits: units,
+                  currentUnitIndex: currentIndex,
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      testWidgets(
+        'bolds the sentence currently being read and leaves others unbolded',
+        (tester) async {
+          final units = [
+            const DevotionalUnit(
+              kind: DevotionalUnitKind.label,
+              text: 'devotionals.reflection',
+            ),
+            const DevotionalUnit(
+              kind: DevotionalUnitKind.sentence,
+              text: 'Primera oración.',
+            ),
+            const DevotionalUnit(
+              kind: DevotionalUnitKind.sentence,
+              text: 'Segunda oración.',
+            ),
+          ];
+          final currentIndex = ValueNotifier<int?>(1);
+          addTearDown(currentIndex.dispose);
+
+          await tester.pumpWidget(
+            buildWithUnits(units: units, currentIndex: currentIndex),
+          );
+          await tester.pump(BubbleConstants.delayBeforeShow);
+
+          FontWeight? fontWeightFor(String content) {
+            final text = tester.widget<Text>(find.text(content));
+            return text.textSpan?.style?.fontWeight;
+          }
+
+          expect(fontWeightFor('Primera oración.'), FontWeight.bold);
+          expect(fontWeightFor('Segunda oración.'), isNot(FontWeight.bold));
+        },
+      );
+
+      testWidgets('no sentence is bolded when nothing is playing (null index)',
+          (tester) async {
+        final units = [
+          const DevotionalUnit(
+            kind: DevotionalUnitKind.sentence,
+            text: 'Primera oración.',
+          ),
+          const DevotionalUnit(
+            kind: DevotionalUnitKind.sentence,
+            text: 'Segunda oración.',
+          ),
+        ];
+        final currentIndex = ValueNotifier<int?>(null);
+        addTearDown(currentIndex.dispose);
+
+        await tester.pumpWidget(
+          buildWithUnits(units: units, currentIndex: currentIndex),
+        );
+        await tester.pump(BubbleConstants.delayBeforeShow);
+
+        final first = tester.widget<Text>(find.text('Primera oración.'));
+        final second = tester.widget<Text>(find.text('Segunda oración.'));
+
+        expect(first.textSpan?.style?.fontWeight, isNot(FontWeight.bold));
+        expect(second.textSpan?.style?.fontWeight, isNot(FontWeight.bold));
+      });
+    });
   });
 }

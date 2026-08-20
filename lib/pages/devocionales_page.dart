@@ -8,6 +8,8 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/font_size_controller.dart';
 import 'package:devocional_nuevo/controllers/post_splash_animation_controller.dart';
+import 'package:devocional_nuevo/controllers/tts_auto_scroll_driver.dart';
+import 'package:devocional_nuevo/controllers/tts_scroll_target.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/helpers/devocional_navigation_helper.dart';
 import 'package:devocional_nuevo/main.dart';
@@ -21,6 +23,7 @@ import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
+import 'package:devocional_nuevo/services/tts/devocional_tts_sections.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/utils/devotional_share_helper.dart';
 import 'package:devocional_nuevo/utils/localized_date_formatter.dart';
@@ -93,6 +96,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   final FlutterTts _flutterTts = FlutterTts();
   late final TtsAudioController _ttsAudioController;
   late final DevocionalTtsMiniplayerPresenter _ttsMiniplayerPresenter;
+  late final TtsAutoScrollDriver _ttsAutoScrollDriver;
+
+  // Cached section resolver, rebuilt when the devotional/language changes.
+  DevocionalTtsSections? _cachedSections;
+  String? _cachedSectionsKey;
   final FontSizeController _fontSizeController = FontSizeController();
   final PostSplashAnimationController _splashAnimController =
       PostSplashAnimationController();
@@ -140,6 +148,21 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     _ttsMiniplayerPresenter = DevocionalTtsMiniplayerPresenter(
       ttsAudioController: _ttsAudioController,
     );
+    // Auto-scroll + section highlight following TTS playback. The section
+    // index maps the word-accurate offset (or estimated fraction) onto the
+    // devotional's coarse sections. Only reads the controller's notifiers.
+    _ttsAutoScrollDriver = TtsAutoScrollDriver(
+      controller: _ttsAudioController,
+      target: ScrollControllerTarget(_scrollController),
+      indexForCharOffset: (offset) =>
+          _ttsSections()?.indexForCharOffset(offset),
+      indexForFraction: (fraction) =>
+          _ttsSections()?.indexForFraction(fraction),
+      itemCount: () => _ttsSections()?.length ?? 0,
+      // Continuous scroll so long sections keep creeping instead of freezing.
+      scrollFractionForOffset: (offset) =>
+          _ttsSections()?.scrollFractionForOffset(offset),
+    )..attach();
     _navigationHelper = DevocionalNavigationHelper(
       getBloc: () => _navigationBloc!,
       getAudioController: () => _audioController,
@@ -595,6 +618,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _ttsAudioController.state.removeListener(_handleTtsStateChange);
     } catch (_) {}
     widget.isActive?.removeListener(_handleTabVisibilityChange);
+    _ttsAutoScrollDriver.dispose();
     _ttsAudioController.dispose();
     _ttsMiniplayerPresenter.dispose();
     _fontSizeController.removeListener(_onFontSizeChanged);
@@ -990,6 +1014,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   onShare: () =>
                                       _shareAsText(currentDevocional),
                                   petService: _petService,
+                                  ttsUnits: _ttsSections()?.units,
+                                  currentUnitIndex:
+                                      _ttsAutoScrollDriver.currentIndex,
                                 ),
                               ),
                             ),
@@ -1107,5 +1134,27 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     return provider.devocionales.isNotEmpty
         ? provider.devocionales.first
         : null;
+  }
+
+  /// Builds (and caches) the section resolver for the current devotional,
+  /// matching the exact text TtsPlayerWidget speaks. Cached by devotional id +
+  /// language so it's not recomputed on every playback tick.
+  DevocionalTtsSections? _ttsSections() {
+    if (!mounted) return _cachedSections;
+    final devocional = _getCurrentDevocional();
+    if (devocional == null) return null;
+    final language = Localizations.localeOf(context).languageCode;
+    final key = '${devocional.id}|$language';
+    if (_cachedSectionsKey == key && _cachedSections != null) {
+      return _cachedSections;
+    }
+    final sections = DevocionalTtsSections.build(devocional, language);
+    _cachedSections = sections;
+    _cachedSectionsKey = key;
+    // The resolver just changed identity — clear any index resolved against
+    // the previous devotional so the highlight doesn't flash a stale item
+    // before the next tick recomputes against the new one.
+    _ttsAutoScrollDriver.resetIndex();
+    return sections;
   }
 }
