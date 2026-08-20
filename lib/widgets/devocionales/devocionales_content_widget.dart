@@ -45,10 +45,15 @@ class DevocionalesContentWidget extends StatelessWidget {
   /// calls, which violates the project's DI rules.
   final SupporterPetService petService;
 
-  /// Section currently being read by TTS, for karaoke-style highlighting. When
-  /// non-null and a section is active, that section is shown full-strength and
-  /// the others dim. Null (or a null value) disables highlighting.
-  final ValueListenable<DevotionalSection?>? currentSpokenSection;
+  /// Ordered TTS units for this devotional (verse, reflection sentences,
+  /// meditate items, prayer sentences). When provided together with
+  /// [currentUnitIndex], the reflection and prayer render per-sentence so the
+  /// current sentence highlights. Null disables TTS highlighting.
+  final List<DevotionalUnit>? ttsUnits;
+
+  /// Index (into [ttsUnits]) of the unit currently being read by TTS. The
+  /// matching unit is shown full-strength (bold); the others dim.
+  final ValueListenable<int?>? currentUnitIndex;
 
   const DevocionalesContentWidget({
     super.key,
@@ -64,7 +69,8 @@ class DevocionalesContentWidget extends StatelessWidget {
     required this.onShare,
     required this.petService,
     this.showDate = true,
-    this.currentSpokenSection,
+    this.ttsUnits,
+    this.currentUnitIndex,
   });
 
   @override
@@ -109,106 +115,7 @@ class DevocionalesContentWidget extends StatelessWidget {
             onShare: onShare,
             onStreakTap: onStreakBadgeTap,
           ),
-          _SectionHighlight(
-            section: DevotionalSection.verse,
-            listenable: currentSpokenSection,
-            child: CopyableVerseCard(
-              text: devocional.versiculo,
-              textStyle: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          _DevotionalNoteAction(devocional: devocional),
-          const SizedBox(height: 20),
-          _SectionHighlight(
-            section: DevotionalSection.reflection,
-            listenable: currentSpokenSection,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'devotionals.reflection'.tr(),
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                buildEmphasisMarkdownText(
-                  devocional.reflexion,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontSize: fontSize,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          _SectionHighlight(
-            section: DevotionalSection.meditate,
-            listenable: currentSpokenSection,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'devotionals.to_meditate'.tr(),
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ...devocional.paraMeditar.map((item) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: CopyableVerseCard(
-                      text: item.texto,
-                      copyText: '${item.cita}: ${item.texto}',
-                      textStyle:
-                          textTheme.bodyMedium?.copyWith(fontSize: fontSize),
-                      maxLines: 8,
-                      prefixSpan: TextSpan(
-                        text: '${item.cita}: ',
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: fontSize,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          _SectionHighlight(
-            section: DevotionalSection.prayer,
-            listenable: currentSpokenSection,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'devotionals.prayer'.tr(),
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                buildEmphasisMarkdownText(
-                  devocional.oracion,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontSize: fontSize,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ..._buildTtsContent(context, colorScheme, textTheme),
           const SizedBox(height: 20),
           if (devocional.version != null ||
               devocional.language != null ||
@@ -270,30 +177,184 @@ class DevocionalesContentWidget extends StatelessWidget {
       ),
     );
   }
+
+  /// Renders the TTS content region (verse → reflection → meditate → prayer)
+  /// from [ttsUnits] so each unit — a whole verse, a reflection/prayer
+  /// sentence, or a meditate item — highlights independently while spoken.
+  /// The devotional note action is emitted right after the verse, preserving
+  /// the original layout. Falls back to plain rendering when no units.
+  List<Widget> _buildTtsContent(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    final units = ttsUnits;
+    if (units == null || units.isEmpty) {
+      return _buildPlainContent(context, colorScheme, textTheme);
+    }
+
+    final children = <Widget>[];
+    for (int i = 0; i < units.length; i++) {
+      final unit = units[i];
+      children.add(
+        _UnitHighlight(
+          index: i,
+          currentIndex: currentUnitIndex,
+          child: _buildUnit(unit, colorScheme, textTheme),
+        ),
+      );
+      // Keep the note action between the verse and the reflection.
+      if (unit.kind == DevotionalUnitKind.verse) {
+        children.add(const SizedBox(height: 12));
+        children.add(_DevotionalNoteAction(devocional: devocional));
+      }
+      children.add(SizedBox(height: _unitGap(unit, i, units)));
+    }
+    return children;
+  }
+
+  /// Vertical gap after a unit: a larger gap before a section label, small gaps
+  /// between sentences/items so a section reads as one group.
+  double _unitGap(DevotionalUnit unit, int i, List<DevotionalUnit> units) {
+    final next = i + 1 < units.length ? units[i + 1] : null;
+    if (next?.kind == DevotionalUnitKind.label) return 20;
+    if (unit.kind == DevotionalUnitKind.label) return 10;
+    return 4;
+  }
+
+  Widget _buildUnit(
+    DevotionalUnit unit,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    switch (unit.kind) {
+      case DevotionalUnitKind.label:
+        return Text(
+          '${unit.text}:',
+          style: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: colorScheme.primary,
+          ),
+        );
+      case DevotionalUnitKind.verse:
+        return CopyableVerseCard(
+          text: unit.text,
+          textStyle: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        );
+      case DevotionalUnitKind.sentence:
+        return buildEmphasisMarkdownText(
+          unit.text,
+          style: textTheme.bodyMedium?.copyWith(
+            fontSize: fontSize,
+            color: colorScheme.onSurface,
+          ),
+        );
+      case DevotionalUnitKind.meditateItem:
+        return CopyableVerseCard(
+          text: unit.text,
+          copyText: '${unit.citation}: ${unit.text}',
+          textStyle: textTheme.bodyMedium?.copyWith(fontSize: fontSize),
+          maxLines: 8,
+          prefixSpan: TextSpan(
+            text: '${unit.citation}: ',
+            style: textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: fontSize,
+              color: colorScheme.primary,
+            ),
+          ),
+        );
+    }
+  }
+
+  /// Non-highlighted fallback (e.g. favorite detail page, or TTS idle) — the
+  /// original section layout, unchanged.
+  List<Widget> _buildPlainContent(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    Widget title(String key) => Text(
+          key.tr(),
+          style: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: colorScheme.primary,
+          ),
+        );
+    Widget body(String text) => buildEmphasisMarkdownText(
+          text,
+          style: textTheme.bodyMedium?.copyWith(
+            fontSize: fontSize,
+            color: colorScheme.onSurface,
+          ),
+        );
+
+    return [
+      CopyableVerseCard(
+        text: devocional.versiculo,
+        textStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+      ),
+      const SizedBox(height: 12),
+      _DevotionalNoteAction(devocional: devocional),
+      const SizedBox(height: 20),
+      title('devotionals.reflection'),
+      const SizedBox(height: 10),
+      body(devocional.reflexion),
+      const SizedBox(height: 20),
+      title('devotionals.to_meditate'),
+      const SizedBox(height: 10),
+      ...devocional.paraMeditar.map(
+        (item) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: CopyableVerseCard(
+            text: item.texto,
+            copyText: '${item.cita}: ${item.texto}',
+            textStyle: textTheme.bodyMedium?.copyWith(fontSize: fontSize),
+            maxLines: 8,
+            prefixSpan: TextSpan(
+              text: '${item.cita}: ',
+              style: textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: fontSize,
+                color: colorScheme.primary,
+              ),
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(height: 20),
+      title('devotionals.prayer'),
+      const SizedBox(height: 10),
+      body(devocional.oracion),
+    ];
+  }
 }
 
-/// Dims [child] unless it is the [section] currently being read by TTS.
+/// Dims [child] unless its [index] is the unit currently being read by TTS.
 ///
-/// When [listenable] is null, or its value is null (nothing playing), the child
-/// renders at full strength — so the page looks unchanged when TTS is idle.
-class _SectionHighlight extends StatelessWidget {
-  final DevotionalSection section;
-  final ValueListenable<DevotionalSection?>? listenable;
+/// When [currentIndex] is null, or its value is null (nothing playing), the
+/// child renders at full strength — so the page looks unchanged when TTS is
+/// idle. Matches the Bible reader's per-verse highlight.
+class _UnitHighlight extends StatelessWidget {
+  final int index;
+  final ValueListenable<int?>? currentIndex;
   final Widget child;
 
-  const _SectionHighlight({
-    required this.section,
-    required this.listenable,
+  const _UnitHighlight({
+    required this.index,
+    required this.currentIndex,
     required this.child,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (listenable == null) return child;
-    return ValueListenableBuilder<DevotionalSection?>(
-      valueListenable: listenable!,
+    if (currentIndex == null) return child;
+    return ValueListenableBuilder<int?>(
+      valueListenable: currentIndex!,
       builder: (context, current, _) {
-        final dim = current != null && current != section;
+        final dim = current != null && current != index;
         return AnimatedOpacity(
           opacity: dim ? TtsHighlight.dimOpacity : 1.0,
           duration: TtsHighlight.fadeDuration,
