@@ -240,7 +240,7 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal>
                           child: child,
                         ),
                         child: Icon(
-                          Icons.swipe_down_rounded,
+                          Icons.expand_circle_down_outlined,
                           size: 32,
                           color: Colors.white.withAlpha(200),
                         ),
