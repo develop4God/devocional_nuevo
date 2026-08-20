@@ -65,4 +65,17 @@ class TtsVerseIndexResolver {
 
   /// Character length of [text] after trimming. Returns 0 for null/blank.
   static int charCount(String? text) => text?.trim().length ?? 0;
+
+  /// Splits [text] into sentences at `.`/`!`/`?` boundaries followed by
+  /// whitespace. A period inside a token (e.g. a verse reference like "2:3-4"
+  /// or "v1.2") is not a boundary because it is not followed by a space.
+  /// Returns a single-element list when there is nothing to split.
+  static List<String> splitSentences(String text) {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return const [];
+    return trimmed
+        .split(RegExp(r'(?<=[.!?])\s+'))
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
 }

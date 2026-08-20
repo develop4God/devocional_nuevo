@@ -98,11 +98,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   late final DevocionalTtsMiniplayerPresenter _ttsMiniplayerPresenter;
   late final TtsAutoScrollDriver _ttsAutoScrollDriver;
 
-  // Section currently read by TTS, for karaoke-style highlighting. Derived from
-  // the driver's resolved index and fed to DevocionalesContentWidget.
-  final ValueNotifier<DevotionalSection?> _currentSpokenSection =
-      ValueNotifier<DevotionalSection?>(null);
-
   // Cached section resolver, rebuilt when the devotional/language changes.
   DevocionalTtsSections? _cachedSections;
   String? _cachedSectionsKey;
@@ -168,8 +163,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       scrollFractionForOffset: (offset) =>
           _ttsSections()?.scrollFractionForOffset(offset),
     )..attach();
-    // Map the driver's resolved index → section enum for the content widget.
-    _ttsAutoScrollDriver.currentIndex.addListener(_updateSpokenSection);
     _navigationHelper = DevocionalNavigationHelper(
       getBloc: () => _navigationBloc!,
       getAudioController: () => _audioController,
@@ -625,9 +618,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _ttsAudioController.state.removeListener(_handleTtsStateChange);
     } catch (_) {}
     widget.isActive?.removeListener(_handleTabVisibilityChange);
-    _ttsAutoScrollDriver.currentIndex.removeListener(_updateSpokenSection);
     _ttsAutoScrollDriver.dispose();
-    _currentSpokenSection.dispose();
     _ttsAudioController.dispose();
     _ttsMiniplayerPresenter.dispose();
     _fontSizeController.removeListener(_onFontSizeChanged);
@@ -1023,7 +1014,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   onShare: () =>
                                       _shareAsText(currentDevocional),
                                   petService: _petService,
-                                  currentSpokenSection: _currentSpokenSection,
+                                  ttsUnits: _ttsSections()?.units,
+                                  currentUnitIndex:
+                                      _ttsAutoScrollDriver.currentIndex,
                                 ),
                               ),
                             ),
@@ -1159,17 +1152,5 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     _cachedSections = sections;
     _cachedSectionsKey = key;
     return sections;
-  }
-
-  /// Maps the driver's resolved section index onto the section enum for the
-  /// content widget's highlight.
-  void _updateSpokenSection() {
-    final index = _ttsAutoScrollDriver.currentIndex.value;
-    final sections = _cachedSections?.sections;
-    if (index == null || sections == null || index >= sections.length) {
-      _currentSpokenSection.value = null;
-      return;
-    }
-    _currentSpokenSection.value = sections[index];
   }
 }
