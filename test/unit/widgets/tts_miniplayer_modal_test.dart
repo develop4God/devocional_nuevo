@@ -62,7 +62,7 @@ void main() {
 
       expect(find.byType(TtsMiniplayerModal), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.swipe_down_rounded));
+      await tester.tap(find.byIcon(Icons.expand_circle_down_outlined));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -81,7 +81,7 @@ void main() {
 
       Transform findChevronScale() => tester.widget<Transform>(
             find.ancestor(
-              of: find.byIcon(Icons.swipe_down_rounded),
+              of: find.byIcon(Icons.expand_circle_down_outlined),
               matching: find.byType(Transform),
             ),
           );
