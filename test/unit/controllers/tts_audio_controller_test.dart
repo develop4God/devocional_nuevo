@@ -225,6 +225,72 @@ void main() {
         fail('Pause should not crash with empty text: $e');
       }
     });
+
+    test(
+      'seek() to a point before a multi-char whitespace run preserves the '
+      'true substring and word-tracker offset instead of collapsing it',
+      () async {
+        // A double newline sits AFTER the seek target ("Lambda"), inside the
+        // remaining/to-be-spoken portion. The old code rebuilt the remaining
+        // text via split(\s+)+join(' '), which collapses that 2-char run to
+        // 1 char — shortening remainingText.length by 1 relative to the true
+        // suffix, so the computed base offset (fullText.length -
+        // remainingText.length) overstates the true offset by 1.
+        const fullText =
+            'Alpha beta gamma delta epsilon zeta eta theta iota kappa '
+            'Lambda mu.\n\nNu xi omicron.';
+        controller.setText(fullText, languageCode: 'es');
+        // Duration estimate is word-count based for 'es' (150 wpm): 15 words
+        // -> 6s. Seeking to 4s gives ratio 4/6, landing skipWords=10, i.e.
+        // right at "Lambda" — chosen so the whole-second rounding round-trips
+        // exactly (posSec=4 -> skipWords=10) instead of drifting.
+        final totalWords = fullText.trim().split(RegExp(r'\s+')).length;
+        expect(totalWords, 15);
+        final seekPosition = const Duration(seconds: 4);
+
+        String? spokenText;
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(const MethodChannel('flutter_tts'), (
+          call,
+        ) async {
+          if (call.method == 'speak') {
+            spokenText = call.arguments as String;
+          }
+          switch (call.method) {
+            case 'speak':
+            case 'stop':
+            case 'pause':
+            case 'setLanguage':
+            case 'setSpeechRate':
+            case 'setVolume':
+            case 'setPitch':
+            case 'awaitSpeakCompletion':
+              return 1;
+            default:
+              return null;
+          }
+        });
+
+        await controller.play();
+        await controller.seek(seekPosition);
+
+        final trueOffset = fullText.indexOf('Lambda');
+        final trueRemaining = fullText.substring(trueOffset);
+
+        expect(
+          spokenText,
+          trueRemaining,
+          reason: 'The text actually sent to the TTS engine must be a true '
+              'substring of fullText, preserving the double newline further '
+              'in — not a whitespace-collapsed reconstruction.',
+        );
+
+        // Feed a progress event for word 0 of the new segment and confirm
+        // the word tracker reports the correct GLOBAL offset.
+        controller.wordTracker.onProgress(0);
+        expect(controller.wordTracker.spokenCharOffset.value, trueOffset);
+      },
+    );
   });
 
   group('TtsAudioController - Multibyte Edge Cases', () {
