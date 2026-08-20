@@ -1,5 +1,14 @@
+import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter/widgets.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+
+/// Auto-scroll animation duration. Matched to the controller's progress-tick
+/// interval so each scroll animation finishes just as the next position update
+/// arrives — a continuous creep with no overlapping animations, rather than an
+/// arbitrary timing. Linear curve for the same reason: constant, unbroken glide.
+const Duration _kAutoScrollAnimDuration =
+    TtsAudioController.progressTickInterval;
 
 /// Adapter each TTS-enabled page implements so [TtsAutoScrollDriver] can scroll
 /// the page's own scroll view without knowing how it scrolls.
@@ -35,21 +44,32 @@ class ScrollControllerTarget implements TtsScrollTarget {
   final Duration duration;
   final Curve curve;
 
+  /// True while our own programmatic animation is running, so the user-drag
+  /// guard (below) doesn't mistake our animation for a manual scroll and skip
+  /// every subsequent update — which would stall the continuous creep.
+  bool _selfAnimating = false;
+
   ScrollControllerTarget(
     this.controller, {
-    this.duration = const Duration(milliseconds: 400),
-    this.curve = Curves.easeOut,
+    this.duration = _kAutoScrollAnimDuration,
+    this.curve = Curves.linear,
   });
 
   void _animateToFraction(double fraction) {
     if (!controller.hasClients) return;
     final position = controller.position;
-    // Skip while the user is dragging so auto-scroll yields to manual reading.
-    if (position.isScrollingNotifier.value) return;
+    // Yield to the user only for a genuine manual drag — not our own animation.
+    if (!_selfAnimating &&
+        position.userScrollDirection != ScrollDirection.idle) {
+      return;
+    }
 
     final target = (fraction * position.maxScrollExtent)
         .clamp(0.0, position.maxScrollExtent);
-    controller.animateTo(target, duration: duration, curve: curve);
+    _selfAnimating = true;
+    controller
+        .animateTo(target, duration: duration, curve: curve)
+        .whenComplete(() => _selfAnimating = false);
   }
 
   @override
@@ -85,7 +105,7 @@ class ItemScrollControllerTarget implements TtsScrollTarget {
     this.controller, {
     required this.itemCount,
     this.leadingCount = 0,
-    this.duration = const Duration(milliseconds: 400),
+    this.duration = _kAutoScrollAnimDuration,
     this.curve = Curves.easeInOut,
     this.alignment = 0.1,
   });

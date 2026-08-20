@@ -61,6 +61,11 @@ class TtsAudioController {
   /// [TtsWordTracker.spokenCharOffset], so it cannot affect play/pause/stop/seek.
   final TtsWordTracker wordTracker = TtsWordTracker();
 
+  /// Cadence of the progress timer, and therefore of the position/offset
+  /// updates that consumers (e.g. auto-scroll) react to. Named so consumers can
+  /// pace their own animations to the same interval instead of guessing.
+  static const Duration progressTickInterval = Duration(milliseconds: 500);
+
   Timer? _progressTimer;
   DateTime? _playStartTime;
   @protected
@@ -758,7 +763,7 @@ class TtsAudioController {
       '⏱️ [TTS Controller] Duración total: ${totalDuration.value.inSeconds}s',
     );
 
-    _progressTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+    _progressTimer = Timer.periodic(progressTickInterval, (_) {
       // SAFEGUARD: bail out immediately if the controller was disposed between
       // when this tick was queued and when it actually runs.  Without this
       // guard, writing to a disposed ValueNotifier throws a Fatal Exception.

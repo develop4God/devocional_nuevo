@@ -40,6 +40,9 @@ class TtsVerseIndexResolver {
 
   int get length => _cumulative.length;
 
+  /// Total character span (header + all items), for continuous fraction mapping.
+  int get totalChars => _totalChars;
+
   /// Verse index for a global [charOffset] (from the TTS progress handler),
   /// or null when there are no verses. Clamped to the verse range.
   int? indexForCharOffset(int charOffset) {

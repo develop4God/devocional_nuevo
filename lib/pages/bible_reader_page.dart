@@ -1570,7 +1570,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                                             !isCurrentlySpoken
                                                         ? colorScheme.onSurface
                                                             .withValues(
-                                                                alpha: 0.4)
+                                                            alpha: TtsHighlight
+                                                                .dimOpacity,
+                                                          )
                                                         : colorScheme.onSurface,
                                                     fontWeight:
                                                         isCurrentlySpoken

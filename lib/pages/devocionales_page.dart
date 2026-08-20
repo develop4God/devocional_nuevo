@@ -164,6 +164,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       indexForFraction: (fraction) =>
           _ttsSections()?.indexForFraction(fraction),
       itemCount: () => _ttsSections()?.length ?? 0,
+      // Continuous scroll so long sections keep creeping instead of freezing.
+      scrollFractionForOffset: (offset) =>
+          _ttsSections()?.scrollFractionForOffset(offset),
     )..attach();
     // Map the driver's resolved index → section enum for the content widget.
     _ttsAutoScrollDriver.currentIndex.addListener(_updateSpokenSection);
