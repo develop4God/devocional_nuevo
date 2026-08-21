@@ -42,7 +42,8 @@ class EncounterIndexEntry {
 
   /// Cache-busting version for [introSound]'s audio file, independent of
   /// [version]. Bump when replacing the file's content under the same
-  /// filename. Mirrors [imageVersion].
+  /// filename. Mirrors [imageVersion]. Opaque string — any value that
+  /// changes on replacement works (e.g. "1.0", "1.1"); not parsed or compared.
   final String soundVersion;
 
   /// Optional multilingual release hints shown on coming_soon cards.
