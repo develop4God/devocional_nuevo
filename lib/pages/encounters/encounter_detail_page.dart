@@ -93,29 +93,19 @@ class _EncounterDetailPageState extends State<EncounterDetailPage>
     });
   }
 
-  /// Pause ambient sound when the app goes to background and auto-resume on
-  /// foreground, mirroring TTS's pause-on-background behavior. Unlike TTS,
-  /// this page has no manual sound control, so auto-resume is required —
-  /// otherwise the loop would stay silent for the rest of the encounter
-  /// after any backgrounding.
+  /// Stop ambient sound when the app goes to background. No auto-resume —
+  /// mirrors EncounterIntroPage's simple stop-on-background behavior.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final soundService = getService<ISoundService>();
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
+      final soundService = getService<ISoundService>();
       if (soundService.isPlaying) {
         debugPrint(
-          '🔊 [Detail/${widget.entry.id}] App going to background — pausing ambient sound',
+          '🔊 [Detail/${widget.entry.id}] App going to background — stopping ambient sound',
         );
-        soundService.pause();
-      }
-    } else if (state == AppLifecycleState.resumed) {
-      if (soundService.isPaused) {
-        debugPrint(
-          '🔊 [Detail/${widget.entry.id}] App resumed — resuming ambient sound',
-        );
-        soundService.resume();
+        soundService.stop();
       }
     }
   }
@@ -224,6 +214,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage>
       _hasTriggeredCompletion = true;
     });
 
+    getService<ISoundService>().stop();
     context.read<EncounterBloc>().add(CompleteEncounter(widget.entry.id));
     HapticFeedback.heavyImpact();
 
