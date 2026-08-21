@@ -1,6 +1,8 @@
 @Tags(['unit', 'services'])
 library;
 
+import 'dart:async';
+
 import 'package:devocional_nuevo/services/sound/audio_player_handle.dart';
 import 'package:devocional_nuevo/services/sound/sound_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,8 +17,16 @@ class FakeAudioPlayerHandle implements AudioPlayerHandle {
   bool throwOnSetUrl = false;
   bool throwOnStop = false;
 
+  /// When set, [setUrl] doesn't complete until this completer resolves —
+  /// simulates the real device's slow network + codec setup, so tests can
+  /// fire a second toggle() while the first is still mid-flight.
+  Completer<void>? setUrlGate;
+
   @override
   Future<void> setUrl(String url) async {
+    if (setUrlGate != null) {
+      await setUrlGate!.future;
+    }
     if (throwOnSetUrl) {
       throw Exception('network error');
     }
@@ -96,6 +106,59 @@ void main() {
       );
       expect(service.isPlaying, isFalse);
       expect(fake.playCalled, isFalse);
+    });
+  });
+
+  group('SoundService.toggle concurrency', () {
+    test(
+        'a second toggle() landing while the first is still loading '
+        'stops instead of starting a duplicate playback', () async {
+      final fake = FakeAudioPlayerHandle()..setUrlGate = Completer<void>();
+      final service = SoundService(player: fake);
+
+      // First call: starts loading, blocked on setUrlGate (simulates the
+      // real device's in-flight network + codec setup).
+      final firstToggle = service.toggle(
+        'storm_waves',
+        encounterId: 'peter_water_001',
+      );
+
+      // Second call lands before the first has flipped isPlaying — must
+      // wait for the first to finish rather than also starting playback.
+      final secondToggle = service.toggle(
+        'storm_waves',
+        encounterId: 'peter_water_001',
+      );
+
+      // Let the first call's setUrl complete.
+      fake.setUrlGate!.complete();
+      await firstToggle;
+      await secondToggle;
+
+      // The first call played; the second, seeing it now playing, stopped
+      // it — net result is stopped, not a duplicate/relaunched playback.
+      expect(fake.stopCallCount, 1);
+      expect(service.isPlaying, isFalse);
+    });
+
+    test('stop() landing while toggle() is still loading waits, then stops',
+        () async {
+      final fake = FakeAudioPlayerHandle()..setUrlGate = Completer<void>();
+      final service = SoundService(player: fake);
+
+      final toggleCall = service.toggle(
+        'storm_waves',
+        encounterId: 'peter_water_001',
+      );
+      final stopCall = service.stop();
+
+      fake.setUrlGate!.complete();
+      await toggleCall;
+      await stopCall;
+
+      expect(fake.playCalled, isTrue);
+      expect(fake.stopCallCount, 1);
+      expect(service.isPlaying, isFalse);
     });
   });
 
