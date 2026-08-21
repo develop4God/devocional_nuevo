@@ -40,6 +40,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   bool _isSoundPlaying = false;
+  bool _isEnteringEncounter = false;
 
   // Staggered reveal animations
   late Animation<double> _imageOpacity;
@@ -94,11 +95,22 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
           '${id}_${widget.lang}.json';
       bloc.add(LoadEncounterStudy(id, widget.lang, filename: filename));
     }
+
+    if (Constants.autoPlayIntroSound && widget.entry.introSound != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _toggleIntroSound();
+      });
+    }
   }
 
   @override
   void dispose() {
-    getService<ISoundService>().stop();
+    // Entering the encounter keeps the ambient loop going into
+    // EncounterDetailPage, which owns stopping it on its own dispose.
+    if (!_isEnteringEncounter) {
+      getService<ISoundService>().stop();
+    }
     _controller.dispose();
     super.dispose();
   }
@@ -202,6 +214,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
       encounterId: widget.entry.id,
     );
 
+    _isEnteringEncounter = true;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
