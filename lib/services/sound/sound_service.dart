@@ -11,11 +11,13 @@ import 'package:just_audio/just_audio.dart';
 
 /// Ambient sound cues are prefetched to disk ahead of time by
 /// EncounterBloc (mirroring its image prefetch), so in the common case
-/// [toggle] resolves to a local file and starts near-instantly — the
-/// network-latency window that used to make toggle()/stop() race each
-/// other barely exists any more. [stop] is still a hard, unconditional
-/// brake regardless: it always calls the player directly, same as the
-/// TTS controller's stop, with no flags gating whether it's allowed to run.
+/// [toggle] resolves to a local file and starts near-instantly. [state]
+/// reflects the player's real, platform-reported playing state — never a
+/// value tracked by hand — so [isPlaying] can't drift out of sync with
+/// what's actually playing, same modeling as TtsState in tts_service.dart.
+/// [stop] is a hard, unconditional brake: it always calls the player
+/// directly, same as the TTS controller's stop, with no flags gating
+/// whether it's allowed to run.
 class SoundService implements ISoundService {
   SoundService({
     required BaseCacheManager cacheManager,
@@ -25,10 +27,21 @@ class SoundService implements ISoundService {
 
   final AudioPlayerHandle _player;
   final BaseCacheManager _cacheManager;
-  bool _isPlaying = false;
+
+  /// Set only on a failed toggle()/stop() — cleared as soon as the real
+  /// player reports playing again. [state] always prefers the player's
+  /// live signal over this when they'd disagree that playback is active.
+  bool _hadError = false;
 
   @override
-  bool get isPlaying => _isPlaying;
+  SoundState get state {
+    if (_player.isPlaying) return SoundState.playing;
+    if (_hadError) return SoundState.error;
+    return SoundState.idle;
+  }
+
+  @override
+  bool get isPlaying => state == SoundState.playing;
 
   @override
   Future<void> toggle(
@@ -36,7 +49,7 @@ class SoundService implements ISoundService {
     required String encounterId,
     String? version,
   }) async {
-    if (_isPlaying) {
+    if (isPlaying) {
       debugPrint('🔊 SoundService.toggle: already playing "$cueKey" → stop()');
       await stop();
       return;
@@ -72,11 +85,11 @@ class SoundService implements ISoundService {
       }
       await _player.setLoopMode(LoopMode.one);
       await _player.play();
-      _isPlaying = true;
+      _hadError = false;
       debugPrint('🔊 SoundService.toggle: playing "$cueKey"');
     } catch (e) {
+      _hadError = true;
       debugPrint('⚠️ SoundService: Failed to play cue "$cueKey": $e');
-      _isPlaying = false;
     }
   }
 
@@ -84,17 +97,16 @@ class SoundService implements ISoundService {
   Future<void> stop() async {
     try {
       await _player.stop();
+      _hadError = false;
       debugPrint('🔊 SoundService.stop: stopped');
     } catch (e) {
+      _hadError = true;
       debugPrint('⚠️ SoundService: Failed to stop playback: $e');
-    } finally {
-      _isPlaying = false;
     }
   }
 
   @override
   Future<void> dispose() async {
     await _player.dispose();
-    _isPlaying = false;
   }
 }

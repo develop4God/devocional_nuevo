@@ -2,6 +2,7 @@
 library;
 
 import 'package:devocional_nuevo/services/sound/audio_player_handle.dart';
+import 'package:devocional_nuevo/services/sound/i_sound_service.dart';
 import 'package:devocional_nuevo/services/sound/sound_service.dart';
 import 'package:file/memory.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -18,6 +19,14 @@ class FakeAudioPlayerHandle implements AudioPlayerHandle {
   bool throwOnSetUrl = false;
   bool throwOnSetFilePath = false;
   bool throwOnStop = false;
+
+  /// Mirrors the real player: play() sets this true, stop() sets it false —
+  /// so isPlaying reflects actual player state, same contract as
+  /// JustAudioPlayerHandle backed by AudioPlayer.playing.
+  bool _isPlaying = false;
+
+  @override
+  bool get isPlaying => _isPlaying;
 
   @override
   Future<void> setUrl(String url) async {
@@ -43,6 +52,7 @@ class FakeAudioPlayerHandle implements AudioPlayerHandle {
   @override
   Future<void> play() async {
     playCalled = true;
+    _isPlaying = true;
   }
 
   @override
@@ -51,11 +61,13 @@ class FakeAudioPlayerHandle implements AudioPlayerHandle {
     if (throwOnStop) {
       throw Exception('platform error');
     }
+    _isPlaying = false;
   }
 
   @override
   Future<void> dispose() async {
     disposeCalled = true;
+    _isPlaying = false;
   }
 }
 
@@ -220,6 +232,32 @@ void main() {
       expect(service.isPlaying, isFalse);
       expect(fake.stopCallCount, 1);
     });
+
+    test(
+        'isPlaying reflects the real player state, not an internally '
+        'tracked flag — reproduces a real-device bug where the player was '
+        'audibly still playing but a hand-set isPlaying flag had drifted '
+        'to false, so a tap tried to play again instead of stopping', () async {
+      final fake = FakeAudioPlayerHandle();
+      final cache = FakeCacheManager(cachedPath: '/cache/storm_waves.m4a');
+      final service = SoundService(cacheManager: cache, player: fake);
+      await service.toggle('storm_waves', encounterId: 'peter_water_001');
+      expect(service.isPlaying, isTrue);
+
+      // Simulates the player still genuinely playing underneath — no
+      // SoundService method call happened to flip an internal flag.
+      // isPlaying must still report true because it reads the player,
+      // not a copy of the state.
+      expect(fake.isPlaying, isTrue);
+      expect(service.isPlaying, isTrue);
+
+      await service.toggle('storm_waves', encounterId: 'peter_water_001');
+
+      // Since the real player was (and reported) playing, the tap
+      // correctly stopped it — not a second play attempt.
+      expect(fake.stopCallCount, 1);
+      expect(service.isPlaying, isFalse);
+    });
   });
 
   group('SoundService.stop — hard, unconditional brake', () {
@@ -250,8 +288,9 @@ void main() {
     });
 
     test(
-        'a platform error during stop does not throw and still resets isPlaying',
-        () async {
+        'a platform error during stop does not throw, and isPlaying honestly '
+        'reflects that the player is still playing (the stop did not '
+        'actually succeed) rather than being force-reset to false', () async {
       final fake = FakeAudioPlayerHandle()..throwOnStop = true;
       final cache = FakeCacheManager(cachedPath: '/cache/storm_waves.m4a');
       final service = SoundService(cacheManager: cache, player: fake);
@@ -259,7 +298,8 @@ void main() {
 
       await expectLater(service.stop(), completes);
 
-      expect(service.isPlaying, isFalse);
+      expect(service.state, SoundState.playing);
+      expect(service.isPlaying, isTrue);
     });
 
     test('completes immediately — never awaits or is gated by any flag',
