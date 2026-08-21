@@ -12,13 +12,9 @@ class SoundService implements ISoundService {
 
   final AudioPlayerHandle _player;
   bool _isPlaying = false;
-  bool _isPaused = false;
 
   @override
   bool get isPlaying => _isPlaying;
-
-  @override
-  bool get isPaused => _isPaused;
 
   @override
   Future<void> toggle(
@@ -39,15 +35,11 @@ class SoundService implements ISoundService {
         version: version,
       );
       debugPrint('🔊 SoundService.toggle: loading "$cueKey" → $url');
-      final sw = Stopwatch()..start();
       await _player.setUrl(url);
       await _player.setLoopMode(LoopMode.one);
       await _player.play();
       _isPlaying = true;
-      sw.stop();
-      debugPrint(
-        '🔊 SoundService.toggle: playing "$cueKey" (setup took ${sw.elapsedMilliseconds}ms)',
-      );
+      debugPrint('🔊 SoundService.toggle: playing "$cueKey"');
     } catch (e) {
       debugPrint('⚠️ SoundService: Failed to play cue "$cueKey": $e');
       _isPlaying = false;
@@ -67,39 +59,6 @@ class SoundService implements ISoundService {
       debugPrint('⚠️ SoundService: Failed to stop playback: $e');
     } finally {
       _isPlaying = false;
-      _isPaused = false;
-    }
-  }
-
-  @override
-  Future<void> pause() async {
-    if (!_isPlaying || _isPaused) {
-      debugPrint(
-        '🔊 SoundService.pause: no-op — isPlaying=$_isPlaying isPaused=$_isPaused',
-      );
-      return;
-    }
-    try {
-      await _player.pause();
-      _isPaused = true;
-      debugPrint('🔊 SoundService.pause: paused');
-    } catch (e) {
-      debugPrint('⚠️ SoundService: Failed to pause playback: $e');
-    }
-  }
-
-  @override
-  Future<void> resume() async {
-    if (!_isPaused) {
-      debugPrint('🔊 SoundService.resume: no-op — not paused');
-      return;
-    }
-    try {
-      await _player.play();
-      _isPaused = false;
-      debugPrint('🔊 SoundService.resume: resumed');
-    } catch (e) {
-      debugPrint('⚠️ SoundService: Failed to resume playback: $e');
     }
   }
 
@@ -107,6 +66,5 @@ class SoundService implements ISoundService {
   Future<void> dispose() async {
     await _player.dispose();
     _isPlaying = false;
-    _isPaused = false;
   }
 }

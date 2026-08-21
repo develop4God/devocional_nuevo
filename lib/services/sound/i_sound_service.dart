@@ -19,20 +19,7 @@ abstract class ISoundService {
   /// teardown paths (e.g. widget dispose) without risking a restart.
   Future<void> stop();
 
-  /// Pauses playback if currently playing, keeping the loaded cue so
-  /// [resume] can continue without re-fetching. No-op otherwise. Intended
-  /// for app-lifecycle transitions (background/minimize) — mirrors TTS's
-  /// pause-on-background behavior.
-  Future<void> pause();
-
-  /// Resumes playback if currently paused via [pause]. No-op otherwise.
-  Future<void> resume();
-
   bool get isPlaying;
-
-  /// True if playback is paused via [pause] and can be continued with
-  /// [resume].
-  bool get isPaused;
 
   Future<void> dispose();
 }

@@ -4,14 +4,18 @@ library;
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
+import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
+import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_detail_page.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/sound/i_sound_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:provider/provider.dart';
 
 import '../../helpers/test_helpers.dart';
 
@@ -19,16 +23,10 @@ class MockEncounterBloc extends Mock implements EncounterBloc {}
 
 class FakeSoundService implements ISoundService {
   bool _isPlaying = true;
-  bool _isPaused = false;
   int stopCallCount = 0;
-  int pauseCallCount = 0;
-  int resumeCallCount = 0;
 
   @override
   bool get isPlaying => _isPlaying;
-
-  @override
-  bool get isPaused => _isPaused;
 
   @override
   Future<void> toggle(
@@ -43,21 +41,6 @@ class FakeSoundService implements ISoundService {
   Future<void> stop() async {
     stopCallCount++;
     _isPlaying = false;
-    _isPaused = false;
-  }
-
-  @override
-  Future<void> pause() async {
-    if (!_isPlaying || _isPaused) return;
-    pauseCallCount++;
-    _isPaused = true;
-  }
-
-  @override
-  Future<void> resume() async {
-    if (!_isPaused) return;
-    resumeCallCount++;
-    _isPaused = false;
   }
 
   @override
@@ -128,7 +111,7 @@ void main() {
     expect(fakeSoundService.isPlaying, isFalse);
   });
 
-  testWidgets('backgrounding the app pauses playing sound', (tester) async {
+  testWidgets('backgrounding the app stops playing sound', (tester) async {
     final entry = _fakeEntry();
     await tester.pumpWidget(
       MaterialApp(
@@ -144,33 +127,55 @@ void main() {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
     await tester.pump();
 
-    expect(fakeSoundService.pauseCallCount, 1);
-    expect(fakeSoundService.isPaused, isTrue);
+    expect(fakeSoundService.stopCallCount, 1);
+    expect(fakeSoundService.isPlaying, isFalse);
   });
 
-  testWidgets(
-      'foregrounding the app auto-resumes paused sound (no manual control on this page)',
-      (tester) async {
+  testWidgets('completing the encounter stops the ambient sound', (
+    tester,
+  ) async {
     final entry = _fakeEntry();
+    final study = EncounterStudy(
+      id: entry.id,
+      cards: const [EncounterCard(order: 0, type: 'completion')],
+    );
+    final state = EncounterLoaded(
+      index: const [],
+      loadedStudies: {entry.id: study},
+    );
+    when(() => mockBloc.state).thenReturn(state);
+    when(() => mockBloc.stream).thenAnswer((_) => Stream.value(state));
+
     await tester.pumpWidget(
-      MaterialApp(
-        home: BlocProvider<EncounterBloc>.value(
-          value: mockBloc,
-          child: EncounterDetailPage(entry: entry, lang: 'en'),
+      ChangeNotifierProvider<DevocionalProvider>(
+        create: (_) => DevocionalProvider(),
+        child: MaterialApp(
+          home: BlocProvider<EncounterBloc>.value(
+            value: mockBloc,
+            child: EncounterDetailPage(entry: entry, lang: 'en'),
+          ),
         ),
       ),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-    await tester.pump();
-    expect(fakeSoundService.isPaused, isTrue);
-
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await tester.pump();
-
-    expect(fakeSoundService.resumeCallCount, 1);
-    expect(fakeSoundService.isPaused, isFalse);
     expect(fakeSoundService.isPlaying, isTrue);
+    expect(fakeSoundService.stopCallCount, 0);
+
+    final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+    button.onPressed!();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(fakeSoundService.stopCallCount, 1);
+    expect(fakeSoundService.isPlaying, isFalse);
+
+    // Flush the 5s celebration timer scheduled by _onCompleteEncounter,
+    // then tear down the page so DevocionalProvider's internal
+    // AudioController periodic sync timer (unrelated pre-existing infra,
+    // self-cancels once its owner is unmounted) clears before the test
+    // ends — otherwise the framework's pending-timer invariant check fails.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 250));
   });
 }

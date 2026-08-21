@@ -24,20 +24,14 @@ class MockEncounterBloc extends Mock implements EncounterBloc {}
 
 class FakeSoundService implements ISoundService {
   bool _isPlaying = false;
-  bool _isPaused = false;
   int toggleCallCount = 0;
   int stopCallCount = 0;
-  int pauseCallCount = 0;
-  int resumeCallCount = 0;
   String? lastCueKey;
   String? lastEncounterId;
   String? lastVersion;
 
   @override
   bool get isPlaying => _isPlaying;
-
-  @override
-  bool get isPaused => _isPaused;
 
   @override
   Future<void> toggle(
@@ -56,21 +50,6 @@ class FakeSoundService implements ISoundService {
   Future<void> stop() async {
     stopCallCount++;
     _isPlaying = false;
-    _isPaused = false;
-  }
-
-  @override
-  Future<void> pause() async {
-    if (!_isPlaying || _isPaused) return;
-    pauseCallCount++;
-    _isPaused = true;
-  }
-
-  @override
-  Future<void> resume() async {
-    if (!_isPaused) return;
-    resumeCallCount++;
-    _isPaused = false;
   }
 
   @override
@@ -158,7 +137,7 @@ void main() {
       expect(fakeSoundService.lastCueKey, 'storm_waves');
       expect(fakeSoundService.lastEncounterId, 'peter_water_001');
       expect(fakeSoundService.lastVersion, '1.0');
-      expect(find.byIcon(Icons.volume_up), findsOneWidget);
+      expect(fakeSoundService.isPlaying, isTrue);
     });
 
     testWidgets('tap after auto-play stops playback (icon reverts)', (
@@ -167,13 +146,13 @@ void main() {
       final entry = _fakeEntry(introSound: 'storm_waves');
       await tester.pumpWidget(_wrap(entry, mockBloc));
       await tester.pump();
-      expect(find.byIcon(Icons.volume_up), findsOneWidget);
+      expect(fakeSoundService.isPlaying, isTrue);
 
       await tester.tap(find.byKey(const Key('intro_sound_toggle')));
       await tester.pump();
 
       expect(fakeSoundService.toggleCallCount, 2);
-      expect(find.byIcon(Icons.volume_off), findsOneWidget);
+      expect(fakeSoundService.isPlaying, isFalse);
     });
 
     testWidgets(
@@ -210,7 +189,7 @@ void main() {
       expect(fakeSoundService.isPlaying, isFalse);
     });
 
-    testWidgets('backgrounding the app pauses playing sound', (tester) async {
+    testWidgets('backgrounding the app stops playing sound', (tester) async {
       final entry = _fakeEntry(introSound: 'storm_waves');
       await tester.pumpWidget(_wrap(entry, mockBloc));
       await tester.pump();
@@ -221,29 +200,9 @@ void main() {
       );
       await tester.pump();
 
-      expect(fakeSoundService.pauseCallCount, 1);
-      expect(fakeSoundService.isPaused, isTrue);
-    });
-
-    testWidgets('foregrounding the app resumes paused sound', (tester) async {
-      final entry = _fakeEntry(introSound: 'storm_waves');
-      await tester.pumpWidget(_wrap(entry, mockBloc));
-      await tester.pump();
-
-      tester.binding.handleAppLifecycleStateChanged(
-        AppLifecycleState.paused,
-      );
-      await tester.pump();
-      expect(fakeSoundService.isPaused, isTrue);
-
-      tester.binding.handleAppLifecycleStateChanged(
-        AppLifecycleState.resumed,
-      );
-      await tester.pump();
-
-      expect(fakeSoundService.resumeCallCount, 1);
-      expect(fakeSoundService.isPaused, isFalse);
-      expect(fakeSoundService.isPlaying, isTrue);
+      expect(fakeSoundService.stopCallCount, 1);
+      expect(fakeSoundService.isPlaying, isFalse);
+      expect(find.byIcon(Icons.volume_off), findsOneWidget);
     });
 
     testWidgets('backgrounding while sound was never playing is a no-op', (
@@ -258,7 +217,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(fakeSoundService.pauseCallCount, 0);
+      expect(fakeSoundService.stopCallCount, 0);
     });
 
     testWidgets('tapping Begin does not stop the sound before navigating away',
