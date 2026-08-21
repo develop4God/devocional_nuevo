@@ -37,6 +37,15 @@ class EncounterIndexEntry {
   /// Filename for the cinematic intro background image (bare filename, resolved via CDN).
   final String? introImage;
 
+  /// Cue key for the intro page's ambient sound (bare filename, resolved via CDN).
+  final String? introSound;
+
+  /// Cache-busting version for [introSound]'s audio file, independent of
+  /// [version]. Bump when replacing the file's content under the same
+  /// filename. Mirrors [imageVersion]. Opaque string — any value that
+  /// changes on replacement works (e.g. "1.0", "1.1"); not parsed or compared.
+  final String soundVersion;
+
   /// Optional multilingual release hints shown on coming_soon cards.
   /// Maps language codes to human-readable release dates or labels
   /// (e.g., {"es": "Próxima semana", "en": "Next week"}).
@@ -61,6 +70,8 @@ class EncounterIndexEntry {
     this.testament,
     this.character,
     this.introImage,
+    this.introSound,
+    this.soundVersion = '1.0',
     this.releaseDate = const {},
     required this.files,
     required this.titles,
@@ -138,6 +149,8 @@ class EncounterIndexEntry {
       testament: json['testament'] as String?,
       character: json['character'] as String?,
       introImage: json['intro_image'] as String?,
+      introSound: json['intro_sound'] as String?,
+      soundVersion: json['sound_version'] as String? ?? '1.0',
       releaseDate: toStringMap(json['release_date']),
       files: toStringMap(json['files']),
       titles: toStringMap(json['titles']),
@@ -159,6 +172,8 @@ class EncounterIndexEntry {
         'testament': testament,
         'character': character,
         'intro_image': introImage,
+        'intro_sound': introSound,
+        'sound_version': soundVersion,
         'release_date': releaseDate.isEmpty ? null : releaseDate,
         'files': files,
         'titles': titles,

@@ -23,6 +23,8 @@ void main() {
         'has_interactive': false,
         'testament': 'new',
         'character': 'Peter',
+        'intro_sound': 'storm_waves',
+        'sound_version': '2.0',
         'files': {
           'en': 'peter_water_001_en.json',
           'es': 'peter_water_001_es.json',
@@ -50,6 +52,8 @@ void main() {
       expect(entry.hasInteractive, isFalse);
       expect(entry.testament, equals('new'));
       expect(entry.character, equals('Peter'));
+      expect(entry.introSound, equals('storm_waves'));
+      expect(entry.soundVersion, equals('2.0'));
       expect(entry.files['en'], equals('peter_water_001_en.json'));
       expect(entry.titles['en'], equals('Peter Walks on Water'));
       expect(entry.subtitles['en'], equals('Faith Beyond the Storm'));
@@ -64,6 +68,8 @@ void main() {
       expect(entry.id, equals('minimal_001'));
       expect(entry.status, equals('coming_soon')); // default
       expect(entry.emoji, isNull);
+      expect(entry.introSound, isNull);
+      expect(entry.soundVersion, equals('1.0')); // default
     });
 
     test('status defaults to coming_soon when missing', () {

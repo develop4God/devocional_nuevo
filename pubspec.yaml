@@ -60,6 +60,7 @@ dependencies:
   # Audio dependencies
   flutter_tts: ^4.1.0
   synchronized: ^3.1.0+1  # For thread safety and mutex protection
+  just_audio: ^0.9.42
 
   # Google Drive Backup dependencies
   googleapis: ^15.0.0
@@ -89,6 +90,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   patrol: ^3.13.1
+  file: ^7.0.1
   flutter_lints: ^6.0.0
   mocktail: ^1.0.0
   bloc_test: ^10.0.0

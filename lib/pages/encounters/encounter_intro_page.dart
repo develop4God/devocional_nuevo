@@ -13,6 +13,7 @@ import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_detail_page.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/sound/i_sound_service.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/image_precache_utils.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
@@ -36,8 +37,10 @@ class EncounterIntroPage extends StatefulWidget {
 }
 
 class _EncounterIntroPageState extends State<EncounterIntroPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _controller;
+  bool _isSoundPlaying = false;
+  bool _isEnteringEncounter = false;
 
   // Staggered reveal animations
   late Animation<double> _imageOpacity;
@@ -47,6 +50,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -92,12 +96,73 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
           '${id}_${widget.lang}.json';
       bloc.add(LoadEncounterStudy(id, widget.lang, filename: filename));
     }
+
+    if (Constants.autoPlayIntroSound && widget.entry.introSound != null) {
+      debugPrint(
+        '🔊 [Intro/${widget.entry.id}] auto-play scheduled — cue: ${widget.entry.introSound}',
+      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _toggleIntroSound();
+      });
+    }
+  }
+
+  /// Stop ambient sound when the app goes to background. No auto-resume —
+  /// the user taps the sound icon again if they want it back.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      final soundService = getService<ISoundService>();
+      if (soundService.isPlaying) {
+        debugPrint(
+          '🔊 [Intro/${widget.entry.id}] App going to background — stopping ambient sound',
+        );
+        soundService.stop();
+        if (mounted) {
+          setState(() => _isSoundPlaying = false);
+        }
+      }
+    }
   }
 
   @override
   void dispose() {
+    // Entering the encounter keeps the ambient loop going into
+    // EncounterDetailPage, which owns stopping it on its own dispose.
+    if (!_isEnteringEncounter) {
+      debugPrint('🔊 [Intro/${widget.entry.id}] dispose → stop()');
+      getService<ISoundService>().stop();
+    } else {
+      debugPrint(
+        '🔊 [Intro/${widget.entry.id}] dispose → entering encounter, sound left playing',
+      );
+    }
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _toggleIntroSound() async {
+    final introSound = widget.entry.introSound;
+    if (introSound == null) return;
+    debugPrint(
+      '🔊 [Intro/${widget.entry.id}] toggle tapped — isPlaying(before): ${getService<ISoundService>().isPlaying}',
+    );
+    await getService<ISoundService>().toggle(
+      introSound,
+      encounterId: widget.entry.id,
+      version: widget.entry.soundVersion,
+    );
+    if (!mounted) return;
+    setState(() {
+      _isSoundPlaying = getService<ISoundService>().isPlaying;
+    });
+    debugPrint(
+      '🔊 [Intro/${widget.entry.id}] toggle DONE — isPlaying(after): $_isSoundPlaying',
+    );
   }
 
   /// Warms the image cache for card[0] only.
@@ -185,6 +250,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
       encounterId: widget.entry.id,
     );
 
+    _isEnteringEncounter = true;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
@@ -283,13 +349,30 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                       horizontal: 16,
                       vertical: 8,
                     ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.white70,
-                        size: 28,
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.close,
+                            color: Colors.white70,
+                            size: 28,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                        if (entry.introSound != null)
+                          IconButton(
+                            key: const Key('intro_sound_toggle'),
+                            icon: Icon(
+                              _isSoundPlaying
+                                  ? Icons.volume_up
+                                  : Icons.volume_off,
+                              color: Colors.white70,
+                              size: 28,
+                            ),
+                            onPressed: _toggleIntroSound,
+                          ),
+                      ],
                     ),
                   ),
 

@@ -16,6 +16,8 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/sound/i_sound_service.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_card_widgets.dart';
 import 'package:devocional_nuevo/widgets/key_verse_card.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +39,8 @@ class EncounterDetailPage extends StatefulWidget {
   State<EncounterDetailPage> createState() => _EncounterDetailPageState();
 }
 
-class _EncounterDetailPageState extends State<EncounterDetailPage> {
+class _EncounterDetailPageState extends State<EncounterDetailPage>
+    with WidgetsBindingObserver {
   late final PageController _pageController = PageController(
     viewportFraction: 0.88,
   );
@@ -63,6 +66,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Guarantee the first-visible-card preload on first frame, before the
     // user can swipe. This is safer than relying on _studyLoggedOnce inside
     // BlocBuilder, which rebuilds after state changes and may miss the
@@ -89,8 +93,28 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
     });
   }
 
+  /// Stop ambient sound when the app goes to background. No auto-resume —
+  /// mirrors EncounterIntroPage's simple stop-on-background behavior.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      final soundService = getService<ISoundService>();
+      if (soundService.isPlaying) {
+        debugPrint(
+          '🔊 [Detail/${widget.entry.id}] App going to background — stopping ambient sound',
+        );
+        soundService.stop();
+      }
+    }
+  }
+
   @override
   void dispose() {
+    debugPrint('🔊 [Detail/${widget.entry.id}] dispose → stop()');
+    getService<ISoundService>().stop();
+    WidgetsBinding.instance.removeObserver(this);
     _pageController.dispose();
     super.dispose();
   }
@@ -190,6 +214,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
       _hasTriggeredCompletion = true;
     });
 
+    getService<ISoundService>().stop();
     context.read<EncounterBloc>().add(CompleteEncounter(widget.entry.id));
     HapticFeedback.heavyImpact();
 
