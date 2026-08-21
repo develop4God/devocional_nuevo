@@ -47,6 +47,8 @@ import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/push_messaging.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
+import 'package:devocional_nuevo/services/sound/i_sound_service.dart';
+import 'package:devocional_nuevo/services/sound/sound_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/startup_migration_service.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
@@ -192,6 +194,8 @@ Future<void> setupServiceLocator() async {
   locator.registerLazySingleton<IEncounterProgressService>(
     () => EncounterProgressService(),
   );
+
+  locator.registerLazySingleton<ISoundService>(() => SoundService());
 
   locator.registerLazySingleton<IVerseResolverService>(
     () => VerseResolverService(),

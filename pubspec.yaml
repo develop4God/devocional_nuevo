@@ -60,6 +60,7 @@ dependencies:
   # Audio dependencies
   flutter_tts: ^4.1.0
   synchronized: ^3.1.0+1  # For thread safety and mutex protection
+  just_audio: ^0.9.42
 
   # Google Drive Backup dependencies
   googleapis: ^15.0.0

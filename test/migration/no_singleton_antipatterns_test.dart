@@ -456,6 +456,37 @@ void main() {
       },
     );
 
+    // ── SoundService DI registration ────────────────────────────────────
+
+    test(
+      'ISoundService is registered as lazy singleton in ServiceLocator',
+      () async {
+        final file = File('lib/services/service_locator.dart');
+        expect(
+          await file.exists(),
+          isTrue,
+          reason: 'ServiceLocator source file should exist',
+        );
+
+        final content = await file.readAsString();
+
+        expect(
+          content.contains('registerLazySingleton<ISoundService>'),
+          isTrue,
+          reason:
+              'ISoundService should be registered as lazy singleton in ServiceLocator',
+        );
+      },
+    );
+
+    test('SoundService has no static singleton antipattern', () async {
+      final file = File('lib/services/sound/sound_service.dart');
+      final content = await file.readAsString();
+
+      expect(content.contains('static SoundService? _instance'), isFalse);
+      expect(content.contains('static SoundService get instance'), isFalse);
+    });
+
     // ── BaseCacheManager DI registration ────────────────────────────────
 
     test(
