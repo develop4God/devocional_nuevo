@@ -1,6 +1,8 @@
 @Tags(['unit', 'pages'])
 library;
 
+import 'dart:async';
+
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
@@ -30,6 +32,11 @@ class FakeSoundService implements ISoundService {
   String? lastEncounterId;
   String? lastVersion;
 
+  /// When set, toggle() doesn't resolve until this completer resolves —
+  /// simulates a real device's cache/player setup taking a beat, so tests
+  /// can fire a second invocation while the first is still in flight.
+  Completer<void>? toggleGate;
+
   @override
   bool get isPlaying => _isPlaying;
 
@@ -39,6 +46,9 @@ class FakeSoundService implements ISoundService {
     required String encounterId,
     String? version,
   }) async {
+    if (toggleGate != null) {
+      await toggleGate!.future;
+    }
     toggleCallCount++;
     lastCueKey = cueKey;
     lastEncounterId = encounterId;
@@ -203,6 +213,33 @@ void main() {
       expect(fakeSoundService.stopCallCount, 1);
       expect(fakeSoundService.isPlaying, isFalse);
       expect(find.byIcon(Icons.volume_off), findsOneWidget);
+    });
+
+    testWidgets(
+        'a tap landing while auto-play is still in flight is dropped, not '
+        'raced — reproduces a real-device bug where the first tap after '
+        'auto-play read a stale isPlaying and the toggle only "worked" on '
+        'the second tap', (tester) async {
+      fakeSoundService.toggleGate = Completer<void>();
+      final entry = _fakeEntry(introSound: 'storm_waves');
+      await tester.pumpWidget(_wrap(entry, mockBloc));
+      // Auto-play's postFrameCallback has fired and is now blocked inside
+      // toggle(), awaiting the gate — isPlaying is still false at this point.
+      await tester.pump();
+
+      // A tap lands here, before auto-play's toggle() has resolved.
+      await tester.tap(find.byKey(const Key('intro_sound_toggle')));
+      await tester.pump();
+
+      // Let auto-play's toggle() resolve.
+      fakeSoundService.toggleGate!.complete();
+      await tester.pump();
+      await tester.pump();
+
+      // Only one toggle() call ever reached the service — the tap that
+      // landed mid-flight was dropped, not raced against auto-play's call.
+      expect(fakeSoundService.toggleCallCount, 1);
+      expect(fakeSoundService.isPlaying, isTrue);
     });
 
     testWidgets('backgrounding while sound was never playing is a no-op', (

@@ -163,9 +163,10 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
         version: entry.soundVersion,
       );
       debugPrint(
-          '🔊 [EncounterBloc] BG: preloading intro sound for ${entry.id}…');
+          '🔊 [EncounterBloc] BG: preloading intro sound for ${entry.id} → $url (key: $cacheKey)');
       await cacheManager.downloadFile(url, key: cacheKey);
-      debugPrint('✅ [EncounterBloc] BG: intro sound cached for ${entry.id}');
+      debugPrint(
+          '✅ [EncounterBloc] BG: intro sound cached for ${entry.id} → $url');
     } catch (_) {
       // Non-fatal — SoundService falls back to network on cache miss.
     }
