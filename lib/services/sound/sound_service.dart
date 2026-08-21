@@ -13,6 +13,14 @@ class SoundService implements ISoundService {
   final AudioPlayerHandle _player;
   bool _isPlaying = false;
 
+  /// Tracks an in-flight [toggle] call. [SoundService.toggle]'s "start
+  /// playing" branch awaits network + player setup before flipping
+  /// [_isPlaying], so a second call landing in that window would otherwise
+  /// also see [_isPlaying] as false and start a duplicate playback instead
+  /// of stopping the first. Concurrent callers await this future instead of
+  /// racing, then act on the now-settled state.
+  Future<void>? _pendingToggle;
+
   @override
   bool get isPlaying => _isPlaying;
 
@@ -22,12 +30,34 @@ class SoundService implements ISoundService {
     required String encounterId,
     String? version,
   }) async {
+    final pending = _pendingToggle;
+    if (pending != null) {
+      debugPrint('🔊 SoundService.toggle: awaiting in-flight toggle first');
+      await pending;
+    }
+
     if (_isPlaying) {
       debugPrint('🔊 SoundService.toggle: already playing "$cueKey" → stop()');
       await stop();
       return;
     }
 
+    final operation = _startPlaying(cueKey, encounterId, version);
+    _pendingToggle = operation;
+    try {
+      await operation;
+    } finally {
+      if (identical(_pendingToggle, operation)) {
+        _pendingToggle = null;
+      }
+    }
+  }
+
+  Future<void> _startPlaying(
+    String cueKey,
+    String encounterId,
+    String? version,
+  ) async {
     try {
       final url = Constants.getEncounterAudioUrl(
         cueKey,
@@ -48,6 +78,12 @@ class SoundService implements ISoundService {
 
   @override
   Future<void> stop() async {
+    final pending = _pendingToggle;
+    if (pending != null) {
+      debugPrint('🔊 SoundService.stop: awaiting in-flight toggle first');
+      await pending;
+    }
+
     if (!_isPlaying) {
       debugPrint('🔊 SoundService.stop: no-op — not playing');
       return;
