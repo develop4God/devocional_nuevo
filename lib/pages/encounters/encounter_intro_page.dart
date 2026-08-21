@@ -37,10 +37,17 @@ class EncounterIntroPage extends StatefulWidget {
 }
 
 class _EncounterIntroPageState extends State<EncounterIntroPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _controller;
   bool _isSoundPlaying = false;
   bool _isEnteringEncounter = false;
+
+  /// Guards against a tap landing while a previous toggle (including the
+  /// auto-play kickoff) is still awaiting SoundService.toggle()'s network
+  /// fetch/player init — without this, a fast tap during that window would
+  /// see isPlaying still false and start a second playback instead of
+  /// stopping the first.
+  bool _soundTogglePending = false;
 
   // Staggered reveal animations
   late Animation<double> _imageOpacity;
@@ -50,6 +57,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -97,10 +105,40 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
     }
 
     if (Constants.autoPlayIntroSound && widget.entry.introSound != null) {
+      debugPrint(
+        '🔊 [Intro/${widget.entry.id}] auto-play scheduled — cue: ${widget.entry.introSound}',
+      );
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _toggleIntroSound();
+        _toggleIntroSound(source: 'auto-play');
       });
+    }
+  }
+
+  /// Pause ambient sound when the app goes to background, mirroring TTS's
+  /// pause-on-background behavior. Unlike TTS, auto-resumes on foreground
+  /// since this page's only sound control is [_toggleIntroSound] and a
+  /// silently-stuck-paused loop would leave the volume icon lying about
+  /// playback state.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final soundService = getService<ISoundService>();
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      if (soundService.isPlaying) {
+        debugPrint(
+          '🔊 [Intro/${widget.entry.id}] App going to background — pausing ambient sound',
+        );
+        soundService.pause();
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      if (soundService.isPaused) {
+        debugPrint(
+          '🔊 [Intro/${widget.entry.id}] App resumed — resuming ambient sound',
+        );
+        soundService.resume();
+      }
     }
   }
 
@@ -109,24 +147,47 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
     // Entering the encounter keeps the ambient loop going into
     // EncounterDetailPage, which owns stopping it on its own dispose.
     if (!_isEnteringEncounter) {
+      debugPrint('🔊 [Intro/${widget.entry.id}] dispose → stop()');
       getService<ISoundService>().stop();
+    } else {
+      debugPrint(
+        '🔊 [Intro/${widget.entry.id}] dispose → entering encounter, sound left playing',
+      );
     }
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
 
-  Future<void> _toggleIntroSound() async {
+  Future<void> _toggleIntroSound({String source = 'tap'}) async {
     final introSound = widget.entry.introSound;
     if (introSound == null) return;
-    await getService<ISoundService>().toggle(
-      introSound,
-      encounterId: widget.entry.id,
-      version: widget.entry.soundVersion,
+    if (_soundTogglePending) {
+      debugPrint(
+        '🔊 [Intro/${widget.entry.id}] toggle ($source) ignored — already pending',
+      );
+      return;
+    }
+    _soundTogglePending = true;
+    debugPrint(
+      '🔊 [Intro/${widget.entry.id}] toggle ($source) START — isPlaying(before): ${getService<ISoundService>().isPlaying}',
     );
-    if (!mounted) return;
-    setState(() {
-      _isSoundPlaying = getService<ISoundService>().isPlaying;
-    });
+    try {
+      await getService<ISoundService>().toggle(
+        introSound,
+        encounterId: widget.entry.id,
+        version: widget.entry.soundVersion,
+      );
+      if (!mounted) return;
+      setState(() {
+        _isSoundPlaying = getService<ISoundService>().isPlaying;
+      });
+      debugPrint(
+        '🔊 [Intro/${widget.entry.id}] toggle ($source) DONE — isPlaying(after): $_isSoundPlaying',
+      );
+    } finally {
+      _soundTogglePending = false;
+    }
   }
 
   /// Warms the image cache for card[0] only.

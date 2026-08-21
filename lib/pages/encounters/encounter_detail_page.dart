@@ -39,7 +39,8 @@ class EncounterDetailPage extends StatefulWidget {
   State<EncounterDetailPage> createState() => _EncounterDetailPageState();
 }
 
-class _EncounterDetailPageState extends State<EncounterDetailPage> {
+class _EncounterDetailPageState extends State<EncounterDetailPage>
+    with WidgetsBindingObserver {
   late final PageController _pageController = PageController(
     viewportFraction: 0.88,
   );
@@ -65,6 +66,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Guarantee the first-visible-card preload on first frame, before the
     // user can swipe. This is safer than relying on _studyLoggedOnce inside
     // BlocBuilder, which rebuilds after state changes and may miss the
@@ -91,9 +93,38 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
     });
   }
 
+  /// Pause ambient sound when the app goes to background and auto-resume on
+  /// foreground, mirroring TTS's pause-on-background behavior. Unlike TTS,
+  /// this page has no manual sound control, so auto-resume is required —
+  /// otherwise the loop would stay silent for the rest of the encounter
+  /// after any backgrounding.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final soundService = getService<ISoundService>();
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      if (soundService.isPlaying) {
+        debugPrint(
+          '🔊 [Detail/${widget.entry.id}] App going to background — pausing ambient sound',
+        );
+        soundService.pause();
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      if (soundService.isPaused) {
+        debugPrint(
+          '🔊 [Detail/${widget.entry.id}] App resumed — resuming ambient sound',
+        );
+        soundService.resume();
+      }
+    }
+  }
+
   @override
   void dispose() {
+    debugPrint('🔊 [Detail/${widget.entry.id}] dispose → stop()');
     getService<ISoundService>().stop();
+    WidgetsBinding.instance.removeObserver(this);
     _pageController.dispose();
     super.dispose();
   }

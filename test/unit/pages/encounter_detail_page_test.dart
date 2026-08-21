@@ -19,10 +19,16 @@ class MockEncounterBloc extends Mock implements EncounterBloc {}
 
 class FakeSoundService implements ISoundService {
   bool _isPlaying = true;
+  bool _isPaused = false;
   int stopCallCount = 0;
+  int pauseCallCount = 0;
+  int resumeCallCount = 0;
 
   @override
   bool get isPlaying => _isPlaying;
+
+  @override
+  bool get isPaused => _isPaused;
 
   @override
   Future<void> toggle(
@@ -37,6 +43,21 @@ class FakeSoundService implements ISoundService {
   Future<void> stop() async {
     stopCallCount++;
     _isPlaying = false;
+    _isPaused = false;
+  }
+
+  @override
+  Future<void> pause() async {
+    if (!_isPlaying || _isPaused) return;
+    pauseCallCount++;
+    _isPaused = true;
+  }
+
+  @override
+  Future<void> resume() async {
+    if (!_isPaused) return;
+    resumeCallCount++;
+    _isPaused = false;
   }
 
   @override
@@ -105,5 +126,51 @@ void main() {
 
     expect(fakeSoundService.stopCallCount, 1);
     expect(fakeSoundService.isPlaying, isFalse);
+  });
+
+  testWidgets('backgrounding the app pauses playing sound', (tester) async {
+    final entry = _fakeEntry();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider<EncounterBloc>.value(
+          value: mockBloc,
+          child: EncounterDetailPage(entry: entry, lang: 'en'),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(fakeSoundService.isPlaying, isTrue);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+
+    expect(fakeSoundService.pauseCallCount, 1);
+    expect(fakeSoundService.isPaused, isTrue);
+  });
+
+  testWidgets(
+      'foregrounding the app auto-resumes paused sound (no manual control on this page)',
+      (tester) async {
+    final entry = _fakeEntry();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider<EncounterBloc>.value(
+          value: mockBloc,
+          child: EncounterDetailPage(entry: entry, lang: 'en'),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    expect(fakeSoundService.isPaused, isTrue);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+
+    expect(fakeSoundService.resumeCallCount, 1);
+    expect(fakeSoundService.isPaused, isFalse);
+    expect(fakeSoundService.isPlaying, isTrue);
   });
 }

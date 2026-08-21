@@ -24,14 +24,20 @@ class MockEncounterBloc extends Mock implements EncounterBloc {}
 
 class FakeSoundService implements ISoundService {
   bool _isPlaying = false;
+  bool _isPaused = false;
   int toggleCallCount = 0;
   int stopCallCount = 0;
+  int pauseCallCount = 0;
+  int resumeCallCount = 0;
   String? lastCueKey;
   String? lastEncounterId;
   String? lastVersion;
 
   @override
   bool get isPlaying => _isPlaying;
+
+  @override
+  bool get isPaused => _isPaused;
 
   @override
   Future<void> toggle(
@@ -50,6 +56,21 @@ class FakeSoundService implements ISoundService {
   Future<void> stop() async {
     stopCallCount++;
     _isPlaying = false;
+    _isPaused = false;
+  }
+
+  @override
+  Future<void> pause() async {
+    if (!_isPlaying || _isPaused) return;
+    pauseCallCount++;
+    _isPaused = true;
+  }
+
+  @override
+  Future<void> resume() async {
+    if (!_isPaused) return;
+    resumeCallCount++;
+    _isPaused = false;
   }
 
   @override
@@ -187,6 +208,57 @@ void main() {
 
       // stop() is still safe/idempotent to call, but nothing was ever playing.
       expect(fakeSoundService.isPlaying, isFalse);
+    });
+
+    testWidgets('backgrounding the app pauses playing sound', (tester) async {
+      final entry = _fakeEntry(introSound: 'storm_waves');
+      await tester.pumpWidget(_wrap(entry, mockBloc));
+      await tester.pump();
+      expect(fakeSoundService.isPlaying, isTrue);
+
+      tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.paused,
+      );
+      await tester.pump();
+
+      expect(fakeSoundService.pauseCallCount, 1);
+      expect(fakeSoundService.isPaused, isTrue);
+    });
+
+    testWidgets('foregrounding the app resumes paused sound', (tester) async {
+      final entry = _fakeEntry(introSound: 'storm_waves');
+      await tester.pumpWidget(_wrap(entry, mockBloc));
+      await tester.pump();
+
+      tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.paused,
+      );
+      await tester.pump();
+      expect(fakeSoundService.isPaused, isTrue);
+
+      tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.resumed,
+      );
+      await tester.pump();
+
+      expect(fakeSoundService.resumeCallCount, 1);
+      expect(fakeSoundService.isPaused, isFalse);
+      expect(fakeSoundService.isPlaying, isTrue);
+    });
+
+    testWidgets('backgrounding while sound was never playing is a no-op', (
+      tester,
+    ) async {
+      final entry = _fakeEntry(introSound: null);
+      await tester.pumpWidget(_wrap(entry, mockBloc));
+      await tester.pump();
+
+      tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.paused,
+      );
+      await tester.pump();
+
+      expect(fakeSoundService.pauseCallCount, 0);
     });
 
     testWidgets('tapping Begin does not stop the sound before navigating away',
