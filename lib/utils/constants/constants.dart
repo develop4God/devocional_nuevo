@@ -197,15 +197,20 @@ class Constants {
   ///   matching the `ambient_sound` cue key from the encounter card JSON.
   /// [encounterId] — encounter folder name.
   /// [format] — audio format extension, default 'm4a'.
+  /// [version] — optional cache-busting query param (e.g. EncounterIndexEntry.soundVersion).
+  ///   Bump it when replacing an existing file's content under the same filename.
   static String getEncounterAudioUrl(
     String filename, {
     required String encounterId,
     String format = 'm4a',
+    String? version,
   }) {
     final base = filename.contains('.')
         ? filename.substring(0, filename.lastIndexOf('.'))
         : filename;
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/audio/encounters/$encounterId/$base.$format';
+    final url =
+        'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/audio/encounters/$encounterId/$base.$format';
+    return version != null ? '$url?v=$version' : url;
   }
 
   // ---------------------------------------------------------------------------

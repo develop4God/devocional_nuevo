@@ -98,12 +98,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
 
   @override
   void dispose() {
-    if (_isSoundPlaying) {
-      getService<ISoundService>().toggle(
-        widget.entry.introSound!,
-        encounterId: widget.entry.id,
-      );
-    }
+    getService<ISoundService>().stop();
     _controller.dispose();
     super.dispose();
   }
@@ -114,6 +109,7 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
     await getService<ISoundService>().toggle(
       introSound,
       encounterId: widget.entry.id,
+      version: widget.entry.soundVersion,
     );
     if (!mounted) return;
     setState(() {

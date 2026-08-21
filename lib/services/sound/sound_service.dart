@@ -17,10 +17,13 @@ class SoundService implements ISoundService {
   bool get isPlaying => _isPlaying;
 
   @override
-  Future<void> toggle(String cueKey, {required String encounterId}) async {
+  Future<void> toggle(
+    String cueKey, {
+    required String encounterId,
+    String? version,
+  }) async {
     if (_isPlaying) {
-      await _player.stop();
-      _isPlaying = false;
+      await stop();
       return;
     }
 
@@ -28,6 +31,7 @@ class SoundService implements ISoundService {
       final url = Constants.getEncounterAudioUrl(
         cueKey,
         encounterId: encounterId,
+        version: version,
       );
       await _player.setUrl(url);
       await _player.setLoopMode(LoopMode.one);
@@ -35,6 +39,18 @@ class SoundService implements ISoundService {
       _isPlaying = true;
     } catch (e) {
       debugPrint('⚠️ SoundService: Failed to play cue "$cueKey": $e');
+      _isPlaying = false;
+    }
+  }
+
+  @override
+  Future<void> stop() async {
+    if (!_isPlaying) return;
+    try {
+      await _player.stop();
+    } catch (e) {
+      debugPrint('⚠️ SoundService: Failed to stop playback: $e');
+    } finally {
       _isPlaying = false;
     }
   }
