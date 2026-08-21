@@ -26,6 +26,9 @@ class FakeSoundService implements ISoundService {
   int stopCallCount = 0;
 
   @override
+  SoundState get state => _isPlaying ? SoundState.playing : SoundState.idle;
+
+  @override
   bool get isPlaying => _isPlaying;
 
   @override

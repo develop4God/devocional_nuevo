@@ -148,27 +148,21 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
   Future<void> _toggleIntroSound() async {
     final introSound = widget.entry.introSound;
     if (introSound == null) return;
-    if (_soundTogglePending) return;
-    _soundTogglePending = true;
     debugPrint(
       '🔊 [Intro/${widget.entry.id}] toggle tapped — isPlaying(before): ${getService<ISoundService>().isPlaying}',
     );
-    try {
-      await getService<ISoundService>().toggle(
-        introSound,
-        encounterId: widget.entry.id,
-        version: widget.entry.soundVersion,
-      );
-      if (!mounted) return;
-      setState(() {
-        _isSoundPlaying = getService<ISoundService>().isPlaying;
-      });
-      debugPrint(
-        '🔊 [Intro/${widget.entry.id}] toggle DONE — isPlaying(after): $_isSoundPlaying',
-      );
-    } finally {
-      _soundTogglePending = false;
-    }
+    await getService<ISoundService>().toggle(
+      introSound,
+      encounterId: widget.entry.id,
+      version: widget.entry.soundVersion,
+    );
+    if (!mounted) return;
+    setState(() {
+      _isSoundPlaying = getService<ISoundService>().isPlaying;
+    });
+    debugPrint(
+      '🔊 [Intro/${widget.entry.id}] toggle DONE — isPlaying(after): $_isSoundPlaying',
+    );
   }
 
   /// Warms the image cache for card[0] only.

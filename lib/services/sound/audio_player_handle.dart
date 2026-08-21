@@ -12,12 +12,19 @@ abstract class AudioPlayerHandle {
   Future<void> play();
   Future<void> stop();
   Future<void> dispose();
+
+  /// The real, platform-reported playing state — not a value tracked by
+  /// hand, so it can never drift from what the player is actually doing.
+  bool get isPlaying;
 }
 
 class JustAudioPlayerHandle implements AudioPlayerHandle {
   JustAudioPlayerHandle() : _player = AudioPlayer();
 
   final AudioPlayer _player;
+
+  @override
+  bool get isPlaying => _player.playing;
 
   @override
   Future<void> setUrl(String url) async {

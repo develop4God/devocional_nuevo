@@ -1,5 +1,15 @@
 // lib/services/sound/i_sound_service.dart
 
+/// Ambient sound playback state, mirroring the real player rather than a
+/// hand-tracked flag — same modeling as TtsState in tts_service.dart.
+enum SoundState {
+  idle,
+  playing,
+
+  /// The last toggle()/stop() call failed at the platform layer.
+  error,
+}
+
 abstract class ISoundService {
   /// Toggles ambient sound playback for [cueKey] within [encounterId].
   ///
@@ -19,6 +29,11 @@ abstract class ISoundService {
   /// teardown paths (e.g. widget dispose) without risking a restart.
   Future<void> stop();
 
+  /// Current playback state, read from the real player — never a value
+  /// tracked by hand, so it can't drift from what's actually playing.
+  SoundState get state;
+
+  /// Convenience for `state == SoundState.playing`.
   bool get isPlaying;
 
   Future<void> dispose();
