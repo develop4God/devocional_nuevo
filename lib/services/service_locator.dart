@@ -195,7 +195,9 @@ Future<void> setupServiceLocator() async {
     () => EncounterProgressService(),
   );
 
-  locator.registerLazySingleton<ISoundService>(() => SoundService());
+  locator.registerLazySingleton<ISoundService>(
+    () => SoundService(cacheManager: locator.get<BaseCacheManager>()),
+  );
 
   locator.registerLazySingleton<IVerseResolverService>(
     () => VerseResolverService(),

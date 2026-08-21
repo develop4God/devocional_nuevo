@@ -217,6 +217,22 @@ class Constants {
     return version != null ? '$url?v=$version' : url;
   }
 
+  /// Cache key for an encounter's ambient audio, shared between
+  /// [SoundService]'s cache reads and [EncounterBloc]'s prefetch writes so
+  /// both agree on the same entry.
+  ///
+  /// Explicit and namespaced rather than defaulting to the URL as the key
+  /// (flutter_cache_manager's default) — the app's BaseCacheManager
+  /// singleton is the same underlying store cached_network_image's widgets
+  /// write into for encounter images, and URL-defaulted keys risk resolving
+  /// to an unrelated cached entry.
+  static String encounterAudioCacheKey({
+    required String encounterId,
+    required String cueKey,
+    String? version,
+  }) =>
+      'audio_${encounterId}_${cueKey}_${version ?? "1.0"}';
+
   // ---------------------------------------------------------------------------
   // Prayer Wall
   // ---------------------------------------------------------------------------

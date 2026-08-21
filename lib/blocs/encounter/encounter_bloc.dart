@@ -134,11 +134,41 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
         debugPrint(
           '✅ [EncounterBloc] BG: pre-cached $cached/${imageUrls.length} images for ${first.id}',
         );
+
+        await _preloadIntroSound(first);
       } catch (e) {
         // Background preload is non-critical — log and swallow
         debugPrint('⚠️ [EncounterBloc] BG image preload failed: $e');
       }
     });
+  }
+
+  /// Downloads [entry]'s ambient intro sound into the disk cache so
+  /// [SoundService] finds it already local when the intro page opens —
+  /// mirrors the image prefetch above. Non-fatal: a failure here just means
+  /// the first toggle falls back to a network fetch, same as before.
+  Future<void> _preloadIntroSound(EncounterIndexEntry entry) async {
+    final introSound = entry.introSound;
+    if (introSound == null) return;
+    if (_disposed) return;
+    try {
+      final url = Constants.getEncounterAudioUrl(
+        introSound,
+        encounterId: entry.id,
+        version: entry.soundVersion,
+      );
+      final cacheKey = Constants.encounterAudioCacheKey(
+        encounterId: entry.id,
+        cueKey: introSound,
+        version: entry.soundVersion,
+      );
+      debugPrint(
+          '🔊 [EncounterBloc] BG: preloading intro sound for ${entry.id}…');
+      await cacheManager.downloadFile(url, key: cacheKey);
+      debugPrint('✅ [EncounterBloc] BG: intro sound cached for ${entry.id}');
+    } catch (_) {
+      // Non-fatal — SoundService falls back to network on cache miss.
+    }
   }
 
   Future<void> _onLoadEncounterStudy(
@@ -340,6 +370,8 @@ class EncounterBloc extends Bloc<EncounterEvent, EncounterState> {
         debugPrint(
           '✅ [EncounterBloc] BG: Prefetched ${nextEntry.id} — cached $cached/${bases.length} images',
         );
+
+        await _preloadIntroSound(nextEntry);
       } catch (e) {
         // Background prefetch is non-critical — log and swallow
         debugPrint('⚠️ [EncounterBloc] BG: Prefetch failed — $e');
