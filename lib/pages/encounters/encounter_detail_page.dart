@@ -16,6 +16,8 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/sound/i_sound_service.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_card_widgets.dart';
 import 'package:devocional_nuevo/widgets/key_verse_card.dart';
 import 'package:flutter/material.dart';
@@ -91,6 +93,7 @@ class _EncounterDetailPageState extends State<EncounterDetailPage> {
 
   @override
   void dispose() {
+    getService<ISoundService>().stop();
     _pageController.dispose();
     super.dispose();
   }

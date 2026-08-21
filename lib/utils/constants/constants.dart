@@ -122,6 +122,10 @@ class Constants {
   /// Mutable so it can be toggled from the debug page at runtime.
   static bool enableEncounterFallback = true;
 
+  /// Whether EncounterIntroPage auto-starts its ambient sound (when the
+  /// entry has one) instead of requiring a manual tap on the toggle button.
+  static const bool autoPlayIntroSound = true;
+
   /// Obtiene la URL del índice de Devocionales (cache invalidation)
   static String getDevocionalIndexUrl() {
     final branch = kDebugMode ? DebugFlags.debugBranchDevotionals : 'main';

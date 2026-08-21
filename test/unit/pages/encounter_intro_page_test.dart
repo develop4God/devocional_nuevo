@@ -4,14 +4,19 @@ library;
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
+import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_intro_page.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/sound/i_sound_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:provider/provider.dart';
 
 import '../../helpers/test_helpers.dart';
 
@@ -64,10 +69,13 @@ EncounterIndexEntry _fakeEntry({String? introSound}) => EncounterIndexEntry(
     );
 
 Widget _wrap(EncounterIndexEntry entry, EncounterBloc bloc) {
-  return MaterialApp(
-    home: BlocProvider<EncounterBloc>.value(
+  return ChangeNotifierProvider<DevocionalProvider>(
+    create: (_) => DevocionalProvider(),
+    child: BlocProvider<EncounterBloc>.value(
       value: bloc,
-      child: EncounterIntroPage(entry: entry, lang: 'en'),
+      child: MaterialApp(
+        home: EncounterIntroPage(entry: entry, lang: 'en'),
+      ),
     ),
   );
 }
@@ -116,42 +124,30 @@ void main() {
       expect(find.byKey(const Key('intro_sound_toggle')), findsOneWidget);
     });
 
-    testWidgets('tap calls ISoundService.toggle with cue key and encounterId', (
+    testWidgets(
+        'auto-plays on open (Constants.autoPlayIntroSound) with cue key and encounterId',
+        (
       tester,
     ) async {
       final entry = _fakeEntry(introSound: 'storm_waves');
       await tester.pumpWidget(_wrap(entry, mockBloc));
       await tester.pump();
 
-      await tester.tap(find.byKey(const Key('intro_sound_toggle')));
-      await tester.pump();
-
       expect(fakeSoundService.toggleCallCount, 1);
       expect(fakeSoundService.lastCueKey, 'storm_waves');
       expect(fakeSoundService.lastEncounterId, 'peter_water_001');
       expect(fakeSoundService.lastVersion, '1.0');
-    });
-
-    testWidgets('icon reflects playing state after tap', (tester) async {
-      final entry = _fakeEntry(introSound: 'storm_waves');
-      await tester.pumpWidget(_wrap(entry, mockBloc));
-      await tester.pump();
-
-      expect(find.byIcon(Icons.volume_off), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('intro_sound_toggle')));
-      await tester.pump();
-
       expect(find.byIcon(Icons.volume_up), findsOneWidget);
     });
 
-    testWidgets('second tap stops playback (icon reverts)', (tester) async {
+    testWidgets('tap after auto-play stops playback (icon reverts)', (
+      tester,
+    ) async {
       final entry = _fakeEntry(introSound: 'storm_waves');
       await tester.pumpWidget(_wrap(entry, mockBloc));
       await tester.pump();
+      expect(find.byIcon(Icons.volume_up), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('intro_sound_toggle')));
-      await tester.pump();
       await tester.tap(find.byKey(const Key('intro_sound_toggle')));
       await tester.pump();
 
@@ -159,43 +155,81 @@ void main() {
       expect(find.byIcon(Icons.volume_off), findsOneWidget);
     });
 
-    testWidgets('disposing the page while playing stops the sound', (
+    testWidgets(
+        'closing the page (e.g. X button) while playing stops the sound', (
       tester,
     ) async {
       final entry = _fakeEntry(introSound: 'storm_waves');
       await tester.pumpWidget(_wrap(entry, mockBloc));
       await tester.pump();
-
-      await tester.tap(find.byKey(const Key('intro_sound_toggle')));
-      await tester.pump();
       expect(fakeSoundService.isPlaying, isTrue);
 
-      // Replace the widget tree entirely to trigger dispose().
+      // Replace the widget tree entirely to trigger dispose() without
+      // going through _beginEncounter (mirrors tapping the close button).
       await tester.pumpWidget(const SizedBox());
       await tester.pump();
 
-      expect(fakeSoundService.toggleCallCount, 1);
       expect(fakeSoundService.stopCallCount, 1);
       expect(fakeSoundService.isPlaying, isFalse);
     });
 
-    testWidgets(
-        'disposing the page while stopped calls stop() but does not restart', (
+    testWidgets('no introSound set never auto-plays or stops on dispose', (
       tester,
     ) async {
-      final entry = _fakeEntry(introSound: 'storm_waves');
+      final entry = _fakeEntry(introSound: null);
       await tester.pumpWidget(_wrap(entry, mockBloc));
       await tester.pump();
 
-      // Never tapped — sound was never started.
-      expect(fakeSoundService.isPlaying, isFalse);
+      expect(fakeSoundService.toggleCallCount, 0);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump();
 
-      expect(fakeSoundService.toggleCallCount, 0);
-      expect(fakeSoundService.stopCallCount, 1);
+      // stop() is still safe/idempotent to call, but nothing was ever playing.
       expect(fakeSoundService.isPlaying, isFalse);
+    });
+
+    testWidgets('tapping Begin does not stop the sound before navigating away',
+        (
+      tester,
+    ) async {
+      final entry = _fakeEntry(introSound: 'storm_waves');
+      final study = EncounterStudy(
+        id: entry.id,
+        cards: const [
+          EncounterCard(order: 0, type: 'cinematic_scene', title: 'Card 1'),
+        ],
+      );
+      final loadedState = EncounterLoaded(
+        index: [entry],
+        loadedStudies: {entry.id: study},
+      );
+      when(() => mockBloc.state).thenReturn(loadedState);
+      when(() => mockBloc.stream).thenAnswer(
+        (_) => Stream.value(loadedState),
+      );
+
+      await tester.pumpWidget(_wrap(entry, mockBloc));
+      await tester.pump();
+      expect(fakeSoundService.isPlaying, isTrue);
+
+      await tester.tap(find.text('encounters.enter_experience'.tr()));
+      await tester.pump();
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      // EncounterIntroPage.dispose() must not have stopped the sound —
+      // EncounterDetailPage owns stopping it, not this transition.
+      expect(fakeSoundService.stopCallCount, 0);
+      expect(fakeSoundService.isPlaying, isTrue);
+
+      // Tear down the pushed page so DevocionalProvider's internal
+      // AudioController periodic sync timer (unrelated pre-existing infra,
+      // self-cancels once its owner is unmounted) clears before the test
+      // ends — otherwise the framework's pending-timer invariant check fails.
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(milliseconds: 250));
     });
   });
 }
