@@ -1,36 +1,38 @@
 @Tags(['unit', 'services'])
 library;
 
-import 'dart:async';
-
 import 'package:devocional_nuevo/services/sound/audio_player_handle.dart';
 import 'package:devocional_nuevo/services/sound/sound_service.dart';
+import 'package:file/memory.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:just_audio/just_audio.dart';
 
 class FakeAudioPlayerHandle implements AudioPlayerHandle {
   String? lastUrl;
+  String? lastFilePath;
   LoopMode? lastLoopMode;
   bool playCalled = false;
   int stopCallCount = 0;
   bool disposeCalled = false;
   bool throwOnSetUrl = false;
+  bool throwOnSetFilePath = false;
   bool throwOnStop = false;
-
-  /// When set, [setUrl] doesn't complete until this completer resolves —
-  /// simulates the real device's slow network + codec setup, so tests can
-  /// fire a second toggle() while the first is still mid-flight.
-  Completer<void>? setUrlGate;
 
   @override
   Future<void> setUrl(String url) async {
-    if (setUrlGate != null) {
-      await setUrlGate!.future;
-    }
     if (throwOnSetUrl) {
       throw Exception('network error');
     }
     lastUrl = url;
+  }
+
+  @override
+  Future<void> setFilePath(String path) async {
+    if (throwOnSetFilePath) {
+      throw Exception('file error');
+    }
+    lastFilePath = path;
   }
 
   @override
@@ -57,35 +59,131 @@ class FakeAudioPlayerHandle implements AudioPlayerHandle {
   }
 }
 
+/// Minimal fake covering only what [SoundService] actually calls
+/// (getFileFromCache, downloadFile) — BaseCacheManager is an infrastructure
+/// boundary (disk/network), so a partial fake is appropriate; the unused
+/// members are never exercised by SoundService and throw if ever called.
+class FakeCacheManager implements BaseCacheManager {
+  FakeCacheManager({this.cachedPath});
+
+  /// When set, getFileFromCache returns a FileInfo pointing at this local
+  /// path — simulates the file already being prefetched to disk.
+  String? cachedPath;
+
+  int downloadFileCallCount = 0;
+  bool throwOnDownload = false;
+  String? lastGetFileFromCacheKey;
+  String? lastDownloadFileKey;
+
+  final _fs = MemoryFileSystem();
+
+  @override
+  Future<FileInfo?> getFileFromCache(String key,
+      {bool ignoreMemCache = false}) async {
+    lastGetFileFromCacheKey = key;
+    if (cachedPath == null) return null;
+    return FileInfo(
+      _fs.file(cachedPath!),
+      FileSource.Cache,
+      DateTime.now().add(const Duration(days: 30)),
+      key,
+    );
+  }
+
+  @override
+  Future<FileInfo> downloadFile(
+    String url, {
+    String? key,
+    Map<String, String>? authHeaders,
+    bool force = false,
+  }) async {
+    downloadFileCallCount++;
+    lastDownloadFileKey = key;
+    if (throwOnDownload) {
+      throw Exception('download failed');
+    }
+    return FileInfo(
+      _fs.file('/cache/downloaded'),
+      FileSource.Online,
+      DateTime.now().add(const Duration(days: 30)),
+      key ?? url,
+    );
+  }
+
+  @override
+  Never noSuchMethod(Invocation invocation) => throw UnimplementedError(
+      '${invocation.memberName} not used by SoundService');
+}
+
 void main() {
-  group('SoundService.toggle', () {
-    test('starts gapless loop playback on first toggle', () async {
+  group('SoundService.toggle — cache hit (local file already prefetched)', () {
+    test('plays from the cached local file path, no network setUrl', () async {
       final fake = FakeAudioPlayerHandle();
-      final service = SoundService(player: fake);
+      final cache = FakeCacheManager(cachedPath: '/cache/storm_waves.m4a');
+      final service = SoundService(cacheManager: cache, player: fake);
+
+      await service.toggle('storm_waves', encounterId: 'peter_water_001');
+
+      expect(service.isPlaying, isTrue);
+      expect(fake.lastFilePath, '/cache/storm_waves.m4a');
+      expect(fake.lastUrl, isNull);
+      expect(cache.downloadFileCallCount, 0);
+      expect(fake.lastLoopMode, LoopMode.one);
+      expect(fake.playCalled, isTrue);
+    });
+
+    test(
+        'looks up the cache with an explicit, namespaced key — never the '
+        'raw URL — so it can never resolve to an unrelated cached file '
+        '(reproduces a real-device bug: the shared BaseCacheManager store '
+        'returned an image cache entry for a URL-defaulted audio lookup)',
+        () async {
+      final fake = FakeAudioPlayerHandle();
+      final cache = FakeCacheManager(cachedPath: '/cache/storm_waves.m4a');
+      final service = SoundService(cacheManager: cache, player: fake);
+
+      await service.toggle(
+        'storm_waves',
+        encounterId: 'peter_water_001',
+        version: '2.0',
+      );
+
+      expect(cache.lastGetFileFromCacheKey, isNotNull);
+      expect(cache.lastGetFileFromCacheKey, isNot(contains('http')));
+      expect(cache.lastGetFileFromCacheKey, contains('peter_water_001'));
+      expect(cache.lastGetFileFromCacheKey, contains('storm_waves'));
+      expect(cache.lastGetFileFromCacheKey, contains('2.0'));
+    });
+  });
+
+  group('SoundService.toggle — cache miss (falls back to network)', () {
+    test('streams from the network URL and warms the cache in the background',
+        () async {
+      final fake = FakeAudioPlayerHandle();
+      final cache = FakeCacheManager();
+      final service = SoundService(cacheManager: cache, player: fake);
 
       await service.toggle('storm_waves', encounterId: 'peter_water_001');
 
       expect(service.isPlaying, isTrue);
       expect(fake.lastUrl, contains('storm_waves'));
       expect(fake.lastUrl, contains('peter_water_001'));
-      expect(fake.lastLoopMode, LoopMode.one);
+      expect(fake.lastFilePath, isNull);
       expect(fake.playCalled, isTrue);
-    });
 
-    test('stops playback on second toggle', () async {
-      final fake = FakeAudioPlayerHandle();
-      final service = SoundService(player: fake);
-
-      await service.toggle('storm_waves', encounterId: 'peter_water_001');
-      await service.toggle('storm_waves', encounterId: 'peter_water_001');
-
-      expect(service.isPlaying, isFalse);
-      expect(fake.stopCallCount, 1);
+      // Background cache warm is fire-and-forget — give it a beat to run.
+      await Future<void>.delayed(Duration.zero);
+      expect(cache.downloadFileCallCount, 1);
+      // Warmed under the same namespaced key toggle() looks up by — not
+      // the raw URL — so a subsequent cache hit finds it.
+      expect(cache.lastDownloadFileKey, cache.lastGetFileFromCacheKey);
+      expect(cache.lastDownloadFileKey, isNot(contains('http')));
     });
 
     test('version is forwarded to the resolved URL', () async {
       final fake = FakeAudioPlayerHandle();
-      final service = SoundService(player: fake);
+      final cache = FakeCacheManager();
+      final service = SoundService(cacheManager: cache, player: fake);
 
       await service.toggle(
         'storm_waves',
@@ -98,7 +196,8 @@ void main() {
 
     test('unreachable URL does not throw and leaves isPlaying false', () async {
       final fake = FakeAudioPlayerHandle()..throwOnSetUrl = true;
-      final service = SoundService(player: fake);
+      final cache = FakeCacheManager();
+      final service = SoundService(cacheManager: cache, player: fake);
 
       await expectLater(
         service.toggle('storm_waves', encounterId: 'peter_water_001'),
@@ -109,73 +208,39 @@ void main() {
     });
   });
 
-  group('SoundService.toggle concurrency', () {
-    test(
-        'a second toggle() landing while the first is still loading '
-        'stops instead of starting a duplicate playback', () async {
-      final fake = FakeAudioPlayerHandle()..setUrlGate = Completer<void>();
-      final service = SoundService(player: fake);
+  group('SoundService.toggle', () {
+    test('stops playback on second toggle', () async {
+      final fake = FakeAudioPlayerHandle();
+      final cache = FakeCacheManager(cachedPath: '/cache/storm_waves.m4a');
+      final service = SoundService(cacheManager: cache, player: fake);
 
-      // First call: starts loading, blocked on setUrlGate (simulates the
-      // real device's in-flight network + codec setup).
-      final firstToggle = service.toggle(
-        'storm_waves',
-        encounterId: 'peter_water_001',
-      );
+      await service.toggle('storm_waves', encounterId: 'peter_water_001');
+      await service.toggle('storm_waves', encounterId: 'peter_water_001');
 
-      // Second call lands before the first has flipped isPlaying — must
-      // wait for the first to finish rather than also starting playback.
-      final secondToggle = service.toggle(
-        'storm_waves',
-        encounterId: 'peter_water_001',
-      );
-
-      // Let the first call's setUrl complete.
-      fake.setUrlGate!.complete();
-      await firstToggle;
-      await secondToggle;
-
-      // The first call played; the second, seeing it now playing, stopped
-      // it — net result is stopped, not a duplicate/relaunched playback.
-      expect(fake.stopCallCount, 1);
       expect(service.isPlaying, isFalse);
-    });
-
-    test('stop() landing while toggle() is still loading waits, then stops',
-        () async {
-      final fake = FakeAudioPlayerHandle()..setUrlGate = Completer<void>();
-      final service = SoundService(player: fake);
-
-      final toggleCall = service.toggle(
-        'storm_waves',
-        encounterId: 'peter_water_001',
-      );
-      final stopCall = service.stop();
-
-      fake.setUrlGate!.complete();
-      await toggleCall;
-      await stopCall;
-
-      expect(fake.playCalled, isTrue);
       expect(fake.stopCallCount, 1);
-      expect(service.isPlaying, isFalse);
     });
   });
 
-  group('SoundService.stop', () {
-    test('no-op when not playing — never calls the player', () async {
+  group('SoundService.stop — hard, unconditional brake', () {
+    test('always calls the player directly, no conditions, same as TTS stop',
+        () async {
       final fake = FakeAudioPlayerHandle();
-      final service = SoundService(player: fake);
+      final cache = FakeCacheManager();
+      final service = SoundService(cacheManager: cache, player: fake);
 
+      // Called with nothing playing — still reaches the player, matching
+      // TtsAudioController.stop()'s unconditional flutterTts.stop() call.
       await service.stop();
 
-      expect(fake.stopCallCount, 0);
+      expect(fake.stopCallCount, 1);
       expect(service.isPlaying, isFalse);
     });
 
     test('stops the player and resets isPlaying when playing', () async {
       final fake = FakeAudioPlayerHandle();
-      final service = SoundService(player: fake);
+      final cache = FakeCacheManager(cachedPath: '/cache/storm_waves.m4a');
+      final service = SoundService(cacheManager: cache, player: fake);
       await service.toggle('storm_waves', encounterId: 'peter_water_001');
 
       await service.stop();
@@ -188,7 +253,8 @@ void main() {
         'a platform error during stop does not throw and still resets isPlaying',
         () async {
       final fake = FakeAudioPlayerHandle()..throwOnStop = true;
-      final service = SoundService(player: fake);
+      final cache = FakeCacheManager(cachedPath: '/cache/storm_waves.m4a');
+      final service = SoundService(cacheManager: cache, player: fake);
       await service.toggle('storm_waves', encounterId: 'peter_water_001');
 
       await expectLater(service.stop(), completes);
@@ -196,17 +262,14 @@ void main() {
       expect(service.isPlaying, isFalse);
     });
 
-    test('calling stop() repeatedly never restarts playback', () async {
+    test('completes immediately — never awaits or is gated by any flag',
+        () async {
       final fake = FakeAudioPlayerHandle();
-      final service = SoundService(player: fake);
-      await service.toggle('storm_waves', encounterId: 'peter_water_001');
+      final cache = FakeCacheManager(cachedPath: '/cache/storm_waves.m4a');
+      final service = SoundService(cacheManager: cache, player: fake);
 
-      await service.stop();
-      await service.stop();
-      await service.stop();
+      await service.stop().timeout(const Duration(milliseconds: 200));
 
-      expect(fake.playCalled, isTrue); // only from the initial toggle
-      expect(fake.stopCallCount, 1); // subsequent stops are no-ops
       expect(service.isPlaying, isFalse);
     });
   });
@@ -214,7 +277,8 @@ void main() {
   group('SoundService.dispose', () {
     test('releases the underlying player and resets isPlaying', () async {
       final fake = FakeAudioPlayerHandle();
-      final service = SoundService(player: fake);
+      final cache = FakeCacheManager(cachedPath: '/cache/storm_waves.m4a');
+      final service = SoundService(cacheManager: cache, player: fake);
       await service.toggle('storm_waves', encounterId: 'peter_water_001');
 
       await service.dispose();

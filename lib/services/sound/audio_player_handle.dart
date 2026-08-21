@@ -7,6 +7,7 @@ import 'package:just_audio/just_audio.dart';
 /// just_audio player (DIP) and can be unit-tested without platform channels.
 abstract class AudioPlayerHandle {
   Future<void> setUrl(String url);
+  Future<void> setFilePath(String path);
   Future<void> setLoopMode(LoopMode mode);
   Future<void> play();
   Future<void> stop();
@@ -21,6 +22,11 @@ class JustAudioPlayerHandle implements AudioPlayerHandle {
   @override
   Future<void> setUrl(String url) async {
     await _player.setUrl(url);
+  }
+
+  @override
+  Future<void> setFilePath(String path) async {
+    await _player.setFilePath(path);
   }
 
   @override
