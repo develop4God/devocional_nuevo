@@ -37,6 +37,9 @@ class EncounterIndexEntry {
   /// Filename for the cinematic intro background image (bare filename, resolved via CDN).
   final String? introImage;
 
+  /// Cue key for the intro page's ambient sound (bare filename, resolved via CDN).
+  final String? introSound;
+
   /// Optional multilingual release hints shown on coming_soon cards.
   /// Maps language codes to human-readable release dates or labels
   /// (e.g., {"es": "Próxima semana", "en": "Next week"}).
@@ -61,6 +64,7 @@ class EncounterIndexEntry {
     this.testament,
     this.character,
     this.introImage,
+    this.introSound,
     this.releaseDate = const {},
     required this.files,
     required this.titles,
@@ -138,6 +142,7 @@ class EncounterIndexEntry {
       testament: json['testament'] as String?,
       character: json['character'] as String?,
       introImage: json['intro_image'] as String?,
+      introSound: json['intro_sound'] as String?,
       releaseDate: toStringMap(json['release_date']),
       files: toStringMap(json['files']),
       titles: toStringMap(json['titles']),
@@ -159,6 +164,7 @@ class EncounterIndexEntry {
         'testament': testament,
         'character': character,
         'intro_image': introImage,
+        'intro_sound': introSound,
         'release_date': releaseDate.isEmpty ? null : releaseDate,
         'files': files,
         'titles': titles,

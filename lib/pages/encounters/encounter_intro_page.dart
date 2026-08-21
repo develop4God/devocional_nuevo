@@ -13,6 +13,7 @@ import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_detail_page.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/sound/i_sound_service.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/image_precache_utils.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
@@ -38,6 +39,7 @@ class EncounterIntroPage extends StatefulWidget {
 class _EncounterIntroPageState extends State<EncounterIntroPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  bool _isSoundPlaying = false;
 
   // Staggered reveal animations
   late Animation<double> _imageOpacity;
@@ -96,8 +98,27 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
 
   @override
   void dispose() {
+    if (_isSoundPlaying) {
+      getService<ISoundService>().toggle(
+        widget.entry.introSound!,
+        encounterId: widget.entry.id,
+      );
+    }
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _toggleIntroSound() async {
+    final introSound = widget.entry.introSound;
+    if (introSound == null) return;
+    await getService<ISoundService>().toggle(
+      introSound,
+      encounterId: widget.entry.id,
+    );
+    if (!mounted) return;
+    setState(() {
+      _isSoundPlaying = getService<ISoundService>().isPlaying;
+    });
   }
 
   /// Warms the image cache for card[0] only.
@@ -283,13 +304,30 @@ class _EncounterIntroPageState extends State<EncounterIntroPage>
                       horizontal: 16,
                       vertical: 8,
                     ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.white70,
-                        size: 28,
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.close,
+                            color: Colors.white70,
+                            size: 28,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                        if (entry.introSound != null)
+                          IconButton(
+                            key: const Key('intro_sound_toggle'),
+                            icon: Icon(
+                              _isSoundPlaying
+                                  ? Icons.volume_up
+                                  : Icons.volume_off,
+                              color: Colors.white70,
+                              size: 28,
+                            ),
+                            onPressed: _toggleIntroSound,
+                          ),
+                      ],
                     ),
                   ),
 

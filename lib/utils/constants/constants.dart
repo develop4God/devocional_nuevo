@@ -191,6 +191,23 @@ class Constants {
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/encounters/$encounterId/$base.$format';
   }
 
+  /// Resolves an encounter ambient audio URL.
+  ///
+  /// [filename] — base name WITHOUT extension (e.g. "storm_waves"),
+  ///   matching the `ambient_sound` cue key from the encounter card JSON.
+  /// [encounterId] — encounter folder name.
+  /// [format] — audio format extension, default 'm4a'.
+  static String getEncounterAudioUrl(
+    String filename, {
+    required String encounterId,
+    String format = 'm4a',
+  }) {
+    final base = filename.contains('.')
+        ? filename.substring(0, filename.lastIndexOf('.'))
+        : filename;
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/audio/encounters/$encounterId/$base.$format';
+  }
+
   // ---------------------------------------------------------------------------
   // Prayer Wall
   // ---------------------------------------------------------------------------
