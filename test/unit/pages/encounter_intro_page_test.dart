@@ -20,18 +20,31 @@ class MockEncounterBloc extends Mock implements EncounterBloc {}
 class FakeSoundService implements ISoundService {
   bool _isPlaying = false;
   int toggleCallCount = 0;
+  int stopCallCount = 0;
   String? lastCueKey;
   String? lastEncounterId;
+  String? lastVersion;
 
   @override
   bool get isPlaying => _isPlaying;
 
   @override
-  Future<void> toggle(String cueKey, {required String encounterId}) async {
+  Future<void> toggle(
+    String cueKey, {
+    required String encounterId,
+    String? version,
+  }) async {
     toggleCallCount++;
     lastCueKey = cueKey;
     lastEncounterId = encounterId;
+    lastVersion = version;
     _isPlaying = !_isPlaying;
+  }
+
+  @override
+  Future<void> stop() async {
+    stopCallCount++;
+    _isPlaying = false;
   }
 
   @override
@@ -116,6 +129,7 @@ void main() {
       expect(fakeSoundService.toggleCallCount, 1);
       expect(fakeSoundService.lastCueKey, 'storm_waves');
       expect(fakeSoundService.lastEncounterId, 'peter_water_001');
+      expect(fakeSoundService.lastVersion, '1.0');
     });
 
     testWidgets('icon reflects playing state after tap', (tester) async {
@@ -160,7 +174,27 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       await tester.pump();
 
-      expect(fakeSoundService.toggleCallCount, 2);
+      expect(fakeSoundService.toggleCallCount, 1);
+      expect(fakeSoundService.stopCallCount, 1);
+      expect(fakeSoundService.isPlaying, isFalse);
+    });
+
+    testWidgets(
+        'disposing the page while stopped calls stop() but does not restart', (
+      tester,
+    ) async {
+      final entry = _fakeEntry(introSound: 'storm_waves');
+      await tester.pumpWidget(_wrap(entry, mockBloc));
+      await tester.pump();
+
+      // Never tapped — sound was never started.
+      expect(fakeSoundService.isPlaying, isFalse);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump();
+
+      expect(fakeSoundService.toggleCallCount, 0);
+      expect(fakeSoundService.stopCallCount, 1);
       expect(fakeSoundService.isPlaying, isFalse);
     });
   });

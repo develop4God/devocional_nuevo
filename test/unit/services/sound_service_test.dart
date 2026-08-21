@@ -10,9 +10,10 @@ class FakeAudioPlayerHandle implements AudioPlayerHandle {
   String? lastUrl;
   LoopMode? lastLoopMode;
   bool playCalled = false;
-  bool stopCalled = false;
+  int stopCallCount = 0;
   bool disposeCalled = false;
   bool throwOnSetUrl = false;
+  bool throwOnStop = false;
 
   @override
   Future<void> setUrl(String url) async {
@@ -34,7 +35,10 @@ class FakeAudioPlayerHandle implements AudioPlayerHandle {
 
   @override
   Future<void> stop() async {
-    stopCalled = true;
+    stopCallCount++;
+    if (throwOnStop) {
+      throw Exception('platform error');
+    }
   }
 
   @override
@@ -66,7 +70,20 @@ void main() {
       await service.toggle('storm_waves', encounterId: 'peter_water_001');
 
       expect(service.isPlaying, isFalse);
-      expect(fake.stopCalled, isTrue);
+      expect(fake.stopCallCount, 1);
+    });
+
+    test('version is forwarded to the resolved URL', () async {
+      final fake = FakeAudioPlayerHandle();
+      final service = SoundService(player: fake);
+
+      await service.toggle(
+        'storm_waves',
+        encounterId: 'peter_water_001',
+        version: '2.0',
+      );
+
+      expect(fake.lastUrl, contains('v=2.0'));
     });
 
     test('unreachable URL does not throw and leaves isPlaying false', () async {
@@ -79,6 +96,55 @@ void main() {
       );
       expect(service.isPlaying, isFalse);
       expect(fake.playCalled, isFalse);
+    });
+  });
+
+  group('SoundService.stop', () {
+    test('no-op when not playing — never calls the player', () async {
+      final fake = FakeAudioPlayerHandle();
+      final service = SoundService(player: fake);
+
+      await service.stop();
+
+      expect(fake.stopCallCount, 0);
+      expect(service.isPlaying, isFalse);
+    });
+
+    test('stops the player and resets isPlaying when playing', () async {
+      final fake = FakeAudioPlayerHandle();
+      final service = SoundService(player: fake);
+      await service.toggle('storm_waves', encounterId: 'peter_water_001');
+
+      await service.stop();
+
+      expect(fake.stopCallCount, 1);
+      expect(service.isPlaying, isFalse);
+    });
+
+    test(
+        'a platform error during stop does not throw and still resets isPlaying',
+        () async {
+      final fake = FakeAudioPlayerHandle()..throwOnStop = true;
+      final service = SoundService(player: fake);
+      await service.toggle('storm_waves', encounterId: 'peter_water_001');
+
+      await expectLater(service.stop(), completes);
+
+      expect(service.isPlaying, isFalse);
+    });
+
+    test('calling stop() repeatedly never restarts playback', () async {
+      final fake = FakeAudioPlayerHandle();
+      final service = SoundService(player: fake);
+      await service.toggle('storm_waves', encounterId: 'peter_water_001');
+
+      await service.stop();
+      await service.stop();
+      await service.stop();
+
+      expect(fake.playCalled, isTrue); // only from the initial toggle
+      expect(fake.stopCallCount, 1); // subsequent stops are no-ops
+      expect(service.isPlaying, isFalse);
     });
   });
 

@@ -40,6 +40,11 @@ class EncounterIndexEntry {
   /// Cue key for the intro page's ambient sound (bare filename, resolved via CDN).
   final String? introSound;
 
+  /// Cache-busting version for [introSound]'s audio file, independent of
+  /// [version]. Bump when replacing the file's content under the same
+  /// filename. Mirrors [imageVersion].
+  final String soundVersion;
+
   /// Optional multilingual release hints shown on coming_soon cards.
   /// Maps language codes to human-readable release dates or labels
   /// (e.g., {"es": "Próxima semana", "en": "Next week"}).
@@ -65,6 +70,7 @@ class EncounterIndexEntry {
     this.character,
     this.introImage,
     this.introSound,
+    this.soundVersion = '1.0',
     this.releaseDate = const {},
     required this.files,
     required this.titles,
@@ -143,6 +149,7 @@ class EncounterIndexEntry {
       character: json['character'] as String?,
       introImage: json['intro_image'] as String?,
       introSound: json['intro_sound'] as String?,
+      soundVersion: json['sound_version'] as String? ?? '1.0',
       releaseDate: toStringMap(json['release_date']),
       files: toStringMap(json['files']),
       titles: toStringMap(json['titles']),
@@ -165,6 +172,7 @@ class EncounterIndexEntry {
         'character': character,
         'intro_image': introImage,
         'intro_sound': introSound,
+        'sound_version': soundVersion,
         'release_date': releaseDate.isEmpty ? null : releaseDate,
         'files': files,
         'titles': titles,
