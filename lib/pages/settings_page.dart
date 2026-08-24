@@ -550,42 +550,45 @@ class _SettingsViewState extends State<_SettingsView> {
                           color: colorScheme.surface.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: SwitchListTile(
-                          title: Text(
-                            'supporter.show_pet_header'.tr(),
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: SwitchListTile(
+                            title: Text(
+                              'supporter.show_pet_header'.tr(),
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          subtitle: Text(
-                            '${'supporter.pet_currently_selected'.tr()}: ${_petService.selectedPet.nameKey.tr()} ${_petService.selectedPet.emoji}',
-                            style: textTheme.bodySmall,
-                          ),
-                          value: _petService.showPetHeader,
-                          onChanged: (bool value) async {
-                            await _petService.setShowPetHeader(value);
-                            setState(() {});
-                          },
-                          thumbColor: WidgetStateProperty.resolveWith<Color>((
-                            Set<WidgetState> states,
-                          ) {
-                            if (states.contains(WidgetState.selected)) {
-                              return Colors.amber.shade700;
-                            }
-                            return Colors.white;
-                          }),
-                          trackColor: WidgetStateProperty.resolveWith<Color>((
-                            Set<WidgetState> states,
-                          ) {
-                            if (states.contains(WidgetState.selected)) {
-                              return Colors.amber.shade700.withValues(
-                                alpha: 0.5,
-                              );
-                            }
-                            return Colors.grey.shade600;
-                          }),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
+                            subtitle: Text(
+                              '${'supporter.pet_currently_selected'.tr()}: ${_petService.selectedPet.nameKey.tr()} ${_petService.selectedPet.emoji}',
+                              style: textTheme.bodySmall,
+                            ),
+                            value: _petService.showPetHeader,
+                            onChanged: (bool value) async {
+                              await _petService.setShowPetHeader(value);
+                              setState(() {});
+                            },
+                            thumbColor: WidgetStateProperty.resolveWith<Color>((
+                              Set<WidgetState> states,
+                            ) {
+                              if (states.contains(WidgetState.selected)) {
+                                return Colors.amber.shade700;
+                              }
+                              return Colors.white;
+                            }),
+                            trackColor: WidgetStateProperty.resolveWith<Color>((
+                              Set<WidgetState> states,
+                            ) {
+                              if (states.contains(WidgetState.selected)) {
+                                return Colors.amber.shade700.withValues(
+                                  alpha: 0.5,
+                                );
+                              }
+                              return Colors.grey.shade600;
+                            }),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                            ),
                           ),
                         ),
                       ),
