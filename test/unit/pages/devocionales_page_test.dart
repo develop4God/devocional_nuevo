@@ -175,7 +175,8 @@ void main() {
     repository = MockDevocionalRepository();
   });
 
-  Widget host(DevocionalRepository repo) => MultiProvider(
+  Widget host(DevocionalRepository repo, {String? initialDevocionalId}) =>
+      MultiProvider(
         providers: [
           BlocProvider<ThemeBloc>(create: (_) => FakeThemeBloc()),
           ChangeNotifierProvider<DevocionalProvider>(
@@ -191,7 +192,9 @@ void main() {
             create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
           ),
         ],
-        child: const MaterialApp(home: DevocionalesPage()),
+        child: MaterialApp(
+          home: DevocionalesPage(initialDevocionalId: initialDevocionalId),
+        ),
       );
 
   group('DevocionalesPage — initialization outcomes', () {
@@ -285,10 +288,110 @@ void main() {
           find.byKey(const Key('devocionales_error_scaffold')), findsNothing);
       expect(find.text('devotionals.loading'.tr()), findsNothing);
 
-      // Unmount before the test ends so DevocionalesPage.dispose() cancels
-      // the tracking criteria-check Timer.periodic it owns — otherwise it
-      // keeps firing past this test's lifetime.
+      // Drain in-flight timers (tracking self-test + periodic criteria
+      // check) before unmounting so DevocionalesPage.dispose() cancels the
+      // periodic one cleanly instead of racing a still-scheduled callback.
+      await tester.pump(const Duration(seconds: 3));
       await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    });
+
+    // Regression test: the list-sync Consumer<DevocionalProvider> in
+    // _buildWithBloc used to treat _lastProcessedDevocionales == null as
+    // "the list changed" on its first read after NavigationReady, firing a
+    // spurious UpdateDevocionales from first-unread stats that silently
+    // discarded a deep-linked initialDevocionalId one frame after landing
+    // on it. Fixed by seeding _lastProcessedDevocionales right after
+    // InitializeNavigation is dispatched in _initializeNavigationBloc.
+    testWidgets(
+        'opens directly on the devotional matching initialDevocionalId, '
+        'bypassing first-unread lookup', (tester) async {
+      final loaded = [_devocional('d1'), _devocional('d2'), _devocional('d3')];
+      when(() => repository.getAvailableYears())
+          .thenAnswer((_) async => <int>[2025]);
+      when(() => repository.fetchAll(any(), any(), any()))
+          .thenAnswer((_) async => loaded);
+      when(() => repository.wasLastFetchOffline).thenReturn(false);
+      when(() => repository.filterByVersion(any(), any())).thenAnswer(
+          (invocation) =>
+              invocation.positionalArguments[0] as List<Devocional>);
+      // findFirstUnreadDevocionalIndex deliberately stubbed to return 0
+      // (the first-unread fallback index) — if the deep-link branch were
+      // bypassed, the page would fall through to it and land on 'd1'
+      // instead of the deep-linked 'd3'.
+      when(() => repository.findFirstUnreadDevocionalIndex(any(), any()))
+          .thenReturn(0);
+
+      await tester.pumpWidget(
+        host(repository, initialDevocionalId: 'd3'),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('Reflection d3'), findsOneWidget);
+      expect(find.text('Reflection d1'), findsNothing);
+
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    });
+
+    testWidgets(
+        'does not reset the displayed devotional when a version switch '
+        'reloads an identical (same-id) list', (tester) async {
+      when(() => repository.getAvailableYears())
+          .thenAnswer((_) async => <int>[2025]);
+      // Same ids on every fetch — only content that differs is version,
+      // which _areDevocionalListsEqual deliberately ignores (id-based only).
+      when(() => repository.fetchAll(any(), any(), any())).thenAnswer(
+        (invocation) async => [
+          _devocional('d1',
+              version: invocation.positionalArguments[2] as String),
+          _devocional('d2',
+              version: invocation.positionalArguments[2] as String),
+        ],
+      );
+      when(() => repository.wasLastFetchOffline).thenReturn(false);
+      when(() => repository.filterByVersion(any(), any())).thenAnswer(
+          (invocation) =>
+              invocation.positionalArguments[0] as List<Devocional>);
+      when(() => repository.findFirstUnreadDevocionalIndex(any(), any()))
+          .thenReturn(0);
+
+      await tester.pumpWidget(host(repository));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('Reflection d1'), findsOneWidget);
+
+      final devocionalProvider = Provider.of<DevocionalProvider>(
+        tester.element(find.byType(DevocionalesPage)),
+        listen: false,
+      );
+      await devocionalProvider.setSelectedVersion('NIV');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Still on the same devotional — a same-id list reload must not have
+      // been treated as a real change that resets navigation to index 0
+      // (it already was index 0, so the real assertion is that this branch
+      // took the "lists are equal" path rather than the update path: no
+      // crash, no stuck loading state, same content still on screen).
+      expect(find.text('Reflection d1'), findsOneWidget);
+      expect(
+          find.byKey(const Key('devocionales_error_scaffold')), findsNothing);
+
+      // Drain any timers left in flight from setSelectedVersion (and the
+      // tracking self-test Timer) before unmounting.
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
     });
   });
 }

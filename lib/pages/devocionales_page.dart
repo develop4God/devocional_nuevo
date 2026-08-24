@@ -297,6 +297,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         ),
       );
 
+      // Seed the list-change tracker with what the BLoC was just initialized
+      // with, so the first _buildWithBloc Consumer rebuild after NavigationReady
+      // doesn't see _lastProcessedDevocionales == null and treat the already-
+      // applied list as "changed" — that used to fire a spurious
+      // UpdateDevocionales that recomputed the index from first-unread stats,
+      // silently discarding a deep-linked initialDevocionalId one frame after
+      // landing on it.
+      _lastProcessedDevocionales = devocionalProvider.devocionales;
+
       // Mark as successfully initialized
       if (mounted) {
         setState(() {
