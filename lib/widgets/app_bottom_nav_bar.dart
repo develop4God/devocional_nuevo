@@ -71,6 +71,7 @@ class AppBottomNavBar extends StatelessWidget {
       context,
     ).appBarTheme.backgroundColor;
     final List<AppTab> enabledTabs = tabs ?? enabledAppTabs();
+    final int tabCount = enabledTabs.length;
 
     return SafeArea(
       top: false,
@@ -79,112 +80,163 @@ class AppBottomNavBar extends StatelessWidget {
         color: appBarBackgroundColor,
         padding: EdgeInsets.zero,
         child: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              // 1. Home (Devocionales)
-              IconButton(
-                key: const Key('bottom_appbar_home_icon'),
-                tooltip: 'common.home'.tr(),
-                onPressed: () => _selectTab(AppTab.home, 'home'),
-                icon: Icon(
-                  currentTab == AppTab.home ? Icons.home : Icons.home_outlined,
-                  color: _iconColor(colorScheme, AppTab.home),
-                  size: 30,
-                ),
-              ),
-              // 2. Prayers
-              IconButton(
-                key: const Key('bottom_appbar_prayers_icon'),
-                tooltip: 'tooltips.my_prayers'.tr(),
-                onPressed: () async {
-                  HapticFeedback.mediumImpact();
-                  await BubbleUtils.markAsShown(
-                    BubbleUtils.getIconBubbleId(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Each icon needs room for itself plus spaceAround's share of
+              // gutter space; clamp so a phone doesn't overflow and a tablet
+              // doesn't stretch icons absurdly large.
+              final double iconSize =
+                  (constraints.maxWidth / tabCount * 0.5).clamp(22.0, 30.0);
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  // 1. Home (Devocionales)
+                  IconButton(
+                    key: const Key('bottom_appbar_home_icon'),
+                    tooltip: 'common.home'.tr(),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    style: IconButton.styleFrom(
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () => _selectTab(AppTab.home, 'home'),
+                    icon: Icon(
+                      currentTab == AppTab.home
+                          ? Icons.home
+                          : Icons.home_outlined,
+                      color: _iconColor(colorScheme, AppTab.home),
+                      size: iconSize,
+                    ),
+                  ),
+                  // 2. Prayers
+                  IconButton(
+                    key: const Key('bottom_appbar_prayers_icon'),
+                    tooltip: 'tooltips.my_prayers'.tr(),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    style: IconButton.styleFrom(
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () async {
+                      HapticFeedback.mediumImpact();
+                      await BubbleUtils.markAsShown(
+                        BubbleUtils.getIconBubbleId(
+                          Icons.local_fire_department_outlined,
+                          'new',
+                        ),
+                      );
+                      _selectTab(AppTab.prayers, 'prayers');
+                    },
+                    icon: Icon(
                       Icons.local_fire_department_outlined,
+                      color: _iconColor(colorScheme, AppTab.prayers),
+                      size: iconSize,
+                    ),
+                  ),
+                  // 3. Bible
+                  IconButton(
+                    key: const Key('bottom_appbar_bible_icon'),
+                    tooltip: 'tooltips.bible'.tr(),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    style: IconButton.styleFrom(
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () => _selectTab(AppTab.bible, 'bible'),
+                    icon: Icon(
+                      Icons.auto_stories_outlined,
+                      color: _iconColor(colorScheme, AppTab.bible),
+                      size: iconSize,
+                    ),
+                  ),
+                  // 4. Discovery Studies
+                  if (enabledTabs.contains(AppTab.discovery))
+                    IconButton(
+                      key: const Key('bottom_appbar_discovery_icon'),
+                      tooltip: 'discovery.discovery_studies'.tr(),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      style: IconButton.styleFrom(
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () =>
+                          _selectTab(AppTab.discovery, 'discovery'),
+                      icon: Icon(
+                        Icons.school_outlined,
+                        color: _iconColor(colorScheme, AppTab.discovery),
+                        size: iconSize,
+                      ),
+                    ),
+                  // 5. Encounters
+                  if (enabledTabs.contains(AppTab.encounters))
+                    IconButton(
+                      key: const Key('bottom_appbar_encounters_icon'),
+                      tooltip: 'Encounters',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      style: IconButton.styleFrom(
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () =>
+                          _selectTab(AppTab.encounters, 'encounters'),
+                      icon: Icon(
+                        Icons.location_history_outlined,
+                        color: _iconColor(colorScheme, AppTab.encounters),
+                        size: iconSize,
+                      ),
+                    ),
+                  // 6. Spiritual Stats/Progress
+                  IconButton(
+                    key: const Key('bottom_appbar_progress_icon'),
+                    tooltip: 'tooltips.progress'.tr(),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    style: IconButton.styleFrom(
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () => _selectTab(AppTab.progress, 'progress'),
+                    icon: Icon(
+                      Icons.emoji_events_outlined,
+                      color: _iconColor(colorScheme, AppTab.progress),
+                      size: iconSize,
+                    ),
+                  ),
+                  // 7. Settings
+                  _NavIconWithBadge(
+                    iconKey: const Key('bottom_appbar_settings_icon'),
+                    tooltip: 'tooltips.settings'.tr(),
+                    icon: Icons.settings_suggest_sharp,
+                    color: _iconColor(colorScheme, AppTab.settings),
+                    iconSize: iconSize,
+                    bubbleId: BubbleUtils.getIconBubbleId(
+                      Icons.settings_suggest_sharp,
                       'new',
                     ),
-                  );
-                  _selectTab(AppTab.prayers, 'prayers');
-                },
-                icon: Icon(
-                  Icons.local_fire_department_outlined,
-                  color: _iconColor(colorScheme, AppTab.prayers),
-                  size: 30,
-                ),
-              ),
-              // 3. Bible
-              IconButton(
-                key: const Key('bottom_appbar_bible_icon'),
-                tooltip: 'tooltips.bible'.tr(),
-                onPressed: () => _selectTab(AppTab.bible, 'bible'),
-                icon: Icon(
-                  Icons.auto_stories_outlined,
-                  color: _iconColor(colorScheme, AppTab.bible),
-                  size: 30,
-                ),
-              ),
-              // 4. Discovery Studies
-              if (enabledTabs.contains(AppTab.discovery))
-                IconButton(
-                  key: const Key('bottom_appbar_discovery_icon'),
-                  tooltip: 'discovery.discovery_studies'.tr(),
-                  onPressed: () => _selectTab(AppTab.discovery, 'discovery'),
-                  icon: Icon(
-                    Icons.school_outlined,
-                    color: _iconColor(colorScheme, AppTab.discovery),
-                    size: 30,
+                    onSelect: () => _selectTab(AppTab.settings, 'settings'),
                   ),
-                ),
-              // 5. Encounters
-              if (enabledTabs.contains(AppTab.encounters))
-                IconButton(
-                  key: const Key('bottom_appbar_encounters_icon'),
-                  tooltip: 'Encounters',
-                  onPressed: () => _selectTab(AppTab.encounters, 'encounters'),
-                  icon: Icon(
-                    Icons.location_history_outlined,
-                    color: _iconColor(colorScheme, AppTab.encounters),
-                    size: 30,
-                  ),
-                ),
-              // 6. Spiritual Stats/Progress
-              IconButton(
-                key: const Key('bottom_appbar_progress_icon'),
-                tooltip: 'tooltips.progress'.tr(),
-                onPressed: () => _selectTab(AppTab.progress, 'progress'),
-                icon: Icon(
-                  Icons.emoji_events_outlined,
-                  color: _iconColor(colorScheme, AppTab.progress),
-                  size: 30,
-                ),
-              ),
-              // 7. Settings
-              _NavIconWithBadge(
-                iconKey: const Key('bottom_appbar_settings_icon'),
-                tooltip: 'tooltips.settings'.tr(),
-                icon: Icons.settings_suggest_sharp,
-                color: _iconColor(colorScheme, AppTab.settings),
-                bubbleId: BubbleUtils.getIconBubbleId(
-                  Icons.settings_suggest_sharp,
-                  'new',
-                ),
-                onSelect: () => _selectTab(AppTab.settings, 'settings'),
-              ),
-              if (enabledTabs.contains(AppTab.supporter))
-                _NavIconWithBadge(
-                  iconKey: const Key('bottom_appbar_supporter_icon'),
-                  tooltip: 'tooltips.support'.tr(),
-                  icon: Icons.volunteer_activism,
-                  color: _iconColor(colorScheme, AppTab.supporter),
-                  bubbleId: BubbleUtils.getIconBubbleId(
-                    Icons.volunteer_activism,
-                    'new',
-                    semanticLabel: 'supporter_bottom_bar',
-                  ),
-                  onSelect: () => _selectTab(AppTab.supporter, 'supporter'),
-                ),
-            ],
+                  if (enabledTabs.contains(AppTab.supporter))
+                    _NavIconWithBadge(
+                      iconKey: const Key('bottom_appbar_supporter_icon'),
+                      tooltip: 'tooltips.support'.tr(),
+                      icon: Icons.volunteer_activism,
+                      color: _iconColor(colorScheme, AppTab.supporter),
+                      iconSize: iconSize,
+                      bubbleId: BubbleUtils.getIconBubbleId(
+                        Icons.volunteer_activism,
+                        'new',
+                        semanticLabel: 'supporter_bottom_bar',
+                      ),
+                      onSelect: () => _selectTab(AppTab.supporter, 'supporter'),
+                    ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -202,6 +254,7 @@ class _NavIconWithBadge extends StatefulWidget {
   final String tooltip;
   final IconData icon;
   final Color color;
+  final double iconSize;
   final String bubbleId;
   final VoidCallback onSelect;
 
@@ -210,6 +263,7 @@ class _NavIconWithBadge extends StatefulWidget {
     required this.tooltip,
     required this.icon,
     required this.color,
+    required this.iconSize,
     required this.bubbleId,
     required this.onSelect,
   });
@@ -235,11 +289,18 @@ class _NavIconWithBadgeState extends State<_NavIconWithBadge> {
             IconButton(
               key: widget.iconKey,
               tooltip: widget.tooltip,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              style: IconButton.styleFrom(
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               onPressed: () async {
                 await BubbleUtils.markAsShown(widget.bubbleId);
                 widget.onSelect();
               },
-              icon: Icon(widget.icon, color: widget.color, size: 30),
+              icon:
+                  Icon(widget.icon, color: widget.color, size: widget.iconSize),
             ),
             if (showBubble)
               Positioned(
