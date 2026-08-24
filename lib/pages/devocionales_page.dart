@@ -787,8 +787,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 16,
+                runSpacing: 16,
                 children: [
                   FilledButton.icon(
                     onPressed: () {
@@ -798,7 +800,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     icon: const Icon(Icons.refresh),
                     label: Text('devotionals.retry'.tr()),
                   ),
-                  const SizedBox(width: 16),
                   OutlinedButton.icon(
                     onPressed: () {
                       // Navigate to settings to change language/version.
