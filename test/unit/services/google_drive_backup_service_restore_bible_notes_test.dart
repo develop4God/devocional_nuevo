@@ -4,23 +4,9 @@ library;
 import 'package:devocional_nuevo/models/bible_note.dart';
 import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
 import 'package:devocional_nuevo/services/backup/google_drive_backup_service.dart';
-import 'package:devocional_nuevo/services/backup/i_backup_settings_service.dart';
-import 'package:devocional_nuevo/services/backup/i_google_drive_auth_service.dart';
-import 'package:devocional_nuevo/services/i_connectivity_service.dart';
-import 'package:devocional_nuevo/services/i_localization_service.dart';
-import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 
-class _MockAuthService extends Mock implements IGoogleDriveAuthService {}
-
-class _MockConnectivityService extends Mock implements IConnectivityService {}
-
-class _MockStatsService extends Mock implements ISpiritualStatsService {}
-
-class _MockLocalizationService extends Mock implements ILocalizationService {}
-
-class _MockSettingsService extends Mock implements IBackupSettingsService {}
+import '../../helpers/google_drive_backup_mock_helper.dart';
 
 /// Records every call instead of touching real storage, so the test asserts
 /// the wiring between GoogleDriveBackupService and the repository directly.
@@ -55,11 +41,11 @@ void main() {
     setUp(() {
       fakeRepository = FakeBibleNotesRepository();
       service = GoogleDriveBackupService(
-        authService: _MockAuthService(),
-        connectivityService: _MockConnectivityService(),
-        statsService: _MockStatsService(),
-        localizationService: _MockLocalizationService(),
-        settingsService: _MockSettingsService(),
+        authService: MockGoogleDriveAuthService(),
+        connectivityService: MockConnectivityService(),
+        statsService: MockSpiritualStatsService(),
+        localizationService: MockLocalizationService(),
+        settingsService: MockBackupSettingsService(),
         bibleNotesRepository: fakeRepository,
       );
     });
