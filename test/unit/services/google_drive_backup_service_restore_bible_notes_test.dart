@@ -1,4 +1,4 @@
-@Tags(['unit'])
+@Tags(['unit', 'services', 'backup', 'notes'])
 library;
 
 import 'package:devocional_nuevo/models/bible_note.dart';
