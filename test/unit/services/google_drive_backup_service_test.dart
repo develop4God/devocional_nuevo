@@ -17,6 +17,7 @@ library;
 // size estimation, and backup options persistence. Bible-note restore is
 // covered separately in google_drive_backup_service_restore_bible_notes_test.dart.
 
+import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/backup/google_drive_backup_service.dart';
 import 'package:devocional_nuevo/utils/constants/backup_keys_constants.dart';
 import 'package:flutter/widgets.dart';
@@ -24,6 +25,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../helpers/bloc_test_helper.dart' show createMockDevocionalProvider;
 import '../../helpers/google_drive_backup_mock_helper.dart';
 
 void main() {
@@ -225,6 +227,80 @@ void main() {
       // Corrupt JSON throws inside the try/catch — service returns the
       // all-zero fallback rather than crashing the caller.
       expect(summary.isEmpty, isTrue);
+    });
+
+    test('counts every remaining field from real SharedPreferences/stats state',
+        () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('thanksgivings', '[{"id":"1"},{"id":"2"}]');
+      await prefs.setString('testimonies', '[{"id":"1"}]');
+      await prefs.setString('favorite_ids', '["a","b","c"]');
+      await prefs.setStringList('encounter_completed_ids', ['e1', 'e2']);
+      await prefs.setStringList('bible_marked_verses', ['Gen 1:1']);
+      await prefs.setString(
+        'discovery_progress_study-1',
+        '{"progress":50}',
+      );
+      await prefs.setString(
+        'spiritual_stats',
+        '{"readDevocionalIds":["d1","d2","d3"],"answeredPrayersCount":4}',
+      );
+
+      final summary = await service.getBackupContentSummary();
+
+      expect(summary.thanksgivingsCount, 2);
+      expect(summary.testimoniesCount, 1);
+      expect(summary.favoritesCount, 3);
+      expect(summary.encountersCount, 2);
+      expect(summary.versesCount, 1);
+      expect(summary.discoveryCount, 1);
+      expect(summary.readDevocionalesCount, 3);
+      expect(summary.answeredPrayersCount, 4);
+    });
+  });
+
+  group('getEstimatedBackupSize — remaining option branches', () {
+    test('adds favorite devotionals size when provider has favorites',
+        () async {
+      final provider = createMockDevocionalProvider(
+        favoriteDevocionales: List.generate(
+          3,
+          (_) => Devocional(
+            id: 'id',
+            versiculo: 'v',
+            reflexion: 'r',
+            paraMeditar: const [],
+            oracion: 'o',
+            date: DateTime(2025),
+            version: 'RVR1960',
+            language: 'es',
+          ),
+        ),
+      );
+
+      final size = await service.getEstimatedBackupSize(provider);
+
+      // Defaults (45KB) + 3 favorites * 2KB each = 51KB.
+      expect(size, 45 * 1024 + 3 * 2 * 1024);
+    });
+
+    test('adds saved thanksgivings and testimonies sizes when enabled',
+        () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'google_drive_backup_options',
+        '{"spiritual_stats":false,"favorite_devotionals":false,'
+            '"saved_prayers":false,"saved_thanksgivings":true,'
+            '"devotional_notes":false,"bible_notes":false,'
+            '"completed_encounters":false,"discovery_progress":false,'
+            '"discovery_favorites":false,"testimonies":true,'
+            '"preferred_bible_version":false,"marked_bible_verses":false}',
+      );
+
+      final size = await service.getEstimatedBackupSize(null);
+
+      // savedThanksgivings(15KB) + testimonies(10KB) = 25KB.
+      expect(size, 25 * 1024);
     });
   });
 
