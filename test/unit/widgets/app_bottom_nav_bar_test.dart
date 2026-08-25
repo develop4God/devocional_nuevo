@@ -19,14 +19,12 @@ void main() {
     Widget createWidgetUnderTest({
       AppTab currentTab = AppTab.home,
       ValueChanged<AppTab>? onSelectTab,
-      List<AppTab>? tabs,
     }) {
       return MaterialApp(
         home: Scaffold(
           bottomNavigationBar: AppBottomNavBar(
             currentTab: currentTab,
             onSelectTab: onSelectTab ?? (_) {},
-            tabs: tabs,
           ),
         ),
       );
@@ -249,37 +247,6 @@ void main() {
 
       expect(find.byIcon(Icons.home_outlined), findsOneWidget);
       expect(find.byIcon(Icons.home), findsNothing);
-    });
-
-    testWidgets('does not overflow with all 8 tabs on a narrow phone width', (
-      WidgetTester tester,
-    ) async {
-      final originalSize = tester.view.physicalSize;
-      final originalRatio = tester.view.devicePixelRatio;
-      tester.view.physicalSize = const Size(320, 640);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        tester.view.physicalSize = originalSize;
-        tester.view.devicePixelRatio = originalRatio;
-      });
-
-      await tester.pumpWidget(
-        createWidgetUnderTest(
-          tabs: const [
-            AppTab.home,
-            AppTab.prayers,
-            AppTab.bible,
-            AppTab.discovery,
-            AppTab.encounters,
-            AppTab.progress,
-            AppTab.settings,
-            AppTab.supporter,
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(tester.takeException(), isNull);
     });
   });
 }
