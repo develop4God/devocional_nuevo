@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:devocional_nuevo/utils/constants/devocional_years.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
@@ -14,6 +15,17 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
 import 'devocional_repository.dart';
+
+/// A fully-drained year-file HTTP response.
+///
+/// Carries only what the year-file parse needs, so the streaming read does not
+/// have to materialize a `http.Response`.
+class _YearFileResponse {
+  final int statusCode;
+  final Uint8List bodyBytes;
+
+  const _YearFileResponse({required this.statusCode, required this.bodyBytes});
+}
 
 /// Concrete implementation of [DevocionalRepository].
 ///
@@ -169,8 +181,7 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
           version,
         );
         debugPrint('🔍 Requesting URL: $url');
-        final response =
-            await _httpClient.get(Uri.parse(url)).timeout(_fetchTimeout);
+        final _YearFileResponse response = await _getWithIdleTimeout(url);
 
         if (response.statusCode == 200) {
           final String responseBody = utf8.decode(response.bodyBytes);
@@ -202,6 +213,34 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
     }
 
     return [];
+  }
+
+  /// GETs [url] and drains the response body under an idle (stall) timeout.
+  ///
+  /// [_fetchTimeout] bounds the gap *between* byte chunks, not the total
+  /// transfer time. A legitimately slow but progressing download of any size
+  /// completes; a dead socket throws [TimeoutException] within one window.
+  /// Because the timeout applies to the stream, tripping it cancels the
+  /// subscription and releases the connection, rather than leaving a detached
+  /// future running as a whole-response `.timeout()` would.
+  Future<_YearFileResponse> _getWithIdleTimeout(String url) async {
+    final request = http.Request('GET', Uri.parse(url));
+
+    // The idle window bounds the wait for response headers too — a socket that
+    // connects but never replies would otherwise hang here, before there is
+    // any byte stream to time out.
+    final http.StreamedResponse streamed =
+        await _httpClient.send(request).timeout(_fetchTimeout);
+
+    final BytesBuilder builder = BytesBuilder(copy: false);
+    await for (final chunk in streamed.stream.timeout(_fetchTimeout)) {
+      builder.add(chunk);
+    }
+
+    return _YearFileResponse(
+      statusCode: streamed.statusCode,
+      bodyBytes: builder.takeBytes(),
+    );
   }
 
   @override
