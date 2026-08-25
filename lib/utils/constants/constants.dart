@@ -131,6 +131,16 @@ class Constants {
   /// Timeout for fetching the devocional index — keep short to avoid blocking load
   static const Duration indexFetchTimeout = Duration(seconds: 3);
 
+  /// Timeout for fetching a devocional year file (~6MB). This only guards
+  /// against a genuinely stalled connection (e.g. dead TCP, DNS blackhole)
+  /// that would otherwise hang indefinitely — it is deliberately NOT sized
+  /// to fit under AppInitializer's 12s startup watchdog or the 30s provider
+  /// wait, since a real download of this size can legitimately take longer
+  /// than either on a slow connection. Those watchdogs firing on a slow (but
+  /// working) network is a separate, unresolved capacity mismatch — see
+  /// devocional_repository_impl.dart fetchAll().
+  static const Duration devocionalFetchTimeout = Duration(seconds: 20);
+
   /// Obtiene la URL del índice de Discovery
   static String getDiscoveryIndexUrl() {
     final branch = kDebugMode ? DebugFlags.debugBranch : 'main';
