@@ -113,10 +113,15 @@ Apply all suggested fixes. Re-run `dart analyze --fatal-infos` after — must st
 
 Example: If you modify `DevocionalProvider`, run:
 ```bash
-/home/develop4god/development/flutter/bin/flutter test test/unit/providers/devocional_provider_test.dart --reporter compact
-/home/develop4god/development/flutter/bin/flutter test test/unit/widgets/drawer_offline_widget_test.dart --reporter compact
+scripts/flutter_test_fail_fast.sh test/unit/providers/devocional_provider_test.dart
+scripts/flutter_test_fail_fast.sh test/unit/widgets/drawer_offline_widget_test.dart
 ```
 NOT the full suite.
+
+The runner executes tests one at a time, stops after the first failure, and
+saves the focused failure output in `.dart_tool/test-failures/`. Use
+`FLUTTER_TEST_VERBOSE=1` only when Flutter's additional diagnostic logging is
+needed.
 
 **Reason:** Full suite runs too slow, masks focused verification, and defeats rapid iteration. Only run full suite if user explicitly requests it.
 
