@@ -25,6 +25,7 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/devocional_tts_sections.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/devotional_share_helper.dart';
 import 'package:devocional_nuevo/utils/localized_date_formatter.dart';
 import 'package:devocional_nuevo/widgets/add_entry_choice_modal.dart';
@@ -254,7 +255,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           '[DEVOCIONALES_PAGE] ⚠️ No devotionals after first attempt, '
           'retrying in 2s...',
         );
-        await Future.delayed(const Duration(seconds: 2));
+        await Future.delayed(Constants.devocionalInitRetryDelay);
         if (!mounted) return;
         await devocionalProvider.initializeData();
         if (!mounted) return;
