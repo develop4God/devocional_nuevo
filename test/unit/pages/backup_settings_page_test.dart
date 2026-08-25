@@ -346,4 +346,130 @@ void main() {
       expect(find.text('backup.protected_title'.tr()), findsNothing);
     });
   });
+
+  group('BackupSettingsPage BlocListener side effects', () {
+    Future<StreamController<BackupState>> pumpWithController(
+      WidgetTester tester,
+    ) async {
+      final controller = StreamController<BackupState>();
+      addTearDown(controller.close);
+      final initial = loadedState(isAuthenticated: true);
+      when(() => mockBackupBloc.state).thenReturn(initial);
+      whenListen(mockBackupBloc, controller.stream);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            BlocProvider<ThemeBloc>.value(value: FakeThemeBloc()),
+            ChangeNotifierProvider<DevocionalProvider>.value(
+              value: mockDevocionalProvider,
+            ),
+          ],
+          child: MaterialApp(
+            home: DefaultAssetBundle(
+              bundle: TestAssetBundle(),
+              child: BackupSettingsPage(bloc: mockBackupBloc),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return controller;
+    }
+
+    testWidgets('BackupError shows a snackbar with the localized message',
+        (tester) async {
+      final controller = await pumpWithController(tester);
+
+      const errorState = BackupError('backup.error_generic');
+      when(() => mockBackupBloc.state).thenReturn(errorState);
+      controller.add(errorState);
+      await tester.pump();
+      await tester.pump();
+
+      expect(
+        find.descendant(
+          of: find.byType(SnackBar),
+          matching: find.text('backup.error_generic'.tr()),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('BackupCreated shows the created-successfully snackbar',
+        (tester) async {
+      final controller = await pumpWithController(tester);
+
+      final createdState = BackupCreated(DateTime.now());
+      when(() => mockBackupBloc.state).thenReturn(createdState);
+      controller.add(createdState);
+      await tester.pump();
+      await tester.pump();
+
+      expect(
+        find.text('backup.created_successfully'.tr()),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+        'BackupRestored with a restoredVersion switches the Bible version and shows the restored snackbar',
+        (tester) async {
+      when(() => mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
+      when(() => mockDevocionalProvider.setSelectedVersion(any()))
+          .thenAnswer((_) async {});
+
+      final controller = await pumpWithController(tester);
+
+      const restoredState = BackupRestored(restoredVersion: 'NVI');
+      when(() => mockBackupBloc.state).thenReturn(restoredState);
+      controller.add(restoredState);
+      await tester.pump();
+      await tester.pump();
+
+      verify(() => mockDevocionalProvider.setSelectedVersion('NVI')).called(1);
+      expect(
+        find.text('backup.restored_successfully'.tr()),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+        'BackupRestored with the already-selected version does not switch versions',
+        (tester) async {
+      when(() => mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
+
+      final controller = await pumpWithController(tester);
+
+      const restoredState = BackupRestored(restoredVersion: 'RVR1960');
+      when(() => mockBackupBloc.state).thenReturn(restoredState);
+      controller.add(restoredState);
+      await tester.pump();
+      await tester.pump();
+
+      verifyNever(() => mockDevocionalProvider.setSelectedVersion(any()));
+      expect(
+        find.text('backup.restored_successfully'.tr()),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+        'BackupRestored with no restoredVersion skips the version switch',
+        (tester) async {
+      final controller = await pumpWithController(tester);
+
+      const restoredState = BackupRestored();
+      when(() => mockBackupBloc.state).thenReturn(restoredState);
+      controller.add(restoredState);
+      await tester.pump();
+      await tester.pump();
+
+      verifyNever(() => mockDevocionalProvider.setSelectedVersion(any()));
+      expect(
+        find.text('backup.restored_successfully'.tr()),
+        findsOneWidget,
+      );
+    });
+  });
 }
