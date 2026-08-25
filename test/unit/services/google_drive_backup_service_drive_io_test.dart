@@ -16,10 +16,12 @@ import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/utils/constants/backup_keys_constants.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart' as mockito;
 import 'package:mocktail/mocktail.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../helpers/bloc_test_helper.dart' show createMockDevocionalProvider;
 import '../../helpers/drive_api_test_helper.dart';
 import '../../helpers/google_drive_backup_mock_helper.dart';
 
@@ -379,6 +381,240 @@ void main() {
       expect(decoded, contains('study1'));
       expect(decoded, contains('NVI'));
       expect(decoded, contains('Gen 1:1'));
+    });
+
+    test('includes favorite devotionals from the provider when given one',
+        () async {
+      when(() => authService.isSignedIn()).thenAnswer((_) async => true);
+      when(() => settingsService.isWifiOnlyEnabled())
+          .thenAnswer((_) async => false);
+      when(() => connectivityService.shouldProceedWithBackup(false))
+          .thenAnswer((_) async => true);
+      when(() => settingsService.isCompressionEnabled())
+          .thenAnswer((_) async => false);
+      when(() => statsService.getAllStats())
+          .thenAnswer((_) async => {'stats': <String, dynamic>{}});
+      when(() => settingsService.setLastBackupTime(any()))
+          .thenAnswer((_) async {});
+
+      final provider = createMockDevocionalProvider();
+      mockito.when(provider.favoriteIds).thenReturn({'fav-a', 'fav-b'});
+
+      final stub = DriveApiStub()
+        ..onList(const DriveApiResponse.json({'files': []}))
+        ..onCreate(const DriveApiResponse.json({'id': 'created-id'}));
+      when(() => authService.getDriveApi())
+          .thenAnswer((_) async => stub.build());
+
+      final result = await service.createBackup(provider);
+
+      expect(result, isTrue);
+      const marker = 'Content-Transfer-Encoding: base64\r\n\r\n';
+      final uploaded = stub.requests.firstWhere((r) => r.body.contains(marker));
+      final base64Start = uploaded.body.indexOf(marker) + marker.length;
+      final base64End = uploaded.body.indexOf('\r\n--', base64Start);
+      final decoded = utf8.decode(
+        base64.decode(uploaded.body.substring(base64Start, base64End)),
+      );
+
+      expect(decoded, contains('fav-a'));
+      expect(decoded, contains('fav-b'));
+    });
+  });
+
+  group('createBackup — merges local and remote payloads (_mergePayloads)', () {
+    test(
+        'merges every field: union for lists/maps, newer-wins for id-keyed items',
+        () async {
+      when(() => authService.isSignedIn()).thenAnswer((_) async => true);
+      when(() => settingsService.isWifiOnlyEnabled())
+          .thenAnswer((_) async => false);
+      when(() => connectivityService.shouldProceedWithBackup(false))
+          .thenAnswer((_) async => true);
+      when(() => settingsService.isCompressionEnabled())
+          .thenAnswer((_) async => false);
+      when(() => statsService.getAllStats()).thenAnswer(
+        (_) async => {
+          'stats': {
+            'readDevocionalIds': ['local-id']
+          },
+        },
+      );
+      when(() => settingsService.setLastBackupTime(any()))
+          .thenAnswer((_) async {});
+
+      // Local state: one prayer (older edit), one devotional note, one
+      // bible note, one testimony, plus a thanksgiving/encounter unique to
+      // local — each id-keyed field also has a shared id with an older
+      // lastModifiedDate than its remote counterpart.
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('google_drive_backup_folder_id', 'folder-1');
+      await prefs.setString(
+        'prayers',
+        json.encode([
+          {
+            'id': 'shared-1',
+            'text': 'local version',
+            'lastModifiedDate': '2020-01-01T00:00:00.000Z',
+          },
+        ]),
+      );
+      await prefs.setString('thanksgivings', json.encode([]));
+      await prefs.setString(
+        'devotional_notes',
+        json.encode([
+          {
+            'devocionalId': 'dn-shared',
+            'text': 'local note',
+            'lastModifiedDate': '2020-01-01T00:00:00.000Z',
+          },
+        ]),
+      );
+      await prefs.setString(
+        'bible_notes',
+        json.encode([
+          {
+            'bookName': 'Gen',
+            'chapter': 1,
+            'startVerse': 1,
+            'endVerse': 1,
+            'text': 'local bible note',
+            'lastModifiedDate': '2020-01-01T00:00:00.000Z',
+          },
+        ]),
+      );
+      await prefs.setString(
+        'testimonies',
+        json.encode([
+          {
+            'id': 'tm-shared',
+            'text': 'local testimony',
+            'lastModifiedDate': '2020-01-01T00:00:00.000Z',
+          },
+        ]),
+      );
+      await prefs.setStringList('encounter_completed_ids', ['local-enc']);
+
+      // Remote payload (what's already on Drive): the SAME ids but NEWER
+      // edits — merge must keep these, not the local ones — plus items
+      // unique to remote. Union fields (encounters, stats IDs) must
+      // contain both sides.
+      final remotePayload = {
+        'timestamp': DateTime.now().toIso8601String(),
+        'version': '1.0',
+        'spiritual_stats': {
+          'readDevocionalIds': ['remote-id'],
+        },
+        'saved_prayers': [
+          {
+            'id': 'shared-1',
+            'text': 'remote version (newer)',
+            'lastModifiedDate': '2025-06-01T00:00:00.000Z',
+          },
+        ],
+        'saved_thanksgivings': [
+          {'id': 'remote-only', 'text': 'remote thanksgiving'},
+        ],
+        'devotional_notes': [
+          {
+            'devocionalId': 'dn-shared',
+            'text': 'remote note (newer)',
+            'lastModifiedDate': '2025-06-01T00:00:00.000Z',
+          },
+        ],
+        'bible_notes': [
+          {
+            'bookName': 'Gen',
+            'chapter': 1,
+            'startVerse': 1,
+            'endVerse': 1,
+            'text': 'remote bible note (newer)',
+            'lastModifiedDate': '2025-06-01T00:00:00.000Z',
+          },
+        ],
+        'testimonies': [
+          {
+            'id': 'tm-shared',
+            'text': 'remote testimony (newer)',
+            'lastModifiedDate': '2025-06-01T00:00:00.000Z',
+          },
+        ],
+        'completed_encounters': ['remote-enc'],
+      };
+
+      final stub = DriveApiStub()
+        ..onGetMetadata(
+          const DriveApiResponse.json({'id': 'folder-1', 'name': 'app'}),
+        )
+        ..onList(
+          const DriveApiResponse.json({
+            'files': [
+              {'id': 'remote-backup-file', 'name': 'backup.json'},
+            ],
+          }),
+        )
+        ..onGetMedia(
+          DriveApiResponse.media(utf8.encode(json.encode(remotePayload))),
+        )
+        ..onUpdate(const DriveApiResponse.json({'id': 'remote-backup-file'}));
+      when(() => authService.getDriveApi())
+          .thenAnswer((_) async => stub.build());
+
+      final result = await service.createBackup(null);
+
+      expect(result, isTrue);
+      const marker = 'Content-Transfer-Encoding: base64\r\n\r\n';
+      final uploaded = stub.requests.firstWhere((r) => r.body.contains(marker));
+      final base64Start = uploaded.body.indexOf(marker) + marker.length;
+      final base64End = uploaded.body.indexOf('\r\n--', base64Start);
+      final merged = json.decode(
+        utf8.decode(
+          base64.decode(uploaded.body.substring(base64Start, base64End)),
+        ),
+      ) as Map<String, dynamic>;
+
+      // Newer-wins: the remote edit of the shared prayer id survives, not
+      // the older local one.
+      final prayers = merged['saved_prayers'] as List<dynamic>;
+      expect(prayers, hasLength(1));
+      expect((prayers.single as Map)['text'], 'remote version (newer)');
+
+      // Union: thanksgiving unique to remote is present even though it
+      // wasn't in the local payload.
+      final thanksgivings = merged['saved_thanksgivings'] as List<dynamic>;
+      expect(
+        thanksgivings.map((t) => (t as Map)['id']),
+        contains('remote-only'),
+      );
+
+      // Union: completed encounters combine both sides.
+      expect(
+        (merged['completed_encounters'] as List<dynamic>).toSet(),
+        {'local-enc', 'remote-enc'},
+      );
+
+      // Newer-wins for devotional notes (keyed by devocionalId), bible
+      // notes (keyed by book/chapter/verse range), and testimonies.
+      final notes = merged['devotional_notes'] as List<dynamic>;
+      expect(notes, hasLength(1));
+      expect((notes.single as Map)['text'], 'remote note (newer)');
+
+      final bibleNotes = merged['bible_notes'] as List<dynamic>;
+      expect(bibleNotes, hasLength(1));
+      expect((bibleNotes.single as Map)['text'], 'remote bible note (newer)');
+
+      final testimonies = merged['testimonies'] as List<dynamic>;
+      expect(testimonies, hasLength(1));
+      expect((testimonies.single as Map)['text'], 'remote testimony (newer)');
+
+      // Union for spiritual-stats read-devocional IDs.
+      final mergedStats = merged['spiritual_stats'] as Map<String, dynamic>;
+      expect(
+        (mergedStats['readDevocionalIds'] as List<dynamic>).toSet(),
+        {'local-id', 'remote-id'},
+      );
+
+      expect(merged['merge_source'], 'multi_device');
     });
   });
 }
