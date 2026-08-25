@@ -49,6 +49,26 @@ class _FakeDevocionalRepository implements DevocionalRepository {
   // ── Minimal stubs for remaining interface members ──────────────────────
 
   @override
+  Future<CacheStatus> checkCacheStatus(
+    int year,
+    String language,
+    String version,
+  ) async =>
+      CacheStatus(
+        hasLocal: _localDataResult,
+        isStale: false,
+        indexReachable: true,
+      );
+
+  @override
+  Future<List<Devocional>> readLocal(
+    int year,
+    String language,
+    String version,
+  ) async =>
+      [];
+
+  @override
   int findFirstUnreadDevocionalIndex(
     List<Devocional> devocionales,
     List<String> readDevocionalIds,

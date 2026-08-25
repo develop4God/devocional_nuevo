@@ -85,7 +85,7 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
   // ── DATA LOADING ────────────────────────────────────────────────────────────
 
   @override
-  Future<List<Devocional>> fetchAll(
+  Future<CacheStatus> checkCacheStatus(
     int year,
     String language,
     String version,
@@ -118,20 +118,45 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
       );
     }
 
-    final bool hasLocal = await File(filePath).exists();
+    return CacheStatus(
+      hasLocal: await File(filePath).exists(),
+      isStale: isStale,
+      indexReachable: !_indexUnreachable,
+    );
+  }
 
-    if (!isStale && hasLocal) {
+  @override
+  Future<List<Devocional>> readLocal(
+    int year,
+    String language,
+    String version,
+  ) async {
+    final Map<String, dynamic>? localData = await _loadFromLocalStorage(
+      year,
+      language,
+      version,
+    );
+    if (localData == null) return [];
+    return _extractDevocionalesFromData(localData, language);
+  }
+
+  @override
+  Future<List<Devocional>> fetchAll(
+    int year,
+    String language,
+    String version,
+  ) async {
+    final CacheStatus status = await checkCacheStatus(year, language, version);
+    final bool hasLocal = status.hasLocal;
+
+    if (status.isServableWithoutNetwork) {
       developer.log(
         '✅ [CACHE] Fresh: ${year}_${language}_$version — using local cache',
         name: 'DevocionalCache',
       );
-      final Map<String, dynamic>? localData = await _loadFromLocalStorage(
-        year,
-        language,
-        version,
-      );
-      if (localData != null) {
-        return _extractDevocionalesFromData(localData, language);
+      final List<Devocional> local = await readLocal(year, language, version);
+      if (local.isNotEmpty) {
+        return local;
       }
     } else {
       try {
@@ -161,27 +186,17 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
             '⚠️ Failed to load year $year from API: ${response.statusCode}',
           );
           if (hasLocal) {
-            final Map<String, dynamic>? localData = await _loadFromLocalStorage(
-              year,
-              language,
-              version,
-            );
-            if (localData != null) {
-              return _extractDevocionalesFromData(localData, language);
-            }
+            final List<Devocional> local =
+                await readLocal(year, language, version);
+            if (local.isNotEmpty) return local;
           }
         }
       } catch (e) {
         debugPrint('⚠️ Error loading year $year: $e');
         if (hasLocal) {
-          final Map<String, dynamic>? localData = await _loadFromLocalStorage(
-            year,
-            language,
-            version,
-          );
-          if (localData != null) {
-            return _extractDevocionalesFromData(localData, language);
-          }
+          final List<Devocional> local =
+              await readLocal(year, language, version);
+          if (local.isNotEmpty) return local;
         }
       }
     }

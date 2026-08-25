@@ -1,3 +1,6 @@
+@Tags(['unit', 'providers'])
+library;
+
 import 'dart:convert';
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
@@ -21,6 +24,26 @@ class FakeDevocionalRepository implements DevocionalRepository {
   ) async {
     return _items;
   }
+
+  @override
+  Future<CacheStatus> checkCacheStatus(
+    int year,
+    String language,
+    String version,
+  ) async =>
+      const CacheStatus(
+        hasLocal: true,
+        isStale: false,
+        indexReachable: true,
+      );
+
+  @override
+  Future<List<Devocional>> readLocal(
+    int year,
+    String language,
+    String version,
+  ) async =>
+      _items;
 
   @override
   List<Devocional> filterByVersion(
