@@ -1,3 +1,6 @@
+@Tags(['unit', 'controllers'])
+library;
+
 import 'package:devocional_nuevo/controllers/font_size_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';

@@ -1,3 +1,6 @@
+@Tags(['unit', 'services', 'tts'])
+library;
+
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/devocional_tts_text_builder.dart';

@@ -1,4 +1,4 @@
-@Tags(['integration'])
+@Tags(['unit', 'providers'])
 library;
 
 // test/unit/chinese_language_integration_test.dart

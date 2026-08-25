@@ -1,3 +1,6 @@
+@Tags(['unit', 'services', 'tts'])
+library;
+
 import 'package:devocional_nuevo/services/tts/voice_data_registry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
