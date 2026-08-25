@@ -225,7 +225,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v5
@@ -269,10 +269,10 @@ jobs:
         continue-on-error: true
 
 
-      - name: 🧪 Run unit tests (expanded, shard ${{ matrix.shard }}/4)
+      - name: 🧪 Run unit tests (expanded, shard ${{ matrix.shard }}/10)
         run: |
           flutter test --coverage --reporter=expanded \
-            --total-shards 4 --shard-index $((${{ matrix.shard }} - 1)) \
+            --total-shards 10 --shard-index $((${{ matrix.shard }} - 1)) \
             | tee test_output.txt
 
       - name: 📋 Upload test output
