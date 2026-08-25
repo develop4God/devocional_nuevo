@@ -12,6 +12,8 @@ library;
 import 'dart:convert';
 
 import 'package:devocional_nuevo/services/backup/google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
+import 'package:devocional_nuevo/utils/constants/backup_keys_constants.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -250,6 +252,133 @@ void main() {
       final storedPrayers = prefs.getString('prayers');
       expect(storedPrayers, isNotNull);
       expect(json.decode(storedPrayers!), hasLength(1));
+    });
+
+    test('restores every remaining field from a full backup payload', () async {
+      final backupJson = {
+        'timestamp': DateTime.now().toIso8601String(),
+        'version': '1.0',
+        'saved_thanksgivings': [
+          {'id': 't1'},
+        ],
+        'devotional_notes': [
+          {'devocionalId': 'd1'},
+        ],
+        'testimonies': [
+          {'id': 'tm1'},
+        ],
+        'completed_encounters': ['enc1', 'enc2'],
+        'discovery_progress': {
+          '${DiscoveryProgressTracker.progressKeyPrefix}study1':
+              '{"progress":50}',
+        },
+        'discovery_favorites': {
+          'discovery_favorite_ids_es': '["study1"]',
+        },
+        'preferred_bible_version': 'NVI',
+        'marked_bible_verses': ['Gen 1:1', 'Jn 3:16'],
+        'favorite_devotionals': ['fav1', 'fav2'],
+      };
+      final stub = DriveApiStub()
+        ..onGetMedia(
+          DriveApiResponse.media(utf8.encode(json.encode(backupJson))),
+        );
+      when(() => authService.getDriveApi())
+          .thenAnswer((_) async => stub.build());
+      when(() => settingsService.setLastBackupTime(any()))
+          .thenAnswer((_) async {});
+
+      final result = await service.restoreExistingBackup('file-1');
+
+      expect(result, isTrue);
+      final prefs = await SharedPreferences.getInstance();
+      expect(json.decode(prefs.getString('thanksgivings')!), hasLength(1));
+      expect(
+        json.decode(prefs.getString(BackupKeys.devotionalNotes)!),
+        hasLength(1),
+      );
+      expect(json.decode(prefs.getString('testimonies')!), hasLength(1));
+      expect(
+        prefs.getStringList('encounter_completed_ids'),
+        ['enc1', 'enc2'],
+      );
+      expect(
+        prefs.getString(
+          '${DiscoveryProgressTracker.progressKeyPrefix}study1',
+        ),
+        '{"progress":50}',
+      );
+      expect(
+        prefs.getString('discovery_favorite_ids_es'),
+        '["study1"]',
+      );
+      expect(prefs.getString('selectedVersion'), 'NVI');
+      expect(
+        prefs.getStringList('bible_marked_verses')!.toSet(),
+        {'Gen 1:1', 'Jn 3:16'},
+      );
+      expect(json.decode(prefs.getString('favorite_ids')!), ['fav1', 'fav2']);
+    });
+  });
+
+  group('createBackup — full payload with a real DriveApi', () {
+    test('includes every remaining field when its option is enabled', () async {
+      when(() => authService.isSignedIn()).thenAnswer((_) async => true);
+      when(() => settingsService.isWifiOnlyEnabled())
+          .thenAnswer((_) async => false);
+      when(() => connectivityService.shouldProceedWithBackup(false))
+          .thenAnswer((_) async => true);
+      when(() => settingsService.isCompressionEnabled())
+          .thenAnswer((_) async => false);
+      when(() => statsService.getAllStats())
+          .thenAnswer((_) async => {'stats': <String, dynamic>{}});
+      when(() => settingsService.setLastBackupTime(any()))
+          .thenAnswer((_) async {});
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('prayers', '[{"id":"p1"}]');
+      await prefs.setString('thanksgivings', '[{"id":"t1"}]');
+      await prefs.setString(BackupKeys.devotionalNotes, '[{"id":"n1"}]');
+      await prefs.setString(BackupKeys.bibleNotes, '[{"id":"bn1"}]');
+      await prefs.setString('testimonies', '[{"id":"tm1"}]');
+      await prefs.setStringList('encounter_completed_ids', ['enc1']);
+      await prefs.setString(
+        '${DiscoveryProgressTracker.progressKeyPrefix}study1',
+        '{"progress":50}',
+      );
+      await prefs.setString('discovery_favorite_ids_es', '["study1"]');
+      await prefs.setString('selectedVersion', 'NVI');
+      await prefs.setStringList('bible_marked_verses', ['Gen 1:1']);
+
+      final stub = DriveApiStub()
+        ..onList(const DriveApiResponse.json({'files': []}))
+        ..onCreate(const DriveApiResponse.json({'id': 'created-id'}));
+      when(() => authService.getDriveApi())
+          .thenAnswer((_) async => stub.build());
+
+      final result = await service.createBackup(null);
+
+      expect(result, isTrue);
+      // The backup file content is uploaded as a multipart/related request
+      // whose media part is base64-encoded (see MultipartMediaUploader) —
+      // decode it back to the original JSON payload to assert on it.
+      const marker = 'Content-Transfer-Encoding: base64\r\n\r\n';
+      final uploaded = stub.requests.firstWhere((r) => r.body.contains(marker));
+      final base64Start = uploaded.body.indexOf(marker) + marker.length;
+      final base64End = uploaded.body.indexOf('\r\n--', base64Start);
+      final decoded = utf8.decode(
+        base64.decode(uploaded.body.substring(base64Start, base64End)),
+      );
+
+      expect(decoded, contains('"id":"p1"'));
+      expect(decoded, contains('"id":"t1"'));
+      expect(decoded, contains('"id":"n1"'));
+      expect(decoded, contains('"id":"bn1"'));
+      expect(decoded, contains('"id":"tm1"'));
+      expect(decoded, contains('enc1'));
+      expect(decoded, contains('study1'));
+      expect(decoded, contains('NVI'));
+      expect(decoded, contains('Gen 1:1'));
     });
   });
 }
