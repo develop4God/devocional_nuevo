@@ -166,5 +166,90 @@ void main() {
       final creates = stub.requests.where((r) => r.method == 'POST').toList();
       expect(creates, hasLength(2));
     });
+
+    test('reuses a cached backup folder id instead of searching/creating one',
+        () async {
+      SharedPreferences.setMockInitialValues({
+        'google_drive_backup_folder_id': 'cached-folder-id',
+      });
+      when(() => authService.isSignedIn()).thenAnswer((_) async => true);
+      when(() => settingsService.isWifiOnlyEnabled())
+          .thenAnswer((_) async => false);
+      when(() => connectivityService.shouldProceedWithBackup(false))
+          .thenAnswer((_) async => true);
+      when(() => settingsService.isCompressionEnabled())
+          .thenAnswer((_) async => false);
+      when(() => statsService.getAllStats())
+          .thenAnswer((_) async => {'stats': <String, dynamic>{}});
+      when(() => settingsService.setLastBackupTime(any()))
+          .thenAnswer((_) async {});
+
+      final stub = DriveApiStub()
+        // The cached-folder-id check does files.get(cachedFolderId) — a
+        // metadata GET, not the list search. Returning it successfully is
+        // what makes _getOrCreateBackupFolder short-circuit to the cache.
+        ..onGetMetadata(
+          const DriveApiResponse.json({
+            'id': 'cached-folder-id',
+            'name': 'app.title',
+          }),
+        )
+        ..onList(const DriveApiResponse.json({'files': []}))
+        ..onCreate(const DriveApiResponse.json({'id': 'new-backup-file-id'}));
+      when(() => authService.getDriveApi())
+          .thenAnswer((_) async => stub.build());
+
+      final result = await service.createBackup(null);
+
+      expect(result, isTrue);
+      // The cached folder id is verified via files.get (a single-file GET,
+      // not the list search) — proof _getOrCreateBackupFolder short-
+      // circuited to the cache instead of running the folder-search query.
+      final metadataGets = stub.requests
+          .where((r) => r.method == 'GET' && !r.url.path.endsWith('/files'))
+          .toList();
+      expect(metadataGets, hasLength(1));
+      expect(metadataGets.single.url.path, endsWith('/cached-folder-id'));
+      // Only the backup file is created — no folder-create POST, since the
+      // cache hit skipped folder creation entirely.
+      final creates = stub.requests.where((r) => r.method == 'POST').toList();
+      expect(creates, hasLength(1));
+    });
+  });
+
+  group('_restoreBackupData resilience — one bad field does not block others',
+      () {
+    test(
+        'a malformed spiritual_stats field is skipped but saved_prayers still restores',
+        () async {
+      final backupJson = {
+        'timestamp': DateTime.now().toIso8601String(),
+        'version': '1.0',
+        // Wrong type on purpose: restoreExistingBackup casts this to
+        // Map<String, dynamic>, so a List here throws inside the
+        // spiritual_stats try/catch — restoration should continue past it.
+        'spiritual_stats': [1, 2, 3],
+        'saved_prayers': [
+          {'id': '1'},
+        ],
+      };
+      final stub = DriveApiStub()
+        ..onGetMedia(
+          DriveApiResponse.media(utf8.encode(json.encode(backupJson))),
+        );
+      when(() => authService.getDriveApi())
+          .thenAnswer((_) async => stub.build());
+      when(() => settingsService.setLastBackupTime(any()))
+          .thenAnswer((_) async {});
+
+      final result = await service.restoreExistingBackup('file-1');
+
+      expect(result, isTrue);
+      verifyNever(() => statsService.restoreStats(any()));
+      final prefs = await SharedPreferences.getInstance();
+      final storedPrayers = prefs.getString('prayers');
+      expect(storedPrayers, isNotNull);
+      expect(json.decode(storedPrayers!), hasLength(1));
+    });
   });
 }
