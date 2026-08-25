@@ -50,7 +50,7 @@ jobs:
 
       - name: Build Android app
         working-directory: android
-        run: ./gradlew assembleDebug -x lint
+        run: ./gradlew assembleDebug -x lint -Dorg.gradle.jvmargs="-Xmx4096m -XX:MaxMetaspaceSize=1024m"
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
