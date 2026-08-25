@@ -141,6 +141,18 @@ class Constants {
   /// devocional_repository_impl.dart fetchAll().
   static const Duration devocionalFetchTimeout = Duration(seconds: 20);
 
+  /// AppInitializer's overall startup watchdog ceiling. See main.dart
+  /// _AppInitializerState for the calibration rationale.
+  static const Duration appStartupTimeout = Duration(seconds: 12);
+
+  /// Timeout for DevocionalProvider.waitUntilLoaded()/waitUntilInitialized()
+  /// callers waiting on an in-flight initializeData() to finish.
+  static const Duration devocionalProviderWaitTimeout = Duration(seconds: 30);
+
+  /// Delay before devocionales_page retries initialization once after an
+  /// empty result, to allow a transient network failure to clear.
+  static const Duration devocionalInitRetryDelay = Duration(seconds: 2);
+
   /// Obtiene la URL del índice de Discovery
   static String getDiscoveryIndexUrl() {
     final branch = kDebugMode ? DebugFlags.debugBranch : 'main';
