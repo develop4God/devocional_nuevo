@@ -105,7 +105,9 @@ class DevocionalStartupBloc
       }
 
       // Nothing usable on disk — the one phase with an unavoidable
-      // foreground network wait.
+      // foreground network wait. Emit StartupReady as soon as the first
+      // non-empty year lands rather than waiting for every year, so the
+      // worst case becomes "wait for one year" instead of "wait for all."
       final List<Devocional> fetched = await _fetchYears(
         years,
         language,
@@ -115,7 +117,7 @@ class DevocionalStartupBloc
       );
 
       if (fetched.isNotEmpty) {
-        emit(StartupReady(fetched));
+        if (state is! StartupReady) emit(StartupReady(fetched));
       } else {
         final bool indexReachable = statuses.any((s) => s.indexReachable);
         emit(
@@ -151,7 +153,10 @@ class DevocionalStartupBloc
   /// Fetches each year, tolerating per-year failure.
   ///
   /// Emits [StartupFetching] progress when [emitProgress] is true — that is,
-  /// when the user is waiting on this with nothing else to look at.
+  /// when the user is waiting on this with nothing else to look at. In that
+  /// same mode, emits [StartupReady] as soon as the first non-empty year
+  /// lands, so the caller is unblocked without waiting for every year; later
+  /// years still accumulate into a fresh [StartupReady] as they complete.
   Future<List<Devocional>> _fetchYears(
     List<int> years,
     String language,
@@ -165,7 +170,15 @@ class DevocionalStartupBloc
         emit(StartupFetching(yearsDone: i, yearsTotal: years.length));
       }
       try {
-        all.addAll(await _repository.fetchAll(years[i], language, version));
+        final List<Devocional> yearResult = await _repository.fetchAll(
+          years[i],
+          language,
+          version,
+        );
+        all.addAll(yearResult);
+        if (emitProgress && yearResult.isNotEmpty) {
+          emit(StartupReady(List.unmodifiable(all)));
+        }
       } catch (e) {
         // Partial success is not an error — a later year may still land.
         debugPrint('[STARTUP_BLOC] Year ${years[i]} failed: $e');

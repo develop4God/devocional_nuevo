@@ -34,6 +34,10 @@ class _FakeDevocionalRepository implements DevocionalRepository {
   /// state is emitted before the network resolves, without using delays.
   Completer<void>? fetchGate;
 
+  /// Per-year gates, checked in addition to [fetchGate] — lets a test hold
+  /// back one specific year's fetch while others resolve freely.
+  final Map<int, Completer<void>> fetchGates = {};
+
   final List<int> fetchedYears = [];
   int resetCacheCount = 0;
 
@@ -65,6 +69,7 @@ class _FakeDevocionalRepository implements DevocionalRepository {
   ) async {
     fetchedYears.add(year);
     if (fetchGate != null) await fetchGate!.future;
+    if (fetchGates[year] != null) await fetchGates[year]!.future;
     if (failingYears.contains(year)) throw Exception('year $year failed');
     return remote[year] ?? [];
   }
@@ -304,6 +309,46 @@ void main() {
       expect(fetching, isNotEmpty);
       expect(fetching.first.yearsTotal, 2);
     });
+
+    test(
+      'emits Ready after the first year lands, before the second resolves',
+      () async {
+        final year2Gate = Completer<void>();
+        repository = _FakeDevocionalRepository(
+          years: [2025, 2026],
+          statuses: {2025: _missing, 2026: _missing},
+          remote: {
+            2025: [_devocional('y1')],
+            2026: [_devocional('y2')],
+          },
+        )..fetchGates[2026] = year2Gate;
+        buildBloc();
+
+        final states = <DevocionalStartupState>[];
+        final sub = bloc.stream.listen(states.add);
+
+        bloc.add(const StartupRequested(language: 'es', version: 'RVR1960'));
+
+        final firstReady = await bloc.stream.firstWhere(
+          (s) => s is StartupReady,
+        ) as StartupReady;
+
+        // Year 2 must still be outstanding when the first Ready lands.
+        expect(year2Gate.isCompleted, isFalse);
+        expect(firstReady.devocionales.single.id, 'y1');
+
+        year2Gate.complete();
+        final secondReady = await bloc.stream.firstWhere(
+          (s) => s is StartupReady && s.devocionales.length == 2,
+        ) as StartupReady;
+        await sub.cancel();
+
+        expect(
+          secondReady.devocionales.map((d) => d.id),
+          containsAll(['y1', 'y2']),
+        );
+      },
+    );
   });
 
   group('retry', () {
