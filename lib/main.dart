@@ -1,9 +1,11 @@
-import 'dart:async' show TimeoutException, unawaited;
+import 'dart:async' show unawaited;
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/bible_note_bloc.dart';
 import 'package:devocional_nuevo/blocs/bible_note_event.dart';
+import 'package:devocional_nuevo/blocs/devocionales/devocional_startup_bloc.dart';
+import 'package:devocional_nuevo/blocs/devocionales/devocional_startup_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
@@ -25,6 +27,7 @@ import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
@@ -284,6 +287,11 @@ void main() async {
           create: (_) => AudioController(getService<ITtsService>()),
         ),
         BlocProvider(create: (context) => DevocionalesNavigationBloc()),
+        BlocProvider(
+          create: (context) => DevocionalStartupBloc(
+            repository: getService<DevocionalRepository>(),
+          ),
+        ),
         BlocProvider(
           lazy: false,
           create: (context) => BackupBloc(
@@ -594,11 +602,6 @@ class _AppInitializerState extends State<AppInitializer> {
   // Minimum time SplashScreen is visible — matches AnimationController duration
   static const Duration _kMinSplashDisplay = Duration(milliseconds: 1500);
 
-  // Startup watchdog ceiling:
-  // Firebase cold start P99 (~3s) + network round trip P99 (~5s) + buffer (4s)
-  // Calibrate from Stopwatch telemetry after first production run.
-  static const Duration _kAppStartupTimeout = Duration(seconds: 12);
-
   @override
   void initState() {
     super.initState();
@@ -609,14 +612,22 @@ class _AppInitializerState extends State<AppInitializer> {
     final stopwatch = Stopwatch()..start();
 
     try {
+      // Resolve language/version once, sequentially, before starting the
+      // bloc and the provider's own fetch in parallel — both would
+      // otherwise race to read/write the same SharedPreferences keys.
+      final devocionalProvider = Provider.of<DevocionalProvider>(
+        context,
+        listen: false,
+      );
+      await devocionalProvider.resolveLanguageAndVersion();
+      if (!mounted) return;
+
       await Future.wait([
         _initCriticalServices(),
         _initAppData(),
+        _waitForStartupBloc(devocionalProvider),
         Future.delayed(_kMinSplashDisplay),
-      ]).timeout(
-        _kAppStartupTimeout,
-        onTimeout: () => _handleStartupTimeout(stopwatch),
-      );
+      ]);
     } catch (e, stack) {
       FirebaseCrashlytics.instance.recordError(
         e,
@@ -662,19 +673,25 @@ class _AppInitializerState extends State<AppInitializer> {
     );
   }
 
-  List<dynamic> _handleStartupTimeout(Stopwatch stopwatch) {
-    developer.log(
-      'Startup timeout after ${stopwatch.elapsedMilliseconds}ms',
-      name: 'AppInitializer',
+  /// Dispatches [StartupRequested] on [DevocionalStartupBloc] and waits for a
+  /// servable-or-terminal phase — a real completion signal (cache read done,
+  /// fetch done, or fetch definitively failed), replacing the old 12s
+  /// wall-clock watchdog that had no idea whether the fetch was still live.
+  ///
+  /// Runs alongside (not instead of) [DevocionalProvider.initializeData] in
+  /// [_initAppData] — the provider remains the actual data source read by
+  /// the rest of the app; this bloc only gates how long the splash waits.
+  /// [devocionalProvider] must already have language/version resolved.
+  Future<void> _waitForStartupBloc(
+      DevocionalProvider devocionalProvider) async {
+    final startupBloc = context.read<DevocionalStartupBloc>();
+    startupBloc.add(
+      StartupRequested(
+        language: devocionalProvider.selectedLanguage,
+        version: devocionalProvider.selectedVersion,
+      ),
     );
-    FirebaseCrashlytics.instance.recordError(
-      TimeoutException('App startup timeout'),
-      StackTrace.current,
-      fatal: false,
-      reason: 'App startup exceeded ${_kAppStartupTimeout.inSeconds}s',
-    );
-    // Proceed — navigate with whatever state is ready
-    return [];
+    await startupBloc.stream.firstWhere((s) => s.isServableOrTerminal);
   }
 
   Future<void> _initCriticalServices() async {

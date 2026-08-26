@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:devocional_nuevo/utils/constants/devocional_years.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
@@ -15,6 +16,17 @@ import 'package:path_provider/path_provider.dart';
 
 import 'devocional_repository.dart';
 
+/// A fully-drained year-file HTTP response.
+///
+/// Carries only what the year-file parse needs, so the streaming read does not
+/// have to materialize a `http.Response`.
+class _YearFileResponse {
+  final int statusCode;
+  final Uint8List bodyBytes;
+
+  const _YearFileResponse({required this.statusCode, required this.bodyBytes});
+}
+
 /// Concrete implementation of [DevocionalRepository].
 ///
 /// Extracts all data access logic from DevocionalProvider following the
@@ -23,6 +35,7 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
   final http.Client _httpClient;
   final DevocionalIndexService _devocionalIndexService;
   final CacheMetadataService _cacheMetadataService;
+  final Duration _fetchTimeout;
 
   Map<String, dynamic>? _cachedIndex;
   bool _indexUnreachable = false;
@@ -32,10 +45,12 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
     required http.Client httpClient,
     DevocionalIndexService? devocionalIndexService,
     CacheMetadataService? cacheMetadataService,
+    Duration? fetchTimeout,
   })  : _httpClient = httpClient,
         _devocionalIndexService =
             devocionalIndexService ?? DevocionalIndexService(httpClient),
-        _cacheMetadataService = cacheMetadataService ?? CacheMetadataService();
+        _cacheMetadataService = cacheMetadataService ?? CacheMetadataService(),
+        _fetchTimeout = fetchTimeout ?? Constants.devocionalFetchTimeout;
 
   // ── EXISTING METHOD ────────────────────────────────────────────────────────
 
@@ -82,7 +97,7 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
   // ── DATA LOADING ────────────────────────────────────────────────────────────
 
   @override
-  Future<List<Devocional>> fetchAll(
+  Future<CacheStatus> checkCacheStatus(
     int year,
     String language,
     String version,
@@ -115,20 +130,45 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
       );
     }
 
-    final bool hasLocal = await File(filePath).exists();
+    return CacheStatus(
+      hasLocal: await File(filePath).exists(),
+      isStale: isStale,
+      indexReachable: !_indexUnreachable,
+    );
+  }
 
-    if (!isStale && hasLocal) {
+  @override
+  Future<List<Devocional>> readLocal(
+    int year,
+    String language,
+    String version,
+  ) async {
+    final Map<String, dynamic>? localData = await _loadFromLocalStorage(
+      year,
+      language,
+      version,
+    );
+    if (localData == null) return [];
+    return _extractDevocionalesFromData(localData, language);
+  }
+
+  @override
+  Future<List<Devocional>> fetchAll(
+    int year,
+    String language,
+    String version,
+  ) async {
+    final CacheStatus status = await checkCacheStatus(year, language, version);
+    final bool hasLocal = status.hasLocal;
+
+    if (status.isServableWithoutNetwork) {
       developer.log(
         '✅ [CACHE] Fresh: ${year}_${language}_$version — using local cache',
         name: 'DevocionalCache',
       );
-      final Map<String, dynamic>? localData = await _loadFromLocalStorage(
-        year,
-        language,
-        version,
-      );
-      if (localData != null) {
-        return _extractDevocionalesFromData(localData, language);
+      final List<Devocional> local = await readLocal(year, language, version);
+      if (local.isNotEmpty) {
+        return local;
       }
     } else {
       try {
@@ -141,7 +181,7 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
           version,
         );
         debugPrint('🔍 Requesting URL: $url');
-        final response = await _httpClient.get(Uri.parse(url));
+        final _YearFileResponse response = await _getWithIdleTimeout(url);
 
         if (response.statusCode == 200) {
           final String responseBody = utf8.decode(response.bodyBytes);
@@ -157,32 +197,50 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
             '⚠️ Failed to load year $year from API: ${response.statusCode}',
           );
           if (hasLocal) {
-            final Map<String, dynamic>? localData = await _loadFromLocalStorage(
-              year,
-              language,
-              version,
-            );
-            if (localData != null) {
-              return _extractDevocionalesFromData(localData, language);
-            }
+            final List<Devocional> local =
+                await readLocal(year, language, version);
+            if (local.isNotEmpty) return local;
           }
         }
       } catch (e) {
         debugPrint('⚠️ Error loading year $year: $e');
         if (hasLocal) {
-          final Map<String, dynamic>? localData = await _loadFromLocalStorage(
-            year,
-            language,
-            version,
-          );
-          if (localData != null) {
-            return _extractDevocionalesFromData(localData, language);
-          }
+          final List<Devocional> local =
+              await readLocal(year, language, version);
+          if (local.isNotEmpty) return local;
         }
       }
     }
 
     return [];
+  }
+
+  /// GETs [url] and drains the response body under an idle (stall) timeout.
+  ///
+  /// [_fetchTimeout] bounds the gap *between* byte chunks, not the total
+  /// transfer time. A legitimately slow but progressing download of any size
+  /// completes; a dead socket throws [TimeoutException] within one window.
+  /// Because the timeout applies to the stream, tripping it cancels the
+  /// subscription and releases the connection, rather than leaving a detached
+  /// future running as a whole-response `.timeout()` would.
+  Future<_YearFileResponse> _getWithIdleTimeout(String url) async {
+    final request = http.Request('GET', Uri.parse(url));
+
+    // The idle window bounds the wait for response headers too — a socket that
+    // connects but never replies would otherwise hang here, before there is
+    // any byte stream to time out.
+    final http.StreamedResponse streamed =
+        await _httpClient.send(request).timeout(_fetchTimeout);
+
+    final BytesBuilder builder = BytesBuilder(copy: false);
+    await for (final chunk in streamed.stream.timeout(_fetchTimeout)) {
+      builder.add(chunk);
+    }
+
+    return _YearFileResponse(
+      statusCode: streamed.statusCode,
+      bodyBytes: builder.takeBytes(),
+    );
   }
 
   @override

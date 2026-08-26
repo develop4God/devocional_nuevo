@@ -196,6 +196,60 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // ========== INITIALIZATION ==========
+  /// Resolves [_selectedLanguage]/[_selectedVersion] from the device locale
+  /// and SharedPreferences, persisting a fallback if either was invalid.
+  ///
+  /// Extracted so callers that need the resolved language/version ahead of
+  /// the full fetch (e.g. a startup phase bloc) don't have to duplicate this
+  /// logic — [initializeData] itself calls this first.
+  Future<void> resolveLanguageAndVersion() async {
+    final prefs = await SharedPreferences.getInstance();
+    String deviceLanguage = PlatformDispatcher.instance.locale.languageCode;
+    debugPrint('🌍 [INIT] Device language: $deviceLanguage');
+
+    String savedLanguage =
+        prefs.getString('selectedLanguage') ?? deviceLanguage;
+    debugPrint(
+      '🌍 [INIT] Saved language preference: ${prefs.getString('selectedLanguage')} (raw), using: $savedLanguage',
+    );
+
+    _selectedLanguage = _getSupportedLanguageWithFallback(savedLanguage);
+    debugPrint(
+      '🌍 [INIT] Supported language resolved: $_selectedLanguage (from $savedLanguage)',
+    );
+
+    if (_selectedLanguage != savedLanguage) {
+      debugPrint(
+        '🌍 [INIT] Language not supported, saving fallback: $_selectedLanguage',
+      );
+      await prefs.setString('selectedLanguage', _selectedLanguage);
+    }
+
+    // Set default version based on selected language
+    String savedVersion = prefs.getString('selectedVersion') ?? '';
+    String defaultVersion =
+        Constants.defaultVersionByLanguage[_selectedLanguage] ?? 'RVR1960';
+    debugPrint(
+      '🌍 [INIT] Selected language: $_selectedLanguage, default version: $defaultVersion',
+    );
+
+    // CRITICAL FIX: Validate that saved version is valid for current language
+    // This prevents language/version mismatches (e.g., Spanish + Hindi version)
+    List<String> validVersions =
+        Constants.bibleVersionsByLanguage[_selectedLanguage] ?? ['RVR1960'];
+
+    if (savedVersion.isNotEmpty && validVersions.contains(savedVersion)) {
+      _selectedVersion = savedVersion;
+    } else {
+      // Invalid version for this language, reset to default
+      _selectedVersion = defaultVersion;
+      await prefs.setString('selectedVersion', defaultVersion);
+      debugPrint(
+        '⚠️ Version "$savedVersion" not valid for language "$_selectedLanguage", reset to "$defaultVersion"',
+      );
+    }
+  }
+
   Future<void> initializeData() async {
     if (_isLoading) return;
 
@@ -203,52 +257,7 @@ class DevocionalProvider with ChangeNotifier {
     _errorMessage = null;
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      String deviceLanguage = PlatformDispatcher.instance.locale.languageCode;
-      debugPrint('🌍 [INIT] Device language: $deviceLanguage');
-
-      String savedLanguage =
-          prefs.getString('selectedLanguage') ?? deviceLanguage;
-      debugPrint(
-        '🌍 [INIT] Saved language preference: ${prefs.getString('selectedLanguage')} (raw), using: $savedLanguage',
-      );
-
-      _selectedLanguage = _getSupportedLanguageWithFallback(savedLanguage);
-      debugPrint(
-        '🌍 [INIT] Supported language resolved: $_selectedLanguage (from $savedLanguage)',
-      );
-
-      if (_selectedLanguage != savedLanguage) {
-        debugPrint(
-          '🌍 [INIT] Language not supported, saving fallback: $_selectedLanguage',
-        );
-        await prefs.setString('selectedLanguage', _selectedLanguage);
-      }
-
-      // Set default version based on selected language
-      String savedVersion = prefs.getString('selectedVersion') ?? '';
-      String defaultVersion =
-          Constants.defaultVersionByLanguage[_selectedLanguage] ?? 'RVR1960';
-      debugPrint(
-        '🌍 [INIT] Selected language: $_selectedLanguage, default version: $defaultVersion',
-      );
-
-      // CRITICAL FIX: Validate that saved version is valid for current language
-      // This prevents language/version mismatches (e.g., Spanish + Hindi version)
-      List<String> validVersions =
-          Constants.bibleVersionsByLanguage[_selectedLanguage] ?? ['RVR1960'];
-
-      if (savedVersion.isNotEmpty && validVersions.contains(savedVersion)) {
-        _selectedVersion = savedVersion;
-      } else {
-        // Invalid version for this language, reset to default
-        _selectedVersion = defaultVersion;
-        await prefs.setString('selectedVersion', defaultVersion);
-        debugPrint(
-          '⚠️ Version "$savedVersion" not valid for language "$_selectedLanguage", reset to "$defaultVersion"',
-        );
-      }
-
+      await resolveLanguageAndVersion();
       await _loadFavorites();
       await _loadInvitationDialogPreference();
       debugPrint(
@@ -282,7 +291,7 @@ class DevocionalProvider with ChangeNotifier {
 
     addListener(listener);
     return completer.future.timeout(
-      const Duration(seconds: 30),
+      Constants.devocionalProviderWaitTimeout,
       onTimeout: () {
         removeListener(listener);
         throw TimeoutException('Provider initialization timed out after 30s');
@@ -302,8 +311,14 @@ class DevocionalProvider with ChangeNotifier {
 
     addListener(listener);
     return completer.future.timeout(
-      const Duration(seconds: 30),
-      onTimeout: () => removeListener(listener),
+      Constants.devocionalProviderWaitTimeout,
+      onTimeout: () {
+        removeListener(listener);
+        throw TimeoutException(
+          'Provider initialization timed out after '
+          '${Constants.devocionalProviderWaitTimeout.inSeconds}s',
+        );
+      },
     );
   }
 

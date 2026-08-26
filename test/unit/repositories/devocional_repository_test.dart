@@ -1,6 +1,7 @@
 @Tags(['unit', 'repositories'])
 library;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -65,6 +66,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(Uri());
+    registerFallbackValue(http.Request('GET', Uri.parse('https://test')));
     TestWidgetsFlutterBinding.ensureInitialized();
     PathProviderPlatform.instance = MockPathProviderPlatform();
 
@@ -117,9 +119,9 @@ void main() {
         _buildApiResponse(language: 'es', version: 'RVR1960'),
       );
 
-      when(() => mockHttpClient.get(any())).thenAnswer(
-        (_) async => http.Response.bytes(
-          utf8.encode(responseBody),
+      when(() => mockHttpClient.send(any())).thenAnswer(
+        (_) async => http.StreamedResponse(
+          Stream.value(utf8.encode(responseBody)),
           200,
           headers: {'content-type': 'application/json; charset=utf-8'},
         ),
@@ -173,6 +175,169 @@ void main() {
 
       expect(result, isEmpty);
     });
+
+    test(
+      'falls back to local storage when the HTTP request stalls past '
+      'the configured fetch timeout instead of hanging indefinitely',
+      () async {
+        // Same repository, but with a short timeout injected so the test
+        // doesn't have to wait out the real devocionalFetchTimeout constant.
+        final timeoutRepository = DevocionalRepositoryImpl(
+          httpClient: mockHttpClient,
+          devocionalIndexService: mockIndexService,
+          cacheMetadataService: mockMetadataService,
+          fetchTimeout: const Duration(milliseconds: 50),
+        );
+
+        final file = File('$testDir/devocionales/devocional_2025_es.json');
+        await file.writeAsString(
+          json.encode(_buildApiResponse(language: 'es', version: 'RVR1960')),
+        );
+
+        // Force the stale/network branch despite local data existing —
+        // otherwise fetchAll() would serve the fresh local cache and never
+        // call http.get() at all, making this test pass for the wrong reason.
+        when(
+          () => mockIndexService.fetchIndex(),
+        ).thenAnswer((_) async => {'schema_version': 1});
+        when(
+          () => mockIndexService.getFileDate(any(), any(), any(), any()),
+        ).thenReturn('2026-01-01');
+
+        // A request that never completes on its own — only the idle timeout
+        // in fetchAll() can bound it.
+        when(
+          () => mockHttpClient.send(any()),
+        ).thenAnswer((_) => Completer<http.StreamedResponse>().future);
+
+        final result =
+            await timeoutRepository.fetchAll(2025, 'es', 'RVR1960').timeout(
+                  const Duration(seconds: 2),
+                  onTimeout: () => throw TestFailure(
+                    'fetchAll hung past its own fetchTimeout — the .timeout() '
+                    'wrapper is not bounding the stalled HTTP request',
+                  ),
+                );
+
+        expect(result, isNotEmpty);
+        expect(result.first.language, 'es');
+      },
+    );
+  });
+
+  group('fetchAll — byte-stream idle timeout', () {
+    test(
+      'completes a slow-but-alive transfer whose total duration exceeds the '
+      'timeout, because the timeout bounds stream idleness not total time',
+      () async {
+        // 30ms idle window, but the transfer trickles for ~150ms total. A
+        // whole-response timeout kills this legitimate download; an idle
+        // timeout lets it finish because no inter-chunk gap exceeds 30ms.
+        final aliveRepository = DevocionalRepositoryImpl(
+          httpClient: mockHttpClient,
+          devocionalIndexService: mockIndexService,
+          cacheMetadataService: mockMetadataService,
+          fetchTimeout: const Duration(milliseconds: 30),
+        );
+
+        when(
+          () => mockIndexService.fetchIndex(),
+        ).thenAnswer((_) async => {'schema_version': 1});
+        when(
+          () => mockIndexService.getFileDate(any(), any(), any(), any()),
+        ).thenReturn('2026-01-01');
+
+        final body = utf8.encode(
+          json.encode(_buildApiResponse(language: 'es', version: 'RVR1960')),
+        );
+
+        // Ten chunks, 15ms apart: always alive, never idle past 30ms,
+        // total ~150ms — five times the timeout value.
+        Stream<List<int>> trickle() async* {
+          const chunkCount = 10;
+          final chunkSize = (body.length / chunkCount).ceil();
+          for (int i = 0; i < body.length; i += chunkSize) {
+            await Future<void>.delayed(const Duration(milliseconds: 15));
+            yield body.sublist(
+              i,
+              (i + chunkSize).clamp(0, body.length),
+            );
+          }
+        }
+
+        when(() => mockHttpClient.send(any())).thenAnswer(
+          (_) async => http.StreamedResponse(trickle(), 200),
+        );
+
+        final result = await aliveRepository.fetchAll(2099, 'es', 'RVR1960');
+
+        // Year 2099 has no local cache, so a non-empty result can only come
+        // from the network transfer having been allowed to finish.
+        expect(result, isNotEmpty);
+        expect(result.first.language, 'es');
+      },
+    );
+
+    test(
+      'falls back to local storage when the response stream emits a few bytes '
+      'then goes silent, instead of hanging until the stream closes',
+      () async {
+        final stallRepository = DevocionalRepositoryImpl(
+          httpClient: mockHttpClient,
+          devocionalIndexService: mockIndexService,
+          cacheMetadataService: mockMetadataService,
+          fetchTimeout: const Duration(milliseconds: 50),
+        );
+
+        final file = File('$testDir/devocionales/devocional_2025_es.json');
+        await file.writeAsString(
+          json.encode(_buildApiResponse(language: 'es', version: 'RVR1960')),
+        );
+
+        // Force the network branch despite local data existing.
+        when(
+          () => mockIndexService.fetchIndex(),
+        ).thenAnswer((_) async => {'schema_version': 1});
+        when(
+          () => mockIndexService.getFileDate(any(), any(), any(), any()),
+        ).thenReturn('2026-01-01');
+
+        // Headers arrive and a first chunk lands, then the socket goes dead:
+        // no more bytes, and the stream never closes. A whole-response timeout
+        // on the *future* never fires here because the response future already
+        // completed — only an idle timeout on the byte stream catches this.
+        // Broadcast so an abandoned subscription never blocks close(), and
+        // so tearDown cannot hang the test on the deliberately-stalled stream.
+        final controller = StreamController<List<int>>.broadcast();
+        addTearDown(() {
+          if (!controller.isClosed) unawaited(controller.close());
+        });
+        controller.onListen = () => controller.add(utf8.encode('{"data":'));
+
+        when(() => mockHttpClient.send(any())).thenAnswer(
+          (_) async => http.StreamedResponse(controller.stream, 200),
+        );
+
+        // A non-streaming get() over this same dead socket never completes —
+        // which is exactly what the old whole-response implementation did, and
+        // what this test must catch if the streaming rewrite is reverted.
+        when(
+          () => mockHttpClient.get(any()),
+        ).thenAnswer((_) => Completer<http.Response>().future);
+
+        final result =
+            await stallRepository.fetchAll(2025, 'es', 'RVR1960').timeout(
+                  const Duration(seconds: 2),
+                  onTimeout: () => throw TestFailure(
+                    'fetchAll hung on a stalled byte stream — the idle timeout '
+                    'is not bounding the dead socket',
+                  ),
+                );
+
+        expect(result, isNotEmpty);
+        expect(result.first.language, 'es');
+      },
+    );
   });
 
   // ---------------------------------------------------------------------------
@@ -503,15 +668,18 @@ void main() {
 
   group('All tests use mocked http.Client', () {
     test('no real network calls are made', () async {
-      when(
-        () => mockHttpClient.get(any()),
-      ).thenAnswer((_) async => http.Response('{"data":{}}', 200));
+      when(() => mockHttpClient.send(any())).thenAnswer(
+        (_) async => http.StreamedResponse(
+          Stream.value(utf8.encode('{"data":{}}')),
+          200,
+        ),
+      );
 
       // Force an API fetch (no local file for year 2099)
       await repository.fetchAll(2099, 'es', 'RVR1960');
 
       // Verify the mock was called (not real network)
-      verify(() => mockHttpClient.get(any())).called(1);
+      verify(() => mockHttpClient.send(any())).called(1);
     });
   });
 }
