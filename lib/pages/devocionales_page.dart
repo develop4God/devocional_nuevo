@@ -261,9 +261,22 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         if (!mounted) return;
       }
 
-      // Validate devotionals are available
+      // No cache and no network is an expected terminal outcome — not a bug
+      // to throw-and-catch two frames later — so it's rendered directly as
+      // the retryable error state rather than reported to Crashlytics.
       if (devocionalProvider.devocionales.isEmpty) {
-        throw StateError('No devotionals available after initialization');
+        developer.log(
+          'No devotionals available after initialization — rendering '
+          'retryable error state (not a bug: cache empty and network '
+          'unavailable/empty)',
+        );
+        if (mounted) {
+          setState(() {
+            _initState = _PageInitializationState.error;
+            _initErrorMessage = 'devotionals.error_no_content'.tr();
+          });
+        }
+        return;
       }
 
       // Create BLoC with reused repository instances (avoids re-instantiation)
