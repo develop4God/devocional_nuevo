@@ -61,6 +61,14 @@ class DevocionalesContentWidget extends StatelessWidget {
   /// matching unit is shown full-strength (bold); the others dim.
   final ValueListenable<int?>? currentUnitIndex;
 
+  /// Whether this widget wraps its content in its own [SingleChildScrollView].
+  /// Defaults to true, matching every existing caller. A caller that hosts
+  /// this content inside a [CustomScrollView] alongside a [SliverAppBar] (so
+  /// the app bar can pin/collapse) passes false and supplies [scrollController]
+  /// to the surrounding sliver scroll view instead — nesting two independent
+  /// scrollables would otherwise fight over drag gestures.
+  final bool wrapInScrollView;
+
   const DevocionalesContentWidget({
     super.key,
     required this.devocional,
@@ -76,6 +84,7 @@ class DevocionalesContentWidget extends StatelessWidget {
     required this.petService,
     this.showDate = true,
     this.showHeader = true,
+    this.wrapInScrollView = true,
     this.ttsUnits,
     this.currentUnitIndex,
   });
@@ -85,104 +94,108 @@ class DevocionalesContentWidget extends StatelessWidget {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (petService.showPetHeader && petService.isPetUnlocked)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: BlocBuilder<SupporterBloc, SupporterState>(
+              builder: (context, supporterState) {
+                final goldName = supporterState is SupporterLoaded
+                    ? supporterState.goldSupporterName
+                    : null;
+                return PetHeroSection(
+                  formattedDate: getLocalizedDateFormat(context),
+                  showPetHint: false,
+                  onTap: () => AppNavigationShell.selectTab(AppTab.settings),
+                  selectedPet: petService.selectedPet,
+                  selectedTheme: (
+                    colors: [colorScheme.primary, colorScheme.tertiary],
+                  ),
+                  profileName: goldName,
+                );
+              },
+            ),
+          ),
+        if (showHeader)
+          DevocionalHeaderWidget(
+            date: getLocalizedDateFormat(context),
+            showDate: showDate,
+            currentStreak: currentStreak,
+            streakFuture: streakFuture,
+            isFavorite: isFavorite,
+            onFavoriteToggle: onFavoriteToggle,
+            onShare: onShare,
+            onStreakTap: onStreakBadgeTap,
+          ),
+        ..._buildTtsContent(context, colorScheme, textTheme),
+        const SizedBox(height: 20),
+        if (devocional.version != null ||
+            devocional.language != null ||
+            devocional.tags != null)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'devotionals.details'.tr(),
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 10),
+              if (devocional.tags != null && devocional.tags!.isNotEmpty)
+                Text(
+                  'devotionals.topics'.tr({
+                    'topics': devocional.tags!.join(', '),
+                  }),
+                  style: textTheme.bodySmall?.copyWith(
+                    fontSize: 14,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              if (devocional.version != null)
+                Text(
+                  'devotionals.version'.tr({'version': devocional.version}),
+                  style: textTheme.bodySmall?.copyWith(
+                    fontSize: 14,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              const SizedBox(height: 10),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Consumer<DevocionalProvider>(
+                    builder: (context, provider, child) {
+                      return Text(
+                        CopyrightUtils.getCopyrightText(
+                          provider.selectedLanguage,
+                          provider.selectedVersion,
+                        ),
+                        style: textTheme.bodySmall?.copyWith(
+                          fontSize: 12,
+                          color: colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
+                        textAlign: TextAlign.center,
+                      );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+      ],
+    );
+
+    if (!wrapInScrollView) return content;
+
     return SingleChildScrollView(
       controller: scrollController,
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (petService.showPetHeader && petService.isPetUnlocked)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: BlocBuilder<SupporterBloc, SupporterState>(
-                builder: (context, supporterState) {
-                  final goldName = supporterState is SupporterLoaded
-                      ? supporterState.goldSupporterName
-                      : null;
-                  return PetHeroSection(
-                    formattedDate: getLocalizedDateFormat(context),
-                    showPetHint: false,
-                    onTap: () => AppNavigationShell.selectTab(AppTab.settings),
-                    selectedPet: petService.selectedPet,
-                    selectedTheme: (
-                      colors: [colorScheme.primary, colorScheme.tertiary],
-                    ),
-                    profileName: goldName,
-                  );
-                },
-              ),
-            ),
-          if (showHeader)
-            DevocionalHeaderWidget(
-              date: getLocalizedDateFormat(context),
-              showDate: showDate,
-              currentStreak: currentStreak,
-              streakFuture: streakFuture,
-              isFavorite: isFavorite,
-              onFavoriteToggle: onFavoriteToggle,
-              onShare: onShare,
-              onStreakTap: onStreakBadgeTap,
-            ),
-          ..._buildTtsContent(context, colorScheme, textTheme),
-          const SizedBox(height: 20),
-          if (devocional.version != null ||
-              devocional.language != null ||
-              devocional.tags != null)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'devotionals.details'.tr(),
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                if (devocional.tags != null && devocional.tags!.isNotEmpty)
-                  Text(
-                    'devotionals.topics'.tr({
-                      'topics': devocional.tags!.join(', '),
-                    }),
-                    style: textTheme.bodySmall?.copyWith(
-                      fontSize: 14,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                if (devocional.version != null)
-                  Text(
-                    'devotionals.version'.tr({'version': devocional.version}),
-                    style: textTheme.bodySmall?.copyWith(
-                      fontSize: 14,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                const SizedBox(height: 10),
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Consumer<DevocionalProvider>(
-                      builder: (context, provider, child) {
-                        return Text(
-                          CopyrightUtils.getCopyrightText(
-                            provider.selectedLanguage,
-                            provider.selectedVersion,
-                          ),
-                          style: textTheme.bodySmall?.copyWith(
-                            fontSize: 12,
-                            color: colorScheme.onSurface.withValues(alpha: 0.7),
-                          ),
-                          textAlign: TextAlign.center,
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-        ],
-      ),
+      child: content,
     );
   }
 
