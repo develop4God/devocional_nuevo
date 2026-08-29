@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/blocs/note_bloc.dart';
@@ -42,13 +41,15 @@ class DevocionalesContentWidget extends StatelessWidget {
   /// match existing callers.
   final bool showDate;
 
+  /// Whether the date/streak/favorite/share header row renders at all.
+  /// Defaults to true. Callers that render their own header elsewhere (e.g.
+  /// a full-bleed hero image above this widget) pass false to avoid showing
+  /// it twice — the header's own content and callbacks are unaffected.
+  final bool showHeader;
+
   /// Pet service injected by the caller — keeps [build] free of service-locator
   /// calls, which violates the project's DI rules.
   final SupporterPetService petService;
-
-  /// Background image painted behind the verse card. Null renders the card
-  /// with no background — the devotional's own content never depends on it.
-  final String? heroImageUrl;
 
   /// Ordered TTS units for this devotional (verse, reflection sentences,
   /// meditate items, prayer sentences). When provided together with
@@ -73,8 +74,8 @@ class DevocionalesContentWidget extends StatelessWidget {
     required this.onFavoriteToggle,
     required this.onShare,
     required this.petService,
-    this.heroImageUrl,
     this.showDate = true,
+    this.showHeader = true,
     this.ttsUnits,
     this.currentUnitIndex,
   });
@@ -111,7 +112,17 @@ class DevocionalesContentWidget extends StatelessWidget {
                 },
               ),
             ),
-          _buildHeader(context),
+          if (showHeader)
+            DevocionalHeaderWidget(
+              date: getLocalizedDateFormat(context),
+              showDate: showDate,
+              currentStreak: currentStreak,
+              streakFuture: streakFuture,
+              isFavorite: isFavorite,
+              onFavoriteToggle: onFavoriteToggle,
+              onShare: onShare,
+              onStreakTap: onStreakBadgeTap,
+            ),
           ..._buildTtsContent(context, colorScheme, textTheme),
           const SizedBox(height: 20),
           if (devocional.version != null ||
@@ -170,64 +181,6 @@ class DevocionalesContentWidget extends StatelessWidget {
                 const SizedBox(height: 20),
               ],
             ),
-        ],
-      ),
-    );
-  }
-
-  /// Renders the date/streak/favorite/share header. When [heroImageUrl] is
-  /// set, the header sits over the hero photo (with a dark scrim behind it
-  /// for legibility) instead of the plain background — the header's own
-  /// content and callbacks are unchanged either way.
-  Widget _buildHeader(BuildContext context) {
-    final header = DevocionalHeaderWidget(
-      date: getLocalizedDateFormat(context),
-      showDate: showDate,
-      currentStreak: currentStreak,
-      streakFuture: streakFuture,
-      isFavorite: isFavorite,
-      onFavoriteToggle: onFavoriteToggle,
-      onShare: onShare,
-      onStreakTap: onStreakBadgeTap,
-      onHeroImage: heroImageUrl != null,
-    );
-
-    final url = heroImageUrl;
-    if (url == null) return header;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16.0),
-      height: 220,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          CachedNetworkImage(
-            imageUrl: url,
-            fit: BoxFit.cover,
-            fadeInDuration: const Duration(milliseconds: 300),
-            errorWidget: (context, url, error) => const SizedBox.shrink(),
-          ),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.45),
-                  Colors.black.withValues(alpha: 0.05),
-                ],
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-              child: header,
-            ),
-          ),
         ],
       ),
     );
