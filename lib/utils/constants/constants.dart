@@ -209,7 +209,7 @@ class Constants {
     final base = filename.contains('.')
         ? filename.substring(0, filename.lastIndexOf('.'))
         : filename;
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/devotionals/$base.avif';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/devotionals/$base.webp';
   }
 
   // ---------------------------------------------------------------------------
