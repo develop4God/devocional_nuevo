@@ -34,6 +34,7 @@ import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/devocionales/devocional_hero_section.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_page_drawer.dart';
@@ -943,30 +944,45 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 currentDevocional,
               );
 
+              final devotionalsTitle =
+                  'devotionals.my_intimate_space_with_god'.tr();
+
               return AnnotatedRegion<SystemUiOverlayStyle>(
                 value: themeState.systemUiOverlayStyle,
                 child: Scaffold(
                   drawer: const DevocionalesDrawer(),
-                  appBar: CustomAppBar(
-                    titleWidget: AutoSizeText(
-                      'devotionals.my_intimate_space_with_god'.tr(),
-                      maxLines: 1,
-                      minFontSize: 10,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Theme.of(context).colorScheme.onPrimary,
+                  extendBodyBehindAppBar: heroImageUrl != null,
+                  appBar: heroImageUrl != null
+                      ? AppBar(
+                          backgroundColor: Colors.transparent,
+                          elevation: 0,
+                          automaticallyImplyLeading: false,
+                          toolbarHeight: 0,
+                        )
+                      : CustomAppBar(
+                          titleWidget: AutoSizeText(
+                            devotionalsTitle,
+                            maxLines: 1,
+                            minFontSize: 10,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                ),
                           ),
-                    ),
-                    actions: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.text_increase_outlined,
-                          color: Colors.white,
+                          actions: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.text_increase_outlined,
+                                color: Colors.white,
+                              ),
+                              tooltip: 'bible.adjust_font_size'.tr(),
+                              onPressed: _fontSizeController.toggleControls,
+                            ),
+                          ],
                         ),
-                        tooltip: 'bible.adjust_font_size'.tr(),
-                        onPressed: _fontSizeController.toggleControls,
-                      ),
-                    ],
-                  ),
                   floatingActionButton: AnimatedFabWithText(
                     onPressed: _showAddPrayerOrThanksgivingChoice,
                     text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
@@ -983,6 +999,30 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     children: [
                       Column(
                         children: [
+                          if (heroImageUrl != null)
+                            DevocionalHeroSection(
+                              imageUrl: heroImageUrl,
+                              titleText: devotionalsTitle,
+                              date: LocalizedDateFormatter.formatForContext(
+                                context,
+                              ),
+                              currentStreak: _currentStreak,
+                              streakFuture: _streakFuture,
+                              isFavorite: isFavorite,
+                              onFavoriteToggle: () async {
+                                final wasAdded =
+                                    await devocionalProvider.toggleFavorite(
+                                  currentDevocional.id,
+                                );
+                                _showFavoritesFeedback(wasAdded);
+                              },
+                              onShare: () => _shareAsText(currentDevocional),
+                              onStreakTap: () {
+                                AppNavigationShell.selectTab(AppTab.progress);
+                              },
+                              onFontSizeToggle:
+                                  _fontSizeController.toggleControls,
+                            ),
                           Expanded(
                             child: Screenshot(
                               controller: screenshotController,
@@ -1016,7 +1056,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   onShare: () =>
                                       _shareAsText(currentDevocional),
                                   petService: _petService,
-                                  heroImageUrl: heroImageUrl,
+                                  // The hero image already renders its own
+                                  // date/streak/favorite/share row above —
+                                  // when present, skip the plain header here
+                                  // instead of showing it twice.
+                                  showHeader: heroImageUrl == null,
                                   ttsUnits: _ttsSections()?.units,
                                   currentUnitIndex:
                                       _ttsAutoScrollDriver.currentIndex,

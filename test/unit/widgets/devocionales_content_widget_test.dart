@@ -1,7 +1,6 @@
 @Tags(['unit', 'widgets'])
 library;
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/note_bloc.dart';
 import 'package:devocional_nuevo/models/devotional_note.dart';
@@ -108,7 +107,7 @@ void main() {
       String? formattedDate,
       Future<int>? streakFuture,
       bool isFavorite = false,
-      String? heroImageUrl,
+      bool showHeader = true,
     }) {
       return BlocProvider(
         create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
@@ -128,7 +127,7 @@ void main() {
                 onFavoriteToggle: () => favoriteToggled = true,
                 onShare: () => shared = true,
                 petService: petService,
-                heroImageUrl: heroImageUrl,
+                showHeader: showHeader,
               ),
             ),
           ),
@@ -195,62 +194,19 @@ void main() {
     });
 
     testWidgets(
-      'renders verse content normally with no heroImageUrl (no background)',
+      'hides the entire header row when showHeader is false',
       (tester) async {
-        await tester.pumpWidget(buildWidget(heroImageUrl: null));
+        await tester.pumpWidget(buildWidget(showHeader: false));
         await tester.pump(BubbleConstants.delayBeforeShow);
 
+        // A caller rendering its own header elsewhere (e.g. a hero image
+        // banner) suppresses this widget's header entirely — not just the
+        // date, but the streak/favorite/share row too.
+        expect(find.text('25 de diciembre de 2025'), findsNothing);
+        expect(find.byIcon(Icons.favorite_border_rounded), findsNothing);
+        expect(find.byIcon(Icons.share_rounded), findsNothing);
+        // The rest of the devotional content still renders normally.
         expect(find.text('Juan 3:16'), findsOneWidget);
-        expect(find.byType(CachedNetworkImage), findsNothing);
-      },
-    );
-
-    testWidgets(
-      'renders the header over a hero image when heroImageUrl is set',
-      (tester) async {
-        await tester.pumpWidget(
-          buildWidget(heroImageUrl: 'https://example.com/hero.avif'),
-        );
-        await tester.pump(BubbleConstants.delayBeforeShow);
-
-        expect(find.byType(CachedNetworkImage), findsOneWidget);
-        // Header content (date, favorite/share icons) still renders on top.
-        expect(find.text('25 de diciembre de 2025'), findsOneWidget);
-        expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
-        expect(find.byIcon(Icons.share_rounded), findsOneWidget);
-        expect(find.text('Juan 3:16'), findsOneWidget);
-      },
-    );
-
-    testWidgets(
-      'header date text turns white for legibility over a hero image',
-      (tester) async {
-        await tester.pumpWidget(
-          buildWidget(heroImageUrl: 'https://example.com/hero.avif'),
-        );
-        await tester.pump(BubbleConstants.delayBeforeShow);
-
-        final dateText = tester.widget<Text>(
-          find.text('25 de diciembre de 2025'),
-        );
-        expect(dateText.style?.color, Colors.white);
-      },
-    );
-
-    testWidgets(
-      'header date text keeps the theme color when there is no hero image',
-      (tester) async {
-        await tester.pumpWidget(buildWidget(heroImageUrl: null));
-        await tester.pump(BubbleConstants.delayBeforeShow);
-
-        final dateText = tester.widget<Text>(
-          find.text('25 de diciembre de 2025'),
-        );
-        final context = tester.element(find.text('25 de diciembre de 2025'));
-        expect(
-          dateText.style?.color,
-          Theme.of(context).colorScheme.primary,
-        );
       },
     );
 
