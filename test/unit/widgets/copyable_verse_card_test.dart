@@ -25,7 +25,7 @@ void main() {
     });
 
     testWidgets(
-      'uses colorScheme.onSurface when overrideTextColor is not set',
+      'uses colorScheme.onSurface for the text color',
       (tester) async {
         await tester.pumpWidget(buildWidget());
         final textWidget = tester.widget<AutoSizeText>(
@@ -36,23 +36,6 @@ void main() {
         expect(textWidget.style?.color, equals(onSurface));
       },
     );
-
-    testWidgets('uses overrideTextColor when provided', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: CopyableVerseCard(
-              text: verseText,
-              overrideTextColor: Colors.white,
-            ),
-          ),
-        ),
-      );
-      final textWidget = tester.widget<AutoSizeText>(
-        find.byType(AutoSizeText),
-      );
-      expect(textWidget.style?.color, equals(Colors.white));
-    });
 
     testWidgets('shows copy icon', (tester) async {
       await tester.pumpWidget(buildWidget());

@@ -111,16 +111,7 @@ class DevocionalesContentWidget extends StatelessWidget {
                 },
               ),
             ),
-          DevocionalHeaderWidget(
-            date: getLocalizedDateFormat(context),
-            showDate: showDate,
-            currentStreak: currentStreak,
-            streakFuture: streakFuture,
-            isFavorite: isFavorite,
-            onFavoriteToggle: onFavoriteToggle,
-            onShare: onShare,
-            onStreakTap: onStreakBadgeTap,
-          ),
+          _buildHeader(context),
           ..._buildTtsContent(context, colorScheme, textTheme),
           const SizedBox(height: 20),
           if (devocional.version != null ||
@@ -179,6 +170,64 @@ class DevocionalesContentWidget extends StatelessWidget {
                 const SizedBox(height: 20),
               ],
             ),
+        ],
+      ),
+    );
+  }
+
+  /// Renders the date/streak/favorite/share header. When [heroImageUrl] is
+  /// set, the header sits over the hero photo (with a dark scrim behind it
+  /// for legibility) instead of the plain background — the header's own
+  /// content and callbacks are unchanged either way.
+  Widget _buildHeader(BuildContext context) {
+    final header = DevocionalHeaderWidget(
+      date: getLocalizedDateFormat(context),
+      showDate: showDate,
+      currentStreak: currentStreak,
+      streakFuture: streakFuture,
+      isFavorite: isFavorite,
+      onFavoriteToggle: onFavoriteToggle,
+      onShare: onShare,
+      onStreakTap: onStreakBadgeTap,
+      onHeroImage: heroImageUrl != null,
+    );
+
+    final url = heroImageUrl;
+    if (url == null) return header;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16.0),
+      height: 220,
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CachedNetworkImage(
+            imageUrl: url,
+            fit: BoxFit.cover,
+            fadeInDuration: const Duration(milliseconds: 300),
+            errorWidget: (context, url, error) => const SizedBox.shrink(),
+          ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.45),
+                  Colors.black.withValues(alpha: 0.05),
+                ],
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+              child: header,
+            ),
+          ),
         ],
       ),
     );
@@ -251,8 +300,7 @@ class DevocionalesContentWidget extends StatelessWidget {
           ),
         );
       case DevotionalUnitKind.verse:
-        return _HeroVerseCard(
-          heroImageUrl: heroImageUrl,
+        return CopyableVerseCard(
           text: unit.text,
           textStyle: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
@@ -310,8 +358,7 @@ class DevocionalesContentWidget extends StatelessWidget {
         );
 
     return [
-      _HeroVerseCard(
-        heroImageUrl: heroImageUrl,
+      CopyableVerseCard(
         text: devocional.versiculo,
         textStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
       ),
@@ -348,74 +395,6 @@ class DevocionalesContentWidget extends StatelessWidget {
       const SizedBox(height: 10),
       body(devocional.oracion),
     ];
-  }
-}
-
-/// Verse card with [heroImageUrl] painted behind it, when present. Text turns
-/// white once the image has actually decoded and is on-screen; if there's no
-/// URL, or it fails to load, the card keeps its normal theme-based color.
-class _HeroVerseCard extends StatefulWidget {
-  final String? heroImageUrl;
-  final String text;
-  final TextStyle? textStyle;
-
-  const _HeroVerseCard({
-    required this.heroImageUrl,
-    required this.text,
-    required this.textStyle,
-  });
-
-  @override
-  State<_HeroVerseCard> createState() => _HeroVerseCardState();
-}
-
-class _HeroVerseCardState extends State<_HeroVerseCard> {
-  bool _imageLoaded = false;
-
-  @override
-  void didUpdateWidget(covariant _HeroVerseCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.heroImageUrl != widget.heroImageUrl) {
-      _imageLoaded = false;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final verseCard = CopyableVerseCard(
-      text: widget.text,
-      textStyle: widget.textStyle,
-      overrideTextColor: _imageLoaded ? Colors.white : null,
-    );
-
-    final url = widget.heroImageUrl;
-    if (url == null) return verseCard;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Stack(
-        fit: StackFit.passthrough,
-        children: [
-          Positioned.fill(
-            child: CachedNetworkImage(
-              imageUrl: url,
-              fit: BoxFit.cover,
-              fadeInDuration: const Duration(milliseconds: 300),
-              imageBuilder: (context, imageProvider) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted && !_imageLoaded) {
-                    setState(() => _imageLoaded = true);
-                  }
-                });
-                return Image(image: imageProvider, fit: BoxFit.cover);
-              },
-              errorWidget: (context, url, error) => const SizedBox.shrink(),
-            ),
-          ),
-          verseCard,
-        ],
-      ),
-    );
   }
 }
 
