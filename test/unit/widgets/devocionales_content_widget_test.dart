@@ -206,15 +206,51 @@ void main() {
     );
 
     testWidgets(
-      'renders a background image behind the verse card when heroImageUrl is set',
+      'renders the header over a hero image when heroImageUrl is set',
       (tester) async {
         await tester.pumpWidget(
           buildWidget(heroImageUrl: 'https://example.com/hero.avif'),
         );
         await tester.pump(BubbleConstants.delayBeforeShow);
 
-        expect(find.text('Juan 3:16'), findsOneWidget);
         expect(find.byType(CachedNetworkImage), findsOneWidget);
+        // Header content (date, favorite/share icons) still renders on top.
+        expect(find.text('25 de diciembre de 2025'), findsOneWidget);
+        expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
+        expect(find.byIcon(Icons.share_rounded), findsOneWidget);
+        expect(find.text('Juan 3:16'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'header date text turns white for legibility over a hero image',
+      (tester) async {
+        await tester.pumpWidget(
+          buildWidget(heroImageUrl: 'https://example.com/hero.avif'),
+        );
+        await tester.pump(BubbleConstants.delayBeforeShow);
+
+        final dateText = tester.widget<Text>(
+          find.text('25 de diciembre de 2025'),
+        );
+        expect(dateText.style?.color, Colors.white);
+      },
+    );
+
+    testWidgets(
+      'header date text keeps the theme color when there is no hero image',
+      (tester) async {
+        await tester.pumpWidget(buildWidget(heroImageUrl: null));
+        await tester.pump(BubbleConstants.delayBeforeShow);
+
+        final dateText = tester.widget<Text>(
+          find.text('25 de diciembre de 2025'),
+        );
+        final context = tester.element(find.text('25 de diciembre de 2025'));
+        expect(
+          dateText.style?.color,
+          Theme.of(context).colorScheme.primary,
+        );
       },
     );
 

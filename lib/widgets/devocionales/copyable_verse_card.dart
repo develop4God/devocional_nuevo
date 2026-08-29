@@ -14,10 +14,6 @@ class CopyableVerseCard extends StatelessWidget {
   /// Text sent to clipboard. Defaults to [text] when omitted.
   final String? copyText;
 
-  /// Overrides the resolved text color (e.g. white over a loaded hero image).
-  /// Null keeps the default theme-based [ColorScheme.onSurface] color.
-  final Color? overrideTextColor;
-
   const CopyableVerseCard({
     super.key,
     required this.text,
@@ -25,13 +21,12 @@ class CopyableVerseCard extends StatelessWidget {
     this.maxLines = 12,
     this.prefixSpan,
     this.copyText,
-    this.overrideTextColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textColor = overrideTextColor ?? colorScheme.onSurface;
+    final textColor = colorScheme.onSurface;
     final resolvedStyle =
         textStyle?.copyWith(color: textColor) ?? TextStyle(color: textColor);
 
