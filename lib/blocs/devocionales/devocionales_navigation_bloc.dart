@@ -83,6 +83,7 @@ class DevocionalesNavigationBloc
 
     final newIndex = currentState.currentIndex + 1;
     final heroImageUrl = await _imageRepository.advance();
+    debugPrint('[NAV_BLOC] 🖼️ NavigateToNext heroImageUrl=$heroImageUrl');
 
     emit(
       NavigationReady.calculate(
@@ -111,6 +112,7 @@ class DevocionalesNavigationBloc
 
     final newIndex = currentState.currentIndex - 1;
     final heroImageUrl = await _imageRepository.pickFresh();
+    debugPrint('[NAV_BLOC] 🖼️ NavigateToPrevious heroImageUrl=$heroImageUrl');
 
     emit(
       NavigationReady.calculate(
