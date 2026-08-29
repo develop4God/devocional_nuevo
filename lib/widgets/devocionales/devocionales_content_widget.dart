@@ -251,13 +251,11 @@ class DevocionalesContentWidget extends StatelessWidget {
           ),
         );
       case DevotionalUnitKind.verse:
-        return _verseCardWithHero(
-          context,
-          CopyableVerseCard(
-            text: unit.text,
-            textStyle: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+        return _HeroVerseCard(
+          heroImageUrl: heroImageUrl,
+          text: unit.text,
+          textStyle: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
           ),
         );
       case DevotionalUnitKind.sentence:
@@ -289,32 +287,6 @@ class DevocionalesContentWidget extends StatelessWidget {
     }
   }
 
-  /// Wraps the verse card with [heroImageUrl] as a background, when present.
-  /// With no URL — offline, still resolving, or no pool available — the card
-  /// renders exactly as before.
-  Widget _verseCardWithHero(BuildContext context, Widget verseCard) {
-    final url = heroImageUrl;
-    if (url == null) return verseCard;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Stack(
-        fit: StackFit.passthrough,
-        children: [
-          Positioned.fill(
-            child: CachedNetworkImage(
-              imageUrl: url,
-              fit: BoxFit.cover,
-              fadeInDuration: const Duration(milliseconds: 300),
-              errorWidget: (context, url, error) => const SizedBox.shrink(),
-            ),
-          ),
-          verseCard,
-        ],
-      ),
-    );
-  }
-
   /// Non-highlighted fallback (e.g. favorite detail page, or TTS idle) — the
   /// original section layout, unchanged.
   List<Widget> _buildPlainContent(
@@ -338,13 +310,10 @@ class DevocionalesContentWidget extends StatelessWidget {
         );
 
     return [
-      _verseCardWithHero(
-        context,
-        CopyableVerseCard(
-          text: devocional.versiculo,
-          textStyle:
-              textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
+      _HeroVerseCard(
+        heroImageUrl: heroImageUrl,
+        text: devocional.versiculo,
+        textStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
       ),
       const SizedBox(height: 12),
       _DevotionalNoteAction(devocional: devocional),
@@ -379,6 +348,74 @@ class DevocionalesContentWidget extends StatelessWidget {
       const SizedBox(height: 10),
       body(devocional.oracion),
     ];
+  }
+}
+
+/// Verse card with [heroImageUrl] painted behind it, when present. Text turns
+/// white once the image has actually decoded and is on-screen; if there's no
+/// URL, or it fails to load, the card keeps its normal theme-based color.
+class _HeroVerseCard extends StatefulWidget {
+  final String? heroImageUrl;
+  final String text;
+  final TextStyle? textStyle;
+
+  const _HeroVerseCard({
+    required this.heroImageUrl,
+    required this.text,
+    required this.textStyle,
+  });
+
+  @override
+  State<_HeroVerseCard> createState() => _HeroVerseCardState();
+}
+
+class _HeroVerseCardState extends State<_HeroVerseCard> {
+  bool _imageLoaded = false;
+
+  @override
+  void didUpdateWidget(covariant _HeroVerseCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.heroImageUrl != widget.heroImageUrl) {
+      _imageLoaded = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final verseCard = CopyableVerseCard(
+      text: widget.text,
+      textStyle: widget.textStyle,
+      overrideTextColor: _imageLoaded ? Colors.white : null,
+    );
+
+    final url = widget.heroImageUrl;
+    if (url == null) return verseCard;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Stack(
+        fit: StackFit.passthrough,
+        children: [
+          Positioned.fill(
+            child: CachedNetworkImage(
+              imageUrl: url,
+              fit: BoxFit.cover,
+              fadeInDuration: const Duration(milliseconds: 300),
+              imageBuilder: (context, imageProvider) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted && !_imageLoaded) {
+                    setState(() => _imageLoaded = true);
+                  }
+                });
+                return Image(image: imageProvider, fit: BoxFit.cover);
+              },
+              errorWidget: (context, url, error) => const SizedBox.shrink(),
+            ),
+          ),
+          verseCard,
+        ],
+      ),
+    );
   }
 }
 
