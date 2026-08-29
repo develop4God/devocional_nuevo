@@ -708,7 +708,9 @@ class _AppInitializerState extends State<AppInitializer> {
   /// card without a background rather than blocking or delaying startup.
   Future<void> _initDevotionalHeroImage() async {
     try {
+      _startupLog('devotionalHeroImage.prepareInitial() starting');
       await getService<DevotionalImageRepository>().prepareInitial();
+      _startupLog('devotionalHeroImage.prepareInitial() done');
     } catch (e) {
       developer.log(
         'Devotional hero image init failed: $e',

@@ -70,6 +70,9 @@ class DevotionalImageRepository {
         final files = _parseIndex(json);
         await prefs.setString(_indexCacheKey, response.body);
         _indexFetchedThisSession = true;
+        debugPrint(
+          '🖼️ DevotionalImage: index fetched (${files.length} files)',
+        );
         return files;
       }
       throw Exception('Server error: ${response.statusCode}');
@@ -110,6 +113,7 @@ class DevotionalImageRepository {
   Future<void> _warm(String url) async {
     try {
       await cacheManager.downloadFile(url);
+      debugPrint('🖼️ DevotionalImage: warmed $url');
     } catch (e) {
       debugPrint('⚠️ DevotionalImage: Failed to warm $url: $e');
     }
@@ -129,11 +133,13 @@ class DevotionalImageRepository {
 
       await _warm(url);
       currentImageUrl = url;
+      debugPrint('🖼️ DevotionalImage: prepareInitial current=$url');
 
       final nextUrl = await _pickRandomUrl(files);
       if (nextUrl != null) {
         await _warm(nextUrl);
         _prefetchedNextUrl = nextUrl;
+        debugPrint('🖼️ DevotionalImage: prepareInitial prefetched=$nextUrl');
       }
     } catch (e) {
       debugPrint('⚠️ DevotionalImage: prepareInitial failed: $e');
@@ -152,6 +158,11 @@ class DevotionalImageRepository {
     if (promoted != null) {
       currentImageUrl = promoted;
       _prefetchedNextUrl = null;
+      debugPrint('🖼️ DevotionalImage: advance promoted=$promoted');
+    } else {
+      debugPrint(
+        '🖼️ DevotionalImage: advance had no prefetch, keeping $currentImageUrl',
+      );
     }
 
     // Fire-and-forget: prepares the image for the navigation after this one.
@@ -167,6 +178,7 @@ class DevotionalImageRepository {
       if (url == null) return;
       await _warm(url);
       _prefetchedNextUrl = url;
+      debugPrint('🖼️ DevotionalImage: prefetch ready=$url');
     } catch (e) {
       debugPrint('⚠️ DevotionalImage: prefetch failed: $e');
     }
@@ -181,7 +193,10 @@ class DevotionalImageRepository {
     try {
       final files = await fetchIndex(forceRefresh: forceRefresh);
       final url = await _pickRandomUrl(files);
-      if (url != null) currentImageUrl = url;
+      if (url != null) {
+        currentImageUrl = url;
+        debugPrint('🖼️ DevotionalImage: pickFresh current=$url');
+      }
       return currentImageUrl;
     } catch (e) {
       debugPrint('⚠️ DevotionalImage: pickFresh failed: $e');
