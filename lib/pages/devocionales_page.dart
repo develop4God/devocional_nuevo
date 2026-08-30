@@ -971,9 +971,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           ),
                           actions: [
                             IconButton(
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.text_increase_outlined,
-                                color: Colors.white,
+                                color: colorScheme.onPrimary,
                               ),
                               tooltip: 'bible.adjust_font_size'.tr(),
                               onPressed: _fontSizeController.toggleControls,
@@ -1060,85 +1060,21 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               ),
                             ),
                             SliverToBoxAdapter(
-                              child: Screenshot(
-                                controller: screenshotController,
-                                child: Container(
-                                  color: Theme.of(
-                                    context,
-                                  ).scaffoldBackgroundColor,
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: DevocionalesContentWidget(
-                                    devocional: currentDevocional,
-                                    fontSize: _fontSizeController.fontSize,
-                                    wrapInScrollView: false,
-                                    onStreakBadgeTap: () {
-                                      AppNavigationShell.selectTab(
-                                        AppTab.progress,
-                                      );
-                                    },
-                                    currentStreak: _currentStreak,
-                                    streakFuture: _streakFuture,
-                                    getLocalizedDateFormat: (context) =>
-                                        LocalizedDateFormatter.formatForContext(
-                                            context),
-                                    isFavorite: isFavorite,
-                                    onFavoriteToggle: () async {
-                                      final wasAdded = await devocionalProvider
-                                          .toggleFavorite(
-                                        currentDevocional.id,
-                                      );
-                                      _showFavoritesFeedback(wasAdded);
-                                    },
-                                    onShare: () =>
-                                        _shareAsText(currentDevocional),
-                                    petService: _petService,
-                                    // The hero already renders its own
-                                    // date/streak/favorite/share row above —
-                                    // skip the plain header here instead of
-                                    // showing it twice.
-                                    showHeader: false,
-                                    ttsUnits: _ttsSections()?.units,
-                                    currentUnitIndex:
-                                        _ttsAutoScrollDriver.currentIndex,
-                                  ),
-                                ),
+                              child: _buildContentWidget(
+                                hasHeroImage: true,
+                                currentDevocional: currentDevocional,
+                                isFavorite: isFavorite,
+                                devocionalProvider: devocionalProvider,
                               ),
                             ),
                           ],
                         )
                       else
-                        Screenshot(
-                          controller: screenshotController,
-                          child: Container(
-                            color: Theme.of(context).scaffoldBackgroundColor,
-                            child: DevocionalesContentWidget(
-                              devocional: currentDevocional,
-                              fontSize: _fontSizeController.fontSize,
-                              scrollController: _scrollController,
-                              onStreakBadgeTap: () {
-                                AppNavigationShell.selectTab(AppTab.progress);
-                              },
-                              currentStreak: _currentStreak,
-                              streakFuture: _streakFuture,
-                              getLocalizedDateFormat: (context) =>
-                                  LocalizedDateFormatter.formatForContext(
-                                context,
-                              ),
-                              isFavorite: isFavorite,
-                              onFavoriteToggle: () async {
-                                final wasAdded =
-                                    await devocionalProvider.toggleFavorite(
-                                  currentDevocional.id,
-                                );
-                                _showFavoritesFeedback(wasAdded);
-                              },
-                              onShare: () => _shareAsText(currentDevocional),
-                              petService: _petService,
-                              ttsUnits: _ttsSections()?.units,
-                              currentUnitIndex:
-                                  _ttsAutoScrollDriver.currentIndex,
-                            ),
-                          ),
+                        _buildContentWidget(
+                          hasHeroImage: false,
+                          currentDevocional: currentDevocional,
+                          isFavorite: isFavorite,
+                          devocionalProvider: devocionalProvider,
                         ),
                       if (_fontSizeController.showControls)
                         FloatingFontControlButtons(
@@ -1178,6 +1114,57 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           ),
         );
       },
+    );
+  }
+
+  /// Builds the devotional content widget, shared by both hero and non-hero paths.
+  ///
+  /// [hasHeroImage] determines:
+  /// - true: hero image shown, no scrollController needed (parent CustomScrollView handles scroll)
+  /// - false: no hero, scrollController needed so content can scroll independently
+  Widget _buildContentWidget({
+    required bool hasHeroImage,
+    required Devocional currentDevocional,
+    required bool isFavorite,
+    required DevocionalProvider devocionalProvider,
+  }) {
+    return Screenshot(
+      controller: screenshotController,
+      child: Container(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        padding: hasHeroImage ? const EdgeInsets.all(16.0) : null,
+        child: DevocionalesContentWidget(
+          devocional: currentDevocional,
+          fontSize: _fontSizeController.fontSize,
+          // Hero path: no scroll controller (parent CustomScrollView controls scroll)
+          // Non-hero path: pass controller so content can scroll internally
+          scrollController: hasHeroImage ? null : _scrollController,
+          onStreakBadgeTap: () {
+            AppNavigationShell.selectTab(AppTab.progress);
+          },
+          currentStreak: _currentStreak,
+          streakFuture: _streakFuture,
+          getLocalizedDateFormat: (context) =>
+              LocalizedDateFormatter.formatForContext(context),
+          isFavorite: isFavorite,
+          onFavoriteToggle: () async {
+            final wasAdded = await devocionalProvider.toggleFavorite(
+              currentDevocional.id,
+            );
+            _showFavoritesFeedback(wasAdded);
+          },
+          onShare: () => _shareAsText(currentDevocional),
+          petService: _petService,
+          // Hero path: hero section renders header, so skip here to avoid duplication
+          // Non-hero path: render header normally
+          showHeader: !hasHeroImage,
+          // Hero path: inside CustomScrollView, so don't wrap in ScrollView
+          // Non-hero path: wrap in ScrollView so it can scroll independently
+          wrapInScrollView: !hasHeroImage,
+          ttsUnits: _ttsSections()?.units,
+          currentUnitIndex: _ttsAutoScrollDriver.currentIndex,
+        ),
+      ),
     );
   }
 
