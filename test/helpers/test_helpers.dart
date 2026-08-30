@@ -447,6 +447,11 @@ class MockPathProviderPlatform extends PathProviderPlatform {
   Future<String?> getTemporaryPath() async {
     return Directory.systemTemp.path;
   }
+
+  @override
+  Future<String?> getApplicationSupportPath() async {
+    return Directory.systemTemp.path;
+  }
 }
 
 /// Fake [ISpiritualStatsService] for tests that need a [PrayerBloc].
