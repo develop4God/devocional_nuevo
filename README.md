@@ -2,8 +2,8 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.9-blue.svg)](https://flutter.dev/)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Tests](https://img.shields.io/badge/Tests-109+-brightgreen.svg)](#-testing--pruebas)
-[![Coverage](https://img.shields.io/badge/Coverage-71.7%25-brightgreen.svg)](#-testing--pruebas)
+[![Tests](https://img.shields.io/badge/Tests-98+-brightgreen.svg)](#-testing--pruebas)
+[![Coverage](https://img.shields.io/badge/Coverage-71.8%25-brightgreen.svg)](#-testing--pruebas)
 [![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](#)
 
 ---
@@ -62,9 +62,9 @@ favorites, spiritual tracking, and intelligent review system.
 
 | Metric              | Value                        |
 |---------------------|------------------------------|
-| Source Files (lib/) | 286 Dart files               |
-| Test Files          | 302 test files               |
-| Total Tests         | 109 tests (100% passing ✅) |
+| Source Files (lib/) | 288 Dart files               |
+| Test Files          | 305 test files               |
+| Total Tests         | 98 tests (100% passing ✅) |
 | Test Coverage       | 51.9% (10,725/20,666 lines)   |
 | Supported Languages | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Static Analysis     | ✅ All checks passing         |
@@ -85,10 +85,10 @@ lib/
 ├── models/  (20 files)
 ├── pages/  (30 files)
 ├── providers/  (2 files)
-├── repositories/  (16 files)
+├── repositories/  (17 files)
 ├── services/  (57 files)
 ├── utils/  (18 files)
-└── widgets/  (74 files)
+└── widgets/  (75 files)
 ```
 <!-- /README-STATS:lib-tree-en -->
 
@@ -102,7 +102,7 @@ test/
 ├── integration/  (10 tests)
 ├── migration/  (2 tests)
 ├── models/  (1 tests)
-└── unit/  (281 tests)
+└── unit/  (284 tests)
 ```
 <!-- /README-STATS:test-tree-en -->
 
@@ -185,10 +185,10 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 
 | Métrica                | Valor                              |
 |------------------------|------------------------------------|
-| Archivos Fuente (lib/) | 286 archivos Dart                  |
-| Archivos de Test       | 302 archivos                       |
-| Total de Tests         | 109 tests (100% aprobados ✅)     |
-| Cobertura de Tests     | 71.7% (16,246/22,654 líneas)        |
+| Archivos Fuente (lib/) | 288 archivos Dart                  |
+| Archivos de Test       | 305 archivos                       |
+| Total de Tests         | 98 tests (100% aprobados ✅)     |
+| Cobertura de Tests     | 71.8% (16,407/22,844 líneas)        |
 | Idiomas Soportados     | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Análisis Estático      | ✅ Todas las verificaciones pasando |
 
@@ -314,6 +314,6 @@ Website / Sitio web: https://www.develop4God.com
 
 ---
 
-App Version: 1.15.0+116
+App Version: 1.15.0+120
 
 © 2026 develop4God
