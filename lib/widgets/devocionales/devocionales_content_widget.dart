@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/blocs/note_bloc.dart';
@@ -42,13 +41,15 @@ class DevocionalesContentWidget extends StatelessWidget {
   /// match existing callers.
   final bool showDate;
 
+  /// Whether the date/streak/favorite/share header row renders at all.
+  /// Defaults to true. Callers that render their own header elsewhere (e.g.
+  /// a full-bleed hero image above this widget) pass false to avoid showing
+  /// it twice — the header's own content and callbacks are unaffected.
+  final bool showHeader;
+
   /// Pet service injected by the caller — keeps [build] free of service-locator
   /// calls, which violates the project's DI rules.
   final SupporterPetService petService;
-
-  /// Background image painted behind the verse card. Null renders the card
-  /// with no background — the devotional's own content never depends on it.
-  final String? heroImageUrl;
 
   /// Ordered TTS units for this devotional (verse, reflection sentences,
   /// meditate items, prayer sentences). When provided together with
@@ -59,6 +60,14 @@ class DevocionalesContentWidget extends StatelessWidget {
   /// Index (into [ttsUnits]) of the unit currently being read by TTS. The
   /// matching unit is shown full-strength (bold); the others dim.
   final ValueListenable<int?>? currentUnitIndex;
+
+  /// Whether this widget wraps its content in its own [SingleChildScrollView].
+  /// Defaults to true, matching every existing caller. A caller that hosts
+  /// this content inside a [CustomScrollView] alongside a [SliverAppBar] (so
+  /// the app bar can pin/collapse) passes false and supplies [scrollController]
+  /// to the surrounding sliver scroll view instead — nesting two independent
+  /// scrollables would otherwise fight over drag gestures.
+  final bool wrapInScrollView;
 
   const DevocionalesContentWidget({
     super.key,
@@ -73,8 +82,9 @@ class DevocionalesContentWidget extends StatelessWidget {
     required this.onFavoriteToggle,
     required this.onShare,
     required this.petService,
-    this.heroImageUrl,
     this.showDate = true,
+    this.showHeader = true,
+    this.wrapInScrollView = true,
     this.ttsUnits,
     this.currentUnitIndex,
   });
@@ -84,33 +94,31 @@ class DevocionalesContentWidget extends StatelessWidget {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    return SingleChildScrollView(
-      controller: scrollController,
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (petService.showPetHeader && petService.isPetUnlocked)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: BlocBuilder<SupporterBloc, SupporterState>(
-                builder: (context, supporterState) {
-                  final goldName = supporterState is SupporterLoaded
-                      ? supporterState.goldSupporterName
-                      : null;
-                  return PetHeroSection(
-                    formattedDate: getLocalizedDateFormat(context),
-                    showPetHint: false,
-                    onTap: () => AppNavigationShell.selectTab(AppTab.settings),
-                    selectedPet: petService.selectedPet,
-                    selectedTheme: (
-                      colors: [colorScheme.primary, colorScheme.tertiary],
-                    ),
-                    profileName: goldName,
-                  );
-                },
-              ),
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (petService.showPetHeader && petService.isPetUnlocked)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: BlocBuilder<SupporterBloc, SupporterState>(
+              builder: (context, supporterState) {
+                final goldName = supporterState is SupporterLoaded
+                    ? supporterState.goldSupporterName
+                    : null;
+                return PetHeroSection(
+                  formattedDate: getLocalizedDateFormat(context),
+                  showPetHint: false,
+                  onTap: () => AppNavigationShell.selectTab(AppTab.settings),
+                  selectedPet: petService.selectedPet,
+                  selectedTheme: (
+                    colors: [colorScheme.primary, colorScheme.tertiary],
+                  ),
+                  profileName: goldName,
+                );
+              },
             ),
+          ),
+        if (showHeader)
           DevocionalHeaderWidget(
             date: getLocalizedDateFormat(context),
             showDate: showDate,
@@ -121,66 +129,73 @@ class DevocionalesContentWidget extends StatelessWidget {
             onShare: onShare,
             onStreakTap: onStreakBadgeTap,
           ),
-          ..._buildTtsContent(context, colorScheme, textTheme),
-          const SizedBox(height: 20),
-          if (devocional.version != null ||
-              devocional.language != null ||
-              devocional.tags != null)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        ..._buildTtsContent(context, colorScheme, textTheme),
+        const SizedBox(height: 20),
+        if (devocional.version != null ||
+            devocional.language != null ||
+            devocional.tags != null)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'devotionals.details'.tr(),
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 10),
+              if (devocional.tags != null && devocional.tags!.isNotEmpty)
                 Text(
-                  'devotionals.details'.tr(),
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
+                  'devotionals.topics'.tr({
+                    'topics': devocional.tags!.join(', '),
+                  }),
+                  style: textTheme.bodySmall?.copyWith(
+                    fontSize: 14,
+                    color: colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 10),
-                if (devocional.tags != null && devocional.tags!.isNotEmpty)
-                  Text(
-                    'devotionals.topics'.tr({
-                      'topics': devocional.tags!.join(', '),
-                    }),
-                    style: textTheme.bodySmall?.copyWith(
-                      fontSize: 14,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                if (devocional.version != null)
-                  Text(
-                    'devotionals.version'.tr({'version': devocional.version}),
-                    style: textTheme.bodySmall?.copyWith(
-                      fontSize: 14,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                const SizedBox(height: 10),
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Consumer<DevocionalProvider>(
-                      builder: (context, provider, child) {
-                        return Text(
-                          CopyrightUtils.getCopyrightText(
-                            provider.selectedLanguage,
-                            provider.selectedVersion,
-                          ),
-                          style: textTheme.bodySmall?.copyWith(
-                            fontSize: 12,
-                            color: colorScheme.onSurface.withValues(alpha: 0.7),
-                          ),
-                          textAlign: TextAlign.center,
-                        );
-                      },
-                    ),
+              if (devocional.version != null)
+                Text(
+                  'devotionals.version'.tr({'version': devocional.version}),
+                  style: textTheme.bodySmall?.copyWith(
+                    fontSize: 14,
+                    color: colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 20),
-              ],
-            ),
-        ],
-      ),
+              const SizedBox(height: 10),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Consumer<DevocionalProvider>(
+                    builder: (context, provider, child) {
+                      return Text(
+                        CopyrightUtils.getCopyrightText(
+                          provider.selectedLanguage,
+                          provider.selectedVersion,
+                        ),
+                        style: textTheme.bodySmall?.copyWith(
+                          fontSize: 12,
+                          color: colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
+                        textAlign: TextAlign.center,
+                      );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+      ],
+    );
+
+    if (!wrapInScrollView) return content;
+
+    return SingleChildScrollView(
+      controller: scrollController,
+      padding: const EdgeInsets.all(16.0),
+      child: content,
     );
   }
 
@@ -251,13 +266,10 @@ class DevocionalesContentWidget extends StatelessWidget {
           ),
         );
       case DevotionalUnitKind.verse:
-        return _verseCardWithHero(
-          context,
-          CopyableVerseCard(
-            text: unit.text,
-            textStyle: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+        return CopyableVerseCard(
+          text: unit.text,
+          textStyle: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
           ),
         );
       case DevotionalUnitKind.sentence:
@@ -289,32 +301,6 @@ class DevocionalesContentWidget extends StatelessWidget {
     }
   }
 
-  /// Wraps the verse card with [heroImageUrl] as a background, when present.
-  /// With no URL — offline, still resolving, or no pool available — the card
-  /// renders exactly as before.
-  Widget _verseCardWithHero(BuildContext context, Widget verseCard) {
-    final url = heroImageUrl;
-    if (url == null) return verseCard;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Stack(
-        fit: StackFit.passthrough,
-        children: [
-          Positioned.fill(
-            child: CachedNetworkImage(
-              imageUrl: url,
-              fit: BoxFit.cover,
-              fadeInDuration: const Duration(milliseconds: 300),
-              errorWidget: (context, url, error) => const SizedBox.shrink(),
-            ),
-          ),
-          verseCard,
-        ],
-      ),
-    );
-  }
-
   /// Non-highlighted fallback (e.g. favorite detail page, or TTS idle) — the
   /// original section layout, unchanged.
   List<Widget> _buildPlainContent(
@@ -338,13 +324,9 @@ class DevocionalesContentWidget extends StatelessWidget {
         );
 
     return [
-      _verseCardWithHero(
-        context,
-        CopyableVerseCard(
-          text: devocional.versiculo,
-          textStyle:
-              textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
+      CopyableVerseCard(
+        text: devocional.versiculo,
+        textStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
       ),
       const SizedBox(height: 12),
       _DevotionalNoteAction(devocional: devocional),

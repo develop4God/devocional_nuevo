@@ -1,6 +1,7 @@
 @Tags(['unit', 'repositories'])
 library;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -112,6 +113,18 @@ void main() {
 
       expect(repository.currentImageUrl, isNull);
     });
+
+    test('leaves currentImageUrl null when the image download fails', () async {
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+      when(() => mockCacheManager.downloadFile(any()))
+          .thenThrow(Exception('image unavailable'));
+
+      await repository.prepareInitial();
+
+      expect(repository.currentImageUrl, isNull);
+      verify(() => mockCacheManager.downloadFile(any())).called(2);
+    });
   });
 
   group('advance', () {
@@ -161,6 +174,34 @@ void main() {
         expect(result, isNotNull);
       },
     );
+
+    test(
+      'does not promote a URL when forward-navigation prefetch fails',
+      () async {
+        final prefetchAttempted = Completer<void>();
+        when(() => mockHttpClient.get(any()))
+            .thenAnswer((_) async => okResponse());
+        when(() => mockCacheManager.downloadFile(any())).thenAnswer((_) {
+          if (!prefetchAttempted.isCompleted) {
+            prefetchAttempted.complete();
+          }
+          throw Exception('image unavailable');
+        });
+
+        // The first advance starts an asynchronous prefetch while there is no
+        // current or pre-fetched image. Wait until that prefetch has failed.
+        await repository.advance();
+        await prefetchAttempted.future;
+        await Future<void>.delayed(Duration.zero);
+
+        // If the failed URL had been stored, this second advance would
+        // incorrectly promote it. It must remain null instead.
+        final result = await repository.advance();
+
+        expect(result, isNull);
+        expect(repository.currentImageUrl, isNull);
+      },
+    );
   });
 
   group('pickFresh', () {
@@ -204,6 +245,78 @@ void main() {
         final result = await repository.pickFresh(forceRefresh: true);
 
         expect(result, shownBefore);
+      },
+    );
+
+    test('keeps the shown URL when a fresh image download fails', () async {
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+      final shownBefore = await repository.pickFresh();
+      expect(shownBefore, isNotNull);
+
+      when(() => mockCacheManager.downloadFile(any()))
+          .thenThrow(Exception('image unavailable'));
+
+      final result = await repository.pickFresh(forceRefresh: true);
+
+      expect(result, shownBefore);
+      expect(repository.currentImageUrl, shownBefore);
+    });
+  });
+
+  group('rapid navigation (rapid-tap regression)', () {
+    test(
+      'skips duplicate prefetches while one is in flight and resumes afterwards',
+      () async {
+        // Hold the first post-initial download open. This makes the in-flight
+        // state deterministic without relying on arbitrary delays.
+        final prefetchBlocker = Completer<FileInfo>();
+        final firstPrefetchStarted = Completer<void>();
+        final secondPrefetchStarted = Completer<void>();
+        var blockPostInitialDownloads = false;
+        var postInitialDownloadCount = 0;
+
+        when(() => mockCacheManager.downloadFile(any())).thenAnswer((_) async {
+          if (!blockPostInitialDownloads) {
+            return MockFileInfo();
+          }
+
+          postInitialDownloadCount++;
+          if (postInitialDownloadCount == 1) {
+            firstPrefetchStarted.complete();
+            return prefetchBlocker.future;
+          }
+          if (postInitialDownloadCount == 2) {
+            secondPrefetchStarted.complete();
+          }
+          return MockFileInfo();
+        });
+
+        when(() => mockHttpClient.get(any()))
+            .thenAnswer((_) async => okResponse());
+
+        // Initialization warms the current and next images normally.
+        await repository.prepareInitial();
+        blockPostInitialDownloads = true;
+
+        // The first advance starts a prefetch and returns immediately. Wait
+        // until its download handler confirms it is genuinely in flight.
+        await repository.advance();
+        await firstPrefetchStarted.future;
+
+        // A rapid second advance must not start another download.
+        await repository.advance();
+        expect(postInitialDownloadCount, 1,
+            reason:
+                'second advance() must not start a duplicate in-flight prefetch');
+
+        // Once the first prefetch finishes, the guard must reset so a later
+        // advance can prepare the following image.
+        prefetchBlocker.complete(MockFileInfo());
+        await Future<void>.delayed(Duration.zero);
+        await repository.advance();
+        await secondPrefetchStarted.future.timeout(const Duration(seconds: 1));
+        expect(postInitialDownloadCount, 2);
       },
     );
   });

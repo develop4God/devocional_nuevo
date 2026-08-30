@@ -1201,8 +1201,11 @@ void main() {
     );
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
-      'picks a fresh image on NavigateToPrevious rather than promoting',
+      'navigates immediately without blocking on network, then updates '
+      'heroImageUrl once pickFresh resolves',
       build: () {
+        when(() => mockImageRepository.currentImageUrl)
+            .thenReturn('https://example.com/stale.avif');
         when(() => mockImageRepository.pickFresh())
             .thenAnswer((_) async => 'https://example.com/fresh.avif');
         return DevocionalesNavigationBloc(
@@ -1217,6 +1220,13 @@ void main() {
       ),
       act: (bloc) => bloc.add(const NavigateToPrevious()),
       expect: () => [
+        isA<NavigationReady>()
+            .having((s) => s.currentIndex, 'currentIndex', 2)
+            .having(
+              (s) => s.heroImageUrl,
+              'heroImageUrl',
+              'https://example.com/stale.avif',
+            ),
         isA<NavigationReady>().having(
           (s) => s.heroImageUrl,
           'heroImageUrl',
