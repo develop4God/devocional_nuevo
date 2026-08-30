@@ -195,9 +195,9 @@ class Constants {
   // Devotional hero images (background pool, not per-devotional assets)
   // ---------------------------------------------------------------------------
 
-  /// Obtiene la URL del índice de imágenes de fondo para devocionales.
+  /// Resolves the URL of the background image index for devotionals.
   static String getDevotionalImagesIndexUrl() {
-    final branch = kDebugMode ? DebugFlags.debugEncounterBranch : 'main';
+    final branch = kDebugMode ? DebugFlags.debugBranchDevotionals : 'main';
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/refs/heads/$branch/images/devotionals/index.json';
   }
 
@@ -209,7 +209,8 @@ class Constants {
     final base = filename.contains('.')
         ? filename.substring(0, filename.lastIndexOf('.'))
         : filename;
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/devotionals/$base.webp';
+    final branch = kDebugMode ? DebugFlags.debugBranchDevotionals : 'main';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/$branch/images/devotionals/$base.webp';
   }
 
   // ---------------------------------------------------------------------------

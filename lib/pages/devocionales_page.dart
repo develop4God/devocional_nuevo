@@ -1000,13 +1000,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               pinned: true,
                               backgroundColor: colorScheme.primary,
                               elevation: 0,
-                              leading: IconButton(
-                                icon: const Icon(
-                                  Icons.menu,
-                                  color: Colors.white,
+                              leading: Builder(
+                                builder: (innerContext) => IconButton(
+                                  icon: const Icon(
+                                    Icons.menu,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () =>
+                                      Scaffold.of(innerContext).openDrawer(),
                                 ),
-                                onPressed: () =>
-                                    Scaffold.of(context).openDrawer(),
                               ),
                               title: AutoSizeText(
                                 devotionalsTitle,
