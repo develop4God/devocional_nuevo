@@ -1,6 +1,7 @@
 @Tags(['unit', 'widgets'])
 library;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/note_bloc.dart';
 import 'package:devocional_nuevo/models/devotional_note.dart';
@@ -107,6 +108,7 @@ void main() {
       String? formattedDate,
       Future<int>? streakFuture,
       bool isFavorite = false,
+      String? heroImageUrl,
     }) {
       return BlocProvider(
         create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
@@ -126,6 +128,7 @@ void main() {
                 onFavoriteToggle: () => favoriteToggled = true,
                 onShare: () => shared = true,
                 petService: petService,
+                heroImageUrl: heroImageUrl,
               ),
             ),
           ),
@@ -190,6 +193,30 @@ void main() {
       await tester.pump(BubbleConstants.delayBeforeShow);
       expect(find.byIcon(Icons.copy_outlined), findsWidgets);
     });
+
+    testWidgets(
+      'renders verse content normally with no heroImageUrl (no background)',
+      (tester) async {
+        await tester.pumpWidget(buildWidget(heroImageUrl: null));
+        await tester.pump(BubbleConstants.delayBeforeShow);
+
+        expect(find.text('Juan 3:16'), findsOneWidget);
+        expect(find.byType(CachedNetworkImage), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'renders a background image behind the verse card when heroImageUrl is set',
+      (tester) async {
+        await tester.pumpWidget(
+          buildWidget(heroImageUrl: 'https://example.com/hero.avif'),
+        );
+        await tester.pump(BubbleConstants.delayBeforeShow);
+
+        expect(find.text('Juan 3:16'), findsOneWidget);
+        expect(find.byType(CachedNetworkImage), findsOneWidget);
+      },
+    );
 
     testWidgets(
       'calls onFavoriteToggle and onShare when header buttons tapped',
@@ -400,32 +427,34 @@ void main() {
         },
       );
 
-      testWidgets('no sentence is bolded when nothing is playing (null index)',
-          (tester) async {
-        final units = [
-          const DevotionalUnit(
-            kind: DevotionalUnitKind.sentence,
-            text: 'Primera oración.',
-          ),
-          const DevotionalUnit(
-            kind: DevotionalUnitKind.sentence,
-            text: 'Segunda oración.',
-          ),
-        ];
-        final currentIndex = ValueNotifier<int?>(null);
-        addTearDown(currentIndex.dispose);
+      testWidgets(
+        'no sentence is bolded when nothing is playing (null index)',
+        (tester) async {
+          final units = [
+            const DevotionalUnit(
+              kind: DevotionalUnitKind.sentence,
+              text: 'Primera oración.',
+            ),
+            const DevotionalUnit(
+              kind: DevotionalUnitKind.sentence,
+              text: 'Segunda oración.',
+            ),
+          ];
+          final currentIndex = ValueNotifier<int?>(null);
+          addTearDown(currentIndex.dispose);
 
-        await tester.pumpWidget(
-          buildWithUnits(units: units, currentIndex: currentIndex),
-        );
-        await tester.pump(BubbleConstants.delayBeforeShow);
+          await tester.pumpWidget(
+            buildWithUnits(units: units, currentIndex: currentIndex),
+          );
+          await tester.pump(BubbleConstants.delayBeforeShow);
 
-        final first = tester.widget<Text>(find.text('Primera oración.'));
-        final second = tester.widget<Text>(find.text('Segunda oración.'));
+          final first = tester.widget<Text>(find.text('Primera oración.'));
+          final second = tester.widget<Text>(find.text('Segunda oración.'));
 
-        expect(first.textSpan?.style?.fontWeight, isNot(FontWeight.bold));
-        expect(second.textSpan?.style?.fontWeight, isNot(FontWeight.bold));
-      });
+          expect(first.textSpan?.style?.fontWeight, isNot(FontWeight.bold));
+          expect(second.textSpan?.style?.fontWeight, isNot(FontWeight.bold));
+        },
+      );
     });
   });
 }
