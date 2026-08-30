@@ -12,8 +12,6 @@ import 'package:devocional_nuevo/repositories/navigation_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import '../helpers/test_helpers.dart';
-
 /// Mock classes
 
 class MockNavigationRepository extends Mock implements NavigationRepository {}
@@ -21,8 +19,6 @@ class MockNavigationRepository extends Mock implements NavigationRepository {}
 class MockDevocionalRepository extends Mock implements DevocionalRepository {}
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
   group('DevocionalesPage Bug Fix Validation - Real User Behavior', () {
     late MockNavigationRepository mockNavigationRepository;
     late MockDevocionalRepository mockDevocionalRepository;
@@ -45,8 +41,7 @@ void main() {
       );
     }
 
-    setUp(() async {
-      await registerTestServices();
+    setUp(() {
       mockNavigationRepository = MockNavigationRepository();
       mockDevocionalRepository = MockDevocionalRepository();
 

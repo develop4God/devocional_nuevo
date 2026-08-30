@@ -12,8 +12,6 @@ import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import '../helpers/test_helpers.dart';
-
 class _FakeDevocionalRepository extends Fake implements DevocionalRepository {
   @override
   int findFirstUnreadDevocionalIndex(
@@ -98,10 +96,6 @@ List<Devocional> createTestDevocionales(int count) {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-
-  setUp(() async {
-    await registerTestServices();
-  });
 
   group('Integration Tests - Navigation BLoC Parity', () {
     test(

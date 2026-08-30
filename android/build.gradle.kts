@@ -11,7 +11,7 @@ buildscript {
     dependencies {
         classpath("com.google.gms:google-services:4.4.3")
         // ¡Añade esta línea para el plugin de Crashlytics!
-        classpath("com.google.firebase:firebase-crashlytics-gradle:3.0.8") // Asegúrate de usar la versión más reciente
+        classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.9") // Asegúrate de usar la versión más reciente
     }
 }
 

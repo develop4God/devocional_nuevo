@@ -22,14 +22,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// fresh on demand ([pickFresh]), since re-reading is rare and doesn't need
 /// the same seamlessness guarantee.
 ///
-/// A URL is only promoted to [currentImageUrl] or [_prefetchedNextUrl] after
-/// it has downloaded successfully. This prevents an unavailable URL (offline,
-/// evicted cache, or 404) from activating the hero layout with no image.
-///
-/// Failures never blank an image already on screen — [advance], [pickFresh],
-/// and [_prefetchNext] keep their existing image state when a new pick cannot
-/// be downloaded. Only [prepareInitial] can leave [currentImageUrl] `null`,
-/// when the first pick fails before anything has been shown.
+/// Failures never blank an image already on screen — [advance] and
+/// [pickFresh] keep [currentImageUrl] as-is when a new pick can't be made.
+/// Only [prepareInitial] can leave it `null`, when the very first pick fails
+/// before anything has ever been shown.
 class DevotionalImageRepository {
   final http.Client httpClient;
   final BaseCacheManager cacheManager;
@@ -46,10 +42,6 @@ class DevotionalImageRepository {
   String? currentImageUrl;
 
   String? _prefetchedNextUrl;
-
-  /// Tracks whether a prefetch is currently in flight to prevent
-  /// duplicate requests on rapid navigation taps.
-  bool _prefetchInFlight = false;
 
   DevotionalImageRepository({
     required this.httpClient,
@@ -118,15 +110,12 @@ class DevotionalImageRepository {
     return Constants.getDevotionalImageUrl(filename);
   }
 
-  /// Downloads and caches [url], returning whether it succeeded.
-  Future<bool> _warm(String url) async {
+  Future<void> _warm(String url) async {
     try {
       await cacheManager.downloadFile(url);
       debugPrint('🖼️ DevotionalImage: warmed $url');
-      return true;
     } catch (e) {
       debugPrint('⚠️ DevotionalImage: Failed to warm $url: $e');
-      return false;
     }
   }
 
@@ -142,17 +131,13 @@ class DevotionalImageRepository {
       final url = await _pickRandomUrl(files);
       if (url == null) return;
 
-      if (await _warm(url)) {
-        currentImageUrl = url;
-        debugPrint('🖼️ DevotionalImage: prepareInitial current=$url');
-      } else {
-        debugPrint(
-          '⚠️ DevotionalImage: prepareInitial download failed, keeping $currentImageUrl',
-        );
-      }
+      await _warm(url);
+      currentImageUrl = url;
+      debugPrint('🖼️ DevotionalImage: prepareInitial current=$url');
 
       final nextUrl = await _pickRandomUrl(files);
-      if (nextUrl != null && await _warm(nextUrl)) {
+      if (nextUrl != null) {
+        await _warm(nextUrl);
         _prefetchedNextUrl = nextUrl;
         debugPrint('🖼️ DevotionalImage: prepareInitial prefetched=$nextUrl');
       }
@@ -168,10 +153,6 @@ class DevotionalImageRepository {
   /// When nothing was successfully pre-fetched (offline, or the previous
   /// prefetch failed), the currently shown image is kept rather than
   /// dropping to no background.
-  ///
-  /// On rapid navigation taps, avoids starting duplicate prefetch requests
-  /// by checking [_prefetchInFlight] — if one is already running, skips it
-  /// and returns immediately.
   Future<String?> advance() async {
     final promoted = _prefetchedNextUrl;
     if (promoted != null) {
@@ -185,36 +166,21 @@ class DevotionalImageRepository {
     }
 
     // Fire-and-forget: prepares the image for the navigation after this one.
-    // Skip if a prefetch is already in flight (rapid navigation prevention).
-    if (!_prefetchInFlight) {
-      unawaited(_prefetchNext());
-    } else {
-      debugPrint(
-        '🖼️ DevotionalImage: prefetch already in flight, skipping duplicate request',
-      );
-    }
+    unawaited(_prefetchNext());
 
     return currentImageUrl;
   }
 
   Future<void> _prefetchNext() async {
-    _prefetchInFlight = true;
     try {
       final files = await fetchIndex();
       final url = await _pickRandomUrl(files);
       if (url == null) return;
-      if (await _warm(url)) {
-        _prefetchedNextUrl = url;
-        debugPrint('🖼️ DevotionalImage: prefetch ready=$url');
-      } else {
-        debugPrint(
-          '⚠️ DevotionalImage: prefetch download failed for $url, keeping prior prefetch',
-        );
-      }
+      await _warm(url);
+      _prefetchedNextUrl = url;
+      debugPrint('🖼️ DevotionalImage: prefetch ready=$url');
     } catch (e) {
       debugPrint('⚠️ DevotionalImage: prefetch failed: $e');
-    } finally {
-      _prefetchInFlight = false;
     }
   }
 
@@ -227,13 +193,9 @@ class DevotionalImageRepository {
     try {
       final files = await fetchIndex(forceRefresh: forceRefresh);
       final url = await _pickRandomUrl(files);
-      if (url != null && await _warm(url)) {
+      if (url != null) {
         currentImageUrl = url;
         debugPrint('🖼️ DevotionalImage: pickFresh current=$url');
-      } else if (url != null) {
-        debugPrint(
-          '⚠️ DevotionalImage: pickFresh download failed for $url, keeping $currentImageUrl',
-        );
       }
       return currentImageUrl;
     } catch (e) {
