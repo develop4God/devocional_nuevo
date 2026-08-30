@@ -23,6 +23,7 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
   final http.Client _httpClient;
   final DevocionalIndexService _devocionalIndexService;
   final CacheMetadataService _cacheMetadataService;
+  final Duration _fetchTimeout;
 
   Map<String, dynamic>? _cachedIndex;
   bool _indexUnreachable = false;
@@ -32,10 +33,12 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
     required http.Client httpClient,
     DevocionalIndexService? devocionalIndexService,
     CacheMetadataService? cacheMetadataService,
+    Duration? fetchTimeout,
   })  : _httpClient = httpClient,
         _devocionalIndexService =
             devocionalIndexService ?? DevocionalIndexService(httpClient),
-        _cacheMetadataService = cacheMetadataService ?? CacheMetadataService();
+        _cacheMetadataService = cacheMetadataService ?? CacheMetadataService(),
+        _fetchTimeout = fetchTimeout ?? Constants.devocionalFetchTimeout;
 
   // ── EXISTING METHOD ────────────────────────────────────────────────────────
 
@@ -141,7 +144,8 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
           version,
         );
         debugPrint('🔍 Requesting URL: $url');
-        final response = await _httpClient.get(Uri.parse(url));
+        final response =
+            await _httpClient.get(Uri.parse(url)).timeout(_fetchTimeout);
 
         if (response.statusCode == 200) {
           final String responseBody = utf8.decode(response.bodyBytes);

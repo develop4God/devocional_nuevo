@@ -597,7 +597,7 @@ class _AppInitializerState extends State<AppInitializer> {
   // Startup watchdog ceiling:
   // Firebase cold start P99 (~3s) + network round trip P99 (~5s) + buffer (4s)
   // Calibrate from Stopwatch telemetry after first production run.
-  static const Duration _kAppStartupTimeout = Duration(seconds: 12);
+  static const Duration _kAppStartupTimeout = Constants.appStartupTimeout;
 
   @override
   void initState() {
