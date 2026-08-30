@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/blocs/note_bloc.dart';
@@ -45,6 +46,10 @@ class DevocionalesContentWidget extends StatelessWidget {
   /// calls, which violates the project's DI rules.
   final SupporterPetService petService;
 
+  /// Background image painted behind the verse card. Null renders the card
+  /// with no background — the devotional's own content never depends on it.
+  final String? heroImageUrl;
+
   /// Ordered TTS units for this devotional (verse, reflection sentences,
   /// meditate items, prayer sentences). When provided together with
   /// [currentUnitIndex], the reflection and prayer render per-sentence so the
@@ -68,6 +73,7 @@ class DevocionalesContentWidget extends StatelessWidget {
     required this.onFavoriteToggle,
     required this.onShare,
     required this.petService,
+    this.heroImageUrl,
     this.showDate = true,
     this.ttsUnits,
     this.currentUnitIndex,
@@ -200,8 +206,13 @@ class DevocionalesContentWidget extends StatelessWidget {
         _UnitHighlight(
           index: i,
           currentIndex: currentUnitIndex,
-          builder: (isCurrent) =>
-              _buildUnit(unit, colorScheme, textTheme, isCurrent: isCurrent),
+          builder: (isCurrent) => _buildUnit(
+            context,
+            unit,
+            colorScheme,
+            textTheme,
+            isCurrent: isCurrent,
+          ),
         ),
       );
       // Keep the note action between the verse and the reflection.
@@ -224,6 +235,7 @@ class DevocionalesContentWidget extends StatelessWidget {
   }
 
   Widget _buildUnit(
+    BuildContext context,
     DevotionalUnit unit,
     ColorScheme colorScheme,
     TextTheme textTheme, {
@@ -239,10 +251,13 @@ class DevocionalesContentWidget extends StatelessWidget {
           ),
         );
       case DevotionalUnitKind.verse:
-        return CopyableVerseCard(
-          text: unit.text,
-          textStyle: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
+        return _verseCardWithHero(
+          context,
+          CopyableVerseCard(
+            text: unit.text,
+            textStyle: textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
         );
       case DevotionalUnitKind.sentence:
@@ -274,6 +289,32 @@ class DevocionalesContentWidget extends StatelessWidget {
     }
   }
 
+  /// Wraps the verse card with [heroImageUrl] as a background, when present.
+  /// With no URL — offline, still resolving, or no pool available — the card
+  /// renders exactly as before.
+  Widget _verseCardWithHero(BuildContext context, Widget verseCard) {
+    final url = heroImageUrl;
+    if (url == null) return verseCard;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Stack(
+        fit: StackFit.passthrough,
+        children: [
+          Positioned.fill(
+            child: CachedNetworkImage(
+              imageUrl: url,
+              fit: BoxFit.cover,
+              fadeInDuration: const Duration(milliseconds: 300),
+              errorWidget: (context, url, error) => const SizedBox.shrink(),
+            ),
+          ),
+          verseCard,
+        ],
+      ),
+    );
+  }
+
   /// Non-highlighted fallback (e.g. favorite detail page, or TTS idle) — the
   /// original section layout, unchanged.
   List<Widget> _buildPlainContent(
@@ -297,9 +338,13 @@ class DevocionalesContentWidget extends StatelessWidget {
         );
 
     return [
-      CopyableVerseCard(
-        text: devocional.versiculo,
-        textStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+      _verseCardWithHero(
+        context,
+        CopyableVerseCard(
+          text: devocional.versiculo,
+          textStyle:
+              textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+        ),
       ),
       const SizedBox(height: 12),
       _DevotionalNoteAction(devocional: devocional),
