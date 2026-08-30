@@ -117,7 +117,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   tzdata.initializeTimeZones();
   try {
-    final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
+    final String currentTimeZone =
+        (await FlutterTimezone.getLocalTimezone()).identifier;
     tz.setLocalLocation(tz.getLocation(currentTimeZone));
   } catch (e) {
     tz.setLocalLocation(tz.getLocation('UTC'));
