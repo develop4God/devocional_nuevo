@@ -929,11 +929,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               Devocional currentDevocional;
               bool canNavigateNext;
               bool canNavigatePrevious;
+              String? heroImageUrl;
 
               if (state is NavigationReady) {
                 currentDevocional = state.currentDevocional;
                 canNavigateNext = state.canNavigateNext;
                 canNavigatePrevious = state.canNavigatePrevious;
+                heroImageUrl = state.heroImageUrl;
               } else if (devocionalProvider.devocionales.isNotEmpty) {
                 currentDevocional = devocionalProvider.devocionales[0];
                 canNavigateNext = devocionalProvider.devocionales.length > 1;
@@ -1025,6 +1027,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   onShare: () =>
                                       _shareAsText(currentDevocional),
                                   petService: _petService,
+                                  heroImageUrl: heroImageUrl,
                                   ttsUnits: _ttsSections()?.units,
                                   currentUnitIndex:
                                       _ttsAutoScrollDriver.currentIndex,
