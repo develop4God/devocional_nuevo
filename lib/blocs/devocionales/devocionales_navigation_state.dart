@@ -25,10 +25,6 @@ class NavigationReady extends DevocionalesNavigationState {
   final bool canNavigateNext;
   final bool canNavigatePrevious;
 
-  /// Background image for the verse card, resolved by DevotionalImageRepository.
-  /// Null renders the card with no background.
-  final String? heroImageUrl;
-
   const NavigationReady({
     required this.currentIndex,
     required this.totalDevocionales,
@@ -36,7 +32,6 @@ class NavigationReady extends DevocionalesNavigationState {
     required this.devocionales,
     required this.canNavigateNext,
     required this.canNavigatePrevious,
-    this.heroImageUrl,
   });
 
   @override
@@ -47,7 +42,6 @@ class NavigationReady extends DevocionalesNavigationState {
         devocionales,
         canNavigateNext,
         canNavigatePrevious,
-        heroImageUrl,
       ];
 
   /// Create a copy with updated values
@@ -58,7 +52,6 @@ class NavigationReady extends DevocionalesNavigationState {
     List<Devocional>? devocionales,
     bool? canNavigateNext,
     bool? canNavigatePrevious,
-    String? heroImageUrl,
   }) {
     return NavigationReady(
       currentIndex: currentIndex ?? this.currentIndex,
@@ -67,7 +60,6 @@ class NavigationReady extends DevocionalesNavigationState {
       devocionales: devocionales ?? this.devocionales,
       canNavigateNext: canNavigateNext ?? this.canNavigateNext,
       canNavigatePrevious: canNavigatePrevious ?? this.canNavigatePrevious,
-      heroImageUrl: heroImageUrl ?? this.heroImageUrl,
     );
   }
 
@@ -75,7 +67,6 @@ class NavigationReady extends DevocionalesNavigationState {
   factory NavigationReady.calculate({
     required int currentIndex,
     required List<Devocional> devocionales,
-    String? heroImageUrl,
   }) {
     final totalDevocionales = devocionales.length;
     return NavigationReady(
@@ -85,7 +76,6 @@ class NavigationReady extends DevocionalesNavigationState {
       devocionales: devocionales,
       canNavigateNext: currentIndex < totalDevocionales - 1,
       canNavigatePrevious: currentIndex > 0,
-      heroImageUrl: heroImageUrl,
     );
   }
 }
