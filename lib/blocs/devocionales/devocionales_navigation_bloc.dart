@@ -2,7 +2,6 @@
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
-import 'package:devocional_nuevo/repositories/devotional_image_repository.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -17,18 +16,14 @@ class DevocionalesNavigationBloc
     extends Bloc<DevocionalesNavigationEvent, DevocionalesNavigationState> {
   final NavigationRepository _navigationRepository;
   final DevocionalRepository _devocionalRepository;
-  final DevotionalImageRepository _imageRepository;
 
   DevocionalesNavigationBloc({
     NavigationRepository? navigationRepository,
     DevocionalRepository? devocionalRepository,
-    DevotionalImageRepository? imageRepository,
   })  : _navigationRepository =
             navigationRepository ?? NavigationRepositoryImpl(),
         _devocionalRepository =
             devocionalRepository ?? getService<DevocionalRepository>(),
-        _imageRepository =
-            imageRepository ?? getService<DevotionalImageRepository>(),
         super(const NavigationInitial()) {
     // Register event handlers
     on<InitializeNavigation>(_onInitializeNavigation);
@@ -59,7 +54,6 @@ class DevocionalesNavigationBloc
       NavigationReady.calculate(
         currentIndex: validIndex,
         devocionales: event.devocionales,
-        heroImageUrl: _imageRepository.currentImageUrl,
       ),
     );
 
@@ -82,14 +76,11 @@ class DevocionalesNavigationBloc
     }
 
     final newIndex = currentState.currentIndex + 1;
-    final heroImageUrl = await _imageRepository.advance();
-    debugPrint('[NAV_BLOC] 🖼️ NavigateToNext heroImageUrl=$heroImageUrl');
 
     emit(
       NavigationReady.calculate(
         currentIndex: newIndex,
         devocionales: currentState.devocionales,
-        heroImageUrl: heroImageUrl,
       ),
     );
 
@@ -111,14 +102,11 @@ class DevocionalesNavigationBloc
     }
 
     final newIndex = currentState.currentIndex - 1;
-    final heroImageUrl = await _imageRepository.pickFresh();
-    debugPrint('[NAV_BLOC] 🖼️ NavigateToPrevious heroImageUrl=$heroImageUrl');
 
     emit(
       NavigationReady.calculate(
         currentIndex: newIndex,
         devocionales: currentState.devocionales,
-        heroImageUrl: heroImageUrl,
       ),
     );
 
@@ -145,13 +133,10 @@ class DevocionalesNavigationBloc
       return;
     }
 
-    final heroImageUrl = await _imageRepository.pickFresh();
-
     emit(
       NavigationReady.calculate(
         currentIndex: validIndex,
         devocionales: currentState.devocionales,
-        heroImageUrl: heroImageUrl,
       ),
     );
 
@@ -179,13 +164,10 @@ class DevocionalesNavigationBloc
       return;
     }
 
-    final heroImageUrl = await _imageRepository.pickFresh();
-
     emit(
       NavigationReady.calculate(
         currentIndex: firstUnreadIndex,
         devocionales: currentState.devocionales,
-        heroImageUrl: heroImageUrl,
       ),
     );
 
@@ -219,7 +201,6 @@ class DevocionalesNavigationBloc
       NavigationReady.calculate(
         currentIndex: firstUnreadIndex,
         devocionales: event.devocionales,
-        heroImageUrl: _imageRepository.currentImageUrl,
       ),
     );
 
