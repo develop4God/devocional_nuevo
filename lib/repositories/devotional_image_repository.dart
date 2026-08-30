@@ -43,6 +43,10 @@ class DevotionalImageRepository {
 
   String? _prefetchedNextUrl;
 
+  /// Tracks whether a prefetch is currently in flight to prevent
+  /// duplicate requests on rapid navigation taps.
+  bool _prefetchInFlight = false;
+
   DevotionalImageRepository({
     required this.httpClient,
     required this.cacheManager,
@@ -153,6 +157,10 @@ class DevotionalImageRepository {
   /// When nothing was successfully pre-fetched (offline, or the previous
   /// prefetch failed), the currently shown image is kept rather than
   /// dropping to no background.
+  ///
+  /// On rapid navigation taps, avoids starting duplicate prefetch requests
+  /// by checking [_prefetchInFlight] — if one is already running, skips it
+  /// and returns immediately.
   Future<String?> advance() async {
     final promoted = _prefetchedNextUrl;
     if (promoted != null) {
@@ -166,12 +174,20 @@ class DevotionalImageRepository {
     }
 
     // Fire-and-forget: prepares the image for the navigation after this one.
-    unawaited(_prefetchNext());
+    // Skip if a prefetch is already in flight (rapid navigation prevention).
+    if (!_prefetchInFlight) {
+      unawaited(_prefetchNext());
+    } else {
+      debugPrint(
+        '🖼️ DevotionalImage: prefetch already in flight, skipping duplicate request',
+      );
+    }
 
     return currentImageUrl;
   }
 
   Future<void> _prefetchNext() async {
+    _prefetchInFlight = true;
     try {
       final files = await fetchIndex();
       final url = await _pickRandomUrl(files);
@@ -181,6 +197,8 @@ class DevotionalImageRepository {
       debugPrint('🖼️ DevotionalImage: prefetch ready=$url');
     } catch (e) {
       debugPrint('⚠️ DevotionalImage: prefetch failed: $e');
+    } finally {
+      _prefetchInFlight = false;
     }
   }
 
