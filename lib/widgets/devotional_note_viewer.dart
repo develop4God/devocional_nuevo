@@ -26,6 +26,7 @@ class DevotionalNoteViewer extends StatelessWidget {
   });
 
   Future<void> _confirmDeleteNote(BuildContext context) async {
+    final noteBloc = context.read<NoteBloc>();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -47,10 +48,10 @@ class DevotionalNoteViewer extends StatelessWidget {
       ),
     );
 
-    if (confirmed != true || !context.mounted) return;
+    if (confirmed != true) return;
 
     try {
-      context.read<NoteBloc>().add(SaveNoteForDevocional(devocional.id, null));
+      noteBloc.add(SaveNoteForDevocional(devocional.id, null));
       if (context.mounted) {
         Navigator.of(context).pop();
         AppSnackBar.show(

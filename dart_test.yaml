@@ -54,6 +54,23 @@ tags:
   repositories:
     # Repository layer tests (data access, caching, network)
     # Example: @Tags(['unit', 'repositories'])
+  helpers:
+    # Cross-layer helper and navigation orchestration tests
+    # Example: @Tags(['unit', 'helpers'])
+  android:
+    # Android platform behavior tests
+  extensions:
+    # Dart extension method tests
+  favorites:
+    # Favorites feature tests
+  navigation:
+    # Deep-link and in-app navigation tests
+  notifications:
+    # Notification feature tests
+  translations:
+    # Localization resource and translation tests
+  tts:
+    # Text-to-speech feature tests
 
   integration:
     # Integration tests across multiple components

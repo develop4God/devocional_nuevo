@@ -1,3 +1,6 @@
+@Tags(['unit', 'pages'])
+library;
+
 import 'package:devocional_nuevo/pages/application_language_page.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';

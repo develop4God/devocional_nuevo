@@ -1,3 +1,6 @@
+@Tags(['unit', 'controllers'])
+library;
+
 import 'package:devocional_nuevo/controllers/post_splash_animation_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 

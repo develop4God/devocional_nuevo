@@ -1,3 +1,6 @@
+@Tags(['unit', 'services', 'navigation'])
+library;
+
 import 'package:devocional_nuevo/main.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
 import 'package:flutter/material.dart';

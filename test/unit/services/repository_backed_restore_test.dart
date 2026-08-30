@@ -1,4 +1,4 @@
-@Tags(['unit'])
+@Tags(['unit', 'services', 'backup'])
 library;
 
 import 'package:devocional_nuevo/services/backup/repository_backed_restore.dart';

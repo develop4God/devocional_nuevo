@@ -1,3 +1,6 @@
+@Tags(['unit', 'utils'])
+library;
+
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:test/test.dart';
 
