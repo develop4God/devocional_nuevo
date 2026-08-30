@@ -45,6 +45,14 @@ class DevocionalHeroSection extends StatelessWidget {
           imageUrl: imageUrl,
           fit: BoxFit.cover,
           fadeInDuration: const Duration(milliseconds: 300),
+          // Bounds the decoded bitmap to the device's physical pixel width
+          // regardless of source image size — defense in depth alongside the
+          // pre-commit asset validation in Devocionales-assets, since a bad
+          // resize or a future contributor bypassing validation could still
+          // land an oversized file here.
+          memCacheWidth: (MediaQuery.of(context).size.width *
+                  MediaQuery.of(context).devicePixelRatio)
+              .round(),
           errorWidget: (context, url, error) => const SizedBox.shrink(),
         ),
         DecoratedBox(
