@@ -1,7 +1,6 @@
 package com.develop4god.devocional_nuevo
 
-// Importar FlutterApplication para una correcta inicialización del motor de Flutter
-import io.flutter.app.FlutterApplication
+import android.app.Application as AndroidApplication
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.embedding.engine.dart.DartExecutor
@@ -9,10 +8,10 @@ import io.flutter.plugins.GeneratedPluginRegistrant
 // La importación de MultiDexApplication ya no es necesaria si heredas de FlutterApplication
 // import androidx.multidex.MultiDexApplication
 
-// La clase Application ahora hereda de FlutterApplication.
-// Este cambio es crucial para asegurar que el FlutterEngine se inicialice de forma única
-// y que los plugins se registren correctamente para tareas en segundo plano.
-class Application : FlutterApplication() {
+// La clase Application hereda de android.app.Application (FlutterApplication está deprecado).
+// El FlutterEngine se inicializa y cachea manualmente abajo, replicando lo que
+// FlutterApplication hacía automáticamente.
+class Application : AndroidApplication() {
     lateinit var flutterEngine: FlutterEngine
 
     override fun onCreate() {
@@ -25,9 +24,8 @@ class Application : FlutterApplication() {
             DartExecutor.DartEntrypoint.createDefault()
         )
         
-        // Registrar los plugins con el motor de Flutter.
-        // Al heredar de FlutterApplication, el registro automático es más robusto,
-        // pero esta línea asegura que se haga explícitamente con el motor que estamos cacheando.
+        // Registrar los plugins con el motor de Flutter explícitamente,
+        // ya que no heredamos de FlutterApplication.
         GeneratedPluginRegistrant.registerWith(flutterEngine)
         
         // Cachear el motor para que pueda ser usado por otros componentes (como MainActivity),

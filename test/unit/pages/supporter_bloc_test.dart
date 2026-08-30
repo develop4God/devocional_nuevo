@@ -1,4 +1,4 @@
-@Tags(['unit', 'iap'])
+@Tags(['unit', 'blocs', 'iap', 'supporter'])
 library;
 
 // test/unit/pages/supporter_bloc_test.dart

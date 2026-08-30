@@ -528,15 +528,17 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                           icon: Icons.sticky_note_2_outlined,
                           iconColor: colorScheme.primary,
                           label: Row(
-                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                'drawer.my_notes'.tr(),
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontSize: 16,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ).newBubbleWithId('drawer_notes_bubble'),
+                              Flexible(
+                                child: Text(
+                                  'drawer.my_notes'.tr(),
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    fontSize: 16,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ).newBubbleWithId('drawer_notes_bubble'),
+                              ),
                             ],
                           ),
                           onTap: () async {
@@ -648,15 +650,17 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                           icon: Icons.thumb_up_alt_outlined,
                           iconColor: colorScheme.primary,
                           label: Row(
-                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                'drawer.rate_app'.tr(),
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontSize: 16,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ).newBubbleWithId('drawer_rate_bubble'),
+                              Flexible(
+                                child: Text(
+                                  'drawer.rate_app'.tr(),
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    fontSize: 16,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ).newBubbleWithId('drawer_rate_bubble'),
+                              ),
                             ],
                           ),
                           onTap: () async {

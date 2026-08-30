@@ -25,6 +25,7 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/devocional_tts_sections.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/devotional_share_helper.dart';
 import 'package:devocional_nuevo/utils/localized_date_formatter.dart';
 import 'package:devocional_nuevo/widgets/add_entry_choice_modal.dart';
@@ -254,7 +255,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           '[DEVOCIONALES_PAGE] ⚠️ No devotionals after first attempt, '
           'retrying in 2s...',
         );
-        await Future.delayed(const Duration(seconds: 2));
+        await Future.delayed(Constants.devocionalInitRetryDelay);
         if (!mounted) return;
         await devocionalProvider.initializeData();
         if (!mounted) return;
@@ -296,6 +297,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           devocionales: devocionalProvider.devocionales,
         ),
       );
+
+      // Seed the list-change tracker with what the BLoC was just initialized
+      // with, so the first _buildWithBloc Consumer rebuild after NavigationReady
+      // doesn't see _lastProcessedDevocionales == null and treat the already-
+      // applied list as "changed" — that used to fire a spurious
+      // UpdateDevocionales that recomputed the index from first-unread stats,
+      // silently discarding a deep-linked initialDevocionalId one frame after
+      // landing on it.
+      _lastProcessedDevocionales = devocionalProvider.devocionales;
 
       // Mark as successfully initialized
       if (mounted) {
@@ -787,8 +797,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 16,
+                runSpacing: 16,
                 children: [
                   FilledButton.icon(
                     onPressed: () {
@@ -798,7 +810,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     icon: const Icon(Icons.refresh),
                     label: Text('devotionals.retry'.tr()),
                   ),
-                  const SizedBox(width: 16),
                   OutlinedButton.icon(
                     onPressed: () {
                       // Navigate to settings to change language/version.
