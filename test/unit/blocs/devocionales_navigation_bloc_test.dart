@@ -7,6 +7,7 @@ import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_even
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
+import 'package:devocional_nuevo/repositories/devotional_image_repository.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository.dart';
 // test/critical_coverage/devocionales_navigation_bloc_test.dart
 // High-value tests for DevocionalesNavigationBloc - navigation user flows
@@ -19,6 +20,9 @@ import 'package:mocktail/mocktail.dart';
 class MockNavigationRepository extends Mock implements NavigationRepository {}
 
 class MockDevocionalRepository extends Mock implements DevocionalRepository {}
+
+class MockDevotionalImageRepository extends Mock
+    implements DevotionalImageRepository {}
 
 // Helper function to create test devotionals
 List<Devocional> createTestDevocionales(int count) {
@@ -40,21 +44,28 @@ void main() {
 
   late MockNavigationRepository mockNavigationRepository;
   late MockDevocionalRepository mockDevocionalRepository;
+  late MockDevotionalImageRepository mockImageRepository;
 
   setUp(() {
     mockNavigationRepository = MockNavigationRepository();
     mockDevocionalRepository = MockDevocionalRepository();
+    mockImageRepository = MockDevotionalImageRepository();
 
     // Default stub for saveCurrentIndex to prevent errors
-    when(
-      () => mockNavigationRepository.saveCurrentIndex(any()),
-    ).thenAnswer((_) async => {});
+    when(() => mockNavigationRepository.saveCurrentIndex(any()))
+        .thenAnswer((_) async => {});
 
     // Default stub for findFirstUnreadDevocionalIndex to prevent null errors
     when(
       () =>
           mockDevocionalRepository.findFirstUnreadDevocionalIndex(any(), any()),
     ).thenReturn(0);
+
+    // Default stubs for image repository — most tests don't care about the
+    // hero image, only the ones in the dedicated group below do.
+    when(() => mockImageRepository.currentImageUrl).thenReturn(null);
+    when(() => mockImageRepository.advance()).thenAnswer((_) async => null);
+    when(() => mockImageRepository.pickFresh()).thenAnswer((_) async => null);
   });
 
   group('DevocionalesNavigationBloc - Initial State', () {
@@ -62,6 +73,7 @@ void main() {
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       );
       expect(bloc.state, isA<NavigationInitial>());
       bloc.close();
@@ -74,6 +86,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       act: (bloc) {
         final devocionales = createTestDevocionales(10);
@@ -104,6 +117,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       act: (bloc) => bloc.add(
         const InitializeNavigation(initialIndex: 0, devocionales: []),
@@ -125,6 +139,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       act: (bloc) {
         final devocionales = createTestDevocionales(10);
@@ -152,6 +167,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       act: (bloc) {
         final devocionales = createTestDevocionales(10);
@@ -183,6 +199,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       act: (bloc) {
         final devocionales = createTestDevocionales(10);
@@ -213,6 +230,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -242,6 +260,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -263,6 +282,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -293,6 +313,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       act: (bloc) => bloc.add(const NavigateToNext()),
       expect: () => [], // No state change from Initial
@@ -308,6 +329,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -337,6 +359,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -358,6 +381,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -390,6 +414,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -419,6 +444,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -448,6 +474,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -481,6 +508,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -504,6 +532,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       setUp: () {
         when(
@@ -548,6 +577,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       setUp: () {
         when(
@@ -587,6 +617,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -616,6 +647,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -650,6 +682,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -678,6 +711,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       act: (bloc) async {
         final devocionales = createTestDevocionales(10);
@@ -728,6 +762,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       act: (bloc) async {
         final devocionales = createTestDevocionales(5);
@@ -771,6 +806,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       act: (bloc) async {
         final devocionales = createTestDevocionales(10);
@@ -794,6 +830,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       act: (bloc) async {
         final devocionales = createTestDevocionales(10);
@@ -819,6 +856,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       act: (bloc) {
         final devocionales = createTestDevocionales(1);
@@ -840,6 +878,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       act: (bloc) {
         final devocionales = createTestDevocionales(2);
@@ -860,6 +899,7 @@ void main() {
       build: () => DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       ),
       act: (bloc) {
         final devocionales = createTestDevocionales(2);
@@ -957,13 +997,13 @@ void main() {
 
   group('DevocionalesNavigationBloc - Repository Integration', () {
     test('saveCurrentIndex is called through repository', () async {
-      when(
-        () => mockNavigationRepository.saveCurrentIndex(any()),
-      ).thenAnswer((_) async => {});
+      when(() => mockNavigationRepository.saveCurrentIndex(any()))
+          .thenAnswer((_) async => {});
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       );
 
       final devocionales = createTestDevocionales(10);
@@ -978,9 +1018,8 @@ void main() {
     });
 
     test('loadCurrentIndex returns value from repository', () async {
-      when(
-        () => mockNavigationRepository.loadCurrentIndex(),
-      ).thenAnswer((_) async => 5);
+      when(() => mockNavigationRepository.loadCurrentIndex())
+          .thenAnswer((_) async => 5);
 
       final index = await mockNavigationRepository.loadCurrentIndex();
       expect(index, 5);
@@ -988,9 +1027,8 @@ void main() {
     });
 
     test('loadCurrentIndex returns 0 when no saved index', () async {
-      when(
-        () => mockNavigationRepository.loadCurrentIndex(),
-      ).thenAnswer((_) async => 0);
+      when(() => mockNavigationRepository.loadCurrentIndex())
+          .thenAnswer((_) async => 0);
 
       final index = await mockNavigationRepository.loadCurrentIndex();
       expect(index, 0);
@@ -1012,6 +1050,7 @@ void main() {
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       );
 
       final index = bloc.findFirstUnreadDevocionalIndex(devocionales, []);
@@ -1038,6 +1077,7 @@ void main() {
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       );
 
       final index = bloc.findFirstUnreadDevocionalIndex(devocionales, [
@@ -1067,6 +1107,7 @@ void main() {
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       );
 
       final index = bloc.findFirstUnreadDevocionalIndex(devocionales, [
@@ -1091,6 +1132,7 @@ void main() {
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
+        imageRepository: mockImageRepository,
       );
 
       final index = bloc.findFirstUnreadDevocionalIndex([], []);
@@ -1100,5 +1142,91 @@ void main() {
       ).called(1);
       bloc.close();
     });
+  });
+
+  group('DevocionalesNavigationBloc - Hero Image', () {
+    blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
+      'seeds heroImageUrl from the repository on initialize',
+      build: () {
+        when(() => mockImageRepository.currentImageUrl)
+            .thenReturn('https://example.com/warm.avif');
+        return DevocionalesNavigationBloc(
+          navigationRepository: mockNavigationRepository,
+          devocionalRepository: mockDevocionalRepository,
+          imageRepository: mockImageRepository,
+        );
+      },
+      act: (bloc) {
+        final devocionales = createTestDevocionales(5);
+        return bloc.add(
+          InitializeNavigation(initialIndex: 0, devocionales: devocionales),
+        );
+      },
+      expect: () => [
+        isA<NavigationReady>().having(
+          (s) => s.heroImageUrl,
+          'heroImageUrl',
+          'https://example.com/warm.avif',
+        ),
+      ],
+    );
+
+    blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
+      'promotes the pre-fetched image on NavigateToNext',
+      build: () {
+        when(() => mockImageRepository.advance())
+            .thenAnswer((_) async => 'https://example.com/next.avif');
+        return DevocionalesNavigationBloc(
+          navigationRepository: mockNavigationRepository,
+          devocionalRepository: mockDevocionalRepository,
+          imageRepository: mockImageRepository,
+        );
+      },
+      seed: () => NavigationReady.calculate(
+        currentIndex: 0,
+        devocionales: createTestDevocionales(5),
+      ),
+      act: (bloc) => bloc.add(const NavigateToNext()),
+      expect: () => [
+        isA<NavigationReady>().having(
+          (s) => s.heroImageUrl,
+          'heroImageUrl',
+          'https://example.com/next.avif',
+        ),
+      ],
+      verify: (_) {
+        verify(() => mockImageRepository.advance()).called(1);
+        verifyNever(() => mockImageRepository.pickFresh());
+      },
+    );
+
+    blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
+      'picks a fresh image on NavigateToPrevious rather than promoting',
+      build: () {
+        when(() => mockImageRepository.pickFresh())
+            .thenAnswer((_) async => 'https://example.com/fresh.avif');
+        return DevocionalesNavigationBloc(
+          navigationRepository: mockNavigationRepository,
+          devocionalRepository: mockDevocionalRepository,
+          imageRepository: mockImageRepository,
+        );
+      },
+      seed: () => NavigationReady.calculate(
+        currentIndex: 3,
+        devocionales: createTestDevocionales(5),
+      ),
+      act: (bloc) => bloc.add(const NavigateToPrevious()),
+      expect: () => [
+        isA<NavigationReady>().having(
+          (s) => s.heroImageUrl,
+          'heroImageUrl',
+          'https://example.com/fresh.avif',
+        ),
+      ],
+      verify: (_) {
+        verify(() => mockImageRepository.pickFresh()).called(1);
+        verifyNever(() => mockImageRepository.advance());
+      },
+    );
   });
 }
