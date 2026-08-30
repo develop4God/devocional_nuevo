@@ -25,7 +25,6 @@ import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
-import 'package:devocional_nuevo/repositories/devotional_image_repository.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
@@ -613,7 +612,6 @@ class _AppInitializerState extends State<AppInitializer> {
       await Future.wait([
         _initCriticalServices(),
         _initAppData(),
-        _initDevotionalHeroImage(),
         Future.delayed(_kMinSplashDisplay),
       ]).timeout(
         _kAppStartupTimeout,
@@ -698,23 +696,6 @@ class _AppInitializerState extends State<AppInitializer> {
       developer.log(
         'Timezone initialization failed: $e',
         name: '_initializeApp',
-        error: e,
-      );
-    }
-  }
-
-  /// Warms the devotional hero background image so it's ready before the
-  /// home page's first frame. Non-critical — any failure leaves the verse
-  /// card without a background rather than blocking or delaying startup.
-  Future<void> _initDevotionalHeroImage() async {
-    try {
-      _startupLog('devotionalHeroImage.prepareInitial() starting');
-      await getService<DevotionalImageRepository>().prepareInitial();
-      _startupLog('devotionalHeroImage.prepareInitial() done');
-    } catch (e) {
-      developer.log(
-        'Devotional hero image init failed: $e',
-        name: '_initDevotionalHeroImage',
         error: e,
       );
     }
