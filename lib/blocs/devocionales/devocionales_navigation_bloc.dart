@@ -111,23 +111,18 @@ class DevocionalesNavigationBloc
     }
 
     final newIndex = currentState.currentIndex - 1;
+    final heroImageUrl = await _imageRepository.pickFresh();
+    debugPrint('[NAV_BLOC] 🖼️ NavigateToPrevious heroImageUrl=$heroImageUrl');
 
     emit(
       NavigationReady.calculate(
         currentIndex: newIndex,
         devocionales: currentState.devocionales,
-        heroImageUrl: _imageRepository.currentImageUrl,
+        heroImageUrl: heroImageUrl,
       ),
     );
 
     await _navigationRepository.saveCurrentIndex(newIndex);
-
-    final heroImageUrl = await _imageRepository.pickFresh();
-    debugPrint('[NAV_BLOC] 🖼️ NavigateToPrevious heroImageUrl=$heroImageUrl');
-    if (state is NavigationReady &&
-        (state as NavigationReady).currentIndex == newIndex) {
-      emit((state as NavigationReady).copyWith(heroImageUrl: heroImageUrl));
-    }
   }
 
   /// Navigate to a specific index
@@ -150,21 +145,17 @@ class DevocionalesNavigationBloc
       return;
     }
 
+    final heroImageUrl = await _imageRepository.pickFresh();
+
     emit(
       NavigationReady.calculate(
         currentIndex: validIndex,
         devocionales: currentState.devocionales,
-        heroImageUrl: _imageRepository.currentImageUrl,
+        heroImageUrl: heroImageUrl,
       ),
     );
 
     await _navigationRepository.saveCurrentIndex(validIndex);
-
-    final heroImageUrl = await _imageRepository.pickFresh();
-    if (state is NavigationReady &&
-        (state as NavigationReady).currentIndex == validIndex) {
-      emit((state as NavigationReady).copyWith(heroImageUrl: heroImageUrl));
-    }
   }
 
   /// Navigate to the first unread devotional
@@ -188,21 +179,17 @@ class DevocionalesNavigationBloc
       return;
     }
 
+    final heroImageUrl = await _imageRepository.pickFresh();
+
     emit(
       NavigationReady.calculate(
         currentIndex: firstUnreadIndex,
         devocionales: currentState.devocionales,
-        heroImageUrl: _imageRepository.currentImageUrl,
+        heroImageUrl: heroImageUrl,
       ),
     );
 
     await _navigationRepository.saveCurrentIndex(firstUnreadIndex);
-
-    final heroImageUrl = await _imageRepository.pickFresh();
-    if (state is NavigationReady &&
-        (state as NavigationReady).currentIndex == firstUnreadIndex) {
-      emit((state as NavigationReady).copyWith(heroImageUrl: heroImageUrl));
-    }
   }
 
   /// Update devotionals list

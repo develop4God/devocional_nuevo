@@ -13,8 +13,6 @@ import 'package:devocional_nuevo/repositories/navigation_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import '../helpers/test_helpers.dart';
-
 // Mock classes for testing
 
 class MockNavigationRepository extends Mock implements NavigationRepository {}
@@ -42,8 +40,7 @@ void main() {
   late MockNavigationRepository mockNavigationRepository;
   late MockDevocionalRepository mockDevocionalRepository;
 
-  setUp(() async {
-    await registerTestServices();
+  setUp(() {
     mockNavigationRepository = MockNavigationRepository();
     mockDevocionalRepository = MockDevocionalRepository();
 

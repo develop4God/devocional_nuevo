@@ -1,6 +1,7 @@
 @Tags(['unit', 'widgets'])
 library;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/note_bloc.dart';
 import 'package:devocional_nuevo/models/devotional_note.dart';
@@ -107,7 +108,7 @@ void main() {
       String? formattedDate,
       Future<int>? streakFuture,
       bool isFavorite = false,
-      bool showHeader = true,
+      String? heroImageUrl,
     }) {
       return BlocProvider(
         create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
@@ -127,7 +128,7 @@ void main() {
                 onFavoriteToggle: () => favoriteToggled = true,
                 onShare: () => shared = true,
                 petService: petService,
-                showHeader: showHeader,
+                heroImageUrl: heroImageUrl,
               ),
             ),
           ),
@@ -194,19 +195,26 @@ void main() {
     });
 
     testWidgets(
-      'hides the entire header row when showHeader is false',
+      'renders verse content normally with no heroImageUrl (no background)',
       (tester) async {
-        await tester.pumpWidget(buildWidget(showHeader: false));
+        await tester.pumpWidget(buildWidget(heroImageUrl: null));
         await tester.pump(BubbleConstants.delayBeforeShow);
 
-        // A caller rendering its own header elsewhere (e.g. a hero image
-        // banner) suppresses this widget's header entirely — not just the
-        // date, but the streak/favorite/share row too.
-        expect(find.text('25 de diciembre de 2025'), findsNothing);
-        expect(find.byIcon(Icons.favorite_border_rounded), findsNothing);
-        expect(find.byIcon(Icons.share_rounded), findsNothing);
-        // The rest of the devotional content still renders normally.
         expect(find.text('Juan 3:16'), findsOneWidget);
+        expect(find.byType(CachedNetworkImage), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'renders a background image behind the verse card when heroImageUrl is set',
+      (tester) async {
+        await tester.pumpWidget(
+          buildWidget(heroImageUrl: 'https://example.com/hero.avif'),
+        );
+        await tester.pump(BubbleConstants.delayBeforeShow);
+
+        expect(find.text('Juan 3:16'), findsOneWidget);
+        expect(find.byType(CachedNetworkImage), findsOneWidget);
       },
     );
 

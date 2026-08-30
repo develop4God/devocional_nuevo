@@ -21,11 +21,6 @@ class DevocionalHeaderWidget extends StatelessWidget {
   final VoidCallback onShare;
   final VoidCallback onStreakTap;
 
-  /// When true, renders with white text/icons and stronger chip backgrounds
-  /// so the header stays legible sitting over a hero photo. Defaults to
-  /// false, which keeps the original theme-colored rendering unchanged.
-  final bool onHeroImage;
-
   const DevocionalHeaderWidget({
     super.key,
     required this.date,
@@ -36,14 +31,12 @@ class DevocionalHeaderWidget extends StatelessWidget {
     required this.onFavoriteToggle,
     required this.onShare,
     required this.onStreakTap,
-    this.onHeroImage = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final dateColor = onHeroImage ? Colors.white : colorScheme.primary;
 
     return Container(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -71,15 +64,7 @@ class DevocionalHeaderWidget extends StatelessWidget {
                     date,
                     style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: dateColor,
-                      shadows: onHeroImage
-                          ? const [
-                              Shadow(
-                                color: Colors.black45,
-                                blurRadius: 6,
-                              ),
-                            ]
-                          : null,
+                      color: colorScheme.primary,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 2,
@@ -112,9 +97,7 @@ class DevocionalHeaderWidget extends StatelessWidget {
                         ? Icons.star_rounded
                         : Icons.favorite_border_rounded,
                     key: ValueKey<bool>(isFavorite),
-                    color: isFavorite
-                        ? Colors.amber
-                        : (onHeroImage ? Colors.white : colorScheme.primary),
+                    color: isFavorite ? Colors.amber : colorScheme.primary,
                     size: 26,
                   ),
                 ),
@@ -134,7 +117,7 @@ class DevocionalHeaderWidget extends StatelessWidget {
                 context,
                 icon: Icon(
                   Icons.share_rounded,
-                  color: onHeroImage ? Colors.white : colorScheme.primary,
+                  color: colorScheme.primary,
                   size: 24,
                 ),
                 onPressed: () {
@@ -175,12 +158,6 @@ class DevocionalHeaderWidget extends StatelessWidget {
     required String tooltip,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final chipColor = onHeroImage
-        ? Colors.white.withValues(alpha: 0.2)
-        : colorScheme.primary.withValues(alpha: 0.08);
-    final borderColor = onHeroImage
-        ? Colors.white.withValues(alpha: 0.3)
-        : colorScheme.primary.withValues(alpha: 0.1);
 
     return Material(
       color: Colors.transparent,
@@ -192,9 +169,12 @@ class DevocionalHeaderWidget extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: chipColor,
+              color: colorScheme.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: borderColor, width: 1),
+              border: Border.all(
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                width: 1,
+              ),
             ),
             child: icon,
           ),
@@ -205,10 +185,10 @@ class DevocionalHeaderWidget extends StatelessWidget {
 
   Widget _buildStreakBadge(BuildContext context, int streak) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textColor = onHeroImage ? Colors.white : colorScheme.onSurface;
-    final backgroundColor = onHeroImage
-        ? Colors.white.withValues(alpha: 0.2)
-        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.06);
+    final textColor = colorScheme.onSurface;
+    final backgroundColor = colorScheme.surfaceContainerHighest.withValues(
+      alpha: 0.06,
+    );
 
     return Material(
       color: Colors.transparent,

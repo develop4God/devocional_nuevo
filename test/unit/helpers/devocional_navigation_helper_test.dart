@@ -1,13 +1,9 @@
-@Tags(['unit', 'utils'])
-library;
-
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
 import 'package:devocional_nuevo/helpers/devocional_navigation_helper.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
-import 'package:devocional_nuevo/repositories/devotional_image_repository.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,9 +14,6 @@ import '../../helpers/flutter_tts_mock.dart';
 import '../../helpers/test_helpers.dart';
 
 class _MockDevocionalRepository extends Mock implements DevocionalRepository {}
-
-class _MockDevotionalImageRepository extends Mock
-    implements DevotionalImageRepository {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -48,14 +41,9 @@ void main() {
       FlutterTtsMock.setup();
       flutterTts = FlutterTts();
       scrollController = ScrollController();
-      final mockImageRepository = _MockDevotionalImageRepository();
-      when(() => mockImageRepository.currentImageUrl).thenReturn(null);
-      when(() => mockImageRepository.advance()).thenAnswer((_) async => null);
-      when(() => mockImageRepository.pickFresh()).thenAnswer((_) async => null);
       bloc = DevocionalesNavigationBloc(
         navigationRepository: NavigationRepositoryImpl(),
         devocionalRepository: _MockDevocionalRepository(),
-        imageRepository: mockImageRepository,
       );
       helper = DevocionalNavigationHelper(
         getBloc: () => bloc,
