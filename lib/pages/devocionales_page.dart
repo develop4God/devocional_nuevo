@@ -17,6 +17,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
+import 'package:devocional_nuevo/repositories/devotional_image_repository.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
@@ -34,6 +35,7 @@ import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
 import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/devocionales/devocional_hero_section.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_page_drawer.dart';
@@ -127,6 +129,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       NavigationRepositoryImpl();
   late final DevocionalRepository _devocionalRepository =
       getService<DevocionalRepository>();
+  late final DevotionalImageRepository _imageRepository =
+      getService<DevotionalImageRepository>();
 
   // Pet service resolved once (not inside build) to comply with DI rules.
   late final SupporterPetService _petService =
@@ -269,6 +273,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _navigationBloc = DevocionalesNavigationBloc(
         navigationRepository: _navigationRepository,
         devocionalRepository: _devocionalRepository,
+        imageRepository: _imageRepository,
       );
 
       // Record daily app visit
@@ -943,30 +948,39 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 currentDevocional,
               );
 
+              final devotionalsTitle =
+                  'devotionals.my_intimate_space_with_god'.tr();
+
               return AnnotatedRegion<SystemUiOverlayStyle>(
                 value: themeState.systemUiOverlayStyle,
                 child: Scaffold(
                   drawer: const DevocionalesDrawer(),
-                  appBar: CustomAppBar(
-                    titleWidget: AutoSizeText(
-                      'devotionals.my_intimate_space_with_god'.tr(),
-                      maxLines: 1,
-                      minFontSize: 10,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Theme.of(context).colorScheme.onPrimary,
+                  appBar: heroImageUrl == null
+                      ? CustomAppBar(
+                          titleWidget: AutoSizeText(
+                            devotionalsTitle,
+                            maxLines: 1,
+                            minFontSize: 10,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                ),
                           ),
-                    ),
-                    actions: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.text_increase_outlined,
-                          color: Colors.white,
-                        ),
-                        tooltip: 'bible.adjust_font_size'.tr(),
-                        onPressed: _fontSizeController.toggleControls,
-                      ),
-                    ],
-                  ),
+                          actions: [
+                            IconButton(
+                              icon: Icon(
+                                Icons.text_increase_outlined,
+                                color: colorScheme.onPrimary,
+                              ),
+                              tooltip: 'bible.adjust_font_size'.tr(),
+                              onPressed: _fontSizeController.toggleControls,
+                            ),
+                          ],
+                        )
+                      : null,
                   floatingActionButton: AnimatedFabWithText(
                     onPressed: _showAddPrayerOrThanksgivingChoice,
                     text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
@@ -981,30 +995,52 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           : FloatingActionButtonLocation.endFloat,
                   body: Stack(
                     children: [
-                      Column(
-                        children: [
-                          Expanded(
-                            child: Screenshot(
-                              controller: screenshotController,
-                              child: Container(
-                                color: Theme.of(
-                                  context,
-                                ).scaffoldBackgroundColor,
-                                child: DevocionalesContentWidget(
-                                  devocional: currentDevocional,
-                                  fontSize: _fontSizeController.fontSize,
-                                  scrollController: _scrollController,
-                                  onStreakBadgeTap: () {
-                                    AppNavigationShell.selectTab(
-                                      AppTab.progress,
-                                    );
-                                  },
-                                  currentStreak: _currentStreak,
-                                  streakFuture: _streakFuture,
-                                  getLocalizedDateFormat: (context) =>
-                                      LocalizedDateFormatter.formatForContext(
+                      if (heroImageUrl != null)
+                        CustomScrollView(
+                          controller: _scrollController,
+                          slivers: [
+                            SliverAppBar(
+                              expandedHeight: 260,
+                              pinned: true,
+                              backgroundColor: colorScheme.primary,
+                              elevation: 0,
+                              leading: Builder(
+                                builder: (innerContext) => IconButton(
+                                  icon: const Icon(
+                                    Icons.menu,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () =>
+                                      Scaffold.of(innerContext).openDrawer(),
+                                ),
+                              ),
+                              title: AutoSizeText(
+                                devotionalsTitle,
+                                maxLines: 1,
+                                minFontSize: 10,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(color: Colors.white),
+                              ),
+                              actions: [
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.text_increase_outlined,
+                                    color: Colors.white,
+                                  ),
+                                  tooltip: 'bible.adjust_font_size'.tr(),
+                                  onPressed: _fontSizeController.toggleControls,
+                                ),
+                              ],
+                              flexibleSpace: FlexibleSpaceBar(
+                                background: DevocionalHeroSection(
+                                  imageUrl: heroImageUrl,
+                                  date: LocalizedDateFormatter.formatForContext(
                                     context,
                                   ),
+                                  currentStreak: _currentStreak,
+                                  streakFuture: _streakFuture,
                                   isFavorite: isFavorite,
                                   onFavoriteToggle: () async {
                                     final wasAdded =
@@ -1015,17 +1051,31 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   },
                                   onShare: () =>
                                       _shareAsText(currentDevocional),
-                                  petService: _petService,
-                                  heroImageUrl: heroImageUrl,
-                                  ttsUnits: _ttsSections()?.units,
-                                  currentUnitIndex:
-                                      _ttsAutoScrollDriver.currentIndex,
+                                  onStreakTap: () {
+                                    AppNavigationShell.selectTab(
+                                      AppTab.progress,
+                                    );
+                                  },
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                            SliverToBoxAdapter(
+                              child: _buildContentWidget(
+                                hasHeroImage: true,
+                                currentDevocional: currentDevocional,
+                                isFavorite: isFavorite,
+                                devocionalProvider: devocionalProvider,
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        _buildContentWidget(
+                          hasHeroImage: false,
+                          currentDevocional: currentDevocional,
+                          isFavorite: isFavorite,
+                          devocionalProvider: devocionalProvider,
+                        ),
                       if (_fontSizeController.showControls)
                         FloatingFontControlButtons(
                           currentFontSize: _fontSizeController.fontSize,
@@ -1064,6 +1114,57 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           ),
         );
       },
+    );
+  }
+
+  /// Builds the devotional content widget, shared by both hero and non-hero paths.
+  ///
+  /// [hasHeroImage] determines:
+  /// - true: hero image shown, no scrollController needed (parent CustomScrollView handles scroll)
+  /// - false: no hero, scrollController needed so content can scroll independently
+  Widget _buildContentWidget({
+    required bool hasHeroImage,
+    required Devocional currentDevocional,
+    required bool isFavorite,
+    required DevocionalProvider devocionalProvider,
+  }) {
+    return Screenshot(
+      controller: screenshotController,
+      child: Container(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        padding: hasHeroImage ? const EdgeInsets.all(16.0) : null,
+        child: DevocionalesContentWidget(
+          devocional: currentDevocional,
+          fontSize: _fontSizeController.fontSize,
+          // Hero path: no scroll controller (parent CustomScrollView controls scroll)
+          // Non-hero path: pass controller so content can scroll internally
+          scrollController: hasHeroImage ? null : _scrollController,
+          onStreakBadgeTap: () {
+            AppNavigationShell.selectTab(AppTab.progress);
+          },
+          currentStreak: _currentStreak,
+          streakFuture: _streakFuture,
+          getLocalizedDateFormat: (context) =>
+              LocalizedDateFormatter.formatForContext(context),
+          isFavorite: isFavorite,
+          onFavoriteToggle: () async {
+            final wasAdded = await devocionalProvider.toggleFavorite(
+              currentDevocional.id,
+            );
+            _showFavoritesFeedback(wasAdded);
+          },
+          onShare: () => _shareAsText(currentDevocional),
+          petService: _petService,
+          // Hero path: hero section renders header, so skip here to avoid duplication
+          // Non-hero path: render header normally
+          showHeader: !hasHeroImage,
+          // Hero path: inside CustomScrollView, so don't wrap in ScrollView
+          // Non-hero path: wrap in ScrollView so it can scroll independently
+          wrapInScrollView: !hasHeroImage,
+          ttsUnits: _ttsSections()?.units,
+          currentUnitIndex: _ttsAutoScrollDriver.currentIndex,
+        ),
+      ),
     );
   }
 
