@@ -17,6 +17,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
+import 'package:devocional_nuevo/repositories/devotional_image_repository.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/deep_link_handler.dart';
@@ -128,6 +129,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       NavigationRepositoryImpl();
   late final DevocionalRepository _devocionalRepository =
       getService<DevocionalRepository>();
+  late final DevotionalImageRepository _imageRepository =
+      getService<DevotionalImageRepository>();
 
   // Pet service resolved once (not inside build) to comply with DI rules.
   late final SupporterPetService _petService =
@@ -270,6 +273,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _navigationBloc = DevocionalesNavigationBloc(
         navigationRepository: _navigationRepository,
         devocionalRepository: _devocionalRepository,
+        imageRepository: _imageRepository,
       );
 
       // Record daily app visit
