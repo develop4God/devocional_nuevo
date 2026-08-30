@@ -527,18 +527,17 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                           key: const Key('drawer_my_notes'),
                           icon: Icons.sticky_note_2_outlined,
                           iconColor: colorScheme.primary,
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'drawer.my_notes'.tr(),
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontSize: 16,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ).newBubbleWithId('drawer_notes_bubble'),
-                            ],
-                          ),
+                          // Pass the bubble overlay directly to Expanded in
+                          // drawerRow. The previous shrink-wrapped Row let
+                          // the overlay's text exceed the drawer's available
+                          // label width, producing a RenderFlex overflow.
+                          label: Text(
+                            'drawer.my_notes'.tr(),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 16,
+                              color: colorScheme.onSurface,
+                            ),
+                          ).newBubbleWithId('drawer_notes_bubble'),
                           onTap: () async {
                             await BubbleUtils.markAsShown(
                                 'drawer_notes_bubble');
@@ -647,18 +646,15 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                           key: const Key('drawer_rate_app'),
                           icon: Icons.thumb_up_alt_outlined,
                           iconColor: colorScheme.primary,
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'drawer.rate_app'.tr(),
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontSize: 16,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ).newBubbleWithId('drawer_rate_bubble'),
-                            ],
-                          ),
+                          // See drawer_my_notes above: the overlay must get
+                          // the bounded width supplied by drawerRow.
+                          label: Text(
+                            'drawer.rate_app'.tr(),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 16,
+                              color: colorScheme.onSurface,
+                            ),
+                          ).newBubbleWithId('drawer_rate_bubble'),
                           onTap: () async {
                             await BubbleUtils.markAsShown('drawer_rate_bubble');
                             if (!context.mounted) return;
