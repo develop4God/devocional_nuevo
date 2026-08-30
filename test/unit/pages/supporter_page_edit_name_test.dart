@@ -1,4 +1,4 @@
-@Tags(['unit', 'widgets', 'iap'])
+@Tags(['unit', 'widgets', 'iap', 'supporter'])
 library;
 
 // test/unit/pages/supporter_page_edit_name_test.dart

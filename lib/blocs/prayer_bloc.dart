@@ -261,7 +261,10 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
 
       final updatedPrayers = currentState.prayers.map((prayer) {
         if (prayer.id == event.prayerId) {
-          return prayer.copyWith(answeredComment: event.comment);
+          return prayer.copyWith(
+            answeredComment: event.comment,
+            clearAnsweredComment: event.comment == null,
+          );
         }
         return prayer;
       }).toList();

@@ -1,3 +1,6 @@
+@Tags(['unit', 'utils'])
+library;
+
 import 'package:devocional_nuevo/utils/localized_date_formatter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';

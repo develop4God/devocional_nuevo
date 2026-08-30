@@ -1,4 +1,4 @@
-@Tags(['unit', 'widgets'])
+@Tags(['slow', 'integration', 'favorites'])
 library;
 
 // test/widget/favorites_page_discovery_tab_test.dart

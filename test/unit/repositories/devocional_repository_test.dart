@@ -1,6 +1,7 @@
 @Tags(['unit', 'repositories'])
 library;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -173,6 +174,54 @@ void main() {
 
       expect(result, isEmpty);
     });
+
+    test(
+      'falls back to local storage when the HTTP request stalls past '
+      'the configured fetch timeout instead of hanging indefinitely',
+      () async {
+        // Same repository, but with a short timeout injected so the test
+        // doesn't have to wait out the real devocionalFetchTimeout constant.
+        final timeoutRepository = DevocionalRepositoryImpl(
+          httpClient: mockHttpClient,
+          devocionalIndexService: mockIndexService,
+          cacheMetadataService: mockMetadataService,
+          fetchTimeout: const Duration(milliseconds: 50),
+        );
+
+        final file = File('$testDir/devocionales/devocional_2025_es.json');
+        await file.writeAsString(
+          json.encode(_buildApiResponse(language: 'es', version: 'RVR1960')),
+        );
+
+        // Force the stale/network branch despite local data existing —
+        // otherwise fetchAll() would serve the fresh local cache and never
+        // call http.get() at all, making this test pass for the wrong reason.
+        when(
+          () => mockIndexService.fetchIndex(),
+        ).thenAnswer((_) async => {'schema_version': 1});
+        when(
+          () => mockIndexService.getFileDate(any(), any(), any(), any()),
+        ).thenReturn('2026-01-01');
+
+        // A request that never completes on its own — only the .timeout()
+        // wrapper in fetchAll() can bound it.
+        when(
+          () => mockHttpClient.get(any()),
+        ).thenAnswer((_) => Completer<http.Response>().future);
+
+        final result =
+            await timeoutRepository.fetchAll(2025, 'es', 'RVR1960').timeout(
+                  const Duration(seconds: 2),
+                  onTimeout: () => throw TestFailure(
+                    'fetchAll hung past its own fetchTimeout — the .timeout() '
+                    'wrapper is not bounding the stalled HTTP request',
+                  ),
+                );
+
+        expect(result, isNotEmpty);
+        expect(result.first.language, 'es');
+      },
+    );
   });
 
   // ---------------------------------------------------------------------------
