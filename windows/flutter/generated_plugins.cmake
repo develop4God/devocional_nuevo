@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   firebase_auth
   firebase_core
+  firebase_remote_config
   flutter_timezone
   flutter_tts
   permission_handler_windows
