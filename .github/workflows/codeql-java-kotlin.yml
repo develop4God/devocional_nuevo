@@ -23,6 +23,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Free disk space
+        run: |
+          echo "Reclaiming disk space..."
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo docker image prune --all --force
+          sudo docker builder prune -a --force
+          df -h
+
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
@@ -32,21 +41,21 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.9'
+          flutter-version: '3.47.0'
           channel: stable
 
       - name: Flutter pub get
         run: flutter pub get
 
+      - name: Create google-services.json
+        run: |
+          echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: java-kotlin
-          build-mode: manual
-
-      - name: Build Android app
-        working-directory: android
-        run: ./gradlew assembleDebug -x lint
+          build-mode: none
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4

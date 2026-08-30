@@ -1,216 +1,161 @@
-@Tags(['critical', 'unit', 'services'])
+@Tags(['unit', 'services'])
 library;
 
-// test/critical_coverage/in_app_review_service_test.dart
+// test/unit/services/in_app_review_service_test.dart
 
+import 'package:devocional_nuevo/services/in_app_review_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-/// High-value tests for InAppReviewService
-/// Tests milestone detection and review request logic
-
+/// Real behavioral tests for InAppReviewService.shouldShowReviewRequest.
+///
+/// Drives the actual service through SharedPreferences state combinations
+/// instead of re-asserting copied constants, so a regression in the
+/// service's milestone/cooldown logic actually fails these tests.
 void main() {
-  group('InAppReviewService Milestone Logic', () {
-    // The milestones are: 5, 25, 50, 100, 200
-    final milestones = [5, 25, 50, 100, 200];
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
 
-    group('Milestone Detection', () {
-      test('milestone values are correctly defined', () {
-        expect(milestones, equals([5, 25, 50, 100, 200]));
-      });
-
-      test('5 devotionals is first milestone', () {
-        expect(milestones.contains(5), isTrue);
-        expect(milestones.first, equals(5));
-      });
-
-      test('200 devotionals is last milestone', () {
-        expect(milestones.contains(200), isTrue);
-        expect(milestones.last, equals(200));
-      });
-
-      test('intermediate values are not milestones', () {
-        final nonMilestones = [1, 2, 3, 4, 6, 10, 15, 20, 24, 26, 49, 51, 99];
-        for (final value in nonMilestones) {
-          expect(
-            milestones.contains(value),
-            isFalse,
-            reason: '$value should not be a milestone',
-          );
-        }
-      });
-
-      test('exactly 5 milestones exist', () {
-        expect(milestones.length, equals(5));
-      });
-
-      test('milestones are in ascending order', () {
-        for (int i = 0; i < milestones.length - 1; i++) {
-          expect(milestones[i], lessThan(milestones[i + 1]));
-        }
-      });
+  group('shouldShowReviewRequest — milestones', () {
+    test('returns true at first milestone (5) with no prior state', () async {
+      final result = await InAppReviewService.shouldShowReviewRequest(5);
+      expect(result, isTrue);
     });
 
-    group('Cooldown Period Logic', () {
-      // Global cooldown: 90 days
-      // Remind later: 30 days
-      const globalCooldownDays = 90;
-      const remindLaterDays = 30;
-
-      test('global cooldown is 90 days', () {
-        expect(globalCooldownDays, equals(90));
-      });
-
-      test('remind later is 30 days', () {
-        expect(remindLaterDays, equals(30));
-      });
-
-      test('global cooldown is longer than remind later', () {
-        expect(globalCooldownDays, greaterThan(remindLaterDays));
-      });
-
-      test('cooldown in milliseconds calculation is correct', () {
-        final cooldownMs = Duration(days: globalCooldownDays).inMilliseconds;
-        expect(cooldownMs, equals(90 * 24 * 60 * 60 * 1000));
-      });
+    test('returns true at each milestone (25, 50, 100, 200)', () async {
+      for (final milestone in [25, 50, 100, 200]) {
+        SharedPreferences.setMockInitialValues({
+          'review_first_time_check_done': true,
+        });
+        final result = await InAppReviewService.shouldShowReviewRequest(
+          milestone,
+        );
+        expect(result, isTrue, reason: '$milestone should trigger a review');
+      }
     });
 
-    group('User State Tracking', () {
-      // SharedPreferences keys used by the service
-      const userRatedAppKey = 'user_rated_app';
-      const neverAskReviewKey = 'never_ask_review_again';
-      const remindLaterDateKey = 'review_remind_later_date';
-      const reviewRequestCountKey = 'review_request_count';
-      const lastReviewRequestKey = 'last_review_request_date';
-      const firstTimeCheckKey = 'review_first_time_check_done';
-
-      test('all preference keys are defined', () {
-        expect(userRatedAppKey, isNotEmpty);
-        expect(neverAskReviewKey, isNotEmpty);
-        expect(remindLaterDateKey, isNotEmpty);
-        expect(reviewRequestCountKey, isNotEmpty);
-        expect(lastReviewRequestKey, isNotEmpty);
-        expect(firstTimeCheckKey, isNotEmpty);
+    test('returns false for a non-milestone count', () async {
+      SharedPreferences.setMockInitialValues({
+        'review_first_time_check_done': true,
       });
-
-      test('preference keys are unique', () {
-        final keys = [
-          userRatedAppKey,
-          neverAskReviewKey,
-          remindLaterDateKey,
-          reviewRequestCountKey,
-          lastReviewRequestKey,
-          firstTimeCheckKey,
-        ];
-        expect(keys.toSet().length, equals(keys.length));
-      });
-    });
-
-    group('First Time User Scenarios', () {
-      test('first time user with 5+ devotionals triggers review', () {
-        // Scenario: User installs app with cloud sync, already has 10 devotionals
-        const totalDevotionals = 10;
-        const firstTimeCheckDone = false;
-
-        // Should show review for first-time users with 5+ devotionals
-        expect(totalDevotionals >= 5 && !firstTimeCheckDone, isTrue);
-      });
-
-      test('first time user with less than 5 devotionals does not trigger', () {
-        const totalDevotionals = 3;
-        const firstTimeCheckDone = false;
-
-        expect(totalDevotionals >= 5 && !firstTimeCheckDone, isFalse);
-      });
-
-      test('returning user does not trigger first-time check', () {
-        const totalDevotionals = 50;
-        const firstTimeCheckDone = true;
-
-        // First time check already done, should rely on milestone logic
-        // ignore: dead_code
-        final shouldTrigger = !firstTimeCheckDone && totalDevotionals >= 5;
-        expect(shouldTrigger, isFalse);
-      });
-    });
-
-    group('Edge Cases', () {
-      test('zero devotionals is not a milestone', () {
-        expect(milestones.contains(0), isFalse);
-      });
-
-      test('negative devotional count is not a milestone', () {
-        expect(milestones.contains(-1), isFalse);
-        expect(milestones.contains(-5), isFalse);
-      });
-
-      test('very large devotional count is not a milestone', () {
-        expect(milestones.contains(1000), isFalse);
-        expect(milestones.contains(10000), isFalse);
-      });
-
-      test('all milestones are positive integers', () {
-        for (final milestone in milestones) {
-          expect(milestone, isPositive);
-          expect(milestone, isA<int>());
-        }
-      });
-    });
-
-    group('Review Request Decision Tree', () {
-      test('user already rated -> no review shown', () {
-        const userRated = true;
-        const isMilestone = true;
-
-        // If user already rated, never show review
-        // ignore: dead_code
-        final shouldShow = !userRated && isMilestone;
-        expect(shouldShow, isFalse);
-      });
-
-      test('user chose never ask -> no review shown', () {
-        const neverAsk = true;
-        const isMilestone = true;
-
-        // ignore: dead_code
-        final shouldShow = !neverAsk && isMilestone;
-        expect(shouldShow, isFalse);
-      });
-
-      test('not a milestone -> no review shown', () {
-        const userRated = false;
-        const neverAsk = false;
-        const isMilestone = false;
-
-        final shouldShow = !userRated && !neverAsk && isMilestone;
-        expect(shouldShow, isFalse);
-      });
-
-      test('all conditions met -> review shown', () {
-        const userRated = false;
-        const neverAsk = false;
-        const isMilestone = true;
-
-        final shouldShow = !userRated && !neverAsk && isMilestone;
-        expect(shouldShow, isTrue);
-      });
+      final result = await InAppReviewService.shouldShowReviewRequest(42);
+      expect(result, isFalse);
     });
   });
 
-  group('InAppReviewService Constants', () {
-    test('milestones progress naturally', () {
-      // Verify milestones represent natural engagement progression
-      // 5 - First week of use
-      // 25 - About a month of daily use
-      // 50 - Almost two months
-      // 100 - Over 3 months
-      // 200 - Long-term engaged user
+  group('shouldShowReviewRequest — user opt-out state', () {
+    test('returns false when user already rated the app', () async {
+      SharedPreferences.setMockInitialValues({'user_rated_app': true});
+      final result = await InAppReviewService.shouldShowReviewRequest(25);
+      expect(result, isFalse);
+    });
 
-      final milestones = [5, 25, 50, 100, 200];
-      expect(milestones[0], lessThanOrEqualTo(7)); // First week
-      expect(milestones[1], lessThanOrEqualTo(30)); // First month
-      expect(milestones[2], lessThanOrEqualTo(60)); // Two months
-      expect(milestones[3], lessThanOrEqualTo(120)); // Four months
-      expect(milestones[4], greaterThan(100)); // Long term
+    test('returns false when user chose never ask again', () async {
+      SharedPreferences.setMockInitialValues({
+        'never_ask_review_again': true,
+      });
+      final result = await InAppReviewService.shouldShowReviewRequest(25);
+      expect(result, isFalse);
+    });
+  });
+
+  group('shouldShowReviewRequest — first-time check', () {
+    test(
+      'first-time user with 5+ devotionals triggers review before any milestone check',
+      () async {
+        final result = await InAppReviewService.shouldShowReviewRequest(10);
+        expect(result, isTrue);
+      },
+    );
+
+    test('marks first-time check done after triggering', () async {
+      await InAppReviewService.shouldShowReviewRequest(10);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('review_first_time_check_done'), isTrue);
+    });
+
+    test(
+      'does not re-trigger first-time check on a later non-milestone call',
+      () async {
+        await InAppReviewService.shouldShowReviewRequest(10);
+
+        final result = await InAppReviewService.shouldShowReviewRequest(11);
+        expect(result, isFalse);
+      },
+    );
+  });
+
+  group('shouldShowReviewRequest — cooldown periods', () {
+    test('global cooldown blocks review within 90 days', () async {
+      final recent = DateTime.now().subtract(const Duration(days: 10));
+      SharedPreferences.setMockInitialValues({
+        'review_first_time_check_done': true,
+        'last_review_request_date': recent.millisecondsSinceEpoch ~/ 1000,
+      });
+
+      final result = await InAppReviewService.shouldShowReviewRequest(25);
+      expect(result, isFalse);
+    });
+
+    test('global cooldown allows review after 90+ days', () async {
+      final old = DateTime.now().subtract(const Duration(days: 91));
+      SharedPreferences.setMockInitialValues({
+        'review_first_time_check_done': true,
+        'last_review_request_date': old.millisecondsSinceEpoch ~/ 1000,
+      });
+
+      final result = await InAppReviewService.shouldShowReviewRequest(25);
+      expect(result, isTrue);
+    });
+
+    test('remind-later cooldown blocks review within 30 days', () async {
+      final recent = DateTime.now().subtract(const Duration(days: 5));
+      SharedPreferences.setMockInitialValues({
+        'review_first_time_check_done': true,
+        'review_remind_later_date': recent.millisecondsSinceEpoch ~/ 1000,
+      });
+
+      final result = await InAppReviewService.shouldShowReviewRequest(25);
+      expect(result, isFalse);
+    });
+
+    test('remind-later cooldown allows review after 30+ days', () async {
+      final old = DateTime.now().subtract(const Duration(days: 31));
+      SharedPreferences.setMockInitialValues({
+        'review_first_time_check_done': true,
+        'review_remind_later_date': old.millisecondsSinceEpoch ~/ 1000,
+      });
+
+      final result = await InAppReviewService.shouldShowReviewRequest(25);
+      expect(result, isTrue);
+    });
+  });
+
+  group('shouldShowReviewRequest — error resilience', () {
+    test('never throws for edge-case counts', () async {
+      for (final count in [0, -1, 1000000]) {
+        await expectLater(
+          InAppReviewService.shouldShowReviewRequest(count),
+          completes,
+        );
+      }
+    });
+  });
+
+  group('clearAllPreferences', () {
+    test('resets all review state so milestones can trigger again', () async {
+      SharedPreferences.setMockInitialValues({
+        'user_rated_app': true,
+        'never_ask_review_again': true,
+        'review_first_time_check_done': true,
+      });
+
+      await InAppReviewService.clearAllPreferences();
+
+      final result = await InAppReviewService.shouldShowReviewRequest(5);
+      expect(result, isTrue);
     });
   });
 }
