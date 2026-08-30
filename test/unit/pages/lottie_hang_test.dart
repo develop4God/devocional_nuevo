@@ -1,4 +1,4 @@
-// test/unit/pages/lottie_hang_test.dart
+@Tags(['unit', 'widgets'])
 library;
 
 import 'dart:convert';
