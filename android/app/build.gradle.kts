@@ -5,8 +5,10 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    // NOTE: do NOT apply "kotlin-android" here. With android.builtInKotlin=false the
+    // Flutter Gradle plugin applies KGP automatically (FlutterPluginUtils.kt);
+    // declaring it explicitly triggers the "app applies KGP" build warning (issue #314).
+    // The Flutter Gradle Plugin must be applied after the Android Gradle plugin.
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
     // ¡Añade esta línea para el plugin de Crashlytics!

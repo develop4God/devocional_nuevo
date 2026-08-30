@@ -13,14 +13,14 @@ dependencies:
     sdk: flutter
 
 
-  package_info_plus: ^8.0.2
+  package_info_plus: ^10.2.0
   flutter_native_splash: ^2.3.1
   url_launcher: ^6.3.1
   app_links: ^6.1.0
   http: ^1.1.0
   shared_preferences: ^2.5.3
   screenshot: ^3.0.0
-  share_plus: ^11.0.0
+  share_plus: ^13.2.0
   auto_size_text: ^3.0.0
   path_provider: ^2.1.5
   provider: ^6.0.0
@@ -28,7 +28,7 @@ dependencies:
   equatable: ^2.0.5
   intl: ^0.20.3
   cached_network_image: ^3.3.0
-  in_app_update: ^4.2.3
+  in_app_update: ^5.0.0
   in_app_review: ^2.0.8
   google_fonts: ^6.3.0
   lottie: ^3.3.3
@@ -45,17 +45,17 @@ dependencies:
   flutter_local_notifications: ^19.3.0
   timezone: ^0.10.1
   permission_handler: ^12.0.1
-  flutter_timezone: ^4.1.1 #para obtener la zona horaria del dispositivo real
+  flutter_timezone: ^5.1.0 #para obtener la zona horaria del dispositivo real
 
   # Firebase dependencies
-  firebase_core: ^3.15.0
-  firebase_messaging: ^15.1.3
-  firebase_auth: ^5.3.1
-  cloud_firestore: ^5.4.3
-  firebase_analytics: ^11.3.3
-  firebase_crashlytics: ^4.1.3
-  firebase_in_app_messaging: ^0.8.0+8
-  firebase_remote_config: ^5.5.0
+  firebase_core: ^4.14.0
+  firebase_messaging: ^16.6.0
+  firebase_auth: ^6.6.1
+  cloud_firestore: ^6.9.0
+  firebase_analytics: ^12.5.0
+  firebase_crashlytics: ^5.3.0
+  firebase_in_app_messaging: ^0.9.3
+  firebase_remote_config: ^6.6.0
 
   # Audio dependencies
   flutter_tts: ^4.1.0
@@ -81,7 +81,7 @@ dependencies:
   in_app_purchase: ^3.2.0
   crypto: ^3.0.3
   collection: ^1.19.1
-  firebase_app_installations: ^0.3.0+4
+  firebase_app_installations: ^0.4.3
 
 dev_dependencies:
   flutter_test:
@@ -101,7 +101,7 @@ dev_dependencies:
   test: ^1.25.7
 
 
-  firebase_analytics_platform_interface: ^4.4.3
+  firebase_analytics_platform_interface: ^6.0.7
   # Downgraded from 0.7.7 to 0.7.4 due to dependency conflict with integration_test from Flutter SDK
   # integration_test package pins test_api to 0.7.4, causing version resolution failure
   test_api: ^0.7.4
