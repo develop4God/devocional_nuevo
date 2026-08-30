@@ -136,7 +136,8 @@ class NotificationService {
     try {
       // Usar tzdata.initializeTimeZones() como se ha confirmado que funciona
       tzdata.initializeTimeZones();
-      final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
+      final String currentTimeZone =
+          (await FlutterTimezone.getLocalTimezone()).identifier;
       tz.setLocalLocation(tz.getLocation(currentTimeZone));
       debugPrint(
         '🔔 [NotificationService] tz.local.name: ${tz.local.name}, tz.local.currentTimeZone: ${tz.local.currentTimeZone}',
@@ -197,7 +198,7 @@ class NotificationService {
           // Asegurar que la configuración de notificaciones esté completa en Firestore
           final userId = uid;
           final currentDeviceTimezone =
-              await FlutterTimezone.getLocalTimezone();
+              (await FlutterTimezone.getLocalTimezone()).identifier;
 
           final settingsData =
               await _userProfileStore.getNotificationSettings(userId);
@@ -503,7 +504,7 @@ class NotificationService {
   //       return;
   //     }
 
-  //     final String userTimezone = await FlutterTimezone.getLocalTimezone();
+  //     final String userTimezone = (await FlutterTimezone.getLocalTimezone()).identifier;
   //     final settingsRef = _firestore.collection('users').doc(user.uid).collection('settings').doc('notifications');
 
   //     await settingsRef.set({
@@ -591,7 +592,7 @@ class NotificationService {
         String currentNotificationTime =
             settingsData?['notificationTime'] ?? _defaultNotificationTime;
         String currentUserTimezone = settingsData?['userTimezone'] ??
-            await FlutterTimezone.getLocalTimezone();
+            (await FlutterTimezone.getLocalTimezone()).identifier;
 
         await _saveNotificationSettingsToFirestore(
           uid,
@@ -641,7 +642,7 @@ class NotificationService {
             settingsData?['notificationsEnabled'] ??
                 true; // Por defecto true si no existe
         String currentUserTimezone = settingsData?['userTimezone'] ??
-            await FlutterTimezone.getLocalTimezone();
+            (await FlutterTimezone.getLocalTimezone()).identifier;
 
         await _saveNotificationSettingsToFirestore(
           uid,
@@ -760,8 +761,8 @@ class NotificationService {
     bool notificationsEnabled = data['notificationsEnabled'] ?? false;
     String notificationTimeStr =
         data['notificationTime'] ?? _defaultNotificationTime;
-    String userTimezoneStr =
-        data['userTimezone'] ?? await FlutterTimezone.getLocalTimezone();
+    String userTimezoneStr = data['userTimezone'] ??
+        (await FlutterTimezone.getLocalTimezone()).identifier;
 
     if (!notificationsEnabled) {
       debugPrint(
