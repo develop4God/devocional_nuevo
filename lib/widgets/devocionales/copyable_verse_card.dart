@@ -26,8 +26,9 @@ class CopyableVerseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final resolvedStyle = textStyle?.copyWith(color: colorScheme.onSurface) ??
-        TextStyle(color: colorScheme.onSurface);
+    final textColor = colorScheme.onSurface;
+    final resolvedStyle =
+        textStyle?.copyWith(color: textColor) ?? TextStyle(color: textColor);
 
     final Widget textWidget = prefixSpan != null
         ? AutoSizeText.rich(

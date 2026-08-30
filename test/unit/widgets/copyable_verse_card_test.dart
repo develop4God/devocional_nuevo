@@ -1,6 +1,7 @@
 @Tags(['unit', 'widgets'])
 library;
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/widgets/devocionales/copyable_verse_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,6 +23,19 @@ void main() {
       await tester.pumpWidget(buildWidget());
       expect(find.text(verseText), findsOneWidget);
     });
+
+    testWidgets(
+      'uses colorScheme.onSurface for the text color',
+      (tester) async {
+        await tester.pumpWidget(buildWidget());
+        final textWidget = tester.widget<AutoSizeText>(
+          find.byType(AutoSizeText),
+        );
+        final context = tester.element(find.byType(AutoSizeText));
+        final onSurface = Theme.of(context).colorScheme.onSurface;
+        expect(textWidget.style?.color, equals(onSurface));
+      },
+    );
 
     testWidgets('shows copy icon', (tester) async {
       await tester.pumpWidget(buildWidget());
