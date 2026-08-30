@@ -113,6 +113,18 @@ void main() {
 
       expect(repository.currentImageUrl, isNull);
     });
+
+    test('leaves currentImageUrl null when the image download fails', () async {
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+      when(() => mockCacheManager.downloadFile(any()))
+          .thenThrow(Exception('image unavailable'));
+
+      await repository.prepareInitial();
+
+      expect(repository.currentImageUrl, isNull);
+      verify(() => mockCacheManager.downloadFile(any())).called(2);
+    });
   });
 
   group('advance', () {
@@ -162,6 +174,34 @@ void main() {
         expect(result, isNotNull);
       },
     );
+
+    test(
+      'does not promote a URL when forward-navigation prefetch fails',
+      () async {
+        final prefetchAttempted = Completer<void>();
+        when(() => mockHttpClient.get(any()))
+            .thenAnswer((_) async => okResponse());
+        when(() => mockCacheManager.downloadFile(any())).thenAnswer((_) {
+          if (!prefetchAttempted.isCompleted) {
+            prefetchAttempted.complete();
+          }
+          throw Exception('image unavailable');
+        });
+
+        // The first advance starts an asynchronous prefetch while there is no
+        // current or pre-fetched image. Wait until that prefetch has failed.
+        await repository.advance();
+        await prefetchAttempted.future;
+        await Future<void>.delayed(Duration.zero);
+
+        // If the failed URL had been stored, this second advance would
+        // incorrectly promote it. It must remain null instead.
+        final result = await repository.advance();
+
+        expect(result, isNull);
+        expect(repository.currentImageUrl, isNull);
+      },
+    );
   });
 
   group('pickFresh', () {
@@ -207,6 +247,21 @@ void main() {
         expect(result, shownBefore);
       },
     );
+
+    test('keeps the shown URL when a fresh image download fails', () async {
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+      final shownBefore = await repository.pickFresh();
+      expect(shownBefore, isNotNull);
+
+      when(() => mockCacheManager.downloadFile(any()))
+          .thenThrow(Exception('image unavailable'));
+
+      final result = await repository.pickFresh(forceRefresh: true);
+
+      expect(result, shownBefore);
+      expect(repository.currentImageUrl, shownBefore);
+    });
   });
 
   group('rapid navigation (rapid-tap regression)', () {
