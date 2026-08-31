@@ -1,5 +1,6 @@
 // lib/widgets/bible_verse_grid_selector.dart
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/widgets/app_scrollbar.dart';
 import 'package:flutter/material.dart';
 
 /// Widget that displays a grid of verses for selection in the Bible reader
@@ -103,8 +104,7 @@ class BibleVerseGridSelector extends StatelessWidget {
             ),
             // Grid
             Expanded(
-              child: Scrollbar(
-                thumbVisibility: true,
+              child: AppScrollbar(
                 child: GridView.builder(
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
