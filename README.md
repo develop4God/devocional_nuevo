@@ -188,7 +188,7 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 | Archivos Fuente (lib/) | 288 archivos Dart                  |
 | Archivos de Test       | 305 archivos                       |
 | Total de Tests         | 99 tests (100% aprobados ✅)     |
-| Cobertura de Tests     | 71.9% (16,425/22,844 líneas)        |
+| Cobertura de Tests     | 71.9% (16,425/22,845 líneas)        |
 | Idiomas Soportados     | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Análisis Estático      | ✅ Todas las verificaciones pasando |
 
