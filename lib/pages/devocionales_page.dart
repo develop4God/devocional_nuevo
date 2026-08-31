@@ -1011,7 +1011,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           controller: _scrollController,
                           slivers: [
                             SliverAppBar(
-                              expandedHeight: 260,
+                              expandedHeight:
+                                  (MediaQuery.of(context).size.height * 0.28)
+                                      .clamp(180.0, 260.0),
                               pinned: true,
                               backgroundColor: colorScheme.primary,
                               elevation: 0,
