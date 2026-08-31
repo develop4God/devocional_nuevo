@@ -29,6 +29,10 @@ class CopyableVerseCard extends StatelessWidget {
     final textColor = colorScheme.onSurface;
     final resolvedStyle =
         textStyle?.copyWith(color: textColor) ?? TextStyle(color: textColor);
+    // Lets AutoSizeText shrink further on small screens instead of stopping
+    // at its default floor, which can still overflow narrow phones.
+    final minFontSize =
+        (MediaQuery.of(context).size.width * 0.045).clamp(12.0, 16.0);
 
     final Widget textWidget = prefixSpan != null
         ? AutoSizeText.rich(
@@ -39,12 +43,14 @@ class CopyableVerseCard extends StatelessWidget {
               ],
             ),
             maxLines: maxLines,
+            minFontSize: minFontSize,
           )
         : AutoSizeText(
             text,
             textAlign: TextAlign.center,
             style: resolvedStyle,
             maxLines: maxLines,
+            minFontSize: minFontSize,
           );
 
     return GestureDetector(
