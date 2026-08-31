@@ -2,6 +2,7 @@
 
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/widgets/app_scrollbar.dart';
 import 'package:flutter/material.dart';
 
 enum StudyFilter { all, pending, completed }
@@ -30,6 +31,13 @@ class DiscoveryGridOverlay extends StatefulWidget {
 
 class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
   StudyFilter _activeFilter = StudyFilter.all;
+  final ScrollController _gridScrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _gridScrollController.dispose();
+    super.dispose();
+  }
 
   List<String> get _filteredIds {
     final ids = List<String>.from(widget.studyIds);
@@ -230,32 +238,36 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(20),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.85,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: filtered.length,
-      itemBuilder: (context, index) {
-        final studyId = filtered[index];
-        final title = widget.state.studyTitles[studyId] ?? studyId;
-        final emoji = widget.state.studyEmojis[studyId];
-        final isCompleted = widget.state.completedStudies[studyId] ?? false;
-        final originalIndex = widget.studyIds.indexOf(studyId);
-        final isActive = originalIndex == widget.currentIndex;
+    return AppScrollbar(
+      controller: _gridScrollController,
+      child: GridView.builder(
+        controller: _gridScrollController,
+        padding: const EdgeInsets.all(20),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.85,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: filtered.length,
+        itemBuilder: (context, index) {
+          final studyId = filtered[index];
+          final title = widget.state.studyTitles[studyId] ?? studyId;
+          final emoji = widget.state.studyEmojis[studyId];
+          final isCompleted = widget.state.completedStudies[studyId] ?? false;
+          final originalIndex = widget.studyIds.indexOf(studyId);
+          final isActive = originalIndex == widget.currentIndex;
 
-        return _StudyGridCard(
-          studyId: studyId,
-          title: title,
-          emoji: emoji,
-          isCompleted: isCompleted,
-          isActive: isActive,
-          onTap: () => widget.onStudySelected(studyId, originalIndex),
-        );
-      },
+          return _StudyGridCard(
+            studyId: studyId,
+            title: title,
+            emoji: emoji,
+            isCompleted: isCompleted,
+            isActive: isActive,
+            onTap: () => widget.onStudySelected(studyId, originalIndex),
+          );
+        },
+      ),
     );
   }
 }

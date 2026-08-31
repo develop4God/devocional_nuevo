@@ -6,6 +6,7 @@
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
+import 'package:devocional_nuevo/widgets/app_scrollbar.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -38,6 +39,13 @@ class EncounterGridOverlay extends StatefulWidget {
 
 class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
   EncounterFilter _activeFilter = EncounterFilter.all;
+  final ScrollController _gridScrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _gridScrollController.dispose();
+    super.dispose();
+  }
 
   List<EncounterIndexEntry> get _filteredEntries {
     final all = List<EncounterIndexEntry>.from(widget.entries);
@@ -229,36 +237,40 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(20),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.82,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: filtered.length,
-      itemBuilder: (context, index) {
-        final entry = filtered[index];
-        final isCompleted = widget.state.isCompleted(entry.id);
-        final isUnlocked = widget.state.isUnlocked(entry.id);
-        final originalIndex = widget.entries.indexOf(entry);
-        final isActive = originalIndex == widget.currentIndex;
-        final prerequisite = widget.state.getPrerequisite(entry.id);
-        final prerequisiteTitle = prerequisite?.titleFor(widget.lang) ?? '';
+    return AppScrollbar(
+      controller: _gridScrollController,
+      child: GridView.builder(
+        controller: _gridScrollController,
+        padding: const EdgeInsets.all(20),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.82,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: filtered.length,
+        itemBuilder: (context, index) {
+          final entry = filtered[index];
+          final isCompleted = widget.state.isCompleted(entry.id);
+          final isUnlocked = widget.state.isUnlocked(entry.id);
+          final originalIndex = widget.entries.indexOf(entry);
+          final isActive = originalIndex == widget.currentIndex;
+          final prerequisite = widget.state.getPrerequisite(entry.id);
+          final prerequisiteTitle = prerequisite?.titleFor(widget.lang) ?? '';
 
-        return _EncounterGridCard(
-          entry: entry,
-          lang: widget.lang,
-          isCompleted: isCompleted,
-          isUnlocked: isUnlocked,
-          prerequisiteTitle: prerequisiteTitle,
-          isActive: isActive,
-          onTap: (entry.isPublished && isUnlocked)
-              ? () => widget.onEncounterSelected(entry, originalIndex)
-              : null,
-        );
-      },
+          return _EncounterGridCard(
+            entry: entry,
+            lang: widget.lang,
+            isCompleted: isCompleted,
+            isUnlocked: isUnlocked,
+            prerequisiteTitle: prerequisiteTitle,
+            isActive: isActive,
+            onTap: (entry.isPublished && isUnlocked)
+                ? () => widget.onEncounterSelected(entry, originalIndex)
+                : null,
+          );
+        },
+      ),
     );
   }
 }
