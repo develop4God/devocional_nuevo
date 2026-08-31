@@ -30,8 +30,12 @@ done
 echo "Waiting for Android boot to finish (input subsystem must be up before scrcpy connects)..."
 until [ "$(adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
   sleep 2
-done
+done-
 echo "Emulator online and fully booted."
+
+echo "Forcing portrait orientation..."
+adb -s emulator-5554 shell settings put system accelerometer_rotation 0
+adb -s emulator-5554 shell settings put system user_rotation 1
 
 echo "Launching scrcpy..."
 "$SCRCPY_BIN" -s emulator-5554 --render-driver=software
