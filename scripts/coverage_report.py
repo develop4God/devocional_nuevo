@@ -36,6 +36,7 @@ EXCLUDE_SUBSTRINGS = [
     "/services/user_profile_store.dart",
     "/repositories/prayer_wall_repository.dart",
     "/splash_screen.dart",
+    "/utils/constants/devocional_years.dart",
 ]
 
 
