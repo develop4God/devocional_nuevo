@@ -1,121 +1,125 @@
 <es-419>
 ✨ ¡Nueva actualización disponible! 🚀✨
 
-🖼️ Renovamos la página principal con imágenes inspiradoras y un encabezado que se adapta mientras lees.
+☁️ Corregimos la restauración de respaldos de Google Drive: tu racha de lectura se conserva bien.
 
-⚡ Mejoramos la estabilidad y la carga de imágenes para una experiencia más fluida.
+🔔 Mejoramos las notificaciones y agregamos aviso al expirar tu sesión.
 
-🛠️ Mejoras de rendimiento y correcciones de errores.
+📱 Ajustamos el diseño y corregimos errores.
 
-🙏 Gracias por formar parte de nuestro ministerio, Dios les bendiga.
+🙏 Gracias por ser parte de nuestro ministerio, Dios les bendiga.
 </es-419>
 <es-ES>
 ✨ ¡Nueva actualización disponible! 🚀✨
 
-🖼️ Renovamos la página principal con imágenes inspiradoras y un encabezado que se adapta mientras lees.
+☁️ Corregimos la restauración de copias de Google Drive: tu racha de lectura se conserva bien.
 
-⚡ Mejoramos la estabilidad y la carga de imágenes para una experiencia más fluida.
+🔔 Mejoramos las notificaciones y añadimos aviso al caducar tu sesión.
 
-🛠️ Mejoras de rendimiento y correcciones de errores.
+📱 Ajustamos el diseño y corregimos errores.
 
-🙏 Gracias por formar parte de nuestro ministerio, Dios os bendiga.
+🙏 Gracias por ser parte de nuestro ministerio, Dios os bendiga.
 </es-ES>
 <ar>
 ✨ تحديث جديد متاح! 🚀✨
 
-🖼️ جدّدنا الصفحة الرئيسية بصور ملهمة وعنوان يتكيف أثناء القراءة.
+☁️ أصلحنا استعادة النسخ الاحتياطية من Google Drive: سلسلة القراءة تُحفظ الآن بشكل صحيح.
 
-⚡ حسّنا الاستقرار وتحميل الصور لتجربة أكثر سلاسة.
+🔔 حسّنا الإشعارات وأضفنا تنبيهًا عند انتهاء الجلسة.
 
-🛠️ تحسينات في الأداء وإصلاحات للأخطاء.
+📱 عدّلنا التصميم وأصلحنا الأخطاء.
 
 🙏 شكرًا لكونك جزءًا من خدمتنا، بارككم الله.
 </ar>
 <de-DE>
 ✨ Neues Update verfügbar! 🚀✨
 
-🖼️ Wir haben die Startseite mit inspirierenden Bildern und einer Kopfzeile erneuert, die sich beim Lesen anpasst.
+☁️ Backup-Wiederherstellung von Google Drive korrigiert: Deine Lese-Serie bleibt erhalten.
 
-⚡ Wir haben die Stabilität und das Laden von Bildern für ein flüssigeres Erlebnis verbessert.
+🔔 Benachrichtigungen verbessert, Hinweis bei Ablauf der Backup-Sitzung.
 
-🛠️ Leistungsverbesserungen und Fehlerbehebungen.
+📱 Layout angepasst, Fehler behoben.
 
 🙏 Danke, dass du Teil unseres Ministeriums bist, Gott segne euch.
 </de-DE>
 <en-US>
 ✨ New update available! 🚀✨
 
-🖼️ We refreshed the home page with inspiring images and a header that adapts as you read.
+☁️ Fixed backup restoration from Google Drive: your reading streak is now preserved correctly.
 
-⚡ We improved stability and image loading for a smoother experience.
+🔔 Improved notifications and added a prompt when your session expires.
 
-🛠️ Performance improvements and bug fixes.
+📱 Adjusted the layout and fixed bugs.
 
 🙏 Thank you for being part of our ministry, God bless you.
 </en-US>
 <fr-FR>
 ✨ Nouvelle mise à jour disponible ! 🚀✨
 
-🖼️ Nous avons renouvelé la page d'accueil avec des images inspirantes et un en-tête qui s'adapte pendant votre lecture.
+☁️ Correction de la restauration Google Drive : votre série de lecture est bien conservée.
 
-⚡ Nous avons amélioré la stabilité et le chargement des images pour une expérience plus fluide.
+🔔 Notifications améliorées, alerte à l'expiration de la session.
 
-🛠️ Améliorations des performances et corrections de bugs.
+📱 Mise en page ajustée, corrections de bugs.
 
 🙏 Merci de faire partie de notre ministère, que Dieu vous bénisse.
 </fr-FR>
 <hi-IN>
 ✨ नया अपडेट उपलब्ध है! 🚀✨
 
-🖼️ हमने प्रेरणादायक छवियों और पढ़ते समय अनुकूलित होने वाले हेडर के साथ मुख्य पृष्ठ को नया रूप दिया है।
+☁️ Google Drive बैकअप बहाली ठीक की: अब आपकी स्ट्रीक सही सुरक्षित रहती है।
 
-⚡ बेहतर अनुभव के लिए स्थिरता और छवियों के लोड होने में सुधार किया है।
+🔔 सूचनाएं सुधारीं, सत्र समाप्त होने पर संदेश जोड़ा।
 
-🛠️ प्रदर्शन सुधार और बग समाधान।
+📱 लेआउट समायोजित किया, बग ठीक किए।
 
 🙏 हमारी सेवकाई का हिस्सा बनने के लिए धन्यवाद, परमेश्वर आपको आशीर्वाद दे।
 </hi-IN>
 <ja-JP>
 ✨ 新しいアップデートが利用可能です！ 🚀✨
 
-🖼️ インスピレーションを与える画像と、読む際に変化するヘッダーでホーム画面を刷新しました。
+☁️ Google Driveからのバックアップ復元を修正しました。これで読書の連続記録が正しく保持されます。
 
-⚡ より快適にご利用いただけるよう、安定性と画像の読み込みを改善しました。
+🔔 通知設定を改善し、バックアップセッションの有効期限が切れた際にすぐアクセスできる案内を追加しました。
 
-🛠️ パフォーマンスの改善と不具合の修正。
+📱 より多くの画面サイズで見やすくなるようレイアウトを調整し、表示崩れの問題を修正しました。
+
+🛠️ 安定性の改善と不具合の修正。
 
 🙏 私たちのミニストリーの一員でいてくださり、ありがとうございます。神の祝福がありますように。
 </ja-JP>
 <pt-BR>
 ✨ Nova atualização disponível! 🚀✨
 
-🖼️ Renovamos a página inicial com imagens inspiradoras e um cabeçalho que se adapta enquanto você lê.
+☁️ Corrigimos a restauração de backups do Google Drive: sua sequência de leitura é preservada corretamente.
 
-⚡ Melhoramos a estabilidade e o carregamento de imagens para uma experiência mais fluida.
+🔔 Melhoramos as notificações e adicionamos aviso ao expirar a sessão.
 
-🛠️ Melhorias de desempenho e correções de erros.
+📱 Ajustamos o layout e corrigimos erros.
 
 🙏 Obrigado por fazer parte do nosso ministério, Deus abençoe vocês.
 </pt-BR>
 <zh-CN>
 ✨ 新版本发布！ 🚀✨
 
-🖼️ 我们焕新了首页，加入了启发人心的图片和会随阅读调整的标题栏。
+☁️ 修复了从 Google Drive 恢复备份的问题：现在可以正确保留您的阅读连续记录。
 
-⚡ 我们改进了稳定性和图片加载，让体验更加流畅。
+🔔 改进了通知设置，并在备份会话过期时新增了可快速访问的提示。
 
-🛠️ 性能优化和问题修复。
+📱 调整了布局，使其在更多屏幕尺寸下显示更佳，并修复了视觉溢出问题。
+
+🛠️ 稳定性改进和问题修复。
 
 🙏 感谢您成为我们事工的一份子，愿神祝福大家。
 </zh-CN>
 <fil>
 ✨ May bagong update na available! 🚀✨
 
-🖼️ Binago namin ang pangunahing pahina gamit ang mga nagbibigay-inspirasyong larawan at header na umaangkop habang nagbabasa ka.
+☁️ Inayos ang pagpapanumbalik ng backup mula sa Google Drive: tama na ang iyong reading streak.
 
-⚡ Pinahusay namin ang katatagan at pag-load ng mga larawan para sa mas maayos na karanasan.
+🔔 Pinahusay ang mga notification, may abiso kapag nag-expire ang session.
 
-🛠️ Mga pagpapahusay sa pagganap at pag-aayos ng mga error.
+📱 In-ayos ang layout at mga bug fix.
 
 🙏 Salamat sa pagiging bahagi ng aming ministeryo, pagpalain kayo ng Diyos.
 </fil>
