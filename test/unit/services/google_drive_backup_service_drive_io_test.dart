@@ -617,4 +617,160 @@ void main() {
       expect(merged['merge_source'], 'multi_device');
     });
   });
+
+  group('migrateReadDatesBackupIfNeeded', () {
+    test('skips entirely when already migrated', () async {
+      SharedPreferences.setMockInitialValues({
+        'read_dates_backup_migrated': true,
+      });
+
+      await service.migrateReadDatesBackupIfNeeded();
+
+      // No Drive call was made at all — proof it returned before touching
+      // auth/Drive.
+      verifyNever(() => authService.getDriveApi());
+    });
+
+    test('marks migrated without uploading when there is no remote backup',
+        () async {
+      final stub = DriveApiStub()..onList(const DriveApiResponse.json({}));
+      when(() => authService.getDriveApi())
+          .thenAnswer((_) async => stub.build());
+
+      await service.migrateReadDatesBackupIfNeeded();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('read_dates_backup_migrated'), isTrue);
+      // Only the folder-search GET happened — no upload (POST/PATCH).
+      final writes = stub.requests.where((r) => r.method != 'GET').toList();
+      expect(writes, isEmpty);
+    });
+
+    test(
+        'merges local read_dates into the stale remote backup while '
+        'preserving every other remote field', () async {
+      // Reproduces the bug fixed in 210a88d6: this remote payload predates
+      // that fix and has no read_dates at all. The migration must add
+      // read_dates without disturbing preferred_bible_version or any other
+      // remote-only field (see issue on _mergePayloads field-parity gap).
+      when(() => statsService.getAllStats()).thenAnswer(
+        (_) async => {
+          'stats': <String, dynamic>{},
+          'read_dates': ['2026-08-01', '2026-08-02'],
+        },
+      );
+
+      final remotePayload = {
+        'timestamp': '2026-01-01T00:00:00.000Z',
+        'version': '1.0',
+        'app_version': '0.9.0',
+        'preferred_bible_version': 'RVR1960',
+        'marked_bible_verses': ['Gen 1:1'],
+        'saved_prayers': [
+          {'id': 'p1', 'text': 'remote prayer'},
+        ],
+        // No read_dates key at all — the pre-fix bug.
+      };
+
+      final stub = DriveApiStub()
+        ..onGetMetadata(
+          const DriveApiResponse.json({'id': 'folder-1', 'name': 'app'}),
+        )
+        ..onList(
+          const DriveApiResponse.json({
+            'files': [
+              {'id': 'remote-backup-file', 'name': 'backup.json'},
+            ],
+          }),
+        )
+        ..onGetMedia(
+          DriveApiResponse.media(utf8.encode(json.encode(remotePayload))),
+        )
+        ..onUpdate(const DriveApiResponse.json({'id': 'remote-backup-file'}));
+      when(() => authService.getDriveApi())
+          .thenAnswer((_) async => stub.build());
+      when(() => settingsService.isCompressionEnabled())
+          .thenAnswer((_) async => false);
+
+      final prefsSetup = await SharedPreferences.getInstance();
+      await prefsSetup.setString(
+        'google_drive_backup_folder_id',
+        'folder-1',
+      );
+
+      await service.migrateReadDatesBackupIfNeeded();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('read_dates_backup_migrated'), isTrue);
+
+      const marker = 'Content-Transfer-Encoding: base64\r\n\r\n';
+      final uploaded = stub.requests.firstWhere((r) => r.body.contains(marker));
+      final base64Start = uploaded.body.indexOf(marker) + marker.length;
+      final base64End = uploaded.body.indexOf('\r\n--', base64Start);
+      final merged = json.decode(
+        utf8.decode(
+          base64.decode(uploaded.body.substring(base64Start, base64End)),
+        ),
+      ) as Map<String, dynamic>;
+
+      // The bug this migration fixes: read_dates now present.
+      expect(
+        (merged['read_dates'] as List<dynamic>).toSet(),
+        {'2026-08-01', '2026-08-02'},
+      );
+      // Every other remote-only field survives the merge untouched.
+      expect(merged['preferred_bible_version'], 'RVR1960');
+      expect(merged['marked_bible_verses'], ['Gen 1:1']);
+      expect(
+        (merged['saved_prayers'] as List<dynamic>).single['id'],
+        'p1',
+      );
+    });
+
+    test('leaves the flag unset when the upload fails, so it retries later',
+        () async {
+      when(() => statsService.getAllStats()).thenAnswer(
+        (_) async => {'stats': <String, dynamic>{}, 'read_dates': []},
+      );
+
+      final remotePayload = {
+        'timestamp': '2026-01-01T00:00:00.000Z',
+        'version': '1.0',
+      };
+
+      final stub = DriveApiStub()
+        ..onGetMetadata(
+          const DriveApiResponse.json({'id': 'folder-1', 'name': 'app'}),
+        )
+        ..onList(
+          const DriveApiResponse.json({
+            'files': [
+              {'id': 'remote-backup-file', 'name': 'backup.json'},
+            ],
+          }),
+        )
+        ..onGetMedia(
+          DriveApiResponse.media(utf8.encode(json.encode(remotePayload))),
+        )
+        ..onUpdate(
+          const DriveApiResponse.json({'error': 'server error'},
+              statusCode: 500),
+        );
+      when(() => authService.getDriveApi())
+          .thenAnswer((_) async => stub.build());
+      when(() => settingsService.isCompressionEnabled())
+          .thenAnswer((_) async => false);
+
+      final prefsSetup = await SharedPreferences.getInstance();
+      await prefsSetup.setString(
+        'google_drive_backup_folder_id',
+        'folder-1',
+      );
+
+      await service.migrateReadDatesBackupIfNeeded();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('read_dates_backup_migrated'), isNot(true));
+    });
+  });
 }
