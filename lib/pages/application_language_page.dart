@@ -6,6 +6,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
+import 'package:devocional_nuevo/widgets/app_scrollbar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -368,37 +369,22 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       child: Scaffold(
         appBar: CustomAppBar(titleText: 'application_language.title'.tr()),
         backgroundColor: theme.colorScheme.surface,
-        body: ScrollbarTheme(
-          data: ScrollbarThemeData(
-            thumbColor: WidgetStateProperty.all(theme.colorScheme.primary),
-            trackColor: WidgetStateProperty.all(
-              theme.colorScheme.primary.withAlpha(60),
-            ),
-            thickness: WidgetStateProperty.all(10),
-            radius: const Radius.circular(8),
-          ),
-          child: Scrollbar(
-            thumbVisibility: true,
-            thickness: 10,
-            radius: const Radius.circular(8),
-            interactive: true,
-            trackVisibility: true,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    'application_language.description'.tr(),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+        body: AppScrollbar(
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'application_language.description'.tr(),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                ...languageItems,
-                const SizedBox(height: 20),
-              ],
-            ),
+              ),
+              ...languageItems,
+              const SizedBox(height: 20),
+            ],
           ),
         ),
       ),

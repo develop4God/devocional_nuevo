@@ -16,6 +16,7 @@ import '../pages/favorites_page.dart';
 import '../providers/devocional_provider.dart';
 import '../services/spiritual_stats_service.dart';
 import '../widgets/app_bottom_nav_bar.dart';
+import '../widgets/app_scrollbar.dart';
 import '../widgets/app_snack_bar.dart';
 
 class ProgressPage extends StatefulWidget {
@@ -39,6 +40,7 @@ class _ProgressPageState extends State<ProgressPage>
   late AnimationController _streakAnimationController;
   late Animation<double> _streakAnimation;
   ScaffoldMessengerState? _scaffoldMessenger;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -207,6 +209,7 @@ class _ProgressPageState extends State<ProgressPage>
     widget.isActive?.removeListener(_handleTabVisibilityChange);
     _scaffoldMessenger?.hideCurrentSnackBar();
     _streakAnimationController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -281,22 +284,26 @@ class _ProgressPageState extends State<ProgressPage>
   }
 
   Widget _buildContent() {
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 76.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
-          _buildSupporterSection(), // 👈 NEW MEDALS SECTION
-          const SizedBox(height: 16),
-          _buildStreakCard(),
-          const SizedBox(height: 18),
-          _buildStatsCards(),
-          const SizedBox(height: 1),
-          _buildAchievementsSection(),
-          const SizedBox(height: 18),
-        ],
+    return AppScrollbar(
+      controller: _scrollController,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 76.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            _buildSupporterSection(), // 👈 NEW MEDALS SECTION
+            const SizedBox(height: 16),
+            _buildStreakCard(),
+            const SizedBox(height: 18),
+            _buildStatsCards(),
+            const SizedBox(height: 1),
+            _buildAchievementsSection(),
+            const SizedBox(height: 18),
+          ],
+        ),
       ),
     );
   }

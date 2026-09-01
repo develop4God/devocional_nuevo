@@ -554,7 +554,8 @@
     "restoring_title": "استعادة بياناتك",
     "restoring_subtitle": "وجدنا نسخة احتياطية في Google Drive الخاص بك ونستعيد تقدمك الروحي...",
     "protected_title": "بياناتك محمية!",
-    "protected_subtitle": "يتم حفظ تقدمك الروحي بأمان في Google Drive الشخصي الخاص بك."
+    "protected_subtitle": "يتم حفظ تقدمك الروحي بأمان في Google Drive الشخصي الخاص بك.",
+    "session_expired": "انتهت صلاحية جلسة Google Drive الخاصة بك.\n\nسجّل الدخول مرة أخرى لمواصلة نسخ تقدمك احتياطيًا."
   },
   "review": {
     "title": "شكرًا على مواظبتك 🙏",

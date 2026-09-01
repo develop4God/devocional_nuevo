@@ -328,73 +328,21 @@ jobs:
       - name: 📈 Generate coverage report
         if: success()
         run: |
+          mapfile -t REMOVE_PATTERNS < <(python3 scripts/coverage_report.py --print-lcov-remove-patterns)
           lcov --ignore-errors unused --remove coverage/lcov.info \
-            '*/blocs/onboarding/*' \
-            '*/pages/onboarding/*' \
-            '*/services/backup/*' \
-            '*/debug/*' \
+            "${REMOVE_PATTERNS[@]}" \
             -o coverage/lcov_filtered.info
           genhtml coverage/lcov_filtered.info -o coverage/html
           lcov --ignore-errors unused --summary coverage/lcov_filtered.info
 
-
       - name: 📊 Generate coverage summary
         if: success()
         run: |
-          python3 - <<'EOF'
-          import subprocess, re, os
-
-          raw = subprocess.run(
-            ['lcov', '--ignore-errors', 'unused', '--summary', 'coverage/lcov_filtered.info'],
-            capture_output=True, text=True
-          ).stdout
-
-          cov   = re.search(r'lines\.*: ([\d.]+)%', raw)
-          hit   = re.search(r'lines\.*: [\d.]+% \(([\d]+)', raw)
-          tot   = re.search(r'of ([\d]+)', raw)
-          pct   = cov.group(1) if cov else '?'
-          h     = hit.group(1) if hit else '?'
-          total = tot.group(1) if tot else '?'
-          icon  = '🟢' if float(pct) >= 70 else '🟡' if float(pct) >= 50 else '🔴'
-
-          summary = f"{icon} Coverage: {pct}% ({h}/{total} lines)"
-
-          # Parse the .info file directly instead of `lcov --list`, whose
-          # percentage column misreports 0.0% for some files under lcov 2.0-1
-          # even though the underlying LF:/LH: data is correct.
-          per_file = {}
-          cur = None
-          with open('coverage/lcov_filtered.info') as f:
-              for line in f:
-                  line = line.strip()
-                  if line.startswith('SF:'):
-                      cur = line[3:]
-                  elif line.startswith('LF:') and cur:
-                      per_file.setdefault(cur, {})['lf'] = int(line[3:])
-                  elif line.startswith('LH:') and cur:
-                      per_file.setdefault(cur, {})['lh'] = int(line[3:])
-
-          low = []
-          for path, counts in per_file.items():
-              lf, lh = counts.get('lf', 0), counts.get('lh', 0)
-              if lf == 0:
-                  continue
-              file_pct = (lh / lf) * 100
-              if file_pct < 50:
-                  low.append((path, file_pct, lf))
-          low.sort(key=lambda x: x[1])
-          top3 = '\n'.join(f"  🔴 {d}: {p:.1f}%   {n}" for d, p, n in low[:3])
-          pain = f"Top gaps:\n{top3}" if top3 else "No critical gaps below 50%"
-
-          output = f"{summary}\n{pain}"
-          print(output)
-
-          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
-              f.write(f"## 📊 Coverage\n```\n{output}\n```\n")
-
-          with open('coverage/summary.txt', 'w') as f:
-              f.write(output)
-          EOF
+          python3 scripts/coverage_report.py \
+            --lcov-file coverage/lcov.info \
+            --github-summary \
+            --out coverage/summary.txt
+          cat coverage/summary.txt
 
       - name: 📋 Upload coverage artifacts
         if: success()

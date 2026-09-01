@@ -154,14 +154,17 @@ class DevocionalesBottomBar extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'devotionals.next'.tr(),
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: canNavigateNext
-                                ? colorScheme.primary
-                                : colorScheme.onSurface.withAlpha(97),
+                        Flexible(
+                          child: Text(
+                            'devotionals.next'.tr(),
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: canNavigateNext
+                                  ? colorScheme.primary
+                                  : colorScheme.onSurface.withAlpha(97),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),

@@ -675,5 +675,21 @@ void main() {
         ],
       );
     });
+
+    group('DebugTriggerSessionExpired repeatability', () {
+      blocTest<BackupBloc, BackupState>(
+        'emits BackupSessionExpired again on a second consecutive trigger',
+        build: () => BackupBloc(
+          backupService: mockBackupService,
+          devocionalProvider: mockDevocionalProvider,
+        ),
+        seed: () => const BackupSessionExpired(),
+        act: (bloc) => bloc.add(const DebugTriggerSessionExpired()),
+        expect: () => [
+          const BackupInitial(),
+          const BackupSessionExpired(),
+        ],
+      );
+    });
   });
 }

@@ -65,7 +65,7 @@ class DevotionalCardPremium extends StatelessWidget {
           'Devotional card for $title. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
       button: true,
       child: Container(
-        height: 380,
+        constraints: const BoxConstraints(maxHeight: 380),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28),
@@ -109,16 +109,15 @@ class DevotionalCardPremium extends StatelessWidget {
                         // Central Hero Section
                         Flexible(
                           flex: 15, // Increased flex budget for text
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _buildHeroEmoji(topicEmoji, colors),
-                                const SizedBox(height: 16),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildHeroEmoji(topicEmoji, colors),
+                              const SizedBox(height: 16),
 
-                                // Optimized Title with AutoSize
-                                AutoSizeText(
+                              // Optimized Title with AutoSize
+                              Flexible(
+                                child: AutoSizeText(
                                   title,
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
@@ -141,14 +140,13 @@ class DevotionalCardPremium extends StatelessWidget {
                                   stepGranularity: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
+                              ),
 
-                                if (subtitle != null &&
-                                    subtitle!.isNotEmpty) ...[
-                                  const SizedBox(height: 12),
-                                  _buildSubtitleSection(colors),
-                                ],
+                              if (subtitle != null && subtitle!.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                Flexible(child: _buildSubtitleSection(colors)),
                               ],
-                            ),
+                            ],
                           ),
                         ),
 

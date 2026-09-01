@@ -554,7 +554,8 @@
     "restoring_title": "Deine Daten werden wiederhergestellt",
     "restoring_subtitle": "Wir haben ein Backup in deinem Google Drive gefunden und stellen deinen spirituellen Fortschritt wieder her...",
     "protected_title": "Deine Daten sind geschützt!",
-    "protected_subtitle": "Dein spiritueller Fortschritt ist sicher in deinem persönlichen Google Drive gespeichert."
+    "protected_subtitle": "Dein spiritueller Fortschritt ist sicher in deinem persönlichen Google Drive gespeichert.",
+    "session_expired": "Deine Google Drive-Sitzung ist abgelaufen.\n\nMelde dich erneut an, um deinen Fortschritt weiter zu sichern."
   },
   "review": {
     "title": "Danke für deine Beständigkeit 🙏",
