@@ -2,8 +2,8 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.9-blue.svg)](https://flutter.dev/)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Tests](https://img.shields.io/badge/Tests-99+-brightgreen.svg)](#-testing--pruebas)
-[![Coverage](https://img.shields.io/badge/Coverage-71.9%25-brightgreen.svg)](#-testing--pruebas)
+[![Tests](https://img.shields.io/badge/Tests-100+-brightgreen.svg)](#-testing--pruebas)
+[![Coverage](https://img.shields.io/badge/Coverage-74.2%25-brightgreen.svg)](#-testing--pruebas)
 [![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](#)
 
 ---
@@ -62,9 +62,9 @@ favorites, spiritual tracking, and intelligent review system.
 
 | Metric              | Value                        |
 |---------------------|------------------------------|
-| Source Files (lib/) | 288 Dart files               |
-| Test Files          | 305 test files               |
-| Total Tests         | 99 tests (100% passing ✅) |
+| Source Files (lib/) | 289 Dart files               |
+| Test Files          | 308 test files               |
+| Total Tests         | 100 tests (100% passing ✅) |
 | Test Coverage       | 51.9% (10,725/20,666 lines)   |
 | Supported Languages | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Static Analysis     | ✅ All checks passing         |
@@ -88,7 +88,7 @@ lib/
 ├── repositories/  (17 files)
 ├── services/  (57 files)
 ├── utils/  (18 files)
-└── widgets/  (75 files)
+└── widgets/  (76 files)
 ```
 <!-- /README-STATS:lib-tree-en -->
 
@@ -102,7 +102,7 @@ test/
 ├── integration/  (10 tests)
 ├── migration/  (2 tests)
 ├── models/  (1 tests)
-└── unit/  (284 tests)
+└── unit/  (287 tests)
 ```
 <!-- /README-STATS:test-tree-en -->
 
@@ -185,10 +185,10 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 
 | Métrica                | Valor                              |
 |------------------------|------------------------------------|
-| Archivos Fuente (lib/) | 288 archivos Dart                  |
-| Archivos de Test       | 305 archivos                       |
-| Total de Tests         | 99 tests (100% aprobados ✅)     |
-| Cobertura de Tests     | 71.9% (16,425/22,845 líneas)        |
+| Archivos Fuente (lib/) | 289 archivos Dart                  |
+| Archivos de Test       | 308 archivos                       |
+| Total de Tests         | 100 tests (100% aprobados ✅)     |
+| Cobertura de Tests     | 74.2% (16,614/22,391 líneas)        |
 | Idiomas Soportados     | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Análisis Estático      | ✅ Todas las verificaciones pasando |
 
