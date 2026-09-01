@@ -1,7 +1,10 @@
 // lib/services/google_drive_backup_service.dart
+import 'dart:async' show unawaited;
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:typed_data';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -15,6 +18,7 @@ import '../../models/bible_note.dart';
 import '../../models/spiritual_stats_model.dart';
 import '../../providers/devocional_provider.dart';
 import '../../repositories/i_bible_notes_repository.dart';
+import '../i_analytics_service.dart';
 import '../i_spiritual_stats_service.dart';
 import 'compression_service.dart';
 import '../i_connectivity_service.dart';
@@ -44,6 +48,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
   final ILocalizationService _localizationService;
   final IBackupSettingsService _settingsService;
   final IBibleNotesRepository _bibleNotesRepository;
+  final IAnalyticsService _analyticsService;
 
   GoogleDriveBackupService({
     required IGoogleDriveAuthService authService,
@@ -52,12 +57,14 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     required ILocalizationService localizationService,
     required IBackupSettingsService settingsService,
     required IBibleNotesRepository bibleNotesRepository,
+    required IAnalyticsService analyticsService,
   })  : _authService = authService,
         _connectivityService = connectivityService,
         _statsService = statsService,
         _localizationService = localizationService,
         _settingsService = settingsService,
-        _bibleNotesRepository = bibleNotesRepository;
+        _bibleNotesRepository = bibleNotesRepository,
+        _analyticsService = analyticsService;
 
   /// Check if Google Drive backup is enabled
   @override
@@ -739,6 +746,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
   /// nothing to migrate. Sets [_readDatesBackupMigratedKey] only on a
   /// successful upload; leaves it unset on failure so the next startup
   /// retries.
+  static const String _hotfixLogName = 'ReadDatesHotfix';
+
   @override
   Future<void> migrateReadDatesBackupIfNeeded() async {
     try {
@@ -747,21 +756,32 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         return;
       }
 
-      debugPrint('[BACKUP] Running one-time read_dates migration...');
+      developer.log(
+        '🔧 [HOTFIX] Running one-time read_dates migration...',
+        name: _hotfixLogName,
+      );
 
       final remotePayload = await _downloadCurrentDriveBackup();
       if (remotePayload == null) {
-        debugPrint(
-          '[BACKUP] No remote backup found — nothing to migrate, marking done',
+        developer.log(
+          '🔧 [HOTFIX] No remote backup found — nothing to migrate, marking done',
+          name: _hotfixLogName,
         );
         await prefs.setBool(_readDatesBackupMigratedKey, true);
+        unawaited(
+          _analyticsService.logCustomEvent(
+            eventName: 'read_dates_hotfix_skipped',
+            parameters: {'reason': 'no_remote_backup'},
+          ),
+        );
         return;
       }
 
       final stats = await _statsService.getAllStats();
+      final readDates = (stats['read_dates'] as List?) ?? const [];
       final minimalLocal = <String, dynamic>{
         ...await _buildMetadataFields(),
-        'read_dates': stats['read_dates'] ?? <String>[],
+        'read_dates': readDates,
         BackupKeys.preferredBibleVersion:
             remotePayload[BackupKeys.preferredBibleVersion] ?? '',
         BackupKeys.markedBibleVerses:
@@ -776,15 +796,43 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       // token expiry), not a duplicate check.
       final driveApi = await _authService.getDriveApi();
       if (driveApi == null) {
-        debugPrint('[BACKUP] Could not get Drive API — migration deferred');
+        developer.log(
+          '🔧 [HOTFIX] Could not get Drive API — migration deferred',
+          name: _hotfixLogName,
+        );
         return;
       }
 
       await _uploadPayload(driveApi, finalPayload);
       await prefs.setBool(_readDatesBackupMigratedKey, true);
-      debugPrint('[BACKUP] ✅ read_dates migration complete');
-    } catch (e) {
-      debugPrint('[BACKUP] ❌ read_dates migration failed, will retry: $e');
+
+      final mergedReadDates = finalPayload['read_dates'] as List?;
+      developer.log(
+        '✅ [HOTFIX] read_dates migration complete — '
+        '${mergedReadDates?.length ?? 0} merged dates',
+        name: _hotfixLogName,
+      );
+      unawaited(
+        _analyticsService.logCustomEvent(
+          eventName: 'read_dates_hotfix_applied',
+          parameters: {
+            'local_read_dates': readDates.length,
+            'merged_read_dates': mergedReadDates?.length ?? 0,
+          },
+        ),
+      );
+    } catch (e, stack) {
+      developer.log(
+        '❌ [HOTFIX] read_dates migration failed, will retry: $e',
+        name: _hotfixLogName,
+        error: e,
+      );
+      FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        fatal: false,
+        reason: 'read_dates hotfix failed',
+      );
     }
   }
 
