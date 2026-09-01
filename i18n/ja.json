@@ -554,7 +554,8 @@
     "restoring_title": "データを復元中",
     "restoring_subtitle": "Google Driveにバックアップが見つかりました。霊的な進歩を取り戻しています...",
     "protected_title": "データが保護されました！",
-    "protected_subtitle": "あなたの霊的な進歩は、個人のGoogle Driveに安全に保存されています。"
+    "protected_subtitle": "あなたの霊的な進歩は、個人のGoogle Driveに安全に保存されています。",
+    "session_expired": "Google Driveのセッションが期限切れになりました。進捗のバックアップを続けるには再度ログインしてください。"
   },
   "review": {
     "title": "あなたの継続に感謝します 🙏",

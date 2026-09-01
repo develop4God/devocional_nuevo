@@ -68,6 +68,17 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
         final stats = await getStats();
         final newStreak = _calculateCurrentStreak(readDates);
 
+        if (newStreak < stats.currentStreak) {
+          final sorted = [...readDates]..sort();
+          debugPrint(
+            '[STREAK] ⚠️ recordDailyAppVisit is LOWERING streak: '
+            'previous=${stats.currentStreak} -> new=$newStreak. '
+            'readDates count=${readDates.length}, '
+            'range=${sorted.isEmpty ? "n/a" : "${sorted.first.toIso8601String().split('T').first} .. ${sorted.last.toIso8601String().split('T').first}"}, '
+            'today=${todayDateOnly.toIso8601String().split('T').first}',
+          );
+        }
+
         final updatedStats = stats.copyWith(
           currentStreak: newStreak,
           longestStreak:
@@ -76,7 +87,18 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
         );
 
         await saveStats(updatedStats);
-        debugPrint('Nueva visita diaria registrada. Racha: $newStreak');
+        debugPrint(
+          '[STREAK] Nueva visita diaria registrada. '
+          'previousStreak=${stats.currentStreak}, newStreak=$newStreak, '
+          'readDatesCount=${readDates.length}',
+        );
+      } else {
+        final stats = await getStats();
+        debugPrint(
+          '[STREAK] recordDailyAppVisit: already visited today, no recompute. '
+          'currentStreak on disk=${stats.currentStreak}, '
+          'readDatesCount=${readDates.length}',
+        );
       }
     });
   }
@@ -200,6 +222,17 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
         );
       }
       final newStreak = _calculateCurrentStreak(readDates);
+
+      final sorted = [...readDates]..sort();
+      debugPrint(
+        '[STREAK] recordDevocionalCompletado: '
+        'previous=${stats.currentStreak} -> new=$newStreak. '
+        'devocionalId=$devocionalId, source=$source, '
+        'readDates count=${readDates.length}, '
+        'range=${sorted.isEmpty ? "n/a" : "${sorted.first.toIso8601String().split('T').first} .. ${sorted.last.toIso8601String().split('T').first}"}, '
+        'today=${todayDateOnly.toIso8601String().split('T').first}, '
+        'allReadDates=${sorted.map((d) => d.toIso8601String().split('T').first).toList()}',
+      );
 
       final newReadDevocionalIds = List<String>.from(stats.readDevocionalIds);
       newReadDevocionalIds.add(devocionalId);
@@ -807,7 +840,8 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
             '[RESTORE] Restored spiritual stats: '
             '${stats.totalDevocionalesRead} total read, '
             '${stats.readDevocionalIds.length} IDs, '
-            'streak ${stats.currentStreak}, longest ${stats.longestStreak}',
+            'streak ${stats.currentStreak}, longest ${stats.longestStreak}, '
+            'lastActivityDate ${stats.lastActivityDate}',
           );
         } else {
           debugPrint(
@@ -821,8 +855,20 @@ class SpiritualStatsService implements IDebugSpiritualStatsService {
               .map((dateStr) => DateTime.parse(dateStr as String))
               .toList();
           await _saveReadDates(readDates);
+          final sorted = [...readDates]..sort();
           debugPrint(
-            '[RESTORE] Restored ${readDates.length} read dates from backup',
+            '[RESTORE] Restored ${readDates.length} read dates from backup. '
+            'Range: ${sorted.isEmpty ? "n/a" : "${sorted.first.toIso8601String().split('T').first} .. ${sorted.last.toIso8601String().split('T').first}"}, '
+            'device today: ${DateTime.now().toIso8601String().split('T').first}',
+          );
+        } else {
+          debugPrint(
+            '[RESTORE] ⚠️ backup contains no "read_dates" key — local '
+            'read_dates was left untouched. The next streak recompute '
+            '(recordDailyAppVisit/recordDevocionalCompletado) uses whatever '
+            'is locally on disk, NOT the restored currentStreak — a pre-fix '
+            'backup with no date history will collapse the streak, it will '
+            'not self-heal.',
           );
         }
       } catch (e) {

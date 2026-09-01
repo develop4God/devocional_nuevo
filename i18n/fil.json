@@ -554,7 +554,8 @@
     "restoring_title": "Inirerestora ang iyong data",
     "restoring_subtitle": "Natagpuan namin ang isang backup sa iyong Google Drive at ibinalik ang iyong espirituwal na pag-unlad...",
     "protected_title": "Protektado ang iyong data!",
-    "protected_subtitle": "Ang iyong espirituwal na pag-unlad ay ligtas na nakaimbak sa iyong personal na Google Drive."
+    "protected_subtitle": "Ang iyong espirituwal na pag-unlad ay ligtas na nakaimbak sa iyong personal na Google Drive.",
+    "session_expired": "Nag-expire na ang iyong Google Drive session. Mag-sign in ulit para magpatuloy sa pag-backup ng iyong progreso."
   },
   "review": {
     "title": "Salamat sa iyong pagpapatuloy 🙏",

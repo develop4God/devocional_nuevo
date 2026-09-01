@@ -49,6 +49,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     on<SignInToGoogleDrive>(_onSignInToGoogleDrive);
     on<SignOutFromGoogleDrive>(_onSignOutFromGoogleDrive);
     on<CheckStartupBackup>(_onCheckStartupBackup);
+    on<DebugTriggerSessionExpired>(_onDebugTriggerSessionExpired);
     debugPrint('[BACKUP] 🔨 BackupBloc constructed, firing CheckStartupBackup');
     add(const CheckStartupBackup());
   }
@@ -509,6 +510,16 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     debugPrint('🏁 [BLOC] === END SignOutFromGoogleDrive ===');
   }
 
+  /// Debug-only: directly emit BackupSessionExpired to validate the
+  /// session-expiry snackbar without needing a real silent auth failure.
+  Future<void> _onDebugTriggerSessionExpired(
+    DebugTriggerSessionExpired event,
+    Emitter<BackupState> emit,
+  ) async {
+    debugPrint('🐛 [BLOC] Debug trigger: emitting BackupSessionExpired');
+    emit(const BackupSessionExpired());
+  }
+
   /// Check and execute startup backup if interval has elapsed
   Future<void> _onCheckStartupBackup(
     CheckStartupBackup event,
@@ -530,6 +541,16 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       debugPrint('[BACKUP] checking auto enabled...');
       final isAutoEnabled = await _backupService.isAutoBackupEnabled();
       final isAuthenticated = await _backupService.isAuthenticated();
+
+      if (isAutoEnabled && !isAuthenticated) {
+        // Auto-backup was on, meaning the user was signed in before — an
+        // unauthenticated state now means the session was lost without the
+        // user explicitly signing out (e.g. silent token refresh failed).
+        debugPrint(
+            '⚠️ [BLOC] Session expired unexpectedly — was auto-enabled, now unauthenticated');
+        emit(const BackupSessionExpired());
+        return;
+      }
 
       if (!isAutoEnabled || !isAuthenticated) {
         debugPrint('⚠️ [BLOC] Auto backup disabled or not authenticated');

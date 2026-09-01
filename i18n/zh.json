@@ -554,7 +554,8 @@
     "restoring_title": "正在恢复您的数据",
     "restoring_subtitle": "我们在您的 Google Drive 中找到了备份，正在恢复您的灵性进步...",
     "protected_title": "您的数据已受到保护！",
-    "protected_subtitle": "您的灵性进步已安全存储在您的个人 Google Drive 中。"
+    "protected_subtitle": "您的灵性进步已安全存储在您的个人 Google Drive 中。",
+    "session_expired": "您的 Google Drive 会话已过期。请重新登录以继续备份您的进度。"
   },
   "review": {
     "title": "感谢您的坚持 🙏",
