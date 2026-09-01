@@ -557,6 +557,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         return;
       }
 
+      await _backupService.migrateReadDatesBackupIfNeeded();
+
       final lastBackupTime = await _backupService.getLastBackupTime();
       final now = DateTime.now();
 

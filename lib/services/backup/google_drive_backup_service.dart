@@ -30,6 +30,8 @@ import 'package:devocional_nuevo/utils/constants/backup_keys_constants.dart';
 class GoogleDriveBackupService implements IGoogleDriveBackupService {
   static const String _backupOptionsKey = 'google_drive_backup_options';
   static const String _backupFolderIdKey = 'google_drive_backup_folder_id';
+  static const String _readDatesBackupMigratedKey =
+      'read_dates_backup_migrated';
 
   // file name is derived from localization at runtime
 
@@ -643,62 +645,8 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         );
       }
 
-      // Convert to bytes
-      Uint8List fileBytes;
-      final compressionEnabled = await isCompressionEnabled();
-      if (compressionEnabled) {
-        fileBytes = CompressionService.compressJson(finalPayload);
-        debugPrint(
-          'Backup compressed: ${json.encode(finalPayload).length} -> ${fileBytes.length} bytes',
-        );
-      } else {
-        fileBytes = Uint8List.fromList(utf8.encode(json.encode(finalPayload)));
-        debugPrint('Backup uncompressed: ${fileBytes.length} bytes');
-      }
-
-      // Get or create backup folder
-      final folderId = await _getOrCreateBackupFolder(driveApi);
-
-      // Check if backup file already exists
-      final existingFile = await _findBackupFile(driveApi, folderId);
-
       // Step 4: Upload merged result to Drive
-      if (existingFile != null) {
-        // Update existing file - NO parents field
-        debugPrint('Updating existing backup file: ${existingFile.id}');
-        final updateFile = drive.File()
-          ..name = _backupFileName
-          ..description =
-              'Devocional backup updated on ${DateTime.now().toIso8601String()}'
-          ..mimeType = 'application/json';
-
-        final media = drive.Media(
-          Stream.fromIterable([fileBytes]),
-          fileBytes.length,
-        );
-
-        await driveApi.files.update(
-          updateFile,
-          existingFile.id!,
-          uploadMedia: media,
-        );
-      } else {
-        // Create new file - SÍ parents field
-        debugPrint('Creating new backup file');
-        final createFile = drive.File()
-          ..name = _backupFileName
-          ..parents = [folderId] // Solo en creación
-          ..description =
-              'Devocional backup created on ${DateTime.now().toIso8601String()}'
-          ..mimeType = 'application/json';
-
-        final media = drive.Media(
-          Stream.fromIterable([fileBytes]),
-          fileBytes.length,
-        );
-
-        await driveApi.files.create(createFile, uploadMedia: media);
-      }
+      await _uploadPayload(driveApi, finalPayload);
 
       await _settingsService.setLastBackupTime(DateTime.now());
       debugPrint(
@@ -716,18 +664,151 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     }
   }
 
-  /// Prepare backup data
-  Future<Map<String, dynamic>> _prepareBackupData(
-    DevocionalProvider? provider,
+  /// Convert [payload] to bytes (compressed or not, per current setting)
+  /// and upload it to the backup file on Drive, creating the file/folder
+  /// if they don't exist yet. Shared by [createBackup] and
+  /// [migrateReadDatesBackupIfNeeded].
+  Future<void> _uploadPayload(
+    drive.DriveApi driveApi,
+    Map<String, dynamic> payload,
   ) async {
-    final options = await getBackupOptions();
+    Uint8List fileBytes;
+    final compressionEnabled = await isCompressionEnabled();
+    if (compressionEnabled) {
+      fileBytes = CompressionService.compressJson(payload);
+      debugPrint(
+        'Backup compressed: ${json.encode(payload).length} -> ${fileBytes.length} bytes',
+      );
+    } else {
+      fileBytes = Uint8List.fromList(utf8.encode(json.encode(payload)));
+      debugPrint('Backup uncompressed: ${fileBytes.length} bytes');
+    }
+
+    // Get or create backup folder
+    final folderId = await _getOrCreateBackupFolder(driveApi);
+
+    // Check if backup file already exists
+    final existingFile = await _findBackupFile(driveApi, folderId);
+
+    if (existingFile != null) {
+      // Update existing file - NO parents field
+      debugPrint('Updating existing backup file: ${existingFile.id}');
+      final updateFile = drive.File()
+        ..name = _backupFileName
+        ..description =
+            'Devocional backup updated on ${DateTime.now().toIso8601String()}'
+        ..mimeType = 'application/json';
+
+      final media = drive.Media(
+        Stream.fromIterable([fileBytes]),
+        fileBytes.length,
+      );
+
+      await driveApi.files.update(
+        updateFile,
+        existingFile.id!,
+        uploadMedia: media,
+      );
+    } else {
+      // Create new file - SÍ parents field
+      debugPrint('Creating new backup file');
+      final createFile = drive.File()
+        ..name = _backupFileName
+        ..parents = [folderId] // Solo en creación
+        ..description =
+            'Devocional backup created on ${DateTime.now().toIso8601String()}'
+        ..mimeType = 'application/json';
+
+      final media = drive.Media(
+        Stream.fromIterable([fileBytes]),
+        fileBytes.length,
+      );
+
+      await driveApi.files.create(createFile, uploadMedia: media);
+    }
+  }
+
+  /// One-time migration: re-uploads the Drive backup with `read_dates`
+  /// merged in for devices whose remote file predates the fix that added
+  /// `read_dates` to the backup payload (see commit 210a88d6). Builds a
+  /// minimal local payload — not a full [_prepareBackupData] output — and
+  /// merges it into whatever is already on Drive, so only `read_dates` is
+  /// corrected while every other remote field is preserved.
+  ///
+  /// No-ops (without setting the flag) if there's no remote backup yet —
+  /// nothing to migrate. Sets [_readDatesBackupMigratedKey] only on a
+  /// successful upload; leaves it unset on failure so the next startup
+  /// retries.
+  @override
+  Future<void> migrateReadDatesBackupIfNeeded() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(_readDatesBackupMigratedKey) == true) {
+        return;
+      }
+
+      debugPrint('[BACKUP] Running one-time read_dates migration...');
+
+      final remotePayload = await _downloadCurrentDriveBackup();
+      if (remotePayload == null) {
+        debugPrint(
+          '[BACKUP] No remote backup found — nothing to migrate, marking done',
+        );
+        await prefs.setBool(_readDatesBackupMigratedKey, true);
+        return;
+      }
+
+      final stats = await _statsService.getAllStats();
+      final minimalLocal = <String, dynamic>{
+        ...await _buildMetadataFields(),
+        'read_dates': stats['read_dates'] ?? <String>[],
+        BackupKeys.preferredBibleVersion:
+            remotePayload[BackupKeys.preferredBibleVersion] ?? '',
+        BackupKeys.markedBibleVerses:
+            remotePayload[BackupKeys.markedBibleVerses] ?? [],
+      };
+
+      final finalPayload = _mergePayloads(minimalLocal, remotePayload);
+
+      // _downloadCurrentDriveBackup() above already got a non-null Drive
+      // API internally to fetch remotePayload — a null here means auth
+      // dropped in the narrow window between that call and this one (e.g.
+      // token expiry), not a duplicate check.
+      final driveApi = await _authService.getDriveApi();
+      if (driveApi == null) {
+        debugPrint('[BACKUP] Could not get Drive API — migration deferred');
+        return;
+      }
+
+      await _uploadPayload(driveApi, finalPayload);
+      await prefs.setBool(_readDatesBackupMigratedKey, true);
+      debugPrint('[BACKUP] ✅ read_dates migration complete');
+    } catch (e) {
+      debugPrint('[BACKUP] ❌ read_dates migration failed, will retry: $e');
+    }
+  }
+
+  /// Metadata fields common to every backup payload (full or migration).
+  /// Extracted so this field list is defined once instead of hand-listed
+  /// at each call site.
+  Future<Map<String, dynamic>> _buildMetadataFields() async {
     final packageInfo = await PackageInfo.fromPlatform();
-    final backupData = <String, dynamic>{
+    return {
       'timestamp': DateTime.now().toIso8601String(),
       'version': '1.0',
       'app_version': packageInfo.version, // Now gets real app version
       'compression_enabled': await isCompressionEnabled(),
       'language': _localizationService.currentLocale.languageCode,
+    };
+  }
+
+  /// Prepare backup data
+  Future<Map<String, dynamic>> _prepareBackupData(
+    DevocionalProvider? provider,
+  ) async {
+    final options = await getBackupOptions();
+    final backupData = <String, dynamic>{
+      ...await _buildMetadataFields(),
     };
 
     // Add logs for each section included in the backup
