@@ -159,6 +159,13 @@ class BackupSettingsUpdated extends BackupState {
   const BackupSettingsUpdated();
 }
 
+/// Emitted when auto-backup was enabled but the Google Drive session is no
+/// longer authenticated (e.g. the silent token refresh failed and sign-in
+/// state was cleared) — surfaces a session loss the user did not initiate.
+class BackupSessionExpired extends BackupState {
+  const BackupSessionExpired();
+}
+
 /// Success state for UX feedback
 class BackupSuccess extends BackupState {
   final String title;

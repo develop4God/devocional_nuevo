@@ -182,6 +182,13 @@ class _BackupSettingsViewState extends State<_BackupSettingsView> {
               debugPrint('✅ [DEBUG] BackupSuccess recibido — mostrando shield');
               setState(() => _successDialogShown = true);
               _showShieldSuccessDialog(context, state);
+            } else if (state is BackupSessionExpired) {
+              debugPrint('⚠️ [DEBUG] BackupSessionExpired recibido');
+              AppSnackBar.show(
+                context,
+                'backup.session_expired'.tr(),
+                type: AppSnackBarType.error,
+              );
             }
           },
           child: BlocBuilder<BackupBloc, BackupState>(

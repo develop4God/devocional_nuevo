@@ -92,3 +92,10 @@ class CheckStartupBackup extends BackupEvent {
   @override
   List<Object?> get props => [forceBypass];
 }
+
+/// Debug-only: directly emits [BackupSessionExpired] so the session-expiry
+/// snackbar can be validated without waiting for a real silent token-refresh
+/// failure. Wired only from the debug page (kDebugMode).
+class DebugTriggerSessionExpired extends BackupEvent {
+  const DebugTriggerSessionExpired();
+}

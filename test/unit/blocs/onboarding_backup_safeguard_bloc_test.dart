@@ -111,6 +111,9 @@ void main() {
         );
       },
       act: (bloc) => bloc.add(const LoadBackupSettings()),
+      // Auto-backup enabled + not authenticated is also the signature the
+      // constructor's own CheckStartupBackup uses to detect an unexpectedly
+      // lost session, so it appends BackupSessionExpired once it resolves.
       expect: () => [
         const BackupLoading(),
         isA<BackupLoaded>().having(
@@ -118,6 +121,7 @@ void main() {
           'isAuthenticated',
           false,
         ),
+        const BackupSessionExpired(),
       ],
     );
   });

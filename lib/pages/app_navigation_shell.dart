@@ -1,6 +1,9 @@
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/blocs/backup_bloc.dart';
+import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_list_page.dart';
@@ -11,10 +14,10 @@ import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/widgets/app_bottom_nav_bar.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 
 /// Root shell that keeps [AppBottomNavBar] frozen across all main sections.
 ///
@@ -179,20 +182,30 @@ class AppNavigationShellState extends State<AppNavigationShell> {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themeState.systemUiOverlayStyle,
-      child: PopScope(
-        canPop: _currentTab == AppTab.home,
-        onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) _selectTab(AppTab.home);
+      child: BlocListener<BackupBloc, BackupState>(
+        listenWhen: (previous, current) => current is BackupSessionExpired,
+        listener: (context, state) {
+          AppSnackBar.show(
+            context,
+            'backup.session_expired'.tr(),
+            type: AppSnackBarType.error,
+          );
         },
-        child: Scaffold(
-          body: IndexedStack(
-            index: _tabs.indexOf(_currentTab),
-            children: [for (final tab in _tabs) _buildTab(tab)],
-          ),
-          bottomNavigationBar: AppBottomNavBar(
-            currentTab: _currentTab,
-            onSelectTab: _selectTab,
-            tabs: _tabs,
+        child: PopScope(
+          canPop: _currentTab == AppTab.home,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _selectTab(AppTab.home);
+          },
+          child: Scaffold(
+            body: IndexedStack(
+              index: _tabs.indexOf(_currentTab),
+              children: [for (final tab in _tabs) _buildTab(tab)],
+            ),
+            bottomNavigationBar: AppBottomNavBar(
+              currentTab: _currentTab,
+              onSelectTab: _selectTab,
+              tabs: _tabs,
+            ),
           ),
         ),
       ),
