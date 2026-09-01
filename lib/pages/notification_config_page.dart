@@ -17,7 +17,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NotificationConfigPage extends StatefulWidget {
-  const NotificationConfigPage({super.key});
+  final FirebaseAuth? auth;
+  final FirebaseFirestore? firestore;
+
+  const NotificationConfigPage({super.key, this.auth, this.firestore});
 
   @override
   State<NotificationConfigPage> createState() => _NotificationConfigPageState();
@@ -25,8 +28,8 @@ class NotificationConfigPage extends StatefulWidget {
 
 class _NotificationConfigPageState extends State<NotificationConfigPage> {
   late final NotificationService _notificationService;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final FirebaseAuth _auth;
+  late final FirebaseFirestore _firestore;
 
   bool _notificationsEnabled = true;
   TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
@@ -42,6 +45,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
     super.initState();
     // Get NotificationService from ServiceLocator
     _notificationService = getService<NotificationService>();
+    _auth = widget.auth ?? FirebaseAuth.instance;
+    _firestore = widget.firestore ?? FirebaseFirestore.instance;
     _initializeFirebaseAndLoadSettings();
   }
 
@@ -363,10 +368,13 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'notifications_config_page.enable_notifications'.tr(),
-                          style: textTheme.titleMedium?.copyWith(
-                            color: colorScheme.onSurface,
+                        Expanded(
+                          child: Text(
+                            'notifications_config_page.enable_notifications'
+                                .tr(),
+                            style: textTheme.titleMedium?.copyWith(
+                              color: colorScheme.onSurface,
+                            ),
                           ),
                         ),
                         Switch(

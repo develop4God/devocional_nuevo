@@ -78,14 +78,15 @@ class AppBottomNavBar extends StatelessWidget {
         height: 60,
         color: appBarBackgroundColor,
         padding: EdgeInsets.zero,
-        child: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              // 1. Home (Devocionales)
-              IconButton(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            // 1. Home (Devocionales)
+            Expanded(
+              child: IconButton(
                 key: const Key('bottom_appbar_home_icon'),
                 tooltip: 'common.home'.tr(),
+                padding: EdgeInsets.zero,
                 onPressed: () => _selectTab(AppTab.home, 'home'),
                 icon: Icon(
                   currentTab == AppTab.home ? Icons.home : Icons.home_outlined,
@@ -93,10 +94,13 @@ class AppBottomNavBar extends StatelessWidget {
                   size: 30,
                 ),
               ),
-              // 2. Prayers
-              IconButton(
+            ),
+            // 2. Prayers
+            Expanded(
+              child: IconButton(
                 key: const Key('bottom_appbar_prayers_icon'),
                 tooltip: 'tooltips.my_prayers'.tr(),
+                padding: EdgeInsets.zero,
                 onPressed: () async {
                   HapticFeedback.mediumImpact();
                   await BubbleUtils.markAsShown(
@@ -113,10 +117,13 @@ class AppBottomNavBar extends StatelessWidget {
                   size: 30,
                 ),
               ),
-              // 3. Bible
-              IconButton(
+            ),
+            // 3. Bible
+            Expanded(
+              child: IconButton(
                 key: const Key('bottom_appbar_bible_icon'),
                 tooltip: 'tooltips.bible'.tr(),
+                padding: EdgeInsets.zero,
                 onPressed: () => _selectTab(AppTab.bible, 'bible'),
                 icon: Icon(
                   Icons.auto_stories_outlined,
@@ -124,11 +131,14 @@ class AppBottomNavBar extends StatelessWidget {
                   size: 30,
                 ),
               ),
-              // 4. Discovery Studies
-              if (enabledTabs.contains(AppTab.discovery))
-                IconButton(
+            ),
+            // 4. Discovery Studies
+            if (enabledTabs.contains(AppTab.discovery))
+              Expanded(
+                child: IconButton(
                   key: const Key('bottom_appbar_discovery_icon'),
                   tooltip: 'discovery.discovery_studies'.tr(),
+                  padding: EdgeInsets.zero,
                   onPressed: () => _selectTab(AppTab.discovery, 'discovery'),
                   icon: Icon(
                     Icons.school_outlined,
@@ -136,11 +146,14 @@ class AppBottomNavBar extends StatelessWidget {
                     size: 30,
                   ),
                 ),
-              // 5. Encounters
-              if (enabledTabs.contains(AppTab.encounters))
-                IconButton(
+              ),
+            // 5. Encounters
+            if (enabledTabs.contains(AppTab.encounters))
+              Expanded(
+                child: IconButton(
                   key: const Key('bottom_appbar_encounters_icon'),
                   tooltip: 'Encounters',
+                  padding: EdgeInsets.zero,
                   onPressed: () => _selectTab(AppTab.encounters, 'encounters'),
                   icon: Icon(
                     Icons.location_history_outlined,
@@ -148,10 +161,13 @@ class AppBottomNavBar extends StatelessWidget {
                     size: 30,
                   ),
                 ),
-              // 6. Spiritual Stats/Progress
-              IconButton(
+              ),
+            // 6. Spiritual Stats/Progress
+            Expanded(
+              child: IconButton(
                 key: const Key('bottom_appbar_progress_icon'),
                 tooltip: 'tooltips.progress'.tr(),
+                padding: EdgeInsets.zero,
                 onPressed: () => _selectTab(AppTab.progress, 'progress'),
                 icon: Icon(
                   Icons.emoji_events_outlined,
@@ -159,8 +175,10 @@ class AppBottomNavBar extends StatelessWidget {
                   size: 30,
                 ),
               ),
-              // 7. Settings
-              _NavIconWithBadge(
+            ),
+            // 7. Settings
+            Expanded(
+              child: _NavIconWithBadge(
                 iconKey: const Key('bottom_appbar_settings_icon'),
                 tooltip: 'tooltips.settings'.tr(),
                 icon: Icons.settings_suggest_sharp,
@@ -171,8 +189,10 @@ class AppBottomNavBar extends StatelessWidget {
                 ),
                 onSelect: () => _selectTab(AppTab.settings, 'settings'),
               ),
-              if (enabledTabs.contains(AppTab.supporter))
-                _NavIconWithBadge(
+            ),
+            if (enabledTabs.contains(AppTab.supporter))
+              Expanded(
+                child: _NavIconWithBadge(
                   iconKey: const Key('bottom_appbar_supporter_icon'),
                   tooltip: 'tooltips.support'.tr(),
                   icon: Icons.volunteer_activism,
@@ -184,8 +204,8 @@ class AppBottomNavBar extends StatelessWidget {
                   ),
                   onSelect: () => _selectTab(AppTab.supporter, 'supporter'),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
@@ -235,6 +255,7 @@ class _NavIconWithBadgeState extends State<_NavIconWithBadge> {
             IconButton(
               key: widget.iconKey,
               tooltip: widget.tooltip,
+              padding: EdgeInsets.zero,
               onPressed: () async {
                 await BubbleUtils.markAsShown(widget.bubbleId);
                 widget.onSelect();

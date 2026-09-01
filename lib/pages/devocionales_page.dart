@@ -1,6 +1,8 @@
 import 'dart:developer' as developer;
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:devocional_nuevo/blocs/backup_bloc.dart';
+import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
@@ -450,9 +452,21 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   Future<int> _loadStreak() async {
     final spiritualStatsService = SpiritualStatsService();
-    // Ensure a new calendar day crossed while backgrounded is registered
-    // (streak/visit are otherwise only recorded on cold-start initState).
-    await spiritualStatsService.recordDailyAppVisit();
+    // A Drive restore in flight (sign-in/backup restore) may not have
+    // written read_dates yet — recomputing the streak now would compute
+    // against an empty list and clobber the value restore is about to set.
+    final backupState = context.read<BackupBloc>().state;
+    final restoreInFlight =
+        backupState is BackupSigningIn || backupState is BackupRestoring;
+    if (restoreInFlight) {
+      debugPrint(
+        '🔥 [STREAK] Skipping recordDailyAppVisit — restore in flight ($backupState)',
+      );
+    } else {
+      // Ensure a new calendar day crossed while backgrounded is registered
+      // (streak/visit are otherwise only recorded on cold-start initState).
+      await spiritualStatsService.recordDailyAppVisit();
+    }
     final stats = await spiritualStatsService.getStats();
     if (!mounted) return 0;
     // Update the currentStreak state to ensure UI reflects latest value
@@ -741,7 +755,19 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   Widget build(BuildContext context) {
-    return _buildWithBloc(context);
+    return BlocListener<BackupBloc, BackupState>(
+      listener: (context, state) {
+        // Streak load is skipped while a restore is in flight (see
+        // _loadStreak) to avoid clobbering it with a recompute against an
+        // empty read_dates list — re-run it now that restore has settled.
+        if (state is BackupRestored || state is BackupSuccess) {
+          setState(() {
+            _streakFuture = _loadStreak();
+          });
+        }
+      },
+      child: _buildWithBloc(context),
+    );
   }
 
   /// Build loading scaffold while devotionals are initializing
@@ -1011,7 +1037,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           controller: _scrollController,
                           slivers: [
                             SliverAppBar(
-                              expandedHeight: 260,
+                              expandedHeight:
+                                  (MediaQuery.of(context).size.height * 0.28)
+                                      .clamp(180.0, 260.0),
                               pinned: true,
                               backgroundColor: colorScheme.primary,
                               elevation: 0,
