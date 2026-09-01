@@ -123,7 +123,10 @@ void main() {
       final result = await service.restoreExistingBackup('file-1');
 
       expect(result, isTrue);
-      verify(() => statsService.restoreStats({'streak': 5})).called(1);
+      // restoreStats takes the full backup map, not just the nested
+      // spiritual_stats object — it also reads the sibling top-level
+      // 'read_dates' key (see _restoreBackupData's comment).
+      verify(() => statsService.restoreStats(backupJson)).called(1);
     });
 
     test('returns false when the downloaded file is not valid backup data',
@@ -229,9 +232,10 @@ void main() {
       final backupJson = {
         'timestamp': DateTime.now().toIso8601String(),
         'version': '1.0',
-        // Wrong type on purpose: restoreExistingBackup casts this to
-        // Map<String, dynamic>, so a List here throws inside the
-        // spiritual_stats try/catch — restoration should continue past it.
+        // Wrong type on purpose: restoreStats casts the nested
+        // spiritual_stats value to Map<String, dynamic>, so a List here
+        // throws inside the real service — stub the mock to reproduce that,
+        // caught by _restoreBackupData's try/catch so restoration continues.
         'spiritual_stats': [1, 2, 3],
         'saved_prayers': [
           {'id': '1'},
@@ -243,13 +247,14 @@ void main() {
         );
       when(() => authService.getDriveApi())
           .thenAnswer((_) async => stub.build());
+      when(() => statsService.restoreStats(any())).thenThrow(TypeError());
       when(() => settingsService.setLastBackupTime(any()))
           .thenAnswer((_) async {});
 
       final result = await service.restoreExistingBackup('file-1');
 
       expect(result, isTrue);
-      verifyNever(() => statsService.restoreStats(any()));
+      verify(() => statsService.restoreStats(backupJson)).called(1);
       final prefs = await SharedPreferences.getInstance();
       final storedPrayers = prefs.getString('prayers');
       expect(storedPrayers, isNotNull);
