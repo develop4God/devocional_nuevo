@@ -80,10 +80,12 @@ void main() {
       await tester.pump();
 
       Transform findChevronScale() => tester.widget<Transform>(
-            find.ancestor(
-              of: find.byIcon(Icons.expand_circle_down_outlined),
-              matching: find.byType(Transform),
-            ),
+            find
+                .ancestor(
+                  of: find.byIcon(Icons.expand_circle_down_outlined),
+                  matching: find.byType(Transform),
+                )
+                .first,
           );
 
       final initialScale = findChevronScale().transform.getMaxScaleOnAxis();
@@ -92,6 +94,26 @@ void main() {
       final laterScale = findChevronScale().transform.getMaxScaleOnAxis();
 
       expect(laterScale, isNot(equals(initialScale)));
+
+      // Clean up the still-animating sheet without leaking timers.
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+
+    testWidgets('does not overflow on a short screen height', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 480);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.tap(find.text('open'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(TtsMiniplayerModal), findsOneWidget);
+      expect(tester.takeException(), isNull);
 
       // Clean up the still-animating sheet without leaking timers.
       await tester.pumpWidget(const SizedBox.shrink());

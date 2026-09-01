@@ -21,6 +21,7 @@ import 'package:devocional_nuevo/widgets/add_testimony_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/animated_fab_with_text.dart';
 import 'package:devocional_nuevo/widgets/answer_prayer_modal.dart';
+import 'package:devocional_nuevo/widgets/app_scrollbar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/edit_answered_comment_modal.dart';
 import 'package:flutter/material.dart';
@@ -38,6 +39,10 @@ class PrayersPage extends StatefulWidget {
 class _PrayersPageState extends State<PrayersPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final ScrollController _activePrayersScrollController = ScrollController();
+  final ScrollController _answeredPrayersScrollController = ScrollController();
+  final ScrollController _thanksgivingsScrollController = ScrollController();
+  final ScrollController _testimoniesScrollController = ScrollController();
 
   @override
   void initState() {
@@ -55,6 +60,10 @@ class _PrayersPageState extends State<PrayersPage>
   @override
   void dispose() {
     _tabController.dispose();
+    _activePrayersScrollController.dispose();
+    _answeredPrayersScrollController.dispose();
+    _thanksgivingsScrollController.dispose();
+    _testimoniesScrollController.dispose();
     super.dispose();
   }
 
@@ -452,13 +461,17 @@ class _PrayersPageState extends State<PrayersPage>
       onRefresh: () async {
         context.read<PrayerBloc>().add(RefreshPrayers());
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: activePrayers.length,
-        itemBuilder: (context, index) {
-          final prayer = activePrayers[index];
-          return _buildPrayerCard(context, prayer, state, isActive: true);
-        },
+      child: AppScrollbar(
+        controller: _activePrayersScrollController,
+        child: ListView.builder(
+          controller: _activePrayersScrollController,
+          padding: const EdgeInsets.all(16),
+          itemCount: activePrayers.length,
+          itemBuilder: (context, index) {
+            final prayer = activePrayers[index];
+            return _buildPrayerCard(context, prayer, state, isActive: true);
+          },
+        ),
       ),
     );
   }
@@ -483,13 +496,17 @@ class _PrayersPageState extends State<PrayersPage>
       onRefresh: () async {
         context.read<PrayerBloc>().add(RefreshPrayers());
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: answeredPrayers.length,
-        itemBuilder: (context, index) {
-          final prayer = answeredPrayers[index];
-          return _buildPrayerCard(context, prayer, state, isActive: false);
-        },
+      child: AppScrollbar(
+        controller: _answeredPrayersScrollController,
+        child: ListView.builder(
+          controller: _answeredPrayersScrollController,
+          padding: const EdgeInsets.all(16),
+          itemCount: answeredPrayers.length,
+          itemBuilder: (context, index) {
+            final prayer = answeredPrayers[index];
+            return _buildPrayerCard(context, prayer, state, isActive: false);
+          },
+        ),
       ),
     );
   }
@@ -898,13 +915,17 @@ class _PrayersPageState extends State<PrayersPage>
       onRefresh: () async {
         context.read<ThanksgivingBloc>().add(RefreshThanksgivings());
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: thanksgivings.length,
-        itemBuilder: (context, index) {
-          final thanksgiving = thanksgivings[index];
-          return _buildThanksgivingCard(context, thanksgiving);
-        },
+      child: AppScrollbar(
+        controller: _thanksgivingsScrollController,
+        child: ListView.builder(
+          controller: _thanksgivingsScrollController,
+          padding: const EdgeInsets.all(16),
+          itemCount: thanksgivings.length,
+          itemBuilder: (context, index) {
+            final thanksgiving = thanksgivings[index];
+            return _buildThanksgivingCard(context, thanksgiving);
+          },
+        ),
       ),
     );
   }
@@ -1108,13 +1129,17 @@ class _PrayersPageState extends State<PrayersPage>
       onRefresh: () async {
         context.read<TestimonyBloc>().add(RefreshTestimonies());
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: testimonies.length,
-        itemBuilder: (context, index) {
-          final testimony = testimonies[index];
-          return _buildTestimonyCard(context, testimony);
-        },
+      child: AppScrollbar(
+        controller: _testimoniesScrollController,
+        child: ListView.builder(
+          controller: _testimoniesScrollController,
+          padding: const EdgeInsets.all(16),
+          itemCount: testimonies.length,
+          itemBuilder: (context, index) {
+            final testimony = testimonies[index];
+            return _buildTestimonyCard(context, testimony);
+          },
+        ),
       ),
     );
   }

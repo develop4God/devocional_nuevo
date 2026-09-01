@@ -248,5 +248,25 @@ void main() {
       expect(find.byIcon(Icons.home_outlined), findsOneWidget);
       expect(find.byIcon(Icons.home), findsNothing);
     });
+
+    testWidgets('does not overflow on a narrow (small phone) screen width', (
+      WidgetTester tester,
+    ) async {
+      final originalSize = tester.view.physicalSize;
+      final originalRatio = tester.view.devicePixelRatio;
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.physicalSize = originalSize;
+        tester.view.devicePixelRatio = originalRatio;
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
   });
 }

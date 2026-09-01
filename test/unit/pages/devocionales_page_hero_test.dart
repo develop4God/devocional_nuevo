@@ -17,6 +17,10 @@ library;
 //  - hero-absent: plain CustomAppBar renders, no SliverAppBar, and the
 //    content widget's normal header does render.
 
+import 'package:bloc_test/bloc_test.dart';
+import 'package:devocional_nuevo/blocs/backup_bloc.dart';
+import 'package:devocional_nuevo/blocs/backup_event.dart';
+import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/blocs/note_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
@@ -43,6 +47,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/flutter_tts_mock_helper.dart';
 import '../../helpers/test_helpers.dart';
+
+/// mocktail's bloc_test MockBloc — DevocionalesPage wraps its build in a
+/// `BlocListener<BackupBloc, BackupState>` (see main.dart's app-wide
+/// `BlocProvider<BackupBloc>`), so a real ancestor is required or the widget
+/// throws ProviderNotFoundException. Same pattern as
+/// test/unit/pages/backup_settings_page_test.dart.
+class MockBackupBloc extends MockBloc<BackupEvent, BackupState>
+    implements BackupBloc {}
 
 /// mocktail mock — DevocionalRepository is abstract, so this satisfies the
 /// interface DevocionalesPage resolves via `getService<DevocionalRepository>()`.
@@ -160,6 +172,10 @@ Future<DevocionalProvider> _pumpDevocionalesPage(
   final devocional = _buildDevocional();
   final devocionalProvider = _SeededDevocionalProvider([devocional]);
 
+  final mockBackupBloc = MockBackupBloc();
+  when(() => mockBackupBloc.state).thenReturn(const BackupInitial());
+  whenListen(mockBackupBloc, const Stream<BackupState>.empty());
+
   await tester.pumpWidget(
     MultiProvider(
       providers: [
@@ -184,6 +200,7 @@ Future<DevocionalProvider> _pumpDevocionalesPage(
           BlocProvider<NoteBloc>(
             create: (_) => NoteBloc(notesRepository: _FakeNotesRepository()),
           ),
+          BlocProvider<BackupBloc>.value(value: mockBackupBloc),
         ],
         child: const MaterialApp(home: DevocionalesPage()),
       ),

@@ -748,6 +748,10 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
             (stats['stats'] as Map<String, dynamic>?) ?? <String, dynamic>{};
 
         backupData[BackupKeys.spiritualStats] = innerStats;
+        backupData['read_dates'] = stats['read_dates'] ?? <String>[];
+        debugPrint(
+          '[BACKUP]   - Read dates: ${(backupData['read_dates'] as List).length}',
+        );
         final readDevocionalIds =
             (innerStats['readDevocionalIds'] as List<dynamic>?)?.length ?? 0;
         debugPrint('[BACKUP] Included spiritual stats:');
@@ -1173,11 +1177,13 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       debugPrint('[RESTORE] Starting backup data restoration...');
       debugPrint('[RESTORE] Keys in backup: ${data.keys.toList()}');
 
-      // Restore spiritual stats
+      // Restore spiritual stats. Pass the full backup map (not just the
+      // nested spiritual_stats object) — restoreStats also reads the
+      // sibling top-level 'read_dates' key, which lives outside
+      // spiritual_stats in the backup payload.
       if (data.containsKey(BackupKeys.spiritualStats)) {
         try {
-          final stats = data[BackupKeys.spiritualStats] as Map<String, dynamic>;
-          await _statsService.restoreStats(stats);
+          await _statsService.restoreStats(data);
           debugPrint('[RESTORE] ✅ Restored spiritual stats');
         } catch (e) {
           debugPrint('[RESTORE] ❌ Error restoring spiritual stats: $e');

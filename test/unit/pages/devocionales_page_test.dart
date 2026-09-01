@@ -3,6 +3,10 @@ library;
 
 import 'dart:async';
 
+import 'package:bloc_test/bloc_test.dart';
+import 'package:devocional_nuevo/blocs/backup_bloc.dart';
+import 'package:devocional_nuevo/blocs/backup_event.dart';
+import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/blocs/note_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
@@ -27,6 +31,14 @@ import 'package:provider/provider.dart';
 import '../../helpers/test_helpers.dart' show registerTestServicesWithFakes;
 
 class MockDevocionalRepository extends Mock implements DevocionalRepository {}
+
+/// mocktail's bloc_test MockBloc — DevocionalesPage wraps its build in a
+/// `BlocListener<BackupBloc, BackupState>` (see main.dart's app-wide
+/// `BlocProvider<BackupBloc>`), so a real ancestor is required or the widget
+/// throws ProviderNotFoundException. Same pattern as
+/// test/unit/pages/backup_settings_page_test.dart.
+class MockBackupBloc extends MockBloc<BackupEvent, BackupState>
+    implements BackupBloc {}
 
 class FakeNotesRepository implements INotesRepository {
   @override
@@ -175,27 +187,33 @@ void main() {
     repository = MockDevocionalRepository();
   });
 
-  Widget host(DevocionalRepository repo, {String? initialDevocionalId}) =>
-      MultiProvider(
-        providers: [
-          BlocProvider<ThemeBloc>(create: (_) => FakeThemeBloc()),
-          ChangeNotifierProvider<DevocionalProvider>(
-            create: (_) => DevocionalProvider(
-              enableAudio: false,
-              devocionalRepository: repo,
-            ),
+  Widget host(DevocionalRepository repo, {String? initialDevocionalId}) {
+    final backupBloc = MockBackupBloc();
+    when(() => backupBloc.state).thenReturn(const BackupInitial());
+    whenListen(backupBloc, const Stream<BackupState>.empty());
+
+    return MultiProvider(
+      providers: [
+        BlocProvider<ThemeBloc>(create: (_) => FakeThemeBloc()),
+        ChangeNotifierProvider<DevocionalProvider>(
+          create: (_) => DevocionalProvider(
+            enableAudio: false,
+            devocionalRepository: repo,
           ),
-          ChangeNotifierProvider<AudioController>(
-            create: (_) => AudioController(FakeTtsService()),
-          ),
-          BlocProvider<NoteBloc>(
-            create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
-          ),
-        ],
-        child: MaterialApp(
-          home: DevocionalesPage(initialDevocionalId: initialDevocionalId),
         ),
-      );
+        ChangeNotifierProvider<AudioController>(
+          create: (_) => AudioController(FakeTtsService()),
+        ),
+        BlocProvider<NoteBloc>(
+          create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
+        ),
+        BlocProvider<BackupBloc>.value(value: backupBloc),
+      ],
+      child: MaterialApp(
+        home: DevocionalesPage(initialDevocionalId: initialDevocionalId),
+      ),
+    );
+  }
 
   group('DevocionalesPage — initialization outcomes', () {
     testWidgets('shows the error scaffold with retry when no devotionals load',

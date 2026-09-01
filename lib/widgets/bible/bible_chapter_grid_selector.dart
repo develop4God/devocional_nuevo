@@ -1,5 +1,6 @@
 // lib/widgets/bible_chapter_grid_selector.dart
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/widgets/app_scrollbar.dart';
 import 'package:flutter/material.dart';
 
 /// Widget that displays a grid of chapters for selection in the Bible reader
@@ -99,8 +100,7 @@ class BibleChapterGridSelector extends StatelessWidget {
             ),
             // Grid
             Expanded(
-              child: Scrollbar(
-                thumbVisibility: true,
+              child: AppScrollbar(
                 child: GridView.builder(
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

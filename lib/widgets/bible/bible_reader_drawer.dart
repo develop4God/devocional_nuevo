@@ -2,6 +2,7 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/constants/bubble_constants.dart';
+import 'package:devocional_nuevo/widgets/app_scrollbar.dart';
 import 'package:flutter/material.dart';
 
 /// Left-side navigation drawer for the Bible reader page: lists downloaded
@@ -84,117 +85,120 @@ class BibleReaderDrawer extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  children: [
-                    ...availableVersions.map((version) {
-                      final isSelected =
-                          version.dbFileName == selectedVersion?.dbFileName;
-                      return ListTile(
-                        key: Key(
-                          'bible_reader_drawer_version_${version.dbFileName}',
-                        ),
-                        leading: Icon(
-                          isSelected
-                              ? Icons.radio_button_checked
-                              : Icons.radio_button_off,
-                          color: isSelected
-                              ? colorScheme.primary
-                              : colorScheme.onSurface.withValues(alpha: 0.5),
-                        ),
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (version.hasUpdate)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 2),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: BubbleConstants
-                                        .contentUpdateAvailableColor,
-                                    borderRadius: BorderRadius.circular(
-                                      BubbleConstants.widgetBubbleRadius,
+                child: AppScrollbar(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    children: [
+                      ...availableVersions.map((version) {
+                        final isSelected =
+                            version.dbFileName == selectedVersion?.dbFileName;
+                        return ListTile(
+                          key: Key(
+                            'bible_reader_drawer_version_${version.dbFileName}',
+                          ),
+                          leading: Icon(
+                            isSelected
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_off,
+                            color: isSelected
+                                ? colorScheme.primary
+                                : colorScheme.onSurface.withValues(alpha: 0.5),
+                          ),
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (version.hasUpdate)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 2),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: BubbleConstants
+                                          .contentUpdateAvailableColor,
+                                      borderRadius: BorderRadius.circular(
+                                        BubbleConstants.widgetBubbleRadius,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'bubble_constants.update_available'.tr(),
+                                      style:
+                                          BubbleConstants.widgetBubbleTextStyle,
                                     ),
                                   ),
-                                  child: Text(
-                                    'bubble_constants.update_available'.tr(),
-                                    style:
-                                        BubbleConstants.widgetBubbleTextStyle,
-                                  ),
+                                ),
+                              Text(
+                                versionLabelBuilder(version),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 16,
+                                  color: colorScheme.onSurface,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
                                 ),
                               ),
-                            Text(
-                              versionLabelBuilder(version),
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
-                                color: colorScheme.onSurface,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: version.hasUpdate
-                            ? InkWell(
-                                key: Key(
-                                  'bible_reader_drawer_update_${version.dbFileName}',
-                                ),
-                                customBorder: const CircleBorder(),
-                                onTap: _isDownloading
-                                    ? null
-                                    : () {
-                                        debugPrint(
-                                          '[BibleReaderDrawer] update tapped '
-                                          'for ${version.dbFileName} — '
-                                          'remoteHash=${version.remoteHash}',
-                                        );
-                                        onDownloadVersion(version);
-                                      },
-                                child: _downloadTrailing(
-                                  colorScheme.copyWith(
-                                    primary: BubbleConstants
-                                        .contentUpdateAvailableColor,
+                            ],
+                          ),
+                          trailing: version.hasUpdate
+                              ? InkWell(
+                                  key: Key(
+                                    'bible_reader_drawer_update_${version.dbFileName}',
                                   ),
-                                  downloadStatuses[version.dbFileName],
-                                ),
-                              )
-                            : null,
-                        onTap: _isDownloading
-                            ? null
-                            : () {
-                                Navigator.of(context).pop();
-                                if (!isSelected) onVersionSelected(version);
-                              },
-                      );
-                    }),
-                    ...downloadableVersions.map((version) {
-                      final status = downloadStatuses[version.dbFileName];
-                      final bubbleId =
-                          'bible_reader_drawer_remote_${version.dbFileName}';
-                      return _DownloadableVersionTile(
-                        key: Key(
-                          'bible_reader_drawer_downloadable_${version.dbFileName}',
-                        ),
-                        bubbleId: bubbleId,
-                        label: versionLabelBuilder(version),
-                        status: status,
-                        colorScheme: colorScheme,
-                        textTheme: textTheme,
-                        downloadTrailing: _downloadTrailing,
-                        onTap: status == null || status.errorMessageKey != null
-                            ? () {
-                                onDownloadVersion(version);
-                              }
-                            : null,
-                      );
-                    }),
-                  ],
+                                  customBorder: const CircleBorder(),
+                                  onTap: _isDownloading
+                                      ? null
+                                      : () {
+                                          debugPrint(
+                                            '[BibleReaderDrawer] update tapped '
+                                            'for ${version.dbFileName} — '
+                                            'remoteHash=${version.remoteHash}',
+                                          );
+                                          onDownloadVersion(version);
+                                        },
+                                  child: _downloadTrailing(
+                                    colorScheme.copyWith(
+                                      primary: BubbleConstants
+                                          .contentUpdateAvailableColor,
+                                    ),
+                                    downloadStatuses[version.dbFileName],
+                                  ),
+                                )
+                              : null,
+                          onTap: _isDownloading
+                              ? null
+                              : () {
+                                  Navigator.of(context).pop();
+                                  if (!isSelected) onVersionSelected(version);
+                                },
+                        );
+                      }),
+                      ...downloadableVersions.map((version) {
+                        final status = downloadStatuses[version.dbFileName];
+                        final bubbleId =
+                            'bible_reader_drawer_remote_${version.dbFileName}';
+                        return _DownloadableVersionTile(
+                          key: Key(
+                            'bible_reader_drawer_downloadable_${version.dbFileName}',
+                          ),
+                          bubbleId: bubbleId,
+                          label: versionLabelBuilder(version),
+                          status: status,
+                          colorScheme: colorScheme,
+                          textTheme: textTheme,
+                          downloadTrailing: _downloadTrailing,
+                          onTap:
+                              status == null || status.errorMessageKey != null
+                                  ? () {
+                                      onDownloadVersion(version);
+                                    }
+                                  : null,
+                        );
+                      }),
+                    ],
+                  ),
                 ),
               ),
             ],
