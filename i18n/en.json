@@ -555,7 +555,7 @@
     "restoring_subtitle": "We found a backup in your Google Drive and are bringing back your spiritual progress...",
     "protected_title": "Your data is protected!",
     "protected_subtitle": "Your spiritual progress is safely stored in your personal Google Drive.",
-    "session_expired": "Your Google Drive session expired. Sign in again to keep backing up your progress."
+    "session_expired": "Your Google Drive session expired.\n\nSign in again to keep backing up your progress."
   },
   "review": {
     "title": "Thank you for your consistency 🙏",
