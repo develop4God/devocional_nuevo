@@ -753,6 +753,10 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     try {
       final prefs = await SharedPreferences.getInstance();
       if (prefs.getBool(_readDatesBackupMigratedKey) == true) {
+        developer.log(
+          '🔧 [HOTFIX] Already migrated — skipping',
+          name: _hotfixLogName,
+        );
         return;
       }
 
