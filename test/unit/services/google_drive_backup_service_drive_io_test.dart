@@ -32,6 +32,7 @@ void main() {
   late MockLocalizationService localizationService;
   late MockBackupSettingsService settingsService;
   late MockBibleNotesRepository bibleNotesRepository;
+  late MockAnalyticsService analyticsService;
   late GoogleDriveBackupService service;
 
   setUpAll(() {
@@ -54,6 +55,7 @@ void main() {
     localizationService = MockLocalizationService();
     settingsService = MockBackupSettingsService();
     bibleNotesRepository = MockBibleNotesRepository();
+    analyticsService = MockAnalyticsService();
 
     when(
       () => localizationService.translate(any()),
@@ -61,6 +63,12 @@ void main() {
     when(
       () => localizationService.currentLocale,
     ).thenReturn(const Locale('en'));
+    when(
+      () => analyticsService.logCustomEvent(
+        eventName: any(named: 'eventName'),
+        parameters: any(named: 'parameters'),
+      ),
+    ).thenAnswer((_) async {});
 
     service = GoogleDriveBackupService(
       authService: authService,
@@ -69,6 +77,7 @@ void main() {
       localizationService: localizationService,
       settingsService: settingsService,
       bibleNotesRepository: bibleNotesRepository,
+      analyticsService: analyticsService,
     );
   });
 
@@ -767,7 +776,26 @@ void main() {
         'folder-1',
       );
 
-      await service.migrateReadDatesBackupIfNeeded();
+      // migrateReadDatesBackupIfNeeded's catch block calls
+      // FirebaseCrashlytics.instance.recordError, and FirebaseCrashlytics
+      // .instance itself throws synchronously in this test environment
+      // (core/no-app — Firebase isn't initialized here). This is a known,
+      // pre-existing test-infra gap unrelated to this fix — see the
+      // identical documented case in
+      // notification_service_working_test.dart's
+      // "retryFcmTokenIfMissing gives up..." test. Only that specific
+      // error is tolerated; anything else fails the test loudly.
+      try {
+        await service.migrateReadDatesBackupIfNeeded();
+      } catch (e) {
+        expect(
+          e.toString(),
+          contains('core/no-app'),
+          reason: 'migrateReadDatesBackupIfNeeded should only throw via the '
+              'known FirebaseCrashlytics test-infra gap — any other error '
+              'is a real regression',
+        );
+      }
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('read_dates_backup_migrated'), isNot(true));

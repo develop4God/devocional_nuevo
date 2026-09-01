@@ -47,6 +47,7 @@ void main() {
         localizationService: MockLocalizationService(),
         settingsService: MockBackupSettingsService(),
         bibleNotesRepository: fakeRepository,
+        analyticsService: MockAnalyticsService(),
       );
     });
 

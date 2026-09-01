@@ -265,6 +265,7 @@ Future<void> setupServiceLocator() async {
       localizationService: locator.get<ILocalizationService>(),
       settingsService: locator.get<IBackupSettingsService>(),
       bibleNotesRepository: locator.get<IBibleNotesRepository>(),
+      analyticsService: locator.get<IAnalyticsService>(),
     ),
   );
 

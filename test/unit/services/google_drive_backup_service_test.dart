@@ -35,6 +35,7 @@ void main() {
   late MockLocalizationService localizationService;
   late MockBackupSettingsService settingsService;
   late MockBibleNotesRepository bibleNotesRepository;
+  late MockAnalyticsService analyticsService;
   late GoogleDriveBackupService service;
 
   setUpAll(() {
@@ -50,6 +51,7 @@ void main() {
     localizationService = MockLocalizationService();
     settingsService = MockBackupSettingsService();
     bibleNotesRepository = MockBibleNotesRepository();
+    analyticsService = MockAnalyticsService();
 
     when(
       () => localizationService.translate(any()),
@@ -57,6 +59,12 @@ void main() {
     when(
       () => localizationService.currentLocale,
     ).thenReturn(const Locale('en'));
+    when(
+      () => analyticsService.logCustomEvent(
+        eventName: any(named: 'eventName'),
+        parameters: any(named: 'parameters'),
+      ),
+    ).thenAnswer((_) async {});
 
     service = GoogleDriveBackupService(
       authService: authService,
@@ -65,6 +73,7 @@ void main() {
       localizationService: localizationService,
       settingsService: settingsService,
       bibleNotesRepository: bibleNotesRepository,
+      analyticsService: analyticsService,
     );
   });
 
