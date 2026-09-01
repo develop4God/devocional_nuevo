@@ -554,7 +554,8 @@
     "restoring_title": "Restaurando seus dados",
     "restoring_subtitle": "Encontramos um backup no seu Google Drive e estamos recuperando seu progresso espiritual...",
     "protected_title": "Seus dados estão protegidos!",
-    "protected_subtitle": "Seu progresso espiritual está salvo com segurança no seu Google Drive pessoal."
+    "protected_subtitle": "Seu progresso espiritual está salvo com segurança no seu Google Drive pessoal.",
+    "session_expired": "Sua sessão do Google Drive expirou.\n\nEntre novamente para continuar salvando seu progresso."
   },
   "review": {
     "title": "Obrigado pela sua constância 🙏",

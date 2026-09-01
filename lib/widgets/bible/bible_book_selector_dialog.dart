@@ -1,4 +1,5 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/widgets/app_scrollbar.dart';
 import 'package:flutter/material.dart';
 
 class BibleBookSelectorDialog extends StatefulWidget {
@@ -164,11 +165,8 @@ class _BibleBookSelectorDialogState extends State<BibleBookSelectorDialog> {
             ),
             // Books list with scrollbar
             Expanded(
-              child: Scrollbar(
+              child: AppScrollbar(
                 controller: _listScrollController,
-                thumbVisibility: true,
-                thickness: 8,
-                radius: const Radius.circular(10),
                 child: ListView.builder(
                   controller: _listScrollController,
                   padding: const EdgeInsets.symmetric(horizontal: 16),

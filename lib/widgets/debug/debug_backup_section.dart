@@ -20,6 +20,13 @@ class DebugBackupSection extends StatelessWidget {
               ),
           child: const Text('Force auto-backup (bypass 24h)'),
         ),
+        const SizedBox(height: 8),
+        ElevatedButton(
+          onPressed: () => context.read<BackupBloc>().add(
+                const DebugTriggerSessionExpired(),
+              ),
+          child: const Text('Trigger session-expired snackbar'),
+        ),
       ],
     );
   }

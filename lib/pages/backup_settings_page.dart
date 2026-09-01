@@ -183,6 +183,11 @@ class _BackupSettingsViewState extends State<_BackupSettingsView> {
               setState(() => _successDialogShown = true);
               _showShieldSuccessDialog(context, state);
             }
+            // BackupSessionExpired is handled app-wide by AppNavigationShell's
+            // listener, which is mounted for the whole app lifetime and can
+            // reach the user regardless of which tab is active — this page's
+            // own BlocListener would otherwise show a second, duplicate
+            // snackbar on top of it whenever the user is on this page.
           },
           child: BlocBuilder<BackupBloc, BackupState>(
             builder: (context, state) {
