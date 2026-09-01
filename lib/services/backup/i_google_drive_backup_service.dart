@@ -74,12 +74,6 @@ abstract class IGoogleDriveBackupService {
   /// Check whether an automatic backup should be created now.
   Future<bool> shouldCreateAutoBackup();
 
-  /// One-time migration: re-uploads the Drive backup with `read_dates`
-  /// merged in for devices whose remote file predates the fix that added
-  /// `read_dates` to the backup payload. No-op if already migrated, or if
-  /// there's no remote backup yet.
-  Future<void> migrateReadDatesBackupIfNeeded();
-
   /// Check for existing backups on Google Drive when user signs in.
   Future<Map<String, dynamic>?> checkForExistingBackup();
 
