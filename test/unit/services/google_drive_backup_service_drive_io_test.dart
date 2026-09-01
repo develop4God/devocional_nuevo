@@ -656,6 +656,78 @@ void main() {
     });
 
     test(
+        'finds the remote backup via Drive search when no folder id is '
+        'cached yet (e.g. a device that only ever restored, never backed '
+        'up locally)', () async {
+      // Regression for a real production bug: _getBackupFolderId used to
+      // only read the cached google_drive_backup_folder_id pref, which is
+      // populated exclusively by createBackup()'s folder-creation path. A
+      // device that signed in and restored via restoreExistingBackup (a
+      // separate, uncached lookup) never populates that cache, so this
+      // migration always reported "no remote backup" and permanently
+      // marked itself done without ever migrating anything.
+      when(() => statsService.getAllStats()).thenAnswer(
+        (_) async => {
+          'stats': <String, dynamic>{},
+          'read_dates': ['2026-08-01'],
+        },
+      );
+
+      final remotePayload = {
+        'timestamp': '2026-01-01T00:00:00.000Z',
+        'version': '1.0',
+      };
+
+      final stub = DriveApiStub()
+        // Single canned files.list response reused for both the
+        // folder-search and file-search queries (DriveApiStub doesn't
+        // differentiate by query string) — its one entry is treated as the
+        // folder by the first search, then as the backup file by the
+        // second.
+        ..onList(
+          const DriveApiResponse.json({
+            'files': [
+              {'id': 'found-folder-or-file', 'name': 'backup.json'},
+            ],
+          }),
+        )
+        ..onGetMedia(
+          DriveApiResponse.media(utf8.encode(json.encode(remotePayload))),
+        )
+        ..onUpdate(const DriveApiResponse.json({'id': 'found-folder-or-file'}));
+      when(() => authService.getDriveApi())
+          .thenAnswer((_) async => stub.build());
+      when(() => settingsService.isCompressionEnabled())
+          .thenAnswer((_) async => false);
+
+      // No cached folder id set — this is the exact scenario that broke.
+      final prefsCheck = await SharedPreferences.getInstance();
+      expect(prefsCheck.getString('google_drive_backup_folder_id'), isNull);
+
+      await service.migrateReadDatesBackupIfNeeded();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('read_dates_backup_migrated'), isTrue);
+      // The folder id search result is cached for next time.
+      expect(
+        prefs.getString('google_drive_backup_folder_id'),
+        'found-folder-or-file',
+      );
+
+      const marker = 'Content-Transfer-Encoding: base64\r\n\r\n';
+      final uploaded = stub.requests.firstWhere((r) => r.body.contains(marker));
+      final base64Start = uploaded.body.indexOf(marker) + marker.length;
+      final base64End = uploaded.body.indexOf('\r\n--', base64Start);
+      final merged = json.decode(
+        utf8.decode(
+          base64.decode(uploaded.body.substring(base64Start, base64End)),
+        ),
+      ) as Map<String, dynamic>;
+
+      expect(merged['read_dates'], ['2026-08-01']);
+    });
+
+    test(
         'merges local read_dates into the stale remote backup while '
         'preserving every other remote field', () async {
       // Reproduces the bug fixed in 210a88d6: this remote payload predates

@@ -310,7 +310,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       }
 
       // Get backup folder
-      final folderId = await _getBackupFolderId();
+      final folderId = await _getBackupFolderId(driveApi);
       if (folderId == null) {
         debugPrint('[BACKUP] No backup folder found on Drive yet');
         return null;
@@ -1179,7 +1179,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     try {
       final folderName = _localizationService.translate('app.title');
       // Check if we have cached folder ID
-      final cachedFolderId = await _getBackupFolderId();
+      final cachedFolderId = await _getBackupFolderId(driveApi);
       if (cachedFolderId != null) {
         // Verify folder still exists
         try {
@@ -1239,10 +1239,41 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     }
   }
 
-  /// Get backup folder ID from preferences
-  Future<String?> _getBackupFolderId() async {
+  /// Get backup folder ID: cached value if present, otherwise falls back to
+  /// a Drive search-by-name (read-only — does not create the folder).
+  /// Caches the result when found via search, so future calls hit the
+  /// cache. Returns null if no cached ID and no matching folder exists.
+  ///
+  /// The cache is only populated by [_getOrCreateBackupFolder] (called
+  /// from [createBackup]) or by this search fallback — a device that only
+  /// ever restored via [restoreExistingBackup] never goes through either,
+  /// so without this fallback every subsequent [_downloadCurrentDriveBackup]
+  /// call would incorrectly report "no remote backup" despite one existing.
+  Future<String?> _getBackupFolderId(drive.DriveApi driveApi) async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_backupFolderIdKey);
+    final cachedFolderId = prefs.getString(_backupFolderIdKey);
+    if (cachedFolderId != null) {
+      return cachedFolderId;
+    }
+
+    try {
+      final folderName = _localizationService.translate('app.title');
+      final query =
+          "name='$folderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+      final fileList = await driveApi.files.list(q: query);
+
+      if (fileList.files != null && fileList.files!.isNotEmpty) {
+        final folderId = fileList.files!.first.id!;
+        await _setBackupFolderId(folderId);
+        debugPrint(
+            '[BACKUP] Found existing backup folder via search: $folderId');
+        return folderId;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('[BACKUP] Error searching for backup folder: $e');
+      return null;
+    }
   }
 
   /// Set backup folder ID in preferences
