@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/pages/discovery_bible_studies/discovery_list_page.dart';
@@ -188,7 +189,14 @@ class AppNavigationShellState extends State<AppNavigationShell> {
           AppSnackBar.show(
             context,
             'backup.session_expired'.tr(),
-            type: AppSnackBarType.error,
+            type: AppSnackBarType.warning,
+            duration: const Duration(seconds: 10),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const BackupSettingsPage()),
+              );
+            },
           );
         },
         child: PopScope(

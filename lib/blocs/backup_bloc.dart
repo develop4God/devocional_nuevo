@@ -512,11 +512,18 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
   /// Debug-only: directly emit BackupSessionExpired to validate the
   /// session-expiry snackbar without needing a real silent auth failure.
+  ///
+  /// BackupSessionExpired has no props, so repeated taps would emit an
+  /// Equatable-equal state and Bloc would silently skip the second emit —
+  /// the debug button would only ever fire once per app session. Emitting
+  /// BackupInitial first forces a real state change each time so the
+  /// listener re-fires on every tap.
   Future<void> _onDebugTriggerSessionExpired(
     DebugTriggerSessionExpired event,
     Emitter<BackupState> emit,
   ) async {
     debugPrint('🐛 [BLOC] Debug trigger: emitting BackupSessionExpired');
+    emit(const BackupInitial());
     emit(const BackupSessionExpired());
   }
 
