@@ -1,10 +1,7 @@
 // lib/services/google_drive_backup_service.dart
-import 'dart:async' show unawaited;
 import 'dart:convert';
-import 'dart:developer' as developer;
 import 'dart:typed_data';
 
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -18,7 +15,6 @@ import '../../models/bible_note.dart';
 import '../../models/spiritual_stats_model.dart';
 import '../../providers/devocional_provider.dart';
 import '../../repositories/i_bible_notes_repository.dart';
-import '../i_analytics_service.dart';
 import '../i_spiritual_stats_service.dart';
 import 'compression_service.dart';
 import '../i_connectivity_service.dart';
@@ -34,8 +30,6 @@ import 'package:devocional_nuevo/utils/constants/backup_keys_constants.dart';
 class GoogleDriveBackupService implements IGoogleDriveBackupService {
   static const String _backupOptionsKey = 'google_drive_backup_options';
   static const String _backupFolderIdKey = 'google_drive_backup_folder_id';
-  static const String _readDatesBackupMigratedKey =
-      'read_dates_backup_migrated';
 
   // file name is derived from localization at runtime
 
@@ -48,7 +42,6 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
   final ILocalizationService _localizationService;
   final IBackupSettingsService _settingsService;
   final IBibleNotesRepository _bibleNotesRepository;
-  final IAnalyticsService _analyticsService;
 
   GoogleDriveBackupService({
     required IGoogleDriveAuthService authService,
@@ -57,14 +50,12 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     required ILocalizationService localizationService,
     required IBackupSettingsService settingsService,
     required IBibleNotesRepository bibleNotesRepository,
-    required IAnalyticsService analyticsService,
   })  : _authService = authService,
         _connectivityService = connectivityService,
         _statsService = statsService,
         _localizationService = localizationService,
         _settingsService = settingsService,
-        _bibleNotesRepository = bibleNotesRepository,
-        _analyticsService = analyticsService;
+        _bibleNotesRepository = bibleNotesRepository;
 
   /// Check if Google Drive backup is enabled
   @override
@@ -310,7 +301,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       }
 
       // Get backup folder
-      final folderId = await _getBackupFolderId(driveApi);
+      final folderId = await _getBackupFolderId();
       if (folderId == null) {
         debugPrint('[BACKUP] No backup folder found on Drive yet');
         return null;
@@ -652,8 +643,62 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
         );
       }
 
+      // Convert to bytes
+      Uint8List fileBytes;
+      final compressionEnabled = await isCompressionEnabled();
+      if (compressionEnabled) {
+        fileBytes = CompressionService.compressJson(finalPayload);
+        debugPrint(
+          'Backup compressed: ${json.encode(finalPayload).length} -> ${fileBytes.length} bytes',
+        );
+      } else {
+        fileBytes = Uint8List.fromList(utf8.encode(json.encode(finalPayload)));
+        debugPrint('Backup uncompressed: ${fileBytes.length} bytes');
+      }
+
+      // Get or create backup folder
+      final folderId = await _getOrCreateBackupFolder(driveApi);
+
+      // Check if backup file already exists
+      final existingFile = await _findBackupFile(driveApi, folderId);
+
       // Step 4: Upload merged result to Drive
-      await _uploadPayload(driveApi, finalPayload);
+      if (existingFile != null) {
+        // Update existing file - NO parents field
+        debugPrint('Updating existing backup file: ${existingFile.id}');
+        final updateFile = drive.File()
+          ..name = _backupFileName
+          ..description =
+              'Devocional backup updated on ${DateTime.now().toIso8601String()}'
+          ..mimeType = 'application/json';
+
+        final media = drive.Media(
+          Stream.fromIterable([fileBytes]),
+          fileBytes.length,
+        );
+
+        await driveApi.files.update(
+          updateFile,
+          existingFile.id!,
+          uploadMedia: media,
+        );
+      } else {
+        // Create new file - SÍ parents field
+        debugPrint('Creating new backup file');
+        final createFile = drive.File()
+          ..name = _backupFileName
+          ..parents = [folderId] // Solo en creación
+          ..description =
+              'Devocional backup created on ${DateTime.now().toIso8601String()}'
+          ..mimeType = 'application/json';
+
+        final media = drive.Media(
+          Stream.fromIterable([fileBytes]),
+          fileBytes.length,
+        );
+
+        await driveApi.files.create(createFile, uploadMedia: media);
+      }
 
       await _settingsService.setLastBackupTime(DateTime.now());
       debugPrint(
@@ -671,196 +716,18 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     }
   }
 
-  /// Convert [payload] to bytes (compressed or not, per current setting)
-  /// and upload it to the backup file on Drive, creating the file/folder
-  /// if they don't exist yet. Shared by [createBackup] and
-  /// [migrateReadDatesBackupIfNeeded].
-  Future<void> _uploadPayload(
-    drive.DriveApi driveApi,
-    Map<String, dynamic> payload,
-  ) async {
-    Uint8List fileBytes;
-    final compressionEnabled = await isCompressionEnabled();
-    if (compressionEnabled) {
-      fileBytes = CompressionService.compressJson(payload);
-      debugPrint(
-        'Backup compressed: ${json.encode(payload).length} -> ${fileBytes.length} bytes',
-      );
-    } else {
-      fileBytes = Uint8List.fromList(utf8.encode(json.encode(payload)));
-      debugPrint('Backup uncompressed: ${fileBytes.length} bytes');
-    }
-
-    // Get or create backup folder
-    final folderId = await _getOrCreateBackupFolder(driveApi);
-
-    // Check if backup file already exists
-    final existingFile = await _findBackupFile(driveApi, folderId);
-
-    if (existingFile != null) {
-      // Update existing file - NO parents field
-      debugPrint('Updating existing backup file: ${existingFile.id}');
-      final updateFile = drive.File()
-        ..name = _backupFileName
-        ..description =
-            'Devocional backup updated on ${DateTime.now().toIso8601String()}'
-        ..mimeType = 'application/json';
-
-      final media = drive.Media(
-        Stream.fromIterable([fileBytes]),
-        fileBytes.length,
-      );
-
-      await driveApi.files.update(
-        updateFile,
-        existingFile.id!,
-        uploadMedia: media,
-      );
-    } else {
-      // Create new file - SÍ parents field
-      debugPrint('Creating new backup file');
-      final createFile = drive.File()
-        ..name = _backupFileName
-        ..parents = [folderId] // Solo en creación
-        ..description =
-            'Devocional backup created on ${DateTime.now().toIso8601String()}'
-        ..mimeType = 'application/json';
-
-      final media = drive.Media(
-        Stream.fromIterable([fileBytes]),
-        fileBytes.length,
-      );
-
-      await driveApi.files.create(createFile, uploadMedia: media);
-    }
-  }
-
-  /// One-time migration: re-uploads the Drive backup with `read_dates`
-  /// merged in for devices whose remote file predates the fix that added
-  /// `read_dates` to the backup payload (see commit 210a88d6). Builds a
-  /// minimal local payload — not a full [_prepareBackupData] output — and
-  /// merges it into whatever is already on Drive, so only `read_dates` is
-  /// corrected while every other remote field is preserved.
-  ///
-  /// No-ops (without setting the flag) if there's no remote backup yet —
-  /// nothing to migrate. Sets [_readDatesBackupMigratedKey] only on a
-  /// successful upload; leaves it unset on failure so the next startup
-  /// retries.
-  static const String _hotfixLogName = 'ReadDatesHotfix';
-
-  @override
-  Future<void> migrateReadDatesBackupIfNeeded() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      if (prefs.getBool(_readDatesBackupMigratedKey) == true) {
-        developer.log(
-          '🔧 [HOTFIX] Already migrated — skipping',
-          name: _hotfixLogName,
-        );
-        return;
-      }
-
-      developer.log(
-        '🔧 [HOTFIX] Running one-time read_dates migration...',
-        name: _hotfixLogName,
-      );
-
-      final remotePayload = await _downloadCurrentDriveBackup();
-      if (remotePayload == null) {
-        developer.log(
-          '🔧 [HOTFIX] No remote backup found — nothing to migrate, marking done',
-          name: _hotfixLogName,
-        );
-        await prefs.setBool(_readDatesBackupMigratedKey, true);
-        unawaited(
-          _analyticsService.logCustomEvent(
-            eventName: 'read_dates_hotfix_skipped',
-            parameters: {'reason': 'no_remote_backup'},
-          ),
-        );
-        return;
-      }
-
-      final stats = await _statsService.getAllStats();
-      final readDates = (stats['read_dates'] as List?) ?? const [];
-      final minimalLocal = <String, dynamic>{
-        ...await _buildMetadataFields(),
-        'read_dates': readDates,
-        BackupKeys.preferredBibleVersion:
-            remotePayload[BackupKeys.preferredBibleVersion] ?? '',
-        BackupKeys.markedBibleVerses:
-            remotePayload[BackupKeys.markedBibleVerses] ?? [],
-      };
-
-      final finalPayload = _mergePayloads(minimalLocal, remotePayload);
-
-      // _downloadCurrentDriveBackup() above already got a non-null Drive
-      // API internally to fetch remotePayload — a null here means auth
-      // dropped in the narrow window between that call and this one (e.g.
-      // token expiry), not a duplicate check.
-      final driveApi = await _authService.getDriveApi();
-      if (driveApi == null) {
-        developer.log(
-          '🔧 [HOTFIX] Could not get Drive API — migration deferred',
-          name: _hotfixLogName,
-        );
-        return;
-      }
-
-      await _uploadPayload(driveApi, finalPayload);
-      await prefs.setBool(_readDatesBackupMigratedKey, true);
-
-      final mergedReadDates = finalPayload['read_dates'] as List?;
-      developer.log(
-        '✅ [HOTFIX] read_dates migration complete — '
-        '${mergedReadDates?.length ?? 0} merged dates',
-        name: _hotfixLogName,
-      );
-      unawaited(
-        _analyticsService.logCustomEvent(
-          eventName: 'read_dates_hotfix_applied',
-          parameters: {
-            'local_read_dates': readDates.length,
-            'merged_read_dates': mergedReadDates?.length ?? 0,
-          },
-        ),
-      );
-    } catch (e, stack) {
-      developer.log(
-        '❌ [HOTFIX] read_dates migration failed, will retry: $e',
-        name: _hotfixLogName,
-        error: e,
-      );
-      FirebaseCrashlytics.instance.recordError(
-        e,
-        stack,
-        fatal: false,
-        reason: 'read_dates hotfix failed',
-      );
-    }
-  }
-
-  /// Metadata fields common to every backup payload (full or migration).
-  /// Extracted so this field list is defined once instead of hand-listed
-  /// at each call site.
-  Future<Map<String, dynamic>> _buildMetadataFields() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    return {
-      'timestamp': DateTime.now().toIso8601String(),
-      'version': '1.0',
-      'app_version': packageInfo.version, // Now gets real app version
-      'compression_enabled': await isCompressionEnabled(),
-      'language': _localizationService.currentLocale.languageCode,
-    };
-  }
-
   /// Prepare backup data
   Future<Map<String, dynamic>> _prepareBackupData(
     DevocionalProvider? provider,
   ) async {
     final options = await getBackupOptions();
+    final packageInfo = await PackageInfo.fromPlatform();
     final backupData = <String, dynamic>{
-      ...await _buildMetadataFields(),
+      'timestamp': DateTime.now().toIso8601String(),
+      'version': '1.0',
+      'app_version': packageInfo.version, // Now gets real app version
+      'compression_enabled': await isCompressionEnabled(),
+      'language': _localizationService.currentLocale.languageCode,
     };
 
     // Add logs for each section included in the backup
@@ -1183,7 +1050,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     try {
       final folderName = _localizationService.translate('app.title');
       // Check if we have cached folder ID
-      final cachedFolderId = await _getBackupFolderId(driveApi);
+      final cachedFolderId = await _getBackupFolderId();
       if (cachedFolderId != null) {
         // Verify folder still exists
         try {
@@ -1243,41 +1110,10 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     }
   }
 
-  /// Get backup folder ID: cached value if present, otherwise falls back to
-  /// a Drive search-by-name (read-only — does not create the folder).
-  /// Caches the result when found via search, so future calls hit the
-  /// cache. Returns null if no cached ID and no matching folder exists.
-  ///
-  /// The cache is only populated by [_getOrCreateBackupFolder] (called
-  /// from [createBackup]) or by this search fallback — a device that only
-  /// ever restored via [restoreExistingBackup] never goes through either,
-  /// so without this fallback every subsequent [_downloadCurrentDriveBackup]
-  /// call would incorrectly report "no remote backup" despite one existing.
-  Future<String?> _getBackupFolderId(drive.DriveApi driveApi) async {
+  /// Get backup folder ID from preferences
+  Future<String?> _getBackupFolderId() async {
     final prefs = await SharedPreferences.getInstance();
-    final cachedFolderId = prefs.getString(_backupFolderIdKey);
-    if (cachedFolderId != null) {
-      return cachedFolderId;
-    }
-
-    try {
-      final folderName = _localizationService.translate('app.title');
-      final query =
-          "name='$folderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
-      final fileList = await driveApi.files.list(q: query);
-
-      if (fileList.files != null && fileList.files!.isNotEmpty) {
-        final folderId = fileList.files!.first.id!;
-        await _setBackupFolderId(folderId);
-        debugPrint(
-            '[BACKUP] Found existing backup folder via search: $folderId');
-        return folderId;
-      }
-      return null;
-    } catch (e) {
-      debugPrint('[BACKUP] Error searching for backup folder: $e');
-      return null;
-    }
+    return prefs.getString(_backupFolderIdKey);
   }
 
   /// Set backup folder ID in preferences

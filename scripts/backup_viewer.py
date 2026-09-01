@@ -128,7 +128,7 @@ LIST_SECTIONS = [
     ('testimonies',           '💬', 'Testimonies'),
     ('completed_encounters',  '✨', 'Completed encounters'),
     ('marked_bible_verses',   '📖', 'Marked bible verses'),
-    ('read_dates',            '📅', 'Read dates (calendar)'),
+    ('read_dates',            '📅', 'Read dates (calendar — not restored)'),
 ]
 
 OBJ_SECTIONS = [

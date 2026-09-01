@@ -7,7 +7,6 @@
 import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
 import 'package:devocional_nuevo/services/backup/i_backup_settings_service.dart';
 import 'package:devocional_nuevo/services/backup/i_google_drive_auth_service.dart';
-import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/i_connectivity_service.dart';
 import 'package:devocional_nuevo/services/i_localization_service.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
@@ -15,8 +14,6 @@ import 'package:mocktail/mocktail.dart';
 
 class MockGoogleDriveAuthService extends Mock
     implements IGoogleDriveAuthService {}
-
-class MockAnalyticsService extends Mock implements IAnalyticsService {}
 
 class MockConnectivityService extends Mock implements IConnectivityService {}
 
