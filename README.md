@@ -2,8 +2,8 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.9-blue.svg)](https://flutter.dev/)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Tests](https://img.shields.io/badge/Tests-99+-brightgreen.svg)](#-testing--pruebas)
-[![Coverage](https://img.shields.io/badge/Coverage-74.1%25-brightgreen.svg)](#-testing--pruebas)
+[![Tests](https://img.shields.io/badge/Tests-100+-brightgreen.svg)](#-testing--pruebas)
+[![Coverage](https://img.shields.io/badge/Coverage-74.2%25-brightgreen.svg)](#-testing--pruebas)
 [![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](#)
 
 ---
@@ -64,7 +64,7 @@ favorites, spiritual tracking, and intelligent review system.
 |---------------------|------------------------------|
 | Source Files (lib/) | 289 Dart files               |
 | Test Files          | 308 test files               |
-| Total Tests         | 99 tests (100% passing ✅) |
+| Total Tests         | 100 tests (100% passing ✅) |
 | Test Coverage       | 51.9% (10,725/20,666 lines)   |
 | Supported Languages | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Static Analysis     | ✅ All checks passing         |
@@ -187,8 +187,8 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 |------------------------|------------------------------------|
 | Archivos Fuente (lib/) | 289 archivos Dart                  |
 | Archivos de Test       | 308 archivos                       |
-| Total de Tests         | 99 tests (100% aprobados ✅)     |
-| Cobertura de Tests     | 74.1% (16,596/22,391 líneas)        |
+| Total de Tests         | 100 tests (100% aprobados ✅)     |
+| Cobertura de Tests     | 74.2% (16,614/22,391 líneas)        |
 | Idiomas Soportados     | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Análisis Estático      | ✅ Todas las verificaciones pasando |
 
@@ -314,6 +314,6 @@ Website / Sitio web: https://www.develop4God.com
 
 ---
 
-App Version: 1.16.3+124
+App Version: 1.16.4+125
 
 © 2026 develop4God
