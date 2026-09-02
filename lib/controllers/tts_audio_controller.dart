@@ -535,7 +535,7 @@ class TtsAudioController {
                   '⚠️ [TTS Controller] speak() TIMED OUT after ${speakTimeout.inSeconds}s — '
                   'chunk ${i + 1}, language: $_languageCode.',
                 );
-                return null;
+                return 0; // Return int to match speak() return type on some platforms
               },
             );
           } catch (e) {
