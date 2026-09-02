@@ -100,6 +100,9 @@ void main() {
       if (key == 'testimony.my_testimony') return 'MyTestimony';
       if (key == 'thanksgiving.thanksgiving') return 'ChoiceThanks';
       if (key == 'testimony.testimony') return 'ChoiceTestimony';
+      if (key == 'prayer.retry') return 'RetryBtn';
+      if (key == 'prayer.mark_as_active') return 'MenuMarkActive';
+      if (key == 'prayer.answered') return 'AnsweredOn';
 
       return key;
     });
@@ -299,5 +302,106 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => testimonyBloc.add(any(that: isA<AddTestimony>()))).called(1);
+  });
+
+  testWidgets('PrayersPage workflow: Mark an answered prayer as active',
+      (tester) async {
+    tester.view.physicalSize = const Size(1200, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final prayer = Prayer(
+      id: '1',
+      text: 'Test Prayer',
+      createdDate: DateTime.now(),
+      status: PrayerStatus.answered,
+      answeredDate: DateTime.now(),
+    );
+
+    when(() => prayerBloc.state).thenReturn(PrayerLoaded(prayers: [prayer]));
+
+    await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pump();
+
+    await tester.tap(find.text('TabAnswered'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+
+    when(() => prayerBloc.add(any(that: isA<MarkPrayerAsActive>())))
+        .thenAnswer((_) async {});
+
+    await tester.tap(find.text('MenuMarkActive'));
+    await tester.pumpAndSettle();
+
+    verify(() => prayerBloc.add(any(that: isA<MarkPrayerAsActive>())))
+        .called(1);
+  });
+
+  testWidgets('PrayersPage workflow: Delete a prayer via confirmation dialog',
+      (tester) async {
+    tester.view.physicalSize = const Size(1200, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final prayer = Prayer(
+      id: '1',
+      text: 'Test Prayer',
+      createdDate: DateTime.now(),
+      status: PrayerStatus.active,
+    );
+
+    when(() => prayerBloc.state).thenReturn(PrayerLoaded(prayers: [prayer]));
+
+    await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('MenuDelete'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('DeleteDialogTitle'), findsOneWidget);
+
+    when(() => prayerBloc.add(any(that: isA<DeletePrayer>())))
+        .thenAnswer((_) async {});
+
+    await tester.tap(find.text('MenuDelete').last);
+    await tester.pumpAndSettle();
+
+    verify(() => prayerBloc.add(any(that: isA<DeletePrayer>()))).called(1);
+  });
+
+  testWidgets('PrayersPage shows error state and retries on tap',
+      (tester) async {
+    tester.view.physicalSize = const Size(1200, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    when(() => prayerBloc.state).thenReturn(PrayerError('Load failed'));
+
+    await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pump();
+
+    expect(find.text('Load failed'), findsOneWidget);
+
+    when(() => prayerBloc.add(any(that: isA<RefreshPrayers>())))
+        .thenAnswer((_) async {});
+
+    await tester.tap(find.text('RetryBtn'));
+    await tester.pumpAndSettle();
+
+    verify(() => prayerBloc.add(any(that: isA<RefreshPrayers>()))).called(1);
   });
 }
