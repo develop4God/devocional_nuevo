@@ -649,10 +649,13 @@ class _PrayersPageState extends State<PrayersPage>
                                   isActive ? Colors.green : colorScheme.primary,
                             ),
                             const SizedBox(width: 12), // Más espacio
-                            Text(
-                              isActive
-                                  ? 'prayer.mark_as_answered'.tr()
-                                  : 'prayer.mark_as_active'.tr(),
+                            Flexible(
+                              child: Text(
+                                isActive
+                                    ? 'prayer.mark_as_answered'.tr()
+                                    : 'prayer.mark_as_active'.tr(),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),
@@ -667,7 +670,12 @@ class _PrayersPageState extends State<PrayersPage>
                             children: [
                               const Icon(Icons.edit, size: 20),
                               const SizedBox(width: 12),
-                              Text('prayer.edit_prayer'.tr()),
+                              Flexible(
+                                child: Text(
+                                  'prayer.edit_prayer'.tr(),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -681,7 +689,12 @@ class _PrayersPageState extends State<PrayersPage>
                             children: [
                               Icon(Icons.edit, size: 20, color: Colors.green),
                               const SizedBox(width: 12),
-                              Text('prayer.edit_answered_comment'.tr()),
+                              Flexible(
+                                child: Text(
+                                  'prayer.edit_answered_comment'.tr(),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -695,9 +708,12 @@ class _PrayersPageState extends State<PrayersPage>
                               color: Colors.red,
                             ),
                             const SizedBox(width: 12),
-                            Text(
-                              'app.delete'.tr(),
-                              style: const TextStyle(color: Colors.red),
+                            Flexible(
+                              child: Text(
+                                'app.delete'.tr(),
+                                style: const TextStyle(color: Colors.red),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),
@@ -726,12 +742,16 @@ class _PrayersPageState extends State<PrayersPage>
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  'prayer.created'.tr({
-                    'date': DateFormat('dd/MM/yyyy').format(prayer.createdDate),
-                  }),
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                Flexible(
+                  child: Text(
+                    'prayer.created'.tr({
+                      'date':
+                          DateFormat('dd/MM/yyyy').format(prayer.createdDate),
+                    }),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -1020,9 +1040,12 @@ class _PrayersPageState extends State<PrayersPage>
                               color: Colors.red,
                             ),
                             const SizedBox(width: 12),
-                            Text(
-                              'app.delete'.tr(),
-                              style: const TextStyle(color: Colors.red),
+                            Flexible(
+                              child: Text(
+                                'app.delete'.tr(),
+                                style: const TextStyle(color: Colors.red),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),
@@ -1228,9 +1251,12 @@ class _PrayersPageState extends State<PrayersPage>
                               color: Colors.red,
                             ),
                             const SizedBox(width: 12),
-                            Text(
-                              'app.delete'.tr(),
-                              style: const TextStyle(color: Colors.red),
+                            Flexible(
+                              child: Text(
+                                'app.delete'.tr(),
+                                style: const TextStyle(color: Colors.red),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),
