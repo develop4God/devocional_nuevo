@@ -100,13 +100,12 @@ void main() {
         .thenAnswer((i) => i.positionalArguments[0]);
 
     // TTS mocks
-    when(() => mockTts.setStartHandler(any())).thenAnswer((_) async => null);
-    when(() => mockTts.setCompletionHandler(any()))
-        .thenAnswer((_) async => null);
-    when(() => mockTts.setErrorHandler(any())).thenAnswer((_) async => null);
-    when(() => mockTts.setProgressHandler(any())).thenAnswer((_) async => null);
-    when(() => mockTts.setPauseHandler(any())).thenAnswer((_) async => null);
-    when(() => mockTts.setCancelHandler(any())).thenAnswer((_) async => null);
+    when(() => mockTts.setStartHandler(any())).thenAnswer((_) async {});
+    when(() => mockTts.setCompletionHandler(any())).thenAnswer((_) async {});
+    when(() => mockTts.setErrorHandler(any())).thenAnswer((_) async {});
+    when(() => mockTts.setProgressHandler(any())).thenAnswer((_) async {});
+    when(() => mockTts.setPauseHandler(any())).thenAnswer((_) async {});
+    when(() => mockTts.setCancelHandler(any())).thenAnswer((_) async {});
     when(() => mockTts.setLanguage(any())).thenAnswer((_) async => 1);
     when(() => mockTts.setSpeechRate(any())).thenAnswer((_) async => 1);
     when(() => mockTts.setVolume(any())).thenAnswer((_) async => 1);
@@ -124,7 +123,7 @@ void main() {
     when(() => mockVoiceService.loadSavedVoice(any()))
         .thenAnswer((_) async => 'Test Voice');
     when(() => mockVoiceService.applyVoiceToInstance(any(), any()))
-        .thenAnswer((_) async => null);
+        .thenAnswer((_) async {});
 
     final locator = ServiceLocator();
     locator.unregister<LocalizationService>();
