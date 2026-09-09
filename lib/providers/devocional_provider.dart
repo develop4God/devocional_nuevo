@@ -256,7 +256,7 @@ class DevocionalProvider with ChangeNotifier {
       );
       await _fetchAllDevocionalesForLanguage();
     } catch (e) {
-      _errorMessage = 'Error al inicializar los datos: $e';
+      _errorMessage = 'devotionals.generic_error';
       debugPrint('Error en initializeData: $e');
       notifyListeners();
     } finally {
