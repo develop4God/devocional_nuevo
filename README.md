@@ -116,9 +116,9 @@ test/
 
 ### 🚀 Installation
 
-1. Clone this repository
-2. Run `flutter pub get` to install dependencies
-3. Run `flutter run` to start the application
+1. Clone this repository.
+2. Run `flutter pub get` to install dependencies.
+3. Run `flutter run` to start the application.
 
 ### 📚 Documentation
 
@@ -213,9 +213,9 @@ See the Testing section above (folder structure is language-agnostic).
 
 ### 🚀 Instalación
 
-1. Clona este repositorio
-2. Ejecuta `flutter pub get` para instalar las dependencias
-3. Ejecuta `flutter run` para iniciar la aplicación
+1. Clona este repositorio.
+2. Ejecuta `flutter pub get` para instalar las dependencias.
+3. Ejecuta `flutter run` para iniciar la aplicación.
 
 ### 📚 Documentación
 
