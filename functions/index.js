@@ -235,25 +235,40 @@ const NOTIFICATION_TRANSLATIONS = {
   ],
 };
 
-const NOTIFICATION_IMAGES = [
-  "blue_mountains.avif",
-  "circle_grass_green.avif",
-  "desert_person.avif",
-  "desert_view_rocks.avif",
-  "grass_tree.avif",
-  "gray_dock_lake.avif",
-  "lake.avif",
-  "lake_colors.avif",
-  "lake_dock.avif",
-  "long_road.avif",
-  "mountain_pink.avif",
-  "river_rocks_trees.avif",
-  "road_green_montains.avif",
-  "rocks_beach.avif",
-].map((name) => `https://raw.githubusercontent.com/develop4God/Devocionales-assets/refs/heads/main/images/habitus/${name}`);
+const DEVOTIONAL_IMAGES_BASE_URL = "https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/devotionals";
+const DEVOTIONAL_IMAGES_INDEX_URL = `${DEVOTIONAL_IMAGES_BASE_URL}/index.json`;
 
-function getRandomNotificationImage() {
-  return NOTIFICATION_IMAGES[Math.floor(Math.random() * NOTIFICATION_IMAGES.length)];
+// Used only if the index fetch fails, so notifications still ship with an image.
+const FALLBACK_NOTIFICATION_IMAGES = [
+  "blue_mountains.webp",
+  "lake_colors.webp",
+  "mountain_pink.webp",
+].map((name) => `${DEVOTIONAL_IMAGES_BASE_URL}/${name}`);
+
+/**
+ * Fetches the devotional hero image index (same index the app uses) and
+ * returns the list of full image URLs. Falls back to a small static list
+ * on any error so notification sending never blocks on this.
+ */
+async function fetchNotificationImages() {
+  try {
+    const response = await fetch(DEVOTIONAL_IMAGES_INDEX_URL);
+    if (!response.ok) {
+      throw new Error(`Unexpected status ${response.status}`);
+    }
+    const {files} = await response.json();
+    if (!Array.isArray(files) || files.length === 0) {
+      throw new Error("Index has no files");
+    }
+    return files.map((name) => `${DEVOTIONAL_IMAGES_BASE_URL}/${name}`);
+  } catch (e) {
+    logger.warn("Notifications: Failed to fetch image index, using fallback images.", {structuredData: true, error: e.message});
+    return FALLBACK_NOTIFICATION_IMAGES;
+  }
+}
+
+function getRandomNotificationImage(images) {
+  return images[Math.floor(Math.random() * images.length)];
 }
 
 /**
@@ -311,6 +326,8 @@ exports.sendDailyDevotionalNotification = onSchedule({
 
   const nowUtc = DateTime.now().setZone("UTC");
   logger.info(`Notifications: ${usersSnapshot.size} users. UTC time: ${nowUtc.toFormat("HH:mm")}.`, {structuredData: true});
+
+  const notificationImages = await fetchNotificationImages();
 
   for (const userDoc of usersSnapshot.docs) {
     const userId = userDoc.id;
@@ -386,7 +403,7 @@ exports.sendDailyDevotionalNotification = onSchedule({
 
     const userLanguage = selectLanguageForUser(preferredLanguage);
     const userTranslation = getRandomTranslation(userLanguage);
-    const notificationImage = getRandomNotificationImage();
+    const notificationImage = getRandomNotificationImage(notificationImages);
 
     const message = {
       notification: {
