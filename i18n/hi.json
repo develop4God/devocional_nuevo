@@ -300,7 +300,16 @@
     "testimony_add_error": "गवाही जोड़ने में त्रुटि",
     "testimony_edit_error": "गवाही संपादित करने में त्रुटि",
     "testimony_delete_error": "गवाही हटाने में त्रुटि",
-    "testimony_save_error": "गवाही {action} करते समय त्रुटि"
+    "testimony_save_error": "गवाही {action} करते समय त्रुटि",
+    "prayer_add_error": "प्रार्थना जोड़ने में त्रुटि",
+    "prayer_edit_error": "प्रार्थना संपादित करने में त्रुटि",
+    "prayer_delete_error": "प्रार्थना हटाने में त्रुटि",
+    "prayer_mark_answered_error": "प्रार्थना को उत्तर मिला के रूप में चिह्नित करने में त्रुटि",
+    "prayer_mark_active_error": "प्रार्थना को सक्रिय के रूप में चिह्नित करने में त्रुटि",
+    "prayer_update_comment_error": "उत्तर टिप्पणी अपडेट करने में त्रुटि",
+    "thanksgiving_add_error": "धन्यवाद जोड़ने में त्रुटि",
+    "thanksgiving_edit_error": "धन्यवाद संपादित करने में त्रुटि",
+    "thanksgiving_delete_error": "धन्यवाद हटाने में त्रुटि"
   },
   "messages": {
     "welcome": "स्वागत है!",

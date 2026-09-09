@@ -51,11 +51,10 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
     if (event.text.trim().isEmpty) {
       final currentState = state;
       if (currentState is ThanksgivingLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'El texto del agradecimiento no puede estar vacío',
-          ),
+        final errorMessage = getService<LocalizationService>().translate(
+          'thanksgiving.enter_thanksgiving_text_error',
         );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       return;
     }
@@ -82,11 +81,10 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
     } catch (e) {
       final currentState = state;
       if (currentState is ThanksgivingLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'Error al añadir el agradecimiento: $e',
-          ),
+        final errorMessage = getService<LocalizationService>().translate(
+          'errors.thanksgiving_add_error',
         );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       debugPrint('Error adding thanksgiving: $e');
     }
@@ -100,11 +98,10 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
     if (event.newText.trim().isEmpty) {
       final currentState = state;
       if (currentState is ThanksgivingLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'El texto del agradecimiento no puede estar vacío',
-          ),
+        final errorMessage = getService<LocalizationService>().translate(
+          'thanksgiving.enter_thanksgiving_text_error',
         );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       return;
     }
@@ -132,11 +129,10 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
     } catch (e) {
       final currentState = state;
       if (currentState is ThanksgivingLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'Error al editar el agradecimiento: $e',
-          ),
+        final errorMessage = getService<LocalizationService>().translate(
+          'errors.thanksgiving_edit_error',
         );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       debugPrint('Error editing thanksgiving: $e');
     }
@@ -160,11 +156,10 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
     } catch (e) {
       final currentState = state;
       if (currentState is ThanksgivingLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'Error al eliminar el agradecimiento: $e',
-          ),
+        final errorMessage = getService<LocalizationService>().translate(
+          'errors.thanksgiving_delete_error',
         );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       debugPrint('Error deleting thanksgiving: $e');
     }

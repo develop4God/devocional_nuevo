@@ -300,7 +300,16 @@
     "testimony_add_error": "Error adding testimony",
     "testimony_edit_error": "Error editing testimony",
     "testimony_delete_error": "Error deleting testimony",
-    "testimony_save_error": "Error while {action} testimony"
+    "testimony_save_error": "Error while {action} testimony",
+    "prayer_add_error": "Error adding prayer",
+    "prayer_edit_error": "Error editing prayer",
+    "prayer_delete_error": "Error deleting prayer",
+    "prayer_mark_answered_error": "Error marking prayer as answered",
+    "prayer_mark_active_error": "Error marking prayer as active",
+    "prayer_update_comment_error": "Error updating answered comment",
+    "thanksgiving_add_error": "Error adding thanksgiving",
+    "thanksgiving_edit_error": "Error editing thanksgiving",
+    "thanksgiving_delete_error": "Error deleting thanksgiving"
   },
   "messages": {
     "welcome": "Welcome!",
