@@ -77,6 +77,45 @@ def get_answered_prayers(payload: dict) -> list:
     return [p for p in payload.get('saved_prayers', []) if isinstance(p, dict) and p.get('status') == 'answered']
 
 
+def get_read_dates(payload: dict) -> list:
+    """Return normalized, unique calendar dates stored in the backup."""
+    raw_dates = payload.get('read_dates', [])
+    if not isinstance(raw_dates, list):
+        return []
+
+    dates = set()
+    for value in raw_dates:
+        if not isinstance(value, str):
+            continue
+        try:
+            dates.add(datetime.fromisoformat(value.replace('Z', '+00:00')).date())
+        except ValueError:
+            continue
+    return sorted(dates)
+
+
+def get_consecutive_ranges(dates: list) -> list:
+    """Return inclusive consecutive date ranges from an ordered date list."""
+    if not dates:
+        return []
+
+    ranges = []
+    start = previous = dates[0]
+    for current in dates[1:]:
+        if (current - previous).days != 1:
+            ranges.append((start, previous))
+            start = current
+        previous = current
+    ranges.append((start, previous))
+    return ranges
+
+
+def format_date_range(start, end) -> str:
+    if start == end:
+        return start.isoformat()
+    return f"{start.isoformat()} .. {end.isoformat()}"
+
+
 # ── Section printers ─────────────────────────────────────────────────────────
 def print_header(path: Path, compressed: bool, size_bytes: int):
     fmt = green("gzip compressed") if compressed else yellow("plain JSON")
@@ -96,6 +135,33 @@ def print_stats_cards(payload: dict):
     print(f"  {'Total read (counter):':<30} {total}")
     print(f"  {'Current streak:':<30} {streak}")
     print(f"  {'Longest streak:':<30} {longest}")
+
+    read_dates = get_read_dates(payload)
+    if read_dates:
+        print(f"  {'Read dates span:':<30} {format_date_range(read_dates[0], read_dates[-1])}")
+        ranges = get_consecutive_ranges(read_dates)
+        longest_range = max(ranges, key=lambda date_range: (date_range[1] - date_range[0]).days)
+        longest_range_days = (longest_range[1] - longest_range[0]).days + 1
+        print(
+            f"  {'Longest date range:':<30} "
+            f"{format_date_range(*longest_range)} ({longest_range_days} days)"
+        )
+
+        # The "current streak" is the most recent consecutive block, not
+        # necessarily one that reaches today's date — the backup may be a
+        # day or more old by the time it's inspected.
+        today = datetime.now().date()
+        current_range = ranges[-1]
+        current_days = (current_range[1] - current_range[0]).days + 1
+        stale_note = '' if current_range[1] == today else dim(
+            f" (last read {(today - current_range[1]).days} day(s) ago)"
+        )
+        print(
+            f"  {'Current streak dates:':<30} "
+            f"{format_date_range(*current_range)} ({current_days} days){stale_note}"
+        )
+    else:
+        print(f"  {'Read dates span:':<30} {dim('none')}")
 
     # warn if counter != ids length
     if total != len(read_ids):
@@ -140,6 +206,8 @@ def _section_items(key: str, payload: dict) -> list:
     """Return the effective item list for a section key, handling derived sections."""
     if key == 'answered_prayers':
         return get_answered_prayers(payload)
+    if key == 'read_dates':
+        return get_read_dates(payload)
     v = payload.get(key, [])
     return v if isinstance(v, list) else []
 
