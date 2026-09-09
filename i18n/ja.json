@@ -665,6 +665,7 @@
     "copied_to_clipboard": "クリップボードにコピーしました",
     "no_verses": "節がありません",
     "select_version": "バージョンを選択",
+    "select_book": "書を選択",
     "search": "検索",
     "search_placeholder": "単語やフレーズを検索...",
     "no_search_results": "結果が見つかりません",

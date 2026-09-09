@@ -1,5 +1,6 @@
 // bible_reader_selector_bar.dart - Extracted from BibleReaderPage.build()
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 
 /// Book / chapter / verse picker row shown above the verse list.
@@ -76,7 +77,7 @@ class BibleReaderSelectorBar extends StatelessWidget {
                                 state.books,
                                 state.selectedBookName!,
                               )
-                            : 'Seleccionar libro',
+                            : 'bible.select_book'.tr(),
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 14,

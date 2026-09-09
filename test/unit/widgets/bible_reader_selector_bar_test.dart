@@ -2,6 +2,7 @@
 library;
 
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_reader_selector_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -52,7 +53,7 @@ void main() {
   ) async {
     await pumpBar(tester, state: const BibleReaderState());
 
-    expect(find.text('Seleccionar libro'), findsOneWidget);
+    expect(find.text('bible.select_book'.tr()), findsOneWidget);
   });
 
   testWidgets('resolves and shows the selected book name', (tester) async {
@@ -94,7 +95,7 @@ void main() {
       onBookTap: () => tapped = true,
     );
 
-    await tester.tap(find.text('Seleccionar libro'));
+    await tester.tap(find.text('bible.select_book'.tr()));
     await tester.pump();
 
     expect(tapped, isTrue);
