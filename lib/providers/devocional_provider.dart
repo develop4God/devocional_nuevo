@@ -197,7 +197,7 @@ class DevocionalProvider with ChangeNotifier {
 
   // ========== INITIALIZATION ==========
   Future<void> initializeData() async {
-    if (_isLoading) return;
+    if (_isLoading) return waitUntilLoaded();
 
     _isLoading = true;
     _errorMessage = null;
