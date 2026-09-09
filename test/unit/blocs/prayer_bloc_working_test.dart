@@ -5,17 +5,25 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/services.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_state.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 
 import '../../helpers/test_helpers.dart';
+
+// Mock LocalizationService for testing
+class MockLocalizationService extends Mock implements LocalizationService {}
 
 void main() {
   group('PrayerBloc Critical Coverage Tests', () {
     late PrayerBloc prayerBloc;
+    late MockLocalizationService mockLocalizationService;
+    late ServiceLocator locator;
 
     setUpAll(() {
       TestWidgetsFlutterBinding.ensureInitialized();
@@ -41,11 +49,23 @@ void main() {
         },
       );
 
+      // Set up service locator and mock localization service
+      locator = ServiceLocator();
+      locator.reset();
+
+      mockLocalizationService = MockLocalizationService();
+      when(
+        () => mockLocalizationService.translate(any()),
+      ).thenReturn('Mocked error message');
+
+      locator.registerSingleton<LocalizationService>(mockLocalizationService);
+
       prayerBloc = PrayerBloc(statsService: FakeSpiritualStatsService());
     });
 
     tearDown(() {
       prayerBloc.close();
+      locator.reset();
 
       // Clean up method channel mocks
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -67,6 +87,29 @@ void main() {
       verify: (bloc) {
         final state = bloc.state as PrayerLoaded;
         expect(state.prayers, isEmpty);
+      },
+    );
+
+    blocTest<PrayerBloc, PrayerState>(
+      'empty-text error message is localized via LocalizationService, '
+      'not hardcoded literal text',
+      build: () => prayerBloc,
+      act: (bloc) async {
+        bloc.add(LoadPrayers());
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(AddPrayer(''));
+      },
+      wait: const Duration(milliseconds: 10),
+      verify: (bloc) {
+        // The bloc must ask LocalizationService for the translated string
+        // rather than emitting a hardcoded literal (e.g. Spanish text
+        // baked into the source) that a non-Spanish user would see as-is.
+        verify(
+          () => mockLocalizationService
+              .translate('prayer.enter_prayer_text_error'),
+        ).called(1);
+        final state = bloc.state as PrayerLoaded;
+        expect(state.errorMessage, 'Mocked error message');
       },
     );
 

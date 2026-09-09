@@ -300,7 +300,16 @@
     "testimony_add_error": "証の追加エラー",
     "testimony_edit_error": "証の編集エラー",
     "testimony_delete_error": "証の削除エラー",
-    "testimony_save_error": "証の{action}エラー"
+    "testimony_save_error": "証の{action}エラー",
+    "prayer_add_error": "祈りの追加エラー",
+    "prayer_edit_error": "祈りの編集エラー",
+    "prayer_delete_error": "祈りの削除エラー",
+    "prayer_mark_answered_error": "祈りを答えられたとマークする際のエラー",
+    "prayer_mark_active_error": "祈りをアクティブとしてマークする際のエラー",
+    "prayer_update_comment_error": "回答コメントの更新エラー",
+    "thanksgiving_add_error": "感謝の追加エラー",
+    "thanksgiving_edit_error": "感謝の編集エラー",
+    "thanksgiving_delete_error": "感謝の削除エラー"
   },
   "messages": {
     "welcome": "ようこそ！",

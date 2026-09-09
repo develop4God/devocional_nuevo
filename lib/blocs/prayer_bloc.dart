@@ -60,11 +60,10 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     if (event.text.trim().isEmpty) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'El texto de la oración no puede estar vacío',
-          ),
+        final errorMessage = getService<LocalizationService>().translate(
+          'prayer.enter_prayer_text_error',
         );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       return;
     }
@@ -92,9 +91,10 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(
-          currentState.copyWith(errorMessage: 'Error al añadir la oración: $e'),
+        final errorMessage = getService<LocalizationService>().translate(
+          'errors.prayer_add_error',
         );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       debugPrint('Error adding prayer: $e');
     }
@@ -108,11 +108,10 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     if (event.newText.trim().isEmpty) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'El texto de la oración no puede estar vacío',
-          ),
+        final errorMessage = getService<LocalizationService>().translate(
+          'prayer.enter_prayer_text_error',
         );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       return;
     }
@@ -133,9 +132,10 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(
-          currentState.copyWith(errorMessage: 'Error al editar la oración: $e'),
+        final errorMessage = getService<LocalizationService>().translate(
+          'errors.prayer_edit_error',
         );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       debugPrint('Error editing prayer: $e');
     }
@@ -162,11 +162,10 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'Error al eliminar la oración: $e',
-          ),
+        final errorMessage = getService<LocalizationService>().translate(
+          'errors.prayer_delete_error',
         );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       debugPrint('Error deleting prayer: $e');
     }
@@ -201,11 +200,10 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'Error al marcar la oración como respondida: $e',
-          ),
+        final errorMessage = getService<LocalizationService>().translate(
+          'errors.prayer_mark_answered_error',
         );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       debugPrint('Error marking prayer as answered: $e');
     }
@@ -240,11 +238,10 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'Error al marcar la oración como activa: $e',
-          ),
+        final errorMessage = getService<LocalizationService>().translate(
+          'errors.prayer_mark_active_error',
         );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       debugPrint('Error marking prayer as active: $e');
     }
@@ -274,11 +271,10 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'Error al actualizar el comentario de respuesta: $e',
-          ),
+        final errorMessage = getService<LocalizationService>().translate(
+          'errors.prayer_update_comment_error',
         );
+        emit(currentState.copyWith(errorMessage: errorMessage));
       }
       debugPrint('Error updating answered comment: $e');
     }
