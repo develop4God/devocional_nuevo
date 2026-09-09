@@ -47,15 +47,15 @@ void main() {
     late TtsAudioController controller;
     late DevocionalTtsMiniplayerPresenter presenter;
 
-    setUp(() {
+    setUp(() async {
       SharedPreferences.setMockInitialValues({});
       ServiceLocator().reset();
-      setupServiceLocator();
+      await setupServiceLocator();
 
       mockTts = MockFlutterTts();
       controller = TtsAudioController(
         flutterTts: mockTts,
-        voiceSettingsService: VoiceSettingsService(),
+        voiceSettingsService: ServiceLocator().get<VoiceSettingsService>(),
       );
       presenter = DevocionalTtsMiniplayerPresenter(
         ttsAudioController: controller,
@@ -143,9 +143,7 @@ void main() {
       expect(presenter.isShowing, isFalse);
     });
 
-    testWidgets('dismissing the modal resets the showing flag', (
-      tester,
-    ) async {
+    testWidgets('dismissing the modal resets the showing flag', (tester) async {
       await pumpHost(tester);
 
       await tester.tap(find.text('open'));
