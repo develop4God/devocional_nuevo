@@ -682,8 +682,10 @@ class _AppInitializerState extends State<AppInitializer> {
 
   Future<void> _initCriticalServices() async {
     try {
+      _startupLog('FirebaseAuth.signInAnonymously() starting');
       final FirebaseAuth auth = FirebaseAuth.instance;
       if (auth.currentUser == null) await auth.signInAnonymously();
+      _startupLog('FirebaseAuth.signInAnonymously() done');
     } catch (e) {
       // Anonymous auth is non-critical, app works without it
       developer.log(
@@ -693,7 +695,9 @@ class _AppInitializerState extends State<AppInitializer> {
       );
     }
     try {
+      _startupLog('tzdata.initializeTimeZones() starting');
       tzdata.initializeTimeZones();
+      _startupLog('tzdata.initializeTimeZones() done');
     } catch (e) {
       // Timezone initialization already has UTC fallback
       developer.log(
@@ -762,14 +766,20 @@ class _AppInitializerState extends State<AppInitializer> {
         context,
         listen: false,
       );
+      _startupLog('devocionalProvider.initializeData() starting');
       await devocionalProvider.initializeData();
+      _startupLog('devocionalProvider.initializeData() done');
 
       // Run all one-time startup migrations after data is loaded.
+      _startupLog('spiritualStatsService.getStats() starting');
       final stats = await getService<ISpiritualStatsService>().getStats();
+      _startupLog('spiritualStatsService.getStats() done');
+      _startupLog('startupMigrationService.runAll() starting');
       await getService<IStartupMigrationService>().runAll(
         devocionalProvider.devocionales,
         stats.readDevocionalIds,
       );
+      _startupLog('startupMigrationService.runAll() done');
     } catch (e) {
       // Data initialization errors are logged for debugging
       developer.log(

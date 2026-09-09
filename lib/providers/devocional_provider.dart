@@ -402,11 +402,16 @@ class DevocionalProvider with ChangeNotifier {
         parameters: {'devocional_id': devocionalId},
       );
     } catch (e, stack) {
-      await FirebaseCrashlytics.instance.recordError(
-        e,
-        stack,
-        reason: 'BLoC tracking mode failed',
-      );
+      try {
+        await FirebaseCrashlytics.instance.recordError(
+          e,
+          stack,
+          reason: 'BLoC tracking mode failed',
+        );
+      } catch (_) {
+        // Diagnostic-only; never let a Crashlytics failure propagate to the
+        // caller of recordDevocionalRead().
+      }
     }
 
     try {
@@ -460,6 +465,18 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // ========== DATA LOADING ==========
+
+  /// Crashlytics breadcrumb for the per-year fetch loop, so a startup-timeout
+  /// event can show which year was in flight. Never lets a logging failure
+  /// (e.g. Crashlytics not yet available) break the actual fetch.
+  void _logFetchBreadcrumb(String message) {
+    try {
+      FirebaseCrashlytics.instance.log(message);
+    } catch (_) {
+      // Diagnostic-only; never let this affect the real fetch flow.
+    }
+  }
+
   Future<void> _fetchAllDevocionalesForLanguage() async {
     _isLoading = true;
     _errorMessage = null;
@@ -479,8 +496,14 @@ class DevocionalProvider with ChangeNotifier {
         debugPrint(
           '📚 [FETCH] Fetching year $year for language=$_selectedLanguage, version=$_selectedVersion',
         );
+        _logFetchBreadcrumb(
+            'DevocionalProvider: fetchAll(year=$year) starting');
         final List<Devocional> yearDevocionales = await _devocionalRepository
             .fetchAll(year, _selectedLanguage, _selectedVersion);
+        _logFetchBreadcrumb(
+          'DevocionalProvider: fetchAll(year=$year) done, '
+          '${yearDevocionales.length} devotionals',
+        );
         debugPrint(
           '📚 [FETCH] Year $year returned ${yearDevocionales.length} devotionals',
         );
@@ -506,7 +529,9 @@ class DevocionalProvider with ChangeNotifier {
                     'RVR1960',
               );
               debugPrint('🔄 Fallback: Requesting URL: $url');
-              final response = await httpClient.get(Uri.parse(url));
+              final response = await httpClient
+                  .get(Uri.parse(url))
+                  .timeout(Constants.devocionalFetchTimeout);
 
               if (response.statusCode == 200) {
                 final String responseBody = utf8.decode(response.bodyBytes);
@@ -1229,21 +1254,30 @@ class DevocionalProvider with ChangeNotifier {
             onProgress(progress);
           } catch (e, st) {
             debugPrint('onProgress callback threw an error: $e');
-            FirebaseCrashlytics.instance.recordError(
-              e,
-              st,
-              reason: 'onProgress callback error',
-            );
+            try {
+              FirebaseCrashlytics.instance.recordError(
+                e,
+                st,
+                reason: 'onProgress callback error',
+              );
+            } catch (_) {
+              // Diagnostic-only; never let this become an unhandled error in
+              // the microtask.
+            }
           }
         });
       } catch (e, st) {
         // If scheduling the callback fails for any reason, log and continue
         debugPrint('Failed to schedule onProgress callback: $e');
-        FirebaseCrashlytics.instance.recordError(
-          e,
-          st,
-          reason: 'Failed to schedule onProgress callback',
-        );
+        try {
+          FirebaseCrashlytics.instance.recordError(
+            e,
+            st,
+            reason: 'Failed to schedule onProgress callback',
+          );
+        } catch (_) {
+          // Diagnostic-only; never let a Crashlytics failure break this loop.
+        }
       }
 
       if (!success) allSuccess = false;
