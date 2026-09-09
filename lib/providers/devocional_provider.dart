@@ -687,6 +687,7 @@ class DevocionalProvider with ChangeNotifier {
 
   Future<void> setSelectedVersion(String version) async {
     if (_selectedVersion != version) {
+      final previousVersion = _selectedVersion;
       _isSwitchingVersion = true;
       notifyListeners();
 
@@ -702,6 +703,28 @@ class DevocionalProvider with ChangeNotifier {
           );
         }
         await _fetchAllDevocionalesForLanguage();
+
+        if (_allDevocionalesForCurrentLanguage.isEmpty &&
+            _errorMessage != null) {
+          // Fetch failed (e.g. no network): revert to the previously
+          // selected version instead of leaving the UI on an unavailable one.
+          final fetchErrorMessage = _errorMessage;
+          _selectedVersion = previousVersion;
+          await prefs.setString('selectedVersion', previousVersion);
+          if (_audioController != null) {
+            _audioController!.ttsService.setLanguageContext(
+              _selectedLanguage,
+              _selectedVersion,
+            );
+          }
+          await _fetchAllDevocionalesForLanguage();
+          // Only report the original failure if reverting actually recovered
+          // valid content; otherwise keep the revert fetch's own error so a
+          // second, different failure isn't masked by the first one's message.
+          if (_allDevocionalesForCurrentLanguage.isNotEmpty) {
+            _errorMessage = fetchErrorMessage;
+          }
+        }
       } finally {
         _isSwitchingVersion = false;
         notifyListeners();
