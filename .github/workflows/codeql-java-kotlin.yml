@@ -55,7 +55,10 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: java-kotlin
-          build-mode: autobuild
+          build-mode: manual
+
+      - name: Build Android app (debug)
+        run: flutter build apk --debug
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
