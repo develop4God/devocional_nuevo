@@ -20,6 +20,7 @@ library;
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_card_widgets.dart';
 import 'package:flutter/material.dart';
@@ -37,14 +38,16 @@ class _FakeVerseResolverService implements IVerseResolverService {
       null;
 }
 
-Widget _wrap(Widget card) => MaterialApp(
-      home: ChangeNotifierProvider(
-        create: (_) => DevocionalProvider(),
+Widget _wrap(Widget card, DevocionalProvider provider) => MaterialApp(
+      home: ChangeNotifierProvider<DevocionalProvider>.value(
+        value: provider,
         child: Scaffold(body: card),
       ),
     );
 
 void main() {
+  late DevocionalProvider provider;
+
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     await registerTestServicesWithFakes();
@@ -54,6 +57,10 @@ void main() {
     }
     locator.registerSingleton<IVerseResolverService>(
       _FakeVerseResolverService(),
+    );
+    provider = DevocionalProvider(
+      enableAudio: false,
+      devocionalRepository: ServiceLocator().get<DevocionalRepository>(),
     );
   });
 
@@ -65,37 +72,43 @@ void main() {
       content: 'Grace is unmerited favor.',
     );
 
-    await tester.pumpWidget(_wrap(const TheologicalDepthCard(card: card)));
+    await tester.pumpWidget(
+      _wrap(const TheologicalDepthCard(card: card), provider),
+    );
     await tester.pump(const Duration(seconds: 2));
 
     expect(tester.takeException(), isNull);
     expect(find.text('Grace Explained'), findsOneWidget);
   });
 
-  testWidgets('DiscoveryActivationCard renders discovery questions and prayer',
-      (tester) async {
-    const card = EncounterCard(
-      order: 1,
-      type: 'discovery_activation',
-      title: 'Go Deeper',
-      subtitle: 'Reflect and pray',
-      discoveryQuestions: [
-        EncounterDiscoveryQuestion(
-          category: 'Reflection',
-          question: 'How does this apply to you?',
+  testWidgets(
+    'DiscoveryActivationCard renders discovery questions and prayer',
+    (tester) async {
+      const card = EncounterCard(
+        order: 1,
+        type: 'discovery_activation',
+        title: 'Go Deeper',
+        subtitle: 'Reflect and pray',
+        discoveryQuestions: [
+          EncounterDiscoveryQuestion(
+            category: 'Reflection',
+            question: 'How does this apply to you?',
+          ),
+        ],
+        prayer: EncounterPrayer(
+          title: 'Closing Prayer',
+          content: 'Lord, guide my steps.',
         ),
-      ],
-      prayer: EncounterPrayer(
-        title: 'Closing Prayer',
-        content: 'Lord, guide my steps.',
-      ),
-    );
+      );
 
-    await tester.pumpWidget(_wrap(const DiscoveryActivationCard(card: card)));
-    await tester.pump(const Duration(seconds: 2));
+      await tester.pumpWidget(
+        _wrap(const DiscoveryActivationCard(card: card), provider),
+      );
+      await tester.pump(const Duration(seconds: 2));
 
-    expect(tester.takeException(), isNull);
-    expect(find.text('How does this apply to you?'), findsOneWidget);
-    expect(find.text('Lord, guide my steps.'), findsOneWidget);
-  });
+      expect(tester.takeException(), isNull);
+      expect(find.text('How does this apply to you?'), findsOneWidget);
+      expect(find.text('Lord, guide my steps.'), findsOneWidget);
+    },
+  );
 }
