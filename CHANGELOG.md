@@ -11,6 +11,18 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 
 ### 🐛 Bug Fixes
 
+- *(ci)* Switch CodeQL java-kotlin analysis to manual build mode
+- *(ci)* Make git-cliff download fail loudly and retry on transient errors
+- *(ci)* Fix real root cause of git-cliff install failure — filename mismatch
+## [1.16.5+126] - 2026-09-09
+
+### 🚀 Features
+
+- *(i18n)* Use translation key for devotional initialization error
+- Fetch notification images dynamically with fallback
+
+### 🐛 Bug Fixes
+
 - Prevent text overflow in prayers page menu items and add behavioral tests
 - Localize Bible reader book-selector placeholder text
 - Merge preferred bible version and marked verses on automatic backup
@@ -18,10 +30,21 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - Close race in DevocionalProvider.initializeData re-entrancy guard
 - Correct crashlytics log and exception ordering in MainActivity
 - Add startup breadcrumbs and fix unbounded fallback-fetch timeout
+- Revert to previous Bible version when switch fails due to no network
+- Localize prayer/thanksgiving bloc error messages
+- Update release notes with backup sync and mobile UI fixes
 
 ### 🚜 Refactor
 
 - Extract Bible reader build() into focused widgets; fix backup viewer streak calc
+
+### 🛡️ Security
+
+- Add auto-generated CHANGELOG.md via git-cliff
+
+### 💼 Other
+
+- Google Drive backup sync, prayers menu overflow/translation fixes, offline Bible version fix
 ## [1.16.4+125] - 2026-09-01
 
 ### 💼 Other
@@ -29,11 +52,6 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - *(deps-dev)* Bump browserslist
 - Bump version to 1.16.4+125, include dependabot browserslist security fix
 ## [1.16.3+124] - 2026-09-01
-
-### 💼 Other
-
-- Patch: fix backup restore streak preservation, improved notifications/session-expired prompt, layout fixes
-## [1.16.2+123] - 2026-09-01
 
 ### 🚀 Features
 
@@ -59,12 +77,8 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - *(deps)* Upgrade Firebase suite for AGP 9 / built-in Kotlin readiness
 - *(android)* Restore KGP 2.3.20 — resolves Flutter deprecation warning
 - Patch: fix backup restore streak preservation, improved notifications/session-expired prompt, layout fixes
+- Patch: fix backup restore streak preservation, improved notifications/session-expired prompt, layout fixes
 ## [1.16.1+122] - 2026-08-30
-
-### 💼 Other
-
-- New feature hero image, fix overflow on drawer, test coverage improved
-## [1.16.0+121] - 2026-08-30
 
 ### 🚀 Features
 
@@ -110,6 +124,7 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 
 - *(devocionales)* Add trace prints for hero image feature
 - New feature hero images
+- New feature hero image, fix overflow on drawer, test coverage improved
 ## [1.15.0+116] - 2026-08-20
 
 ### 🚀 Features
@@ -174,7 +189,7 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 ### 💼 Other
 
 - Fix LBLA regex
-## [1.14.0+112] - 2026-08-11
+## [1.14.0+113] - 2026-08-11
 
 ### 🚀 Features
 
@@ -596,11 +611,6 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - Streak sync fixed/new ESV en and NTV es Bibles
 ## [1.11.2+96] - 2026-05-31
 
-### 💼 Other
-
-- Answered prayers fixÂ/ testimony, prayers, thanksgiving edit on backup feature
-## [1.11.1+95] - 2026-05-31
-
 ### 🚀 Features
 
 - Add answered prayers to backup content summary
@@ -622,6 +632,7 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 ### 💼 Other
 
 - Answered prayers fixes and edit prayers, thanksgiving , testimonies for backup feature
+- Answered prayers fixÂ/ testimony, prayers, thanksgiving edit on backup feature
 ## [1.11.0+94] - 2026-05-31
 
 ### 🚀 Features
