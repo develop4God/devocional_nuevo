@@ -131,11 +131,11 @@ class MainActivity : FlutterActivity() {
 
         if (!likelyMatchesBlackScreenExit()) return
 
-        FirebaseCrashlytics.getInstance().recordException(
-            Exception("Resume never confirmed drawn before app restart (possible black-screen-on-resume)")
-        )
         FirebaseCrashlytics.getInstance().log(
             "resume_watchdog: unconfirmed resume detected on cold start, staleForMs=$staleForMs"
+        )
+        FirebaseCrashlytics.getInstance().recordException(
+            Exception("Resume never confirmed drawn before app restart (possible black-screen-on-resume)")
         )
     }
 

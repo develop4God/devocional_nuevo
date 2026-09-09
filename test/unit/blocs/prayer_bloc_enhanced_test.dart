@@ -8,15 +8,23 @@ import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_state.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
 
+// Mock LocalizationService for testing
+class MockLocalizationService extends Mock implements LocalizationService {}
+
 void main() {
   group('PrayerBloc Enhanced Coverage Tests', () {
     late PrayerBloc prayerBloc;
+    late MockLocalizationService mockLocalizationService;
+    late ServiceLocator locator;
 
     setUpAll(() {
       TestWidgetsFlutterBinding.ensureInitialized();
@@ -40,11 +48,23 @@ void main() {
         },
       );
 
+      // Set up service locator and mock localization service
+      locator = ServiceLocator();
+      locator.reset();
+
+      mockLocalizationService = MockLocalizationService();
+      when(
+        () => mockLocalizationService.translate(any()),
+      ).thenReturn('Mocked error message');
+
+      locator.registerSingleton<LocalizationService>(mockLocalizationService);
+
       prayerBloc = PrayerBloc(statsService: FakeSpiritualStatsService());
     });
 
     tearDown(() {
       prayerBloc.close();
+      locator.reset();
 
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(

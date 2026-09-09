@@ -300,7 +300,16 @@
     "testimony_add_error": "Erro ao adicionar testemunho",
     "testimony_edit_error": "Erro ao editar testemunho",
     "testimony_delete_error": "Erro ao excluir testemunho",
-    "testimony_save_error": "Erro ao {action} testemunho"
+    "testimony_save_error": "Erro ao {action} testemunho",
+    "prayer_add_error": "Erro ao adicionar oração",
+    "prayer_edit_error": "Erro ao editar oração",
+    "prayer_delete_error": "Erro ao excluir oração",
+    "prayer_mark_answered_error": "Erro ao marcar oração como respondida",
+    "prayer_mark_active_error": "Erro ao marcar oração como ativa",
+    "prayer_update_comment_error": "Erro ao atualizar comentário de resposta",
+    "thanksgiving_add_error": "Erro ao adicionar ação de graças",
+    "thanksgiving_edit_error": "Erro ao editar ação de graças",
+    "thanksgiving_delete_error": "Erro ao excluir ação de graças"
   },
   "messages": {
     "welcome": "Bem-vindo!",
