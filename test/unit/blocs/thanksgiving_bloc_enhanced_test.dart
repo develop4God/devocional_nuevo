@@ -8,22 +8,43 @@ import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_event.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_state.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+// Mock LocalizationService for testing
+class MockLocalizationService extends Mock implements LocalizationService {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ThanksgivingBloc Enhanced Coverage Tests', () {
     late ThanksgivingBloc bloc;
+    late MockLocalizationService mockLocalizationService;
+    late ServiceLocator locator;
 
     setUp(() {
       SharedPreferences.setMockInitialValues({});
+
+      // Set up service locator and mock localization service
+      locator = ServiceLocator();
+      locator.reset();
+
+      mockLocalizationService = MockLocalizationService();
+      when(
+        () => mockLocalizationService.translate(any()),
+      ).thenReturn('Mocked error message');
+
+      locator.registerSingleton<LocalizationService>(mockLocalizationService);
+
       bloc = ThanksgivingBloc();
     });
 
     tearDown(() {
       bloc.close();
+      locator.reset();
     });
 
     group('Concurrent Operations', () {
