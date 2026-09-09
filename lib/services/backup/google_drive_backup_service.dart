@@ -373,9 +373,25 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     return null;
   }
 
+  /// Merge two string lists from local/remote payloads by key, as a union.
+  List<String> _mergeStringListUnion(
+    Map<String, dynamic> local,
+    Map<String, dynamic> remote,
+    String key,
+  ) {
+    final localSet =
+        (local[key] as List<dynamic>?)?.map((e) => e.toString()).toSet() ?? {};
+    final remoteSet =
+        (remote[key] as List<dynamic>?)?.map((e) => e.toString()).toSet() ?? {};
+    return {...localSet, ...remoteSet}.toList();
+  }
+
   /// Merge local and remote backup payloads.
   /// Returns final merged payload ready for upload.
-  Map<String, dynamic> _mergePayloads(
+  /// Public (not on [IGoogleDriveBackupService]) so it's directly
+  /// unit-testable with plain maps, without needing a Drive-API download —
+  /// same rationale as [restoreBibleNotes].
+  Map<String, dynamic> mergePayloads(
     Map<String, dynamic> local,
     Map<String, dynamic> remote,
   ) {
@@ -398,27 +414,15 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     );
 
     // --- Read dates merge (union, sorted) ---
-    final localDates = (local['read_dates'] as List<dynamic>?)
-            ?.map((d) => d.toString())
-            .toSet() ??
-        {};
-    final remoteDates = (remote['read_dates'] as List<dynamic>?)
-            ?.map((d) => d.toString())
-            .toSet() ??
-        {};
-    final mergedDates = {...localDates, ...remoteDates}.toList()..sort();
+    final mergedDates = _mergeStringListUnion(local, remote, 'read_dates')
+      ..sort();
 
     // --- Favorites merge (union by ID string) ---
-    final localFavs = (local[BackupKeys.favoriteDevotionals] as List<dynamic>?)
-            ?.map((f) => f.toString())
-            .toSet() ??
-        {};
-    final remoteFavs =
-        (remote[BackupKeys.favoriteDevotionals] as List<dynamic>?)
-                ?.map((f) => f.toString())
-                .toSet() ??
-            {};
-    final mergedFavs = {...localFavs, ...remoteFavs}.toList();
+    final mergedFavs = _mergeStringListUnion(
+      local,
+      remote,
+      BackupKeys.favoriteDevotionals,
+    );
 
     // Patch favoritesCount to reflect actual merged favorites length
     final patchedStats = mergedStats.copyWith(
@@ -548,17 +552,18 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
     final mergedTestimonies = testimoniesById.values.toList();
 
     // --- Completed encounters merge (union) ---
-    final localEncounters =
-        (local[BackupKeys.completedEncounters] as List<dynamic>?)
-                ?.map((e) => e.toString())
-                .toSet() ??
-            {};
-    final remoteEncounters =
-        (remote[BackupKeys.completedEncounters] as List<dynamic>?)
-                ?.map((e) => e.toString())
-                .toSet() ??
-            {};
-    final mergedEncounters = {...localEncounters, ...remoteEncounters}.toList();
+    final mergedEncounters = _mergeStringListUnion(
+      local,
+      remote,
+      BackupKeys.completedEncounters,
+    );
+
+    // --- Marked bible verses merge (union) ---
+    final mergedMarkedVerses = _mergeStringListUnion(
+      local,
+      remote,
+      BackupKeys.markedBibleVerses,
+    );
 
     // --- Discovery progress merge (newer values win by key) ---
     final mergedProgress = <String, dynamic>{
@@ -586,6 +591,16 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       BackupKeys.discoveryProgress: mergedProgress,
       BackupKeys.discoveryFavorites: mergedDiscoveryFavs,
       BackupKeys.testimonies: mergedTestimonies,
+      BackupKeys.markedBibleVerses: mergedMarkedVerses,
+      // Prefer remote's preferred Bible version, if set, matching the
+      // existing restore behavior (remote always overrides local for this
+      // scalar preference — there's no reliable per-field timestamp to
+      // compare local vs. remote recency here).
+      BackupKeys.preferredBibleVersion:
+          (remote[BackupKeys.preferredBibleVersion] as String?)?.isNotEmpty ==
+                  true
+              ? remote[BackupKeys.preferredBibleVersion]
+              : local[BackupKeys.preferredBibleVersion],
       'backup_timestamp': DateTime.now().toIso8601String(),
       'merge_source': 'multi_device',
     };
@@ -634,7 +649,7 @@ class GoogleDriveBackupService implements IGoogleDriveBackupService {
       // Step 3: Determine final payload (merged or local only)
       final Map<String, dynamic> finalPayload;
       if (remotePayload != null && _validateBackupData(remotePayload)) {
-        finalPayload = _mergePayloads(localPayload, remotePayload);
+        finalPayload = mergePayloads(localPayload, remotePayload);
         debugPrint('[BACKUP] Merged local + remote backup payloads');
       } else {
         finalPayload = localPayload;
