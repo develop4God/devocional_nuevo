@@ -15,6 +15,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:mocktail/mocktail.dart';
+
 import '../helpers/test_helpers.dart';
 import '../helpers/widget_pump_helper.dart';
 
@@ -48,28 +49,36 @@ class FakeBibleDbService extends Fake implements BibleDbService {
   Future<int> getMaxChapter(int bookNumber) async => 21;
   @override
   Future<List<Map<String, dynamic>>> getChapterVerses(
-          int bookNumber, int chapter) async =>
+    int bookNumber,
+    int chapter,
+  ) async =>
       [
         {'verse': 1, 'text': 'Verse 1 text'},
         {'verse': 2, 'text': 'Verse 2 text'},
       ];
   @override
-  Future<Map<String, dynamic>?> findBookByName(String name) async =>
-      {'book_number': 470, 'short_name': 'Jn', 'long_name': 'Juan'};
+  Future<Map<String, dynamic>?> findBookByName(String name) async => {
+        'book_number': 470,
+        'short_name': 'Jn',
+        'long_name': 'Juan',
+      };
 
   @override
-  Future<List<Map<String, dynamic>>> getSectionTitles(
-          {required int bookNumber, required int chapter}) async =>
+  Future<List<Map<String, dynamic>>> getSectionTitles({
+    required int bookNumber,
+    required int chapter,
+  }) async =>
       [];
 
   @override
   Future<List<Map<String, dynamic>>> searchVerses(String query) async => [];
 
   @override
-  Future<Map<String, dynamic>?> getVerse(
-          {required int bookNumber,
-          required int chapter,
-          required int verse}) async =>
+  Future<Map<String, dynamic>?> getVerse({
+    required int bookNumber,
+    required int chapter,
+    required int verse,
+  }) async =>
       {'verse': verse, 'text': 'Verse $verse text'};
 }
 
@@ -183,19 +192,23 @@ void main() {
   Future<void> waitForReader(WidgetTester tester) async {
     for (int i = 0; i < 20; i++) {
       await tester.pump(const Duration(milliseconds: 100));
-      final richTextFinder = find.byWidgetPredicate((w) =>
-          w is RichText && w.text.toPlainText().contains('Verse 1 text'));
+      final richTextFinder = find.byWidgetPredicate(
+        (w) => w is RichText && w.text.toPlainText().contains('Verse 1 text'),
+      );
       if (tester.any(richTextFinder)) {
         return;
       }
     }
   }
 
-  testWidgets('BibleReaderPage navigates to initialReference on load',
-      (tester) async {
-    await tester.pumpWidget(createWidgetUnderTest(
-      initialReference: (bookName: 'Jn', chapter: 3, verse: 16),
-    ));
+  testWidgets('BibleReaderPage navigates to initialReference on load', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      createWidgetUnderTest(
+        initialReference: (bookName: 'Jn', chapter: 3, verse: 16),
+      ),
+    );
 
     await waitForReader(tester);
 
@@ -210,8 +223,10 @@ void main() {
     await waitForReader(tester);
 
     final appBar = find.byType(AppBar);
-    final actions =
-        find.descendant(of: appBar, matching: find.byType(IconButton));
+    final actions = find.descendant(
+      of: appBar,
+      matching: find.byType(IconButton),
+    );
 
     await tester.tap(actions.at(1));
     await tester.pump(const Duration(milliseconds: 200));
@@ -246,8 +261,10 @@ void main() {
     await waitForReader(tester);
 
     final appBar = find.byType(AppBar);
-    final actions =
-        find.descendant(of: appBar, matching: find.byType(IconButton));
+    final actions = find.descendant(
+      of: appBar,
+      matching: find.byType(IconButton),
+    );
 
     await tester.tap(actions.at(0)); // Search
     await tester.pump(const Duration(milliseconds: 200));
@@ -258,45 +275,49 @@ void main() {
   });
 
   testWidgets(
-      'BibleReaderPage workflow: TTS play from bottom bar triggers miniplayer',
-      (tester) async {
+    'BibleReaderPage workflow: TTS play from bottom bar triggers miniplayer',
+    (tester) async {
+      await tester.pumpWidget(createWidgetUnderTest());
+      await waitForReader(tester);
+
+      final playBtn = find.byIcon(Icons.play_arrow);
+      expect(playBtn, findsWidgets);
+
+      await tester.tap(playBtn.last);
+
+      for (int i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        if (tester.any(find.byIcon(Icons.pause))) break;
+      }
+
+      expect(find.byIcon(Icons.pause), findsWidgets);
+
+      await tester.pump(const Duration(milliseconds: 500));
+    },
+  );
+
+  testWidgets('BibleReaderPage workflow: Next/Previous chapter', (
+    tester,
+  ) async {
     await tester.pumpWidget(createWidgetUnderTest());
     await waitForReader(tester);
 
-    final playBtn = find.byIcon(Icons.play_arrow);
-    expect(playBtn, findsWidgets);
-
-    await tester.tap(playBtn.last);
-
-    for (int i = 0; i < 20; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-      if (tester.any(find.byIcon(Icons.pause))) break;
-    }
-
-    expect(find.byIcon(Icons.pause), findsWidgets);
-
-    await tester.pump(const Duration(milliseconds: 500));
-  });
-
-  testWidgets('BibleReaderPage workflow: Next/Previous chapter',
-      (tester) async {
-    await tester.pumpWidget(createWidgetUnderTest());
-    await waitForReader(tester);
-
-    expect(find.textContaining('1'), findsWidgets); // Chapter 1
+    expect(find.text('Juan 1'), findsWidgets);
 
     final nextBtn = find.byTooltip('bible.next_chapter');
     await tester.tap(nextBtn);
     await tester.pump(const Duration(milliseconds: 500));
     await waitForReader(tester);
 
-    expect(find.textContaining('2'), findsWidgets); // Chapter 2
+    expect(find.text('Juan 2'), findsWidgets);
+    expect(find.text('Juan 1'), findsNothing);
 
     final prevBtn = find.byTooltip('bible.previous_chapter');
     await tester.tap(prevBtn);
     await tester.pump(const Duration(milliseconds: 500));
     await waitForReader(tester);
 
-    expect(find.textContaining('1'), findsWidgets); // Back to 1
+    expect(find.text('Juan 1'), findsWidgets);
+    expect(find.text('Juan 2'), findsNothing);
   });
 }
