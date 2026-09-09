@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,8 @@ class _MockDevocionalIndexService extends Mock
 
 class _MockCacheMetadataService extends Mock implements CacheMetadataService {}
 
+class _MockDevocionalRepository extends Mock implements DevocionalRepository {}
+
 class MockPathProviderPlatform extends PathProviderPlatform {
   @override
   Future<String?> getApplicationDocumentsPath() async {
@@ -33,6 +36,47 @@ class MockPathProviderPlatform extends PathProviderPlatform {
   Future<String?> getTemporaryPath() async {
     return '/mock_temp';
   }
+}
+
+/// Builds a [DevocionalRepository] mock with default stubs so tests never
+/// hit the network. Individual tests can override stubs afterward.
+_MockDevocionalRepository _buildMockRepository({
+  List<Devocional>? devocionales,
+}) {
+  final repository = _MockDevocionalRepository();
+  final fixtureDevocionales = devocionales ??
+      [
+        Devocional(
+          id: 'fixture_1',
+          date: DateTime.now(),
+          versiculo: 'Fixture verse',
+          reflexion: 'Fixture reflection',
+          paraMeditar: [ParaMeditar(cita: 'Fixture', texto: 'Fixture')],
+          oracion: 'Fixture prayer',
+        ),
+      ];
+  when(() => repository.getAvailableYears())
+      .thenAnswer((_) async => [DateTime.now().year]);
+  when(() => repository.fetchAll(any(), any(), any()))
+      .thenAnswer((_) async => fixtureDevocionales);
+  when(() => repository.filterByVersion(any(), any())).thenAnswer(
+      (invocation) => invocation.positionalArguments[0] as List<Devocional>);
+  when(() => repository.wasLastFetchOffline).thenReturn(false);
+  when(() => repository.hasLocalData(any(), any(), any()))
+      .thenAnswer((_) async => false);
+  when(() => repository.downloadAndStoreDevocionales(any(), any(), any()))
+      .thenAnswer((_) async => false);
+  when(() => repository.clearOldFiles()).thenAnswer((_) async {});
+  when(() => repository.downloadCurrentYearDevocionales(any(), any()))
+      .thenAnswer((_) async => false);
+  when(() => repository.hasCurrentYearLocalData(any(), any()))
+      .thenAnswer((_) async => false);
+  when(() => repository.hasTargetYearsLocalData(any(), any()))
+      .thenAnswer((_) async => false);
+  when(() => repository.findFirstUnreadDevocionalIndex(any(), any()))
+      .thenReturn(0);
+  when(() => repository.resetCache()).thenReturn(null);
+  return repository;
 }
 
 void main() {
@@ -184,6 +228,7 @@ void main() {
     provider = DevocionalProvider(
       devocionalIndexService: mockIndexService,
       cacheMetadataService: mockMetadataService,
+      devocionalRepository: _buildMockRepository(),
     );
     await provider.initializeData();
   });
@@ -203,14 +248,9 @@ void main() {
       expect(provider.supportedLanguages, contains(provider.selectedLanguage));
       expect(provider.selectedVersion, isNotNull);
       expect(provider.isLoading, isFalse);
-      expect(provider.errorMessage, isNotNull); // Will have error due to 400
-      // errorMessage must be a translation key (UI calls .tr() on it),
-      // never a raw hardcoded/interpolated string.
-      expect(
-        provider.errorMessage,
-        anyOf('errors.network_error', 'devotionals.generic_error'),
-      );
-      expect(provider.devocionales, isEmpty);
+      // Repository is stubbed to succeed, so no error is expected.
+      expect(provider.errorMessage, isNull);
+      expect(provider.devocionales, isNotEmpty);
       expect(provider.favoriteDevocionales, isEmpty);
       expect(provider.isOfflineMode, isFalse);
       expect(provider.isDownloading, isFalse);
@@ -222,31 +262,26 @@ void main() {
       expect(provider.supportedLanguages, contains('en'));
       // Fallback language on unsupported input
       final currentLang = provider.selectedLanguage;
-      provider.setSelectedLanguage('unsupported', null);
+      await provider.setSelectedLanguage('unsupported', null);
       // Should fallback to 'es' (the hardcoded fallback language)
-      // Wait for async operations
-      await Future.delayed(const Duration(milliseconds: 200));
       expect(provider.selectedLanguage, 'es');
       // Restore original language
-      provider.setSelectedLanguage(currentLang, null);
-      await Future.delayed(const Duration(milliseconds: 200));
+      await provider.setSelectedLanguage(currentLang, null);
     });
 
     test('changing language updates data and version defaults', () async {
-      provider.setSelectedLanguage('en', null);
+      await provider.setSelectedLanguage('en', null);
       expect(provider.selectedLanguage, 'en');
       expect(provider.selectedVersion, isNotNull);
-      // Devocionales will be empty due to HTTP 400, but API was called
-      expect(provider.devocionales.isEmpty, isTrue);
+      // Repository is stubbed to succeed with fixture devotionals.
+      expect(provider.devocionales, isNotEmpty);
     });
 
     test('changing version updates data', () async {
       final oldVersion = provider.selectedVersion;
-      provider.setSelectedVersion('NVI');
+      await provider.setSelectedVersion('NVI');
       expect(provider.selectedVersion, 'NVI');
       expect(provider.selectedVersion != oldVersion, isTrue);
-      // Wait a bit for async operations to complete
-      await Future.delayed(const Duration(milliseconds: 100));
     });
 
     testWidgets('favorite management works correctly', (
@@ -411,6 +446,8 @@ void main() {
       provider = DevocionalProvider(
         devocionalIndexService: mockIndexService,
         cacheMetadataService: mockMetadataService,
+        // Empty fixtures simulate a fetch failure (no devotionals available).
+        devocionalRepository: _buildMockRepository(devocionales: const []),
       );
       await provider.initializeData();
 
@@ -437,8 +474,7 @@ void main() {
 
     test('Japanese version codes are correctly configured', () async {
       // Test that Japanese versions use the new version codes
-      provider.setSelectedLanguage('ja', null);
-      await Future.delayed(const Duration(milliseconds: 200));
+      await provider.setSelectedLanguage('ja', null);
 
       expect(provider.selectedLanguage, 'ja');
       expect(provider.availableVersions, contains('新改訳2003'));
@@ -446,8 +482,7 @@ void main() {
       expect(provider.selectedVersion, '新改訳2003'); // Default version
 
       // Test switching versions
-      provider.setSelectedVersion('リビングバイブル');
-      await Future.delayed(const Duration(milliseconds: 200));
+      await provider.setSelectedVersion('リビングバイブル');
       expect(provider.selectedVersion, 'リビングバイブル');
     });
 
@@ -478,6 +513,7 @@ void main() {
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
+        devocionalRepository: _buildMockRepository(),
       );
       await newProvider.initializeData();
 
@@ -525,6 +561,7 @@ void main() {
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
+        devocionalRepository: _buildMockRepository(),
       );
       await newProvider.initializeData();
 
@@ -536,8 +573,7 @@ void main() {
       );
 
       // Switch language
-      newProvider.setSelectedLanguage('en', null);
-      await Future.delayed(const Duration(milliseconds: 300));
+      await newProvider.setSelectedLanguage('en', null);
 
       // Verify favorite IDs are still maintained
       expect(
@@ -570,6 +606,7 @@ void main() {
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
+        devocionalRepository: _buildMockRepository(),
       );
       await newProvider.initializeData();
 
@@ -604,6 +641,7 @@ void main() {
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
+        devocionalRepository: _buildMockRepository(),
       );
       await newProvider.initializeData();
 
@@ -638,6 +676,7 @@ void main() {
       final newProvider = DevocionalProvider(
         devocionalIndexService: localIndexService,
         cacheMetadataService: localMetadataService,
+        devocionalRepository: _buildMockRepository(),
       );
 
       // Initialize - this will load IDs first, then devotionals, then sync

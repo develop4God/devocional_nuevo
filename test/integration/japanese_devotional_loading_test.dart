@@ -1,16 +1,46 @@
 @Tags(['integration'])
 library;
 
+import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Integration test for Japanese devotional loading with new version codes
 /// Tests the complete flow: Constants -> Provider -> URL generation -> Copyright display
+
+class _MockDevocionalRepository extends Mock implements DevocionalRepository {}
+
+/// Builds a [DevocionalRepository] mock with fixture data so this test
+/// never depends on live network access.
+_MockDevocionalRepository _buildMockRepository() {
+  final repository = _MockDevocionalRepository();
+  final fixtureDevocionales = [
+    Devocional(
+      id: 'fixture_1',
+      date: DateTime.now(),
+      versiculo: 'Fixture verse',
+      reflexion: 'Fixture reflection',
+      paraMeditar: [ParaMeditar(cita: 'Fixture', texto: 'Fixture')],
+      oracion: 'Fixture prayer',
+    ),
+  ];
+  when(() => repository.getAvailableYears())
+      .thenAnswer((_) async => [DateTime.now().year]);
+  when(() => repository.fetchAll(any(), any(), any()))
+      .thenAnswer((_) async => fixtureDevocionales);
+  when(() => repository.filterByVersion(any(), any())).thenAnswer(
+      (invocation) => invocation.positionalArguments[0] as List<Devocional>);
+  when(() => repository.wasLastFetchOffline).thenReturn(false);
+  when(() => repository.resetCache()).thenReturn(null);
+  return repository;
+}
 
 void main() {
   // Mock platform channels
@@ -20,6 +50,7 @@ void main() {
   const MethodChannel ttsChannel = MethodChannel('flutter_tts');
 
   setUpAll(() async {
+    registerFallbackValue(0);
     TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -79,7 +110,9 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       ServiceLocator().reset();
       await setupServiceLocator();
-      provider = DevocionalProvider();
+      provider = DevocionalProvider(
+        devocionalRepository: _buildMockRepository(),
+      );
     });
 
     tearDown(() {
@@ -159,8 +192,7 @@ void main() {
       await provider.initializeData();
 
       // Set to Japanese
-      provider.setSelectedLanguage('ja', null);
-      await Future.delayed(const Duration(milliseconds: 300));
+      await provider.setSelectedLanguage('ja', null);
 
       expect(provider.selectedLanguage, equals('ja'));
       expect(provider.selectedVersion, equals('新改訳2003')); // Default
@@ -176,21 +208,18 @@ void main() {
       await provider.initializeData();
 
       // Set to Japanese
-      provider.setSelectedLanguage('ja', null);
-      await Future.delayed(const Duration(milliseconds: 300));
+      await provider.setSelectedLanguage('ja', null);
 
       expect(provider.selectedVersion, equals('新改訳2003'));
 
       // Switch to リビングバイブル
-      provider.setSelectedVersion('リビングバイブル');
-      await Future.delayed(const Duration(milliseconds: 300));
+      await provider.setSelectedVersion('リビングバイブル');
 
       expect(provider.selectedVersion, equals('リビングバイブル'));
       expect(provider.selectedLanguage, equals('ja'));
 
       // Switch back to 新改訳2003
-      provider.setSelectedVersion('新改訳2003');
-      await Future.delayed(const Duration(milliseconds: 300));
+      await provider.setSelectedVersion('新改訳2003');
 
       expect(provider.selectedVersion, equals('新改訳2003'));
     });
@@ -201,8 +230,7 @@ void main() {
         await provider.initializeData();
 
         // Start with Japanese
-        provider.setSelectedLanguage('ja', null);
-        await Future.delayed(const Duration(milliseconds: 300));
+        await provider.setSelectedLanguage('ja', null);
 
         // Verify default version is set
         expect(provider.selectedVersion, equals('新改訳2003'));
@@ -216,8 +244,7 @@ void main() {
         expect(url1, contains('ja_新改訳2003.json'));
 
         // Switch version
-        provider.setSelectedVersion('リビングバイブル');
-        await Future.delayed(const Duration(milliseconds: 300));
+        await provider.setSelectedVersion('リビングバイブル');
 
         // Verify URL changes
         final url2 = Constants.getDevocionalesApiUrlMultilingual(
@@ -242,15 +269,13 @@ void main() {
         await provider.initializeData();
 
         // Start with English
-        provider.setSelectedLanguage('en', null);
-        await Future.delayed(const Duration(milliseconds: 300));
+        await provider.setSelectedLanguage('en', null);
 
         expect(provider.selectedLanguage, equals('en'));
         expect(provider.selectedVersion, isNotEmpty);
 
         // Switch to Japanese
-        provider.setSelectedLanguage('ja', null);
-        await Future.delayed(const Duration(milliseconds: 300));
+        await provider.setSelectedLanguage('ja', null);
 
         // Should use Japanese default version
         expect(provider.selectedLanguage, equals('ja'));
