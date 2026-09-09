@@ -1,6 +1,8 @@
 @Tags(['unit', 'controllers'])
 library;
 
+import 'dart:async';
+
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
@@ -197,6 +199,43 @@ void main() {
         'Chinese text1: ${duration1.inSeconds}s, text2: ${duration2.inSeconds}s',
       );
     });
+
+    test(
+      'play() reaches error state gracefully when speak() hangs and times out',
+      () async {
+        // Regression test for the speak()-timeout path: simulate a hung
+        // native speak() call (never resolves) so the controller's short
+        // single-chunk timeout (TtsChunkProcessor.kQueueTimeoutSec = 10s)
+        // fires, and confirm the controller settles into a clean error
+        // state instead of crashing or hanging indefinitely.
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(const MethodChannel('flutter_tts'), (
+          call,
+        ) async {
+          if (call.method == 'speak') {
+            return Completer<dynamic>().future; // never resolves
+          }
+          switch (call.method) {
+            case 'stop':
+            case 'pause':
+            case 'setLanguage':
+            case 'setSpeechRate':
+            case 'setVolume':
+            case 'setPitch':
+            case 'awaitSpeakCompletion':
+              return 1;
+            default:
+              return null;
+          }
+        });
+
+        controller.setText('Short text');
+
+        await expectLater(controller.play(), completes);
+        expect(controller.state.value, TtsPlayerState.error);
+      },
+      timeout: const Timeout(Duration(seconds: 15)),
+    );
 
     test('pause handles errors gracefully without crashing', () async {
       // This test ensures that even if the native pause() method fails,
