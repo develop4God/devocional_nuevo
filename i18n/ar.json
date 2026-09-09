@@ -665,6 +665,7 @@
     "copied_to_clipboard": "تم النسخ إلى الحافظة",
     "no_verses": "لم يتم العثور على آيات",
     "select_version": "اختر الإصدار",
+    "select_book": "اختر السفر",
     "search": "بحث",
     "search_placeholder": "ابحث عن كلمات أو عبارات...",
     "no_search_results": "لم يتم العثور على نتائج",
