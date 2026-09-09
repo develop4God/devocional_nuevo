@@ -300,7 +300,16 @@
     "testimony_add_error": "Fehler beim Hinzufügen des Zeugnisses",
     "testimony_edit_error": "Fehler beim Bearbeiten des Zeugnisses",
     "testimony_delete_error": "Fehler beim Löschen des Zeugnisses",
-    "testimony_save_error": "Fehler beim {action} des Zeugnisses"
+    "testimony_save_error": "Fehler beim {action} des Zeugnisses",
+    "prayer_add_error": "Fehler beim Hinzufügen des Gebets",
+    "prayer_edit_error": "Fehler beim Bearbeiten des Gebets",
+    "prayer_delete_error": "Fehler beim Löschen des Gebets",
+    "prayer_mark_answered_error": "Fehler beim Markieren des Gebets als erhört",
+    "prayer_mark_active_error": "Fehler beim Markieren des Gebets als aktiv",
+    "prayer_update_comment_error": "Fehler beim Aktualisieren des Antwortkommentars",
+    "thanksgiving_add_error": "Fehler beim Hinzufügen der Danksagung",
+    "thanksgiving_edit_error": "Fehler beim Bearbeiten der Danksagung",
+    "thanksgiving_delete_error": "Fehler beim Löschen der Danksagung"
   },
   "messages": {
     "welcome": "Willkommen!",

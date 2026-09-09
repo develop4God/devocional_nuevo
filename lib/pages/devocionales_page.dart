@@ -28,7 +28,6 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/devocional_tts_sections.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
-import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/devotional_share_helper.dart';
 import 'package:devocional_nuevo/utils/localized_date_formatter.dart';
 import 'package:devocional_nuevo/widgets/add_entry_choice_modal.dart';
@@ -254,22 +253,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         if (!mounted) return;
       }
 
-      // Retry once if still empty (transient network failure on cold start).
-      if (devocionalProvider.devocionales.isEmpty &&
-          !devocionalProvider.isLoading) {
-        debugPrint(
-          '[DEVOCIONALES_PAGE] ⚠️ No devotionals after first attempt, '
-          'retrying in 2s...',
-        );
-        await Future.delayed(Constants.devocionalInitRetryDelay);
-        if (!mounted) return;
-        await devocionalProvider.initializeData();
-        if (!mounted) return;
-      }
-
-      // Validate devotionals are available
+      // Validate devotionals are available. initializeData() only completes
+      // after every fetch path (primary + fallback language) has reached a
+      // terminal state, so an empty list here reflects a real failure, not a
+      // timing gap — surface the provider's own error instead of guessing.
       if (devocionalProvider.devocionales.isEmpty) {
-        throw StateError('No devotionals available after initialization');
+        throw StateError(
+          devocionalProvider.errorMessage ??
+              'No devotionals available after initialization',
+        );
       }
 
       // Create BLoC with reused repository instances (avoids re-instantiation)
