@@ -300,7 +300,16 @@
     "testimony_add_error": "Error sa pagdaragdag ng patotoo",
     "testimony_edit_error": "Error sa pag-edit ng patotoo",
     "testimony_delete_error": "Error sa pagtanggal ng patotoo",
-    "testimony_save_error": "Error habang {action} ang patotoo"
+    "testimony_save_error": "Error habang {action} ang patotoo",
+    "prayer_add_error": "Error sa pagdaragdag ng panalangin",
+    "prayer_edit_error": "Error sa pag-edit ng panalangin",
+    "prayer_delete_error": "Error sa pagtanggal ng panalangin",
+    "prayer_mark_answered_error": "Error sa pag-mark ng panalangin bilang nasagot",
+    "prayer_mark_active_error": "Error sa pag-mark ng panalangin bilang aktibo",
+    "prayer_update_comment_error": "Error sa pag-update ng komentong sagot",
+    "thanksgiving_add_error": "Error sa pagdaragdag ng pasasalamat",
+    "thanksgiving_edit_error": "Error sa pag-edit ng pasasalamat",
+    "thanksgiving_delete_error": "Error sa pagtanggal ng pasasalamat"
   },
   "messages": {
     "welcome": "Maligayang pagdating!",

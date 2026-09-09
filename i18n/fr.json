@@ -300,7 +300,16 @@
     "testimony_add_error": "Erreur lors de l'ajout du témoignage",
     "testimony_edit_error": "Erreur lors de la modification du témoignage",
     "testimony_delete_error": "Erreur lors de la suppression du témoignage",
-    "testimony_save_error": "Erreur lors de la {action} du témoignage"
+    "testimony_save_error": "Erreur lors de la {action} du témoignage",
+    "prayer_add_error": "Erreur lors de l'ajout de la prière",
+    "prayer_edit_error": "Erreur lors de la modification de la prière",
+    "prayer_delete_error": "Erreur lors de la suppression de la prière",
+    "prayer_mark_answered_error": "Erreur lors du marquage de la prière comme exaucée",
+    "prayer_mark_active_error": "Erreur lors du marquage de la prière comme active",
+    "prayer_update_comment_error": "Erreur lors de la mise à jour du commentaire de réponse",
+    "thanksgiving_add_error": "Erreur lors de l'ajout de l'action de grâce",
+    "thanksgiving_edit_error": "Erreur lors de la modification de l'action de grâce",
+    "thanksgiving_delete_error": "Erreur lors de la suppression de l'action de grâce"
   },
   "messages": {
     "welcome": "Bienvenue !",
