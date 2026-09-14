@@ -7,7 +7,7 @@ Internal, developer-facing history generated from commit messages via
 Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 
 <!-- git-cliff: end of header -->
-## [unreleased]
+## [1.16.6+127] - 2026-09-14
 
 ### 🐛 Bug Fixes
 
@@ -17,6 +17,17 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - *(discovery)* Recreate PageController when study section count changes ([#321](https://github.com/develop4God/devocional_nuevo/issues/321))
 - *(startup)* Add Crashlytics breadcrumbs and per-branch timeout diagnostics ([#323](https://github.com/develop4God/devocional_nuevo/issues/323))
 - *(scrollbar)* Require explicit ScrollController on AppScrollbar ([#324](https://github.com/develop4God/devocional_nuevo/issues/324))
+- *(android)* Isolate resume-watchdog diagnostics from legacy noise
+- *(ci)* Raise Gradle heap for CodeQL manual build-mode to fix OOM
+- *(release-notes)* Update release notes for unexpected crash fixes
+
+### 🛡️ Security
+
+- Add OSV Scanner for pubspec.lock dependency vulnerabilities
+
+### 💼 Other
+
+- Fix Bible study navigation crash ([#321](https://github.com/develop4God/devocional_nuevo/issues/321)), startup diagnostics ([#323](https://github.com/develop4God/devocional_nuevo/issues/323)), resume-watchdog diagnostics ([#322](https://github.com/develop4God/devocional_nuevo/issues/322)), scrollbar controller requirement ([#324](https://github.com/develop4God/devocional_nuevo/issues/324)), plus CI stability fixes
 ## [1.16.5+126] - 2026-09-09
 
 ### 🚀 Features
