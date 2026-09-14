@@ -607,14 +607,25 @@ class _AppInitializerState extends State<AppInitializer> {
     _initializeInBackground();
   }
 
+  // Per-branch completion flags for the parallel startup tasks below, so a
+  // timeout can report which task(s) were still pending instead of only the
+  // aggregate "startup timed out" fact — Future.wait alone gives no per-
+  // branch status once one member is still outstanding at the timeout.
+  bool _criticalServicesDone = false;
+  bool _appDataDone = false;
+  bool _heroImageDone = false;
+
   Future<void> _initializeInBackground() async {
     final stopwatch = Stopwatch()..start();
+    _criticalServicesDone = false;
+    _appDataDone = false;
+    _heroImageDone = false;
 
     try {
       await Future.wait([
-        _initCriticalServices(),
-        _initAppData(),
-        _initDevotionalHeroImage(),
+        _initCriticalServices().then((_) => _criticalServicesDone = true),
+        _initAppData().then((_) => _appDataDone = true),
+        _initDevotionalHeroImage().then((_) => _heroImageDone = true),
         Future.delayed(_kMinSplashDisplay),
       ]).timeout(
         _kAppStartupTimeout,
@@ -666,12 +677,31 @@ class _AppInitializerState extends State<AppInitializer> {
   }
 
   List<dynamic> _handleStartupTimeout(Stopwatch stopwatch) {
+    // Identify which of the parallel startup tasks was still pending when
+    // the timeout fired — Future.wait alone only reports that the group
+    // didn't finish in time, not which member(s) were the straggler(s).
+    final pendingTasks = <String>[
+      if (!_criticalServicesDone) 'criticalServices',
+      if (!_appDataDone) 'appData',
+      if (!_heroImageDone) 'heroImage',
+    ];
+    final pendingLabel = pendingTasks.isEmpty ? 'none' : pendingTasks.join('+');
+
     developer.log(
-      'Startup timeout after ${stopwatch.elapsedMilliseconds}ms',
+      'Startup timeout after ${stopwatch.elapsedMilliseconds}ms, pending=$pendingLabel',
       name: 'AppInitializer',
     );
+    FirebaseCrashlytics.instance.log(
+      'startup_timeout: pending=$pendingLabel, elapsedMs=${stopwatch.elapsedMilliseconds}',
+    );
+    // Exception message intentionally carries the pending-task label —
+    // Crashlytics groups issues by exception type + message + stack, so this
+    // both (a) starts a fresh issue separate from the legacy "App startup
+    // timeout" events that carry no per-task diagnostic, and (b) splits by
+    // which task was the straggler, matching the resume-watchdog diagnostic
+    // logging approach used for the black-screen-on-resume issue.
     FirebaseCrashlytics.instance.recordError(
-      TimeoutException('App startup timeout'),
+      TimeoutException('App startup timeout v2 (pending=$pendingLabel)'),
       StackTrace.current,
       fatal: false,
       reason: 'App startup exceeded ${_kAppStartupTimeout.inSeconds}s',
@@ -681,11 +711,17 @@ class _AppInitializerState extends State<AppInitializer> {
   }
 
   Future<void> _initCriticalServices() async {
+    final stepStopwatch = Stopwatch()..start();
     try {
       _startupLog('FirebaseAuth.signInAnonymously() starting');
+      FirebaseCrashlytics.instance
+          .log('startup_step: signInAnonymously starting');
       final FirebaseAuth auth = FirebaseAuth.instance;
       if (auth.currentUser == null) await auth.signInAnonymously();
       _startupLog('FirebaseAuth.signInAnonymously() done');
+      FirebaseCrashlytics.instance.log(
+        'startup_step: signInAnonymously done in ${stepStopwatch.elapsedMilliseconds}ms',
+      );
     } catch (e) {
       // Anonymous auth is non-critical, app works without it
       developer.log(
@@ -693,7 +729,11 @@ class _AppInitializerState extends State<AppInitializer> {
         name: '_initializeApp',
         error: e,
       );
+      FirebaseCrashlytics.instance.log(
+        'startup_step: signInAnonymously failed after ${stepStopwatch.elapsedMilliseconds}ms: $e',
+      );
     }
+    stepStopwatch.reset();
     try {
       _startupLog('tzdata.initializeTimeZones() starting');
       tzdata.initializeTimeZones();
@@ -705,6 +745,9 @@ class _AppInitializerState extends State<AppInitializer> {
         name: '_initializeApp',
         error: e,
       );
+      FirebaseCrashlytics.instance.log(
+        'startup_step: initializeTimeZones failed: $e',
+      );
     }
   }
 
@@ -712,11 +755,20 @@ class _AppInitializerState extends State<AppInitializer> {
   /// home page's first frame. Non-critical — any failure leaves the verse
   /// card without a background rather than blocking or delaying startup.
   Future<void> _initDevotionalHeroImage() async {
+    final stepStopwatch = Stopwatch()..start();
     try {
       _startupLog('devotionalHeroImage.prepareInitial() starting');
+      FirebaseCrashlytics.instance
+          .log('startup_step: heroImage.prepareInitial starting');
       await getService<DevotionalImageRepository>().prepareInitial();
       _startupLog('devotionalHeroImage.prepareInitial() done');
+      FirebaseCrashlytics.instance.log(
+        'startup_step: heroImage.prepareInitial done in ${stepStopwatch.elapsedMilliseconds}ms',
+      );
     } catch (e) {
+      FirebaseCrashlytics.instance.log(
+        'startup_step: heroImage.prepareInitial failed after ${stepStopwatch.elapsedMilliseconds}ms: $e',
+      );
       developer.log(
         'Devotional hero image init failed: $e',
         name: '_initDevotionalHeroImage',
@@ -761,6 +813,12 @@ class _AppInitializerState extends State<AppInitializer> {
 
   Future<void> _initAppData() async {
     if (!mounted) return;
+    // Tracks which sub-step was in flight when a failure hit, so the
+    // Crashlytics breadcrumb identifies the actual culprit instead of only
+    // "DevocionalProvider initialization failed" for any of the three
+    // sequential sub-steps below.
+    var currentStep = 'devocionalProvider.initializeData';
+    final stepStopwatch = Stopwatch()..start();
     try {
       final devocionalProvider = Provider.of<DevocionalProvider>(
         context,
@@ -769,23 +827,35 @@ class _AppInitializerState extends State<AppInitializer> {
       _startupLog('devocionalProvider.initializeData() starting');
       await devocionalProvider.initializeData();
       _startupLog('devocionalProvider.initializeData() done');
+      FirebaseCrashlytics.instance.log(
+        'startup_step: $currentStep done in ${stepStopwatch.elapsedMilliseconds}ms',
+      );
 
       // Run all one-time startup migrations after data is loaded.
+      currentStep = 'spiritualStatsService.getStats';
       _startupLog('spiritualStatsService.getStats() starting');
       final stats = await getService<ISpiritualStatsService>().getStats();
       _startupLog('spiritualStatsService.getStats() done');
+
+      currentStep = 'startupMigrationService.runAll';
       _startupLog('startupMigrationService.runAll() starting');
       await getService<IStartupMigrationService>().runAll(
         devocionalProvider.devocionales,
         stats.readDevocionalIds,
       );
       _startupLog('startupMigrationService.runAll() done');
+      FirebaseCrashlytics.instance.log(
+        'startup_step: appData fully done in ${stepStopwatch.elapsedMilliseconds}ms',
+      );
     } catch (e) {
       // Data initialization errors are logged for debugging
       developer.log(
         'DevocionalProvider initialization failed: $e',
         name: '_initAppData',
         error: e,
+      );
+      FirebaseCrashlytics.instance.log(
+        'startup_step: $currentStep failed after ${stepStopwatch.elapsedMilliseconds}ms: $e',
       );
     }
   }

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 /// Widget that displays a grid of verses for selection in the Bible reader
 /// Replaces the dropdown approach for better UX and navigation
-class BibleVerseGridSelector extends StatelessWidget {
+class BibleVerseGridSelector extends StatefulWidget {
   /// Total number of verses in the current chapter
   final int totalVerses;
 
@@ -29,6 +29,19 @@ class BibleVerseGridSelector extends StatelessWidget {
     required this.chapterNumber,
     super.key,
   });
+
+  @override
+  State<BibleVerseGridSelector> createState() => _BibleVerseGridSelectorState();
+}
+
+class _BibleVerseGridSelectorState extends State<BibleVerseGridSelector> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +84,7 @@ class BibleVerseGridSelector extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '$bookName $chapterNumber',
+                          '${widget.bookName} ${widget.chapterNumber}',
                           style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.onPrimaryContainer.withValues(
                               alpha: 0.8,
@@ -96,7 +109,8 @@ class BibleVerseGridSelector extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Text(
-                'bible.total_verses'.tr({'count': totalVerses.toString()}),
+                'bible.total_verses'
+                    .tr({'count': widget.totalVerses.toString()}),
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
@@ -105,7 +119,9 @@ class BibleVerseGridSelector extends StatelessWidget {
             // Grid
             Expanded(
               child: AppScrollbar(
+                controller: _scrollController,
                 child: GridView.builder(
+                  controller: _scrollController,
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 6,
@@ -113,10 +129,10 @@ class BibleVerseGridSelector extends StatelessWidget {
                     mainAxisSpacing: 8,
                     childAspectRatio: 1.0,
                   ),
-                  itemCount: totalVerses,
+                  itemCount: widget.totalVerses,
                   itemBuilder: (context, index) {
                     final verseNumber = index + 1;
-                    final isSelected = verseNumber == selectedVerse;
+                    final isSelected = verseNumber == widget.selectedVerse;
 
                     return _buildVerseItem(
                       verseNumber,
@@ -147,7 +163,7 @@ class BibleVerseGridSelector extends StatelessWidget {
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        onTap: () => onVerseSelected(verseNumber),
+        onTap: () => widget.onVerseSelected(verseNumber),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
