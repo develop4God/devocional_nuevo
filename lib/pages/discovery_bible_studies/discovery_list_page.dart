@@ -345,6 +345,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       controller: _swiperController,
       physics: const BouncingScrollPhysics(),
       scrollDirection: Axis.horizontal,
+      loop: false,
       index: _currentIndex,
       itemBuilder: (context, index) {
         final studyId = studyIds[index];
