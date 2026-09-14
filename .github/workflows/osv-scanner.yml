@@ -1,0 +1,40 @@
+name: OSV Scanner (dependencies)
+
+# CodeQL has no Dart support, so this app's actual Dart business logic
+# gets no code-level SAST coverage from any free tool (verified: no
+# dart/ directory in github/semgrep-rules, no CodeQL Dart extractor).
+# OSV Scanner is the real, practical alternative for Dart/Flutter:
+# checks pubspec.lock's resolved package versions against the OSV
+# vulnerability database, which is genuine coverage other Flutter
+# projects rely on for exactly this gap (e.g. aliawami/flutter_security_
+# detection's analyze-dart job) even though it's dependency-level, not
+# code-level, scanning.
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'pubspec.lock'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'pubspec.lock'
+  schedule:
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  osv-scan:
+    name: OSV Scanner (pubspec.lock)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: OSV Scanner
+        uses: google/osv-scanner-action/osv-scanner-action@v2.6.0
+        with:
+          scan-args: |-
+            --lockfile=pubspec.lock
