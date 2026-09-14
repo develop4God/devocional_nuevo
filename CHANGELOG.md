@@ -14,6 +14,9 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - *(ci)* Switch CodeQL java-kotlin analysis to manual build mode
 - *(ci)* Make git-cliff download fail loudly and retry on transient errors
 - *(ci)* Fix real root cause of git-cliff install failure — filename mismatch
+- *(discovery)* Recreate PageController when study section count changes ([#321](https://github.com/develop4God/devocional_nuevo/issues/321))
+- *(startup)* Add Crashlytics breadcrumbs and per-branch timeout diagnostics ([#323](https://github.com/develop4God/devocional_nuevo/issues/323))
+- *(scrollbar)* Require explicit ScrollController on AppScrollbar ([#324](https://github.com/develop4God/devocional_nuevo/issues/324))
 ## [1.16.5+126] - 2026-09-09
 
 ### 🚀 Features

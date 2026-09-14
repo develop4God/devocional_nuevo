@@ -2,8 +2,8 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.9-blue.svg)](https://flutter.dev/)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Tests](https://img.shields.io/badge/Tests-58+-brightgreen.svg)](#-testing--pruebas)
-[![Coverage](https://img.shields.io/badge/Coverage-76.5%25-brightgreen.svg)](#-testing--pruebas)
+[![Tests](https://img.shields.io/badge/Tests-48+-brightgreen.svg)](#-testing--pruebas)
+[![Coverage](https://img.shields.io/badge/Coverage-76.6%25-brightgreen.svg)](#-testing--pruebas)
 [![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](#)
 
 ---
@@ -63,8 +63,8 @@ favorites, spiritual tracking, and intelligent review system.
 | Metric              | Value                        |
 |---------------------|------------------------------|
 | Source Files (lib/) | 292 Dart files               |
-| Test Files          | 321 test files               |
-| Total Tests         | 58 tests (100% passing ✅) |
+| Test Files          | 323 test files               |
+| Total Tests         | 48 tests (100% passing ✅) |
 | Test Coverage       | 51.9% (10,725/20,666 lines)   |
 | Supported Languages | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Static Analysis     | ✅ All checks passing         |
@@ -102,7 +102,7 @@ test/
 ├── integration/  (10 tests)
 ├── migration/  (2 tests)
 ├── models/  (1 tests)
-└── unit/  (298 tests)
+└── unit/  (300 tests)
 ```
 <!-- /README-STATS:test-tree-en -->
 
@@ -186,9 +186,9 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 | Métrica                | Valor                              |
 |------------------------|------------------------------------|
 | Archivos Fuente (lib/) | 292 archivos Dart                  |
-| Archivos de Test       | 321 archivos                       |
-| Total de Tests         | 58 tests (100% aprobados ✅)     |
-| Cobertura de Tests     | 76.5% (17,140/22,410 líneas)        |
+| Archivos de Test       | 323 archivos                       |
+| Total de Tests         | 48 tests (100% aprobados ✅)     |
+| Cobertura de Tests     | 76.6% (17,200/22,468 líneas)        |
 | Idiomas Soportados     | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Análisis Estático      | ✅ Todas las verificaciones pasando |
 
