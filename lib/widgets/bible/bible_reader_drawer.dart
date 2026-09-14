@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 /// Tapping a downloadable version starts the download in place, showing
 /// progress on that item's icon; the drawer stays open (and cannot be
 /// dismissed) until the caller closes it once the download completes.
-class BibleReaderDrawer extends StatelessWidget {
+class BibleReaderDrawer extends StatefulWidget {
   final List<BibleVersion> availableVersions;
   final BibleVersion? selectedVersion;
   final List<BibleVersion> downloadableVersions;
@@ -31,7 +31,20 @@ class BibleReaderDrawer extends StatelessWidget {
     required this.onDownloadVersion,
   });
 
-  bool get _isDownloading => downloadStatuses.values.any(
+  @override
+  State<BibleReaderDrawer> createState() => _BibleReaderDrawerState();
+}
+
+class _BibleReaderDrawerState extends State<BibleReaderDrawer> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  bool get _isDownloading => widget.downloadStatuses.values.any(
         (status) => status.errorMessageKey == null && !status.isComplete,
       );
 
@@ -86,12 +99,14 @@ class BibleReaderDrawer extends StatelessWidget {
               ),
               Expanded(
                 child: AppScrollbar(
+                  controller: _scrollController,
                   child: ListView(
+                    controller: _scrollController,
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     children: [
-                      ...availableVersions.map((version) {
-                        final isSelected =
-                            version.dbFileName == selectedVersion?.dbFileName;
+                      ...widget.availableVersions.map((version) {
+                        final isSelected = version.dbFileName ==
+                            widget.selectedVersion?.dbFileName;
                         return ListTile(
                           key: Key(
                             'bible_reader_drawer_version_${version.dbFileName}',
@@ -131,7 +146,7 @@ class BibleReaderDrawer extends StatelessWidget {
                                   ),
                                 ),
                               Text(
-                                versionLabelBuilder(version),
+                                widget.versionLabelBuilder(version),
                                 style: textTheme.bodyMedium?.copyWith(
                                   fontSize: 16,
                                   color: colorScheme.onSurface,
@@ -156,14 +171,14 @@ class BibleReaderDrawer extends StatelessWidget {
                                             'for ${version.dbFileName} — '
                                             'remoteHash=${version.remoteHash}',
                                           );
-                                          onDownloadVersion(version);
+                                          widget.onDownloadVersion(version);
                                         },
                                   child: _downloadTrailing(
                                     colorScheme.copyWith(
                                       primary: BubbleConstants
                                           .contentUpdateAvailableColor,
                                     ),
-                                    downloadStatuses[version.dbFileName],
+                                    widget.downloadStatuses[version.dbFileName],
                                   ),
                                 )
                               : null,
@@ -171,12 +186,15 @@ class BibleReaderDrawer extends StatelessWidget {
                               ? null
                               : () {
                                   Navigator.of(context).pop();
-                                  if (!isSelected) onVersionSelected(version);
+                                  if (!isSelected) {
+                                    widget.onVersionSelected(version);
+                                  }
                                 },
                         );
                       }),
-                      ...downloadableVersions.map((version) {
-                        final status = downloadStatuses[version.dbFileName];
+                      ...widget.downloadableVersions.map((version) {
+                        final status =
+                            widget.downloadStatuses[version.dbFileName];
                         final bubbleId =
                             'bible_reader_drawer_remote_${version.dbFileName}';
                         return _DownloadableVersionTile(
@@ -184,7 +202,7 @@ class BibleReaderDrawer extends StatelessWidget {
                             'bible_reader_drawer_downloadable_${version.dbFileName}',
                           ),
                           bubbleId: bubbleId,
-                          label: versionLabelBuilder(version),
+                          label: widget.versionLabelBuilder(version),
                           status: status,
                           colorScheme: colorScheme,
                           textTheme: textTheme,
@@ -192,7 +210,7 @@ class BibleReaderDrawer extends StatelessWidget {
                           onTap:
                               status == null || status.errorMessageKey != null
                                   ? () {
-                                      onDownloadVersion(version);
+                                      widget.onDownloadVersion(version);
                                     }
                                   : null,
                         );
