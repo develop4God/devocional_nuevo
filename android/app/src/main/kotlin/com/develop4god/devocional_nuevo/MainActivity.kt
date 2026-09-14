@@ -126,70 +126,87 @@ class MainActivity : FlutterActivity() {
         if (!watchdogPrefs.getBoolean(prefKeyPending, false)) return
 
         val pendingSinceMs = watchdogPrefs.getLong(prefKeyPendingSince, 0L)
-        val staleForMs = if (pendingSinceMs > 0) System.currentTimeMillis() - pendingSinceMs else -1L
+        // Time since the app was last backgrounded (onPause), not the duration
+        // of any freeze — a stuck app force-closed quickly and a healthy app
+        // left backgrounded for days both flow through this same field, so it
+        // cannot by itself distinguish a genuine black-screen freeze from an
+        // ordinary background gap. Named for what it measures to avoid the
+        // previous misleading "staleForMs" label.
+        val backgroundedForMs = if (pendingSinceMs > 0) System.currentTimeMillis() - pendingSinceMs else -1L
         watchdogPrefs.edit().clear().apply()
 
-        if (!likelyMatchesBlackScreenExit()) return
+        val exitReasonLabel = blackScreenExitReasonLabel()
+        if (exitReasonLabel == null) return
 
         FirebaseCrashlytics.getInstance().log(
-            "resume_watchdog: unconfirmed resume detected on cold start, staleForMs=$staleForMs"
+            "resume_watchdog: unconfirmed resume detected on cold start, " +
+                "backgroundedForMs=$backgroundedForMs, exitReason=$exitReasonLabel"
         )
+        // Exception message intentionally changed from the original
+        // "Resume never confirmed drawn before app restart (possible
+        // black-screen-on-resume)" — Crashlytics groups issues by exception
+        // type + message + stack trace, so changing the message here starts a
+        // fresh issue. This isolates events carrying the new exitReason/
+        // backgroundedForMs diagnostics from the ~823 legacy events already
+        // filed under the old message, which lack that data and were mostly
+        // noise (background-gap duration, not freeze duration). Query the new
+        // issue going forward; the old one can stay as historical reference.
         FirebaseCrashlytics.getInstance().recordException(
-            Exception("Resume never confirmed drawn before app restart (possible black-screen-on-resume)")
+            Exception("Resume never confirmed drawn before app restart v2 (exitReason=$exitReasonLabel)")
         )
     }
 
-    // Returns true only if the most recent process exit reason plausibly
-    // matches a genuine freeze (ANR, crash, or the process being killed by a
-    // signal — e.g. Force Stop / SIGKILL, which is what a stuck user's
-    // manual force-close produces). Explicitly excludes REASON_LOW_MEMORY
-    // (ordinary OS background reaping) and REASON_USER_REQUESTED (the user
-    // just closed the app normally), which are common and unrelated to this
-    // bug. Returns true (fail open) if the reason can't be determined, e.g.
-    // on API < 30, so the signal defaults to reporting rather than silently
-    // under-counting on older devices.
+    // Returns a label identifying the most recent process exit reason if it
+    // plausibly matches a genuine freeze (ANR, crash, or the process being
+    // killed by a signal — e.g. Force Stop / SIGKILL, which is what a stuck
+    // user's manual force-close produces), or null if it doesn't (ordinary
+    // OS-reaped background kill, or the user just closing the app normally).
+    // Returns "FAIL_OPEN_<reason>" if reporting defaults to on because the
+    // reason can't be determined (API < 30, missing ActivityManager, read
+    // failure, or an exit reason this code doesn't explicitly recognize) —
+    // so the signal defaults to reporting rather than silently under-counting,
+    // while still making that distinct case visible in Crashlytics instead of
+    // indistinguishable from a confirmed ANR/CRASH/SIGNALED match.
     //
     // getHistoricalProcessExitReasons() is a documented AOSP API but reads
     // OEM-maintained process-death bookkeeping, which several other checks
     // in this investigation found to be inconsistently implemented (e.g.
     // MIUI's own ANR-suppression layer) — wrapped defensively so a failure
     // here can never crash onCreate() or block app startup.
-    private fun likelyMatchesBlackScreenExit(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return true
+    private fun blackScreenExitReasonLabel(): String? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return "FAIL_OPEN_API_BELOW_30"
 
         return try {
             val activityManager = getSystemService(ACTIVITY_SERVICE) as? android.app.ActivityManager
-                ?: return true
+                ?: return "FAIL_OPEN_NO_ACTIVITY_MANAGER"
             val reasons = activityManager.getHistoricalProcessExitReasons(packageName, 0, 1)
-            val lastReason = reasons.firstOrNull()?.reason ?: return true
+            val lastReason = reasons.firstOrNull()?.reason ?: return "FAIL_OPEN_NO_EXIT_INFO"
 
             when (lastReason) {
-                android.app.ApplicationExitInfo.REASON_ANR,
-                android.app.ApplicationExitInfo.REASON_CRASH,
-                android.app.ApplicationExitInfo.REASON_CRASH_NATIVE,
-                android.app.ApplicationExitInfo.REASON_SIGNALED -> true
+                android.app.ApplicationExitInfo.REASON_ANR -> "ANR"
+                android.app.ApplicationExitInfo.REASON_CRASH -> "CRASH"
+                android.app.ApplicationExitInfo.REASON_CRASH_NATIVE -> "CRASH_NATIVE"
+                android.app.ApplicationExitInfo.REASON_SIGNALED -> "SIGNALED"
                 android.app.ApplicationExitInfo.REASON_LOW_MEMORY,
-                android.app.ApplicationExitInfo.REASON_USER_REQUESTED -> false
+                android.app.ApplicationExitInfo.REASON_USER_REQUESTED -> null
                 else -> {
                     // Not one of the reasons we explicitly recognize either
                     // way (e.g. REASON_OTHER, REASON_UNKNOWN, or a new
-                    // constant added in a future Android version). Log it
-                    // verbatim instead of silently lumping it in with the
-                    // known-excluded cases, so an unexpected pattern is
+                    // constant added in a future Android version). Fail open
+                    // and carry the raw code so an unexpected pattern is
                     // visible if it starts showing up in Crashlytics.
-                    FirebaseCrashlytics.getInstance().log(
-                        "resume_watchdog: unrecognized exit reason code=$lastReason"
-                    )
-                    false
+                    "FAIL_OPEN_UNRECOGNIZED_$lastReason"
                 }
             }
         } catch (e: Exception) {
             // Never let a telemetry read failure affect startup; fail open
             // so the underlying signal still gets reported rather than lost.
+            // Keep the actual exception message, not just its class name, so
+            // the specific OEM read failure is visible in Crashlytics.
             FirebaseCrashlytics.getInstance().log(
                 "resume_watchdog: error reading exit reason: ${e.message}"
             )
-            true
+            "FAIL_OPEN_ERROR_${e.javaClass.simpleName}"
         }
     }
 
