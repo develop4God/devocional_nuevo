@@ -39,9 +39,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   int _currentSectionIndex = 0;
 
   // Reduced fraction to 0.88 to make the "peeking" of next/prev cards much more obvious
-  late final PageController _pageController = PageController(
-    viewportFraction: 0.88,
-  );
+  PageController _pageController = PageController(viewportFraction: 0.88);
+  int? _lastKnownTotalPages;
   bool _isCelebrating = false;
   bool _hasTriggeredCompletion = false;
 
@@ -150,6 +149,40 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                   state.isStudyCompleted(widget.studyId) ||
                       _hasTriggeredCompletion;
 
+              final totalPages = _getTotalPages(study);
+              debugPrint(
+                '🔍 [DiscoveryDetailPage] build: studyId=${widget.studyId} '
+                'studyHash=${study.hashCode} cardsLen=${study.cards.length} '
+                'seccionesLen=${study.secciones?.length} '
+                'totalSections=${study.totalSections} totalPages=$totalPages '
+                '_lastKnownTotalPages=$_lastKnownTotalPages '
+                'controllerHash=${_pageController.hashCode} '
+                'currentSectionIndex=$_currentSectionIndex',
+              );
+              if (_lastKnownTotalPages != null &&
+                  _lastKnownTotalPages != totalPages) {
+                debugPrint(
+                  '⚠️ [DiscoveryDetailPage] totalPages changed '
+                  '$_lastKnownTotalPages -> $totalPages, recreating controller',
+                );
+                // The study object backing this page can be swapped for a
+                // different instance with a different card count while this
+                // page stays mounted (e.g. a background refetch or locale
+                // refresh). The PageController must be recreated so it isn't
+                // reused against a viewport built for a different itemCount,
+                // which otherwise desyncs SliverFillViewport's geometry and
+                // crashes with a scrollExtent that isn't a multiple of
+                // itemExtent.
+                _pageController.dispose();
+                _pageController = PageController(
+                  viewportFraction: 0.88,
+                  initialPage: _currentSectionIndex.clamp(0, totalPages - 1),
+                );
+                _currentSectionIndex =
+                    _currentSectionIndex.clamp(0, totalPages - 1);
+              }
+              _lastKnownTotalPages = totalPages;
+
               return Stack(
                 children: [
                   Column(
@@ -158,17 +191,32 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                       _buildStudyHeader(study, theme),
                       Expanded(
                         child: PageView.builder(
+                          key: ValueKey(_pageController),
                           controller: _pageController,
                           onPageChanged: (index) =>
                               setState(() => _currentSectionIndex = index),
-                          itemCount: _getTotalPages(study),
+                          itemCount: totalPages,
                           physics: const BouncingScrollPhysics(),
                           itemBuilder: (context, index) {
+                            debugPrint(
+                              '🧩 [DiscoveryDetailPage] itemBuilder index=$index '
+                              'totalPages=$totalPages '
+                              'controllerHash=${_pageController.hashCode} '
+                              'hasClients=${_pageController.hasClients} '
+                              'positionsCount=${_pageController.positions.length}',
+                            );
                             return AnimatedBuilder(
                               animation: _pageController,
                               builder: (context, child) {
                                 double value = 1.0;
                                 if (_pageController.position.haveDimensions) {
+                                  debugPrint(
+                                    '📐 [DiscoveryDetailPage] AnimatedBuilder '
+                                    'index=$index page=${_pageController.page} '
+                                    'maxScrollExtent='
+                                    '${_pageController.position.maxScrollExtent} '
+                                    'pixels=${_pageController.position.pixels}',
+                                  );
                                   value = _pageController.page! - index;
                                   // Subtle scale and fade for cards as they move away from center
                                   value = (1 - (value.abs() * 0.12)).clamp(
