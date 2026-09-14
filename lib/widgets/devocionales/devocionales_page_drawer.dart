@@ -27,11 +27,18 @@ class DevocionalesDrawer extends StatefulWidget {
 
 class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
   List<BibleVersion> _loadedVersions = [];
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _loadVersionsForCurrentLanguage();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadVersionsForCurrentLanguage() async {
@@ -423,7 +430,9 @@ class _DevocionalesDrawerState extends State<DevocionalesDrawer> {
                 ),
                 Expanded(
                   child: AppScrollbar(
+                    controller: _scrollController,
                     child: ListView(
+                      controller: _scrollController,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,

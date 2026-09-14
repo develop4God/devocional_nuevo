@@ -26,11 +26,18 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
   final Map<String, double> _downloadProgress = {};
   final Map<String, bool> _isDownloading = {};
   String? _currentLanguage;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _loadDownloadStatus();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadDownloadStatus() async {
@@ -370,7 +377,9 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         appBar: CustomAppBar(titleText: 'application_language.title'.tr()),
         backgroundColor: theme.colorScheme.surface,
         body: AppScrollbar(
+          controller: _scrollController,
           child: ListView(
+            controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
               Padding(
