@@ -58,7 +58,20 @@ jobs:
           build-mode: manual
 
       - name: Build Android app (debug)
-        run: flutter build apk --debug
+        # gradle.properties is a plain Java .properties file: a repeated key
+        # overrides the earlier one, it doesn't merge. Rewrite the existing
+        # org.gradle.jvmargs line's -Xmx in place (keeping its other flags —
+        # MaxMetaspaceSize, ReservedCodeCacheSize, module-opens) rather than
+        # appending a second line or using GRADLE_OPTS (which would replace
+        # the whole jvmargs value, dropping those flags). Raises the heap
+        # from 3072m to 4096m for CodeQL's manual build-mode tracing, which
+        # adds memory overhead on top of the normal build and was OOMing
+        # during the Jetifier transform step (JetifyTransform: Java heap
+        # space) at the existing heap size. Scoped to this CI job only —
+        # local/other CI builds keep the original 3072m default.
+        run: |
+          sed -i 's/-Xmx3072m/-Xmx4096m/' android/gradle.properties
+          flutter build apk --debug
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
