@@ -188,13 +188,21 @@ class MainActivity : FlutterActivity() {
                 android.app.ApplicationExitInfo.REASON_CRASH_NATIVE -> "CRASH_NATIVE"
                 android.app.ApplicationExitInfo.REASON_SIGNALED -> "SIGNALED"
                 android.app.ApplicationExitInfo.REASON_LOW_MEMORY,
-                android.app.ApplicationExitInfo.REASON_USER_REQUESTED -> null
+                android.app.ApplicationExitInfo.REASON_USER_REQUESTED,
+                // REASON_OTHER (13): confirmed via v2 diagnostic data (Sep 2026)
+                // to always pair with multi-hour+ backgroundedForMs — the OS
+                // reclaiming a long-idle process, not a freeze.
+                android.app.ApplicationExitInfo.REASON_OTHER,
+                // REASON_PACKAGE_UPDATED (16): confirmed via v2 diagnostic data
+                // to always pair with a short backgroundedForMs — the process
+                // killed to apply an app update, then promptly relaunched.
+                android.app.ApplicationExitInfo.REASON_PACKAGE_UPDATED -> null
                 else -> {
                     // Not one of the reasons we explicitly recognize either
-                    // way (e.g. REASON_OTHER, REASON_UNKNOWN, or a new
-                    // constant added in a future Android version). Fail open
-                    // and carry the raw code so an unexpected pattern is
-                    // visible if it starts showing up in Crashlytics.
+                    // way (e.g. REASON_UNKNOWN, or a new constant added in a
+                    // future Android version). Fail open and carry the raw
+                    // code so an unexpected pattern is visible if it starts
+                    // showing up in Crashlytics.
                     "FAIL_OPEN_UNRECOGNIZED_$lastReason"
                 }
             }
