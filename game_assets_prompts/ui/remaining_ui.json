@@ -1,0 +1,13 @@
+{
+  "style_guide": {
+    "art_style": "stylized 2D top-down mobile game art, clean bold silhouettes, chibi-proportioned characters (large head-to-body ratio), bright warm color palette, soft cel-shading, no gritty/realistic textures, readable at small mobile screen size, inspired by Brawl Stars' top-down clarity but with a hopeful/warm biblical-era tone instead of cartoon violence",
+    "negative_prompt": "no weapons drawn as combat tools, no blood, no violence, no photorealism, no dark/gritty tone, no text or watermarks, no extra limbs, no cropped characters",
+    "consistency_anchor": "same lighting direction (top-left soft sun), same color saturation level, same outline thickness across all assets to keep visual unity"
+  },
+  "prompts": {
+    "hud_position_indicator": "2D flat game UI icon, simple numbered rank badge (1st/2nd/3rd style), rounded icon frame, warm gold accent color, transparent background, no text except rank number",
+    "rank_ladder_icon": "2D flat game UI icon, simple ascending stairs or star-tier symbol, warm gold accent, rounded icon frame, transparent background, no text",
+    "currency_icon": "2D flat game UI icon, small glowing olive-branch or coin-like token symbol, warm gold accent, rounded icon frame, transparent background, no text",
+    "main_menu_logo_background": "2D stylized game main menu background, warm dawn sky over a hopeful desert/city landscape blending all hero themes, soft painterly cel-shaded style, empty space at top for logo, no characters, no text"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "style_guide": {
+    "art_style": "stylized 2D top-down mobile game art, clean bold silhouettes, chibi-proportioned characters (large head-to-body ratio), bright warm color palette, soft cel-shading, no gritty/realistic textures, readable at small mobile screen size, inspired by Brawl Stars' top-down clarity but with a hopeful/warm biblical-era tone instead of cartoon violence",
+    "negative_prompt": "no weapons drawn as combat tools, no blood, no violence, no photorealism, no dark/gritty tone, no text or watermarks, no extra limbs, no cropped characters",
+    "consistency_anchor": "same lighting direction (top-left soft sun), same color saturation level, same outline thickness across all assets to keep visual unity"
+  },
+  "resolution_tile": "1024x1024, seamless tileable texture",
+  "map_id": "red_sea_crossing",
+  "prompts": {
+    "tileset_ground": "seamless tileable 2D top-down game texture, parted sea corridor, wet sand path, tall water walls on either side, soft cel-shaded style, bright warm color palette, no characters, no text, 1024x1024",
+    "tileset_hazard_zone": "seamless tileable 2D top-down game texture, parted sea corridor, wet sand path, tall water walls on either side tense danger-zone variant, warm-to-dim color transition, soft cel-shaded style, no characters, no text, 1024x1024",
+    "tileset_safe_zone": "seamless tileable 2D top-down game texture, parted sea corridor, wet sand path, tall water walls on either side safe haven variant with glowing soft edge, cel-shaded style, no characters, no text, 1024x1024",
+    "hazard_animation": "2D top-down game sprite, tall walls of turquoise water rising and slowly narrowing the path, glowing foam edges, non-violent, dramatic but hopeful tone, transparent background, no text",
+    "background_parallax": "2D stylized game background, parted Red Sea corridor at dawn, tall water walls glowing with soft light, distant shoreline silhouette, painterly cel-shaded style, no text"
+  }
+}

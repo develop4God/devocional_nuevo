@@ -1,0 +1,16 @@
+{
+  "style_guide": {
+    "art_style": "stylized 2D top-down mobile game art, clean bold silhouettes, chibi-proportioned characters (large head-to-body ratio), bright warm color palette, soft cel-shading, no gritty/realistic textures, readable at small mobile screen size, inspired by Brawl Stars' top-down clarity but with a hopeful/warm biblical-era tone instead of cartoon violence",
+    "negative_prompt": "no weapons drawn as combat tools, no blood, no violence, no photorealism, no dark/gritty tone, no text or watermarks, no extra limbs, no cropped characters",
+    "consistency_anchor": "same lighting direction (top-left soft sun), same color saturation level, same outline thickness across all assets to keep visual unity"
+  },
+  "resolution_character": "1024x1024, transparent background, centered character, top-down 3/4 angle",
+  "hero_id": "nehemiah",
+  "prompts": {
+    "idle": "stylized 2D top-down mobile game character, adult man Nehemiah, determined builder, simple brown tunic with tool belt, sturdy build, standing idle pose, top-down 3/4 angle, bright warm color palette, soft cel-shading, transparent background, no weapons in combat pose, no text",
+    "run_cycle_4_frames": "stylized 2D top-down mobile game character sprite sheet, 4-frame running animation, adult man Nehemiah, determined builder, simple brown tunic with tool belt, sturdy build, dynamic running pose sequence, top-down 3/4 angle, bright warm color palette, soft cel-shading, transparent background, consistent character design across frames, no text",
+    "ability_pose": "stylized 2D top-down mobile game character, adult man Nehemiah, determined builder, simple brown tunic with tool belt, sturdy build, conjuring a glowing short wooden bridge/plank across a gap with both hands raised, focused determined expression, dynamic action pose, top-down 3/4 angle, bright warm color palette, soft cel-shading, transparent background, no text",
+    "portrait": "stylized 2D character portrait icon, adult man Nehemiah, determined builder, simple brown tunic with tool belt, sturdy build, soft studio lighting, clean circular icon composition, bright warm color palette, transparent background, no text"
+  },
+  "vfx_ability": "2D game VFX sprite for nehemiah's ability, matching description: conjuring a glowing short wooden bridge/plank across a gap with both hands raised, focused determined expression, transparent background, no text, seamless loopable animation frames"
+}
