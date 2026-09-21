@@ -1,0 +1,42 @@
+{
+  "style_guide": {
+    "art_style": "stylized 2D top-down mobile game art, clean bold silhouettes, chibi-proportioned characters (large head-to-body ratio), bright warm color palette, soft cel-shading, no gritty/realistic textures, readable at small mobile screen size, inspired by Brawl Stars' top-down clarity but with a hopeful/warm biblical-era tone instead of cartoon violence",
+    "negative_prompt": "no weapons drawn as combat tools, no blood, no violence, no photorealism, no dark/gritty tone, no text or watermarks, no extra limbs, no cropped characters",
+    "resolution_character": "1024x1024, transparent background, centered character, top-down 3/4 angle",
+    "resolution_tile": "1024x1024, seamless tileable texture",
+    "consistency_anchor": "same lighting direction (top-left soft sun), same color saturation level, same outline thickness across all assets to keep visual unity"
+  },
+  "priority_1_test_batch": {
+    "character": {
+      "id": "david",
+      "prompts": {
+        "idle": "stylized 2D top-down mobile game character, young shepherd boy David, chibi proportions, simple tan tunic and sandals, holding a sling (not raised, relaxed at side), curious confident expression, standing idle pose, top-down 3/4 angle, bright warm color palette, soft cel-shading, transparent background, no weapons in combat pose, no text",
+          "run_cycle_4_frames": "stylized 2D top-down mobile game character sprite sheet, 4-frame running animation, young shepherd boy David, chibi proportions, tan tunic, sling at hip, dynamic running pose sequence, top-down 3/4 angle, bright warm color palette, soft cel-shading, transparent background, consistent character design across frames, no text",
+        "ability_pose": "stylized 2D top-down mobile game character, young shepherd boy David mid-throw, tossing a small glowing marker stone (not at a target/enemy, thrown toward the ground/path), focused determined expression, dynamic action pose, top-down 3/4 angle, bright warm color palette, soft cel-shading, transparent background, no text",
+        "portrait": "stylized 2D character portrait icon, young shepherd boy David, chibi proportions, warm confident smile, tan tunic, simple sling visible over shoulder, soft studio lighting, clean circular icon composition, bright warm color palette, transparent background, no text"
+      },
+      "vfx_ability": "2D game VFX sprite, warm golden dash-trail streak with small sparkle particles, glowing marker/waypoint icon, transparent background, no text, seamless loopable animation frames"
+    },
+    "map": {
+      "id": "flight_to_egypt",
+      "prompts": {
+        "tileset_ground": "seamless tileable 2D top-down game texture, warm sandy desert path, soft cel-shaded style, subtle rock and dune detail, bright warm color palette, no characters, no text, 1024x1024",
+        "tileset_hazard_zone": "seamless tileable 2D top-down game texture, tense shadowed sand path indicating a danger zone, warm-to-dim color transition, soft cel-shaded style, no characters, no text, 1024x1024",
+        "tileset_safe_zone": "seamless tileable 2D top-down game texture, warm oasis/safe haven ground with small green palm shadows, glowing soft edge, cel-shaded style, no characters, no text, 1024x1024",
+        "hazard_animation": "2D top-down game sprite, small stylized silhouette group representing a distant search party sweeping across sand, non-violent, non-graphic, simple silhouette figures walking in formation, warm dusty color tones, transparent background, no text, no weapons visible",
+        "background_parallax": "2D stylized game background, wide desert horizon at golden dusk, distant palm trees and small dunes, soft painterly cel-shaded style, warm hopeful tone, no characters, no text, wide aspect ratio"
+      }
+    },
+    "ui": {
+      "hud_ability_icon_david": "2D flat game UI icon, small glowing sling/marker-stone symbol, rounded icon frame, warm gold accent color, simple clean iconography, transparent background, no text",
+      "timer_icon": "2D flat game UI icon, simple hourglass symbol, warm gold accent, rounded icon frame, transparent background, no text",
+      "post_match_card_frame": "2D game UI frame border, warm parchment-and-gold ornamental card border, stylized soft cel-shaded style, empty center for content, transparent background, no text"
+    }
+  },
+  "testing_instructions": {
+    "step_1": "Generate david.idle + david.portrait + tileset_ground first — these validate the core art style before anything else.",
+    "step_2": "If style matches vision, batch-generate remaining david prompts (run_cycle, ability_pose, vfx).",
+    "step_3": "Generate map set (tileset_hazard_zone, tileset_safe_zone, hazard_animation, background_parallax) using the SAME seed/style-reference image as david.idle if your tool supports image-to-image style locking, to keep character and environment visually unified.",
+    "step_4": "Once david + flight_to_egypt map pass review, reuse this exact JSON structure (swap id/description fields) for the remaining 4 heroes and 2 maps."
+  }
+}
