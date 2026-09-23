@@ -1,99 +1,99 @@
 <es-419>
 ✨ ¡Nueva actualización disponible! 🚀✨
 
-🐛 Corrección de cierre inesperado al navegar por estudio bíblico, para ciertos usuarios.
+🐛 Corrección de posible demora al iniciar la app con conexión lenta.
 
-⚙️ Mejoras internas de estabilidad.
+⚙️ Mejoras internas de estabilidad y diagnóstico.
 
 🙏 Gracias por ser parte de nuestro ministerio, Dios les bendiga.
 </es-419>
 <es-ES>
 ✨ ¡Nueva actualización disponible! 🚀✨
 
-🐛 Corrección de cierre inesperado al navegar por el estudio bíblico, para algunos usuarios.
+🐛 Corrección de posible demora al iniciar la app con conexión lenta.
 
-⚙️ Mejoras internas de estabilidad.
+⚙️ Mejoras internas de estabilidad y diagnóstico.
 
 🙏 Gracias por ser parte de nuestro ministerio, Dios os bendiga.
 </es-ES>
 <ar>
 ✨ تحديث جديد متاح! 🚀✨
 
-🐛 إصلاح إغلاق غير متوقع عند تصفح الدراسة الكتابية، لدى بعض المستخدمين.
+🐛 إصلاح تأخير محتمل عند بدء تشغيل التطبيق مع اتصال إنترنت بطيء.
 
-⚙️ تحسينات داخلية للاستقرار.
+⚙️ تحسينات داخلية للاستقرار والتشخيص.
 
 🙏 شكرًا لكونك جزءًا من خدمتنا، بارككم الله.
 </ar>
 <de-DE>
 ✨ Neues Update verfügbar! 🚀✨
 
-🐛 Absturz beim Navigieren durch die Bibelstudien behoben, der bei manchen Nutzern auftrat.
+🐛 Behoben: mögliche Verzögerung beim App-Start bei langsamer Internetverbindung.
 
-⚙️ Interne Stabilitätsverbesserungen.
+⚙️ Interne Stabilitäts- und Diagnoseverbesserungen.
 
 🙏 Danke, dass du Teil unseres Ministeriums bist, Gott segne euch.
 </de-DE>
 <en-US>
 ✨ New update available! 🚀✨
 
-🐛 Fixed an unexpected crash while navigating a Bible study, affecting some users.
+🐛 Fixed a possible startup delay on slow network connections.
 
-⚙️ Internal stability improvements.
+⚙️ Internal stability and diagnostic improvements.
 
 🙏 Thank you for being part of our ministry, God bless you.
 </en-US>
 <fr-FR>
 ✨ Nouvelle mise à jour disponible ! 🚀✨
 
-🐛 Correction d'une fermeture inattendue lors de la navigation dans une étude biblique, pour certains utilisateurs.
+🐛 Correction d'un possible retard au démarrage avec une connexion lente.
 
-⚙️ Améliorations internes de stabilité.
+⚙️ Améliorations internes de stabilité et de diagnostic.
 
 🙏 Merci de faire partie de notre ministère, que Dieu vous bénisse.
 </fr-FR>
 <hi-IN>
 ✨ नया अपडेट उपलब्ध है! 🚀✨
 
-🐛 कुछ उपयोगकर्ताओं के लिए बाइबल अध्ययन में नेविगेट करते समय होने वाली अचानक क्रैश की समस्या ठीक की।
+🐛 धीमे इंटरनेट कनेक्शन पर ऐप शुरू होने में होने वाली संभावित देरी को ठीक किया।
 
-⚙️ आंतरिक स्थिरता सुधार।
+⚙️ आंतरिक स्थिरता और डायग्नोस्टिक सुधार।
 
 🙏 हमारी सेवकाई का हिस्सा बनने के लिए धन्यवाद, परमेश्वर आपको आशीर्वाद दे।
 </hi-IN>
 <ja-JP>
 ✨ 新しいアップデートが利用可能です！ 🚀✨
 
-🐛 一部のユーザーで発生していた、聖書スタディ閲覧中の予期しない終了を修正しました。
+🐛 低速な通信環境でアプリの起動が遅れる場合がある問題を修正しました。
 
-⚙️ 内部的な安定性の改善。
+⚙️ 内部的な安定性および診断機能の改善。
 
 🙏 私たちのミニストリーの一員でいてくださり、ありがとうございます。神の祝福がありますように。
 </ja-JP>
 <pt-BR>
 ✨ Nova atualização disponível! 🚀✨
 
-🐛 Corrigimos um fechamento inesperado ao navegar pelo estudo bíblico, que afetava alguns usuários.
+🐛 Corrigimos uma possível demora na inicialização do app em conexões lentas.
 
-⚙️ Melhorias internas de estabilidade.
+⚙️ Melhorias internas de estabilidade e diagnóstico.
 
 🙏 Obrigado por fazer parte do nosso ministério, Deus abençoe vocês.
 </pt-BR>
 <zh-CN>
 ✨ 新版本发布！ 🚀✨
 
-🐛 修复了部分用户在浏览圣经学习内容时出现的意外崩溃问题。
+🐛 修复了网络较慢时应用启动可能出现延迟的问题。
 
-⚙️ 内部稳定性改进。
+⚙️ 内部稳定性与诊断改进。
 
 🙏 感谢您成为我们事工的一份子，愿神祝福大家。
 </zh-CN>
 <fil>
 ✨ May bagong update na available! 🚀✨
 
-🐛 Inayos ang biglaang pag-crash habang nagba-browse sa Bible study, na naranasan ng ilang user.
+🐛 Inayos ang posibleng pagkaantala sa pag-start ng app sa mabagal na internet connection.
 
-⚙️ Mga internal na pagpapahusay sa stability.
+⚙️ Mga internal na pagpapahusay sa stability at diagnostics.
 
 🙏 Salamat sa pagiging bahagi ng aming ministeryo, pagpalain kayo ng Diyos.
 </fil>
