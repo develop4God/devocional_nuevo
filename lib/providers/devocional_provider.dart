@@ -1263,14 +1263,13 @@ class DevocionalProvider with ChangeNotifier {
 
   Future<bool> downloadDevocionalesWithProgress({
     required Function(double) onProgress,
-    int startYear = 2025,
-    int endYear = 2026,
   }) async {
-    final totalYears = endYear - startYear + 1;
+    final years = await _devocionalRepository.getAvailableYears();
+    final totalYears = years.length;
     int doneYears = 0;
     bool allSuccess = true;
 
-    for (int year = startYear; year <= endYear; year++) {
+    for (final year in years) {
       bool success = await downloadAndStoreDevocionales(year);
       doneYears++;
       double progress = doneYears / totalYears;

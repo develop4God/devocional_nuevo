@@ -466,8 +466,6 @@ void main() {
 
       final success = await provider.downloadDevocionalesWithProgress(
         onProgress: (progress) {},
-        startYear: DateTime.now().year,
-        endYear: DateTime.now().year + 1,
       );
       expect(success, isA<bool>());
     });
