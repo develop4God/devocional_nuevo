@@ -1265,6 +1265,8 @@ class DevocionalProvider with ChangeNotifier {
     required Function(double) onProgress,
   }) async {
     final years = await _devocionalRepository.getAvailableYears();
+    if (years.isEmpty) return false;
+
     final totalYears = years.length;
     int doneYears = 0;
     bool allSuccess = true;
