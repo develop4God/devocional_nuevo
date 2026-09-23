@@ -946,20 +946,13 @@ class MockDevocionalProvider extends _i1.Mock
       ) as _i8.Future<bool>);
 
   @override
-  _i8.Future<bool> downloadDevocionalesWithProgress({
-    required dynamic Function(double)? onProgress,
-    int? startYear = 2025,
-    int? endYear = 2026,
-  }) =>
+  _i8.Future<bool> downloadDevocionalesWithProgress(
+          {required dynamic Function(double)? onProgress}) =>
       (super.noSuchMethod(
         Invocation.method(
           #downloadDevocionalesWithProgress,
           [],
-          {
-            #onProgress: onProgress,
-            #startYear: startYear,
-            #endYear: endYear,
-          },
+          {#onProgress: onProgress},
         ),
         returnValue: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
