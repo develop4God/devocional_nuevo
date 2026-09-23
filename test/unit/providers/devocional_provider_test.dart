@@ -12,6 +12,7 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart'; // for TtsState
 import 'package:devocional_nuevo/utils/constants/constants.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
@@ -220,6 +221,51 @@ void main() {
 
       final int? schemaVersion = prefs.getInt('favorites_schema_version');
       expect(schemaVersion, equals(Constants.favoritesSchemaVersion));
+    },
+  );
+
+  test(
+    'waitUntilInitialized throws on timeout instead of silently resolving '
+    'when the provider never finishes initializing',
+    () {
+      SharedPreferences.setMockInitialValues({});
+
+      final localIndexService = _MockDevocionalIndexService();
+      final localMetadataService = _MockCacheMetadataService();
+      final localRepository = _MockDevocionalRepository();
+      when(() => localIndexService.fetchIndex()).thenAnswer((_) async => null);
+      when(
+        () => localMetadataService.readManifestDate(any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => localMetadataService.writeMetadata(any(), any()),
+      ).thenAnswer((_) async {});
+      final provider = DevocionalProvider(
+        devocionalIndexService: localIndexService,
+        cacheMetadataService: localMetadataService,
+        devocionalRepository: localRepository,
+      );
+
+      // Note: initializeData() is deliberately never called, so
+      // _isInitialized never flips to true and the listener inside
+      // waitUntilInitialized() never fires — this is the only way the
+      // 30s timeout branch is reachable.
+      fakeAsync((async) {
+        Object? caughtError;
+        provider.waitUntilInitialized().catchError((e) {
+          caughtError = e;
+        });
+
+        async.elapse(Constants.devocionalProviderWaitTimeout);
+        async.flushMicrotasks();
+
+        expect(
+          caughtError,
+          isNotNull,
+          reason: 'A caller waiting on a provider that never initializes must '
+              'see a timeout error, not a silent false-success.',
+        );
+      });
     },
   );
 }

@@ -26,6 +26,22 @@ class FakeDevocionalRepository implements DevocionalRepository {
   }
 
   @override
+  Future<CacheStatus> checkCacheStatus(
+    int year,
+    String language,
+    String version,
+  ) async =>
+      const CacheStatus(hasLocal: true, isStale: false, indexReachable: true);
+
+  @override
+  Future<List<Devocional>> readLocal(
+    int year,
+    String language,
+    String version,
+  ) async =>
+      _items;
+
+  @override
   List<Devocional> filterByVersion(
     List<Devocional> devocionales,
     String version,

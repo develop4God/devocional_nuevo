@@ -2,6 +2,31 @@
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 
+/// Freshness of the local cache for one year/language/version combination.
+///
+/// Value object describing the inputs to the cache-vs-network decision, so a
+/// caller can observe the phase boundary instead of it being buried inside
+/// [DevocionalRepository.fetchAll].
+class CacheStatus {
+  /// True when a local cache file exists.
+  final bool hasLocal;
+
+  /// True when the remote index reports a newer date than the local sidecar.
+  final bool isStale;
+
+  /// True when the remote index was reachable for this check.
+  final bool indexReachable;
+
+  const CacheStatus({
+    required this.hasLocal,
+    required this.isStale,
+    required this.indexReachable,
+  });
+
+  /// True when local data exists and does not need re-downloading.
+  bool get isServableWithoutNetwork => hasLocal && !isStale;
+}
+
 /// Abstract repository for managing devotional data access.
 ///
 /// Extracted from DevocionalProvider following the EncounterRepository pattern.
@@ -22,6 +47,23 @@ abstract class DevocionalRepository {
   /// Handles cache freshness, API fetch, and local fallback internally.
   /// Returns empty list on total failure (no API, no cache).
   Future<List<Devocional>> fetchAll(int year, String language, String version);
+
+  /// Reports whether local data exists for [year]/[language]/[version] and
+  /// whether it is stale relative to the remote index.
+  ///
+  /// Performs the index fetch if it has not happened yet; never fetches the
+  /// year file itself.
+  Future<CacheStatus> checkCacheStatus(
+    int year,
+    String language,
+    String version,
+  );
+
+  /// Reads devotionals for [year]/[language]/[version] from local cache only.
+  ///
+  /// Returns an empty list when no cache file exists or it cannot be parsed.
+  /// Never touches the network.
+  Future<List<Devocional>> readLocal(int year, String language, String version);
 
   /// Filters [devocionales] to only those matching [version].
   ///
