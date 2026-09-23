@@ -15,6 +15,38 @@ find_project_root() {
     return 1
 }
 
+# --- Parse arguments ---
+ARG_TYPE=""
+ARG_MESSAGE=""
+ARG_YES=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --type)
+            ARG_TYPE="$2"
+            shift 2
+            ;;
+        --message)
+            ARG_MESSAGE="$2"
+            shift 2
+            ;;
+        --yes)
+            ARG_YES="1"
+            shift
+            ;;
+        *)
+            echo "Unknown argument: $1"
+            echo "Usage: $0 [--type major|minor|patch] [--message \"commit message\"] [--yes]"
+            exit 1
+            ;;
+    esac
+done
+
+if [[ -n "$ARG_TYPE" && "$ARG_TYPE" != "major" && "$ARG_TYPE" != "minor" && "$ARG_TYPE" != "patch" ]]; then
+    echo "Invalid --type: $ARG_TYPE (expected: major, minor, or patch)"
+    exit 1
+fi
+
 PROJECT_ROOT=$(find_project_root)
 if [[ -z "$PROJECT_ROOT" ]]; then
     echo -e "\033[0;31m❌ pubspec.yaml not found in this or any parent directory\033[0m"
@@ -57,8 +89,12 @@ if [[ -n $(git status -s) ]]; then
     print_warning "You have uncommitted changes"
     git status -s
     echo ""
-    read -p "Continue anyway? [y/n]: " -n 1 -r
-    echo
+    if [[ -n "$ARG_YES" ]]; then
+        REPLY="y"
+    else
+        read -p "Continue anyway? [y/n]: " -n 1 -r
+        echo
+    fi
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         print_info "Aborted"
         exit 0
@@ -102,42 +138,63 @@ print_info "Current version: ${BLUE}${CURRENT_VERSION_NAME}+${CURRENT_BUILD_NUMB
 echo ""
 
 # 5. Select version type
-echo "Select version type:"
-echo "1) major - Breaking changes (${CURRENT_VERSION_NAME} → $((MAJOR + 1)).0.0)"
-echo "2) minor - New features (${CURRENT_VERSION_NAME} → ${MAJOR}.$((MINOR + 1)).0)"
-echo "3) patch - Bug fixes (${CURRENT_VERSION_NAME} → ${MAJOR}.${MINOR}.$((PATCH + 1)))"
-echo ""
-
-while true; do
-    # shellcheck disable=SC2162
-    read -p "Choice [1-3]: " CHOICE
-    case $CHOICE in
-        1)
-            VERSION_TYPE="major"
+if [[ -n "$ARG_TYPE" ]]; then
+    VERSION_TYPE="$ARG_TYPE"
+    case "$VERSION_TYPE" in
+        major)
             NEW_MAJOR=$((MAJOR + 1))
             NEW_MINOR=0
             NEW_PATCH=0
-            break
             ;;
-        2)
-            VERSION_TYPE="minor"
+        minor)
             NEW_MAJOR=$MAJOR
             NEW_MINOR=$((MINOR + 1))
             NEW_PATCH=0
-            break
             ;;
-        3)
-            VERSION_TYPE="patch"
+        patch)
             NEW_MAJOR=$MAJOR
             NEW_MINOR=$MINOR
             NEW_PATCH=$((PATCH + 1))
-            break
-            ;;
-        *)
-            print_error "Invalid choice. Please enter 1, 2, or 3"
             ;;
     esac
-done
+else
+    echo "Select version type:"
+    echo "1) major - Breaking changes (${CURRENT_VERSION_NAME} → $((MAJOR + 1)).0.0)"
+    echo "2) minor - New features (${CURRENT_VERSION_NAME} → ${MAJOR}.$((MINOR + 1)).0)"
+    echo "3) patch - Bug fixes (${CURRENT_VERSION_NAME} → ${MAJOR}.${MINOR}.$((PATCH + 1)))"
+    echo ""
+
+    while true; do
+        # shellcheck disable=SC2162
+        read -p "Choice [1-3]: " CHOICE
+        case $CHOICE in
+            1)
+                VERSION_TYPE="major"
+                NEW_MAJOR=$((MAJOR + 1))
+                NEW_MINOR=0
+                NEW_PATCH=0
+                break
+                ;;
+            2)
+                VERSION_TYPE="minor"
+                NEW_MAJOR=$MAJOR
+                NEW_MINOR=$((MINOR + 1))
+                NEW_PATCH=0
+                break
+                ;;
+            3)
+                VERSION_TYPE="patch"
+                NEW_MAJOR=$MAJOR
+                NEW_MINOR=$MINOR
+                NEW_PATCH=$((PATCH + 1))
+                break
+                ;;
+            *)
+                print_error "Invalid choice. Please enter 1, 2, or 3"
+                ;;
+        esac
+    done
+fi
 
 # 6. Calculate new version
 NEW_VERSION_NAME="${NEW_MAJOR}.${NEW_MINOR}.${NEW_PATCH}"
@@ -149,8 +206,12 @@ print_info "New version will be: ${GREEN}${NEW_FULL_VERSION}${NC}"
 echo ""
 
 # 7. Get commit message
-# shellcheck disable=SC2162
-read -p "Commit message: " COMMIT_MESSAGE
+if [[ -n "$ARG_MESSAGE" ]]; then
+    COMMIT_MESSAGE="$ARG_MESSAGE"
+else
+    # shellcheck disable=SC2162
+    read -p "Commit message: " COMMIT_MESSAGE
+fi
 
 if [[ -z "$COMMIT_MESSAGE" ]]; then
     print_error "Commit message cannot be empty"
@@ -171,8 +232,12 @@ echo "  Push to:  origin/${CURRENT_BRANCH}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-read -p "Proceed? [y/n]: " -n 1 -r
-echo
+if [[ -n "$ARG_YES" ]]; then
+    REPLY="y"
+else
+    read -p "Proceed? [y/n]: " -n 1 -r
+    echo
+fi
 
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     print_info "Aborted"
