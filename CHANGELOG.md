@@ -7,6 +7,11 @@ Internal, developer-facing history generated from commit messages via
 Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 
 <!-- git-cliff: end of header -->
+## [unreleased]
+
+### 🐛 Bug Fixes
+
+- Crashlytics v2 diagnostic follow-ups (exit-reason noise, hero-image startup block, provider timeout, year-fetch idle timeout) ([#325](https://github.com/develop4God/devocional_nuevo/issues/325))
 ## [1.16.6+127] - 2026-09-14
 
 ### 🐛 Bug Fixes
