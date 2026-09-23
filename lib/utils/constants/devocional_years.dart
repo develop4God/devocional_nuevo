@@ -18,7 +18,7 @@ class DevocionalYears {
   ///
   /// Keep this list in sync with the remote index so offline installs
   /// can still load all years.  Must remain sorted ascending.
-  static const List<int> availableYears = [2025, 2026];
+  static const List<int> availableYears = [2025, 2026, 2027];
 
   /// Private constructor to prevent instantiation
   DevocionalYears._();

@@ -118,10 +118,12 @@ class DevotionalImageRepository {
     return Constants.getDevotionalImageUrl(filename);
   }
 
-  /// Downloads and caches [url], returning whether it succeeded.
+  /// Downloads and caches [url], returning whether it succeeded. Bounded by
+  /// [_networkTimeout] so a non-responding host can't hang the caller
+  /// indefinitely — [cacheManager.downloadFile] has no timeout of its own.
   Future<bool> _warm(String url) async {
     try {
-      await cacheManager.downloadFile(url);
+      await cacheManager.downloadFile(url).timeout(_networkTimeout);
       debugPrint('🖼️ DevotionalImage: warmed $url');
       return true;
     } catch (e) {
@@ -132,10 +134,12 @@ class DevotionalImageRepository {
 
   /// Called once at app startup, in parallel with other init work.
   ///
-  /// Picks and downloads the image for the devotional the user lands on,
-  /// then pre-picks and downloads a second image for whichever devotional
-  /// they navigate to next. Never throws — on any failure, [currentImageUrl]
-  /// simply stays null and the verse card renders with no background.
+  /// Picks and downloads the image for the devotional the user lands on —
+  /// this is the only part awaited, since it must be ready before the first
+  /// frame. The next-navigation image is then prefetched in the background
+  /// via [_prefetchNext], same as forward navigation does, so it can't delay
+  /// startup. Never throws — on any failure, [currentImageUrl] simply stays
+  /// null and the verse card renders with no background.
   Future<void> prepareInitial() async {
     try {
       final files = await fetchIndex();
@@ -151,10 +155,8 @@ class DevotionalImageRepository {
         );
       }
 
-      final nextUrl = await _pickRandomUrl(files);
-      if (nextUrl != null && await _warm(nextUrl)) {
-        _prefetchedNextUrl = nextUrl;
-        debugPrint('🖼️ DevotionalImage: prepareInitial prefetched=$nextUrl');
+      if (!_prefetchInFlight) {
+        unawaited(_prefetchNext());
       }
     } catch (e) {
       debugPrint('⚠️ DevotionalImage: prepareInitial failed: $e');

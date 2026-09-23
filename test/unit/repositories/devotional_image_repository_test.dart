@@ -103,7 +103,7 @@ void main() {
 
       expect(repository.currentImageUrl, isNotNull);
       expect(repository.currentImageUrl, contains('blue_mountains'));
-      verify(() => mockCacheManager.downloadFile(any())).called(2);
+      verify(() => mockCacheManager.downloadFile(any())).called(1);
     });
 
     test('leaves currentImageUrl null when the pool is empty', () async {
@@ -123,8 +123,49 @@ void main() {
       await repository.prepareInitial();
 
       expect(repository.currentImageUrl, isNull);
-      verify(() => mockCacheManager.downloadFile(any())).called(2);
+      verify(() => mockCacheManager.downloadFile(any())).called(1);
     });
+
+    test(
+      'does not wait for the next-image prefetch before returning',
+      () async {
+        // The current image's download resolves immediately; the
+        // next-image prefetch is held open. prepareInitial() must still
+        // complete without waiting on it.
+        final nextImageBlocker = Completer<FileInfo>();
+        var downloadCount = 0;
+        when(() => mockHttpClient.get(any()))
+            .thenAnswer((_) async => okResponse());
+        when(() => mockCacheManager.downloadFile(any())).thenAnswer((_) async {
+          downloadCount++;
+          if (downloadCount == 1) return MockFileInfo();
+          return nextImageBlocker.future;
+        });
+
+        await repository.prepareInitial().timeout(const Duration(seconds: 2));
+
+        expect(repository.currentImageUrl, isNotNull);
+        nextImageBlocker.complete(MockFileInfo());
+      },
+    );
+
+    test(
+      'completes even when the current image download never responds',
+      () async {
+        // A hung downloadFile() call (no response, ever) must not hang
+        // prepareInitial() forever — it should time out and continue with
+        // currentImageUrl left null.
+        when(() => mockHttpClient.get(any()))
+            .thenAnswer((_) async => okResponse());
+        when(() => mockCacheManager.downloadFile(any()))
+            .thenAnswer((_) => Completer<FileInfo>().future);
+
+        await repository.prepareInitial().timeout(const Duration(seconds: 15));
+
+        expect(repository.currentImageUrl, isNull);
+      },
+      timeout: const Timeout(Duration(seconds: 20)),
+    );
   });
 
   group('advance', () {
