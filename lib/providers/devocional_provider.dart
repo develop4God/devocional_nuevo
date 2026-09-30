@@ -529,6 +529,11 @@ class DevocionalProvider with ChangeNotifier {
     }
   }
 
+  /// Runs [prefetchDeferredYears] once [predecessor] completes, so the
+  /// download never competes with the work the user is waiting on.
+  Future<void> prefetchDeferredYearsAfter(Future<void> predecessor) =>
+      predecessor.whenComplete(prefetchDeferredYears);
+
   /// When [deferUncachedLaterYears] is set (startup only) and an earlier year
   /// was already served from disk, later years missing from disk are not
   /// awaited — see [prefetchDeferredYears]. A fresh install or restored

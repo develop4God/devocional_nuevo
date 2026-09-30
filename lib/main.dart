@@ -686,8 +686,8 @@ class _AppInitializerState extends State<AppInitializer> {
     final imageRepository = getService<DevotionalImageRepository>();
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => unawaited(
-        imageRepository.initialReady.whenComplete(
-          devocionalProvider.prefetchDeferredYears,
+        devocionalProvider.prefetchDeferredYearsAfter(
+          imageRepository.initialReady,
         ),
       ),
     );

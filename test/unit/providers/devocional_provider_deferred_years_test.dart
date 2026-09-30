@@ -123,6 +123,27 @@ void main() {
       },
     );
 
+    test(
+      'prefetchDeferredYearsAfter holds the download until the predecessor '
+      '(hero image) completes',
+      () async {
+        cachedYears = {2025, 2026};
+        final provider = buildProvider();
+        await provider.initializeData();
+
+        final heroDone = Completer<void>();
+        final prefetch = provider.prefetchDeferredYearsAfter(heroDone.future);
+        await Future<void>.delayed(Duration.zero);
+        verifyNever(() => repository.fetchAll(2027, any(), any()));
+
+        heroDone.complete();
+        await Future<void>.delayed(Duration.zero);
+        verify(() => repository.fetchAll(2027, 'es', 'RVR1960')).called(1);
+        pendingDownloads[2027]!.complete([_devocional(2027)]);
+        await prefetch;
+      },
+    );
+
     test('a failing deferred download is swallowed and not retried in-session',
         () async {
       cachedYears = {2025, 2026};
