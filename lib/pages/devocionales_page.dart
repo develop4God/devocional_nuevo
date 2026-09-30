@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:auto_size_text/auto_size_text.dart';
@@ -305,6 +306,18 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       // silently discarding a deep-linked initialDevocionalId one frame after
       // landing on it.
       _lastProcessedDevocionales = devocionalProvider.devocionales;
+
+      // Startup no longer waits for the hero image, so apply it to the state
+      // once it lands (no-op when it was already ready).
+      unawaited(
+        _imageRepository.initialReady.then((_) {
+          if (mounted &&
+              _navigationBloc != null &&
+              !_navigationBloc!.isClosed) {
+            _navigationBloc!.add(const HeroImageReady());
+          }
+        }),
+      );
 
       // Mark as successfully initialized
       if (mounted) {

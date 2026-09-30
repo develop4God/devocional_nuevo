@@ -613,19 +613,20 @@ class _AppInitializerState extends State<AppInitializer> {
   // branch status once one member is still outstanding at the timeout.
   bool _criticalServicesDone = false;
   bool _appDataDone = false;
-  bool _heroImageDone = false;
 
   Future<void> _initializeInBackground() async {
     final stopwatch = Stopwatch()..start();
     _criticalServicesDone = false;
     _appDataDone = false;
-    _heroImageDone = false;
+
+    // The hero image is cosmetic: it starts now but startup never waits on it.
+    // DevocionalesPage applies it to the navigation state when it lands.
+    unawaited(_initDevotionalHeroImage());
 
     try {
       await Future.wait([
         _initCriticalServices().then((_) => _criticalServicesDone = true),
         _initAppData().then((_) => _appDataDone = true),
-        _initDevotionalHeroImage().then((_) => _heroImageDone = true),
         Future.delayed(_kMinSplashDisplay),
       ]).timeout(
         _kAppStartupTimeout,
@@ -667,11 +668,27 @@ class _AppInitializerState extends State<AppInitializer> {
       return;
     }
     _initNonCriticalServices();
+    // Captured before navigating: pushReplacement disposes this widget.
+    final devocionalProvider = Provider.of<DevocionalProvider>(
+      context,
+      listen: false,
+    );
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (context, a, b) =>
             AppNavigationShell(key: AppNavigationShell.shellKey),
         transitionDuration: const Duration(milliseconds: 300),
+      ),
+    );
+    // Years skipped at startup download only after the first frame and the
+    // hero image, so a multi-MB file never starves what the user is waiting
+    // to see on a slow connection.
+    final imageRepository = getService<DevotionalImageRepository>();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => unawaited(
+        imageRepository.initialReady.whenComplete(
+          devocionalProvider.prefetchDeferredYears,
+        ),
       ),
     );
   }
@@ -683,7 +700,6 @@ class _AppInitializerState extends State<AppInitializer> {
     final pendingTasks = <String>[
       if (!_criticalServicesDone) 'criticalServices',
       if (!_appDataDone) 'appData',
-      if (!_heroImageDone) 'heroImage',
     ];
     final pendingLabel = pendingTasks.isEmpty ? 'none' : pendingTasks.join('+');
 
@@ -751,9 +767,9 @@ class _AppInitializerState extends State<AppInitializer> {
     }
   }
 
-  /// Warms the devotional hero background image so it's ready before the
-  /// home page's first frame. Non-critical — any failure leaves the verse
-  /// card without a background rather than blocking or delaying startup.
+  /// Warms the devotional hero background image. Non-critical and never
+  /// awaited by startup — any failure leaves the verse card without a
+  /// background, and a slow download shows it as soon as it lands.
   Future<void> _initDevotionalHeroImage() async {
     final stepStopwatch = Stopwatch()..start();
     try {

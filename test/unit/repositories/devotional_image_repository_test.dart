@@ -361,4 +361,51 @@ void main() {
       },
     );
   });
+
+  group('initialReady', () {
+    test('is already complete when prepareInitial was never started', () async {
+      await repository.initialReady;
+      expect(repository.currentImageUrl, isNull);
+    });
+
+    test('completes only after the initial image has been applied', () async {
+      final indexBlocker = Completer<http.Response>();
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) => indexBlocker.future);
+
+      // Startup fires this without awaiting it.
+      unawaited(repository.prepareInitial());
+      var ready = false;
+      unawaited(repository.initialReady.then((_) => ready = true));
+      await Future<void>.delayed(Duration.zero);
+      expect(ready, isFalse, reason: 'image download has not finished yet');
+      expect(repository.currentImageUrl, isNull);
+
+      indexBlocker.complete(okResponse());
+      await repository.initialReady;
+
+      expect(ready, isTrue);
+      expect(repository.currentImageUrl, contains('blue_mountains'));
+    });
+
+    test('completes (without throwing) when the download fails', () async {
+      when(() => mockHttpClient.get(any())).thenThrow(Exception('offline'));
+
+      unawaited(repository.prepareInitial());
+      await repository.initialReady;
+
+      expect(repository.currentImageUrl, isNull);
+    });
+
+    test('prepareInitial is idempotent — a second call does not re-download',
+        () async {
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+
+      await repository.prepareInitial();
+      await repository.prepareInitial();
+
+      verify(() => mockCacheManager.downloadFile(any())).called(1);
+    });
+  });
 }

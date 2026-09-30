@@ -254,7 +254,7 @@ class DevocionalProvider with ChangeNotifier {
       debugPrint(
         '🌍 [INIT] About to fetch devotionals for language: $_selectedLanguage, version: $_selectedVersion',
       );
-      await _fetchAllDevocionalesForLanguage();
+      await _fetchAllDevocionalesForLanguage(deferUncachedLaterYears: true);
     } catch (e) {
       _errorMessage = 'devotionals.generic_error';
       debugPrint('Error en initializeData: $e');
@@ -483,7 +483,59 @@ class DevocionalProvider with ChangeNotifier {
     }
   }
 
-  Future<void> _fetchAllDevocionalesForLanguage() async {
+  /// True when this year's file is already on disk (even if stale).
+  /// A failed check counts as "not cached" so callers keep the blocking path.
+  Future<bool> _isYearCachedLocally(int year) async {
+    try {
+      final status = await _devocionalRepository.checkCacheStatus(
+        year,
+        _selectedLanguage,
+        _selectedVersion,
+      );
+      return status.hasLocal;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Years skipped by the last startup load because they were not on disk.
+  List<int> _deferredYears = [];
+
+  /// Downloads the years skipped at startup so they are cached for the next
+  /// launch. Sequential and failure-tolerant; the in-memory list is left
+  /// untouched because a list change resets the reading position.
+  Future<void> prefetchDeferredYears() async {
+    final years = _deferredYears;
+    _deferredYears = [];
+    for (final year in years) {
+      _logFetchBreadcrumb(
+        'DevocionalProvider: deferred fetchAll(year=$year) starting',
+      );
+      try {
+        final fetched = await _devocionalRepository.fetchAll(
+          year,
+          _selectedLanguage,
+          _selectedVersion,
+        );
+        _logFetchBreadcrumb(
+          'DevocionalProvider: deferred fetchAll(year=$year) done, '
+          '${fetched.length} devotionals',
+        );
+      } catch (e) {
+        _logFetchBreadcrumb(
+          'DevocionalProvider: deferred fetchAll(year=$year) failed: $e',
+        );
+      }
+    }
+  }
+
+  /// When [deferUncachedLaterYears] is set (startup only) and an earlier year
+  /// was already served from disk, later years missing from disk are not
+  /// awaited — see [prefetchDeferredYears]. A fresh install or restored
+  /// history has nothing cached, so it still waits for every year.
+  Future<void> _fetchAllDevocionalesForLanguage({
+    bool deferUncachedLaterYears = false,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     _isOfflineMode = false;
@@ -497,8 +549,21 @@ class DevocionalProvider with ChangeNotifier {
           await _devocionalRepository.getAvailableYears();
       debugPrint('📚 [FETCH] Years to load: $yearsToLoad');
       final List<Devocional> allDevocionales = [];
+      final List<int> deferredYears = [];
+      var hasCachedYear = false;
 
-      for (final year in yearsToLoad) {
+      // Ascending, so a deferred year always sorts after every loaded year and
+      // the reading position (a list index) cannot shift.
+      for (final year in [...yearsToLoad]..sort()) {
+        final bool cachedLocally =
+            deferUncachedLaterYears && await _isYearCachedLocally(year);
+        if (deferUncachedLaterYears && hasCachedYear && !cachedLocally) {
+          deferredYears.add(year);
+          _logFetchBreadcrumb(
+            'DevocionalProvider: fetchAll(year=$year) deferred, not cached',
+          );
+          continue;
+        }
         debugPrint(
           '📚 [FETCH] Fetching year $year for language=$_selectedLanguage, version=$_selectedVersion',
         );
@@ -514,7 +579,9 @@ class DevocionalProvider with ChangeNotifier {
           '📚 [FETCH] Year $year returned ${yearDevocionales.length} devotionals',
         );
         allDevocionales.addAll(yearDevocionales);
+        if (cachedLocally && yearDevocionales.isNotEmpty) hasCachedYear = true;
       }
+      _deferredYears = deferredYears;
 
       // ── Offline mode: driven by whether index was reachable ──────────────
       _isOfflineMode = _devocionalRepository.wasLastFetchOffline;
