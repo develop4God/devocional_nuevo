@@ -102,5 +102,4 @@ Documentación histórica de características y correcciones completadas.
 ## 🔗 Related Documentation / Documentación Relacionada
 
 - [Main README](../README.md) - Project overview and quick start
-- [Firebase Robo Tests](../firebase_robo_tests/README.md) - Automated UI testing
 - [Bible Reader Core](../bible_reader_core/README.md) - Bible reader package documentation
