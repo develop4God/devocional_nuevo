@@ -140,7 +140,15 @@ class DevotionalImageRepository {
   /// via [_prefetchNext], same as forward navigation does, so it can't delay
   /// startup. Never throws — on any failure, [currentImageUrl] simply stays
   /// null and the verse card renders with no background.
-  Future<void> prepareInitial() async {
+  Future<void> prepareInitial() => _initialFuture ??= _prepareInitial();
+
+  Future<void>? _initialFuture;
+
+  /// Completes when [prepareInitial] has finished (successfully or not).
+  /// Already complete when it was never started, so callers can always await it.
+  Future<void> get initialReady => _initialFuture ?? Future<void>.value();
+
+  Future<void> _prepareInitial() async {
     try {
       final files = await fetchIndex();
       final url = await _pickRandomUrl(files);
