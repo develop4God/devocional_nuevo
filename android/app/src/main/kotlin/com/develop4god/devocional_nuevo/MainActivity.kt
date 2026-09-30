@@ -67,7 +67,7 @@ class MainActivity : FlutterActivity() {
     private val prefKeyPending = "resume_pending"
     private val prefKeyPendingSince = "resume_pending_since_ms"
 
-    // --- INICIO: Soporte para Firebase Test Lab Game Loop y Edge-to-Edge ---
+    // --- INICIO: Soporte para Edge-to-Edge ---
     override fun onCreate(savedInstanceState: Bundle?) {
         // Enable edge-to-edge display BEFORE calling super.onCreate()
         // This is required for Android 15+ (API 35) to avoid deprecated API warnings
@@ -83,19 +83,8 @@ class MainActivity : FlutterActivity() {
 
         // Check if app was launched with a deep link
         handleIntent(intent)
-
-        // Si la app fue lanzada por un intent de Test Lab Game Loop, aplicar un pequeño retraso
-        if (intent.action != null && intent.action == "com.google.intent.action.TEST_LOOP") {
-            try {
-                // Espera 5 segundos para asegurar que la UI de Flutter se vea correctamente en el video de Test Lab
-                Thread.sleep(5000)
-                println("Firebase Test Lab: Retraso de 5 segundos aplicado para la prueba de Game Loop.")
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
-            }
-        }
     }
-    // --- FIN: Soporte para Firebase Test Lab Game Loop y Edge-to-Edge ---
+    // --- FIN: Soporte para Edge-to-Edge ---
 
     private fun handleIntent(intent: Intent?) {
         val action = intent?.action
