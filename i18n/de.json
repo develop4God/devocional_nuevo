@@ -860,7 +860,13 @@
     "welcome_title_line2": "Für immer verändert.",
     "welcome_title_line3": "Derselbe Jesus. Hier. Jetzt.",
     "welcome_subtitle": "Wahre Geschichten. Der wahre Jesus.",
-    "welcome_button": "Beginnen"
+    "welcome_button": "Beginnen",
+    "read_now_hint": "Möchtest du es jetzt lesen? Tippe hier.",
+    "unlock_offer_title": "Lies in deinem eigenen Tempo",
+    "unlock_offer_body": "Alles ist kostenlos. Schließe die Begegnungen der Reihe nach ab, und jede öffnet sich von selbst.\n\nWenn du alle sofort lesen möchtest, kannst du diesen Dienst unterstützen und alle Begegnungen öffnen, auch die neuen, die wir hinzufügen.",
+    "unlock_offer_button": "Unterstützen und alle öffnen · {price}",
+    "unlock_offer_keep_reading": "In der Reihenfolge weiterlesen",
+    "unlock_offer_thanks": "Danke! Alle Begegnungen sind geöffnet."
   },
   "tags": {
     "love": "Liebe",
@@ -976,7 +982,12 @@
     "profile_name_save": "Namen speichern",
     "profile_name_saved": "✅ Name erfolgreich gespeichert!",
     "profile_name_hint": "Dein Name (max. 15 Zeichen)",
-    "profile_name_helper": "Wird in deiner täglichen Andacht erscheinen. Wird nicht geteilt."
+    "profile_name_helper": "Wird in deiner täglichen Andacht erscheinen. Wird nicht geteilt.",
+    "tier_encounters_name": "Alle Begegnungen öffnen",
+    "tier_encounters_description": "Lies jede Begegnung in deinem eigenen Tempo",
+    "benefit_encounters_unlock": "Öffne jetzt alle Begegnungen, auch die zukünftigen",
+    "encounters_success_title": "Danke!",
+    "encounters_success_body": "Alle Begegnungen sind jetzt geöffnet. Lies sie in deinem eigenen Tempo. Gott segne dich!"
   },
   "prayer_wall": {
     "title": "Gebetsmauer",

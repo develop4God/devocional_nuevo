@@ -860,7 +860,13 @@
     "welcome_title_line2": "Transformés pour toujours.",
     "welcome_title_line3": "Le même Jésus. Ici. Maintenant.",
     "welcome_subtitle": "Des histoires vraies. Le vrai Jésus.",
-    "welcome_button": "Commencer"
+    "welcome_button": "Commencer",
+    "read_now_hint": "Envie de le lire maintenant ? Touchez ici.",
+    "unlock_offer_title": "Lisez à votre rythme",
+    "unlock_offer_body": "Tout est gratuit. Terminez les rencontres dans l'ordre et chacune s'ouvrira d'elle-même.\n\nSi vous souhaitez tout lire dès maintenant, vous pouvez soutenir ce ministère et ouvrir toutes les rencontres, y compris les nouvelles que nous ajouterons.",
+    "unlock_offer_button": "Soutenir et tout ouvrir · {price}",
+    "unlock_offer_keep_reading": "Continuer dans l'ordre",
+    "unlock_offer_thanks": "Merci ! Toutes les rencontres sont ouvertes."
   },
   "tags": {
     "love": "Amour",
@@ -976,7 +982,12 @@
     "profile_name_save": "Enregistrer le nom",
     "profile_name_saved": "✅ Nom enregistré avec succès !",
     "profile_name_hint": "Votre nom (max 15 caractères)",
-    "profile_name_helper": "Apparaîtra dans votre dévotion quotidienne. Ne sera pas partagé."
+    "profile_name_helper": "Apparaîtra dans votre dévotion quotidienne. Ne sera pas partagé.",
+    "tier_encounters_name": "Ouvrir toutes les rencontres",
+    "tier_encounters_description": "Lisez chaque rencontre à votre rythme",
+    "benefit_encounters_unlock": "Ouvrez dès maintenant toutes les rencontres, y compris les futures",
+    "encounters_success_title": "Merci !",
+    "encounters_success_body": "Toutes les rencontres sont ouvertes. Lisez-les à votre rythme. Que Dieu vous bénisse !"
   },
   "prayer_wall": {
     "title": "Mur de Prière",

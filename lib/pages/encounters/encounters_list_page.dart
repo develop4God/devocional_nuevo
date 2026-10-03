@@ -7,11 +7,14 @@
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/main.dart' show routeObserver;
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
+import 'package:devocional_nuevo/models/supporter_tier.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_intro_page.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_welcome_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
@@ -21,6 +24,7 @@ import 'package:devocional_nuevo/widgets/app_scrollbar.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_grid_overlay.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
+import 'package:devocional_nuevo/widgets/encounter/encounter_unlock_offer_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -146,6 +150,12 @@ class _EncountersListPageState extends State<EncountersListPage>
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
+    // Supporters who bought "open all encounters" skip the reading order.
+    final allUnlocked = context.select<SupporterBloc, bool>((bloc) {
+      final supporterState = bloc.state;
+      return supporterState is SupporterLoaded &&
+          supporterState.isPurchased(SupporterTierLevel.encounters);
+    });
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themeState.systemUiOverlayStyle,
@@ -172,7 +182,7 @@ class _EncountersListPageState extends State<EncountersListPage>
                   }
                   if (state is EncounterLoaded) {
                     if (state.index.isEmpty) return _buildEmpty();
-                    return _buildContent(state);
+                    return _buildContent(state, allUnlocked: allUnlocked);
                   }
                   return const SizedBox.shrink();
                 },
@@ -223,7 +233,14 @@ class _EncountersListPageState extends State<EncountersListPage>
     );
   }
 
-  Widget _buildContent(EncounterLoaded state) {
+  void _showUnlockOffer() {
+    showEncounterUnlockOffer(
+      context,
+      analyticsService: getService<IAnalyticsService>(),
+    );
+  }
+
+  Widget _buildContent(EncounterLoaded state, {required bool allUnlocked}) {
     final lang = context.read<DevocionalProvider>().selectedLanguage;
 
     return Stack(
@@ -238,7 +255,10 @@ class _EncountersListPageState extends State<EncountersListPage>
             itemBuilder: (context, i) {
               if (i == 0) return _buildHeader();
               final entry = state.index[i - 1];
-              final isUnlocked = state.isUnlocked(entry.id);
+              final isUnlocked = state.isUnlocked(
+                entry.id,
+                allUnlocked: allUnlocked,
+              );
               final isCompleted = state.isCompleted(entry.id);
 
               final card = _EncounterCard(
@@ -263,34 +283,49 @@ class _EncountersListPageState extends State<EncountersListPage>
                   children: [
                     Opacity(opacity: 0.4, child: card),
                     Positioned.fill(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.65),
-                          borderRadius: BorderRadius.circular(32),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.lock_rounded,
-                              color: Colors.white,
-                              size: 40,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'encounters.complete_to_unlock'.tr({
-                                'title': prerequisiteTitle,
-                              }),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
+                      child: GestureDetector(
+                        key: ValueKey('encounter_locked_${entry.id}'),
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _showUnlockOffer,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.65),
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.lock_rounded,
                                 color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                height: 1.4,
+                                size: 40,
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 16),
+                              Text(
+                                'encounters.complete_to_unlock'.tr({
+                                  'title': prerequisiteTitle,
+                                }),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1.4,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'encounters.read_now_hint'.tr(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.75),
+                                  fontSize: 12,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -316,8 +351,13 @@ class _EncountersListPageState extends State<EncountersListPage>
           entries: state.index,
           currentIndex: _currentIndex,
           lang: lang,
+          allUnlocked: allUnlocked,
+          onLockedTap: _showUnlockOffer,
           onEncounterSelected: (entry, originalIndex) {
-            final isUnlocked = state.isUnlocked(entry.id);
+            final isUnlocked = state.isUnlocked(
+              entry.id,
+              allUnlocked: allUnlocked,
+            );
             setState(() => _currentIndex = originalIndex);
             _toggleGridOverlay();
             if (entry.isPublished && isUnlocked) _openEncounter(entry, lang);
