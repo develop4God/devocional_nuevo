@@ -7,8 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('SupporterTier', () {
-    test('tiers list contains all 3 tiers', () {
-      expect(SupporterTier.tiers.length, equals(3));
+    test('tiers list contains all 4 tiers', () {
+      expect(SupporterTier.tiers.length, equals(4));
       final levels = SupporterTier.tiers.map((t) => t.level).toList();
       expect(
         levels,
@@ -16,13 +16,14 @@ void main() {
           SupporterTierLevel.bronze,
           SupporterTierLevel.silver,
           SupporterTierLevel.gold,
+          SupporterTierLevel.encounters,
         ]),
       );
     });
 
     test('each tier has a unique product ID', () {
       final ids = SupporterTier.tiers.map((t) => t.productId).toSet();
-      expect(ids.length, equals(3));
+      expect(ids.length, equals(4));
     });
 
     test('fromProductId returns correct tier', () {
@@ -71,7 +72,7 @@ void main() {
       expect(colors[0], equals(const Color(0xFFCD7F32))); // Bronze
       expect(colors[1], equals(const Color(0xFFC0C0C0))); // Silver
       expect(colors[2], equals(const Color(0xFFFFD700))); // Gold
-      expect(colors.toSet().length, equals(3)); // All unique
+      expect(colors.toSet().length, equals(4)); // All unique
     });
 
     test('bronze has 1 benefit, silver has 2, gold has 2', () {
@@ -82,6 +83,19 @@ void main() {
       expect(bronze.benefitKeys.length, equals(1));
       expect(silver.benefitKeys.length, equals(2));
       expect(gold.benefitKeys.length, equals(2));
+    });
+
+    test('only the encounters product unlocks encounters', () {
+      for (final tier in SupporterTier.tiers) {
+        expect(
+          tier.unlocksEncounters,
+          tier.level == SupporterTierLevel.encounters,
+        );
+      }
+      expect(
+        SupporterTier.fromProductId('supporter_encounters')?.level,
+        equals(SupporterTierLevel.encounters),
+      );
     });
 
     test('equality is based on level', () {
