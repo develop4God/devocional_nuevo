@@ -860,7 +860,13 @@
     "welcome_title_line2": "Changed forever.",
     "welcome_title_line3": "The same Jesus. Here. Now.",
     "welcome_subtitle": "Real stories. The real Jesus.",
-    "welcome_button": "Begin"
+    "welcome_button": "Begin",
+    "read_now_hint": "Want to read it now? Tap here.",
+    "unlock_offer_title": "Read at your own pace",
+    "unlock_offer_body": "Everything is free. Finish the encounters in order and each one opens by itself.\n\nIf you'd like to read them all right now, you can support this ministry and open every encounter, including the new ones we add.",
+    "unlock_offer_button": "Support and open all · {price}",
+    "unlock_offer_keep_reading": "Keep reading in order",
+    "unlock_offer_thanks": "Thank you! All encounters are open."
   },
   "tags": {
     "love": "Love",
@@ -976,7 +982,12 @@
     "profile_name_save": "Save name",
     "profile_name_saved": "✅ Name saved successfully!",
     "profile_name_hint": "Your name (max 15 characters)",
-    "profile_name_helper": "Will appear in your daily devotional. Will not be shared."
+    "profile_name_helper": "Will appear in your daily devotional. Will not be shared.",
+    "tier_encounters_name": "Open All Encounters",
+    "tier_encounters_description": "Read every encounter at your own pace",
+    "benefit_encounters_unlock": "Open all encounters now, including future ones",
+    "encounters_success_title": "Thank you!",
+    "encounters_success_body": "All encounters are now open. Read them at your own pace. God bless you!"
   },
   "prayer_wall": {
     "title": "Prayer Wall",

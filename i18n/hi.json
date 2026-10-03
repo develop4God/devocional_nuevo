@@ -860,7 +860,13 @@
     "welcome_title_line2": "हमेशा के लिए बदल गया।",
     "welcome_title_line3": "वही यीशु। यहाँ। अभी।",
     "welcome_subtitle": "सच्ची कहानियाँ। सच्चा यीशु।",
-    "welcome_button": "शुरू करें"
+    "welcome_button": "शुरू करें",
+    "read_now_hint": "क्या इसे अभी पढ़ना चाहते हैं? यहाँ टैप करें।",
+    "unlock_offer_title": "अपनी गति से पढ़ें",
+    "unlock_offer_body": "सब कुछ निःशुल्क है। मुलाक़ातों को क्रम से पूरा करें और हर एक अपने आप खुल जाएगी।\n\nयदि आप सभी को अभी पढ़ना चाहते हैं, तो आप इस सेवकाई का सहयोग करके सभी मुलाक़ातें खोल सकते हैं, हमारी जोड़ी जाने वाली नई मुलाक़ातों सहित।",
+    "unlock_offer_button": "सहयोग करें और सब खोलें · {price}",
+    "unlock_offer_keep_reading": "क्रम से पढ़ते रहें",
+    "unlock_offer_thanks": "धन्यवाद! सभी मुलाक़ातें खुली हैं।"
   },
   "tags": {
     "love": "प्रेम",
@@ -976,7 +982,12 @@
     "profile_name_save": "नाम सहेजें",
     "profile_name_saved": "✅ नाम सफलतापूर्वक सहेजा गया!",
     "profile_name_hint": "आपका नाम (अधिकतम 15 अक्षर)",
-    "profile_name_helper": "आपकी दैनिक भक्ति में दिखाई देगा। साझा नहीं किया जाएगा।"
+    "profile_name_helper": "आपकी दैनिक भक्ति में दिखाई देगा। साझा नहीं किया जाएगा।",
+    "tier_encounters_name": "सभी मुलाक़ातें खोलें",
+    "tier_encounters_description": "अपनी गति से हर मुलाक़ात पढ़ें",
+    "benefit_encounters_unlock": "अभी सभी मुलाक़ातें खोलें, भविष्य की भी",
+    "encounters_success_title": "धन्यवाद!",
+    "encounters_success_body": "सभी मुलाक़ातें खुल गई हैं। अपनी गति से पढ़ें। परमेश्वर आपको आशीष दे!"
   },
   "prayer_wall": {
     "title": "प्रार्थना दीवार",

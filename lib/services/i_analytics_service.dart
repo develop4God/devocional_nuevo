@@ -106,6 +106,16 @@ abstract class IAnalyticsService {
   /// Event name: `encounter_view_toggle`
   Future<void> logEncounterViewToggle({required String view});
 
+  /// Log when the "open all encounters" offer is shown to the user
+  ///
+  /// Event name: `encounter_unlock_offer_shown`
+  Future<void> logEncounterUnlockOfferShown();
+
+  /// Log when the user taps the buy button of the "open all encounters" offer
+  ///
+  /// Event name: `encounter_unlock_offer_purchase_tapped`
+  Future<void> logEncounterUnlockOfferPurchaseTapped();
+
   /// Log Bible Reader page open event
   ///
   /// Event name: `bible_open`

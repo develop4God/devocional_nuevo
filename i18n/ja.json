@@ -860,7 +860,13 @@
     "welcome_title_line2": "永遠に変わりました。",
     "welcome_title_line3": "同じイエス。ここに。今。",
     "welcome_subtitle": "実話。本物のイエス。",
-    "welcome_button": "始める"
+    "welcome_button": "始める",
+    "read_now_hint": "今すぐ読みたいですか？ここをタップ。",
+    "unlock_offer_title": "自分のペースで読む",
+    "unlock_offer_body": "すべて無料です。順番に読み終えると、次の出会いが自動的に開きます。\n\n今すぐすべて読みたい場合は、この働きを支援して、今後追加される出会いも含めてすべて開くことができます。",
+    "unlock_offer_button": "支援してすべて開く · {price}",
+    "unlock_offer_keep_reading": "順番に読み続ける",
+    "unlock_offer_thanks": "ありがとうございます！すべての出会いが開きました。"
   },
   "tags": {
     "love": "愛",
@@ -976,7 +982,12 @@
     "profile_name_save": "名前を保存",
     "profile_name_saved": "✅ 名前が正常に保存されました！",
     "profile_name_hint": "あなたの名前（最大15文字）",
-    "profile_name_helper": "毎日のデボーションに表示されます。共有されません。"
+    "profile_name_helper": "毎日のデボーションに表示されます。共有されません。",
+    "tier_encounters_name": "すべての出会いを開く",
+    "tier_encounters_description": "自分のペースで読めます",
+    "benefit_encounters_unlock": "今すぐすべての出会いを開きます（今後追加される分も含む）",
+    "encounters_success_title": "ありがとうございます！",
+    "encounters_success_body": "すべての出会いが開きました。ご自分のペースでお読みください。神様の祝福がありますように！"
   },
   "prayer_wall": {
     "title": "祈りの壁",
