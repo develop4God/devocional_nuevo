@@ -302,6 +302,12 @@ class FakeAnalyticsService extends AnalyticsService
 
   @override
   Future<void> logEncounterViewToggle({required String view}) async {}
+
+  @override
+  Future<void> logEncounterUnlockOfferShown() async {}
+
+  @override
+  Future<void> logEncounterUnlockOfferPurchaseTapped() async {}
 }
 
 /// Fake AuthService for testing

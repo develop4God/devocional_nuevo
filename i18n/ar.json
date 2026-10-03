@@ -860,7 +860,13 @@
     "welcome_title_line2": "تغيّروا إلى الأبد.",
     "welcome_title_line3": "نفس يسوع. هنا. الآن.",
     "welcome_subtitle": "قصص حقيقية. يسوع الحقيقي.",
-    "welcome_button": "ابدأ"
+    "welcome_button": "ابدأ",
+    "read_now_hint": "تريد قراءته الآن؟ اضغط هنا.",
+    "unlock_offer_title": "اقرأ بالسرعة التي تناسبك",
+    "unlock_offer_body": "كل شيء مجاني. أنهِ اللقاءات بالترتيب وسيفتح كل لقاء تلقائيًا.\n\nإذا أردت قراءتها كلها الآن، يمكنك دعم هذه الخدمة وفتح جميع اللقاءات، بما فيها الجديدة التي سنضيفها.",
+    "unlock_offer_button": "ادعم وافتح الكل · {price}",
+    "unlock_offer_keep_reading": "تابع القراءة بالترتيب",
+    "unlock_offer_thanks": "شكرًا لك! جميع اللقاءات مفتوحة."
   },
   "tags": {
     "love": "محبة",
@@ -976,7 +982,12 @@
     "profile_name_save": "حفظ الاسم",
     "profile_name_saved": "✅ تم حفظ الاسم بنجاح!",
     "profile_name_hint": "اسمك (15 حرفًا كحد أقصى)",
-    "profile_name_helper": "سيظهر في تأملك اليومي. لن تتم مشاركته."
+    "profile_name_helper": "سيظهر في تأملك اليومي. لن تتم مشاركته.",
+    "tier_encounters_name": "افتح جميع اللقاءات",
+    "tier_encounters_description": "اقرأ كل لقاء بالسرعة التي تناسبك",
+    "benefit_encounters_unlock": "افتح الآن جميع اللقاءات، بما فيها المستقبلية",
+    "encounters_success_title": "شكرًا لك!",
+    "encounters_success_body": "تم فتح جميع اللقاءات. اقرأها بالسرعة التي تناسبك. بارك الله فيك!"
   },
   "prayer_wall": {
     "title": "حائط الصلاة",

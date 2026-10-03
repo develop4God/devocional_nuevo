@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 /// Represents the three supporter tiers available for purchase.
-enum SupporterTierLevel { bronze, silver, gold }
+enum SupporterTierLevel { bronze, silver, gold, encounters }
 
 /// Model for a supporter tier IAP product.
 class SupporterTier {
@@ -15,6 +15,10 @@ class SupporterTier {
   final Color badgeColor;
   final List<String> benefitKeys;
 
+  /// True when owning this product opens every encounter without having to
+  /// complete the previous one.
+  final bool unlocksEncounters;
+
   const SupporterTier({
     required this.level,
     required this.productId,
@@ -24,9 +28,15 @@ class SupporterTier {
     required this.priceDisplay,
     required this.badgeColor,
     required this.benefitKeys,
+    this.unlocksEncounters = false,
   });
 
-  static const List<SupporterTier> tiers = [_bronze, _silver, _gold];
+  static const List<SupporterTier> tiers = [
+    _bronze,
+    _silver,
+    _gold,
+    _encounters,
+  ];
 
   static const SupporterTier _bronze = SupporterTier(
     level: SupporterTierLevel.bronze,
@@ -65,6 +75,18 @@ class SupporterTier {
       'supporter.benefit_gold_badge',
       'supporter.benefit_gold_thanks',
     ],
+  );
+
+  static const SupporterTier _encounters = SupporterTier(
+    level: SupporterTierLevel.encounters,
+    productId: 'supporter_encounters',
+    emoji: '🔓',
+    nameKey: 'supporter.tier_encounters_name',
+    descriptionKey: 'supporter.tier_encounters_description',
+    priceDisplay: '\$4.99',
+    badgeColor: Color(0xFF4A90D9),
+    benefitKeys: ['supporter.benefit_encounters_unlock'],
+    unlocksEncounters: true,
   );
 
   /// Returns the tier for a given product ID, or null if not found.

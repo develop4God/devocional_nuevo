@@ -13,12 +13,16 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_bloc.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_event.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/models/encounter_card_model.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/models/encounter_study.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_detail_page.dart';
+import 'package:devocional_nuevo/pages/encounters/encounter_intro_page.dart';
 import 'package:devocional_nuevo/pages/encounters/encounters_list_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
@@ -151,6 +155,21 @@ class _MockEncounterBloc extends Fake implements EncounterBloc {
   Future<void> close() async {}
 }
 
+/// Supporter bloc that never owns anything (list page needs one in the tree).
+class _FakeSupporterBloc extends Fake implements SupporterBloc {
+  @override
+  Stream<SupporterState> get stream => Stream.value(SupporterInitial());
+
+  @override
+  SupporterState get state => SupporterInitial();
+
+  @override
+  void add(SupporterEvent event) {}
+
+  @override
+  Future<void> close() async {}
+}
+
 // ─── No-op analytics (avoids firebase_analytics calls) ───────────────────────
 
 class _TestAnalyticsService extends AnalyticsService {
@@ -167,6 +186,12 @@ class _TestAnalyticsService extends AnalyticsService {
 
   @override
   Future<void> logEncounterViewToggle({required String view}) async {}
+
+  @override
+  Future<void> logEncounterUnlockOfferShown() async {}
+
+  @override
+  Future<void> logEncounterUnlockOfferPurchaseTapped() async {}
 
   @override
   Future<void> logBottomBarAction({required String action}) async {}
@@ -589,6 +614,7 @@ void main() {
             providers: [
               BlocProvider<EncounterBloc>.value(value: mockBloc),
               BlocProvider<ThemeBloc>.value(value: _FakeThemeBloc()),
+              BlocProvider<SupporterBloc>.value(value: _FakeSupporterBloc()),
               ChangeNotifierProvider(create: (_) => DevocionalProvider()),
             ],
             child: const EncountersListPage(),
@@ -761,6 +787,7 @@ void main() {
             providers: [
               BlocProvider<EncounterBloc>.value(value: mockBloc),
               BlocProvider<ThemeBloc>.value(value: _FakeThemeBloc()),
+              BlocProvider<SupporterBloc>.value(value: _FakeSupporterBloc()),
               ChangeNotifierProvider(create: (_) => DevocionalProvider()),
             ],
             child: const EncountersListPage(),
@@ -791,6 +818,7 @@ void main() {
             providers: [
               BlocProvider<EncounterBloc>.value(value: mockBloc),
               BlocProvider<ThemeBloc>.value(value: _FakeThemeBloc()),
+              BlocProvider<SupporterBloc>.value(value: _FakeSupporterBloc()),
               ChangeNotifierProvider(create: (_) => DevocionalProvider()),
             ],
             child: const EncountersListPage(),
@@ -824,6 +852,7 @@ void main() {
             providers: [
               BlocProvider<EncounterBloc>.value(value: mockBloc),
               BlocProvider<ThemeBloc>.value(value: _FakeThemeBloc()),
+              BlocProvider<SupporterBloc>.value(value: _FakeSupporterBloc()),
               ChangeNotifierProvider(create: (_) => DevocionalProvider()),
             ],
             child: const EncountersListPage(),
@@ -855,6 +884,7 @@ void main() {
             providers: [
               BlocProvider<EncounterBloc>.value(value: mockBloc),
               BlocProvider<ThemeBloc>.value(value: _FakeThemeBloc()),
+              BlocProvider<SupporterBloc>.value(value: _FakeSupporterBloc()),
               ChangeNotifierProvider(create: (_) => DevocionalProvider()),
             ],
             child: const EncountersListPage(),
@@ -1250,6 +1280,7 @@ void main() {
             providers: [
               BlocProvider<EncounterBloc>.value(value: mockBloc),
               BlocProvider<ThemeBloc>.value(value: _FakeThemeBloc()),
+              BlocProvider<SupporterBloc>.value(value: _FakeSupporterBloc()),
               ChangeNotifierProvider(create: (_) => DevocionalProvider()),
             ],
             child: const EncountersListPage(),
@@ -1289,6 +1320,7 @@ void main() {
             providers: [
               BlocProvider<EncounterBloc>.value(value: mockBloc),
               BlocProvider<ThemeBloc>.value(value: _FakeThemeBloc()),
+              BlocProvider<SupporterBloc>.value(value: _FakeSupporterBloc()),
               ChangeNotifierProvider(create: (_) => DevocionalProvider()),
             ],
             child: const EncountersListPage(),
@@ -1298,15 +1330,13 @@ void main() {
 
       await tester.pump();
 
-      // Record baseline route count after initial render.
-      final pushCountBefore = navObserver.pushes.length;
-
       // Tap on the locked encounter title — it is visible but behind the lock
-      // overlay, so no navigation should occur.
+      // overlay, so the encounter itself must not open. Tapping a waiting
+      // encounter only offers the optional unlock (a modal sheet, not a page).
       await tester.tap(find.text('Bartimaeus'), warnIfMissed: false);
       await tester.pump();
 
-      expect(navObserver.pushes.length, equals(pushCountBefore));
+      expect(find.byType(EncounterIntroPage), findsNothing);
     });
   });
 }
