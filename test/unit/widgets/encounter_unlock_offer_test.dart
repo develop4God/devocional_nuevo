@@ -11,6 +11,7 @@ import 'package:devocional_nuevo/blocs/encounter/encounter_event.dart';
 import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_event.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
@@ -253,6 +254,71 @@ void main() {
 
       expect(iap.isPurchased(SupporterTierLevel.encounters), isFalse);
       expect(find.byKey(const ValueKey('encounter_locked_b')), findsOneWidget);
+      // The user is told why nothing happened.
+      expect(
+        find.descendant(
+          of: find.byType(EncounterUnlockOfferSheet),
+          matching: find.text('supporter.purchase_error'),
+        ),
+        findsOneWidget,
+      );
+
+      await unmount(tester);
+    });
+
+    testWidgets('billing unavailable is explained inside the offer', (
+      tester,
+    ) async {
+      final noBilling = FakeIapService(isAvailable: false);
+      final bloc = SupporterBloc(
+        iapService: noBilling,
+        profileRepository: FakeSupporterProfileRepository(),
+      );
+      addTearDown(bloc.close);
+      supporterBloc = bloc;
+      bloc.add(InitializeSupporter());
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await pumpList(tester);
+
+      await tester.tap(find.byKey(const ValueKey('encounter_locked_b')));
+      await tester.pumpAndSettle();
+      await tester
+          .tap(find.byKey(const ValueKey('encounter_unlock_offer_buy')));
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump();
+
+      expect(find.byType(EncounterUnlockOfferSheet), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(EncounterUnlockOfferSheet),
+          matching: find.text('supporter.billing_unavailable_body'),
+        ),
+        findsOneWidget,
+      );
+
+      await unmount(tester);
+    });
+
+    testWidgets('closing the offer clears its error from the supporter state', (
+      tester,
+    ) async {
+      iap.purchaseShouldSucceed = false;
+      supporterBloc.add(InitializeSupporter());
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await pumpList(tester);
+
+      await tester.tap(find.byKey(const ValueKey('encounter_locked_b')));
+      await tester.pumpAndSettle();
+      await tester
+          .tap(find.byKey(const ValueKey('encounter_unlock_offer_buy')));
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump();
+      await tester
+          .tap(find.byKey(const ValueKey('encounter_unlock_offer_dismiss')));
+      await tester.pumpAndSettle();
+
+      final state = supporterBloc.state as SupporterLoaded;
+      expect(state.errorMessage, isNull);
 
       await unmount(tester);
     });

@@ -29,7 +29,9 @@ Future<void> showEncounterUnlockOffer(
       value: supporterBloc,
       child: EncounterUnlockOfferSheet(analyticsService: analyticsService),
     ),
-  );
+    // The page that owns purchase errors (SupporterPage) is not on screen
+    // here, so an error shown in the sheet must not linger afterwards.
+  ).whenComplete(() => supporterBloc.add(ClearSupporterError()));
 }
 
 class EncounterUnlockOfferSheet extends StatelessWidget {
@@ -43,6 +45,13 @@ class EncounterUnlockOfferSheet extends StatelessWidget {
   static bool _isOwned(SupporterState state) =>
       state is SupporterLoaded &&
       state.isPurchased(SupporterTierLevel.encounters);
+
+  static String? _errorTranslationKey(String? errorMessage) {
+    if (errorMessage == null) return null;
+    return errorMessage == 'billing_unavailable'
+        ? 'supporter.billing_unavailable_body'
+        : 'supporter.purchase_error';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +74,7 @@ class EncounterUnlockOfferSheet extends StatelessWidget {
             loaded?.storePrices[_tier.productId] ?? _tier.priceDisplay;
         final isPurchasing = loaded?.purchasingProductId == _tier.productId;
         final canBuy = loaded != null && !isPurchasing;
+        final errorKey = _errorTranslationKey(loaded?.errorMessage);
 
         return SafeArea(
           child: Padding(
@@ -96,15 +106,26 @@ class EncounterUnlockOfferSheet extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
+                if (errorKey != null) ...[
+                  Text(
+                    errorKey.tr(),
+                    key: const ValueKey('encounter_unlock_offer_error'),
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.error,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 FilledButton(
                   key: const ValueKey('encounter_unlock_offer_buy'),
                   onPressed: canBuy
                       ? () {
                           analyticsService
                               .logEncounterUnlockOfferPurchaseTapped();
-                          context.read<SupporterBloc>().add(
-                                PurchaseTier(_tier),
-                              );
+                          context.read<SupporterBloc>()
+                            ..add(ClearSupporterError())
+                            ..add(PurchaseTier(_tier));
                         }
                       : null,
                   child: isPurchasing

@@ -79,7 +79,7 @@ class SupporterTier {
 
   static const SupporterTier _encounters = SupporterTier(
     level: SupporterTierLevel.encounters,
-    productId: 'supporter_encounters',
+    productId: 'supporter_encounters_unlock',
     emoji: '🔓',
     nameKey: 'supporter.tier_encounters_name',
     descriptionKey: 'supporter.tier_encounters_description',
