@@ -11,6 +11,7 @@ import 'package:devocional_nuevo/models/supporter_tier.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 
 /// Opens the offer as a modal bottom sheet and logs that it was shown.
 Future<void> showEncounterUnlockOffer(
@@ -83,10 +84,16 @@ class EncounterUnlockOfferSheet extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  _tier.emoji,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 44),
+                Lottie.asset(
+                  'assets/lottie/unlocked.json',
+                  height: 72,
+                  repeat: false,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Text(
+                    _tier.emoji,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 44),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
