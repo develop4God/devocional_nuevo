@@ -136,4 +136,15 @@ class MockIIapService extends _i1.Mock implements _i2.IIapService {
         ),
         returnValueForMissingStub: null,
       );
+
+  @override
+  _i3.Future<void> debugSimulateDelivery(_i4.SupporterTier? tier) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #debugSimulateDelivery,
+          [tier],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
 }

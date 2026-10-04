@@ -126,6 +126,9 @@ class FakeIapService implements IIapService {
     // In tests, forceReinitialize is a no-op (use reset() instead).
   }
 
+  @override
+  Future<void> debugSimulateDelivery(SupporterTier tier) => deliver(tier);
+
   // ── Test helpers ──────────────────────────────────────────────────────────
 
   /// Simulate a successful delivery (purchased or restored).

@@ -83,4 +83,11 @@ abstract class IIapService {
   /// (guard with [kDebugMode]).  Kept on the interface so [SupporterBloc] can
   /// call it without depending on the concrete [IapService] class.
   void forceReinitialize();
+
+  /// Runs the real delivery path (levels, prefs, delivered stream) for [tier]
+  /// without touching Google Play.
+  ///
+  /// **Debug builds only** — implementations must no-op in release builds
+  /// (guard with [kDebugMode]).
+  Future<void> debugSimulateDelivery(SupporterTier tier);
 }

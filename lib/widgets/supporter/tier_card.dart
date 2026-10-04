@@ -287,6 +287,17 @@ class TierCard extends StatelessWidget {
           ),
         ),
       );
+    } else if (tier.level == SupporterTierLevel.encounters) {
+      isLottie = true;
+      badgeContent = Lottie.asset(
+        'assets/lottie/unlocked.json',
+        width: badgeSize,
+        height: badgeSize,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => Center(
+          child: Text(tier.emoji, style: const TextStyle(fontSize: 42)),
+        ),
+      );
     } else {
       badgeContent = Center(
         child: Text(tier.emoji, style: const TextStyle(fontSize: 42)),
