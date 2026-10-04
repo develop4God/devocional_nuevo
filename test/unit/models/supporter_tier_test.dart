@@ -93,7 +93,7 @@ void main() {
         );
       }
       expect(
-        SupporterTier.fromProductId('supporter_encounters')?.level,
+        SupporterTier.fromProductId('supporter_encounters_unlock')?.level,
         equals(SupporterTierLevel.encounters),
       );
     });
