@@ -48,6 +48,7 @@ class DevocionalesNavigationBloc
     if (current is! NavigationReady) return;
     final url = _imageRepository.currentImageUrl;
     if (url == null || url == current.heroImageUrl) return;
+    debugPrint('[NAV_BLOC] 🖼️ HeroImageReady applied heroImageUrl=$url');
     emit(current.copyWith(heroImageUrl: url));
   }
 

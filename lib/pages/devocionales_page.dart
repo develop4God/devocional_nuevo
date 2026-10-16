@@ -132,6 +132,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       NavigationRepositoryImpl();
   late final DevocionalRepository _devocionalRepository =
       getService<DevocionalRepository>();
+  bool _firstBuildLogged = false;
+
   late final DevotionalImageRepository _imageRepository =
       getService<DevotionalImageRepository>();
 
@@ -989,6 +991,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               final bool isFavorite = devocionalProvider.isFavorite(
                 currentDevocional,
               );
+
+              if (!_firstBuildLogged) {
+                _firstBuildLogged = true;
+                debugPrint(
+                  '[DEVOCIONALES_PAGE] 🖼️ first build heroImageUrl='
+                  '${heroImageUrl ?? 'null (no hero yet)'}',
+                );
+              }
 
               final devotionalsTitle =
                   'devotionals.my_intimate_space_with_god'.tr();

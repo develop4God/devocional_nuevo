@@ -190,7 +190,12 @@ class DevotionalImageRepository {
     try {
       final prefs = await SharedPreferences.getInstance();
       final url = prefs.getString(_nextImageUrlKey);
-      if (url == null || await cacheManager.getFileFromCache(url) == null) {
+      if (url == null) {
+        debugPrint('🖼️ DevotionalImage: restore miss — no saved image');
+        return false;
+      }
+      if (await cacheManager.getFileFromCache(url) == null) {
+        debugPrint('🖼️ DevotionalImage: restore miss — not in disk cache');
         return false;
       }
       currentImageUrl = url;
@@ -206,6 +211,7 @@ class DevotionalImageRepository {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_nextImageUrlKey, url);
+      debugPrint('🖼️ DevotionalImage: saved for next launch $url');
     } catch (e) {
       debugPrint('⚠️ DevotionalImage: persisting next image failed: $e');
     }
