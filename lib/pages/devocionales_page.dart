@@ -132,12 +132,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       NavigationRepositoryImpl();
   late final DevocionalRepository _devocionalRepository =
       getService<DevocionalRepository>();
-
-  /// True until the startup hero image has finished loading (or failed). While
-  /// pending and without an image, the app bar is transparent instead of the
-  /// themed gradient so the swap to the hero layout doesn't flash theme color.
-  bool _heroPending = true;
-
   late final DevotionalImageRepository _imageRepository =
       getService<DevotionalImageRepository>();
 
@@ -317,9 +311,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       // once it lands (no-op when it was already ready).
       unawaited(
         _imageRepository.initialReady.then((_) {
-          if (!mounted) return;
-          setState(() => _heroPending = false);
-          if (_navigationBloc != null && !_navigationBloc!.isClosed) {
+          if (mounted &&
+              _navigationBloc != null &&
+              !_navigationBloc!.isClosed) {
             _navigationBloc!.add(const HeroImageReady());
           }
         }),
@@ -998,10 +992,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
               final devotionalsTitle =
                   'devotionals.my_intimate_space_with_god'.tr();
-              final bool transparentBar = _heroPending;
-              final Color barForeground = transparentBar
-                  ? colorScheme.onSurface
-                  : colorScheme.onPrimary;
 
               return AnnotatedRegion<SystemUiOverlayStyle>(
                 value: themeState.systemUiOverlayStyle,
@@ -1009,7 +999,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   drawer: const DevocionalesDrawer(),
                   appBar: heroImageUrl == null
                       ? CustomAppBar(
-                          transparent: transparentBar,
                           titleWidget: AutoSizeText(
                             devotionalsTitle,
                             maxLines: 1,
@@ -1017,13 +1006,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             style: Theme.of(context)
                                 .textTheme
                                 .titleLarge
-                                ?.copyWith(color: barForeground),
+                                ?.copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                ),
                           ),
                           actions: [
                             IconButton(
                               icon: Icon(
                                 Icons.text_increase_outlined,
-                                color: barForeground,
+                                color: colorScheme.onPrimary,
                               ),
                               tooltip: 'bible.adjust_font_size'.tr(),
                               onPressed: _fontSizeController.toggleControls,

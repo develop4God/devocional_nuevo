@@ -306,11 +306,6 @@ void main() {
         expect(find.byType(CustomAppBar), findsOneWidget);
         expect(find.byType(SliverAppBar), findsNothing);
         expect(find.byType(CustomScrollView), findsNothing);
-        // Nothing is loading, so the themed app bar is used.
-        expect(
-          tester.widget<CustomAppBar>(find.byType(CustomAppBar)).transparent,
-          isFalse,
-        );
 
         // showHeader defaults to true in this branch, so the content
         // widget's own header must appear.
@@ -332,14 +327,9 @@ void main() {
           lateHeroUrl: 'https://example.com/hero.jpg',
         );
 
-        // Startup did not wait for the hero image. While it is pending the
-        // bar is transparent, so the later swap does not flash theme color.
+        // Startup did not wait for the hero image.
         expect(find.byType(CustomAppBar), findsOneWidget);
         expect(find.byType(SliverAppBar), findsNothing);
-        expect(
-          tester.widget<CustomAppBar>(find.byType(CustomAppBar)).transparent,
-          isTrue,
-        );
 
         heroLands.complete();
         await tester.pump();
@@ -347,34 +337,6 @@ void main() {
 
         expect(find.byType(SliverAppBar), findsOneWidget);
         expect(find.byType(CustomAppBar), findsNothing);
-
-        await _settleDevocionalesPage(tester, provider);
-      },
-    );
-
-    testWidgets(
-      'hero-failed: themed app bar returns once loading ended without an image',
-      (tester) async {
-        final heroEnds = Completer<void>();
-        final provider = await _pumpDevocionalesPage(
-          tester,
-          heroImageUrl: null,
-          lateHero: heroEnds,
-        );
-        expect(
-          tester.widget<CustomAppBar>(find.byType(CustomAppBar)).transparent,
-          isTrue,
-        );
-
-        heroEnds.complete();
-        await tester.pump();
-        await tester.pump();
-
-        expect(find.byType(SliverAppBar), findsNothing);
-        expect(
-          tester.widget<CustomAppBar>(find.byType(CustomAppBar)).transparent,
-          isFalse,
-        );
 
         await _settleDevocionalesPage(tester, provider);
       },
