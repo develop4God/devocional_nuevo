@@ -13,6 +13,7 @@ import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart'; // for TtsState
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:fake_async/fake_async.dart';
+import '../../helpers/test_helpers.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/services/cache_metadata_service.dart';
@@ -150,6 +151,7 @@ void main() {
       devocionalIndexService: localIndexService,
       cacheMetadataService: localMetadataService,
       devocionalRepository: localRepository,
+      statsService: FakeSpiritualStatsService(),
     );
 
     // Use the new helpers to add a favorite and persist without UI
