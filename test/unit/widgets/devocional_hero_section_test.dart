@@ -48,6 +48,16 @@ void main() {
       expect(find.byIcon(Icons.share_rounded), findsOneWidget);
     });
 
+    testWidgets('keeps the old image while a new url loads', (tester) async {
+      await tester.pumpWidget(buildWidget());
+      await tester.pump();
+
+      final image = tester.widget<CachedNetworkImage>(
+        find.byType(CachedNetworkImage),
+      );
+      expect(image.useOldImageOnUrlChange, isTrue);
+    });
+
     testWidgets('tapping favorite and share icons fires their callbacks', (
       tester,
     ) async {

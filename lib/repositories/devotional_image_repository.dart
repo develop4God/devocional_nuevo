@@ -37,6 +37,10 @@ class DevotionalImageRepository {
 
   static const String _indexCacheKey = 'devotional_image_index_cache';
 
+  /// The prefetched next image, kept across launches so the next cold start
+  /// shows it from disk without waiting on the network.
+  static const String _nextImageUrlKey = 'devotional_image_next_url';
+
   /// Fetched at most once per app session — reset on every cold start.
   static bool _indexFetchedThisSession = false;
 
@@ -140,6 +144,10 @@ class DevotionalImageRepository {
   /// via [_prefetchNext], same as forward navigation does, so it can't delay
   /// startup. Never throws — on any failure, [currentImageUrl] simply stays
   /// null and the verse card renders with no background.
+  ///
+  /// When the previous session left a prefetched image that is still in the
+  /// disk cache, it is used directly (local lookup only, no network) so the
+  /// hero is there on the first frame of every launch after the first.
   Future<void> prepareInitial() => _initialFuture ??= _prepareInitial();
 
   Future<void>? _initialFuture;
@@ -150,6 +158,11 @@ class DevotionalImageRepository {
 
   Future<void> _prepareInitial() async {
     try {
+      if (await _restorePersistedNext()) {
+        if (!_prefetchInFlight) unawaited(_prefetchNext());
+        return;
+      }
+
       final files = await fetchIndex();
       final url = await _pickRandomUrl(files);
       if (url == null) return;
@@ -168,6 +181,33 @@ class DevotionalImageRepository {
       }
     } catch (e) {
       debugPrint('⚠️ DevotionalImage: prepareInitial failed: $e');
+    }
+  }
+
+  /// Uses the image prefetched by the previous session when it is still in the
+  /// disk cache. Local-only: never touches the network.
+  Future<bool> _restorePersistedNext() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final url = prefs.getString(_nextImageUrlKey);
+      if (url == null || await cacheManager.getFileFromCache(url) == null) {
+        return false;
+      }
+      currentImageUrl = url;
+      debugPrint('🖼️ DevotionalImage: restored from last session $url');
+      return true;
+    } catch (e) {
+      debugPrint('⚠️ DevotionalImage: restore failed: $e');
+      return false;
+    }
+  }
+
+  Future<void> _persistNext(String url) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_nextImageUrlKey, url);
+    } catch (e) {
+      debugPrint('⚠️ DevotionalImage: persisting next image failed: $e');
     }
   }
 
@@ -215,6 +255,7 @@ class DevotionalImageRepository {
       if (url == null) return;
       if (await _warm(url)) {
         _prefetchedNextUrl = url;
+        await _persistNext(url);
         debugPrint('🖼️ DevotionalImage: prefetch ready=$url');
       } else {
         debugPrint(
