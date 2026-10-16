@@ -8,6 +8,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final PreferredSizeWidget? bottom;
   final List<Widget>? actions;
 
+  /// Drops the themed gradient and uses the regular foreground color, so the
+  /// bar blends into the page background.
+  final bool transparent;
+
   const CustomAppBar({
     super.key,
     this.titleText,
@@ -15,6 +19,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.bottom,
     this.actions,
+    this.transparent = false,
   });
 
   @override
@@ -46,16 +51,20 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: actions,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      flexibleSpace: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [colorScheme.primary, colorScheme.secondary],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+      flexibleSpace: transparent
+          ? null
+          : Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [colorScheme.primary, colorScheme.secondary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
+      iconTheme: IconThemeData(
+        color: transparent ? colorScheme.onSurface : colorScheme.onPrimary,
       ),
-      iconTheme: IconThemeData(color: colorScheme.onPrimary),
       bottom: bottom,
     );
   }
