@@ -361,4 +361,91 @@ void main() {
       },
     );
   });
+
+  group('initialReady', () {
+    test('is already complete when prepareInitial was never started', () async {
+      await repository.initialReady;
+      expect(repository.currentImageUrl, isNull);
+    });
+
+    test('completes only after the initial image has been applied', () async {
+      final indexBlocker = Completer<http.Response>();
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) => indexBlocker.future);
+
+      // Startup fires this without awaiting it.
+      unawaited(repository.prepareInitial());
+      var ready = false;
+      unawaited(repository.initialReady.then((_) => ready = true));
+      await Future<void>.delayed(Duration.zero);
+      expect(ready, isFalse, reason: 'image download has not finished yet');
+      expect(repository.currentImageUrl, isNull);
+
+      indexBlocker.complete(okResponse());
+      await repository.initialReady;
+
+      expect(ready, isTrue);
+      expect(repository.currentImageUrl, contains('blue_mountains'));
+    });
+
+    test('completes (without throwing) when the download fails', () async {
+      when(() => mockHttpClient.get(any())).thenThrow(Exception('offline'));
+
+      unawaited(repository.prepareInitial());
+      await repository.initialReady;
+
+      expect(repository.currentImageUrl, isNull);
+    });
+
+    test('prepareInitial is idempotent — a second call does not re-download',
+        () async {
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+
+      await repository.prepareInitial();
+      await repository.prepareInitial();
+
+      verify(() => mockCacheManager.downloadFile(any())).called(1);
+    });
+  });
+
+  group('image carried over from the previous session', () {
+    const persistedUrlKey = 'devotional_image_next_url';
+    const lastSessionUrl = 'https://example.com/last_session.avif';
+
+    test('is the initial image, with no network', () async {
+      SharedPreferences.setMockInitialValues({persistedUrlKey: lastSessionUrl});
+      when(() => mockCacheManager.getFileFromCache(lastSessionUrl))
+          .thenAnswer((_) async => MockFileInfo());
+      when(() => mockHttpClient.get(any())).thenThrow(Exception('offline'));
+
+      await repository.prepareInitial();
+
+      expect(repository.currentImageUrl, lastSessionUrl);
+    });
+
+    test('is ignored when evicted from the disk cache', () async {
+      SharedPreferences.setMockInitialValues({persistedUrlKey: lastSessionUrl});
+      when(() => mockCacheManager.getFileFromCache(lastSessionUrl))
+          .thenAnswer((_) async => null);
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+
+      await repository.prepareInitial();
+
+      expect(repository.currentImageUrl, contains('blue_mountains'));
+    });
+
+    test('is saved once the next image has been prefetched', () async {
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+
+      await repository.advance();
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString(persistedUrlKey), contains('blue_mountains'));
+    });
+  });
 }
