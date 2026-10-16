@@ -146,4 +146,28 @@ void main() {
     await bloc.close();
     await fakeIap.dispose();
   });
+
+  test(
+      'DebugSimulatePurchase marks the tier as purchased in state '
+      'and in the IAP service', () async {
+    final fakeIap = FakeIapService();
+    final bloc = SupporterBloc(
+      iapService: fakeIap,
+      profileRepository: FakeSupporterProfileRepository(),
+    );
+    bloc.add(InitializeSupporter());
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    final tier = SupporterTier.fromLevel(SupporterTierLevel.encounters);
+    bloc.add(DebugSimulatePurchase(tier));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    final after = bloc.state as SupporterLoaded;
+    expect(after.isPurchased(SupporterTierLevel.encounters), isTrue);
+    expect(after.justDeliveredTier, equals(tier));
+    expect(fakeIap.isPurchased(SupporterTierLevel.encounters), isTrue);
+
+    await bloc.close();
+    await fakeIap.dispose();
+  });
 }

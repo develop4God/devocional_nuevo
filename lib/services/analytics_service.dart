@@ -443,6 +443,36 @@ class AnalyticsService implements IAnalyticsService {
     }
   }
 
+  /// Log when the "open all encounters" offer is shown
+  ///
+  /// Event name: `encounter_unlock_offer_shown`
+  @override
+  Future<void> logEncounterUnlockOfferShown() async {
+    try {
+      await analytics.logEvent(name: 'encounter_unlock_offer_shown');
+      debugPrint('📊 Analytics: encounter_unlock_offer_shown event logged');
+    } catch (e) {
+      _logAnalyticsError('encounter_unlock_offer_shown', e);
+      // Fail silently - analytics errors should not affect app functionality
+    }
+  }
+
+  /// Log when the user taps buy on the "open all encounters" offer
+  ///
+  /// Event name: `encounter_unlock_offer_purchase_tapped`
+  @override
+  Future<void> logEncounterUnlockOfferPurchaseTapped() async {
+    try {
+      await analytics.logEvent(name: 'encounter_unlock_offer_purchase_tapped');
+      debugPrint(
+        '📊 Analytics: encounter_unlock_offer_purchase_tapped event logged',
+      );
+    } catch (e) {
+      _logAnalyticsError('encounter_unlock_offer_purchase_tapped', e);
+      // Fail silently - analytics errors should not affect app functionality
+    }
+  }
+
   /// Log Bible Reader page open event
   ///
   /// Event name: `bible_open`
