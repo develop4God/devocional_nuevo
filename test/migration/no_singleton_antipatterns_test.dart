@@ -1122,6 +1122,22 @@ void main() {
       },
     );
 
+    test(
+        'DevocionalProvider does not instantiate SpiritualStatsService directly',
+        () async {
+      final file = File('lib/providers/devocional_provider.dart');
+      expect(await file.exists(), isTrue);
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('SpiritualStatsService()'),
+        isFalse,
+        reason:
+            'DevocionalProvider must not instantiate SpiritualStatsService() directly; '
+            'inject ISpiritualStatsService via the constructor / service locator',
+      );
+    });
+
     test('StartupMigrationService implements IStartupMigrationService',
         () async {
       final file = File('lib/services/startup_migration_service.dart');

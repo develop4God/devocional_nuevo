@@ -14,7 +14,7 @@ import 'package:devocional_nuevo/services/cache_metadata_service.dart';
 import 'package:devocional_nuevo/services/devocional_index_service.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:devocional_nuevo/utils/network_error_utils.dart';
@@ -51,7 +51,11 @@ class DevocionalProvider with ChangeNotifier {
   bool _hasFiredMismatchTelemetry = false;
 
   // ========== SERVICES ==========
-  final SpiritualStatsService _statsService = SpiritualStatsService();
+  // Resolved lazily so constructing the provider never requires the locator
+  // to know the stats service; it is only needed once stats are touched.
+  final ISpiritualStatsService? _injectedStatsService;
+  late final ISpiritualStatsService _statsService =
+      _injectedStatsService ?? getService<ISpiritualStatsService>();
   AudioController?
       _audioController; // nullable to allow disabling audio in tests
   Set<String> _lastRestoredReadIds = {}; // Store read IDs from last restore
@@ -160,11 +164,13 @@ class DevocionalProvider with ChangeNotifier {
     DevocionalIndexService? devocionalIndexService,
     CacheMetadataService? cacheMetadataService,
     DevocionalRepository? devocionalRepository,
+    ISpiritualStatsService? statsService,
   })  : assert(
           enableAudio || !kReleaseMode,
           'Audio must not be disabled in release builds',
         ),
-        httpClient = httpClient ?? http.Client() {
+        httpClient = httpClient ?? http.Client(),
+        _injectedStatsService = statsService {
     debugPrint('🏗️ Provider: Constructor iniciado');
 
     // Inject devocional repository.
