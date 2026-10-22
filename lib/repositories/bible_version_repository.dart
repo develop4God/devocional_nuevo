@@ -64,31 +64,23 @@ class BibleVersionRepository implements IBibleVersionRepository {
 
     final bundledVersions =
         await BibleVersionRegistry.getVersionsForLanguage(languageCode);
-    // Shipped-as-asset entries have a non-empty assetPath (see
-    // BibleVersionRegistry.getVersionsForLanguage); downloaded remote
-    // entries have an empty one. Neither has remoteUrl set at this point,
-    // so isRemote can't be used to tell them apart here.
-    // Shipped-as-asset codes are never re-offered — asset updates ship via
-    // app updates, not this download flow.
+    // Installed versions keyed by code — both shipped-as-asset and
+    // downloaded remote ones — so a hash mismatch against the index is
+    // surfaced as an available update instead of the version being silently
+    // omitted forever. A bundled version's hash is that of its shipped asset
+    // (or of the copy downloaded over it), so a newer index file reaches
+    // users who already extracted the asset without an app release.
+    final downloadedRemoteHashes = {
+      for (final v in bundledVersions)
+        v.dbFileName.split('_').first: v.remoteHash,
+    };
     final assetCodes = bundledVersions
         .where((v) => v.assetPath.isNotEmpty)
         .map((v) => v.dbFileName.split('_').first)
         .toSet();
-    // Already-downloaded remote versions, keyed by code, so a hash
-    // mismatch can be surfaced as an available update instead of the
-    // version being silently omitted forever, and so a legacy download
-    // (no stored hash yet) can be backfilled with a baseline below.
-    final downloadedRemoteVersions = {
-      for (final v in bundledVersions.where((v) => v.assetPath.isEmpty))
-        v.dbFileName.split('_').first: v,
-    };
-    final downloadedRemoteHashes = {
-      for (final entry in downloadedRemoteVersions.entries)
-        entry.key: entry.value.remoteHash,
-    };
     debugPrint(
-      '[BibleVersionRepository] asset codes for $languageCode: $assetCodes; '
-      'downloaded remote codes: ${downloadedRemoteHashes.keys}',
+      '[BibleVersionRepository] installed codes for $languageCode: '
+      '${downloadedRemoteHashes.keys}',
     );
 
     final onMain = branch == 'main';
@@ -98,9 +90,10 @@ class BibleVersionRepository implements IBibleVersionRepository {
       final code = entry.key;
       final versionEntry = entry.value;
 
-      if (assetCodes.contains(code)) {
+      // Without an index hash there is no evidence a shipped asset is stale.
+      if (assetCodes.contains(code) && versionEntry.hash == null) {
         debugPrint(
-          '[BibleVersionRepository] skipping $code — bundled as app asset',
+          '[BibleVersionRepository] skipping $code — bundled, no index hash',
         );
         continue;
       }
