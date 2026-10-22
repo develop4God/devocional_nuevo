@@ -9,6 +9,7 @@ import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
+import 'package:devocional_nuevo/widgets/encounter/gold_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
@@ -123,30 +124,47 @@ class EncounterUnlockOfferSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                 ],
-                FilledButton(
-                  key: const ValueKey('encounter_unlock_offer_buy'),
-                  onPressed: canBuy
-                      ? () {
-                          analyticsService
-                              .logEncounterUnlockOfferPurchaseTapped();
-                          context.read<SupporterBloc>()
-                            ..add(ClearSupporterError())
-                            ..add(PurchaseTier(_tier));
-                        }
-                      : null,
-                  child: isPurchasing
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(
-                          'encounters.unlock_offer_button'.tr({'price': price}),
-                        ),
+                GoldShimmer(
+                  filled: true,
+                  borderRadius: 20,
+                  child: FilledButton(
+                    key: const ValueKey('encounter_unlock_offer_buy'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      disabledBackgroundColor: Colors.transparent,
+                      foregroundColor: const Color(0xFF3E2A00),
+                      disabledForegroundColor: const Color(0xFF3E2A00),
+                      shadowColor: Colors.transparent,
+                      textStyle: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    onPressed: canBuy
+                        ? () {
+                            analyticsService
+                                .logEncounterUnlockOfferPurchaseTapped();
+                            context.read<SupporterBloc>()
+                              ..add(ClearSupporterError())
+                              ..add(PurchaseTier(_tier));
+                          }
+                        : null,
+                    child: isPurchasing
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            'encounters.unlock_offer_button'.tr({
+                              'price': price,
+                            }),
+                          ),
+                  ),
                 ),
                 const SizedBox(height: 4),
                 TextButton(
                   key: const ValueKey('encounter_unlock_offer_dismiss'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: colorScheme.onSurface,
+                  ),
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text('encounters.unlock_offer_keep_reading'.tr()),
                 ),

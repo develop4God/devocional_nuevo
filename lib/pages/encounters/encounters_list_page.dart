@@ -24,6 +24,7 @@ import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_grid_overlay.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_unlock_offer_sheet.dart';
+import 'package:devocional_nuevo/widgets/encounter/gold_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -241,6 +242,8 @@ class _EncountersListPageState extends State<EncountersListPage>
 
   Widget _buildContent(EncounterLoaded state, {required bool allUnlocked}) {
     final lang = context.read<DevocionalProvider>().selectedLanguage;
+    // Only the next waiting encounter gets the gold highlight.
+    final nextLockedId = state.firstLocked(allUnlocked: allUnlocked)?.id;
 
     return Stack(
       children: [
@@ -335,6 +338,10 @@ class _EncountersListPageState extends State<EncountersListPage>
                 cardWidget = card;
               } else {
                 cardWidget = card;
+              }
+
+              if (entry.id == nextLockedId) {
+                cardWidget = GoldShimmer(child: cardWidget);
               }
 
               return Padding(
