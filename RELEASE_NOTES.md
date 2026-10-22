@@ -1,7 +1,11 @@
 <es-419>
 ✨ ¡Nueva actualización disponible! 🚀✨
 
-🔓 Nuevo: apoya el ministerio y abre todos los encuentros al instante, ahora destacado en la página de apoyo.
+📖 Biblia: las biblias se actualizan automáticamente en caso de sufrir algún cambio.
+
+✨ Nueva opción para desbloquear todos los Encuentros, apoyando nuestro ministerio.
+
+⚡ Mejoras para conexiones lentas: la página principal carga más rápido mientras las imágenes se descargan en segundo plano.
 
 ⚙️ Mejoras internas de estabilidad y diagnóstico.
 
@@ -10,7 +14,11 @@
 <es-ES>
 ✨ ¡Nueva actualización disponible! 🚀✨
 
-🔓 Nuevo: apoya el ministerio y abre todos los encuentros al instante, ahora destacado en la página de apoyo.
+📖 Biblia: las biblias se actualizan automáticamente en caso de sufrir algún cambio.
+
+✨ Nueva opción para desbloquear todos los Encuentros, apoyando nuestro ministerio.
+
+⚡ Mejoras para conexiones lentas: la página principal carga más rápido mientras las imágenes se descargan en segundo plano.
 
 ⚙️ Mejoras internas de estabilidad y diagnóstico.
 
@@ -19,7 +27,11 @@
 <ar>
 ✨ تحديث جديد متاح! 🚀✨
 
-🔓 جديد: ادعم الخدمة وافتح جميع اللقاءات فورًا، والآن بشكل أوضح في صفحة الدعم.
+📖 الكتاب المقدس: تتحدّث الترجمات تلقائيًا عند حدوث أي تغيير.
+
+✨ خيار جديد لفتح جميع اللقاءات، دعمًا لخدمتنا.
+
+⚡ تحسينات للاتصالات البطيئة: تُحمَّل الصفحة الرئيسية بشكل أسرع بينما تُنزَّل الصور في الخلفية.
 
 ⚙️ تحسينات داخلية للاستقرار والتشخيص.
 
@@ -28,7 +40,11 @@
 <de-DE>
 ✨ Neues Update verfügbar! 🚀✨
 
-🔓 Neu: Unterstütze das Ministerium und schalte alle Begegnungen sofort frei – jetzt gut sichtbar auf der Unterstützungsseite.
+📖 Bibel: Die Bibeln werden bei Änderungen automatisch aktualisiert.
+
+✨ Neue Option, um alle Begegnungen freizuschalten und damit unser Ministerium zu unterstützen.
+
+⚡ Verbesserungen für langsame Verbindungen: Die Startseite lädt schneller, während die Bilder im Hintergrund heruntergeladen werden.
 
 ⚙️ Interne Stabilitäts- und Diagnoseverbesserungen.
 
@@ -37,7 +53,11 @@
 <en-US>
 ✨ New update available! 🚀✨
 
-🔓 New: support the ministry and open all encounters right away, now featured on the support page.
+📖 Bible: Bibles are updated automatically whenever they change.
+
+✨ New option to unlock all Encounters, supporting our ministry.
+
+⚡ Improvements for slow connections: the home page loads faster while images download in the background.
 
 ⚙️ Internal stability and diagnostic improvements.
 
@@ -46,7 +66,11 @@
 <fr-FR>
 ✨ Nouvelle mise à jour disponible ! 🚀✨
 
-🔓 Nouveau : soutenez le ministère et ouvrez toutes les rencontres immédiatement, désormais mis en avant sur la page de soutien.
+📖 Bible : les bibles se mettent à jour automatiquement en cas de modification.
+
+✨ Nouvelle option pour débloquer toutes les rencontres, en soutenant notre ministère.
+
+⚡ Améliorations pour les connexions lentes : la page d'accueil se charge plus vite pendant que les images se téléchargent en arrière-plan.
 
 ⚙️ Améliorations internes de stabilité et de diagnostic.
 
@@ -55,7 +79,11 @@
 <hi-IN>
 ✨ नया अपडेट उपलब्ध है! 🚀✨
 
-🔓 नया: सेवकाई का समर्थन करें और सभी मुलाकातें तुरंत खोलें, अब सपोर्ट पेज पर प्रमुखता से उपलब्ध।
+📖 बाइबल: किसी भी बदलाव की स्थिति में बाइबलें अपने आप अपडेट हो जाती हैं।
+
+✨ सभी मुलाकातें खोलने का नया विकल्प, हमारी सेवकाई का समर्थन करते हुए।
+
+⚡ धीमे कनेक्शन के लिए सुधार: इमेज बैकग्राउंड में डाउनलोड होने के दौरान मुख्य पेज तेज़ी से लोड होता है।
 
 ⚙️ आंतरिक स्थिरता और डायग्नोस्टिक सुधार।
 
@@ -64,7 +92,11 @@
 <ja-JP>
 ✨ 新しいアップデートが利用可能です！ 🚀✨
 
-🔓 新機能：ミニストリーを支援して、すべての出会いをすぐに開放できます。サポートページでより見やすくなりました。
+📖 聖書：変更があった場合、聖書は自動的に更新されます。
+
+✨ すべての出会いを開放できる新しいオプション。私たちのミニストリーの支援にもなります。
+
+⚡ 低速回線の改善：画像をバックグラウンドでダウンロードしている間、ホーム画面がより速く表示されます。
 
 ⚙️ 内部的な安定性および診断機能の改善。
 
@@ -73,7 +105,11 @@
 <pt-BR>
 ✨ Nova atualização disponível! 🚀✨
 
-🔓 Novo: apoie o ministério e abra todos os encontros na hora, agora em destaque na página de apoio.
+📖 Bíblia: as bíblias são atualizadas automaticamente quando houver qualquer alteração.
+
+✨ Nova opção para desbloquear todos os encontros, apoiando nosso ministério.
+
+⚡ Melhorias para conexões lentas: a página principal carrega mais rápido enquanto as imagens são baixadas em segundo plano.
 
 ⚙️ Melhorias internas de estabilidade e diagnóstico.
 
@@ -82,7 +118,11 @@
 <zh-CN>
 ✨ 新版本发布！ 🚀✨
 
-🔓 全新功能：支持事工并立即解锁所有相遇故事，现已在支持页面显眼展示。
+📖 圣经：圣经版本如有变动，将自动更新。
+
+✨ 新增选项，可解锁所有相遇故事，同时支持我们的事工。
+
+⚡ 慢速网络优化：图片在后台下载时，主页加载更快。
 
 ⚙️ 内部稳定性与诊断改进。
 
@@ -91,7 +131,11 @@
 <fil>
 ✨ May bagong update na available! 🚀✨
 
-🔓 Bago: suportahan ang ministeryo at buksan agad ang lahat ng encounters, na ngayon ay itinatampok sa support page.
+📖 Bibliya: awtomatikong ina-update ang mga Bibliya kapag may pagbabago.
+
+✨ Bagong opsyon para buksan ang lahat ng encounters, bilang suporta sa aming ministeryo.
+
+⚡ Mga pagpapahusay para sa mabagal na koneksyon: mas mabilis mag-load ang pangunahing pahina habang dina-download ang mga larawan sa background.
 
 ⚙️ Mga internal na pagpapahusay sa stability at diagnostics.
 
