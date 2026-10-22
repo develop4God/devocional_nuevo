@@ -48,6 +48,11 @@ class BibleDbService {
         (shippedHash != null &&
             await BibleVersionRegistry.storedHash(dbName) == null);
     if (needsExtract) {
+      debugPrint(
+        '[BibleDbService] $dbName: '
+        '${File(dbPath).existsSync() ? 're-extracting (no recorded hash)' : 'extracting'}'
+        ' → hash $shippedHash',
+      );
       final compressedBytes =
           await (loadAsset ?? _loadAsset)('$dbAssetPath.gz');
       await installFromGzipBytes(
