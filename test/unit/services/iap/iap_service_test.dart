@@ -7,6 +7,7 @@ import 'dart:async';
 
 import 'package:devocional_nuevo/models/supporter_tier.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
+import 'package:devocional_nuevo/services/iap/iap_prefs_keys.dart';
 import 'package:devocional_nuevo/services/iap/iap_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -202,6 +203,41 @@ void main() {
           await svc.dispose();
         },
       );
+    });
+
+    // ── debugSimulateDelivery ───────────────────────────────────────────────
+
+    group('debugSimulateDelivery()', () {
+      test('runs the real delivery path: level, prefs and stream', () async {
+        final tier = SupporterTier.fromLevel(SupporterTierLevel.encounters);
+        final delivered = <(SupporterTier, bool)>[];
+        final sub = service.onPurchaseDelivered.listen(delivered.add);
+
+        await service.debugSimulateDelivery(tier);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(service.isPurchased(SupporterTierLevel.encounters), isTrue);
+        expect(delivered, [(tier, false)]);
+        final prefs = await SharedPreferences.getInstance();
+        expect(
+          prefs.getBool(IapPrefsKeys.purchasedKey(tier.productId)),
+          isTrue,
+        );
+        await sub.cancel();
+      });
+
+      test('simulating the same tier twice delivers only once', () async {
+        final tier = SupporterTier.fromLevel(SupporterTierLevel.silver);
+        var count = 0;
+        final sub = service.onPurchaseDelivered.listen((_) => count++);
+
+        await service.debugSimulateDelivery(tier);
+        await service.debugSimulateDelivery(tier);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(count, 1);
+        await sub.cancel();
+      });
     });
 
     // ── onPurchaseDelivered stream ──────────────────────────────────────────

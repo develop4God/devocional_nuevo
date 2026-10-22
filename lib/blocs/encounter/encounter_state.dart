@@ -41,7 +41,10 @@ class EncounterLoaded extends EncounterState with Equatable {
   ///   immediately preceding published encounter is completed.
   /// - Non-published (coming_soon) encounters are treated as unlocked
   ///   (their own overlay handles the "not tappable" state).
-  bool isUnlocked(String encounterId) {
+  /// - When [allUnlocked] is true (the supporter bought "open all
+  ///   encounters"), the sequential rule is skipped entirely.
+  bool isUnlocked(String encounterId, {bool allUnlocked = false}) {
+    if (allUnlocked) return true;
     final published = index.where((e) => e.status == 'published').toList();
     final position = published.indexWhere((e) => e.id == encounterId);
     if (position <= 0) return true; // first or not in published list

@@ -860,7 +860,13 @@
     "welcome_title_line2": "永远改变了。",
     "welcome_title_line3": "同样的耶稣。这里。现在。",
     "welcome_subtitle": "真实的故事。真实的耶稣。",
-    "welcome_button": "开始"
+    "welcome_button": "开始",
+    "read_now_hint": "想现在就读吗？点这里。",
+    "unlock_offer_title": "按自己的节奏阅读",
+    "unlock_offer_body": "一切内容都是免费的。按顺序读完，下一个相遇会自动解锁。\n\n如果你想现在就读完全部，可以支持这项事工，解锁所有相遇，包括我们之后新增的。",
+    "unlock_offer_button": "支持并解锁全部 · {price}",
+    "unlock_offer_keep_reading": "按顺序继续阅读",
+    "unlock_offer_thanks": "谢谢你！所有相遇已解锁。"
   },
   "tags": {
     "love": "爱",
@@ -976,7 +982,12 @@
     "profile_name_save": "保存名称",
     "profile_name_saved": "✅ 名称保存成功！",
     "profile_name_hint": "您的名字（最多15个字符）",
-    "profile_name_helper": "将出现在您的每日灵修中。不会被分享。"
+    "profile_name_helper": "将出现在您的每日灵修中。不会被分享。",
+    "tier_encounters_name": "解锁所有相遇",
+    "tier_encounters_description": "按自己的节奏阅读每一个相遇",
+    "benefit_encounters_unlock": "立即解锁所有相遇，包括未来新增的",
+    "encounters_success_title": "谢谢你！",
+    "encounters_success_body": "所有相遇已解锁。请按自己的节奏阅读。愿神祝福你！"
   },
   "prayer_wall": {
     "title": "祷告墙",

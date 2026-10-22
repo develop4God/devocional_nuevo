@@ -22,6 +22,12 @@ class EncounterGridOverlay extends StatefulWidget {
   final VoidCallback onClose;
   final Animation<double> animation;
 
+  /// True when the supporter owns "open all encounters" (no reading order).
+  final bool allUnlocked;
+
+  /// Called when a published-but-waiting encounter is tapped (soft offer).
+  final VoidCallback? onLockedTap;
+
   const EncounterGridOverlay({
     super.key,
     required this.state,
@@ -31,6 +37,8 @@ class EncounterGridOverlay extends StatefulWidget {
     required this.onEncounterSelected,
     required this.onClose,
     required this.animation,
+    this.allUnlocked = false,
+    this.onLockedTap,
   });
 
   @override
@@ -252,7 +260,10 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
         itemBuilder: (context, index) {
           final entry = filtered[index];
           final isCompleted = widget.state.isCompleted(entry.id);
-          final isUnlocked = widget.state.isUnlocked(entry.id);
+          final isUnlocked = widget.state.isUnlocked(
+            entry.id,
+            allUnlocked: widget.allUnlocked,
+          );
           final originalIndex = widget.entries.indexOf(entry);
           final isActive = originalIndex == widget.currentIndex;
           final prerequisite = widget.state.getPrerequisite(entry.id);
@@ -267,7 +278,7 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
             isActive: isActive,
             onTap: (entry.isPublished && isUnlocked)
                 ? () => widget.onEncounterSelected(entry, originalIndex)
-                : null,
+                : (entry.isPublished ? widget.onLockedTap : null),
           );
         },
       ),
