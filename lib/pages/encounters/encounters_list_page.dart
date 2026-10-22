@@ -280,6 +280,7 @@ class _EncountersListPageState extends State<EncountersListPage>
                 // Locked: dim + dark overlay with lock icon and prerequisite text
                 final prerequisite = state.getPrerequisite(entry.id);
                 final prerequisiteTitle = prerequisite?.titleFor(lang) ?? '';
+                final highlight = entry.id == nextLockedId;
 
                 cardWidget = Stack(
                   children: [
@@ -292,40 +293,101 @@ class _EncountersListPageState extends State<EncountersListPage>
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 32),
                           decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.65),
+                            color: highlight
+                                ? null
+                                : Colors.black.withValues(alpha: 0.65),
+                            gradient: highlight
+                                ? const LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Color(0xD9000000),
+                                      Color(0xE62A2110)
+                                    ],
+                                  )
+                                : null,
                             borderRadius: BorderRadius.circular(32),
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(
-                                Icons.lock_rounded,
-                                color: Colors.white,
-                                size: 40,
-                              ),
+                              if (highlight)
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black.withValues(alpha: 0.5),
+                                    border: Border.all(
+                                      color: const Color(0xFFD9A62E),
+                                      width: 2,
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color(0x66D9A62E),
+                                        blurRadius: 18,
+                                        spreadRadius: 2,
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.lock_rounded,
+                                    color: Color(0xFFFFE08A),
+                                    size: 32,
+                                  ),
+                                )
+                              else
+                                const Icon(
+                                  Icons.lock_rounded,
+                                  color: Colors.white,
+                                  size: 40,
+                                ),
                               const SizedBox(height: 16),
                               Text(
                                 'encounters.complete_to_unlock'.tr({
                                   'title': prerequisiteTitle,
                                 }),
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: highlight ? 16 : 14,
+                                  fontWeight: highlight
+                                      ? FontWeight.w900
+                                      : FontWeight.bold,
                                   height: 1.4,
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Text(
-                                'encounters.read_now_hint'.tr(),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.75),
-                                  fontSize: 12,
-                                  height: 1.4,
+                              if (highlight)
+                                GoldShimmer(
+                                  filled: true,
+                                  borderRadius: 20,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
+                                    child: Text(
+                                      'encounters.read_now_hint'.tr(),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        color: Color(0xFF3E2A00),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              else
+                                Text(
+                                  'encounters.read_now_hint'.tr(),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.75),
+                                    fontSize: 12,
+                                    height: 1.4,
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ),

@@ -228,13 +228,34 @@ void main() {
       // b and c are both waiting, but only b is highlighted.
       expect(find.byKey(const ValueKey('encounter_locked_b')), findsOneWidget);
       expect(find.byKey(const ValueKey('encounter_locked_c')), findsOneWidget);
-      expect(find.byType(GoldShimmer), findsOneWidget);
       expect(
-        find.descendant(
-          of: find.byType(GoldShimmer),
-          matching: find.byKey(const ValueKey('encounter_locked_b')),
+        find.ancestor(
+          of: find.byKey(const ValueKey('encounter_locked_b')),
+          matching: find.byType(GoldShimmer),
         ),
         findsOneWidget,
+      );
+      expect(
+        find.ancestor(
+          of: find.byKey(const ValueKey('encounter_locked_c')),
+          matching: find.byType(GoldShimmer),
+        ),
+        findsNothing,
+      );
+      // The hint pill is gold only inside the highlighted card.
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('encounter_locked_b')),
+          matching: find.byType(GoldShimmer),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('encounter_locked_c')),
+          matching: find.byType(GoldShimmer),
+        ),
+        findsNothing,
       );
 
       await unmount(tester);
