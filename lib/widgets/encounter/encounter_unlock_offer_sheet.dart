@@ -44,8 +44,7 @@ class EncounterUnlockOfferSheet extends StatelessWidget {
       SupporterTier.fromLevel(SupporterTierLevel.encounters);
 
   static bool _isOwned(SupporterState state) =>
-      state is SupporterLoaded &&
-      state.isPurchased(SupporterTierLevel.encounters);
+      state is SupporterLoaded && state.unlocksAllEncounters;
 
   static String? _errorTranslationKey(String? errorMessage) {
     if (errorMessage == null) return null;
