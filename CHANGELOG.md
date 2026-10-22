@@ -7,7 +7,7 @@ Internal, developer-facing history generated from commit messages via
 Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 
 <!-- git-cliff: end of header -->
-## [unreleased]
+## [1.17.0+130] - 2026-10-22
 
 ### 🚀 Features
 
@@ -38,6 +38,7 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - Crashlytics v2 diagnostic follow-ups, startup-delay fix, and dependency upgrade
 - *(deps)* Bump @grpc/grpc-js ([#332](https://github.com/develop4God/devocional_nuevo/issues/332))
 - *(deps)* Bump the npm_and_yarn group across 1 directory with 3 updates
+- Bible auto-update, unlock-all Encounters option, faster home page on slow connections (background image downloads), internal stability and diagnostic improvements.
 ## [1.16.6+127] - 2026-09-14
 
 ### 🐛 Bug Fixes
