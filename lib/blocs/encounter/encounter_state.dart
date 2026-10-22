@@ -52,6 +52,18 @@ class EncounterLoaded extends EncounterState with Equatable {
     return completedIds.contains(previous.id);
   }
 
+  /// The first published encounter that is still locked, i.e. the next one
+  /// the user will reach. Null when nothing is waiting.
+  EncounterIndexEntry? firstLocked({bool allUnlocked = false}) {
+    for (final entry in index) {
+      if (entry.isPublished &&
+          !isUnlocked(entry.id, allUnlocked: allUnlocked)) {
+        return entry;
+      }
+    }
+    return null;
+  }
+
   /// Returns the encounter that must be completed to unlock [encounterId].
   EncounterIndexEntry? getPrerequisite(String encounterId) {
     final published = index.where((e) => e.status == 'published').toList();

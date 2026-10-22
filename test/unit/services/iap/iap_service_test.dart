@@ -86,6 +86,27 @@ class _FakeErrorPurchaseDetails extends Fake implements PurchaseDetails {
   _FakeErrorPurchaseDetails({this.pendingCompletePurchase = true});
 }
 
+// ── Fake store purchase for the real purchase-stream path ─────────────────────
+class _FakeStorePurchase extends Fake implements PurchaseDetails {
+  @override
+  final String productID;
+
+  @override
+  final PurchaseStatus status;
+
+  @override
+  final bool pendingCompletePurchase;
+
+  @override
+  IAPError? get error => null;
+
+  _FakeStorePurchase(
+    this.productID,
+    this.status, {
+    this.pendingCompletePurchase = true,
+  });
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 void main() {
   group('IapService', () {
@@ -252,6 +273,126 @@ void main() {
         service.onPurchaseDelivered.listen((rec) => received.add(rec.$1));
         await Future<void>.delayed(const Duration(milliseconds: 10));
         expect(received, isEmpty);
+      });
+    });
+
+    // ── Real store purchase stream (what Google Play sends) ─────────────────
+
+    group('store purchase stream', () {
+      const productId = 'supporter_encounters_unlock';
+      late _AvailableMockInAppPurchase store;
+      late IapService svc;
+
+      // Lets the stream event and the async prefs write finish.
+      Future<void> settle() async {
+        for (var i = 0; i < 5; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+      }
+
+      setUp(() async {
+        store = _AvailableMockInAppPurchase();
+        svc = IapService(
+          inAppPurchase: store,
+          prefsFactory: SharedPreferences.getInstance,
+        );
+        await svc.initialize();
+      });
+
+      tearDown(() async {
+        await svc.dispose();
+      });
+
+      test('a purchased encounters unlock opens it, saves it and completes',
+          () async {
+        final delivered = <(SupporterTier, bool)>[];
+        svc.onPurchaseDelivered.listen(delivered.add);
+
+        store.pushPurchase(
+          _FakeStorePurchase(productId, PurchaseStatus.purchased),
+        );
+        await settle();
+
+        expect(svc.isPurchased(SupporterTierLevel.encounters), isTrue);
+        expect(delivered.map((d) => (d.$1.productId, d.$2)), [
+          (productId, false),
+        ]);
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getBool(IapPrefsKeys.purchasedKey(productId)), isTrue);
+        expect(store.completePurchaseCallCount, 1);
+      });
+
+      test('a restored purchase is delivered as a restore, once', () async {
+        final delivered = <(SupporterTier, bool)>[];
+        svc.onPurchaseDelivered.listen(delivered.add);
+
+        store.pushPurchase(
+          _FakeStorePurchase(productId, PurchaseStatus.restored),
+        );
+        store.pushPurchase(
+          _FakeStorePurchase(productId, PurchaseStatus.restored),
+        );
+        await settle();
+
+        expect(svc.isPurchased(SupporterTierLevel.encounters), isTrue);
+        expect(delivered.map((d) => d.$2), [true]);
+      });
+
+      test('a pending payment does not unlock anything', () async {
+        final delivered = <(SupporterTier, bool)>[];
+        svc.onPurchaseDelivered.listen(delivered.add);
+
+        store.pushPurchase(
+          _FakeStorePurchase(
+            productId,
+            PurchaseStatus.pending,
+            pendingCompletePurchase: false,
+          ),
+        );
+        await settle();
+
+        expect(svc.isPurchased(SupporterTierLevel.encounters), isFalse);
+        expect(delivered, isEmpty);
+      });
+
+      test('a cancelled payment reports a cancel and unlocks nothing',
+          () async {
+        final cancelled = <String>[];
+        svc.onPurchaseCancelled.listen(cancelled.add);
+
+        store.pushPurchase(
+          _FakeStorePurchase(productId, PurchaseStatus.canceled),
+        );
+        await settle();
+
+        expect(cancelled, [productId]);
+        expect(svc.isPurchased(SupporterTierLevel.encounters), isFalse);
+      });
+
+      test('a failed payment reports an error and unlocks nothing', () async {
+        final errors = <String>[];
+        svc.onPurchaseError.listen(errors.add);
+
+        store.pushPurchase(
+          _FakeStorePurchase(productId, PurchaseStatus.error),
+        );
+        await settle();
+
+        expect(errors, [productId]);
+        expect(svc.isPurchased(SupporterTierLevel.encounters), isFalse);
+      });
+
+      test('an unknown product id is ignored', () async {
+        final delivered = <(SupporterTier, bool)>[];
+        svc.onPurchaseDelivered.listen(delivered.add);
+
+        store.pushPurchase(
+          _FakeStorePurchase('some_other_product', PurchaseStatus.purchased),
+        );
+        await settle();
+
+        expect(delivered, isEmpty);
+        expect(svc.purchasedLevels, isEmpty);
       });
     });
 
