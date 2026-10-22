@@ -1,12 +1,16 @@
-// lib/widgets/encounter/gold_shimmer.dart
+// lib/widgets/gold_shimmer.dart
 //
 // Animated gold highlight used to draw attention to the next waiting
 // encounter and to the "open all encounters" offer button.
 
 import 'package:flutter/material.dart';
 
-const _gold = Color(0xFFD9A62E);
+/// Base gold shared by every gold highlight in the app.
+const goldAccent = Color(0xFFD9A62E);
 const _goldShine = Color(0xFFFFF3C4);
+
+/// Dark brown that stays readable on top of the gold gradient.
+const goldOnGold = Color(0xFF3E2A00);
 
 /// Paints a gold gradient whose bright band sweeps across [child] on a loop.
 ///
@@ -91,7 +95,7 @@ class _GoldShimmerPainter extends CustomPainter {
     final shader = const LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [_gold, _goldShine, _gold],
+      colors: [goldAccent, _goldShine, goldAccent],
     ).createShader(rect.shift(Offset(size.width * (progress * 2 - 1), 0)));
 
     final paint = Paint()
@@ -113,4 +117,41 @@ class _GoldShimmerPainter extends CustomPainter {
       old.progress != progress ||
       old.borderRadius != borderRadius ||
       old.filled != filled;
+}
+
+/// A call-to-action button filled with the shimmering gold gradient.
+class GoldShimmerButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final Widget child;
+  final double borderRadius;
+
+  const GoldShimmerButton({
+    super.key,
+    required this.onPressed,
+    required this.child,
+    this.borderRadius = 20,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GoldShimmer(
+      filled: true,
+      borderRadius: borderRadius,
+      child: FilledButton(
+        style: FilledButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          disabledBackgroundColor: Colors.transparent,
+          foregroundColor: goldOnGold,
+          disabledForegroundColor: goldOnGold,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(borderRadius),
+          ),
+          textStyle: const TextStyle(fontWeight: FontWeight.w800),
+        ),
+        onPressed: onPressed,
+        child: child,
+      ),
+    );
+  }
 }

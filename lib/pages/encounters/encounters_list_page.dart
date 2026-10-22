@@ -24,7 +24,7 @@ import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_grid_overlay.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_unlock_offer_sheet.dart';
-import 'package:devocional_nuevo/widgets/encounter/gold_shimmer.dart';
+import 'package:devocional_nuevo/widgets/gold_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -318,7 +318,7 @@ class _EncountersListPageState extends State<EncountersListPage>
                                     shape: BoxShape.circle,
                                     color: Colors.black.withValues(alpha: 0.5),
                                     border: Border.all(
-                                      color: const Color(0xFFD9A62E),
+                                      color: goldAccent,
                                       width: 2,
                                     ),
                                     boxShadow: const [
