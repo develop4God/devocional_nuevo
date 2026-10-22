@@ -17,6 +17,8 @@ library;
 //  - hero-absent: plain CustomAppBar renders, no SliverAppBar, and the
 //    content widget's normal header does render.
 
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
@@ -139,6 +141,10 @@ Future<void> _settleDevocionalesPage(
 Future<DevocionalProvider> _pumpDevocionalesPage(
   WidgetTester tester, {
   required String? heroImageUrl,
+  // When set, the hero image "lands" only once this completes (as when the
+  // download outlasts startup), and currentImageUrl then returns lateHeroUrl.
+  Completer<void>? lateHero,
+  String? lateHeroUrl,
 }) async {
   await registerTestServicesWithFakes();
   FlutterTtsMockHelper.setupMockFlutterTts();
@@ -153,7 +159,12 @@ Future<DevocionalProvider> _pumpDevocionalesPage(
   ).thenReturn(0);
 
   final mockImageRepository = MockDevotionalImageRepository();
-  when(() => mockImageRepository.currentImageUrl).thenReturn(heroImageUrl);
+  var heroArrived = lateHero == null;
+  unawaited(lateHero?.future.then((_) => heroArrived = true));
+  when(() => mockImageRepository.currentImageUrl)
+      .thenAnswer((_) => heroArrived ? (lateHeroUrl ?? heroImageUrl) : null);
+  when(() => mockImageRepository.initialReady)
+      .thenAnswer((_) => lateHero?.future ?? Future<void>.value());
   when(() => mockImageRepository.advance())
       .thenAnswer((_) async => heroImageUrl);
   when(() => mockImageRepository.pickFresh())
@@ -299,6 +310,33 @@ void main() {
         // showHeader defaults to true in this branch, so the content
         // widget's own header must appear.
         expect(find.byType(DevocionalHeaderWidget), findsOneWidget);
+
+        await _settleDevocionalesPage(tester, provider);
+      },
+    );
+
+    testWidgets(
+      'hero-late: page shows without it, then the hero appears once the '
+      'download that outlasted startup completes',
+      (tester) async {
+        final heroLands = Completer<void>();
+        final provider = await _pumpDevocionalesPage(
+          tester,
+          heroImageUrl: null,
+          lateHero: heroLands,
+          lateHeroUrl: 'https://example.com/hero.jpg',
+        );
+
+        // Startup did not wait for the hero image.
+        expect(find.byType(CustomAppBar), findsOneWidget);
+        expect(find.byType(SliverAppBar), findsNothing);
+
+        heroLands.complete();
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.byType(SliverAppBar), findsOneWidget);
+        expect(find.byType(CustomAppBar), findsNothing);
 
         await _settleDevocionalesPage(tester, provider);
       },

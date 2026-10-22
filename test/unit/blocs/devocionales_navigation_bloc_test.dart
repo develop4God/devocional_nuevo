@@ -1239,4 +1239,77 @@ void main() {
       },
     );
   });
+  group('DevocionalesNavigationBloc - HeroImageReady', () {
+    DevocionalesNavigationBloc buildBloc() => DevocionalesNavigationBloc(
+          navigationRepository: mockNavigationRepository,
+          devocionalRepository: mockDevocionalRepository,
+          imageRepository: mockImageRepository,
+        );
+
+    blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
+      'applies a hero image that finished after the state was built, keeping the reading position',
+      build: buildBloc,
+      act: (bloc) async {
+        bloc.add(
+          InitializeNavigation(
+            initialIndex: 3,
+            devocionales: createTestDevocionales(10),
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+        when(() => mockImageRepository.currentImageUrl)
+            .thenReturn('https://example.com/hero.webp');
+        bloc.add(const HeroImageReady());
+      },
+      verify: (bloc) {
+        final state = bloc.state as NavigationReady;
+        expect(state.heroImageUrl, 'https://example.com/hero.webp');
+        expect(state.currentIndex, 3);
+        expect(state.totalDevocionales, 10);
+      },
+    );
+
+    blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
+      'ignores HeroImageReady when the download failed (no url)',
+      build: buildBloc,
+      act: (bloc) async {
+        bloc.add(
+          InitializeNavigation(
+            initialIndex: 0,
+            devocionales: createTestDevocionales(3),
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(const HeroImageReady());
+      },
+      verify: (bloc) {
+        expect((bloc.state as NavigationReady).heroImageUrl, isNull);
+      },
+    );
+
+    blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
+      'does not emit again when the hero image is already in the state',
+      build: buildBloc,
+      setUp: () => when(() => mockImageRepository.currentImageUrl)
+          .thenReturn('https://example.com/hero.webp'),
+      act: (bloc) async {
+        bloc.add(
+          InitializeNavigation(
+            initialIndex: 0,
+            devocionales: createTestDevocionales(3),
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(const HeroImageReady());
+      },
+      expect: () => [isA<NavigationReady>()],
+    );
+
+    blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
+      'is a no-op before navigation is initialized',
+      build: buildBloc,
+      act: (bloc) => bloc.add(const HeroImageReady()),
+      expect: () => <DevocionalesNavigationState>[],
+    );
+  });
 }

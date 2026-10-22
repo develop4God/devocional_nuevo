@@ -55,6 +55,12 @@ class InitializeNavigation extends DevocionalesNavigationEvent {
   List<Object?> get props => [initialIndex, devocionales];
 }
 
+/// The hero image finished loading after the navigation state was built —
+/// refreshes it without touching the reading position.
+class HeroImageReady extends DevocionalesNavigationEvent {
+  const HeroImageReady();
+}
+
 /// Update devotionals list (when list changes)
 class UpdateDevocionales extends DevocionalesNavigationEvent {
   final List<Devocional> devocionales;

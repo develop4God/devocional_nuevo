@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:auto_size_text/auto_size_text.dart';
@@ -131,6 +132,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       NavigationRepositoryImpl();
   late final DevocionalRepository _devocionalRepository =
       getService<DevocionalRepository>();
+  bool _firstBuildLogged = false;
+
   late final DevotionalImageRepository _imageRepository =
       getService<DevotionalImageRepository>();
 
@@ -305,6 +308,18 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       // silently discarding a deep-linked initialDevocionalId one frame after
       // landing on it.
       _lastProcessedDevocionales = devocionalProvider.devocionales;
+
+      // Startup no longer waits for the hero image, so apply it to the state
+      // once it lands (no-op when it was already ready).
+      unawaited(
+        _imageRepository.initialReady.then((_) {
+          if (mounted &&
+              _navigationBloc != null &&
+              !_navigationBloc!.isClosed) {
+            _navigationBloc!.add(const HeroImageReady());
+          }
+        }),
+      );
 
       // Mark as successfully initialized
       if (mounted) {
@@ -976,6 +991,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               final bool isFavorite = devocionalProvider.isFavorite(
                 currentDevocional,
               );
+
+              if (!_firstBuildLogged) {
+                _firstBuildLogged = true;
+                debugPrint(
+                  '[DEVOCIONALES_PAGE] 🖼️ first build heroImageUrl='
+                  '${heroImageUrl ?? 'null (no hero yet)'}',
+                );
+              }
 
               final devotionalsTitle =
                   'devotionals.my_intimate_space_with_god'.tr();
