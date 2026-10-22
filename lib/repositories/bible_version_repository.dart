@@ -70,7 +70,7 @@ class BibleVersionRepository implements IBibleVersionRepository {
     // omitted forever. A bundled version's hash is that of its shipped asset
     // (or of the copy downloaded over it), so a newer index file reaches
     // users who already extracted the asset without an app release.
-    final downloadedRemoteHashes = {
+    final installedHashes = {
       for (final v in bundledVersions)
         v.dbFileName.split('_').first: v.remoteHash,
     };
@@ -80,7 +80,7 @@ class BibleVersionRepository implements IBibleVersionRepository {
         .toSet();
     debugPrint(
       '[BibleVersionRepository] installed codes for $languageCode: '
-      '${downloadedRemoteHashes.keys}',
+      '${installedHashes.keys}',
     );
 
     final onMain = branch == 'main';
@@ -98,8 +98,8 @@ class BibleVersionRepository implements IBibleVersionRepository {
         continue;
       }
 
-      final isDownloaded = downloadedRemoteHashes.containsKey(code);
-      final storedHash = downloadedRemoteHashes[code];
+      final isDownloaded = installedHashes.containsKey(code);
+      final storedHash = installedHashes[code];
 
       if (isDownloaded) {
         debugPrint(

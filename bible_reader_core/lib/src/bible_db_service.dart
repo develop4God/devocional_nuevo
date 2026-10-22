@@ -7,25 +7,63 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'bible_canon_filter.dart';
+import 'bible_version_registry.dart';
 
 class BibleDbService {
   late Database _db;
+  bool _isOpen = false;
 
   Future<void> initDb(String dbAssetPath, String dbName) async {
-    final documentsDirectory = await getApplicationDocumentsDirectory();
-    final dbPath = join(documentsDirectory.path, dbName);
-
-    if (!File(dbPath).existsSync()) {
-      // Load compressed asset (append .gz to path)
-      final compressedAssetPath = '$dbAssetPath.gz';
-      final data = await rootBundle.load(compressedAssetPath);
-      final compressedBytes = data.buffer.asUint8List();
-
-      await installFromGzipBytes(compressedBytes, dbName);
-    }
-
+    final dbPath = await ensureInstalled(dbAssetPath, dbName);
     _db = await openDatabase(dbPath, readOnly: true);
+    _isOpen = true;
   }
+
+  /// Closes the open database, e.g. before reopening a file that an update
+  /// replaced on disk.
+  Future<void> close() async {
+    if (!_isOpen) return;
+    _isOpen = false;
+    await _db.close();
+  }
+
+  /// Makes sure `documents/$dbName` exists, extracting the gzip asset at
+  /// `$dbAssetPath.gz` when needed, and returns its path.
+  ///
+  /// A bundled file extracted by an older release (no recorded hash) may
+  /// predate the shipped asset, so it is re-extracted once, offline. A copy
+  /// downloaded over it has its own recorded hash and is left alone.
+  static Future<String> ensureInstalled(
+    String dbAssetPath,
+    String dbName, {
+    Directory? targetDir,
+    Future<List<int>> Function(String assetPath)? loadAsset,
+  }) async {
+    final documentsDirectory =
+        targetDir ?? await getApplicationDocumentsDirectory();
+    final dbPath = join(documentsDirectory.path, dbName);
+    final shippedHash = BibleVersionRegistry.bundledHash(dbName);
+
+    final needsExtract = !File(dbPath).existsSync() ||
+        (shippedHash != null &&
+            await BibleVersionRegistry.storedHash(dbName) == null);
+    if (needsExtract) {
+      final compressedBytes =
+          await (loadAsset ?? _loadAsset)('$dbAssetPath.gz');
+      await installFromGzipBytes(
+        compressedBytes,
+        dbName,
+        targetDir: documentsDirectory,
+      );
+      if (shippedHash != null) {
+        await BibleVersionRegistry.saveStoredHash(dbName, shippedHash);
+      }
+    }
+    return dbPath;
+  }
+
+  static Future<List<int>> _loadAsset(String assetPath) async =>
+      (await rootBundle.load(assetPath)).buffer.asUint8List();
 
   /// Decompresses [compressedBytes] (gzip) and writes the result to
   /// `documents/$dbName`, via an atomic rename from a `.part` sibling file.

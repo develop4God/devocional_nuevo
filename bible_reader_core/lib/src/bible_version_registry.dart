@@ -188,8 +188,9 @@ class BibleVersionRegistry {
           assetPath: 'assets/biblia/$dbFileName',
           dbFileName: dbFileName,
           isDownloaded: isDownloaded,
-          // A bundled version updated from the index keeps the hash of the
-          // downloaded copy; otherwise it is the shipped asset.
+          // Hash recorded for the file on disk (extracted asset or a copy
+          // downloaded over it); the shipped asset when none is recorded,
+          // since BibleDbService.ensureInstalled re-extracts such a file.
           remoteHash:
               _storedHash(storedEntries[dbFileName]) ?? versionInfo['hash'],
         ),
@@ -197,7 +198,7 @@ class BibleVersionRegistry {
     }
 
     bibleVersions.addAll(
-      await getDownloadedRemoteVersionsForLanguage(languageCode),
+      await _downloadedRemoteVersions(languageCode, storedEntries),
     );
 
     return bibleVersions;
@@ -211,6 +212,12 @@ class BibleVersionRegistry {
   /// successful download time by the download flow.
   static Future<List<BibleVersion>> getDownloadedRemoteVersionsForLanguage(
     String languageCode,
+  ) async =>
+      _downloadedRemoteVersions(languageCode, await _loadStoredEntries());
+
+  static Future<List<BibleVersion>> _downloadedRemoteVersions(
+    String languageCode,
+    Map<String, dynamic> names,
   ) async {
     final bundledFileNames = (_versionsByLanguage[languageCode] ?? [])
         .map((v) => v['dbFile'])
@@ -221,14 +228,9 @@ class BibleVersionRegistry {
       final dir = Directory(documentsDirectory.path);
       if (!dir.existsSync()) return [];
 
-      final prefs = await SharedPreferences.getInstance();
-      final namesJson = prefs.getString(_remoteVersionNamesPrefKey);
-      final Map<String, dynamic> names = namesJson != null
-          ? jsonDecode(namesJson) as Map<String, dynamic>
-          : {};
       debugPrint(
         '[BibleVersionRegistry] getDownloadedRemoteVersionsForLanguage('
-        '$languageCode) namesJson=$namesJson',
+        '$languageCode) names=$names',
       );
 
       final suffix = '_$languageCode.SQLite3';
@@ -300,6 +302,43 @@ class BibleVersionRegistry {
 
   static String? _storedHash(Object? stored) =>
       stored is Map ? stored['hash'] as String? : null;
+
+  /// Hash of the asset shipped for bundled [dbFileName]; null when it is not
+  /// a bundled version.
+  static String? bundledHash(String dbFileName) {
+    for (final versions in _versionsByLanguage.values) {
+      for (final v in versions) {
+        if (v['dbFile'] == dbFileName) return v['hash'];
+      }
+    }
+    return null;
+  }
+
+  /// Hash recorded for the [dbFileName] file on disk (when it was extracted
+  /// from the asset or downloaded); null when none was recorded.
+  static Future<String?> storedHash(String dbFileName) async =>
+      _storedHash((await _loadStoredEntries())[dbFileName]);
+
+  /// Records [hash] for the [dbFileName] file on disk, keeping the entry's
+  /// other fields. A failed write is logged, not thrown: the file is already
+  /// installed, and an unrecorded hash only means it is re-extracted on the
+  /// next open.
+  static Future<void> saveStoredHash(String dbFileName, String hash) async {
+    try {
+      final entries = await _loadStoredEntries();
+      final stored = entries[dbFileName];
+      entries[dbFileName] = {
+        if (stored is Map) ...stored,
+        if (stored is String) 'name': stored,
+        'hash': hash,
+      };
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_remoteVersionNamesPrefKey, jsonEncode(entries));
+    } catch (e) {
+      debugPrint(
+          '[BibleVersionRegistry] saveStoredHash($dbFileName) failed: $e');
+    }
+  }
 
   /// Get all available Bible versions across all languages
   static Future<List<BibleVersion>> getAllVersions() async {

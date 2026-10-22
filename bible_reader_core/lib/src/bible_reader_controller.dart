@@ -245,10 +245,15 @@ class BibleReaderController {
   Future<void> switchVersion(BibleVersion newVersion) async {
     if (newVersion.dbFileName == _state.selectedVersion?.dbFileName) {
       // Same file already selected — e.g. re-downloading the version the
-      // user is currently reading to apply an update. No DB
-      // re-initialization or reading-position reset is needed, but the
-      // listed entry's metadata (hasUpdate, remoteHash) must still be
+      // user is currently reading to apply an update. The download replaced
+      // the file on disk, so the open handle still reads the old copy:
+      // reopen it and reload the chapter, keeping the reading position. The
+      // listed entry's metadata (hasUpdate, remoteHash) must also be
       // refreshed so a cleared update badge doesn't get lost.
+      // sqflite opens one shared handle per path (singleInstance), so this
+      // also closes the copy held by readerService.dbService.
+      await _state.selectedVersion?.service?.close();
+      await _initializeVersionService(newVersion);
       _emit(
         _state.copyWith(
           availableVersions: _state.availableVersions
@@ -258,6 +263,7 @@ class BibleReaderController {
           selectedVersion: newVersion,
         ),
       );
+      await _loadChapterData();
       return;
     }
 
