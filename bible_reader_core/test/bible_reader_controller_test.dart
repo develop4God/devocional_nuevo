@@ -1,3 +1,6 @@
+@Tags(['unit', 'controllers'])
+library;
+
 import 'package:bible_reader_core/src/bible_db_service.dart';
 import 'package:bible_reader_core/src/bible_preferences_service.dart';
 import 'package:bible_reader_core/src/bible_reader_controller.dart';
@@ -12,8 +15,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// real asset/file, and the book/chapter queries return just enough data
 /// for switchVersion's post-switch _loadChapterData() to complete.
 class _FakeBibleDbService extends BibleDbService {
+  int initDbCalls = 0;
+  int closeCalls = 0;
+
   @override
-  Future<void> initDb(String dbAssetPath, String dbName) async {}
+  Future<void> initDb(String dbAssetPath, String dbName) async {
+    initDbCalls++;
+  }
+
+  @override
+  Future<void> close() async {
+    closeCalls++;
+  }
 
   @override
   Future<List<Map<String, dynamic>>> getAllBooks() async => [
@@ -29,7 +42,9 @@ class _FakeBibleDbService extends BibleDbService {
     int chapter,
   ) async =>
       [
-        {'verse': 1, 'text': 'In the beginning...'},
+        // Enough verses that a selected verse 5 is kept, not clamped to 1.
+        for (var verse = 1; verse <= 10; verse++)
+          {'verse': verse, 'text': 'Verse $verse'},
       ];
 
   @override
@@ -604,9 +619,14 @@ void main() {
         'SELECTED version, without resetting reading position', () async {
       final staleSelected =
           versionWith(dbFileName: 'A.SQLite3', hasUpdate: true);
+      // The same-file branch reopens the DB through readerService.dbService
+      // too, so it must be the fake (see the test above).
       controller = BibleReaderController(
         allVersions: [staleSelected],
-        readerService: readerService,
+        readerService: BibleReaderService(
+          dbService: _FakeBibleDbService(),
+          positionService: BibleReadingPositionService(),
+        ),
         preferencesService: preferencesService,
         initialState: BibleReaderState(
           availableVersions: [staleSelected],
@@ -636,6 +656,45 @@ void main() {
       expect(controller.state.selectedBookName, 'GN');
       expect(controller.state.selectedChapter, 3);
       expect(controller.state.selectedVerse, 5);
+    });
+
+    test(
+        'reopens the database when the ALREADY SELECTED version is '
+        're-downloaded, so the reader reads the new file', () async {
+      final staleSelected =
+          versionWith(dbFileName: 'A.SQLite3', hasUpdate: true);
+      final oldService = staleSelected.service! as _FakeBibleDbService;
+      final readerDb = _FakeBibleDbService();
+      controller = BibleReaderController(
+        allVersions: [staleSelected],
+        readerService: BibleReaderService(
+          dbService: readerDb,
+          positionService: BibleReadingPositionService(),
+        ),
+        preferencesService: preferencesService,
+        initialState: BibleReaderState(
+          availableVersions: [staleSelected],
+          selectedVersion: staleSelected,
+          selectedBookName: 'GN',
+          selectedBookNumber: 1,
+          selectedChapter: 3,
+          selectedVerse: 5,
+        ),
+      );
+
+      final freshSelected =
+          versionWith(dbFileName: 'A.SQLite3', hasUpdate: false);
+      await controller.switchVersion(freshSelected);
+
+      expect(oldService.closeCalls, 1,
+          reason: 'the handle on the replaced file must be closed');
+      expect(
+        (freshSelected.service! as _FakeBibleDbService).initDbCalls,
+        1,
+      );
+      expect(readerDb.initDbCalls, 1);
+      expect(controller.state.verses, isNotEmpty);
+      expect(controller.state.selectedChapter, 3);
     });
   });
 }

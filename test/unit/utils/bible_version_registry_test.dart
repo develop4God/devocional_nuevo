@@ -1,11 +1,27 @@
 @Tags(['unit', 'utils'])
 library;
 
+import 'dart:io';
+
 import 'package:bible_reader_core/src/bible_version_registry.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('BibleVersionRegistry Tests', () {
+    test('every bundled hash matches its shipped asset file', () async {
+      for (final languageCode in BibleVersionRegistry.getSupportedLanguages()) {
+        final versions =
+            await BibleVersionRegistry.getVersionsForLanguage(languageCode);
+        for (final v in versions.where((v) => v.assetPath.isNotEmpty)) {
+          final bytes = File('${v.assetPath}.gz').readAsBytesSync();
+          // Same scheme as bible_versions' generate_index.py file_hash().
+          final hash = sha256.convert(bytes).toString().substring(0, 16);
+          expect(v.remoteHash, hash, reason: v.dbFileName);
+        }
+      }
+    });
+
     test('should get supported languages', () {
       final languages = BibleVersionRegistry.getSupportedLanguages();
 
