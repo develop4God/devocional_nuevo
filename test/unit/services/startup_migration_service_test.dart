@@ -99,6 +99,12 @@ class _FakeAnalyticsService implements IAnalyticsService {
   Future<void> logEncounterViewToggle({required String view}) async {}
 
   @override
+  Future<void> logEncounterUnlockOfferShown() async {}
+
+  @override
+  Future<void> logEncounterUnlockOfferPurchaseTapped() async {}
+
+  @override
   Future<void> logBibleOpen({
     String? translation,
     String? book,

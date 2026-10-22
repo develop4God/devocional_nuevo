@@ -860,7 +860,13 @@
     "welcome_title_line2": "Nagbago magpakailanman.",
     "welcome_title_line3": "Ang dating Jesus. Narito. Ngayon.",
     "welcome_subtitle": "Mga tunay na kwento. Ang tunay na Jesus.",
-    "welcome_button": "Magsimula"
+    "welcome_button": "Magsimula",
+    "read_now_hint": "Gusto mo na bang basahin ito? I-tap dito.",
+    "unlock_offer_title": "Magbasa sa sarili mong bilis",
+    "unlock_offer_body": "Libre ang lahat. Tapusin ang mga encounter nang sunud-sunod at kusang bubukas ang bawat isa.\n\nKung gusto mong basahin ang lahat ngayon, maaari mong suportahan ang ministeryong ito at buksan ang lahat ng encounter, kasama ang mga bagong idadagdag namin.",
+    "unlock_offer_button": "Suportahan at buksan lahat · {price}",
+    "unlock_offer_keep_reading": "Magpatuloy nang sunud-sunod",
+    "unlock_offer_thanks": "Salamat! Bukas na ang lahat ng encounter."
   },
   "tags": {
     "love": "Pagmamahal",
@@ -976,7 +982,12 @@
     "profile_name_save": "I-save ang pangalan",
     "profile_name_saved": "✅ Matagumpay na na-save ang pangalan!",
     "profile_name_hint": "Ang iyong pangalan (max 15 na karakter)",
-    "profile_name_helper": "Lilitaw sa iyong araw-araw na debosyonal. Hindi ito ibabahagi."
+    "profile_name_helper": "Lilitaw sa iyong araw-araw na debosyonal. Hindi ito ibabahagi.",
+    "tier_encounters_name": "Buksan ang Lahat ng Encounter",
+    "tier_encounters_description": "Basahin ang bawat encounter sa sarili mong bilis",
+    "benefit_encounters_unlock": "Buksan na ngayon ang lahat ng encounter, kasama ang mga susunod pa",
+    "encounters_success_title": "Salamat!",
+    "encounters_success_body": "Bukas na ang lahat ng encounter. Basahin ito sa sarili mong bilis. Pagpalain ka ng Diyos!"
   },
   "prayer_wall": {
     "title": "Pader ng Panalangin",

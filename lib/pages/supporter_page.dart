@@ -141,6 +141,28 @@ class _SupporterPageState extends State<SupporterPage>
     SupporterTier tier, {
     TextEditingController? existingNameController,
   }) {
+    // "Open all encounters" has no badge or pet: just thank the supporter.
+    if (tier.unlocksEncounters) {
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text('supporter.encounters_success_title'.tr()),
+          content: Text('supporter.encounters_success_body'.tr()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text('supporter.purchase_success_button'.tr()),
+            ),
+          ],
+        ),
+      ).then((_) {
+        if (mounted) {
+          context.read<SupporterBloc>().add(ClearSupporterError());
+        }
+      });
+      return;
+    }
+
     final nameController = existingNameController ?? TextEditingController();
     final isGold = tier.level == SupporterTierLevel.gold;
 

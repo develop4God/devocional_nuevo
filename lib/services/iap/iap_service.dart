@@ -240,6 +240,14 @@ class IapService implements IIapService {
     _initStatus = IapInitStatus.notStarted;
   }
 
+  @override
+  Future<void> debugSimulateDelivery(SupporterTier tier) async {
+    if (!kDebugMode) return;
+    debugPrint(
+        '🛒 [IapService] DEBUG: simulating delivery of ${tier.productId}');
+    await _deliverProduct(tier.productId, isRestore: false);
+  }
+
   // ── Private helpers ───────────────────────────────────────────────────────
 
   Future<void> _loadProducts() async {

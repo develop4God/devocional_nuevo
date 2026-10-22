@@ -337,8 +337,10 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     if (!kDebugMode) return;
     final current = state;
     if (current is! SupporterLoaded) return;
-    // Directly add the internal delivery event — bypasses real billing.
-    add(_PurchaseDelivered(event.tier));
+    // Goes through the service's real delivery path (levels + prefs +
+    // delivered stream), so the stream listener updates the state exactly as
+    // a completed Play purchase would — only the billing sheet is skipped.
+    await _iapService.debugSimulateDelivery(event.tier);
     debugPrint(
       '🛒 [SupporterBloc] DEBUG: simulated purchase for ${event.tier.productId}',
     );

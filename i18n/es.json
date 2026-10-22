@@ -860,7 +860,13 @@
     "welcome_title_line2": "Cambiaron para siempre.",
     "welcome_title_line3": "El mismo Jesús. Aquí. Ahora.",
     "welcome_subtitle": "Historias reales. El Jesús real.",
-    "welcome_button": "Comenzar"
+    "welcome_button": "Comenzar",
+    "read_now_hint": "¿Quieres leerlo ahora? Toca aquí.",
+    "unlock_offer_title": "Lee a tu propio ritmo",
+    "unlock_offer_body": "Todo es gratis. Termina los encuentros en orden y cada uno se abrirá solo.\n\nSi quieres leerlos todos ahora mismo, puedes apoyar este ministerio y abrir todos los encuentros, incluidos los nuevos que agreguemos.",
+    "unlock_offer_button": "Apoyar y abrir todos · {price}",
+    "unlock_offer_keep_reading": "Seguir leyendo en orden",
+    "unlock_offer_thanks": "¡Gracias! Todos los encuentros están abiertos."
   },
   "tags": {
     "love": "Amor",
@@ -976,7 +982,12 @@
     "profile_name_save": "Guardar nombre",
     "profile_name_saved": "✅ ¡Nombre guardado correctamente!",
     "profile_name_hint": "Tu nombre (máx. 15 caracteres)",
-    "profile_name_helper": "Aparecerá en tu devocional diario. No será compartido."
+    "profile_name_helper": "Aparecerá en tu devocional diario. No será compartido.",
+    "tier_encounters_name": "Abrir todos los encuentros",
+    "tier_encounters_description": "Lee cada encuentro a tu propio ritmo",
+    "benefit_encounters_unlock": "Abre ahora todos los encuentros, incluidos los futuros",
+    "encounters_success_title": "¡Gracias!",
+    "encounters_success_body": "Todos los encuentros están abiertos. Léelos a tu propio ritmo. ¡Dios te bendiga!"
   },
   "prayer_wall": {
     "title": "Muro de Oración",
