@@ -134,6 +134,7 @@ void main() {
       when(
         () => mockDbService.initDb(any(), any()),
       ).thenAnswer((_) async => {});
+      when(() => mockDbService.close()).thenAnswer((_) async {});
 
       // Explicit <String, dynamic> is required — Dart infers map literals with
       // mixed int/String values as Map<String, Object>.  getAllBooks() returns
