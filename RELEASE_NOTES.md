@@ -1,7 +1,7 @@
 <es-419>
 ✨ ¡Nueva actualización disponible! 🚀✨
 
-🐛 Corrección de posible demora al iniciar la app con conexión lenta.
+🔓 Nuevo: apoya el ministerio y abre todos los encuentros al instante, ahora destacado en la página de apoyo.
 
 ⚙️ Mejoras internas de estabilidad y diagnóstico.
 
@@ -10,7 +10,7 @@
 <es-ES>
 ✨ ¡Nueva actualización disponible! 🚀✨
 
-🐛 Corrección de posible demora al iniciar la app con conexión lenta.
+🔓 Nuevo: apoya el ministerio y abre todos los encuentros al instante, ahora destacado en la página de apoyo.
 
 ⚙️ Mejoras internas de estabilidad y diagnóstico.
 
@@ -19,7 +19,7 @@
 <ar>
 ✨ تحديث جديد متاح! 🚀✨
 
-🐛 إصلاح تأخير محتمل عند بدء تشغيل التطبيق مع اتصال إنترنت بطيء.
+🔓 جديد: ادعم الخدمة وافتح جميع اللقاءات فورًا، والآن بشكل أوضح في صفحة الدعم.
 
 ⚙️ تحسينات داخلية للاستقرار والتشخيص.
 
@@ -28,7 +28,7 @@
 <de-DE>
 ✨ Neues Update verfügbar! 🚀✨
 
-🐛 Behoben: mögliche Verzögerung beim App-Start bei langsamer Internetverbindung.
+🔓 Neu: Unterstütze das Ministerium und schalte alle Begegnungen sofort frei – jetzt gut sichtbar auf der Unterstützungsseite.
 
 ⚙️ Interne Stabilitäts- und Diagnoseverbesserungen.
 
@@ -37,7 +37,7 @@
 <en-US>
 ✨ New update available! 🚀✨
 
-🐛 Fixed a possible startup delay on slow network connections.
+🔓 New: support the ministry and open all encounters right away, now featured on the support page.
 
 ⚙️ Internal stability and diagnostic improvements.
 
@@ -46,7 +46,7 @@
 <fr-FR>
 ✨ Nouvelle mise à jour disponible ! 🚀✨
 
-🐛 Correction d'un possible retard au démarrage avec une connexion lente.
+🔓 Nouveau : soutenez le ministère et ouvrez toutes les rencontres immédiatement, désormais mis en avant sur la page de soutien.
 
 ⚙️ Améliorations internes de stabilité et de diagnostic.
 
@@ -55,7 +55,7 @@
 <hi-IN>
 ✨ नया अपडेट उपलब्ध है! 🚀✨
 
-🐛 धीमे इंटरनेट कनेक्शन पर ऐप शुरू होने में होने वाली संभावित देरी को ठीक किया।
+🔓 नया: सेवकाई का समर्थन करें और सभी मुलाकातें तुरंत खोलें, अब सपोर्ट पेज पर प्रमुखता से उपलब्ध।
 
 ⚙️ आंतरिक स्थिरता और डायग्नोस्टिक सुधार।
 
@@ -64,7 +64,7 @@
 <ja-JP>
 ✨ 新しいアップデートが利用可能です！ 🚀✨
 
-🐛 低速な通信環境でアプリの起動が遅れる場合がある問題を修正しました。
+🔓 新機能：ミニストリーを支援して、すべての出会いをすぐに開放できます。サポートページでより見やすくなりました。
 
 ⚙️ 内部的な安定性および診断機能の改善。
 
@@ -73,7 +73,7 @@
 <pt-BR>
 ✨ Nova atualização disponível! 🚀✨
 
-🐛 Corrigimos uma possível demora na inicialização do app em conexões lentas.
+🔓 Novo: apoie o ministério e abra todos os encontros na hora, agora em destaque na página de apoio.
 
 ⚙️ Melhorias internas de estabilidade e diagnóstico.
 
@@ -82,7 +82,7 @@
 <zh-CN>
 ✨ 新版本发布！ 🚀✨
 
-🐛 修复了网络较慢时应用启动可能出现延迟的问题。
+🔓 全新功能：支持事工并立即解锁所有相遇故事，现已在支持页面显眼展示。
 
 ⚙️ 内部稳定性与诊断改进。
 
@@ -91,7 +91,7 @@
 <fil>
 ✨ May bagong update na available! 🚀✨
 
-🐛 Inayos ang posibleng pagkaantala sa pag-start ng app sa mabagal na internet connection.
+🔓 Bago: suportahan ang ministeryo at buksan agad ang lahat ng encounters, na ngayon ay itinatampok sa support page.
 
 ⚙️ Mga internal na pagpapahusay sa stability at diagnostics.
 

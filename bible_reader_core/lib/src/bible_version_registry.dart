@@ -23,54 +23,143 @@ class BibleVersionRegistry {
     'fil': 'Filipino', // Add Filipino
   };
 
+  /// Bundled versions. `hash` is the bible_versions index hash (first 16 hex
+  /// chars of the SHA-256 of the `.gz` asset) of the file shipped in
+  /// `assets/biblia/`, so the remote index can flag a newer copy as an
+  /// update. Must change whenever the asset is replaced.
   static const Map<String, List<Map<String, String>>> _versionsByLanguage = {
     'es': [
-      {'name': 'Reina Valera 1960 (RVR1960)', 'dbFile': 'RVR1960_es.SQLite3'},
-      {'name': 'Nueva Versión Internacional (NVI)', 'dbFile': 'NVI_es.SQLite3'},
-      {'name': 'Nueva Traducción Viviente (NTV)', 'dbFile': 'NTV_es.SQLite3'},
+      {
+        'name': 'Reina Valera 1960 (RVR1960)',
+        'dbFile': 'RVR1960_es.SQLite3',
+        'hash': 'c290a43e65846a86'
+      },
+      {
+        'name': 'Nueva Versión Internacional (NVI)',
+        'dbFile': 'NVI_es.SQLite3',
+        'hash': 'ea9c9aa3784c3b62'
+      },
+      {
+        'name': 'Nueva Traducción Viviente (NTV)',
+        'dbFile': 'NTV_es.SQLite3',
+        'hash': 'b6075527be30852f'
+      },
     ],
     'en': [
-      {'name': 'King James Version (KJV)', 'dbFile': 'KJV_en.SQLite3'},
-      {'name': 'New International Version (NIV)', 'dbFile': 'NIV_en.SQLite3'},
-      {'name': 'English Standard Version (ESV)', 'dbFile': 'ESV_en.SQLite3'},
+      {
+        'name': 'King James Version (KJV)',
+        'dbFile': 'KJV_en.SQLite3',
+        'hash': '8d98dd247b02d357'
+      },
+      {
+        'name': 'New International Version (NIV)',
+        'dbFile': 'NIV_en.SQLite3',
+        'hash': '456f21c7c06385aa'
+      },
+      {
+        'name': 'English Standard Version (ESV)',
+        'dbFile': 'ESV_en.SQLite3',
+        'hash': '2716d368b9d3d176'
+      },
     ],
     'pt': [
-      {'name': 'Almeida Revista e Corrigida (ARC)', 'dbFile': 'ARC_pt.SQLite3'},
-      {'name': 'Nova Versão Internacional (NVI)', 'dbFile': 'NVI_pt.SQLite3'},
+      {
+        'name': 'Almeida Revista e Corrigida (ARC)',
+        'dbFile': 'ARC_pt.SQLite3',
+        'hash': 'd07c4c4bd082cb5d'
+      },
+      {
+        'name': 'Nova Versão Internacional (NVI)',
+        'dbFile': 'NVI_pt.SQLite3',
+        'hash': '78a44c72ce5c9e14'
+      },
     ],
     'fr': [
-      {'name': 'Louis Segond 1910 (LSG1910)', 'dbFile': 'LSG1910_fr.SQLite3'},
+      {
+        'name': 'Louis Segond 1910 (LSG1910)',
+        'dbFile': 'LSG1910_fr.SQLite3',
+        'hash': 'f85a978becbf7f2f'
+      },
       // Use _fr suffix to identify French database asset
-      {'name': 'Bible du Semeur (BDS)', 'dbFile': 'BDS_fr.SQLite3'},
+      {
+        'name': 'Bible du Semeur (BDS)',
+        'dbFile': 'BDS_fr.SQLite3',
+        'hash': '034c92f3d06cef5b'
+      },
     ],
     'ja': [
-      {'name': '新改訳2003', 'dbFile': 'SK2003_ja.SQLite3'},
-      {'name': 'リビングバイブル', 'dbFile': 'JCB_ja.SQLite3'},
+      {
+        'name': '新改訳2003',
+        'dbFile': 'SK2003_ja.SQLite3',
+        'hash': '99671a5613bb01c5'
+      },
+      {
+        'name': 'リビングバイブル',
+        'dbFile': 'JCB_ja.SQLite3',
+        'hash': '93f95219fde96363'
+      },
     ],
     'zh': [
-      {'name': '和合本1919', 'dbFile': 'CUV1919_zh.SQLite3'},
+      {
+        'name': '和合本1919',
+        'dbFile': 'CUV1919_zh.SQLite3',
+        'hash': '89c84548b6775c4e'
+      },
       // Asset filename uses CNVS_zh.SQLite3.gz (note the extra 'S'), match the asset
-      {'name': '新译本', 'dbFile': 'CNVS_zh.SQLite3'},
+      {'name': '新译本', 'dbFile': 'CNVS_zh.SQLite3', 'hash': '77f4e8e1b9e1e1f3'},
     ], // Add Chinese
     'hi': [
-      {'name': 'पवित्र बाइबिल (ओ.वी.)', 'dbFile': 'HIOV_hi.SQLite3'},
-      {'name': 'पवित्र बाइबिल (HERV)', 'dbFile': 'HERV_hi.SQLite3'},
+      {
+        'name': 'पवित्र बाइबिल (ओ.वी.)',
+        'dbFile': 'HIOV_hi.SQLite3',
+        'hash': '83581d145d1ecd60'
+      },
+      {
+        'name': 'पवित्र बाइबिल (HERV)',
+        'dbFile': 'HERV_hi.SQLite3',
+        'hash': 'f03056a265e7bfc2'
+      },
     ], // Add Hindi
     'de': [
-      {'name': 'Lutherbibel 2017 (LU17)', 'dbFile': 'LU17_de.SQLite3'},
-      {'name': 'Schlachter 2000 (SCH2000)', 'dbFile': 'SCH2000_de.SQLite3'},
+      {
+        'name': 'Lutherbibel 2017 (LU17)',
+        'dbFile': 'LU17_de.SQLite3',
+        'hash': '62a813610300f95c'
+      },
+      {
+        'name': 'Schlachter 2000 (SCH2000)',
+        'dbFile': 'SCH2000_de.SQLite3',
+        'hash': 'ef1ec5eeecadfba4'
+      },
     ], // Add German
     'ar': [
-      {'name': 'كتاب الحياة', 'dbFile': 'NAV_ar.SQLite3'},
-      {'name': 'فان دايك', 'dbFile': 'SVDA_ar.SQLite3'},
+      {
+        'name': 'كتاب الحياة',
+        'dbFile': 'NAV_ar.SQLite3',
+        'hash': '7ee85cd36e41d655'
+      },
+      {
+        'name': 'فان دايك',
+        'dbFile': 'SVDA_ar.SQLite3',
+        'hash': '9bb498f5c5ef0667'
+      },
     ], // Added Arabic
     'fil': [
       {
         'name': 'Magandang Balita Biblia (MBB05)',
         'dbFile': 'MBB05_fil.SQLite3',
+        'hash': '440b628b0df0cf16',
       },
-      {'name': 'Ang Salita ng Dios (ASND)', 'dbFile': 'ASND_fil.SQLite3'},
-      {'name': 'Ang Dating Biblia (ADB)', 'dbFile': 'ADB_fil.SQLite3'},
+      {
+        'name': 'Ang Salita ng Dios (ASND)',
+        'dbFile': 'ASND_fil.SQLite3',
+        'hash': '3cfc2fc8facc5573'
+      },
+      {
+        'name': 'Ang Dating Biblia (ADB)',
+        'dbFile': 'ADB_fil.SQLite3',
+        'hash': '7e257bb1ccdf5a38'
+      },
     ], // Added Filipino (fil)
   };
 
@@ -85,6 +174,7 @@ class BibleVersionRegistry {
   ) async {
     final versions = _versionsByLanguage[languageCode] ?? [];
     final List<BibleVersion> bibleVersions = [];
+    final storedEntries = await _loadStoredEntries();
 
     for (final versionInfo in versions) {
       final dbFileName = versionInfo['dbFile']!;
@@ -98,12 +188,17 @@ class BibleVersionRegistry {
           assetPath: 'assets/biblia/$dbFileName',
           dbFileName: dbFileName,
           isDownloaded: isDownloaded,
+          // Hash recorded for the file on disk (extracted asset or a copy
+          // downloaded over it); the shipped asset when none is recorded,
+          // since BibleDbService.ensureInstalled re-extracts such a file.
+          remoteHash:
+              _storedHash(storedEntries[dbFileName]) ?? versionInfo['hash'],
         ),
       );
     }
 
     bibleVersions.addAll(
-      await getDownloadedRemoteVersionsForLanguage(languageCode),
+      await _downloadedRemoteVersions(languageCode, storedEntries),
     );
 
     return bibleVersions;
@@ -117,6 +212,12 @@ class BibleVersionRegistry {
   /// successful download time by the download flow.
   static Future<List<BibleVersion>> getDownloadedRemoteVersionsForLanguage(
     String languageCode,
+  ) async =>
+      _downloadedRemoteVersions(languageCode, await _loadStoredEntries());
+
+  static Future<List<BibleVersion>> _downloadedRemoteVersions(
+    String languageCode,
+    Map<String, dynamic> names,
   ) async {
     final bundledFileNames = (_versionsByLanguage[languageCode] ?? [])
         .map((v) => v['dbFile'])
@@ -127,14 +228,9 @@ class BibleVersionRegistry {
       final dir = Directory(documentsDirectory.path);
       if (!dir.existsSync()) return [];
 
-      final prefs = await SharedPreferences.getInstance();
-      final namesJson = prefs.getString(_remoteVersionNamesPrefKey);
-      final Map<String, dynamic> names = namesJson != null
-          ? jsonDecode(namesJson) as Map<String, dynamic>
-          : {};
       debugPrint(
         '[BibleVersionRegistry] getDownloadedRemoteVersionsForLanguage('
-        '$languageCode) namesJson=$namesJson',
+        '$languageCode) names=$names',
       );
 
       final suffix = '_$languageCode.SQLite3';
@@ -189,6 +285,58 @@ class BibleVersionRegistry {
       return result;
     } catch (e) {
       return [];
+    }
+  }
+
+  /// Reads the `bible_remote_version_names` map; empty when absent or
+  /// unreadable.
+  static Future<Map<String, dynamic>> _loadStoredEntries() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString(_remoteVersionNamesPrefKey);
+      return json != null ? jsonDecode(json) as Map<String, dynamic> : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  static String? _storedHash(Object? stored) =>
+      stored is Map ? stored['hash'] as String? : null;
+
+  /// Hash of the asset shipped for bundled [dbFileName]; null when it is not
+  /// a bundled version.
+  static String? bundledHash(String dbFileName) {
+    for (final versions in _versionsByLanguage.values) {
+      for (final v in versions) {
+        if (v['dbFile'] == dbFileName) return v['hash'];
+      }
+    }
+    return null;
+  }
+
+  /// Hash recorded for the [dbFileName] file on disk (when it was extracted
+  /// from the asset or downloaded); null when none was recorded.
+  static Future<String?> storedHash(String dbFileName) async =>
+      _storedHash((await _loadStoredEntries())[dbFileName]);
+
+  /// Records [hash] for the [dbFileName] file on disk, keeping the entry's
+  /// other fields. A failed write is logged, not thrown: the file is already
+  /// installed, and an unrecorded hash only means it is re-extracted on the
+  /// next open.
+  static Future<void> saveStoredHash(String dbFileName, String hash) async {
+    try {
+      final entries = await _loadStoredEntries();
+      final stored = entries[dbFileName];
+      entries[dbFileName] = {
+        if (stored is Map) ...stored,
+        if (stored is String) 'name': stored,
+        'hash': hash,
+      };
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_remoteVersionNamesPrefKey, jsonEncode(entries));
+    } catch (e) {
+      debugPrint(
+          '[BibleVersionRegistry] saveStoredHash($dbFileName) failed: $e');
     }
   }
 
