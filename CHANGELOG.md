@@ -13,6 +13,7 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 
 - Add encounters unlock product to supporter tiers
 - Open-all-encounters supporter option with soft unlock offer
+- *(encounters,supporter)* Gold highlight for the unlock offer and a featured support card ([#341](https://github.com/develop4God/devocional_nuevo/issues/341))
 
 ### 🐛 Bug Fixes
 
@@ -22,6 +23,7 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - *(encounters)* Show purchase errors in unlock offer and use new product ID
 - *(iap)* Run debug purchase simulation through real delivery path
 - *(bible)* Ship HERV Hindi with Titus (46 verses)
+- *(bible)* Sync bundled versions and let the index update them ([#340](https://github.com/develop4God/devocional_nuevo/issues/340))
 
 ### 🚜 Refactor
 
