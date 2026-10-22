@@ -282,6 +282,63 @@ void main() {
       expect(result, isEmpty); // en is fully bundled per fullIndex
     });
 
+    group('bundled versions', () {
+      // Hash of the KJV asset shipped in assets/biblia (see the registry).
+      const shippedKjvHash = '8d98dd247b02d357';
+
+      Map<String, dynamic> kjvIndex(String hash) => {
+            'languages': {
+              'en': {
+                'versions': {
+                  'KJV': {
+                    'name': 'King James Version',
+                    'file': 'KJV_en.SQLite3.gz',
+                    'url': 'https://raw.githubusercontent.com/develop4God/'
+                        'bible_versions/main/en/KJV_en.SQLite3.gz',
+                    'hash': hash,
+                  },
+                },
+              },
+            },
+          };
+
+      test('omitted when the index hash matches the shipped asset', () async {
+        stubIndexResponse(jsonEncode(kjvIndex(shippedKjvHash)));
+
+        final result = await repository.fetchRemoteVersions('en');
+
+        expect(result, isEmpty);
+      });
+
+      test('surfaced as an update when the index has a newer file', () async {
+        stubIndexResponse(jsonEncode(kjvIndex('newer')));
+
+        final result = await repository.fetchRemoteVersions('en');
+
+        expect(result, hasLength(1));
+        expect(result.first.dbFileName, 'KJV_en.SQLite3');
+        expect(result.first.hasUpdate, isTrue);
+        expect(result.first.remoteHash, 'newer');
+        expect(result.first.remoteUrl, isNotNull);
+      });
+
+      test('omitted once the newer file was downloaded over the asset',
+          () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+          'bible_remote_version_names',
+          jsonEncode({
+            'KJV_en.SQLite3': {'name': 'King James Version', 'hash': 'newer'},
+          }),
+        );
+        stubIndexResponse(jsonEncode(kjvIndex('newer')));
+
+        final result = await repository.fetchRemoteVersions('en');
+
+        expect(result, isEmpty);
+      });
+    });
+
     test(
         'surfaces an already-downloaded remote version with hasUpdate when '
         'the index hash differs from the stored hash', () async {
