@@ -9,13 +9,33 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 <!-- git-cliff: end of header -->
 ## [unreleased]
 
+### 🚀 Features
+
+- Add encounters unlock product to supporter tiers
+- Open-all-encounters supporter option with soft unlock offer
+
 ### 🐛 Bug Fixes
 
 - Crashlytics v2 diagnostic follow-ups (exit-reason noise, hero-image startup block, provider timeout, year-fetch idle timeout) ([#325](https://github.com/develop4God/devocional_nuevo/issues/325))
+- *(startup)* Stop blocking first frame on hero image and uncached later years
+- *(startup)* Avoid theme-color flash around the hero image
+- *(encounters)* Show purchase errors in unlock offer and use new product ID
+- *(iap)* Run debug purchase simulation through real delivery path
+- *(bible)* Ship HERV Hindi with Titus (46 verses)
+
+### 🚜 Refactor
+
+- *(di)* Inject ISpiritualStatsService into DevocionalProvider
+
+### ◀️ Revert
+
+- *(startup)* Drop transparent app bar while hero image is pending
 
 ### 💼 Other
 
 - Crashlytics v2 diagnostic follow-ups, startup-delay fix, and dependency upgrade
+- *(deps)* Bump @grpc/grpc-js ([#332](https://github.com/develop4God/devocional_nuevo/issues/332))
+- *(deps)* Bump the npm_and_yarn group across 1 directory with 3 updates
 ## [1.16.6+127] - 2026-09-14
 
 ### 🐛 Bug Fixes
