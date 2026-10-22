@@ -15,6 +15,7 @@ import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/supporter/featured_tier_card.dart';
 import 'package:devocional_nuevo/widgets/supporter/supporter_bronze_silver_purchase_dialog.dart';
 import 'package:devocional_nuevo/widgets/supporter/supporter_gold_purchase_dialog.dart';
 import 'package:devocional_nuevo/widgets/supporter/tier_card.dart';
@@ -543,6 +544,8 @@ class _SupporterPageState extends State<SupporterPage>
     final isGoldPurchased = state.isPurchased(SupporterTierLevel.gold);
     final petService = getService<SupporterPetService>();
     final showPendingBanner = isGoldPurchased && petService.isGoldSetupPending;
+    // The newest offer leads the page; the list below holds the other tiers.
+    final featuredTier = SupporterTier.fromLevel(SupporterTierLevel.encounters);
 
     return Column(
       children: [
@@ -563,6 +566,15 @@ class _SupporterPageState extends State<SupporterPage>
           ),
           const SizedBox(height: 16),
         ],
+        FeaturedTierCard(
+          tier: featuredTier,
+          storePrice: state.storePrices[featuredTier.productId],
+          isPurchased: state.isPurchased(featuredTier.level),
+          isLoading: state.purchasingProductId == featuredTier.productId,
+          lottieAsset: 'assets/lottie/unlocked.json',
+          onPurchase: () => _onPurchaseTier(featuredTier),
+        ),
+        const SizedBox(height: 32),
         Text(
           'supporter.choose_tier'.tr(),
           style: textTheme.titleLarge?.copyWith(
@@ -571,18 +583,18 @@ class _SupporterPageState extends State<SupporterPage>
           ),
         ),
         const SizedBox(height: 24),
-        ...SupporterTier.tiers.map(
-          (tier) => Padding(
-            padding: const EdgeInsets.only(bottom: 24),
-            child: TierCard(
-              tier: tier,
-              storePrice: state.storePrices[tier.productId],
-              isPurchased: state.isPurchased(tier.level),
-              isLoading: state.purchasingProductId == tier.productId,
-              onPurchase: () => _onPurchaseTier(tier),
+        ...SupporterTier.tiers.where((tier) => tier != featuredTier).map(
+              (tier) => Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: TierCard(
+                  tier: tier,
+                  storePrice: state.storePrices[tier.productId],
+                  isPurchased: state.isPurchased(tier.level),
+                  isLoading: state.purchasingProductId == tier.productId,
+                  onPurchase: () => _onPurchaseTier(tier),
+                ),
+              ),
             ),
-          ),
-        ),
         // Gold supporter: show edit-name button when Gold is purchased.
         if (isGoldPurchased) ...[
           const SizedBox(height: 8),

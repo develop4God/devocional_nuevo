@@ -22,6 +22,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_unlock_offer_sheet.dart';
+import 'package:devocional_nuevo/widgets/gold_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -116,6 +117,21 @@ void main() {
     });
   });
 
+  group('EncounterLoaded.firstLocked', () {
+    final state =
+        EncounterLoaded(index: [_entry('a'), _entry('b'), _entry('c')]);
+
+    test('is the next encounter after the reading position', () {
+      expect(state.firstLocked()?.id, 'b');
+      expect(state.copyWith(completedIds: {'a'}).firstLocked()?.id, 'c');
+    });
+
+    test('is null when everything is open', () {
+      expect(state.firstLocked(allUnlocked: true), isNull);
+      expect(state.copyWith(completedIds: {'a', 'b'}).firstLocked(), isNull);
+    });
+  });
+
   group('Unlock offer on the encounters list', () {
     late FakeIapService iap;
     late SupporterBloc supporterBloc;
@@ -144,10 +160,18 @@ void main() {
       await supporterBloc.close();
     });
 
-    Future<void> pumpList(WidgetTester tester) async {
+    Future<void> pumpList(
+      WidgetTester tester, {
+      List<String> ids = const ['a', 'b'],
+    }) async {
       tester.view.physicalSize = const Size(1080, 1920);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
+      // The gold shimmer loops forever; freeze it so pumpAndSettle can settle.
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+          tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -155,7 +179,7 @@ void main() {
             providers: [
               BlocProvider<EncounterBloc>.value(
                 value: _FakeEncounterBloc(
-                  EncounterLoaded(index: [_entry('a'), _entry('b')]),
+                  EncounterLoaded(index: ids.map(_entry).toList()),
                 ),
               ),
               BlocProvider<ThemeBloc>.value(value: _FakeThemeBloc()),
@@ -190,6 +214,68 @@ void main() {
       expect(find.byType(EncounterUnlockOfferSheet), findsOneWidget);
       expect(find.text('encounters.unlock_offer_title'), findsOneWidget);
       expect(analytics.offerShown, 1);
+
+      await unmount(tester);
+    });
+
+    testWidgets('only the next waiting encounter gets the gold shimmer', (
+      tester,
+    ) async {
+      supporterBloc.add(InitializeSupporter());
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await pumpList(tester, ids: ['a', 'b', 'c']);
+
+      // b and c are both waiting, but only b is highlighted.
+      expect(find.byKey(const ValueKey('encounter_locked_b')), findsOneWidget);
+      expect(find.byKey(const ValueKey('encounter_locked_c')), findsOneWidget);
+      expect(
+        find.ancestor(
+          of: find.byKey(const ValueKey('encounter_locked_b')),
+          matching: find.byType(GoldShimmer),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.ancestor(
+          of: find.byKey(const ValueKey('encounter_locked_c')),
+          matching: find.byType(GoldShimmer),
+        ),
+        findsNothing,
+      );
+      // The hint pill is gold only inside the highlighted card.
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('encounter_locked_b')),
+          matching: find.byType(GoldShimmer),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('encounter_locked_c')),
+          matching: find.byType(GoldShimmer),
+        ),
+        findsNothing,
+      );
+
+      await unmount(tester);
+    });
+
+    testWidgets('the offer button carries the gold shimmer', (tester) async {
+      supporterBloc.add(InitializeSupporter());
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await pumpList(tester);
+
+      await tester.tap(find.byKey(const ValueKey('encounter_locked_b')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byType(EncounterUnlockOfferSheet),
+          matching: find.byType(GoldShimmer),
+        ),
+        findsOneWidget,
+      );
 
       await unmount(tester);
     });
