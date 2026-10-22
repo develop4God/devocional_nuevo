@@ -45,6 +45,9 @@ class DevocionalHeroSection extends StatelessWidget {
           imageUrl: imageUrl,
           fit: BoxFit.cover,
           fadeInDuration: const Duration(milliseconds: 300),
+          // Keeps the previous photo on screen until the next one has loaded,
+          // so changing images never exposes the app bar's theme color.
+          useOldImageOnUrlChange: true,
           // Bounds the decoded bitmap to the device's physical pixel width
           // regardless of source image size — defense in depth alongside the
           // pre-commit asset validation in Devocionales-assets, since a bad

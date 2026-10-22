@@ -37,6 +37,19 @@ class DevocionalesNavigationBloc
     on<NavigateToIndex>(_onNavigateToIndex);
     on<NavigateToFirstUnread>(_onNavigateToFirstUnread);
     on<UpdateDevocionales>(_onUpdateDevocionales);
+    on<HeroImageReady>(_onHeroImageReady);
+  }
+
+  void _onHeroImageReady(
+    HeroImageReady event,
+    Emitter<DevocionalesNavigationState> emit,
+  ) {
+    final current = state;
+    if (current is! NavigationReady) return;
+    final url = _imageRepository.currentImageUrl;
+    if (url == null || url == current.heroImageUrl) return;
+    debugPrint('[NAV_BLOC] 🖼️ HeroImageReady applied heroImageUrl=$url');
+    emit(current.copyWith(heroImageUrl: url));
   }
 
   /// Initialize navigation with a list of devotionals
