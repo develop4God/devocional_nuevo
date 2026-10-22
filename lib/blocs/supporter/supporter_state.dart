@@ -58,6 +58,10 @@ class SupporterLoaded extends SupporterState {
 
   bool isPurchased(SupporterTierLevel level) => purchasedLevels.contains(level);
 
+  /// True when any owned product opens every encounter (skips reading order).
+  bool get unlocksAllEncounters => purchasedLevels
+      .any((level) => SupporterTier.fromLevel(level).unlocksEncounters);
+
   SupporterLoaded copyWith({
     Set<SupporterTierLevel>? purchasedLevels,
     bool? isBillingAvailable,

@@ -14,7 +14,6 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/main.dart' show routeObserver;
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
-import 'package:devocional_nuevo/models/supporter_tier.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_intro_page.dart';
 import 'package:devocional_nuevo/pages/encounters/encounter_welcome_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
@@ -154,7 +153,7 @@ class _EncountersListPageState extends State<EncountersListPage>
     final allUnlocked = context.select<SupporterBloc, bool>((bloc) {
       final supporterState = bloc.state;
       return supporterState is SupporterLoaded &&
-          supporterState.isPurchased(SupporterTierLevel.encounters);
+          supporterState.unlocksAllEncounters;
     });
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
