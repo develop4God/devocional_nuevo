@@ -1,6 +1,7 @@
 @Tags(['unit', 'widgets'])
 library;
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/note_bloc.dart';
 import 'package:devocional_nuevo/models/devotional_note.dart';
@@ -108,6 +109,7 @@ void main() {
       Future<int>? streakFuture,
       bool isFavorite = false,
       bool showHeader = true,
+      double fontSize = 16,
     }) {
       return BlocProvider(
         create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
@@ -117,7 +119,7 @@ void main() {
             home: Scaffold(
               body: DevocionalesContentWidget(
                 devocional: devocional,
-                fontSize: 16,
+                fontSize: fontSize,
                 onStreakBadgeTap: () => streakTapped = true,
                 currentStreak: streak,
                 streakFuture: streakFuture ?? Future.value(streak),
@@ -353,10 +355,45 @@ void main() {
       },
     );
 
+    group('verse font scaling', () {
+      double? verseFontSize(WidgetTester tester) {
+        final card = tester.widget<AutoSizeText>(
+          find.widgetWithText(AutoSizeText, 'Juan 3:16'),
+        );
+        return card.style?.fontSize;
+      }
+
+      double? themeVerseSize(WidgetTester tester) => Theme.of(
+            tester.element(find.byType(DevocionalesContentWidget)),
+          ).textTheme.titleLarge?.fontSize;
+
+      testWidgets('default font size keeps the theme verse size', (
+        tester,
+      ) async {
+        await tester.pumpWidget(buildWidget());
+        await tester.pump(BubbleConstants.delayBeforeShow);
+        expect(verseFontSize(tester), themeVerseSize(tester));
+      });
+
+      testWidgets('verse grows and shrinks with the user font size', (
+        tester,
+      ) async {
+        await tester.pumpWidget(buildWidget(fontSize: 28));
+        await tester.pump(BubbleConstants.delayBeforeShow);
+        final large = verseFontSize(tester)!;
+        expect(large, closeTo(themeVerseSize(tester)! * 28 / 16, 0.01));
+
+        await tester.pumpWidget(buildWidget(fontSize: 12));
+        await tester.pump(BubbleConstants.delayBeforeShow);
+        expect(verseFontSize(tester)!, lessThan(themeVerseSize(tester)!));
+      });
+    });
+
     group('TTS karaoke highlight', () {
       Widget buildWithUnits({
         required List<DevotionalUnit> units,
         required ValueNotifier<int?> currentIndex,
+        double fontSize = 16,
       }) {
         return BlocProvider(
           create: (_) => NoteBloc(notesRepository: FakeNotesRepository()),
@@ -366,7 +403,7 @@ void main() {
               home: Scaffold(
                 body: DevocionalesContentWidget(
                   devocional: devocional,
-                  fontSize: 16,
+                  fontSize: fontSize,
                   onStreakBadgeTap: () {},
                   currentStreak: 5,
                   streakFuture: Future.value(5),
@@ -383,6 +420,36 @@ void main() {
           ),
         );
       }
+
+      testWidgets('verse scales with the user font size while TTS is active', (
+        tester,
+      ) async {
+        final units = [
+          const DevotionalUnit(
+            kind: DevotionalUnitKind.verse,
+            text: 'Juan 3:16',
+          ),
+        ];
+        final currentIndex = ValueNotifier<int?>(null);
+        addTearDown(currentIndex.dispose);
+
+        await tester.pumpWidget(
+          buildWithUnits(
+            units: units,
+            currentIndex: currentIndex,
+            fontSize: 28,
+          ),
+        );
+        await tester.pump(BubbleConstants.delayBeforeShow);
+
+        final card = tester.widget<AutoSizeText>(
+          find.widgetWithText(AutoSizeText, 'Juan 3:16'),
+        );
+        final themeSize = Theme.of(
+          tester.element(find.byType(DevocionalesContentWidget)),
+        ).textTheme.titleLarge!.fontSize!;
+        expect(card.style?.fontSize, closeTo(themeSize * 28 / 16, 0.01));
+      });
 
       testWidgets(
         'bolds the sentence currently being read and leaves others unbolded',
