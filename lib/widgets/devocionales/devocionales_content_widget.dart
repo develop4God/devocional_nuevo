@@ -2,6 +2,7 @@ import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/blocs/note_bloc.dart';
 import 'package:devocional_nuevo/blocs/note_state.dart';
+import 'package:devocional_nuevo/controllers/font_size_controller.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/app_navigation_shell.dart';
@@ -268,9 +269,7 @@ class DevocionalesContentWidget extends StatelessWidget {
       case DevotionalUnitKind.verse:
         return CopyableVerseCard(
           text: unit.text,
-          textStyle: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: _verseStyle(textTheme),
         );
       case DevotionalUnitKind.sentence:
         return buildEmphasisMarkdownText(
@@ -300,6 +299,20 @@ class DevocionalesContentWidget extends StatelessWidget {
     }
   }
 
+  /// Verse style: the theme's title size scaled by the user's font-size
+  /// setting, so the verse follows A+/A- like the other sections while keeping
+  /// its larger look at the default size.
+  TextStyle? _verseStyle(TextTheme textTheme) {
+    final base = textTheme.titleLarge;
+    final baseSize = base?.fontSize;
+    return base?.copyWith(
+      fontWeight: FontWeight.w600,
+      fontSize: baseSize == null
+          ? null
+          : baseSize * fontSize / FontSizeController.defaultFontSize,
+    );
+  }
+
   /// Non-highlighted fallback (e.g. favorite detail page, or TTS idle) — the
   /// original section layout, unchanged.
   List<Widget> _buildPlainContent(
@@ -325,7 +338,7 @@ class DevocionalesContentWidget extends StatelessWidget {
     return [
       CopyableVerseCard(
         text: devocional.versiculo,
-        textStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+        textStyle: _verseStyle(textTheme),
       ),
       const SizedBox(height: 12),
       _DevotionalNoteAction(devocional: devocional),
