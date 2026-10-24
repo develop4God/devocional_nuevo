@@ -4,6 +4,7 @@ library;
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/widgets/devocionales/copyable_verse_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -117,6 +118,61 @@ void main() {
         SystemChannels.platform,
         null,
       );
+    });
+
+    group('long text on a small screen', () {
+      // Hebreos 10:19-22 NVI (540 chars) was clipped on 360dp-wide phones.
+      final longText = List.filled(
+        12,
+        'acerquémonos a Dios con corazón sincero y con la plena seguridad',
+      ).join(' ');
+
+      Future<void> pumpSmall(WidgetTester tester, Widget card) async {
+        tester.view.physicalSize = const Size(720, 1280);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: card,
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      testWidgets('plain verse is never truncated', (tester) async {
+        await pumpSmall(
+          tester,
+          CopyableVerseCard(
+            text: longText,
+            textStyle: const TextStyle(fontSize: 22),
+          ),
+        );
+        final paragraph = tester.renderObject<RenderParagraph>(
+          find.byType(RichText).first,
+        );
+        expect(paragraph.didExceedMaxLines, isFalse);
+      });
+
+      testWidgets('verse with prefix span is never truncated', (tester) async {
+        await pumpSmall(
+          tester,
+          CopyableVerseCard(
+            text: longText,
+            textStyle: const TextStyle(fontSize: 16),
+            prefixSpan: const TextSpan(text: 'Hebreos 10:19-22: '),
+          ),
+        );
+        final paragraph = tester.renderObject<RenderParagraph>(
+          find.byType(RichText).first,
+        );
+        expect(paragraph.didExceedMaxLines, isFalse);
+      });
     });
   });
 }
