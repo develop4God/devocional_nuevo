@@ -2,6 +2,7 @@
 library;
 
 import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -279,6 +280,53 @@ void main() {
 
       expect(applied, isFalse);
       expect(service.updateReady.value, isTrue);
+    });
+  });
+
+  group('diagnostic logging', () {
+    late List<String> logs;
+    late DebugPrintCallback originalDebugPrint;
+
+    setUp(() {
+      logs = [];
+      originalDebugPrint = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) {
+        if (message != null) logs.add(message);
+      };
+    });
+
+    tearDown(() => debugPrint = originalDebugPrint);
+
+    test('logs what Play reported and the decision taken', () async {
+      playInfo = info(priority: 3, staleness: 7);
+
+      await service.onColdStart();
+
+      final report = logs.firstWhere((l) => l.contains('check coldStart'));
+      expect(
+          report, contains('availability=UpdateAvailability.updateAvailable'));
+      expect(report, contains('priority=3'));
+      expect(report, contains('staleness=7'));
+      expect(logs, contains(contains('decision=UpdateAction.flexible')));
+    });
+
+    test('logs the platform error instead of hiding it', () async {
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        throw PlatformException(code: 'boom');
+      });
+
+      await service.onColdStart();
+
+      expect(logs, contains(contains('error checking for updates')));
+      expect(logs, contains(contains('boom')));
+    });
+
+    test('logs why an offer was skipped', () async {
+      await prefs.setInt(_offerKey, now.millisecondsSinceEpoch);
+
+      await service.onColdStart();
+
+      expect(logs, contains(contains('offer skipped')));
     });
   });
 }
