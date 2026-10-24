@@ -28,9 +28,10 @@ import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/devocional_tts_sections.dart';
-import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/utils/devotional_share_helper.dart';
 import 'package:devocional_nuevo/utils/localized_date_formatter.dart';
+import 'package:devocional_nuevo/widgets/update_ready_banner.dart';
 import 'package:devocional_nuevo/widgets/add_entry_choice_modal.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_testimony_modal.dart';
@@ -201,7 +202,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      UpdateService.checkForUpdate();
+      getService<IUpdateService>().onColdStart();
     });
     _streakFuture = _loadStreak();
     _splashAnimController.initialize(
@@ -528,8 +529,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         );
       }
 
-      // Check for updates
-      UpdateService.checkForUpdate();
+      // Report a finished background download (never restarts the app)
+      getService<IUpdateService>().onResume();
 
       // Refresh streak data to ensure fire lottie shows current value
       _streakFuture = _loadStreak();
@@ -1045,114 +1046,125 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       Directionality.of(context) == TextDirection.rtl
                           ? FloatingActionButtonLocation.startFloat
                           : FloatingActionButtonLocation.endFloat,
-                  body: Stack(
-                    children: [
-                      if (heroImageUrl != null)
-                        CustomScrollView(
-                          controller: _scrollController,
-                          slivers: [
-                            SliverAppBar(
-                              expandedHeight:
-                                  (MediaQuery.of(context).size.height * 0.28)
-                                      .clamp(180.0, 260.0),
-                              pinned: true,
-                              backgroundColor: colorScheme.primary,
-                              elevation: 0,
-                              leading: Builder(
-                                builder: (innerContext) => IconButton(
-                                  icon: const Icon(
-                                    Icons.menu,
-                                    color: Colors.white,
+                  body: UpdateReadyBanner(
+                    updateReady: getService<IUpdateService>().updateReady,
+                    onRestart:
+                        getService<IUpdateService>().applyDownloadedUpdate,
+                    title: 'update.ready_title'.tr(),
+                    message: 'update.ready_message'.tr(),
+                    restartLabel: 'update.restart'.tr(),
+                    closeTooltip: 'update.close'.tr(),
+                    child: Stack(
+                      children: [
+                        if (heroImageUrl != null)
+                          CustomScrollView(
+                            controller: _scrollController,
+                            slivers: [
+                              SliverAppBar(
+                                expandedHeight:
+                                    (MediaQuery.of(context).size.height * 0.28)
+                                        .clamp(180.0, 260.0),
+                                pinned: true,
+                                backgroundColor: colorScheme.primary,
+                                elevation: 0,
+                                leading: Builder(
+                                  builder: (innerContext) => IconButton(
+                                    icon: const Icon(
+                                      Icons.menu,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: () =>
+                                        Scaffold.of(innerContext).openDrawer(),
                                   ),
-                                  onPressed: () =>
-                                      Scaffold.of(innerContext).openDrawer(),
+                                ),
+                                title: AutoSizeText(
+                                  devotionalsTitle,
+                                  maxLines: 1,
+                                  minFontSize: 10,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(color: Colors.white),
+                                ),
+                                actions: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.text_increase_outlined,
+                                      color: Colors.white,
+                                    ),
+                                    tooltip: 'bible.adjust_font_size'.tr(),
+                                    onPressed:
+                                        _fontSizeController.toggleControls,
+                                  ),
+                                ],
+                                flexibleSpace: FlexibleSpaceBar(
+                                  background: DevocionalHeroSection(
+                                    imageUrl: heroImageUrl,
+                                    date:
+                                        LocalizedDateFormatter.formatForContext(
+                                      context,
+                                    ),
+                                    currentStreak: _currentStreak,
+                                    streakFuture: _streakFuture,
+                                    isFavorite: isFavorite,
+                                    onFavoriteToggle: () async {
+                                      final wasAdded = await devocionalProvider
+                                          .toggleFavorite(
+                                        currentDevocional.id,
+                                      );
+                                      _showFavoritesFeedback(wasAdded);
+                                    },
+                                    onShare: () =>
+                                        _shareAsText(currentDevocional),
+                                    onStreakTap: () {
+                                      AppNavigationShell.selectTab(
+                                        AppTab.progress,
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
-                              title: AutoSizeText(
-                                devotionalsTitle,
-                                maxLines: 1,
-                                minFontSize: 10,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleLarge
-                                    ?.copyWith(color: Colors.white),
-                              ),
-                              actions: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.text_increase_outlined,
-                                    color: Colors.white,
-                                  ),
-                                  tooltip: 'bible.adjust_font_size'.tr(),
-                                  onPressed: _fontSizeController.toggleControls,
-                                ),
-                              ],
-                              flexibleSpace: FlexibleSpaceBar(
-                                background: DevocionalHeroSection(
-                                  imageUrl: heroImageUrl,
-                                  date: LocalizedDateFormatter.formatForContext(
-                                    context,
-                                  ),
-                                  currentStreak: _currentStreak,
-                                  streakFuture: _streakFuture,
+                              SliverToBoxAdapter(
+                                child: _buildContentWidget(
+                                  hasHeroImage: true,
+                                  currentDevocional: currentDevocional,
                                   isFavorite: isFavorite,
-                                  onFavoriteToggle: () async {
-                                    final wasAdded =
-                                        await devocionalProvider.toggleFavorite(
-                                      currentDevocional.id,
-                                    );
-                                    _showFavoritesFeedback(wasAdded);
-                                  },
-                                  onShare: () =>
-                                      _shareAsText(currentDevocional),
-                                  onStreakTap: () {
-                                    AppNavigationShell.selectTab(
-                                      AppTab.progress,
-                                    );
-                                  },
+                                  devocionalProvider: devocionalProvider,
                                 ),
                               ),
-                            ),
-                            SliverToBoxAdapter(
-                              child: _buildContentWidget(
-                                hasHeroImage: true,
-                                currentDevocional: currentDevocional,
-                                isFavorite: isFavorite,
-                                devocionalProvider: devocionalProvider,
+                            ],
+                          )
+                        else
+                          _buildContentWidget(
+                            hasHeroImage: false,
+                            currentDevocional: currentDevocional,
+                            isFavorite: isFavorite,
+                            devocionalProvider: devocionalProvider,
+                          ),
+                        if (_fontSizeController.showControls)
+                          FloatingFontControlButtons(
+                            currentFontSize: _fontSizeController.fontSize,
+                            onIncrease: _fontSizeController.increase,
+                            onDecrease: _fontSizeController.decrease,
+                            onClose: _fontSizeController.hideControls,
+                          ),
+                        if (_splashAnimController.isVisible)
+                          Positioned(
+                            top: MediaQuery.of(context).padding.top +
+                                kToolbarHeight,
+                            right: 0,
+                            child: IgnorePointer(
+                              child: Lottie.asset(
+                                _splashAnimController.selectedAsset,
+                                width: PostSplashAnimationController
+                                    .animationWidth,
+                                repeat: true,
+                                fit: BoxFit.contain,
                               ),
-                            ),
-                          ],
-                        )
-                      else
-                        _buildContentWidget(
-                          hasHeroImage: false,
-                          currentDevocional: currentDevocional,
-                          isFavorite: isFavorite,
-                          devocionalProvider: devocionalProvider,
-                        ),
-                      if (_fontSizeController.showControls)
-                        FloatingFontControlButtons(
-                          currentFontSize: _fontSizeController.fontSize,
-                          onIncrease: _fontSizeController.increase,
-                          onDecrease: _fontSizeController.decrease,
-                          onClose: _fontSizeController.hideControls,
-                        ),
-                      if (_splashAnimController.isVisible)
-                        Positioned(
-                          top: MediaQuery.of(context).padding.top +
-                              kToolbarHeight,
-                          right: 0,
-                          child: IgnorePointer(
-                            child: Lottie.asset(
-                              _splashAnimController.selectedAsset,
-                              width:
-                                  PostSplashAnimationController.animationWidth,
-                              repeat: true,
-                              fit: BoxFit.contain,
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                   bottomNavigationBar: _buildBottomNavigationBar(
                     context,

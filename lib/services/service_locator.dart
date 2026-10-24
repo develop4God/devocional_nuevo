@@ -55,7 +55,9 @@ import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
+import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/services/i_user_recency_service.dart';
+import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/services/user_profile_store.dart';
 import 'package:devocional_nuevo/services/user_recency_service.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -154,6 +156,9 @@ Future<void> setupServiceLocator() async {
   locator.registerLazySingleton<TtsChunkProcessor>(() => TtsChunkProcessor());
   locator.registerLazySingleton<ITtsService>(() => TtsService());
   locator.registerLazySingleton<IAnalyticsService>(() => AnalyticsService());
+  locator.registerLazySingleton<IUpdateService>(
+    () => UpdateService(locator.get<SharedPreferences>()),
+  );
   locator.registerLazySingleton<IUserProfileStore>(
     () => FirestoreUserProfileStore(),
   );
