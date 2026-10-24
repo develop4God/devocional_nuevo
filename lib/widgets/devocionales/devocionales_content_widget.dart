@@ -288,7 +288,6 @@ class DevocionalesContentWidget extends StatelessWidget {
           text: unit.text,
           copyText: '${unit.citation}: ${unit.text}',
           textStyle: textTheme.bodyMedium?.copyWith(fontSize: fontSize),
-          maxLines: 8,
           prefixSpan: TextSpan(
             text: '${unit.citation}: ',
             style: textTheme.bodyMedium?.copyWith(
@@ -344,7 +343,6 @@ class DevocionalesContentWidget extends StatelessWidget {
             text: item.texto,
             copyText: '${item.cita}: ${item.texto}',
             textStyle: textTheme.bodyMedium?.copyWith(fontSize: fontSize),
-            maxLines: 8,
             prefixSpan: TextSpan(
               text: '${item.cita}: ',
               style: textTheme.bodyMedium?.copyWith(
