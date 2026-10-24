@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/services/update_policy.dart';
@@ -17,6 +16,10 @@ class UpdateService implements IUpdateService {
 
   StreamSubscription<InstallStatus>? _statusSubscription;
   bool _coldStartHandled = false;
+
+  /// Printed (not `developer.log`) so the lines also reach logcat in release
+  /// builds, which is where Play update behaviour has to be diagnosed.
+  static void _log(String message) => debugPrint('[UpdateService] $message');
 
   UpdateService(this._prefs, {DateTime Function()? clock})
       : _clock = clock ?? DateTime.now;
@@ -37,6 +40,14 @@ class UpdateService implements IUpdateService {
   Future<void> _check({required bool isColdStart}) async {
     try {
       final info = await InAppUpdate.checkForUpdate();
+      _log(
+        'check coldStart=$isColdStart availability=${info.updateAvailability} '
+        'installStatus=${info.installStatus} priority=${info.updatePriority} '
+        'staleness=${info.clientVersionStalenessDays} '
+        'immediateAllowed=${info.immediateUpdateAllowed} '
+        'flexibleAllowed=${info.flexibleUpdateAllowed} '
+        'availableVersionCode=${info.availableVersionCode}',
+      );
 
       if (info.installStatus == InstallStatus.downloaded) {
         if (isColdStart) {
@@ -56,6 +67,7 @@ class UpdateService implements IUpdateService {
         priority: info.updatePriority,
         stalenessDays: info.clientVersionStalenessDays,
       );
+      _log('decision=$action');
       switch (action) {
         case UpdateAction.immediate:
           await InAppUpdate.performImmediateUpdate();
@@ -65,7 +77,7 @@ class UpdateService implements IUpdateService {
           break;
       }
     } catch (e) {
-      developer.log('Error checking for updates: $e', name: 'UpdateService');
+      _log('error checking for updates: $e');
     }
   }
 
@@ -75,19 +87,20 @@ class UpdateService implements IUpdateService {
     if (lastOfferMs != null &&
         now.difference(DateTime.fromMillisecondsSinceEpoch(lastOfferMs)) <
             _offerInterval) {
+      _log(
+          'offer skipped: last offer ${now.difference(DateTime.fromMillisecondsSinceEpoch(lastOfferMs)).inMinutes} min ago');
       return;
     }
 
     _statusSubscription ??= InAppUpdate.installUpdateListener.listen(
       (status) {
+        _log('install status=$status');
         if (status == InstallStatus.downloaded) _updateReady.value = true;
       },
-      onError: (Object e) => developer.log(
-        'Install status error: $e',
-        name: 'UpdateService',
-      ),
+      onError: (Object e) => _log('install status error: $e'),
     );
     final result = await InAppUpdate.startFlexibleUpdate();
+    _log('startFlexibleUpdate result=$result');
     // A failed offer is not counted, so it is retried on the next start.
     if (result != AppUpdateResult.inAppUpdateFailed) {
       await _prefs.setInt(_lastOfferKey, now.millisecondsSinceEpoch);
@@ -97,14 +110,12 @@ class UpdateService implements IUpdateService {
   @override
   Future<bool> applyDownloadedUpdate() async {
     try {
+      _log('completing flexible update');
       await InAppUpdate.completeFlexibleUpdate();
       _updateReady.value = false;
       return true;
     } catch (e) {
-      developer.log(
-        'Could not complete flexible update: $e',
-        name: 'UpdateService',
-      );
+      _log('could not complete flexible update: $e');
       return false;
     }
   }
