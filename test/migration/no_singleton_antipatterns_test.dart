@@ -8,6 +8,26 @@ import 'package:path/path.dart' as path;
 
 void main() {
   group('Migration Safety Tests - No Singleton Antipatterns', () {
+    test('IUpdateService is registered in ServiceLocator', () async {
+      final file = File('lib/services/service_locator.dart');
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('registerLazySingleton<IUpdateService>'),
+        isTrue,
+        reason: 'IUpdateService must be registered by interface type',
+      );
+    });
+
+    test('UpdateService has no static singleton antipattern', () async {
+      final file = File('lib/services/update_service.dart');
+      final content = await file.readAsString();
+
+      expect(content.contains('static UpdateService? _instance'), isFalse);
+      expect(content.contains('static UpdateService get instance'), isFalse);
+      expect(content.contains('static final UpdateService'), isFalse);
+    });
+
     test('INotesRepository is registered in ServiceLocator', () async {
       final file = File('lib/services/service_locator.dart');
       final content = await file.readAsString();
