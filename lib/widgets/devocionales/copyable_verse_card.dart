@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 class CopyableVerseCard extends StatelessWidget {
   final String text;
   final TextStyle? textStyle;
-  final int maxLines;
 
   /// Optional bold prefix rendered before [text] (e.g. citation label).
   /// When provided the card renders rich text instead of plain text.
@@ -18,7 +17,6 @@ class CopyableVerseCard extends StatelessWidget {
     super.key,
     required this.text,
     this.textStyle,
-    this.maxLines = 12,
     this.prefixSpan,
     this.copyText,
   });
@@ -42,14 +40,12 @@ class CopyableVerseCard extends StatelessWidget {
                 TextSpan(text: text, style: resolvedStyle),
               ],
             ),
-            maxLines: maxLines,
             minFontSize: minFontSize,
           )
         : AutoSizeText(
             text,
             textAlign: TextAlign.center,
             style: resolvedStyle,
-            maxLines: maxLines,
             minFontSize: minFontSize,
           );
 
