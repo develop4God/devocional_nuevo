@@ -1009,5 +1009,11 @@
     "my_pending": "您的祷告正在审核中",
     "empty_title": "祷告墙现在很安静",
     "empty_description": "成为第一个分享祷告请求的人。社区在这里支持您。"
+  },
+  "update": {
+    "ready_title": "更新已就绪",
+    "ready_message": "重新启动即可使用最新改进。",
+    "restart": "重新启动",
+    "close": "关闭"
   }
 }

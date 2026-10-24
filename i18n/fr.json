@@ -1009,5 +1009,11 @@
     "my_pending": "Votre prière est en cours de révision",
     "empty_title": "Le mur est calme pour l'instant",
     "empty_description": "Soyez le premier à partager une demande. La communauté est là pour vous."
+  },
+  "update": {
+    "ready_title": "Mise à jour prête",
+    "ready_message": "Redémarrez pour profiter des dernières améliorations.",
+    "restart": "Redémarrer",
+    "close": "Fermer"
   }
 }

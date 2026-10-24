@@ -1009,5 +1009,11 @@
     "my_pending": "Sua oração está sendo revisada",
     "empty_title": "O mural está tranquilo agora",
     "empty_description": "Seja o primeiro a compartilhar um pedido. A comunidade está aqui por você."
+  },
+  "update": {
+    "ready_title": "Atualização pronta",
+    "ready_message": "Reinicie para aproveitar as últimas melhorias.",
+    "restart": "Reiniciar",
+    "close": "Fechar"
   }
 }

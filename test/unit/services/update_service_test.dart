@@ -1,253 +1,284 @@
 @Tags(['critical', 'unit', 'services'])
 library;
 
-// test/critical_coverage/update_service_test.dart
-
+import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-/// High-value tests for UpdateService
-/// Tests update check logic and update type decisions
+const _offerKey = 'update_last_offer_ms';
 
 void main() {
-  group('UpdateService Update Logic', () {
-    group('Update Availability Check', () {
-      test('update available triggers update flow', () {
-        const updateAvailable = true;
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-        expect(updateAvailable, isTrue);
-      });
+  const methods = MethodChannel('de.ffuf.in_app_update/methods');
+  const events = EventChannel('de.ffuf.in_app_update/stateEvents');
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
 
-      test('no update available skips update flow', () {
-        const updateAvailable = false;
+  late List<String> calls;
+  late Map<String, Object?> playInfo;
+  late List<int> emittedStatuses;
+  late String? startFlexibleError;
+  late DateTime now;
+  late SharedPreferences prefs;
+  late UpdateService service;
 
-        expect(updateAvailable, isFalse);
-      });
+  Map<String, Object?> info({
+    int availability = 2,
+    bool immediate = true,
+    bool flexible = true,
+    int priority = 0,
+    int staleness = 0,
+    int installStatus = 0,
+  }) =>
+      {
+        'updateAvailability': availability,
+        'immediateAllowed': immediate,
+        'flexibleAllowed': flexible,
+        'availableVersionCode': 100,
+        'updatePriority': priority,
+        'clientVersionStalenessDays': staleness,
+        'installStatus': installStatus,
+        'packageName': 'com.example.app',
+      };
+
+  // availability 3 = developerTriggeredUpdateInProgress, status 11 = downloaded
+  Map<String, Object?> downloadedInfo() =>
+      info(availability: 3, installStatus: 11);
+
+  setUp(() async {
+    calls = [];
+    playInfo = info();
+    emittedStatuses = [];
+    startFlexibleError = null;
+    now = DateTime(2026, 10, 24, 12);
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
+    service = UpdateService(prefs, clock: () => now);
+
+    messenger.setMockMethodCallHandler(methods, (call) async {
+      calls.add(call.method);
+      if (call.method == 'checkForUpdate') return playInfo;
+      if (call.method == 'startFlexibleUpdate' && startFlexibleError != null) {
+        throw PlatformException(code: startFlexibleError!);
+      }
+      return null;
+    });
+    messenger.setMockStreamHandler(
+      events,
+      MockStreamHandler.inline(onListen: (args, sink) {
+        emittedStatuses.forEach(sink.success);
+      }),
+    );
+  });
+
+  tearDown(() {
+    service.dispose();
+    messenger.setMockMethodCallHandler(methods, null);
+    messenger.setMockStreamHandler(events, null);
+  });
+
+  group('cold start', () {
+    test('regular update with immediate allowed is flexible, never blocking',
+        () async {
+      await service.onColdStart();
+
+      expect(calls, contains('startFlexibleUpdate'));
+      expect(calls, isNot(contains('performImmediateUpdate')));
+      expect(calls, isNot(contains('completeFlexibleUpdate')));
     });
 
-    group('Update Type Decision', () {
-      test('immediate update preferred when allowed', () {
-        const updateAvailable = true;
-        const immediateAllowed = true;
+    test('critical priority performs an immediate update', () async {
+      playInfo = info(priority: 5);
 
-        // When immediate is allowed, it takes priority
-        final useImmediate = updateAvailable && immediateAllowed;
-        expect(useImmediate, isTrue);
-      });
+      await service.onColdStart();
 
-      test('flexible update used when immediate not allowed', () {
-        const updateAvailable = true;
-        const immediateAllowed = false;
-        const flexibleAllowed = true;
-
-        final useFlexible =
-            updateAvailable && !immediateAllowed && flexibleAllowed;
-        expect(useFlexible, isTrue);
-      });
-
-      test('no update when neither type allowed', () {
-        const updateAvailable = true;
-        const immediateAllowed = false;
-        const flexibleAllowed = false;
-
-        final canUpdate =
-            updateAvailable && (immediateAllowed || flexibleAllowed);
-        expect(canUpdate, isFalse);
-      });
+      expect(calls, contains('performImmediateUpdate'));
+      expect(calls, isNot(contains('startFlexibleUpdate')));
     });
 
-    group('Flexible Update Progress', () {
-      test('progress monitoring iterations', () {
-        // Service monitors progress in 10 iterations
-        const iterations = 10;
-        const delayPerIteration = Duration(seconds: 2);
+    test('very stale version performs an immediate update', () async {
+      playInfo = info(staleness: 60);
 
-        // Total monitoring time
-        final totalTime = delayPerIteration * iterations;
-        expect(totalTime.inSeconds, equals(20));
-      });
+      await service.onColdStart();
 
-      test('progress percentage calculation', () {
-        for (int i = 1; i <= 10; i++) {
-          final progress = i * 10;
-          expect(progress, equals(i * 10));
-          expect(progress, lessThanOrEqualTo(100));
-        }
-      });
-
-      test('completion attempt threshold at 80%', () {
-        // Service attempts completion after 80% progress
-        const completionThreshold = 8; // 80%
-
-        for (int i = 1; i <= 10; i++) {
-          final shouldAttemptCompletion = i >= completionThreshold;
-          if (i >= 8) {
-            expect(
-              shouldAttemptCompletion,
-              isTrue,
-              reason: 'Should attempt completion at ${i * 10}%',
-            );
-          } else {
-            expect(
-              shouldAttemptCompletion,
-              isFalse,
-              reason: 'Should not attempt completion at ${i * 10}%',
-            );
-          }
-        }
-      });
+      expect(calls, contains('performImmediateUpdate'));
     });
 
-    group('Update Info Map Structure', () {
-      test('successful update info has all required fields', () {
-        final updateInfo = {
-          'updateAvailable': true,
-          'immediateUpdateAllowed': true,
-          'flexibleUpdateAllowed': true,
-          'availableVersionCode': 10,
-          'updatePriority': 3,
-          'clientVersionStalenessDays': 7,
-        };
+    test('already downloaded update is applied before anything else', () async {
+      playInfo = downloadedInfo();
 
-        expect(updateInfo.containsKey('updateAvailable'), isTrue);
-        expect(updateInfo.containsKey('immediateUpdateAllowed'), isTrue);
-        expect(updateInfo.containsKey('flexibleUpdateAllowed'), isTrue);
-        expect(updateInfo.containsKey('availableVersionCode'), isTrue);
-        expect(updateInfo.containsKey('updatePriority'), isTrue);
-        expect(updateInfo.containsKey('clientVersionStalenessDays'), isTrue);
-      });
+      await service.onColdStart();
 
-      test('error update info has updateAvailable false', () {
-        final errorInfo = {'updateAvailable': false, 'error': 'Network error'};
-
-        expect(errorInfo['updateAvailable'], isFalse);
-        expect(errorInfo.containsKey('error'), isTrue);
-      });
+      expect(calls, contains('completeFlexibleUpdate'));
+      expect(calls, isNot(contains('startFlexibleUpdate')));
+      expect(service.updateReady.value, isFalse);
     });
 
-    group('Update Priority Levels', () {
-      test('priority 0 is lowest', () {
-        const priority = 0;
-        expect(priority, equals(0));
-      });
+    test('no update available does nothing', () async {
+      playInfo = info(availability: 1);
 
-      test('priority 5 is highest', () {
-        const priority = 5;
-        expect(priority, equals(5));
-      });
+      await service.onColdStart();
 
-      test('priority range is 0-5', () {
-        for (int p = 0; p <= 5; p++) {
-          expect(p, inInclusiveRange(0, 5));
-        }
-      });
-
-      test('high priority suggests immediate update', () {
-        const priority = 5;
-        const highPriorityThreshold = 4;
-
-        final isHighPriority = priority >= highPriorityThreshold;
-        expect(isHighPriority, isTrue);
-      });
+      expect(calls, ['checkForUpdate']);
     });
 
-    group('Version Staleness', () {
-      test('staleness days calculation', () {
-        // If app version is 7 days old
-        const stalenessDays = 7;
-        const urgentThreshold = 30;
-
-        final isUrgent = stalenessDays > urgentThreshold;
-        expect(isUrgent, isFalse);
+    test('platform error is swallowed', () async {
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        throw PlatformException(code: 'boom');
       });
 
-      test('null staleness is handled', () {
-        const int? stalenessDays = null;
-
-        expect(stalenessDays, isNull);
-      });
-
-      test('very stale version triggers concern', () {
-        const stalenessDays = 90;
-        const urgentThreshold = 30;
-
-        final isVeryStale = stalenessDays > urgentThreshold;
-        expect(isVeryStale, isTrue);
-      });
+      await expectLater(service.onColdStart(), completes);
+      expect(service.updateReady.value, isFalse);
     });
 
-    group('Error Handling', () {
-      test('error during check does not crash', () {
-        // Service catches all errors and logs them
-        // Test validates expected behavior
-        try {
-          throw Exception('Test error');
-        } catch (e) {
-          expect(e, isA<Exception>());
-        }
-      });
+    test('second cold start in the same process never applies mid-session',
+        () async {
+      await service.onColdStart();
+      calls.clear();
+      playInfo = downloadedInfo();
 
-      test('error during immediate update does not crash', () {
-        try {
-          throw Exception('Immediate update failed');
-        } catch (e) {
-          expect(e.toString(), contains('Immediate update failed'));
-        }
-      });
+      await service.onColdStart();
 
-      test('error during flexible update does not crash', () {
-        try {
-          throw Exception('Flexible update failed');
-        } catch (e) {
-          expect(e.toString(), contains('Flexible update failed'));
-        }
-      });
-    });
-
-    group('Callback Status Messages', () {
-      test('status messages are localized (Spanish)', () {
-        final messages = [
-          'Iniciando actualización...',
-          'Descargando actualización...',
-          'Preparando instalación...',
-          'Actualización completada exitosamente',
-          'Error en actualización',
-        ];
-
-        for (final message in messages) {
-          expect(message, isNotEmpty);
-        }
-      });
-
-      test('progress messages include percentage', () {
-        for (int i = 1; i <= 10; i++) {
-          final message = 'Descargando... ${i * 10}%';
-          expect(message, contains('${i * 10}%'));
-        }
-      });
+      expect(calls, isNot(contains('completeFlexibleUpdate')));
+      expect(service.updateReady.value, isTrue);
     });
   });
 
-  group('UpdateService Static Methods', () {
-    test('checkForUpdate is static', () {
-      // Verify the method signature expectation
-      // UpdateService.checkForUpdate() should be callable statically
-      expect(true, isTrue); // Method exists
+  group('flexible offer throttle', () {
+    test('declining the offer suppresses new offers for 24 hours', () async {
+      startFlexibleError = 'USER_DENIED_UPDATE';
+      await service.onColdStart();
+      expect(prefs.getInt(_offerKey), now.millisecondsSinceEpoch);
+
+      final later = UpdateService(prefs, clock: () => now);
+      now = now.add(const Duration(hours: 23));
+      calls.clear();
+      await later.onColdStart();
+      later.dispose();
+
+      expect(calls, isNot(contains('startFlexibleUpdate')));
     });
 
-    test('performImmediateUpdate is static', () {
-      expect(true, isTrue);
+    test('accepted offer is recorded', () async {
+      await service.onColdStart();
+
+      expect(prefs.getInt(_offerKey), now.millisecondsSinceEpoch);
     });
 
-    test('performFlexibleUpdate is static', () {
-      expect(true, isTrue);
+    test('failed offer is not recorded so it is retried next start', () async {
+      startFlexibleError = 'IN_APP_UPDATE_FAILED';
+
+      await service.onColdStart();
+
+      expect(prefs.getInt(_offerKey), isNull);
     });
 
-    test('getUpdateInfo is static', () {
-      expect(true, isTrue);
+    test('unexpected platform error is not recorded', () async {
+      startFlexibleError = 'SOMETHING_ELSE';
+
+      await service.onColdStart();
+
+      expect(prefs.getInt(_offerKey), isNull);
     });
 
-    test('completeFlexibleUpdateIfAvailable is static', () {
-      expect(true, isTrue);
+    test('offer is made again after 24 hours', () async {
+      await prefs.setInt(
+        _offerKey,
+        now.subtract(const Duration(hours: 24)).millisecondsSinceEpoch,
+      );
+
+      await service.onColdStart();
+
+      expect(calls, contains('startFlexibleUpdate'));
+    });
+
+    test('throttle never blocks applying an already downloaded update',
+        () async {
+      await prefs.setInt(_offerKey, now.millisecondsSinceEpoch);
+      playInfo = downloadedInfo();
+
+      await service.onColdStart();
+
+      expect(calls, contains('completeFlexibleUpdate'));
+    });
+
+    test('throttle never blocks a critical update', () async {
+      await prefs.setInt(_offerKey, now.millisecondsSinceEpoch);
+      playInfo = info(priority: 5);
+
+      await service.onColdStart();
+
+      expect(calls, contains('performImmediateUpdate'));
+    });
+  });
+
+  group('download ready signal', () {
+    test('downloaded status from Play raises updateReady', () async {
+      emittedStatuses = [2, 11];
+
+      await service.onColdStart();
+      await pumpEventQueue();
+
+      expect(service.updateReady.value, isTrue);
+    });
+
+    test('in-progress statuses do not raise updateReady', () async {
+      emittedStatuses = [1, 2];
+
+      await service.onColdStart();
+      await pumpEventQueue();
+
+      expect(service.updateReady.value, isFalse);
+    });
+  });
+
+  group('resume', () {
+    test('downloaded update raises updateReady without restarting', () async {
+      playInfo = downloadedInfo();
+
+      await service.onResume();
+
+      expect(service.updateReady.value, isTrue);
+      expect(calls, isNot(contains('completeFlexibleUpdate')));
+    });
+
+    test('never starts a new offer or blocking update', () async {
+      playInfo = info(priority: 5);
+
+      await service.onResume();
+
+      expect(calls, ['checkForUpdate']);
+    });
+  });
+
+  group('applyDownloadedUpdate', () {
+    test('completes the update and clears updateReady', () async {
+      playInfo = downloadedInfo();
+      await service.onResume();
+
+      final applied = await service.applyDownloadedUpdate();
+
+      expect(applied, isTrue);
+      expect(calls, contains('completeFlexibleUpdate'));
+      expect(service.updateReady.value, isFalse);
+    });
+
+    test('returns false and keeps updateReady when Play fails', () async {
+      playInfo = downloadedInfo();
+      await service.onResume();
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        if (call.method == 'completeFlexibleUpdate') {
+          throw PlatformException(code: 'not_ready');
+        }
+        return null;
+      });
+
+      final applied = await service.applyDownloadedUpdate();
+
+      expect(applied, isFalse);
+      expect(service.updateReady.value, isTrue);
     });
   });
 }

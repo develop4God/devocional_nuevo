@@ -19,6 +19,8 @@ import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
+import 'package:devocional_nuevo/services/i_update_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart'; // for TtsState
 import 'package:flutter/material.dart';
@@ -140,6 +142,23 @@ class FakeTtsService implements ITtsService {
   Future<void> stop() async {}
 }
 
+class FakeUpdateService implements IUpdateService {
+  int coldStarts = 0;
+  int resumes = 0;
+
+  @override
+  final ValueNotifier<bool> updateReady = ValueNotifier(false);
+
+  @override
+  Future<void> onColdStart() async => coldStarts++;
+
+  @override
+  Future<void> onResume() async => resumes++;
+
+  @override
+  Future<bool> applyDownloadedUpdate() async => true;
+}
+
 /// Mirrors the FakeThemeBloc already duplicated across several widget test
 /// files in this repo — DevocionalesPage.build() unconditionally does
 /// `context.watch<ThemeBloc>()`, so any host needs a ready ThemeLoaded state.
@@ -180,9 +199,14 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late MockDevocionalRepository repository;
+  late FakeUpdateService updateService;
 
   setUp(() async {
     await registerTestServicesWithFakes();
+    updateService = FakeUpdateService();
+    ServiceLocator()
+      ..unregister<IUpdateService>()
+      ..registerSingleton<IUpdateService>(updateService);
     await initializeDateFormatting('en');
     repository = MockDevocionalRepository();
   });
@@ -214,6 +238,31 @@ void main() {
       ),
     );
   }
+
+  group('DevocionalesPage — update checks', () {
+    testWidgets('checks once at start and on each resume, never restarting',
+        (tester) async {
+      when(() => repository.getAvailableYears())
+          .thenAnswer((_) async => <int>[2025]);
+      when(() => repository.fetchAll(any(), any(), any()))
+          .thenAnswer((_) async => <Devocional>[]);
+      when(() => repository.wasLastFetchOffline).thenReturn(false);
+
+      await tester.pumpWidget(host(repository));
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+      expect(updateService.coldStarts, 1);
+      expect(updateService.resumes, 0);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+
+      expect(updateService.coldStarts, 1);
+      expect(updateService.resumes, 1);
+
+      await tester.pump(const Duration(seconds: 3));
+    });
+  });
 
   group('DevocionalesPage — initialization outcomes', () {
     testWidgets('shows the error scaffold with retry when no devotionals load',
