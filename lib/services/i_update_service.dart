@@ -14,6 +14,10 @@ abstract class IUpdateService {
   /// [updateReady]; never starts a download or restarts the app.
   Future<void> onResume();
 
+  /// Called when the app leaves the foreground. Installs an already
+  /// downloaded update, which Play does silently while the app is hidden.
+  Future<void> onBackground();
+
   /// Installs the downloaded update, restarting the app. Returns false when
   /// Play could not complete it.
   Future<bool> applyDownloadedUpdate();

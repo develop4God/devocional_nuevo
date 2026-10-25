@@ -254,6 +254,41 @@ void main() {
     });
   });
 
+  group('background', () {
+    test('installs a downloaded update silently', () async {
+      playInfo = downloadedInfo();
+      await service.onResume();
+      calls.clear();
+
+      await service.onBackground();
+
+      expect(calls, ['completeFlexibleUpdate']);
+      expect(service.updateReady.value, isFalse);
+    });
+
+    test('does nothing when no update finished downloading', () async {
+      await service.onBackground();
+
+      expect(calls, isEmpty);
+    });
+
+    test('keeps updateReady when Play fails so the banner stays available',
+        () async {
+      playInfo = downloadedInfo();
+      await service.onResume();
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        if (call.method == 'completeFlexibleUpdate') {
+          throw PlatformException(code: 'not_ready');
+        }
+        return null;
+      });
+
+      await expectLater(service.onBackground(), completes);
+
+      expect(service.updateReady.value, isTrue);
+    });
+  });
+
   group('applyDownloadedUpdate', () {
     test('completes the update and clears updateReady', () async {
       playInfo = downloadedInfo();
