@@ -513,6 +513,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         debugPrint('🎵 Pausing audio due to app going to background');
         _audioController!.pause();
       }
+
+      // Hidden app: Play installs a downloaded update without any UI
+      if (state == AppLifecycleState.paused) {
+        getService<IUpdateService>().onBackground();
+      }
     } else if (state == AppLifecycleState.resumed) {
       debugPrint('🔄 App resumed - refreshing state');
 

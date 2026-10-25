@@ -37,6 +37,12 @@ class UpdateService implements IUpdateService {
   @override
   Future<void> onResume() => _check(isColdStart: false);
 
+  @override
+  Future<void> onBackground() async {
+    if (!_updateReady.value) return;
+    await applyDownloadedUpdate();
+  }
+
   Future<void> _check({required bool isColdStart}) async {
     try {
       final info = await InAppUpdate.checkForUpdate();

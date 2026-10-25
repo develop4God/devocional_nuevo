@@ -145,6 +145,7 @@ class FakeTtsService implements ITtsService {
 class FakeUpdateService implements IUpdateService {
   int coldStarts = 0;
   int resumes = 0;
+  int backgrounds = 0;
 
   @override
   final ValueNotifier<bool> updateReady = ValueNotifier(false);
@@ -154,6 +155,9 @@ class FakeUpdateService implements IUpdateService {
 
   @override
   Future<void> onResume() async => resumes++;
+
+  @override
+  Future<void> onBackground() async => backgrounds++;
 
   @override
   Future<bool> applyDownloadedUpdate() async => true;
@@ -259,6 +263,30 @@ void main() {
 
       expect(updateService.coldStarts, 1);
       expect(updateService.resumes, 1);
+
+      await tester.pump(const Duration(seconds: 3));
+    });
+
+    testWidgets('going to the background offers a silent install once',
+        (tester) async {
+      when(() => repository.getAvailableYears())
+          .thenAnswer((_) async => <int>[2025]);
+      when(() => repository.fetchAll(any(), any(), any()))
+          .thenAnswer((_) async => <Devocional>[]);
+      when(() => repository.wasLastFetchOffline).thenReturn(false);
+
+      await tester.pumpWidget(host(repository));
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+      expect(updateService.backgrounds, 0);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      expect(updateService.backgrounds, 0);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+      expect(updateService.backgrounds, 1);
 
       await tester.pump(const Duration(seconds: 3));
     });
