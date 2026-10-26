@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/services/update_policy.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,17 +13,29 @@ class UpdateService implements IUpdateService {
 
   final SharedPreferences _prefs;
   final DateTime Function() _clock;
+  final bool Function() _isInBackground;
   final ValueNotifier<bool> _updateReady = ValueNotifier(false);
 
   StreamSubscription<InstallStatus>? _statusSubscription;
   bool _coldStartHandled = false;
+  bool _downloadHandled = false;
+  Future<bool>? _completing;
 
   /// Printed (not `developer.log`) so the lines also reach logcat in release
   /// builds, which is where Play update behaviour has to be diagnosed.
   static void _log(String message) => debugPrint('[UpdateService] $message');
 
-  UpdateService(this._prefs, {DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now;
+  UpdateService(
+    this._prefs, {
+    DateTime Function()? clock,
+    bool Function()? isInBackground,
+  })  : _clock = clock ?? DateTime.now,
+        _isInBackground = isInBackground ?? _isAppHidden;
+
+  /// `paused` only: `inactive` also covers Play's own consent dialog, which
+  /// must never trigger an install.
+  static bool _isAppHidden() =>
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.paused;
 
   @override
   ValueListenable<bool> get updateReady => _updateReady;
@@ -101,7 +114,7 @@ class UpdateService implements IUpdateService {
     _statusSubscription ??= InAppUpdate.installUpdateListener.listen(
       (status) {
         _log('install status=$status');
-        if (status == InstallStatus.downloaded) _updateReady.value = true;
+        if (status == InstallStatus.downloaded) _onDownloaded();
       },
       onError: (Object e) => _log('install status error: $e'),
     );
@@ -113,8 +126,26 @@ class UpdateService implements IUpdateService {
     }
   }
 
+  /// Only the first `downloaded` status counts: the plugin adds a listener per
+  /// offer, so Play's statuses arrive more than once. A download that finishes
+  /// after the user left the app is installed right away, since
+  /// `onBackground` already ran. A failed install is retried on the next
+  /// background or cold start.
+  void _onDownloaded() {
+    _updateReady.value = true;
+    if (_downloadHandled) return;
+    _downloadHandled = true;
+    if (_isInBackground()) unawaited(applyDownloadedUpdate());
+  }
+
+  /// Background, a late `downloaded` status and the banner can all ask at
+  /// once; they share one native completion. Cleared afterwards so a failed
+  /// install can be retried.
   @override
-  Future<bool> applyDownloadedUpdate() async {
+  Future<bool> applyDownloadedUpdate() =>
+      _completing ??= _completeUpdate().whenComplete(() => _completing = null);
+
+  Future<bool> _completeUpdate() async {
     try {
       _log('completing flexible update');
       await InAppUpdate.completeFlexibleUpdate();
