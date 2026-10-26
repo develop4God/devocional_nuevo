@@ -3,7 +3,7 @@
 
 📖 Corregimos los versículos largos que se cortaban en pantallas pequeñas y medianas, incluida la sección "Para Meditar": ahora se muestran completos.
 
-📲 Mejoramos las actualizaciones: ahora se descargan en segundo plano sin interrumpir tu lectura y se instalan solas cuando sales de la app. También puedes reiniciar desde el aviso cuando quieras.
+📲 Mejoramos las actualizaciones: ahora se descargan en segundo plano sin interrumpir tu lectura y se instalan solas cuando sales de la app o, a más tardar, la próxima vez que la abras. También puedes reiniciar desde el aviso cuando quieras.
 
 🙏 Gracias por ser parte de nuestro ministerio, Dios les bendiga.
 </es-419>
@@ -12,7 +12,7 @@
 
 📖 Corregimos los versículos largos que se cortaban en pantallas pequeñas y medianas, incluida la sección "Para Meditar": ahora se muestran completos.
 
-📲 Mejoramos las actualizaciones: ahora se descargan en segundo plano sin interrumpir tu lectura y se instalan solas cuando sales de la app. También puedes reiniciar desde el aviso cuando quieras.
+📲 Mejoramos las actualizaciones: ahora se descargan en segundo plano sin interrumpir tu lectura y se instalan solas cuando sales de la app o, a más tardar, la próxima vez que la abras. También puedes reiniciar desde el aviso cuando quieras.
 
 🙏 Gracias por ser parte de nuestro ministerio, Dios os bendiga.
 </es-ES>
@@ -21,7 +21,7 @@
 
 📖 تم إصلاح الآيات الطويلة التي كانت تُقطع على الشاشات الصغيرة والمتوسطة، بما في ذلك قسم "للتأمل": تظهر الآن كاملة.
 
-📲 حسّنّا التحديثات: أصبحت تُنزَّل الآن في الخلفية دون مقاطعة قراءتك، وتُثبَّت تلقائيًا عند خروجك من التطبيق. ويمكنك أيضًا إعادة التشغيل من الإشعار متى شئت.
+📲 حسّنّا التحديثات: أصبحت تُنزَّل الآن في الخلفية دون مقاطعة قراءتك، وتُثبَّت تلقائيًا عند خروجك من التطبيق أو، على أقصى تقدير، عند فتحه في المرة القادمة. ويمكنك أيضًا إعادة التشغيل من الإشعار متى شئت.
 
 🙏 شكرًا لكونك جزءًا من خدمتنا، بارككم الله.
 </ar>
@@ -30,7 +30,7 @@
 
 📖 Lange Verse, die auf kleinen und mittleren Bildschirmen abgeschnitten wurden, werden jetzt vollständig angezeigt, auch im Bereich „Zum Nachdenken“.
 
-📲 Updates laden jetzt im Hintergrund, ohne dein Lesen zu unterbrechen, und werden automatisch installiert, wenn du die App verlässt. Du kannst auch jederzeit über den Hinweis neu starten.
+📲 Updates laden jetzt im Hintergrund, ohne dein Lesen zu unterbrechen, und werden automatisch installiert, wenn du die App verlässt, spätestens aber beim nächsten Öffnen. Du kannst auch jederzeit über den Hinweis neu starten.
 
 🙏 Danke, dass du Teil unseres Ministeriums bist, Gott segne euch.
 </de-DE>
@@ -39,7 +39,7 @@
 
 📖 Fixed long verses getting cut off on small and medium screens, including the "To Meditate" section: they now display in full.
 
-📲 We improved updates: they now download in the background without interrupting your reading and install automatically when you leave the app. You can also restart from the prompt whenever you like.
+📲 We improved updates: they now download in the background without interrupting your reading and install automatically when you leave the app or, at the latest, the next time you open it. You can also restart from the prompt whenever you like.
 
 🙏 Thank you for being part of our ministry, God bless you.
 </en-US>
@@ -48,7 +48,7 @@
 
 📖 Correction des versets longs qui étaient coupés sur les écrans petits et moyens, y compris la section « Pour Méditer » : ils s'affichent désormais en entier.
 
-📲 Les mises à jour se téléchargent en arrière-plan sans interrompre votre lecture et s'installent automatiquement lorsque vous quittez l'app. Vous pouvez aussi redémarrer depuis l'avis quand vous voulez.
+📲 Les mises à jour se téléchargent en arrière-plan sans interrompre votre lecture et s'installent automatiquement lorsque vous quittez l'app ou, au plus tard, à sa prochaine ouverture. Ou redémarrez depuis l'avis.
 
 🙏 Merci de faire partie de notre ministère, que Dieu vous bénisse.
 </fr-FR>
@@ -57,7 +57,7 @@
 
 📖 छोटी और मध्यम स्क्रीन पर कट जाने वाले लंबे वचनों को ठीक किया गया, "मनन करने के लिए" सेक्शन सहित: अब वे पूरे दिखाई देते हैं।
 
-📲 हमने अपडेट बेहतर किए हैं: अब वे आपके पढ़ने में रुकावट डाले बिना बैकग्राउंड में डाउनलोड होते हैं और ऐप छोड़ने पर अपने आप इंस्टॉल हो जाते हैं। आप चाहें तो सूचना से अपनी सुविधा से रीस्टार्ट भी कर सकते हैं।
+📲 हमने अपडेट बेहतर किए हैं: अब वे आपके पढ़ने में रुकावट डाले बिना बैकग्राउंड में डाउनलोड होते हैं और ऐप छोड़ने पर या, सबसे देर से, ऐप को अगली बार खोलने पर अपने आप इंस्टॉल हो जाते हैं। आप चाहें तो सूचना से अपनी सुविधा से रीस्टार्ट भी कर सकते हैं।
 
 🙏 हमारी सेवकाई का हिस्सा बनने के लिए धन्यवाद, परमेश्वर आपको आशीर्वाद दे।
 </hi-IN>
@@ -68,7 +68,7 @@
 
 🌐 日本語の「黙想」の表記を修正しました。
 
-📲 アップデートを改善しました。読書を中断することなくバックグラウンドでダウンロードされ、アプリを閉じると自動的にインストールされます。お知らせから好きなタイミングで再起動することもできます。
+📲 アップデートを改善しました。読書を中断することなくバックグラウンドでダウンロードされ、アプリを閉じたとき、遅くとも次回アプリを開いたときに自動的にインストールされます。お知らせから好きなタイミングで再起動することもできます。
 
 🙏 私たちのミニストリーの一員でいてくださり、ありがとうございます。神の祝福がありますように。
 </ja-JP>
@@ -77,7 +77,7 @@
 
 📖 Corrigimos versículos longos que eram cortados em telas pequenas e médias, incluindo a seção "Para Meditar": agora aparecem completos.
 
-📲 Melhoramos as atualizações: agora elas são baixadas em segundo plano sem interromper sua leitura e são instaladas automaticamente quando você sai do app. Você também pode reiniciar pelo aviso quando quiser.
+📲 Melhoramos as atualizações: agora elas são baixadas em segundo plano sem interromper sua leitura e são instaladas automaticamente quando você sai do app ou, no máximo, na próxima vez que abri-lo. Você também pode reiniciar pelo aviso quando quiser.
 
 🙏 Obrigado por fazer parte do nosso ministério, Deus abençoe vocês.
 </pt-BR>
@@ -86,7 +86,7 @@
 
 📖 修复了较长经文在小屏和中屏上被截断的问题（包括“默想”部分），现在可完整显示。
 
-📲 我们改进了更新：现在会在后台下载，不会打断您的阅读，并在您离开应用时自动安装。您也可以随时通过提示重启。
+📲 我们改进了更新：现在会在后台下载，不会打断您的阅读，并在您离开应用时自动安装，最迟在下次打开应用时安装。您也可以随时通过提示重启。
 
 🙏 感谢您成为我们事工的一份子，愿神祝福大家。
 </zh-CN>
@@ -95,7 +95,7 @@
 
 📖 Inayos ang mahahabang talata na naputol sa maliliit at katamtamang screen, kasama ang seksyong "Para Pag-isipan": ipinapakita na ang mga ito nang buo.
 
-📲 Dina-download na ang mga update sa background nang hindi naaantala ang iyong pagbabasa at awtomatikong mai-install kapag umalis ka sa app. Maaari ka ring mag-restart mula sa abiso kailanman mo gusto.
+📲 Dina-download na ang mga update sa background nang hindi naaantala ang iyong pagbabasa at awtomatikong mai-install kapag umalis ka sa app o, sa pinakahuli, sa susunod na pagbukas mo nito. O mag-restart mula sa abiso.
 
 🙏 Salamat sa pagiging bahagi ng aming ministeryo, pagpalain kayo ng Diyos.
 </fil>
