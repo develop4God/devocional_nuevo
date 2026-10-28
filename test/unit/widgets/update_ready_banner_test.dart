@@ -113,6 +113,35 @@ void main() {
     expect(find.text('Update ready'), findsNothing);
   });
 
+  testWidgets('closed banner returns when the app comes back to the foreground',
+      (tester) async {
+    ready.value = true;
+    await pumpBanner(tester);
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pump();
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+
+    expect(find.text('Update ready'), findsOneWidget);
+  });
+
+  testWidgets(
+      'closed banner stays closed while the app stays in the foreground',
+      (tester) async {
+    ready.value = true;
+    await pumpBanner(tester);
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pump();
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+
+    expect(find.text('Update ready'), findsNothing);
+  });
+
   testWidgets('keeps the child state when the banner toggles', (tester) async {
     await pumpBanner(tester);
 

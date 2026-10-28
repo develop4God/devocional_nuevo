@@ -24,7 +24,6 @@ void main() {
   late List<int> emittedStatuses;
   late String? startFlexibleError;
   late DateTime now;
-  late bool inBackground;
   late SharedPreferences prefs;
   late UpdateService service;
 
@@ -57,13 +56,11 @@ void main() {
     emittedStatuses = [];
     startFlexibleError = null;
     now = DateTime(2026, 10, 24, 12);
-    inBackground = false;
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     service = UpdateService(
       prefs,
       clock: () => now,
-      isInBackground: () => inBackground,
     );
 
     messenger.setMockMethodCallHandler(methods, (call) async {
@@ -164,7 +161,6 @@ void main() {
       final later = UpdateService(
         prefs,
         clock: () => now,
-        isInBackground: () => inBackground,
       );
       now = now.add(const Duration(hours: 23));
       calls.clear();
@@ -246,15 +242,15 @@ void main() {
       expect(service.updateReady.value, isFalse);
     });
 
-    test('downloaded status while hidden completes the update', () async {
-      inBackground = true;
+    test('downloaded status while hidden never installs, banner waits',
+        () async {
       emittedStatuses = [2, 11];
 
       await service.onColdStart();
       await pumpEventQueue();
 
-      expect(calls, contains('completeFlexibleUpdate'));
-      expect(service.updateReady.value, isFalse);
+      expect(calls, isNot(contains('completeFlexibleUpdate')));
+      expect(service.updateReady.value, isTrue);
     });
 
     test('downloaded status while visible only raises the banner', () async {
@@ -269,7 +265,6 @@ void main() {
 
     test('in-progress statuses while hidden never complete the update',
         () async {
-      inBackground = true;
       emittedStatuses = [1, 2];
 
       await service.onColdStart();
@@ -278,33 +273,13 @@ void main() {
       expect(calls, isNot(contains('completeFlexibleUpdate')));
     });
 
-    test('repeated downloaded statuses complete the update only once',
-        () async {
-      inBackground = true;
+    test('repeated downloaded statuses never install by themselves', () async {
       emittedStatuses = [11, 11];
 
       await service.onColdStart();
       await pumpEventQueue();
 
-      expect(calls.where((c) => c == 'completeFlexibleUpdate'), hasLength(1));
-    });
-
-    test('failed completion while hidden keeps the update ready for a retry',
-        () async {
-      inBackground = true;
-      emittedStatuses = [11];
-      messenger.setMockMethodCallHandler(methods, (call) async {
-        if (call.method == 'checkForUpdate') return playInfo;
-        if (call.method == 'completeFlexibleUpdate') {
-          throw PlatformException(code: 'not_ready');
-        }
-        return null;
-      });
-
-      await service.onColdStart();
-      await pumpEventQueue();
-
-      expect(service.updateReady.value, isTrue);
+      expect(calls, isNot(contains('completeFlexibleUpdate')));
     });
   });
 
@@ -327,31 +302,8 @@ void main() {
     });
   });
 
-  group('background', () {
-    test('installs a downloaded update silently', () async {
-      playInfo = downloadedInfo();
-      await service.onResume();
-      calls.clear();
-
-      await service.onBackground();
-
-      expect(calls, ['completeFlexibleUpdate']);
-      expect(service.updateReady.value, isFalse);
-    });
-
-    test('banner closed: leaving the app still installs the update', () async {
-      // Closing the banner is UI-only; updateReady stays true.
-      playInfo = downloadedInfo();
-      await service.onResume();
-      calls.clear();
-
-      await service.onBackground();
-
-      expect(calls, ['completeFlexibleUpdate']);
-    });
-
-    test('overlapping install requests complete the update only once',
-        () async {
+  group('applyDownloadedUpdate', () {
+    test('overlapping requests complete the update only once', () async {
       final release = Completer<void>();
       playInfo = downloadedInfo();
       await service.onResume();
@@ -362,12 +314,12 @@ void main() {
       });
       calls.clear();
 
-      final first = service.onBackground();
+      final first = service.applyDownloadedUpdate();
       final second = service.applyDownloadedUpdate();
       await pumpEventQueue();
       release.complete();
 
-      await first;
+      expect(await first, isTrue);
       expect(await second, isTrue);
       expect(calls.where((c) => c == 'completeFlexibleUpdate'), hasLength(1));
     });
@@ -392,30 +344,6 @@ void main() {
       expect(calls.where((c) => c == 'completeFlexibleUpdate'), hasLength(2));
     });
 
-    test('does nothing when no update finished downloading', () async {
-      await service.onBackground();
-
-      expect(calls, isEmpty);
-    });
-
-    test('keeps updateReady when Play fails so the banner stays available',
-        () async {
-      playInfo = downloadedInfo();
-      await service.onResume();
-      messenger.setMockMethodCallHandler(methods, (call) async {
-        if (call.method == 'completeFlexibleUpdate') {
-          throw PlatformException(code: 'not_ready');
-        }
-        return null;
-      });
-
-      await expectLater(service.onBackground(), completes);
-
-      expect(service.updateReady.value, isTrue);
-    });
-  });
-
-  group('applyDownloadedUpdate', () {
     test('completes the update and clears updateReady', () async {
       playInfo = downloadedInfo();
       await service.onResume();
