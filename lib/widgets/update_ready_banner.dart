@@ -2,8 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Banner shown above [child] when a background update finished downloading.
-/// The user picks the moment: Restart applies it now, close hides it for this
-/// session only.
+/// The user picks the moment: Restart applies it now, close hides it only until
+/// the app returns from the background, so it keeps coming back until the
+/// update is installed.
 ///
 /// While visible the banner takes over the top safe-area inset, so [child]
 /// does not leave a second gap under it.
@@ -33,8 +34,34 @@ class UpdateReadyBanner extends StatefulWidget {
   State<UpdateReadyBanner> createState() => _UpdateReadyBannerState();
 }
 
-class _UpdateReadyBannerState extends State<UpdateReadyBanner> {
+class _UpdateReadyBannerState extends State<UpdateReadyBanner>
+    with WidgetsBindingObserver {
   bool _dismissed = false;
+  bool _wasHidden = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// `inactive` is skipped on purpose: it also fires for system dialogs while
+  /// the app is still on screen.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _wasHidden = true;
+    } else if (state == AppLifecycleState.resumed && _wasHidden) {
+      _wasHidden = false;
+      if (_dismissed) setState(() => _dismissed = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

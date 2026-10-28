@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/services/update_policy.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,12 +12,10 @@ class UpdateService implements IUpdateService {
 
   final SharedPreferences _prefs;
   final DateTime Function() _clock;
-  final bool Function() _isInBackground;
   final ValueNotifier<bool> _updateReady = ValueNotifier(false);
 
   StreamSubscription<InstallStatus>? _statusSubscription;
   bool _coldStartHandled = false;
-  bool _downloadHandled = false;
   Future<bool>? _completing;
 
   /// Printed (not `developer.log`) so the lines also reach logcat in release
@@ -28,14 +25,7 @@ class UpdateService implements IUpdateService {
   UpdateService(
     this._prefs, {
     DateTime Function()? clock,
-    bool Function()? isInBackground,
-  })  : _clock = clock ?? DateTime.now,
-        _isInBackground = isInBackground ?? _isAppHidden;
-
-  /// `paused` only: `inactive` also covers Play's own consent dialog, which
-  /// must never trigger an install.
-  static bool _isAppHidden() =>
-      WidgetsBinding.instance.lifecycleState == AppLifecycleState.paused;
+  }) : _clock = clock ?? DateTime.now;
 
   @override
   ValueListenable<bool> get updateReady => _updateReady;
@@ -49,12 +39,6 @@ class UpdateService implements IUpdateService {
 
   @override
   Future<void> onResume() => _check(isColdStart: false);
-
-  @override
-  Future<void> onBackground() async {
-    if (!_updateReady.value) return;
-    await applyDownloadedUpdate();
-  }
 
   Future<void> _check({required bool isColdStart}) async {
     try {
@@ -126,20 +110,11 @@ class UpdateService implements IUpdateService {
     }
   }
 
-  /// Only the first `downloaded` status counts: the plugin adds a listener per
-  /// offer, so Play's statuses arrive more than once. A download that finishes
-  /// after the user left the app is installed right away, since
-  /// `onBackground` already ran. A failed install is retried on the next
-  /// background or cold start.
-  void _onDownloaded() {
-    _updateReady.value = true;
-    if (_downloadHandled) return;
-    _downloadHandled = true;
-    if (_isInBackground()) unawaited(applyDownloadedUpdate());
-  }
+  /// Only raises the banner: the restart that installs the update is always
+  /// the user's choice, never triggered while the app is hidden.
+  void _onDownloaded() => _updateReady.value = true;
 
-  /// Background, a late `downloaded` status and the banner can all ask at
-  /// once; they share one native completion. Cleared afterwards so a failed
+  /// Repeated taps share one native completion. Cleared afterwards so a failed
   /// install can be retried.
   @override
   Future<bool> applyDownloadedUpdate() =>
