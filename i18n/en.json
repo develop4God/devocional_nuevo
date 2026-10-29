@@ -1012,8 +1012,7 @@
   },
   "update": {
     "ready_title": "Update ready",
-    "ready_message": "Restart to get the latest improvements.",
-    "restart": "Restart",
+    "ready_message": "Tap to restart and get the latest improvements.",
     "close": "Close"
   }
 }

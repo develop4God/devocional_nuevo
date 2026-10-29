@@ -41,8 +41,7 @@ void main() {
             updateReady: ready,
             onRestart: () => restarts++,
             title: 'Update ready',
-            message: 'Restart to get the latest improvements.',
-            restartLabel: 'Restart',
+            message: 'Tap to restart and get the latest improvements.',
             closeTooltip: 'Close',
             child: const _Probe(),
           ),
@@ -73,18 +72,37 @@ void main() {
     await tester.pump();
 
     expect(find.text('Update ready'), findsOneWidget);
-    expect(find.text('Restart'), findsOneWidget);
+    expect(find.byIcon(Icons.download_done_outlined), findsOneWidget);
   });
 
-  testWidgets('Restart calls onRestart and offers no Later action',
+  testWidgets('tapping the message restarts and offers no Later action',
       (tester) async {
     ready.value = true;
     await pumpBanner(tester);
 
-    await tester.tap(find.text('Restart'));
+    await tester
+        .tap(find.text('Tap to restart and get the latest improvements.'));
 
     expect(restarts, 1);
     expect(find.text('Later'), findsNothing);
+  });
+
+  testWidgets('tapping the title restarts', (tester) async {
+    ready.value = true;
+    await pumpBanner(tester);
+
+    await tester.tap(find.text('Update ready'));
+
+    expect(restarts, 1);
+  });
+
+  testWidgets('has no separate restart button, the card is the target',
+      (tester) async {
+    ready.value = true;
+    await pumpBanner(tester);
+
+    expect(find.byType(TextButton), findsNothing);
+    expect(find.byType(InkWell), findsWidgets);
   });
 
   testWidgets('close hides the banner without restarting', (tester) async {
@@ -95,6 +113,18 @@ void main() {
     await tester.pump();
 
     expect(find.text('Update ready'), findsNothing);
+    expect(restarts, 0);
+  });
+
+  testWidgets('close sits on top of the card tap and never restarts',
+      (tester) async {
+    ready.value = true;
+    await pumpBanner(tester);
+
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
     expect(restarts, 0);
   });
 
@@ -165,7 +195,6 @@ void main() {
               onRestart: () {},
               title: 'Update ready',
               message: 'Restart',
-              restartLabel: 'Restart',
               closeTooltip: 'Close',
               child: const _Probe(),
             ),

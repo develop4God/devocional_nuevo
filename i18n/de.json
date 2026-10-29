@@ -1012,8 +1012,7 @@
   },
   "update": {
     "ready_title": "Update bereit",
-    "ready_message": "Starte neu, um die neuesten Verbesserungen zu erhalten.",
-    "restart": "Neu starten",
+    "ready_message": "Tippe zum Neustarten und erhalte die neuesten Verbesserungen.",
     "close": "Schließen"
   }
 }
