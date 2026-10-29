@@ -1052,7 +1052,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         getService<IUpdateService>().applyDownloadedUpdate,
                     title: 'update.ready_title'.tr(),
                     message: 'update.ready_message'.tr(),
-                    restartLabel: 'update.restart'.tr(),
                     closeTooltip: 'update.close'.tr(),
                     child: Stack(
                       children: [

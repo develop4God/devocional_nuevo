@@ -1012,8 +1012,7 @@
   },
   "update": {
     "ready_title": "Atualização pronta",
-    "ready_message": "Reinicie para aproveitar as últimas melhorias.",
-    "restart": "Reiniciar",
+    "ready_message": "Toque para reiniciar e aproveitar as últimas melhorias.",
     "close": "Fechar"
   }
 }

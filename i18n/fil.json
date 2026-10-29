@@ -1012,8 +1012,7 @@
   },
   "update": {
     "ready_title": "Handa na ang update",
-    "ready_message": "I-restart para makuha ang mga pinakabagong pagpapabuti.",
-    "restart": "I-restart",
+    "ready_message": "I-tap para mag-restart at makuha ang mga pinakabagong pagpapabuti.",
     "close": "Isara"
   }
 }

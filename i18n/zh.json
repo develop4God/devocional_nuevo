@@ -1012,8 +1012,7 @@
   },
   "update": {
     "ready_title": "更新已就绪",
-    "ready_message": "重新启动即可使用最新改进。",
-    "restart": "重新启动",
+    "ready_message": "点按即可重新启动并使用最新改进。",
     "close": "关闭"
   }
 }

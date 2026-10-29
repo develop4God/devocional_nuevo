@@ -1012,8 +1012,7 @@
   },
   "update": {
     "ready_title": "Mise à jour prête",
-    "ready_message": "Redémarrez pour profiter des dernières améliorations.",
-    "restart": "Redémarrer",
+    "ready_message": "Touchez pour redémarrer et profiter des dernières améliorations.",
     "close": "Fermer"
   }
 }
