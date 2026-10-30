@@ -3,7 +3,18 @@
     "firebase": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "firebase-tools@latest", "mcp"]
+      "args": [
+        "-y",
+        "firebase-tools@latest",
+        "mcp"
+      ]
+    },
+    "dart": {
+      "type": "stdio",
+      "command": "dart",
+      "args": [
+        "mcp-server"
+      ]
     }
   }
 }
