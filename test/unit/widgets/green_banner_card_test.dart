@@ -63,10 +63,11 @@ void main() {
       host(
         UpdateReadyBanner(
           updateReady: ready,
-          onRestart: () {},
+          onRestart: () async => true,
           title: 'Update ready',
           message: 'Tap to restart',
           closeTooltip: 'Close',
+          restartFailedMessage: 'Could not restart',
           child: const SizedBox.shrink(),
         ),
       ),
@@ -106,10 +107,14 @@ void main() {
         host(
           UpdateReadyBanner(
             updateReady: ready,
-            onRestart: () => restarts++,
+            onRestart: () async {
+              restarts++;
+              return true;
+            },
             title: 'Update ready',
             message: 'Tap to restart',
             closeTooltip: 'Close',
+            restartFailedMessage: 'Could not restart',
             child: const SizedBox.shrink(),
           ),
         ),

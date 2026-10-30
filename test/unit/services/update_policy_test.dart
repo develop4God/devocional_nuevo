@@ -9,14 +9,12 @@ UpdateAction decide({
   bool immediateAllowed = true,
   bool flexibleAllowed = true,
   int? priority = 0,
-  int? stalenessDays = 0,
 }) {
   return UpdatePolicy.decide(
     updateAvailable: available,
     immediateAllowed: immediateAllowed,
     flexibleAllowed: flexibleAllowed,
     priority: priority,
-    stalenessDays: stalenessDays,
   );
 }
 
@@ -39,17 +37,12 @@ void main() {
       expect(decide(priority: 3), UpdateAction.flexible);
     });
 
-    test('staleness at the critical threshold is immediate', () {
-      expect(decide(stalenessDays: 60), UpdateAction.immediate);
+    test('null priority is treated as regular', () {
+      expect(decide(priority: null), UpdateAction.flexible);
     });
 
-    test('staleness just below the threshold stays flexible', () {
-      expect(decide(stalenessDays: 59), UpdateAction.flexible);
-    });
-
-    test('null priority and staleness are treated as regular', () {
-      expect(
-          decide(priority: null, stalenessDays: null), UpdateAction.flexible);
+    test('a very old installed version alone never blocks', () {
+      expect(decide(), UpdateAction.flexible);
     });
 
     test('critical update falls back to flexible when immediate not allowed',

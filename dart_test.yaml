@@ -71,6 +71,9 @@ tags:
     # Localization resource and translation tests
   tts:
     # Text-to-speech feature tests
+  debug:
+    # Debug page section tests
+    # Example: @Tags(['unit', 'debug'])
 
   integration:
     # Integration tests across multiple components

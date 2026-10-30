@@ -1013,6 +1013,7 @@
   "update": {
     "ready_title": "Actualización lista",
     "ready_message": "Toca para reiniciar y disfrutar las últimas mejoras.",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "restart_failed": "No se pudo instalar la actualización. Inténtalo más tarde."
   }
 }

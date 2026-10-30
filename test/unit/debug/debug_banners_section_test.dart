@@ -17,6 +17,7 @@ void main() {
               updateTitle: 'Update ready',
               updateMessage: 'Tap to restart and get the latest improvements.',
               updateCloseTooltip: 'Close',
+              updateRestartFailedMessage: 'Could not restart',
             ),
           ),
         ),

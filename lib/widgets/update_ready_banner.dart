@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:devocional_nuevo/widgets/green_banner_card.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Green banner shown above [child] when a background update finished
@@ -13,10 +13,13 @@ import 'package:flutter/material.dart';
 /// Texts are passed in so the widget stays free of the localization service.
 class UpdateReadyBanner extends StatefulWidget {
   final ValueListenable<bool> updateReady;
-  final VoidCallback onRestart;
+
+  /// Resolves to false when the update could not be installed.
+  final Future<bool> Function() onRestart;
   final String title;
   final String message;
   final String closeTooltip;
+  final String restartFailedMessage;
   final Widget child;
 
   const UpdateReadyBanner({
@@ -26,6 +29,7 @@ class UpdateReadyBanner extends StatefulWidget {
     required this.title,
     required this.message,
     required this.closeTooltip,
+    required this.restartFailedMessage,
     required this.child,
   });
 
@@ -37,6 +41,7 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
     with WidgetsBindingObserver {
   bool _dismissed = false;
   bool _wasHidden = false;
+  bool _restarting = false;
 
   @override
   void initState() {
@@ -60,6 +65,21 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
       _wasHidden = false;
       if (_dismissed) setState(() => _dismissed = false);
     }
+  }
+
+  Future<void> _restart() async {
+    if (_restarting) return;
+    _restarting = true;
+    final bool installed;
+    try {
+      installed = await widget.onRestart();
+    } finally {
+      _restarting = false;
+    }
+    if (installed || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(widget.restartFailedMessage)),
+    );
   }
 
   @override
@@ -90,7 +110,7 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
     return SafeArea(
       bottom: false,
       child: GreenBannerCard(
-        onTap: widget.onRestart,
+        onTap: _restart,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

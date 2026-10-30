@@ -6,8 +6,9 @@ abstract class IUpdateService {
   /// restart to take effect.
   ValueListenable<bool> get updateReady;
 
-  /// First check of the process. Applies an already downloaded update (the
-  /// app has just started, so nobody is mid-session) or starts a new one.
+  /// First check of the process. Reports an already downloaded update through
+  /// [updateReady], or starts a background download. Only an update Play marks
+  /// urgent is shown as a blocking screen.
   Future<void> onColdStart();
 
   /// Check on return to foreground. Only reports a downloaded update through
@@ -15,7 +16,6 @@ abstract class IUpdateService {
   Future<void> onResume();
 
   /// Installs the downloaded update, restarting the app. Only ever called by
-  /// the user (banner restart) or on a cold start. Returns false when
-  /// Play could not complete it.
+  /// the user (banner restart). Returns false when Play could not complete it.
   Future<bool> applyDownloadedUpdate();
 }

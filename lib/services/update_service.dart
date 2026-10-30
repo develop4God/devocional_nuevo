@@ -17,6 +17,7 @@ class UpdateService implements IUpdateService {
   StreamSubscription<InstallStatus>? _statusSubscription;
   bool _coldStartHandled = false;
   Future<bool>? _completing;
+  Completer<void>? _installFailed;
 
   /// Printed (not `developer.log`) so the lines also reach logcat in release
   /// builds, which is where Play update behaviour has to be diagnosed.
@@ -41,6 +42,8 @@ class UpdateService implements IUpdateService {
   Future<void> onResume() => _check(isColdStart: false);
 
   Future<void> _check({required bool isColdStart}) async {
+    // Still on screen after an install request: Play did not restart the app.
+    _failPendingInstall('app is back in the foreground');
     try {
       final info = await InAppUpdate.checkForUpdate();
       _log(
@@ -53,11 +56,7 @@ class UpdateService implements IUpdateService {
       );
 
       if (info.installStatus == InstallStatus.downloaded) {
-        if (isColdStart) {
-          await applyDownloadedUpdate();
-        } else {
-          _updateReady.value = true;
-        }
+        _updateReady.value = true;
         return;
       }
       if (!isColdStart) return;
@@ -68,7 +67,6 @@ class UpdateService implements IUpdateService {
         immediateAllowed: info.immediateUpdateAllowed,
         flexibleAllowed: info.flexibleUpdateAllowed,
         priority: info.updatePriority,
-        stalenessDays: info.clientVersionStalenessDays,
       );
       _log('decision=$action');
       switch (action) {
@@ -85,14 +83,15 @@ class UpdateService implements IUpdateService {
   }
 
   Future<void> _startFlexibleUpdate() async {
-    final lastOfferMs = _prefs.getInt(_lastOfferKey);
     final now = _clock();
-    if (lastOfferMs != null &&
-        now.difference(DateTime.fromMillisecondsSinceEpoch(lastOfferMs)) <
-            _offerInterval) {
-      _log(
-          'offer skipped: last offer ${now.difference(DateTime.fromMillisecondsSinceEpoch(lastOfferMs)).inMinutes} min ago');
-      return;
+    final lastOfferMs = _prefs.getInt(_lastOfferKey);
+    if (lastOfferMs != null) {
+      final sinceLastOffer =
+          now.difference(DateTime.fromMillisecondsSinceEpoch(lastOfferMs));
+      if (sinceLastOffer < _offerInterval) {
+        _log('offer skipped: last offer ${sinceLastOffer.inMinutes} min ago');
+        return;
+      }
     }
 
     _statusSubscription ??= InAppUpdate.installUpdateListener.listen(
@@ -123,12 +122,36 @@ class UpdateService implements IUpdateService {
   Future<bool> _completeUpdate() async {
     try {
       _log('completing flexible update');
-      await InAppUpdate.completeFlexibleUpdate();
+      await _untilInstallEnds();
       _updateReady.value = false;
       return true;
     } catch (e) {
       _log('could not complete flexible update: $e');
       return false;
+    }
+  }
+
+  /// On success Play restarts the app. On failure the plugin never answers the
+  /// call, so the wait also ends on a failed or canceled install status, or
+  /// when the app is back in the foreground (see [_check]).
+  Future<void> _untilInstallEnds() {
+    final failed = _installFailed = Completer<void>();
+    final subscription = InAppUpdate.installUpdateListener.listen((status) {
+      if (status == InstallStatus.failed || status == InstallStatus.canceled) {
+        _failPendingInstall('install ended with $status');
+      }
+    });
+    return Future.any([InAppUpdate.completeFlexibleUpdate(), failed.future])
+        .whenComplete(() {
+      subscription.cancel();
+      _installFailed = null;
+    });
+  }
+
+  void _failPendingInstall(String reason) {
+    final pending = _installFailed;
+    if (pending != null && !pending.isCompleted) {
+      pending.completeError(StateError(reason));
     }
   }
 
