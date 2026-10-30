@@ -212,5 +212,29 @@ void main() {
       // Should have consistent separators
       expect(shareText, contains('━━━━━━━━━━━━━━━━'));
     });
+
+    for (final resumen in [true, false]) {
+      test('footer keeps only the download part (resumen: $resumen)', () {
+        final shareText = DiscoveryShareHelper.generarTextoParaCompartir(
+          testStudy,
+          resumen: resumen,
+        );
+
+        expect(shareText, isNot(contains('solo el comienzo')));
+        expect(shareText, isNot(contains('just the beginning')));
+        expect(shareText, isNot(contains('✓ ')));
+        expect(shareText, isNot(contains('🔥')));
+        expect(shareText, isNot(contains('\n\n\n')));
+        expect(shareText, contains('📲 *Descarga: Devocionales Cristianos*'));
+        expect(shareText, contains('100% gratis | Sin anuncios | Uso offline'));
+        expect(
+          shareText,
+          contains(
+            'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo',
+          ),
+        );
+        expect(shareText, endsWith('Develop4God'));
+      });
+    }
   });
 }
