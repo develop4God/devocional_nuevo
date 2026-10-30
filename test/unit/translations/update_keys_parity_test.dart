@@ -7,7 +7,12 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  const requiredKeys = ['ready_title', 'ready_message', 'close'];
+  const requiredKeys = [
+    'ready_title',
+    'ready_message',
+    'close',
+    'restart_failed'
+  ];
 
   final files = Directory('i18n')
       .listSync()

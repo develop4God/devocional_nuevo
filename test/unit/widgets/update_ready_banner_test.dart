@@ -1,6 +1,8 @@
 @Tags(['unit', 'widgets'])
 library;
 
+import 'dart:async';
+
 import 'package:devocional_nuevo/widgets/update_ready_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -32,6 +34,7 @@ class _ProbeState extends State<_Probe> {
 void main() {
   late ValueNotifier<bool> ready;
   late int restarts;
+  late bool restartSucceeds;
 
   Future<void> pumpBanner(WidgetTester tester) {
     return tester.pumpWidget(
@@ -39,10 +42,14 @@ void main() {
         home: Scaffold(
           body: UpdateReadyBanner(
             updateReady: ready,
-            onRestart: () => restarts++,
+            onRestart: () async {
+              restarts++;
+              return restartSucceeds;
+            },
             title: 'Update ready',
             message: 'Tap to restart and get the latest improvements.',
             closeTooltip: 'Close',
+            restartFailedMessage: 'Could not restart',
             child: const _Probe(),
           ),
         ),
@@ -55,6 +62,7 @@ void main() {
     _ProbeState.topPadding = null;
     ready = ValueNotifier(false);
     restarts = 0;
+    restartSucceeds = true;
   });
 
   tearDown(() => ready.dispose());
@@ -94,6 +102,95 @@ void main() {
     await tester.tap(find.text('Update ready'));
 
     expect(restarts, 1);
+  });
+
+  testWidgets('a failed restart tells the user and keeps the banner',
+      (tester) async {
+    ready.value = true;
+    restartSucceeds = false;
+    await pumpBanner(tester);
+
+    await tester.tap(find.text('Update ready'));
+    await tester.pump();
+
+    expect(find.text('Could not restart'), findsOneWidget);
+    expect(find.text('Update ready'), findsOneWidget);
+  });
+
+  testWidgets('taps while a restart is in progress are ignored',
+      (tester) async {
+    final release = Completer<bool>();
+    ready.value = true;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: UpdateReadyBanner(
+            updateReady: ready,
+            onRestart: () {
+              restarts++;
+              return release.future;
+            },
+            title: 'Update ready',
+            message: 'Restart',
+            closeTooltip: 'Close',
+            restartFailedMessage: 'Could not restart',
+            child: const _Probe(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Update ready'));
+    await tester.tap(find.text('Update ready'));
+    release.complete(false);
+    await tester.pump();
+
+    expect(restarts, 1);
+    expect(find.text('Could not restart'), findsOneWidget);
+  });
+
+  testWidgets('a restart that throws does not lock the banner', (tester) async {
+    ready.value = true;
+    var attempts = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: UpdateReadyBanner(
+            updateReady: ready,
+            onRestart: () async {
+              attempts++;
+              throw StateError('boom');
+            },
+            title: 'Update ready',
+            message: 'Restart',
+            closeTooltip: 'Close',
+            restartFailedMessage: 'Could not restart',
+            child: const _Probe(),
+          ),
+        ),
+      ),
+    );
+
+    final errors = <Object>[];
+    for (var i = 0; i < 2; i++) {
+      await runZonedGuarded(() async {
+        await tester.tap(find.text('Update ready'));
+        await tester.pump();
+      }, (error, _) => errors.add(error));
+    }
+
+    expect(attempts, 2);
+    expect(errors, hasLength(2));
+  });
+
+  testWidgets('a successful restart shows no error', (tester) async {
+    ready.value = true;
+    await pumpBanner(tester);
+
+    await tester.tap(find.text('Update ready'));
+    await tester.pump();
+
+    expect(find.text('Could not restart'), findsNothing);
   });
 
   testWidgets('has no separate restart button, the card is the target',
@@ -192,10 +289,11 @@ void main() {
           home: Scaffold(
             body: UpdateReadyBanner(
               updateReady: ready,
-              onRestart: () {},
+              onRestart: () async => true,
               title: 'Update ready',
               message: 'Restart',
               closeTooltip: 'Close',
+              restartFailedMessage: 'Could not restart',
               child: const _Probe(),
             ),
           ),

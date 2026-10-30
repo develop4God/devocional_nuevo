@@ -1013,6 +1013,7 @@
   "update": {
     "ready_title": "更新已就绪",
     "ready_message": "点按即可重新启动并使用最新改进。",
-    "close": "关闭"
+    "close": "关闭",
+    "restart_failed": "无法安装更新，请稍后再试。"
   }
 }

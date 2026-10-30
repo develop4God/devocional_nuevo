@@ -1013,6 +1013,7 @@
   "update": {
     "ready_title": "Update ready",
     "ready_message": "Tap to restart and get the latest improvements.",
-    "close": "Close"
+    "close": "Close",
+    "restart_failed": "Could not install the update. Please try again later."
   }
 }

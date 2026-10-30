@@ -23,6 +23,7 @@ void main() {
   late Map<String, Object?> playInfo;
   late List<int> emittedStatuses;
   late String? startFlexibleError;
+  late String? immediateError;
   late DateTime now;
   late SharedPreferences prefs;
   late UpdateService service;
@@ -55,6 +56,7 @@ void main() {
     playInfo = info();
     emittedStatuses = [];
     startFlexibleError = null;
+    immediateError = null;
     now = DateTime(2026, 10, 24, 12);
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
@@ -68,6 +70,9 @@ void main() {
       if (call.method == 'checkForUpdate') return playInfo;
       if (call.method == 'startFlexibleUpdate' && startFlexibleError != null) {
         throw PlatformException(code: startFlexibleError!);
+      }
+      if (call.method == 'performImmediateUpdate' && immediateError != null) {
+        throw PlatformException(code: immediateError!);
       }
       return null;
     });
@@ -104,22 +109,15 @@ void main() {
       expect(calls, isNot(contains('startFlexibleUpdate')));
     });
 
-    test('very stale version performs an immediate update', () async {
-      playInfo = info(staleness: 60);
-
-      await service.onColdStart();
-
-      expect(calls, contains('performImmediateUpdate'));
-    });
-
-    test('already downloaded update is applied before anything else', () async {
+    test('already downloaded update raises the banner, never restarts',
+        () async {
       playInfo = downloadedInfo();
 
       await service.onColdStart();
 
-      expect(calls, contains('completeFlexibleUpdate'));
+      expect(calls, isNot(contains('completeFlexibleUpdate')));
       expect(calls, isNot(contains('startFlexibleUpdate')));
-      expect(service.updateReady.value, isFalse);
+      expect(service.updateReady.value, isTrue);
     });
 
     test('no update available does nothing', () async {
@@ -203,14 +201,13 @@ void main() {
       expect(calls, contains('startFlexibleUpdate'));
     });
 
-    test('throttle never blocks applying an already downloaded update',
-        () async {
+    test('throttle never hides an already downloaded update', () async {
       await prefs.setInt(_offerKey, now.millisecondsSinceEpoch);
       playInfo = downloadedInfo();
 
       await service.onColdStart();
 
-      expect(calls, contains('completeFlexibleUpdate'));
+      expect(service.updateReady.value, isTrue);
     });
 
     test('throttle never blocks a critical update', () async {
@@ -220,6 +217,22 @@ void main() {
       await service.onColdStart();
 
       expect(calls, contains('performImmediateUpdate'));
+    });
+  });
+
+  group('critical update', () {
+    test('a declined critical update is asked again on every start', () async {
+      playInfo = info(priority: 5);
+      immediateError = 'USER_DENIED_UPDATE';
+      await service.onColdStart();
+
+      final later = UpdateService(prefs, clock: () => now);
+      calls.clear();
+      await later.onColdStart();
+      later.dispose();
+
+      expect(calls, contains('performImmediateUpdate'));
+      expect(calls, isNot(contains('startFlexibleUpdate')));
     });
   });
 
@@ -303,6 +316,73 @@ void main() {
   });
 
   group('applyDownloadedUpdate', () {
+    for (final status in [5, 6]) {
+      test(
+          'a completion Play never answers ends when Play reports status '
+          '$status, so it can be retried', () async {
+        playInfo = downloadedInfo();
+        await service.onResume();
+        emittedStatuses = [status];
+        messenger.setMockMethodCallHandler(methods, (call) async {
+          calls.add(call.method);
+          if (call.method == 'completeFlexibleUpdate') {
+            return Completer<void>().future;
+          }
+          return;
+        });
+        calls.clear();
+
+        expect(await service.applyDownloadedUpdate(), isFalse);
+        expect(await service.applyDownloadedUpdate(), isFalse);
+
+        expect(calls.where((c) => c == 'completeFlexibleUpdate'), hasLength(2));
+        expect(service.updateReady.value, isTrue);
+      });
+    }
+
+    test('coming back to the foreground ends a wait Play never answers',
+        () async {
+      playInfo = downloadedInfo();
+      await service.onResume();
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        calls.add(call.method);
+        if (call.method == 'checkForUpdate') return playInfo;
+        if (call.method == 'completeFlexibleUpdate') {
+          return Completer<Object?>().future;
+        }
+        return null;
+      });
+
+      final applying = service.applyDownloadedUpdate();
+      await pumpEventQueue();
+      await service.onResume();
+
+      expect(await applying, isFalse);
+      expect(service.updateReady.value, isTrue);
+    });
+
+    test('waits for the real outcome instead of giving up after a delay',
+        () async {
+      playInfo = downloadedInfo();
+      await service.onResume();
+      final release = Completer<void>();
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        if (call.method == 'completeFlexibleUpdate') await release.future;
+        return null;
+      });
+
+      var done = false;
+      final applying = service.applyDownloadedUpdate().then((v) {
+        done = true;
+        return v;
+      });
+      await Future<void>.delayed(const Duration(seconds: 1));
+      expect(done, isFalse);
+
+      release.complete();
+      expect(await applying, isTrue);
+    });
+
     test('overlapping requests complete the update only once', () async {
       final release = Completer<void>();
       playInfo = downloadedInfo();

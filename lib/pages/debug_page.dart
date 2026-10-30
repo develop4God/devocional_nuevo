@@ -140,6 +140,7 @@ class _DebugPageState extends State<DebugPage> {
               updateTitle: 'update.ready_title'.tr(),
               updateMessage: 'update.ready_message'.tr(),
               updateCloseTooltip: 'update.close'.tr(),
+              updateRestartFailedMessage: 'update.restart_failed'.tr(),
             ),
             const SizedBox(height: 32),
           ],

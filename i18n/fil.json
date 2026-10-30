@@ -1013,6 +1013,7 @@
   "update": {
     "ready_title": "Handa na ang update",
     "ready_message": "I-tap para mag-restart at makuha ang mga pinakabagong pagpapabuti.",
-    "close": "Isara"
+    "close": "Isara",
+    "restart_failed": "Hindi ma-install ang update. Pakisubukang muli mamaya."
   }
 }

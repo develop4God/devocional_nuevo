@@ -9,12 +9,14 @@ class DebugBannersSection extends StatefulWidget {
   final String updateTitle;
   final String updateMessage;
   final String updateCloseTooltip;
+  final String updateRestartFailedMessage;
 
   const DebugBannersSection({
     super.key,
     required this.updateTitle,
     required this.updateMessage,
     required this.updateCloseTooltip,
+    required this.updateRestartFailedMessage,
   });
 
   @override
@@ -66,10 +68,14 @@ class _DebugBannersSectionState extends State<DebugBannersSection> {
             height: 150,
             child: UpdateReadyBanner(
               updateReady: _updateReady,
-              onRestart: () => _report('Restart tapped (preview only)'),
+              onRestart: () async {
+                _report('Restart tapped (preview only)');
+                return true;
+              },
               title: widget.updateTitle,
               message: widget.updateMessage,
               closeTooltip: widget.updateCloseTooltip,
+              restartFailedMessage: widget.updateRestartFailedMessage,
               child: const SizedBox.shrink(),
             ),
           ),
