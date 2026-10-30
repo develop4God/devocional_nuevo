@@ -6,7 +6,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 /// Utility class for generating shareable text from Daily Devotionals
 ///
 /// Formats devotionals for sharing on WhatsApp and other platforms with
-/// emojis, proper structure, and app download link with FOMO footer.
+/// emojis, proper structure, and an app download footer.
 class DevotionalShareHelper {
   /// Generate text for sharing a devotional
   ///
@@ -53,34 +53,8 @@ class DevotionalShareHelper {
     buffer.writeln(_formatText(devocional.oracion));
     buffer.writeln();
 
-    // Enhanced FOMO Footer
+    // Download footer
     buffer.writeln('━━━━━━━━━━━━━━━━');
-    buffer.writeln(
-      '🔥 *${_translateKey('devotionals.share_footer_title', fallback: 'Esto es solo el comienzo...')}*',
-    );
-    buffer.writeln();
-    buffer.writeln(
-      _translateKey(
-        'devotionals.share_footer_complete_app',
-        fallback: 'La app completa incluye:',
-      ),
-    );
-    buffer.writeln(
-      '✓ ${_translateKey('devotionals.share_footer_daily_devotionals', fallback: 'Devocionales diarios actualizados')}',
-    );
-    buffer.writeln(
-      '✓ ${_translateKey('devotionals.share_footer_audio_reading', fallback: 'Lectura en audio con voces naturales')}',
-    );
-    buffer.writeln(
-      '✓ ${_translateKey('devotionals.share_footer_bible_studies', fallback: 'Estudios bíblicos profundos')}',
-    );
-    buffer.writeln(
-      '✓ ${_translateKey('devotionals.share_footer_bible_versions', fallback: 'Biblia completa en múltiples versiones')}',
-    );
-    buffer.writeln(
-      '✓ ${_translateKey('devotionals.share_footer_and_more', fallback: 'Y mucho más...')}',
-    );
-    buffer.writeln();
     buffer.writeln(
       '📲 *${_translateKey('devotionals.share_footer_download', fallback: 'Descarga: Devocionales Cristianos')}*',
     );
