@@ -1009,5 +1009,11 @@
     "my_pending": "Dein Gebet wird überprüft",
     "empty_title": "Die Mauer ist gerade still",
     "empty_description": "Sei der Erste, der ein Gebetsanliegen teilt. Die Gemeinschaft ist für dich da."
+  },
+  "update": {
+    "ready_title": "Update bereit",
+    "ready_message": "Tippe zum Neustarten und erhalte die neuesten Verbesserungen.",
+    "close": "Schließen",
+    "restart_failed": "Das Update konnte nicht installiert werden. Bitte versuche es später erneut."
   }
 }

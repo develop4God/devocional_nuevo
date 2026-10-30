@@ -1009,5 +1009,11 @@
     "my_pending": "Sinusuri ang iyong panalangin",
     "empty_title": "Tahimik ang pader sa ngayon",
     "empty_description": "Maging una sa pagbabahagi ng kahilingan sa panalangin. Nandito ang komunidad para sa iyo."
+  },
+  "update": {
+    "ready_title": "Handa na ang update",
+    "ready_message": "I-tap para mag-restart at makuha ang mga pinakabagong pagpapabuti.",
+    "close": "Isara",
+    "restart_failed": "Hindi ma-install ang update. Pakisubukang muli mamaya."
   }
 }

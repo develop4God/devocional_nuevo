@@ -1009,5 +1009,11 @@
     "my_pending": "Sua oração está sendo revisada",
     "empty_title": "O mural está tranquilo agora",
     "empty_description": "Seja o primeiro a compartilhar um pedido. A comunidade está aqui por você."
+  },
+  "update": {
+    "ready_title": "Atualização pronta",
+    "ready_message": "Toque para reiniciar e aproveitar as últimas melhorias.",
+    "close": "Fechar",
+    "restart_failed": "Não foi possível instalar a atualização. Tente novamente mais tarde."
   }
 }

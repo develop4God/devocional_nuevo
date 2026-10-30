@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:devocional_nuevo/debug/i_debug_spiritual_stats_service.dart';
+import 'package:devocional_nuevo/debug/sections/debug_banners_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_bulk_add_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_crashlytics_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_devotionals_section.dart';
@@ -11,6 +12,7 @@ import 'package:devocional_nuevo/debug/sections/debug_iap_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_onboarding_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_streak_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_tts_section.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/debug/debug_backup_section.dart';
@@ -131,6 +133,15 @@ class _DebugPageState extends State<DebugPage> {
 
             // ── TTS debug (fallback toggle + voice explorer) ──
             const DebugTtsSection(),
+            const SizedBox(height: 32),
+
+            // ── Banner previews (update + KJV) ──
+            DebugBannersSection(
+              updateTitle: 'update.ready_title'.tr(),
+              updateMessage: 'update.ready_message'.tr(),
+              updateCloseTooltip: 'update.close'.tr(),
+              updateRestartFailedMessage: 'update.restart_failed'.tr(),
+            ),
             const SizedBox(height: 32),
           ],
         ),

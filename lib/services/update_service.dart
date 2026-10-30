@@ -1,179 +1,176 @@
-import 'dart:developer' as developer;
+import 'dart:async';
+
+import 'package:devocional_nuevo/services/i_update_service.dart';
+import 'package:devocional_nuevo/services/update_policy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:in_app_update/in_app_update.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class UpdateService {
-  // Verificar si hay actualizaciones disponibles
-  static Future<void> checkForUpdate() async {
+class UpdateService implements IUpdateService {
+  static const String _lastOfferKey = 'update_last_offer_ms';
+  static const Duration _offerInterval = Duration(hours: 24);
+
+  final SharedPreferences _prefs;
+  final DateTime Function() _clock;
+  final ValueNotifier<bool> _updateReady = ValueNotifier(false);
+
+  StreamSubscription<InstallStatus>? _statusSubscription;
+  bool _coldStartHandled = false;
+  Future<bool>? _completing;
+  Completer<void>? _installFailed;
+
+  /// Printed (not `developer.log`) so the lines also reach logcat in release
+  /// builds, which is where Play update behaviour has to be diagnosed. Uses
+  /// [debugPrintSynchronously] to bypass the release-mode `debugPrint` no-op
+  /// set in main.dart.
+  static void _log(String message) =>
+      debugPrintSynchronously('[UpdateService] $message');
+
+  UpdateService(
+    this._prefs, {
+    DateTime Function()? clock,
+  }) : _clock = clock ?? DateTime.now;
+
+  @override
+  ValueListenable<bool> get updateReady => _updateReady;
+
+  @override
+  Future<void> onColdStart() {
+    final isColdStart = !_coldStartHandled;
+    _coldStartHandled = true;
+    return _check(isColdStart: isColdStart);
+  }
+
+  @override
+  Future<void> onResume() => _check(isColdStart: false);
+
+  Future<void> _check({required bool isColdStart}) async {
+    // Still on screen after an install request: Play did not restart the app.
+    // Accepted trade-off: a resume event during a cold-start install also
+    // counts as a failed install (a spurious banner is possible). It is the
+    // only failure signal when Play never answers, so it is kept on purpose.
+    _failPendingInstall('app is back in the foreground');
     try {
-      final AppUpdateInfo info = await InAppUpdate.checkForUpdate();
+      final info = await InAppUpdate.checkForUpdate();
+      _log(
+        'check coldStart=$isColdStart availability=${info.updateAvailability} '
+        'installStatus=${info.installStatus} priority=${info.updatePriority} '
+        'staleness=${info.clientVersionStalenessDays} '
+        'immediateAllowed=${info.immediateUpdateAllowed} '
+        'flexibleAllowed=${info.flexibleUpdateAllowed} '
+        'availableVersionCode=${info.availableVersionCode}',
+      );
 
-      if (info.updateAvailability == UpdateAvailability.updateAvailable) {
-        if (info.immediateUpdateAllowed) {
-          // Actualización inmediata (forzada)
-          await performImmediateUpdate();
-        } else if (info.flexibleUpdateAllowed) {
-          // Actualización flexible (opcional)
-          await performFlexibleUpdate();
+      if (info.installStatus == InstallStatus.downloaded) {
+        if (isColdStart) {
+          // Nothing on screen to lose at cold start; if the install fails the
+          // banner lets the user retry.
+          final applied = await applyDownloadedUpdate();
+          if (!applied) _updateReady.value = true;
+        } else {
+          _updateReady.value = true;
         }
+        return;
+      }
+      if (!isColdStart) return;
+
+      final action = UpdatePolicy.decide(
+        updateAvailable:
+            info.updateAvailability == UpdateAvailability.updateAvailable,
+        immediateAllowed: info.immediateUpdateAllowed,
+        flexibleAllowed: info.flexibleUpdateAllowed,
+        priority: info.updatePriority,
+      );
+      _log('decision=$action');
+      switch (action) {
+        case UpdateAction.immediate:
+          await InAppUpdate.performImmediateUpdate();
+        case UpdateAction.flexible:
+          await _startFlexibleUpdate();
+        case UpdateAction.none:
+          break;
       }
     } catch (e) {
-      developer.log('Error checking for updates: $e', name: 'UpdateService');
+      _log('error checking for updates: $e');
     }
   }
 
-  // Actualización inmediata (forzada)
-  static Future<void> performImmediateUpdate() async {
-    try {
-      await InAppUpdate.performImmediateUpdate();
-      developer.log('Immediate update completed', name: 'UpdateService');
-    } catch (e) {
-      developer.log(
-        'Error performing immediate update: $e',
-        name: 'UpdateService',
-      );
-    }
-  }
-
-  // Actualización flexible básica
-  static Future<void> performFlexibleUpdate() async {
-    try {
-      await InAppUpdate.startFlexibleUpdate();
-      developer.log(
-        'Flexible update started successfully',
-        name: 'UpdateService',
-      );
-
-      // Esperar un tiempo razonable para la descarga
-      await Future.delayed(const Duration(seconds: 10));
-
-      // Intentar completar la actualización
-      await InAppUpdate.completeFlexibleUpdate();
-      developer.log('Flexible update completed', name: 'UpdateService');
-    } catch (e) {
-      developer.log(
-        'Error performing flexible update: $e',
-        name: 'UpdateService',
-      );
-    }
-  }
-
-  // Actualización flexible con monitoreo y callback
-  static Future<void> performFlexibleUpdateWithCallback({
-    Function(String)? onStatusChange,
-  }) async {
-    try {
-      onStatusChange?.call('Iniciando actualización...');
-
-      await InAppUpdate.startFlexibleUpdate();
-      developer.log(
-        'Flexible update started successfully',
-        name: 'UpdateService',
-      );
-      onStatusChange?.call('Descargando actualización...');
-
-      // Monitorear el progreso de la descarga
-      await _monitorFlexibleUpdateProgress(onStatusChange);
-    } catch (e) {
-      onStatusChange?.call('Error en actualización');
-      developer.log(
-        'Error performing flexible update: $e',
-        name: 'UpdateService',
-      );
-    }
-  }
-
-  // Método privado para monitorear el progreso
-  static Future<void> _monitorFlexibleUpdateProgress(
-    Function(String)? onStatusChange,
-  ) async {
-    try {
-      // Simular progreso de descarga con verificaciones periódicas
-      for (int i = 1; i <= 10; i++) {
-        await Future.delayed(const Duration(seconds: 2));
-
-        onStatusChange?.call('Descargando... ${i * 10}%');
-        developer.log('Download progress: ${i * 10}%', name: 'UpdateService');
-
-        // Después del 80% intentar completar la actualización
-        if (i >= 8) {
-          try {
-            onStatusChange?.call('Preparando instalación...');
-            await InAppUpdate.completeFlexibleUpdate();
-            onStatusChange?.call('Actualización completada exitosamente');
-            developer.log(
-              'Flexible update completed successfully',
-              name: 'UpdateService',
-            );
-            return;
-          } catch (e) {
-            // Si falla, continúar esperando
-            developer.log(
-              'Update not ready yet, continuing...',
-              name: 'UpdateService',
-            );
-          }
-        }
+  Future<void> _startFlexibleUpdate() async {
+    final now = _clock();
+    final lastOfferMs = _prefs.getInt(_lastOfferKey);
+    if (lastOfferMs != null) {
+      final sinceLastOffer =
+          now.difference(DateTime.fromMillisecondsSinceEpoch(lastOfferMs));
+      if (sinceLastOffer < _offerInterval) {
+        _log('offer skipped: last offer ${sinceLastOffer.inMinutes} min ago');
+        return;
       }
+    }
 
-      // Último intento de completar la actualización
-      try {
-        await InAppUpdate.completeFlexibleUpdate();
-        onStatusChange?.call('Actualización completada');
-        developer.log(
-          'Flexible update completed on final attempt',
-          name: 'UpdateService',
-        );
-      } catch (e) {
-        onStatusChange?.call('Error al completar actualización');
-        developer.log(
-          'Failed to complete flexible update: $e',
-          name: 'UpdateService',
-        );
-      }
-    } catch (e) {
-      onStatusChange?.call('Error durante el monitoreo');
-      developer.log(
-        'Error monitoring flexible update progress: $e',
-        name: 'UpdateService',
-      );
+    _statusSubscription ??= InAppUpdate.installUpdateListener.listen(
+      (status) {
+        _log('install status=$status');
+        if (status == InstallStatus.downloaded) _onDownloaded();
+      },
+      onError: (Object e) => _log('install status error: $e'),
+    );
+    final result = await InAppUpdate.startFlexibleUpdate();
+    _log('startFlexibleUpdate result=$result');
+    // A failed offer is not counted, so it is retried on the next start.
+    if (result != AppUpdateResult.inAppUpdateFailed) {
+      await _prefs.setInt(_lastOfferKey, now.millisecondsSinceEpoch);
     }
   }
 
-  // Método para verificar y completar actualizaciones flexibles pendientes
-  static Future<bool> completeFlexibleUpdateIfAvailable() async {
+  /// Only raises the banner: for a download that finishes while the app is
+  /// open, the restart that installs the update is the user's choice (at cold
+  /// start an already downloaded update is installed automatically instead).
+  void _onDownloaded() => _updateReady.value = true;
+
+  /// Repeated taps share one native completion. Cleared afterwards so a failed
+  /// install can be retried.
+  @override
+  Future<bool> applyDownloadedUpdate() =>
+      _completing ??= _completeUpdate().whenComplete(() => _completing = null);
+
+  Future<bool> _completeUpdate() async {
     try {
-      await InAppUpdate.completeFlexibleUpdate();
-      developer.log(
-        'Flexible update completed successfully',
-        name: 'UpdateService',
-      );
+      _log('completing flexible update');
+      await _untilInstallEnds();
+      _updateReady.value = false;
       return true;
     } catch (e) {
-      developer.log(
-        'No flexible update available to complete: $e',
-        name: 'UpdateService',
-      );
+      _log('could not complete flexible update: $e');
       return false;
     }
   }
 
-  // Método para obtener información detallada de actualización
-  static Future<Map<String, dynamic>> getUpdateInfo() async {
-    try {
-      final AppUpdateInfo info = await InAppUpdate.checkForUpdate();
+  /// On success Play restarts the app. On failure the plugin never answers the
+  /// call, so the wait also ends on a failed or canceled install status, or
+  /// when the app is back in the foreground (see [_check]).
+  Future<void> _untilInstallEnds() {
+    final failed = _installFailed = Completer<void>();
+    final subscription = InAppUpdate.installUpdateListener.listen((status) {
+      if (status == InstallStatus.failed || status == InstallStatus.canceled) {
+        _failPendingInstall('install ended with $status');
+      }
+    });
+    return Future.any([InAppUpdate.completeFlexibleUpdate(), failed.future])
+        .whenComplete(() {
+      subscription.cancel();
+      _installFailed = null;
+    });
+  }
 
-      return {
-        'updateAvailable':
-            info.updateAvailability == UpdateAvailability.updateAvailable,
-        'immediateUpdateAllowed': info.immediateUpdateAllowed,
-        'flexibleUpdateAllowed': info.flexibleUpdateAllowed,
-        'availableVersionCode': info.availableVersionCode,
-        'updatePriority': info.updatePriority,
-        'clientVersionStalenessDays': info.clientVersionStalenessDays,
-      };
-    } catch (e) {
-      developer.log('Error getting update info: $e', name: 'UpdateService');
-      return {'updateAvailable': false, 'error': e.toString()};
+  void _failPendingInstall(String reason) {
+    final pending = _installFailed;
+    if (pending != null && !pending.isCompleted) {
+      pending.completeError(StateError(reason));
     }
+  }
+
+  void dispose() {
+    _statusSubscription?.cancel();
+    _updateReady.dispose();
   }
 }

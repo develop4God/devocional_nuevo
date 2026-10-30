@@ -1009,5 +1009,11 @@
     "my_pending": "Your prayer is being reviewed",
     "empty_title": "The wall is quiet right now",
     "empty_description": "Be the first to share a prayer request. The community is here for you."
+  },
+  "update": {
+    "ready_title": "Update ready",
+    "ready_message": "Tap to restart and get the latest improvements.",
+    "close": "Close",
+    "restart_failed": "Could not install the update. Please try again later."
   }
 }
