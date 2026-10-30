@@ -15,6 +15,17 @@
       "args": [
         "mcp-server"
       ]
+    },
+    "play-store": {
+      "type": "stdio",
+      "command": "java",
+      "args": [
+        "-jar",
+        "/home/develop4god/Projects/play-store-mcp/build/libs/play-store-mcp-all.jar"
+      ],
+      "env": {
+        "PLAY_STORE_SERVICE_ACCOUNT_KEY_PATH": "/home/develop4god/.config/play-store-mcp/key.json"
+      }
     }
   }
 }
