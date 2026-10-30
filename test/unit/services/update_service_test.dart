@@ -109,14 +109,31 @@ void main() {
       expect(calls, isNot(contains('startFlexibleUpdate')));
     });
 
-    test('already downloaded update raises the banner, never restarts',
-        () async {
+    test('already downloaded update is installed right away', () async {
       playInfo = downloadedInfo();
 
       await service.onColdStart();
 
-      expect(calls, isNot(contains('completeFlexibleUpdate')));
+      expect(calls, contains('completeFlexibleUpdate'));
       expect(calls, isNot(contains('startFlexibleUpdate')));
+      expect(service.updateReady.value, isFalse);
+    });
+
+    test('failed install of a downloaded update falls back to the banner',
+        () async {
+      playInfo = downloadedInfo();
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        calls.add(call.method);
+        if (call.method == 'checkForUpdate') return playInfo;
+        if (call.method == 'completeFlexibleUpdate') {
+          throw PlatformException(code: 'not_ready');
+        }
+        return null;
+      });
+
+      await service.onColdStart();
+
+      expect(calls, contains('completeFlexibleUpdate'));
       expect(service.updateReady.value, isTrue);
     });
 
@@ -201,13 +218,15 @@ void main() {
       expect(calls, contains('startFlexibleUpdate'));
     });
 
-    test('throttle never hides an already downloaded update', () async {
+    test('throttle never prevents installing an already downloaded update',
+        () async {
       await prefs.setInt(_offerKey, now.millisecondsSinceEpoch);
       playInfo = downloadedInfo();
 
       await service.onColdStart();
 
-      expect(service.updateReady.value, isTrue);
+      expect(calls, contains('completeFlexibleUpdate'));
+      expect(service.updateReady.value, isFalse);
     });
 
     test('throttle never blocks a critical update', () async {
@@ -454,22 +473,32 @@ void main() {
 
   group('diagnostic logging', () {
     late List<String> logs;
-    late DebugPrintCallback originalDebugPrint;
 
-    setUp(() {
-      logs = [];
-      originalDebugPrint = debugPrint;
-      debugPrint = (String? message, {int? wrapWidth}) {
-        if (message != null) logs.add(message);
-      };
+    Future<void> captureLogs(Future<void> Function() body) => runZoned(
+          body,
+          zoneSpecification: ZoneSpecification(
+            print: (self, parent, zone, line) => logs.add(line),
+          ),
+        );
+
+    setUp(() => logs = []);
+
+    test('logs are visible even when debugPrint is silenced (release mode)',
+        () async {
+      final originalDebugPrint = debugPrint;
+      addTearDown(() => debugPrint = originalDebugPrint);
+      debugPrint = (String? message, {int? wrapWidth}) {};
+
+      await captureLogs(() => service.onColdStart());
+
+      expect(logs, contains(contains('[UpdateService] check')));
+      expect(logs, contains(contains('decision=')));
     });
-
-    tearDown(() => debugPrint = originalDebugPrint);
 
     test('logs what Play reported and the decision taken', () async {
       playInfo = info(priority: 3, staleness: 7);
 
-      await service.onColdStart();
+      await captureLogs(() => service.onColdStart());
 
       final report = logs.firstWhere((l) => l.contains('check coldStart'));
       expect(
@@ -484,7 +513,7 @@ void main() {
         throw PlatformException(code: 'boom');
       });
 
-      await service.onColdStart();
+      await captureLogs(() => service.onColdStart());
 
       expect(logs, contains(contains('error checking for updates')));
       expect(logs, contains(contains('boom')));
@@ -493,7 +522,7 @@ void main() {
     test('logs why an offer was skipped', () async {
       await prefs.setInt(_offerKey, now.millisecondsSinceEpoch);
 
-      await service.onColdStart();
+      await captureLogs(() => service.onColdStart());
 
       expect(logs, contains(contains('offer skipped')));
     });

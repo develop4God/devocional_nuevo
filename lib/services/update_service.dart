@@ -20,8 +20,11 @@ class UpdateService implements IUpdateService {
   Completer<void>? _installFailed;
 
   /// Printed (not `developer.log`) so the lines also reach logcat in release
-  /// builds, which is where Play update behaviour has to be diagnosed.
-  static void _log(String message) => debugPrint('[UpdateService] $message');
+  /// builds, which is where Play update behaviour has to be diagnosed. Uses
+  /// [debugPrintSynchronously] to bypass the release-mode `debugPrint` no-op
+  /// set in main.dart.
+  static void _log(String message) =>
+      debugPrintSynchronously('[UpdateService] $message');
 
   UpdateService(
     this._prefs, {
@@ -43,6 +46,9 @@ class UpdateService implements IUpdateService {
 
   Future<void> _check({required bool isColdStart}) async {
     // Still on screen after an install request: Play did not restart the app.
+    // Accepted trade-off: a resume event during a cold-start install also
+    // counts as a failed install (a spurious banner is possible). It is the
+    // only failure signal when Play never answers, so it is kept on purpose.
     _failPendingInstall('app is back in the foreground');
     try {
       final info = await InAppUpdate.checkForUpdate();
@@ -56,7 +62,14 @@ class UpdateService implements IUpdateService {
       );
 
       if (info.installStatus == InstallStatus.downloaded) {
-        _updateReady.value = true;
+        if (isColdStart) {
+          // Nothing on screen to lose at cold start; if the install fails the
+          // banner lets the user retry.
+          final applied = await applyDownloadedUpdate();
+          if (!applied) _updateReady.value = true;
+        } else {
+          _updateReady.value = true;
+        }
         return;
       }
       if (!isColdStart) return;
@@ -109,8 +122,9 @@ class UpdateService implements IUpdateService {
     }
   }
 
-  /// Only raises the banner: the restart that installs the update is always
-  /// the user's choice, never triggered while the app is hidden.
+  /// Only raises the banner: for a download that finishes while the app is
+  /// open, the restart that installs the update is the user's choice (at cold
+  /// start an already downloaded update is installed automatically instead).
   void _onDownloaded() => _updateReady.value = true;
 
   /// Repeated taps share one native completion. Cleared afterwards so a failed
