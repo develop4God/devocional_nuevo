@@ -7,7 +7,7 @@ Internal, developer-facing history generated from commit messages via
 Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 
 <!-- git-cliff: end of header -->
-## [1.17.0+130] - 2026-10-22
+## [unreleased]
 
 ### 🚀 Features
 
@@ -24,6 +24,7 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - *(iap)* Run debug purchase simulation through real delivery path
 - *(bible)* Ship HERV Hindi with Titus (46 verses)
 - *(bible)* Sync bundled versions and let the index update them ([#340](https://github.com/develop4God/devocional_nuevo/issues/340))
+- Long verses and meditate items cut off on small/medium screens ([#342](https://github.com/develop4God/devocional_nuevo/issues/342))
 
 ### 🚜 Refactor
 
