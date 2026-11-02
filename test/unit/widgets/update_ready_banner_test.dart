@@ -310,4 +310,112 @@ void main() {
     await tester.pump();
     expect(_ProbeState.topPadding, 24);
   });
+
+  group('restart in progress', () {
+    late Completer<bool> release;
+
+    Future<void> pumpPending(WidgetTester tester) {
+      release = Completer<bool>();
+      ready.value = true;
+      return tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: UpdateReadyBanner(
+              updateReady: ready,
+              onRestart: () {
+                restarts++;
+                return release.future;
+              },
+              title: 'Update ready',
+              message: 'Restart',
+              closeTooltip: 'Close',
+              restartFailedMessage: 'Could not restart',
+              child: const _Probe(),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('shows progress and ignores a second tap', (tester) async {
+      await pumpPending(tester);
+
+      await tester.tap(find.text('Update ready'));
+      await tester.pump();
+      await tester.tap(find.text('Update ready'));
+      await tester.pump();
+
+      expect(restarts, 1);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byIcon(Icons.download_done_outlined), findsNothing);
+
+      release.complete(true);
+      await tester.pump();
+    });
+
+    testWidgets('the progress indicator has a semantics label', (tester) async {
+      await pumpPending(tester);
+
+      await tester.tap(find.text('Update ready'));
+      await tester.pump();
+
+      final indicator = tester.widget<CircularProgressIndicator>(
+        find.byType(CircularProgressIndicator),
+      );
+      expect(indicator.semanticsLabel, 'Update ready');
+
+      release.complete(true);
+      await tester.pump();
+    });
+
+    testWidgets('close button is disabled while restarting', (tester) async {
+      await pumpPending(tester);
+
+      await tester.tap(find.text('Update ready'));
+      await tester.pump();
+      await tester.tap(find.byTooltip('Close'), warnIfMissed: false);
+      await tester.pump();
+
+      expect(find.text('Update ready'), findsOneWidget);
+
+      release.complete(true);
+      await tester.pump();
+    });
+
+    testWidgets('failure restores the icon, shows the snackbar, allows retry',
+        (tester) async {
+      await pumpPending(tester);
+
+      await tester.tap(find.text('Update ready'));
+      await tester.pump();
+      release.complete(false);
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.byIcon(Icons.download_done_outlined), findsOneWidget);
+      expect(find.text('Could not restart'), findsOneWidget);
+
+      release = Completer<bool>();
+      await tester.tap(find.text('Update ready'));
+      await tester.pump();
+
+      expect(restarts, 2);
+
+      release.complete(true);
+      await tester.pump();
+    });
+
+    testWidgets('finishing after the banner is gone does not throw',
+        (tester) async {
+      await pumpPending(tester);
+
+      await tester.tap(find.text('Update ready'));
+      await tester.pump();
+      await tester.pumpWidget(const SizedBox());
+      release.complete(false);
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+    });
+  });
 }

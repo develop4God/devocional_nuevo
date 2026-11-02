@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 const Color kBannerGreen = Color(0xFF2E7D32);
 
 /// Tinted green card shared by the in-app notice banners. The whole card is
-/// the tap target.
+/// the tap target; a null [onTap] disables it.
 class GreenBannerCard extends StatelessWidget {
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final Widget child;
 
   const GreenBannerCard({super.key, required this.onTap, required this.child});

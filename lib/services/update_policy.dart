@@ -1,5 +1,5 @@
 /// What the app should do about a Play Store update.
-enum UpdateAction { none, flexible, immediate }
+enum UpdateAction { none, flexible, immediate, resumeImmediate }
 
 /// Decides between a background (flexible) and a blocking (immediate) update.
 /// Only a release marked urgent in Play blocks the user.
@@ -14,10 +14,16 @@ class UpdatePolicy {
     required bool immediateAllowed,
     required bool flexibleAllowed,
     required int? priority,
+    required bool inProgress,
   }) {
+    final critical = (priority ?? 0) >= criticalPriority;
+    if (inProgress) {
+      return critical && immediateAllowed
+          ? UpdateAction.resumeImmediate
+          : UpdateAction.none;
+    }
     if (!updateAvailable) return UpdateAction.none;
 
-    final critical = (priority ?? 0) >= criticalPriority;
     if (critical && immediateAllowed) return UpdateAction.immediate;
     if (flexibleAllowed) return UpdateAction.flexible;
     return UpdateAction.none;

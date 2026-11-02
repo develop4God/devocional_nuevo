@@ -334,6 +334,151 @@ void main() {
     });
   });
 
+  group('in-progress update', () {
+    // availability 3 = developerTriggeredUpdateInProgress, status 2 = downloading
+    Map<String, Object?> inProgressInfo(
+            {int priority = 0, bool immediate = true}) =>
+        info(
+          availability: 3,
+          installStatus: 2,
+          priority: priority,
+          immediate: immediate,
+        );
+
+    test('cold start resumes a critical immediate update', () async {
+      playInfo = inProgressInfo(priority: 5);
+
+      await service.onColdStart();
+
+      expect(calls, contains('performImmediateUpdate'));
+    });
+
+    test('resume resumes a critical immediate update', () async {
+      playInfo = inProgressInfo(priority: 5);
+
+      await service.onResume();
+
+      expect(calls, contains('performImmediateUpdate'));
+    });
+
+    test('a regular in-progress update is not resumed as immediate', () async {
+      playInfo = inProgressInfo();
+
+      await service.onResume();
+      await service.onColdStart();
+
+      expect(calls, isNot(contains('performImmediateUpdate')));
+    });
+
+    test('immediate not allowed is not resumed', () async {
+      playInfo = inProgressInfo(priority: 5, immediate: false);
+
+      await service.onColdStart();
+
+      expect(calls, isNot(contains('performImmediateUpdate')));
+    });
+
+    test('a canceled resume is swallowed and asked again on next resume',
+        () async {
+      playInfo = inProgressInfo(priority: 5);
+      immediateError = 'USER_DENIED_UPDATE';
+
+      await expectLater(service.onResume(), completes);
+      await service.onResume();
+
+      expect(calls.where((c) => c == 'performImmediateUpdate'), hasLength(2));
+    });
+
+    test('a later resume can resume again after concurrent ones finish',
+        () async {
+      playInfo = inProgressInfo(priority: 5);
+      final release = Completer<void>();
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        calls.add(call.method);
+        if (call.method == 'checkForUpdate') return playInfo;
+        if (call.method == 'performImmediateUpdate') await release.future;
+        return null;
+      });
+
+      final first = service.onResume();
+      final second = service.onResume();
+      await pumpEventQueue();
+      release.complete();
+      await Future.wait([first, second]);
+      await service.onResume();
+
+      expect(calls.where((c) => c == 'performImmediateUpdate'), hasLength(2));
+    });
+
+    test('concurrent checks before completion call it exactly once', () async {
+      playInfo = inProgressInfo(priority: 5);
+      final release = Completer<void>();
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        calls.add(call.method);
+        if (call.method == 'checkForUpdate') return playInfo;
+        if (call.method == 'performImmediateUpdate') await release.future;
+        return null;
+      });
+
+      final first = service.onResume();
+      final second = service.onResume();
+      await pumpEventQueue();
+      expect(calls.where((c) => c == 'performImmediateUpdate'), hasLength(1));
+      release.complete();
+      await Future.wait([first, second]);
+    });
+
+    test('a critical in-progress update still listens for the download',
+        () async {
+      playInfo = inProgressInfo(priority: 5);
+      emittedStatuses = [11];
+
+      await service.onResume();
+      await pumpEventQueue();
+
+      expect(service.updateReady.value, isTrue);
+    });
+
+    test('cold start with a running flexible download listens for it',
+        () async {
+      playInfo = inProgressInfo();
+      emittedStatuses = [2, 11];
+
+      await service.onColdStart();
+      await pumpEventQueue();
+
+      expect(service.updateReady.value, isTrue);
+      expect(calls, isNot(contains('startFlexibleUpdate')));
+    });
+
+    test('repeated checks attach only one status listener', () async {
+      playInfo = inProgressInfo();
+      var listens = 0;
+      messenger.setMockStreamHandler(
+        events,
+        MockStreamHandler.inline(onListen: (args, sink) => listens++),
+      );
+
+      await service.onColdStart();
+      await service.onResume();
+      await service.onResume();
+      await pumpEventQueue();
+
+      expect(listens, 1);
+    });
+
+    test('a throttled flexible offer still listens for the download', () async {
+      await prefs.setInt(_offerKey, now.millisecondsSinceEpoch);
+      emittedStatuses = [11];
+
+      await service.onColdStart();
+      await pumpEventQueue();
+
+      expect(calls, isNot(contains('startFlexibleUpdate')));
+      expect(service.updateReady.value, isTrue);
+    });
+  });
+
   group('applyDownloadedUpdate', () {
     for (final status in [5, 6]) {
       test(

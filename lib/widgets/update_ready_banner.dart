@@ -69,12 +69,12 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
 
   Future<void> _restart() async {
     if (_restarting) return;
-    _restarting = true;
+    setState(() => _restarting = true);
     final bool installed;
     try {
       installed = await widget.onRestart();
     } finally {
-      _restarting = false;
+      if (mounted) setState(() => _restarting = false);
     }
     if (installed || !mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -110,7 +110,7 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
     return SafeArea(
       bottom: false,
       child: GreenBannerCard(
-        onTap: _restart,
+        onTap: _restarting ? null : _restart,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -120,11 +120,21 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
                 color: kBannerGreen,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.download_done_outlined,
-                color: Colors.white,
-                size: 18,
-              ),
+              child: _restarting
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        semanticsLabel: widget.title,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.download_done_outlined,
+                      color: Colors.white,
+                      size: 18,
+                    ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -160,7 +170,8 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
               tooltip: widget.closeTooltip,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
-              onPressed: () => setState(() => _dismissed = true),
+              onPressed:
+                  _restarting ? null : () => setState(() => _dismissed = true),
             ),
           ],
         ),

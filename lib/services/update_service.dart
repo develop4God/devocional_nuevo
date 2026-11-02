@@ -17,6 +17,7 @@ class UpdateService implements IUpdateService {
   StreamSubscription<InstallStatus>? _statusSubscription;
   bool _coldStartHandled = false;
   Future<bool>? _completing;
+  Future<void>? _resuming;
   Completer<void>? _installFailed;
 
   /// Printed (not `developer.log`) so the lines also reach logcat in release
@@ -72,22 +73,35 @@ class UpdateService implements IUpdateService {
         }
         return;
       }
-      if (!isColdStart) return;
 
+      final inProgress = info.updateAvailability ==
+          UpdateAvailability.developerTriggeredUpdateInProgress;
       final action = UpdatePolicy.decide(
         updateAvailable:
             info.updateAvailability == UpdateAvailability.updateAvailable,
+        inProgress: inProgress,
         immediateAllowed: info.immediateUpdateAllowed,
         flexibleAllowed: info.flexibleUpdateAllowed,
         priority: info.updatePriority,
       );
       _log('decision=$action');
+      // A download already running: only listen for its end.
+      if (inProgress) _listenForDownload();
+      if (action == UpdateAction.resumeImmediate) {
+        await (_resuming ??= _resumeImmediate().whenComplete(
+          () => _resuming = null,
+        ));
+        return;
+      }
+      if (!isColdStart) return;
+
       switch (action) {
         case UpdateAction.immediate:
           await InAppUpdate.performImmediateUpdate();
         case UpdateAction.flexible:
           await _startFlexibleUpdate();
         case UpdateAction.none:
+        case UpdateAction.resumeImmediate:
           break;
       }
     } catch (e) {
@@ -95,7 +109,13 @@ class UpdateService implements IUpdateService {
     }
   }
 
+  Future<void> _resumeImmediate() async {
+    final result = await InAppUpdate.performImmediateUpdate();
+    _log('resume performImmediateUpdate result=$result');
+  }
+
   Future<void> _startFlexibleUpdate() async {
+    _listenForDownload();
     final now = _clock();
     final lastOfferMs = _prefs.getInt(_lastOfferKey);
     if (lastOfferMs != null) {
@@ -107,6 +127,15 @@ class UpdateService implements IUpdateService {
       }
     }
 
+    final result = await InAppUpdate.startFlexibleUpdate();
+    _log('startFlexibleUpdate result=$result');
+    // A failed offer is not counted, so it is retried on the next start.
+    if (result != AppUpdateResult.inAppUpdateFailed) {
+      await _prefs.setInt(_lastOfferKey, now.millisecondsSinceEpoch);
+    }
+  }
+
+  void _listenForDownload() {
     _statusSubscription ??= InAppUpdate.installUpdateListener.listen(
       (status) {
         _log('install status=$status');
@@ -114,12 +143,6 @@ class UpdateService implements IUpdateService {
       },
       onError: (Object e) => _log('install status error: $e'),
     );
-    final result = await InAppUpdate.startFlexibleUpdate();
-    _log('startFlexibleUpdate result=$result');
-    // A failed offer is not counted, so it is retried on the next start.
-    if (result != AppUpdateResult.inAppUpdateFailed) {
-      await _prefs.setInt(_lastOfferKey, now.millisecondsSinceEpoch);
-    }
   }
 
   /// Only raises the banner: for a download that finishes while the app is

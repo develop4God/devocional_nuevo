@@ -9,12 +9,14 @@ UpdateAction decide({
   bool immediateAllowed = true,
   bool flexibleAllowed = true,
   int? priority = 0,
+  bool inProgress = false,
 }) {
   return UpdatePolicy.decide(
     updateAvailable: available,
     immediateAllowed: immediateAllowed,
     flexibleAllowed: flexibleAllowed,
     priority: priority,
+    inProgress: inProgress,
   );
 }
 
@@ -58,6 +60,50 @@ void main() {
     test('neither type allowed does nothing, even when critical', () {
       expect(
         decide(priority: 5, immediateAllowed: false, flexibleAllowed: false),
+        UpdateAction.none,
+      );
+    });
+  });
+
+  group('UpdatePolicy.decide in progress', () {
+    test('critical in-progress update with immediate allowed is resumed', () {
+      expect(
+        decide(available: false, inProgress: true, priority: 4),
+        UpdateAction.resumeImmediate,
+      );
+      expect(
+        decide(available: false, inProgress: true, priority: 5),
+        UpdateAction.resumeImmediate,
+      );
+    });
+
+    test('regular in-progress update is not resumed', () {
+      expect(
+        decide(available: false, inProgress: true, priority: 3),
+        UpdateAction.none,
+      );
+      expect(
+        decide(available: false, inProgress: true, priority: null),
+        UpdateAction.none,
+      );
+    });
+
+    test('critical in-progress update without immediate allowed is not resumed',
+        () {
+      expect(
+        decide(
+          available: false,
+          inProgress: true,
+          priority: 5,
+          immediateAllowed: false,
+        ),
+        UpdateAction.none,
+      );
+    });
+
+    test('not in progress never resumes', () {
+      expect(
+        decide(available: false, priority: 5),
         UpdateAction.none,
       );
     });

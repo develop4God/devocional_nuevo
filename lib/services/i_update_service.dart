@@ -9,12 +9,15 @@ abstract class IUpdateService {
   /// First check of the process. Installs an already downloaded update right
   /// away (falling back to [updateReady] if the install fails), or starts a
   /// background download. Only an update Play marks urgent is shown as a
-  /// blocking screen. When the install succeeds Play restarts the app, so the
-  /// returned future may never complete: callers must not await it.
+  /// blocking screen; an urgent update already in progress is resumed, and a
+  /// background download already running is followed to raise [updateReady].
+  /// When the install succeeds Play restarts the app, so the returned future
+  /// may never complete: callers must not await it.
   Future<void> onColdStart();
 
-  /// Check on return to foreground. Only reports a downloaded update through
-  /// [updateReady]; never starts a download or restarts the app.
+  /// Check on return to foreground. Reports a downloaded update through
+  /// [updateReady] and resumes an urgent update already in progress; never
+  /// starts a new download.
   Future<void> onResume();
 
   /// Installs the downloaded update, restarting the app. Only ever called by
