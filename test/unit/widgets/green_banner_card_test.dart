@@ -34,13 +34,38 @@ void main() {
     expect(taps, 1);
   });
 
+  for (final theme in [ThemeData.light(), ThemeData.dark()]) {
+    testWidgets(
+        'fill is opaque and the tint blended over the surface '
+        '(${theme.brightness.name})', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(
+            body: GreenBannerCard(onTap: () {}, child: const Text('x')),
+          ),
+        ),
+      );
+
+      final color = cardDecoration(tester).color!;
+      expect(color.a, 1.0);
+      expect(
+        color,
+        Color.alphaBlend(
+          kBannerGreen.withValues(alpha: 0.14),
+          theme.colorScheme.surface,
+        ),
+      );
+    });
+  }
+
   testWidgets('uses the shared green tint and border', (tester) async {
     await tester.pumpWidget(
       host(GreenBannerCard(onTap: () {}, child: const Text('x'))),
     );
 
     final decoration = cardDecoration(tester);
-    expect(decoration.color, kBannerGreen.withValues(alpha: 0.14));
+    expect(decoration.color!.a, 1.0);
     expect(
       (decoration.border! as Border).top.color,
       kBannerGreen.withValues(alpha: 0.6),
@@ -53,7 +78,13 @@ void main() {
     );
 
     expect(find.byType(GreenBannerCard), findsOneWidget);
-    expect(cardDecoration(tester).color, kBannerGreen.withValues(alpha: 0.14));
+    expect(
+      cardDecoration(tester).color,
+      Color.alphaBlend(
+        kBannerGreen.withValues(alpha: 0.14),
+        ThemeData.light().colorScheme.surface,
+      ),
+    );
   });
 
   testWidgets('update banner is built on the green card', (tester) async {
@@ -68,13 +99,19 @@ void main() {
           message: 'Tap to restart',
           closeTooltip: 'Close',
           restartFailedMessage: 'Could not restart',
-          child: const SizedBox.shrink(),
+          child: const SizedBox.expand(),
         ),
       ),
     );
 
     expect(find.byType(GreenBannerCard), findsOneWidget);
-    expect(cardDecoration(tester).color, kBannerGreen.withValues(alpha: 0.14));
+    expect(
+      cardDecoration(tester).color,
+      Color.alphaBlend(
+        kBannerGreen.withValues(alpha: 0.14),
+        ThemeData.light().colorScheme.surface,
+      ),
+    );
   });
 
   group('each banner keeps its own action on the shared card', () {
@@ -115,7 +152,7 @@ void main() {
             message: 'Tap to restart',
             closeTooltip: 'Close',
             restartFailedMessage: 'Could not restart',
-            child: const SizedBox.shrink(),
+            child: const SizedBox.expand(),
           ),
         ),
       );

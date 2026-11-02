@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 /// white on this green passes 4.5:1.
 const Color kBannerGreen = Color(0xFF2E7D32);
 
-/// Tinted green card shared by the in-app notice banners. The whole card is
-/// the tap target; a null [onTap] disables it.
+/// Opaque, green-tinted card shared by the in-app notice banners. The whole
+/// card is the tap target; a null [onTap] disables it.
 class GreenBannerCard extends StatelessWidget {
   final VoidCallback? onTap;
   final Widget child;
@@ -18,7 +18,10 @@ class GreenBannerCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
       decoration: BoxDecoration(
-        color: kBannerGreen.withValues(alpha: 0.14),
+        color: Color.alphaBlend(
+          kBannerGreen.withValues(alpha: 0.14),
+          Theme.of(context).colorScheme.surface,
+        ),
         borderRadius: radius,
         border: Border.all(color: kBannerGreen.withValues(alpha: 0.6)),
       ),

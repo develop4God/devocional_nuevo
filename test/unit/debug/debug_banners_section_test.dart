@@ -113,4 +113,56 @@ void main() {
     expect(find.byType(KjvKj2000Banner), findsNothing);
     expect(find.text('Show KJV banner'), findsOneWidget);
   });
+
+  group('update banner preview', () {
+    final hero = find.byKey(const Key('debug_banner_preview_hero'));
+
+    testWidgets('shows the fake page content together with the banner',
+        (tester) async {
+      await pumpSection(tester);
+      await tester.tap(find.text('Show update banner'));
+      await tester.pump();
+
+      expect(hero, findsOneWidget);
+      expect(find.byIcon(Icons.menu), findsOneWidget);
+      expect(find.byIcon(Icons.share_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+      expect(find.text('Update ready'), findsOneWidget);
+    });
+
+    testWidgets('preview area is phone-like sized', (tester) async {
+      await pumpSection(tester);
+      await tester.tap(find.text('Show update banner'));
+      await tester.pump();
+
+      final size = tester.getSize(find.byKey(
+        const Key('debug_banner_preview_area'),
+      ));
+      expect(size, const Size(360, 420));
+    });
+
+    testWidgets('hero keeps its size when the banner is closed',
+        (tester) async {
+      await pumpSection(tester);
+      await tester.tap(find.text('Show update banner'));
+      await tester.pump();
+      final withBanner = tester.getRect(hero);
+
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pump();
+
+      expect(find.text('Update ready'), findsNothing);
+      expect(tester.getRect(hero), withBanner);
+    });
+
+    testWidgets('hiding the preview removes the fake page', (tester) async {
+      await pumpSection(tester);
+      await tester.tap(find.text('Show update banner'));
+      await tester.pump();
+      await tester.tap(find.text('Hide update banner'));
+      await tester.pump();
+
+      expect(hero, findsNothing);
+    });
+  });
 }

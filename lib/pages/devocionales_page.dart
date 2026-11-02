@@ -1056,8 +1056,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     closeTooltip: 'update.close'.tr(),
                     restartFailedMessage: 'update.restart_failed'.tr(),
                     child: Builder(
-                      // Inside the banner, whose MediaQuery drops the top inset
-                      // while it shows.
                       builder: (context) => Stack(
                         children: [
                           if (heroImageUrl != null)

@@ -2,13 +2,13 @@ import 'package:devocional_nuevo/widgets/green_banner_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-/// Green banner shown above [child] when a background update finished
-/// downloading. The user picks the moment: tapping the card applies it now,
-/// close hides it only until the app returns from the background, so it keeps
-/// coming back until the update is installed.
+/// Green banner floated over the top of [child] when a background update
+/// finished downloading. The user picks the moment: tapping the card applies
+/// it now, close hides it only until the app returns from the background, so
+/// it keeps coming back until the update is installed.
 ///
-/// While visible the banner takes over the top safe-area inset, so [child]
-/// does not leave a second gap under it.
+/// The banner overlays [child] instead of shifting it: nothing around the card
+/// is painted, and taps outside the card reach [child].
 ///
 /// Texts are passed in so the widget stays free of the localization service.
 class UpdateReadyBanner extends StatefulWidget {
@@ -88,17 +88,19 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
       valueListenable: widget.updateReady,
       builder: (context, ready, _) {
         final visible = ready && !_dismissed;
-        // The child stays at index 1 in both states so its State survives.
-        return Column(
+        // The child stays the first Stack child in both states so its State
+        // survives.
+        return Stack(
+          fit: StackFit.expand,
           children: [
-            visible ? _buildBanner(context) : const SizedBox.shrink(),
-            Expanded(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: visible,
-                child: widget.child,
+            widget.child,
+            if (visible)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: _buildBanner(context),
               ),
-            ),
           ],
         );
       },

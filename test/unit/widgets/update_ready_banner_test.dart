@@ -3,6 +3,7 @@ library;
 
 import 'dart:async';
 
+import 'package:devocional_nuevo/widgets/green_banner_card.dart';
 import 'package:devocional_nuevo/widgets/update_ready_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -269,6 +270,30 @@ void main() {
     expect(find.text('Update ready'), findsNothing);
   });
 
+  testWidgets('a child that does not expand still fills the area',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: UpdateReadyBanner(
+            updateReady: ready,
+            onRestart: () async => true,
+            title: 'Update ready',
+            message: 'Tap to restart and get the latest improvements.',
+            closeTooltip: 'Close',
+            restartFailedMessage: 'Could not restart',
+            child: const SizedBox.shrink(key: Key('shrunk_child')),
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      tester.getSize(find.byKey(const Key('shrunk_child'))),
+      tester.getSize(find.byType(Scaffold)),
+    );
+  });
+
   testWidgets('keeps the child state when the banner toggles', (tester) async {
     await pumpBanner(tester);
 
@@ -280,10 +305,7 @@ void main() {
     expect(_ProbeState.created, 1);
   });
 
-  testWidgets('child loses the top inset only while the banner shows',
-      (tester) async {
-    await tester.pumpWidget(
-      MediaQuery(
+  Widget hostWithPadding({Widget? child}) => MediaQuery(
         data: const MediaQueryData(padding: EdgeInsets.only(top: 24)),
         child: MaterialApp(
           home: Scaffold(
@@ -294,21 +316,94 @@ void main() {
               message: 'Restart',
               closeTooltip: 'Close',
               restartFailedMessage: 'Could not restart',
-              child: const _Probe(),
+              child: child ?? const _Probe(),
             ),
           ),
         ),
-      ),
-    );
+      );
+
+  testWidgets('child keeps its size, position and top inset when banner shows',
+      (tester) async {
+    await tester.pumpWidget(hostWithPadding());
+    final before = tester.getRect(find.byType(_Probe));
     expect(_ProbeState.topPadding, 24);
 
     ready.value = true;
     await tester.pump();
-    expect(_ProbeState.topPadding, 0);
 
-    await tester.tap(find.byTooltip('Close'));
-    await tester.pump();
+    expect(find.text('Update ready'), findsOneWidget);
+    expect(tester.getRect(find.byType(_Probe)), before);
     expect(_ProbeState.topPadding, 24);
+  });
+
+  testWidgets('banner floats at the top below the status-bar inset',
+      (tester) async {
+    await tester.pumpWidget(hostWithPadding());
+    ready.value = true;
+    await tester.pump();
+
+    final card = tester.getRect(find.byType(GreenBannerCard));
+    // The rect includes the card's own 8px top margin, so it starts right at
+    // the inset.
+    expect(card.top, 24);
+  });
+
+  testWidgets('nothing opaque is painted around the card', (tester) async {
+    await tester.pumpWidget(hostWithPadding());
+    ready.value = true;
+    await tester.pump();
+
+    final screenWidth = tester.getSize(find.byType(Scaffold)).width;
+    final overlay = find.descendant(
+      of: find.byType(Positioned),
+      matching: find.byWidgetPredicate(
+        (w) => w is Material || w is ColoredBox || w is DecoratedBox,
+      ),
+    );
+    for (final element in overlay.evaluate()) {
+      final box = element.renderObject! as RenderBox;
+      final isCardOrInner = find
+              .descendant(
+                of: find.byType(GreenBannerCard),
+                matching: find.byWidget(element.widget),
+              )
+              .evaluate()
+              .isNotEmpty ||
+          element.widget is Material &&
+              (element.widget as Material).type == MaterialType.transparency;
+      if (isCardOrInner) continue;
+      expect(box.size.width, lessThan(screenWidth));
+    }
+    final positioned = tester.widget<Positioned>(
+      find.ancestor(
+        of: find.byType(GreenBannerCard),
+        matching: find.byType(Positioned),
+      ),
+    );
+    expect(positioned.bottom, isNull);
+  });
+
+  testWidgets('taps below the card reach the child while the banner shows',
+      (tester) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      hostWithPadding(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => taps++,
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+    ready.value = true;
+    await tester.pump();
+
+    final card = tester.getRect(find.byType(GreenBannerCard));
+    await tester.tapAt(Offset(card.center.dx, card.bottom + 40));
+    // Beside the card margin at the top: also reaches the child.
+    await tester.tapAt(const Offset(2, 2));
+
+    expect(taps, 2);
   });
 
   group('restart in progress', () {
