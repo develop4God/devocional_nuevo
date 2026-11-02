@@ -588,6 +588,85 @@ void main() {
       expect(calls.where((c) => c == 'completeFlexibleUpdate'), hasLength(2));
     });
 
+    test('a completion Play never answers times out so it can be retried',
+        () async {
+      service.dispose();
+      service = UpdateService(
+        prefs,
+        clock: () => now,
+        installTimeout: const Duration(milliseconds: 50),
+      );
+      playInfo = downloadedInfo();
+      await service.onResume();
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        calls.add(call.method);
+        if (call.method == 'completeFlexibleUpdate') {
+          return Completer<Object?>().future;
+        }
+        return null;
+      });
+      calls.clear();
+
+      expect(await service.applyDownloadedUpdate(), isFalse);
+      expect(await service.applyDownloadedUpdate(), isFalse);
+
+      expect(calls.where((c) => c == 'completeFlexibleUpdate'), hasLength(2));
+      expect(service.updateReady.value, isTrue);
+    });
+
+    group('foreground while Play is installing', () {
+      // availability 3 = in progress, status 3 = installing
+      Map<String, Object?> installingInfo() =>
+          info(availability: 3, installStatus: 3);
+
+      test('does not fail a user-requested install that is progressing',
+          () async {
+        playInfo = downloadedInfo();
+        await service.onResume();
+        final release = Completer<void>();
+        messenger.setMockMethodCallHandler(methods, (call) async {
+          if (call.method == 'checkForUpdate') return installingInfo();
+          if (call.method == 'completeFlexibleUpdate') await release.future;
+          return null;
+        });
+
+        var done = false;
+        final applying = service.applyDownloadedUpdate().whenComplete(() {
+          done = true;
+        });
+        await pumpEventQueue();
+        await service.onResume();
+        await pumpEventQueue();
+        expect(done, isFalse);
+
+        release.complete();
+        expect(await applying, isTrue);
+        expect(service.updateReady.value, isFalse);
+      });
+
+      test('does not raise the banner for a cold-start install in progress',
+          () async {
+        playInfo = downloadedInfo();
+        final release = Completer<void>();
+        messenger.setMockMethodCallHandler(methods, (call) async {
+          if (call.method == 'checkForUpdate') return playInfo;
+          if (call.method == 'completeFlexibleUpdate') await release.future;
+          return null;
+        });
+        final coldStart = service.onColdStart();
+        await pumpEventQueue();
+
+        playInfo = installingInfo();
+        await service.onResume();
+        await pumpEventQueue();
+
+        expect(service.updateReady.value, isFalse);
+        release.complete();
+        await coldStart;
+        expect(service.updateReady.value, isFalse);
+      });
+    });
+
     test('completes the update and clears updateReady', () async {
       playInfo = downloadedInfo();
       await service.onResume();

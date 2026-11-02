@@ -12,6 +12,7 @@ class UpdateService implements IUpdateService {
 
   final SharedPreferences _prefs;
   final DateTime Function() _clock;
+  final Duration _installTimeout;
   final ValueNotifier<bool> _updateReady = ValueNotifier(false);
 
   StreamSubscription<InstallStatus>? _statusSubscription;
@@ -30,7 +31,9 @@ class UpdateService implements IUpdateService {
   UpdateService(
     this._prefs, {
     DateTime Function()? clock,
-  }) : _clock = clock ?? DateTime.now;
+    Duration installTimeout = const Duration(seconds: 45),
+  })  : _clock = clock ?? DateTime.now,
+        _installTimeout = installTimeout;
 
   @override
   ValueListenable<bool> get updateReady => _updateReady;
@@ -46,11 +49,6 @@ class UpdateService implements IUpdateService {
   Future<void> onResume() => _check(isColdStart: false);
 
   Future<void> _check({required bool isColdStart}) async {
-    // Still on screen after an install request: Play did not restart the app.
-    // Accepted trade-off: a resume event during a cold-start install also
-    // counts as a failed install (a spurious banner is possible). It is the
-    // only failure signal when Play never answers, so it is kept on purpose.
-    _failPendingInstall('app is back in the foreground');
     try {
       final info = await InAppUpdate.checkForUpdate();
       _log(
@@ -61,6 +59,7 @@ class UpdateService implements IUpdateService {
         'flexibleAllowed=${info.flexibleUpdateAllowed} '
         'availableVersionCode=${info.availableVersionCode}',
       );
+      _failStalledInstall(info.installStatus);
 
       if (info.installStatus == InstallStatus.downloaded) {
         if (isColdStart) {
@@ -106,6 +105,7 @@ class UpdateService implements IUpdateService {
       }
     } catch (e) {
       _log('error checking for updates: $e');
+      _failPendingInstall('update check failed');
     }
   }
 
@@ -169,8 +169,9 @@ class UpdateService implements IUpdateService {
   }
 
   /// On success Play restarts the app. On failure the plugin never answers the
-  /// call, so the wait also ends on a failed or canceled install status, or
-  /// when the app is back in the foreground (see [_check]).
+  /// call, so the wait also ends on a failed or canceled install status, when
+  /// the app is back in the foreground with no install running (see
+  /// [_failStalledInstall]), or after [_installTimeout].
   Future<void> _untilInstallEnds() {
     final failed = _installFailed = Completer<void>();
     final subscription = InAppUpdate.installUpdateListener.listen((status) {
@@ -179,10 +180,21 @@ class UpdateService implements IUpdateService {
       }
     });
     return Future.any([InAppUpdate.completeFlexibleUpdate(), failed.future])
+        .timeout(_installTimeout)
         .whenComplete(() {
       subscription.cancel();
       _installFailed = null;
     });
+  }
+
+  /// Still on screen after an install request and Play is not installing: it
+  /// did not restart the app. While Play reports the install as pending or
+  /// installing, coming back to the foreground is not a failure.
+  void _failStalledInstall(InstallStatus status) {
+    if (status == InstallStatus.installing || status == InstallStatus.pending) {
+      return;
+    }
+    _failPendingInstall('app is back in the foreground');
   }
 
   void _failPendingInstall(String reason) {
