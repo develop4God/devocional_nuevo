@@ -60,7 +60,7 @@
 
 📤 Nous avons ajusté le message de partage : les dévotions et études bibliques partagées se terminent désormais par une courte note de téléchargement.
 
-📲 Les mises à jour se téléchargent en arrière-plan sans interrompre votre lecture et s'installent automatiquement.
+📲 Mises à jour silencieuses en arrière-plan, sans interrompre votre lecture.
 
 🙏 Merci de faire partie de notre ministère, que Dieu vous bénisse.
 </fr-FR>
@@ -95,7 +95,7 @@
 
 📤 Ajustamos a mensagem de compartilhamento: devocionais e estudos bíblicos compartilhados agora terminam com uma breve nota de download.
 
-📲 Melhoramos as atualizações: agora elas são baixadas em segundo plano sem interromper sua leitura e são instaladas automaticamente.
+📲 Atualizações baixadas em segundo plano, sem interromper sua leitura, e instaladas automaticamente.
 
 🙏 Obrigado por fazer parte do nosso ministério, Deus abençoe vocês.
 </pt-BR>
@@ -117,7 +117,7 @@
 
 📤 Inayos ang mensahe sa pagbabahagi: ang mga ibinahaging debosyonal at pag-aaral ng Bibliya ay nagtatapos na ngayon sa maikling paalala sa pag-download.
 
-📲 Dina-download na ang mga update sa background nang hindi naaantala ang iyong pagbabasa at awtomatikong nai-install.
+📲 Mga update ay nagda-download na sa background at awtomatikong nai-install.
 
 🙏 Salamat sa pagiging bahagi ng aming ministeryo, pagpalain kayo ng Diyos.
 </fil>
