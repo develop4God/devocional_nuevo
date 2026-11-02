@@ -29,6 +29,7 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 ### 🚜 Refactor
 
 - *(di)* Inject ISpiritualStatsService into DevocionalProvider
+- *(share)* Remove the marketing footer from shared devotionals and studies ([#345](https://github.com/develop4God/devocional_nuevo/issues/345))
 
 ### ◀️ Revert
 

@@ -106,6 +106,46 @@ void main() {
       expect(text, contains('Oración:'));
     });
 
+    group('footer', () {
+      const playStoreUrl =
+          'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo';
+
+      void expectDownloadOnlyFooter(String text) {
+        expect(text, isNot(contains('solo el comienzo')));
+        expect(text, isNot(contains('just the beginning')));
+        expect(text, isNot(contains('✓ ')));
+        expect(text, isNot(contains('🔥')));
+        expect(text, isNot(contains('\n\n\n')));
+        expect(text, contains('━━━━━━━━━━━━━━━━'));
+        expect(text, contains('📲 *Descarga: Devocionales Cristianos*'));
+        expect(text, contains('100% gratis | Sin anuncios | Uso offline'));
+        expect(text, contains(playStoreUrl));
+        expect(text, endsWith('Develop4God'));
+      }
+
+      test('keeps only the download part and the content sections', () {
+        final text = DevotionalShareHelper.generarTextoParaCompartir(
+          buildDevocional(
+            paraMeditar: [ParaMeditar(cita: 'Salmos 23:1', texto: 'Pastor.')],
+          ),
+        );
+
+        expectDownloadOnlyFooter(text);
+        expect(text, contains('Juan 3:16'));
+        expect(text, contains('Una reflexión profunda.'));
+        expect(text, contains('Señor, guíanos hoy.'));
+      });
+
+      test('has a download-only footer with an empty meditation list', () {
+        final text = DevotionalShareHelper.generarTextoParaCompartir(
+          buildDevocional(paraMeditar: []),
+        );
+
+        expectDownloadOnlyFooter(text);
+        expect(text, isNot(contains('📌')));
+      });
+    });
+
     group('with localization service registered', () {
       setUp(() async {
         TestWidgetsFlutterBinding.ensureInitialized();
