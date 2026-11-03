@@ -98,6 +98,7 @@ lib/
 ```
 test/
 ├── behavioral/  (9 tests)
+├── firestore_rules/  (0 files)
 ├── helpers/  (12 files)
 ├── integration/  (10 tests)
 ├── migration/  (2 tests)

@@ -25,6 +25,7 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - *(bible)* Ship HERV Hindi with Titus (46 verses)
 - *(bible)* Sync bundled versions and let the index update them ([#340](https://github.com/develop4God/devocional_nuevo/issues/340))
 - Long verses and meditate items cut off on small/medium screens ([#342](https://github.com/develop4God/devocional_nuevo/issues/342))
+- *(firestore)* Close Prayer Wall rules and sync users rules with production ([#348](https://github.com/develop4God/devocional_nuevo/issues/348))
 
 ### 🚜 Refactor
 
@@ -41,6 +42,7 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - *(deps)* Bump @grpc/grpc-js ([#332](https://github.com/develop4God/devocional_nuevo/issues/332))
 - *(deps)* Bump the npm_and_yarn group across 1 directory with 3 updates
 - Bible auto-update, unlock-all Encounters option, faster home page on slow connections (background image downloads), internal stability and diagnostic improvements.
+- *(deps)* Bump body-parser ([#347](https://github.com/develop4God/devocional_nuevo/issues/347))
 ## [1.16.6+127] - 2026-09-14
 
 ### 🐛 Bug Fixes
