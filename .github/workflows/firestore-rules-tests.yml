@@ -1,0 +1,52 @@
+name: Firestore rules tests
+
+# Runs the emulator tests in test/firestore_rules against firestore.rules.
+# Path-filtered so it only runs when the rules or their test project change.
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'firestore.rules'
+      - 'test/firestore_rules/**'
+      - '.github/workflows/firestore-rules-tests.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'firestore.rules'
+      - 'test/firestore_rules/**'
+      - '.github/workflows/firestore-rules-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  rules-tests:
+    name: Firestore rules tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Java (Firestore emulator)
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: test/firestore_rules/package-lock.json
+
+      - name: Install test dependencies
+        working-directory: test/firestore_rules
+        run: npm ci
+
+      - name: Run rules tests against the emulator
+        working-directory: test/firestore_rules
+        run: >-
+          npx --yes firebase-tools@15.34.2 emulators:exec
+          --only firestore --project demo-devocional "node --test"
