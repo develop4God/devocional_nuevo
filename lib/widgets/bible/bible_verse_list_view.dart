@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/blocs/bible_note_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/bible/bible_verse_note_indicator.dart';
+import 'package:devocional_nuevo/widgets/linkified_text.dart';
 import 'package:devocional_nuevo/widgets/tts_highlight_style.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -97,8 +98,8 @@ class BibleVerseListView extends StatelessWidget {
           }
           return Padding(
             padding: const EdgeInsets.only(top: 24),
-            child: Text(
-              state.selectedVersion!.disclaimer ??
+            child: LinkifiedText(
+              text: state.selectedVersion!.disclaimer ??
                   CopyrightUtils.getCopyrightText(
                     state.selectedVersion!.languageCode,
                     state.selectedVersion!.name,

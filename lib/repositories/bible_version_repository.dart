@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/debug/debug_flags.dart';
 import 'package:devocional_nuevo/models/remote_bible_index.dart';
+import 'package:devocional_nuevo/repositories/i_bible_index_debug_controls.dart';
 import 'package:devocional_nuevo/repositories/i_bible_version_repository.dart';
 import 'package:devocional_nuevo/utils/constants/constants.dart';
 import 'package:flutter/foundation.dart';
@@ -28,7 +29,8 @@ class BibleVersionDownloadException implements Exception {
 
 /// Repository for browsing and downloading additional Bible versions from
 /// the remote bible_versions GitHub repo.
-class BibleVersionRepository implements IBibleVersionRepository {
+class BibleVersionRepository
+    implements IBibleVersionRepository, IBibleIndexDebugControls {
   final http.Client httpClient;
   static const String _indexCacheKeyPrefix = 'bible_versions_index_cache_';
   static const String _indexEtagKeyPrefix = 'bible_versions_index_etag_';
@@ -283,6 +285,22 @@ class BibleVersionRepository implements IBibleVersionRepository {
     await prefs.setString(_remoteVersionNamesPrefKey, jsonEncode(names));
   }
 
+  @override
+  Future<BibleIndexRefreshResult> refreshIndex() async {
+    final branch = kDebugMode ? DebugFlags.debugBibleVersionsBranch : 'main';
+    final (index, servedFromCache) = await _fetchIndexWithSource(
+      branch,
+      bypassEtag: true,
+    );
+    return BibleIndexRefreshResult(
+      versionsByLanguage: {
+        for (final entry in index.languages.entries)
+          entry.key: entry.value.versions.keys.toList(),
+      },
+      servedFromCache: servedFromCache,
+    );
+  }
+
   /// Fetches the index, always hitting the network with a conditional
   /// request rather than trusting a same-session flag: a stale local cache
   /// must never suppress a newer index (e.g. a newly added version) for the
@@ -299,11 +317,21 @@ class BibleVersionRepository implements IBibleVersionRepository {
     );
   }
 
-  Future<RemoteBibleIndex> _fetchIndex(String branch) async {
+  Future<RemoteBibleIndex> _fetchIndex(String branch) async =>
+      (await _fetchIndexWithSource(branch)).$1;
+
+  /// Like [_fetchIndex], also telling whether the cached body was served
+  /// because the network fetch failed.
+  Future<(RemoteBibleIndex, bool)> _fetchIndexWithSource(
+    String branch, {
+    bool bypassEtag = false,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     final cacheKey = '$_indexCacheKeyPrefix$branch';
     final etagKey = '$_indexEtagKeyPrefix$branch';
-    final cachedEtag = prefs.getString(etagKey);
+    // bypassEtag forces a full 200 without touching the stored ETag, so a
+    // failed attempt leaves normal 304 revalidation intact.
+    final cachedEtag = bypassEtag ? null : prefs.getString(etagKey);
 
     try {
       final url = Constants.getBibleVersionsIndexUrl();
@@ -331,7 +359,7 @@ class BibleVersionRepository implements IBibleVersionRepository {
             jsonDecode(cached) as Map<String, dynamic>,
           );
           _debugPrintLblaHash('304 cached body', index);
-          return index;
+          return (index, false);
         }
         // No cached body despite a cached ETag — fall through to error path.
         throw Exception('304 received but no cached body for $cacheKey');
@@ -350,7 +378,7 @@ class BibleVersionRepository implements IBibleVersionRepository {
           jsonDecode(response.body) as Map<String, dynamic>,
         );
         _debugPrintLblaHash('200 fresh body', index);
-        return index;
+        return (index, false);
       }
 
       throw Exception('Server error: ${response.statusCode}');
@@ -363,7 +391,7 @@ class BibleVersionRepository implements IBibleVersionRepository {
           jsonDecode(cached) as Map<String, dynamic>,
         );
         _debugPrintLblaHash('error-fallback cached body', index);
-        return index;
+        return (index, true);
       }
       rethrow;
     }

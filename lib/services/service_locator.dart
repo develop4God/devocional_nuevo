@@ -3,6 +3,7 @@
 library;
 
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:devocional_nuevo/debug/i_debug_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
@@ -12,6 +13,7 @@ import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/repositories/devotional_image_repository.dart';
 import 'package:devocional_nuevo/repositories/bible_version_repository.dart';
 import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
+import 'package:devocional_nuevo/repositories/i_bible_index_debug_controls.dart';
 import 'package:devocional_nuevo/repositories/i_bible_version_repository.dart';
 import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
 import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
@@ -198,9 +200,18 @@ Future<void> setupServiceLocator() async {
     ),
   );
 
-  locator.registerLazySingleton<IBibleVersionRepository>(
+  locator.registerLazySingleton<BibleVersionRepository>(
     () => BibleVersionRepository(httpClient: locator.get<http.Client>()),
   );
+  locator.registerLazySingleton<IBibleVersionRepository>(
+    () => locator.get<BibleVersionRepository>(),
+  );
+  // Debug-only controls are never exposed in release builds.
+  if (kDebugMode) {
+    locator.registerLazySingleton<IBibleIndexDebugControls>(
+      () => locator.get<BibleVersionRepository>(),
+    );
+  }
 
   locator.registerLazySingleton<IEncounterProgressService>(
     () => EncounterProgressService(),
