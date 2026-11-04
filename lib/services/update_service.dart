@@ -4,14 +4,8 @@ import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/services/update_policy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_update/in_app_update.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class UpdateService implements IUpdateService {
-  static const String _lastOfferKey = 'update_last_offer_ms';
-  static const Duration _offerInterval = Duration(hours: 24);
-
-  final SharedPreferences _prefs;
-  final DateTime Function() _clock;
   final Duration _installTimeout;
   final ValueNotifier<bool> _updateReady = ValueNotifier(false);
 
@@ -28,12 +22,8 @@ class UpdateService implements IUpdateService {
   static void _log(String message) =>
       debugPrintSynchronously('[UpdateService] $message');
 
-  UpdateService(
-    this._prefs, {
-    DateTime Function()? clock,
-    Duration installTimeout = const Duration(seconds: 45),
-  })  : _clock = clock ?? DateTime.now,
-        _installTimeout = installTimeout;
+  UpdateService({Duration installTimeout = const Duration(seconds: 45)})
+      : _installTimeout = installTimeout;
 
   @override
   ValueListenable<bool> get updateReady => _updateReady;
@@ -116,23 +106,8 @@ class UpdateService implements IUpdateService {
 
   Future<void> _startFlexibleUpdate() async {
     _listenForDownload();
-    final now = _clock();
-    final lastOfferMs = _prefs.getInt(_lastOfferKey);
-    if (lastOfferMs != null) {
-      final sinceLastOffer =
-          now.difference(DateTime.fromMillisecondsSinceEpoch(lastOfferMs));
-      if (sinceLastOffer < _offerInterval) {
-        _log('offer skipped: last offer ${sinceLastOffer.inMinutes} min ago');
-        return;
-      }
-    }
-
     final result = await InAppUpdate.startFlexibleUpdate();
     _log('startFlexibleUpdate result=$result');
-    // A failed offer is not counted, so it is retried on the next start.
-    if (result != AppUpdateResult.inAppUpdateFailed) {
-      await _prefs.setInt(_lastOfferKey, now.millisecondsSinceEpoch);
-    }
   }
 
   void _listenForDownload() {

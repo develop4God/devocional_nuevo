@@ -7,9 +7,6 @@ import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-const _offerKey = 'update_last_offer_ms';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -24,8 +21,6 @@ void main() {
   late List<int> emittedStatuses;
   late String? startFlexibleError;
   late String? immediateError;
-  late DateTime now;
-  late SharedPreferences prefs;
   late UpdateService service;
 
   Map<String, Object?> info({
@@ -57,13 +52,7 @@ void main() {
     emittedStatuses = [];
     startFlexibleError = null;
     immediateError = null;
-    now = DateTime(2026, 10, 24, 12);
-    SharedPreferences.setMockInitialValues({});
-    prefs = await SharedPreferences.getInstance();
-    service = UpdateService(
-      prefs,
-      clock: () => now,
-    );
+    service = UpdateService();
 
     messenger.setMockMethodCallHandler(methods, (call) async {
       calls.add(call.method);
@@ -167,75 +156,38 @@ void main() {
     });
   });
 
-  group('flexible offer throttle', () {
-    test('declining the offer suppresses new offers for 24 hours', () async {
+  group('flexible offer', () {
+    test('a declined offer is made again on the next start', () async {
       startFlexibleError = 'USER_DENIED_UPDATE';
       await service.onColdStart();
-      expect(prefs.getInt(_offerKey), now.millisecondsSinceEpoch);
 
-      final later = UpdateService(
-        prefs,
-        clock: () => now,
-      );
-      now = now.add(const Duration(hours: 23));
+      final later = UpdateService();
       calls.clear();
       await later.onColdStart();
       later.dispose();
 
-      expect(calls, isNot(contains('startFlexibleUpdate')));
+      expect(calls, contains('startFlexibleUpdate'));
     });
 
-    test('accepted offer is recorded', () async {
-      await service.onColdStart();
-
-      expect(prefs.getInt(_offerKey), now.millisecondsSinceEpoch);
-    });
-
-    test('failed offer is not recorded so it is retried next start', () async {
+    test('a failed offer is made again on the next start', () async {
       startFlexibleError = 'IN_APP_UPDATE_FAILED';
-
       await service.onColdStart();
 
-      expect(prefs.getInt(_offerKey), isNull);
-    });
-
-    test('unexpected platform error is not recorded', () async {
-      startFlexibleError = 'SOMETHING_ELSE';
-
-      await service.onColdStart();
-
-      expect(prefs.getInt(_offerKey), isNull);
-    });
-
-    test('offer is made again after 24 hours', () async {
-      await prefs.setInt(
-        _offerKey,
-        now.subtract(const Duration(hours: 24)).millisecondsSinceEpoch,
-      );
-
-      await service.onColdStart();
+      final later = UpdateService();
+      calls.clear();
+      await later.onColdStart();
+      later.dispose();
 
       expect(calls, contains('startFlexibleUpdate'));
     });
 
-    test('throttle never prevents installing an already downloaded update',
-        () async {
-      await prefs.setInt(_offerKey, now.millisecondsSinceEpoch);
+    test('an already downloaded update is still installed', () async {
       playInfo = downloadedInfo();
 
       await service.onColdStart();
 
       expect(calls, contains('completeFlexibleUpdate'));
       expect(service.updateReady.value, isFalse);
-    });
-
-    test('throttle never blocks a critical update', () async {
-      await prefs.setInt(_offerKey, now.millisecondsSinceEpoch);
-      playInfo = info(priority: 5);
-
-      await service.onColdStart();
-
-      expect(calls, contains('performImmediateUpdate'));
     });
   });
 
@@ -245,7 +197,7 @@ void main() {
       immediateError = 'USER_DENIED_UPDATE';
       await service.onColdStart();
 
-      final later = UpdateService(prefs, clock: () => now);
+      final later = UpdateService();
       calls.clear();
       await later.onColdStart();
       later.dispose();
@@ -466,17 +418,6 @@ void main() {
 
       expect(listens, 1);
     });
-
-    test('a throttled flexible offer still listens for the download', () async {
-      await prefs.setInt(_offerKey, now.millisecondsSinceEpoch);
-      emittedStatuses = [11];
-
-      await service.onColdStart();
-      await pumpEventQueue();
-
-      expect(calls, isNot(contains('startFlexibleUpdate')));
-      expect(service.updateReady.value, isTrue);
-    });
   });
 
   group('applyDownloadedUpdate', () {
@@ -592,8 +533,6 @@ void main() {
         () async {
       service.dispose();
       service = UpdateService(
-        prefs,
-        clock: () => now,
         installTimeout: const Duration(milliseconds: 50),
       );
       playInfo = downloadedInfo();
@@ -741,14 +680,6 @@ void main() {
 
       expect(logs, contains(contains('error checking for updates')));
       expect(logs, contains(contains('boom')));
-    });
-
-    test('logs why an offer was skipped', () async {
-      await prefs.setInt(_offerKey, now.millisecondsSinceEpoch);
-
-      await captureLogs(() => service.onColdStart());
-
-      expect(logs, contains(contains('offer skipped')));
     });
   });
 }

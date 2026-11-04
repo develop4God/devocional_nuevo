@@ -159,7 +159,7 @@ Future<void> setupServiceLocator() async {
   locator.registerLazySingleton<ITtsService>(() => TtsService());
   locator.registerLazySingleton<IAnalyticsService>(() => AnalyticsService());
   locator.registerLazySingleton<IUpdateService>(
-    () => UpdateService(locator.get<SharedPreferences>()),
+    () => UpdateService(),
   );
   locator.registerLazySingleton<IUserProfileStore>(
     () => FirestoreUserProfileStore(),
