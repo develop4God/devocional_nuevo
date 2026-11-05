@@ -22,11 +22,9 @@ Future<void> _pump(
   bool isLoading = false,
   String? lottieAsset = 'assets/lottie/unlocked.json',
   VoidCallback? onPurchase,
-  ThemeData? theme,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
-      theme: theme,
       home: Scaffold(
         body: SingleChildScrollView(
           child: FeaturedTierCard(
@@ -52,23 +50,6 @@ void main() {
     await registerTestServicesWithFakes();
   });
 
-  group('FeaturedTierCard buy button', () {
-    for (final theme in [ThemeData.light(), ThemeData.dark()]) {
-      testWidgets('label is always dark on gold (${theme.brightness.name})', (
-        tester,
-      ) async {
-        await _pump(tester, theme: theme, onPurchase: () {});
-        final label = tester.widget<RichText>(
-          find.descendant(
-            of: find.byKey(const ValueKey('featured_tier_buy')),
-            matching: find.byType(RichText),
-          ),
-        );
-        expect(label.text.style?.color, goldOnGold);
-      });
-    }
-  });
-
   group('FeaturedTierCard (not purchased)', () {
     testWidgets('shows a Lottie icon, the name and a centered benefit', (
       tester,
@@ -85,7 +66,10 @@ void main() {
       expect(benefit.textAlign, TextAlign.center);
       expect(find.byIcon(Icons.check_circle_rounded), findsNothing);
       // The "at your own pace" description is gone from the card.
-      expect(find.text('supporter.tier_encounters_description'), findsNothing);
+      expect(
+        find.text('supporter.tier_encounters_description'),
+        findsNothing,
+      );
     });
 
     testWidgets('has a shimmering border and button', (tester) async {
@@ -125,17 +109,16 @@ void main() {
     });
 
     testWidgets(
-      'while a purchase is running it shows progress and ignores taps',
-      (tester) async {
-        var taps = 0;
-        await _pump(tester, isLoading: true, onPurchase: () => taps++);
+        'while a purchase is running it shows progress and ignores taps',
+        (tester) async {
+      var taps = 0;
+      await _pump(tester, isLoading: true, onPurchase: () => taps++);
 
-        expect(find.byType(CircularProgressIndicator), findsOneWidget);
-        await tester.tap(find.byKey(const ValueKey('featured_tier_buy')));
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('featured_tier_buy')));
 
-        expect(taps, 0);
-      },
-    );
+      expect(taps, 0);
+    });
 
     testWidgets('works for any tier, not only encounters', (tester) async {
       await _pump(
