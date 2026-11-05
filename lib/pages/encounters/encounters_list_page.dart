@@ -25,6 +25,7 @@ import 'package:devocional_nuevo/widgets/encounter/encounter_grid_overlay.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_unlock_offer_sheet.dart';
 import 'package:devocional_nuevo/widgets/encounter/locked_encounter_overlay.dart';
+import 'package:devocional_nuevo/widgets/encounter/responsive_card_grid.dart';
 import 'package:devocional_nuevo/widgets/gold_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -250,14 +251,12 @@ class _EncountersListPageState extends State<EncountersListPage>
       children: [
         AppScrollbar(
           controller: _scrollController,
-          child: ListView.builder(
+          child: ResponsiveCardGrid(
             controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            itemCount: state.index.length + 1, // +1 for header
+            header: _buildHeader(),
+            itemCount: state.index.length,
             itemBuilder: (context, i) {
-              if (i == 0) return _buildHeader();
-              final entry = state.index[i - 1];
+              final entry = state.index[i];
               final isUnlocked = state.isUnlocked(
                 entry.id,
                 allUnlocked: allUnlocked,
@@ -270,7 +269,7 @@ class _EncountersListPageState extends State<EncountersListPage>
                 isCompleted: isCompleted,
                 onTap: (entry.isPublished && isUnlocked)
                     ? () {
-                        setState(() => _currentIndex = i - 1);
+                        setState(() => _currentIndex = i);
                         _openEncounter(entry, lang);
                       }
                     : null,
@@ -310,10 +309,7 @@ class _EncountersListPageState extends State<EncountersListPage>
                 cardWidget = GoldShimmer(child: cardWidget);
               }
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 24),
-                child: cardWidget,
-              );
+              return cardWidget;
             },
           ),
         ),
@@ -456,7 +452,7 @@ class _EncounterCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 272,
+        height: encounterCardHeight,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(32),
           color: accentColor.withValues(alpha: 0.15),
@@ -513,23 +509,31 @@ class _EncounterCard extends StatelessWidget {
                     Row(
                       children: [
                         if (isCompleted)
-                          _StatusBadge(
-                            label:
-                                'encounters.badge_completed'.tr().toUpperCase(),
-                            icon: Icons.verified_rounded,
-                            color: Colors.greenAccent,
+                          Flexible(
+                            child: _StatusBadge(
+                              label: 'encounters.badge_completed'
+                                  .tr()
+                                  .toUpperCase(),
+                              icon: Icons.verified_rounded,
+                              color: Colors.greenAccent,
+                            ),
                           )
                         else if (isToday)
-                          _StatusBadge(
-                            label: 'encounters.badge_today'.tr().toUpperCase(),
-                            icon: Icons.auto_awesome_rounded,
-                            color: Colors.yellowAccent,
+                          Flexible(
+                            child: _StatusBadge(
+                              label:
+                                  'encounters.badge_today'.tr().toUpperCase(),
+                              icon: Icons.auto_awesome_rounded,
+                              color: Colors.yellowAccent,
+                            ),
                           )
                         else if (isNew)
-                          _StatusBadge(
-                            label: 'encounters.badge_new'.tr().toUpperCase(),
-                            icon: Icons.new_releases_rounded,
-                            color: Colors.cyanAccent,
+                          Flexible(
+                            child: _StatusBadge(
+                              label: 'encounters.badge_new'.tr().toUpperCase(),
+                              icon: Icons.new_releases_rounded,
+                              color: Colors.cyanAccent,
+                            ),
                           ),
                         const Spacer(),
                         Container(
@@ -700,13 +704,17 @@ class _StatusBadge extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 12),
           const SizedBox(width: 5),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.0,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: color,
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.0,
+              ),
             ),
           ),
         ],
