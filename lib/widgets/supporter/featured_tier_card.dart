@@ -214,6 +214,7 @@ class FeaturedTierCard extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w900,
+                  color: goldOnGold,
                 ),
               ),
       ),
