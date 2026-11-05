@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<void> _pump(
   WidgetTester tester, {
   required bool highlight,
-  bool compact = false,
+  LockedOverlayStyle style = LockedOverlayStyle.list,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -19,7 +19,7 @@ Future<void> _pump(
         body: LockedEncounterOverlay(
           prerequisiteTitle: 'Prev',
           highlight: highlight,
-          compact: compact,
+          style: style,
         ),
       ),
     ),
@@ -49,7 +49,7 @@ void main() {
   });
 
   testWidgets('plain compact omits the hint entirely', (t) async {
-    await _pump(t, highlight: false, compact: true);
+    await _pump(t, highlight: false, style: LockedOverlayStyle.grid);
     expect(find.text('encounters.read_now_hint'), findsNothing);
     expect(find.byType(GoldHintPill), findsNothing);
   });
@@ -67,4 +67,37 @@ void main() {
     expect(deco.gradient, goldLockOverlayGradient);
     expect(deco.color, isNull);
   });
+
+  for (final highlight in [true, false]) {
+    testWidgets(
+        'grid overlay fits a small card at 1.5x text (highlight: '
+        '$highlight)', (t) async {
+      await t.pumpWidget(
+        MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: const TextScaler.linear(1.5)),
+            child: child!,
+          ),
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 120,
+                height: 130,
+                child: LockedEncounterOverlay(
+                  prerequisiteTitle: 'The Night Peter Walked on Water',
+                  highlight: highlight,
+                  style: LockedOverlayStyle.grid,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await t.pump();
+      // A RenderFlex overflow is reported as a test exception.
+      expect(t.takeException(), isNull);
+    });
+  }
 }

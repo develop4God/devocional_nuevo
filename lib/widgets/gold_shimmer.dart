@@ -12,16 +12,6 @@ const _goldShine = Color(0xFFFFF3C4);
 /// Dark brown that stays readable on top of the gold gradient.
 const goldOnGold = Color(0xFF3E2A00);
 
-/// Dark warm overlay painted over the next waiting (locked) encounter card.
-const goldLockOverlayGradient = LinearGradient(
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-  colors: [Color(0xD9000000), Color(0xE62A2110)],
-);
-
-/// Lock icon colour on top of [goldLockOverlayGradient].
-const goldLockIconColor = Color(0xFFFFE08A);
-
 /// Paints a gold gradient whose bright band sweeps across [child] on a loop.
 ///
 /// With [filled] false only a thin border ring is painted over the child;
@@ -166,65 +156,50 @@ class GoldShimmerButton extends StatelessWidget {
   }
 }
 
-/// Lock icon inside a glowing gold ring, used on the next waiting encounter.
-class GoldLockBadge extends StatelessWidget {
-  final double iconSize;
-  final double padding;
-
-  const GoldLockBadge({super.key, this.iconSize = 32, this.padding = 12});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(padding),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.black.withValues(alpha: 0.5),
-        border: Border.all(color: goldAccent, width: 2),
-        boxShadow: const [
-          BoxShadow(color: Color(0x66D9A62E), blurRadius: 18, spreadRadius: 2),
-        ],
-      ),
-      child: Icon(
-        Icons.lock_rounded,
-        color: goldLockIconColor,
-        size: iconSize,
-      ),
-    );
-  }
-}
-
-/// Small shimmering gold pill carrying a short hint text.
+/// Small gold pill carrying a short hint text.
+///
+/// Shimmers by default; pass [animated] false for a static gold fill when
+/// another shimmer already runs nearby (one animation per card).
 class GoldHintPill extends StatelessWidget {
+  static const _radius = 20.0;
+
   final String text;
   final double fontSize;
   final EdgeInsetsGeometry padding;
+  final bool animated;
 
   const GoldHintPill({
     super.key,
     required this.text,
     this.fontSize = 12,
     this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    this.animated = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GoldShimmer(
-      filled: true,
-      borderRadius: 20,
-      child: Padding(
-        padding: padding,
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: goldOnGold,
-            fontSize: fontSize,
-            fontWeight: FontWeight.w800,
-            height: 1.3,
-          ),
+    final label = Padding(
+      padding: padding,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: goldOnGold,
+          fontSize: fontSize,
+          fontWeight: FontWeight.w800,
+          height: 1.3,
         ),
       ),
+    );
+    if (animated) {
+      return GoldShimmer(filled: true, borderRadius: _radius, child: label);
+    }
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: goldAccent,
+        borderRadius: BorderRadius.circular(_radius),
+      ),
+      child: label,
     );
   }
 }

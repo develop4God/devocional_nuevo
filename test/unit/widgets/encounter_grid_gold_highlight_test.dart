@@ -2,6 +2,7 @@ import 'package:devocional_nuevo/blocs/encounter/encounter_state.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_grid_overlay.dart';
+import 'package:devocional_nuevo/widgets/encounter/locked_encounter_overlay.dart';
 import 'package:devocional_nuevo/widgets/gold_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,8 +26,10 @@ Future<void> _pumpGrid(
   List<EncounterIndexEntry> entries, {
   Set<String> completed = const {},
   bool allUnlocked = false,
+  Size size = const Size(1080, 2400),
+  double textScale = 1.0,
 }) async {
-  tester.view.physicalSize = const Size(1080, 2400);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   final controller = AnimationController(
@@ -37,6 +40,12 @@ Future<void> _pumpGrid(
   addTearDown(controller.dispose);
   await tester.pumpWidget(
     MaterialApp(
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(
+          context,
+        ).copyWith(textScaler: TextScaler.linear(textScale)),
+        child: child!,
+      ),
       home: Scaffold(
         body: EncounterGridOverlay(
           state: EncounterLoaded(index: entries, completedIds: completed),
@@ -138,5 +147,28 @@ void main() {
     );
     expect(_ringShimmers(t), hasLength(1));
     expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
+  });
+
+  testWidgets('gold ring hugs the visible card edge', (t) async {
+    await _pumpGrid(t, [_entry('a'), _entry('b'), _entry('c')]);
+    final ring = t.getRect(find.byType(GoldShimmer).first);
+    // Card insets its Material by its margin; that Material is the visible edge.
+    final card = t.getRect(
+      find
+          .descendant(
+            of: find.byType(GoldShimmer).first,
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+    expect(ring, card);
+  });
+
+  testWidgets('grid hint pill is static: only the ring animates', (t) async {
+    await _pumpGrid(t, [_entry('a'), _entry('b'), _entry('c')]);
+    final animated = t
+        .widgetList<GoldShimmer>(find.byType(GoldShimmer))
+        .where((w) => w.filled);
+    expect(animated, isEmpty);
   });
 }

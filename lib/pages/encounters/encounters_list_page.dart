@@ -294,7 +294,6 @@ class _EncountersListPageState extends State<EncountersListPage>
                         child: LockedEncounterOverlay(
                           prerequisiteTitle: prerequisiteTitle,
                           highlight: highlight,
-                          borderRadius: BorderRadius.circular(32),
                         ),
                       ),
                     ),

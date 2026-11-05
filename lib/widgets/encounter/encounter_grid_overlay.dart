@@ -331,6 +331,7 @@ class _EncounterGridCard extends StatelessWidget {
     final accentColor = _parseColor(entry.accentColor) ?? colorScheme.primary;
 
     final card = Card(
+      margin: EdgeInsets.zero,
       elevation: isActive ? 8 : 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
@@ -498,12 +499,17 @@ class _EncounterGridCard extends StatelessWidget {
               LockedEncounterOverlay(
                 prerequisiteTitle: prerequisiteTitle,
                 highlight: isNextLocked,
-                compact: true,
+                style: LockedOverlayStyle.grid,
               ),
           ],
         ),
       ),
     );
-    return isNextLocked ? GoldShimmer(borderRadius: 24, child: card) : card;
+    // The 4px gap Card applies by default is kept outside the ring so the
+    // ring hugs the visible card edge.
+    return Padding(
+      padding: const EdgeInsets.all(4),
+      child: isNextLocked ? GoldShimmer(borderRadius: 24, child: card) : card,
+    );
   }
 }

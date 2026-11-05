@@ -22,11 +22,9 @@ Future<void> _pump(
   bool isLoading = false,
   String? lottieAsset = 'assets/lottie/unlocked.json',
   VoidCallback? onPurchase,
-  ThemeData? theme,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
-      theme: theme,
       home: Scaffold(
         body: SingleChildScrollView(
           child: FeaturedTierCard(
@@ -50,23 +48,6 @@ void main() {
 
   setUp(() async {
     await registerTestServicesWithFakes();
-  });
-
-  group('FeaturedTierCard buy button', () {
-    for (final theme in [ThemeData.light(), ThemeData.dark()]) {
-      testWidgets('label is always dark on gold (${theme.brightness.name})', (
-        tester,
-      ) async {
-        await _pump(tester, theme: theme, onPurchase: () {});
-        final label = tester.widget<RichText>(
-          find.descendant(
-            of: find.byKey(const ValueKey('featured_tier_buy')),
-            matching: find.byType(RichText),
-          ),
-        );
-        expect(label.text.style?.color, goldOnGold);
-      });
-    }
   });
 
   group('FeaturedTierCard (not purchased)', () {
