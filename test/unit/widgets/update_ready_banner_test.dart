@@ -3,7 +3,7 @@ library;
 
 import 'dart:async';
 
-import 'package:devocional_nuevo/widgets/green_banner_card.dart';
+import 'package:devocional_nuevo/widgets/notice_banner_card.dart';
 import 'package:devocional_nuevo/widgets/update_ready_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,6 +67,112 @@ void main() {
   });
 
   tearDown(() => ready.dispose());
+
+  group('download in progress', () {
+    late ValueNotifier<bool> downloading;
+
+    Future<void> pumpWithDownload(WidgetTester tester) {
+      return tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: UpdateReadyBanner(
+              updateReady: ready,
+              download: UpdateDownloadNotice(
+                downloading: downloading,
+                title: 'Downloading update',
+                message: 'You can keep using the app.',
+              ),
+              onRestart: () async {
+                restarts++;
+                return true;
+              },
+              title: 'Update ready',
+              message: 'Tap to restart and get the latest improvements.',
+              closeTooltip: 'Close',
+              restartFailedMessage: 'Could not restart',
+              child: const _Probe(),
+            ),
+          ),
+        ),
+      );
+    }
+
+    setUp(() => downloading = ValueNotifier(false));
+    tearDown(() => downloading.dispose());
+
+    testWidgets('shows a spinner banner while downloading', (tester) async {
+      await pumpWithDownload(tester);
+      expect(find.text('Downloading update'), findsNothing);
+
+      downloading.value = true;
+      await tester.pump();
+
+      expect(find.text('Downloading update'), findsOneWidget);
+      expect(find.text('You can keep using the app.'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('tapping the downloading banner does not restart',
+        (tester) async {
+      downloading.value = true;
+      await pumpWithDownload(tester);
+
+      await tester.tap(find.text('Downloading update'));
+
+      expect(restarts, 0);
+    });
+
+    testWidgets('ready replaces the downloading banner', (tester) async {
+      downloading.value = true;
+      await pumpWithDownload(tester);
+
+      downloading.value = false;
+      ready.value = true;
+      await tester.pump();
+
+      expect(find.text('Downloading update'), findsNothing);
+      expect(find.text('Update ready'), findsOneWidget);
+    });
+
+    testWidgets('closing the downloading banner does not hide the ready one',
+        (tester) async {
+      downloading.value = true;
+      await pumpWithDownload(tester);
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pump();
+
+      downloading.value = false;
+      ready.value = true;
+      await tester.pump();
+
+      expect(find.text('Update ready'), findsOneWidget);
+    });
+
+    testWidgets('a later download shows again after an earlier one was closed',
+        (tester) async {
+      downloading.value = true;
+      await pumpWithDownload(tester);
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pump();
+
+      downloading.value = false;
+      await tester.pump();
+      downloading.value = true;
+      await tester.pump();
+
+      expect(find.text('Downloading update'), findsOneWidget);
+    });
+
+    testWidgets('close hides the downloading banner', (tester) async {
+      downloading.value = true;
+      await pumpWithDownload(tester);
+
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pump();
+
+      expect(find.text('Downloading update'), findsNothing);
+    });
+  });
 
   testWidgets('is hidden until an update is ready', (tester) async {
     await pumpBanner(tester);
@@ -342,7 +448,7 @@ void main() {
     ready.value = true;
     await tester.pump();
 
-    final card = tester.getRect(find.byType(GreenBannerCard));
+    final card = tester.getRect(find.byType(NoticeBannerCard));
     // The rect includes the card's own 8px top margin, so it starts right at
     // the inset.
     expect(card.top, 24);
@@ -364,7 +470,7 @@ void main() {
       final box = element.renderObject! as RenderBox;
       final isCardOrInner = find
               .descendant(
-                of: find.byType(GreenBannerCard),
+                of: find.byType(NoticeBannerCard),
                 matching: find.byWidget(element.widget),
               )
               .evaluate()
@@ -376,7 +482,7 @@ void main() {
     }
     final positioned = tester.widget<Positioned>(
       find.ancestor(
-        of: find.byType(GreenBannerCard),
+        of: find.byType(NoticeBannerCard),
         matching: find.byType(Positioned),
       ),
     );
@@ -398,7 +504,7 @@ void main() {
     ready.value = true;
     await tester.pump();
 
-    final card = tester.getRect(find.byType(GreenBannerCard));
+    final card = tester.getRect(find.byType(NoticeBannerCard));
     await tester.tapAt(Offset(card.center.dx, card.bottom + 40));
     // Beside the card margin at the top: also reaches the child.
     await tester.tapAt(const Offset(2, 2));

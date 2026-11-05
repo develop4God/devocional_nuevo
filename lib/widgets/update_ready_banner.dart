@@ -1,8 +1,22 @@
-import 'package:devocional_nuevo/widgets/green_banner_card.dart';
+import 'package:devocional_nuevo/widgets/notice_banner_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-/// Green banner floated over the top of [child] when a background update
+/// Passive "update downloading" card: its state and the texts it shows. Kept as
+/// one object so the texts cannot be forgotten when the card is enabled.
+class UpdateDownloadNotice {
+  final ValueListenable<bool> downloading;
+  final String title;
+  final String message;
+
+  const UpdateDownloadNotice({
+    required this.downloading,
+    required this.title,
+    required this.message,
+  });
+}
+
+/// Banner floated over the top of [child] when a background update
 /// finished downloading. The user picks the moment: tapping the card applies
 /// it now, close hides it only until the app returns from the background, so
 /// it keeps coming back until the update is installed.
@@ -10,9 +24,16 @@ import 'package:flutter/material.dart';
 /// The banner overlays [child] instead of shifting it: nothing around the card
 /// is painted, and taps outside the card reach [child].
 ///
+/// While the update downloads, a passive card with a spinner tells the user it
+/// is happening (Play shows no progress for a flexible update). It is replaced
+/// by the ready card once the download ends.
+///
 /// Texts are passed in so the widget stays free of the localization service.
 class UpdateReadyBanner extends StatefulWidget {
   final ValueListenable<bool> updateReady;
+
+  /// Optional: without it no download card is shown.
+  final UpdateDownloadNotice? download;
 
   /// Resolves to false when the update could not be installed.
   final Future<bool> Function() onRestart;
@@ -25,6 +46,7 @@ class UpdateReadyBanner extends StatefulWidget {
   const UpdateReadyBanner({
     super.key,
     required this.updateReady,
+    this.download,
     required this.onRestart,
     required this.title,
     required this.message,
@@ -39,7 +61,10 @@ class UpdateReadyBanner extends StatefulWidget {
 
 class _UpdateReadyBannerState extends State<UpdateReadyBanner>
     with WidgetsBindingObserver {
-  bool _dismissed = false;
+  // Per phase: closing the passive download card must not hide the ready card
+  // that replaces it.
+  bool _dismissedDownload = false;
+  bool _dismissedReady = false;
   bool _wasHidden = false;
   bool _restarting = false;
 
@@ -63,7 +88,9 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
       _wasHidden = true;
     } else if (state == AppLifecycleState.resumed && _wasHidden) {
       _wasHidden = false;
-      if (_dismissed) setState(() => _dismissed = false);
+      // Only the actionable ready card comes back: a closed download card is
+      // purely informational.
+      if (_dismissedReady) setState(() => _dismissedReady = false);
     }
   }
 
@@ -84,10 +111,19 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: widget.updateReady,
-      builder: (context, ready, _) {
-        final visible = ready && !_dismissed;
+    final downloadingListenable = widget.download?.downloading;
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        widget.updateReady,
+        if (downloadingListenable != null) downloadingListenable,
+      ]),
+      builder: (context, _) {
+        final ready = widget.updateReady.value;
+        final downloading = !ready && (downloadingListenable?.value ?? false);
+        // A closed download card only stays closed for that download.
+        if (!downloading) _dismissedDownload = false;
+        final visible =
+            ready ? !_dismissedReady : downloading && !_dismissedDownload;
         // The child stays the first Stack child in both states so its State
         // survives.
         return Stack(
@@ -99,7 +135,7 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
                 top: 0,
                 left: 0,
                 right: 0,
-                child: _buildBanner(context),
+                child: _buildBanner(context, downloading: downloading),
               ),
           ],
         );
@@ -107,34 +143,47 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
     );
   }
 
-  Widget _buildBanner(BuildContext context) {
+  void _dismiss(bool downloading) {
+    if (downloading) {
+      _dismissedDownload = true;
+    } else {
+      _dismissedReady = true;
+    }
+  }
+
+  Widget _buildBanner(BuildContext context, {required bool downloading}) {
     final colorScheme = Theme.of(context).colorScheme;
+    final download = widget.download;
+    final title =
+        downloading && download != null ? download.title : widget.title;
+    final message =
+        downloading && download != null ? download.message : widget.message;
     return SafeArea(
       bottom: false,
-      child: GreenBannerCard(
-        onTap: _restarting ? null : _restart,
+      child: NoticeBannerCard(
+        onTap: _restarting || downloading ? null : _restart,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: kBannerGreen,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: kNoticeIcon.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: _restarting
+              child: _restarting || downloading
                   ? SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        semanticsLabel: widget.title,
-                        color: Colors.white,
+                        semanticsLabel: title,
+                        color: kNoticeIcon,
                       ),
                     )
                   : const Icon(
                       Icons.download_done_outlined,
-                      color: Colors.white,
+                      color: kNoticeIcon,
                       size: 18,
                     ),
             ),
@@ -144,7 +193,7 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.title,
+                    title,
                     style: TextStyle(
                       color: colorScheme.onSurface,
                       fontSize: 14,
@@ -153,7 +202,7 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    widget.message,
+                    message,
                     style: TextStyle(
                       color: colorScheme.onSurface,
                       fontSize: 13,
@@ -172,8 +221,9 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
               tooltip: widget.closeTooltip,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
-              onPressed:
-                  _restarting ? null : () => setState(() => _dismissed = true),
+              onPressed: _restarting
+                  ? null
+                  : () => setState(() => _dismiss(downloading)),
             ),
           ],
         ),

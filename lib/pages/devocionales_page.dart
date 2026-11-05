@@ -1050,6 +1050,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           : FloatingActionButtonLocation.endFloat,
                   body: UpdateReadyBanner(
                     updateReady: _updateService.updateReady,
+                    download: UpdateDownloadNotice(
+                      downloading: _updateService.updateDownloading,
+                      title: 'update.downloading_title'.tr(),
+                      message: 'update.downloading_message'.tr(),
+                    ),
                     onRestart: _updateService.applyDownloadedUpdate,
                     title: 'update.ready_title'.tr(),
                     message: 'update.ready_message'.tr(),

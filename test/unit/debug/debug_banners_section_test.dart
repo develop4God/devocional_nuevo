@@ -18,12 +18,24 @@ void main() {
               updateMessage: 'Tap to restart and get the latest improvements.',
               updateCloseTooltip: 'Close',
               updateRestartFailedMessage: 'Could not restart',
+              updateDownloadingTitle: 'Downloading update',
+              updateDownloadingMessage: 'You can keep using the app.',
             ),
           ),
         ),
       ),
     );
   }
+
+  testWidgets('downloading preview shows the spinner banner', (tester) async {
+    await pumpSection(tester);
+
+    await tester.tap(find.text('Show downloading banner'));
+    await tester.pump();
+
+    expect(find.text('Downloading update'), findsOneWidget);
+    expect(find.text('Update ready'), findsNothing);
+  });
 
   testWidgets('shows nothing until a banner is requested', (tester) async {
     await pumpSection(tester);

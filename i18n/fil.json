@@ -998,6 +998,8 @@
     "empty_description": "Maging una sa pagbabahagi ng kahilingan sa panalangin. Nandito ang komunidad para sa iyo."
   },
   "update": {
+    "downloading_title": "Dina-download ang update",
+    "downloading_message": "Maaari mong ipagpatuloy ang paggamit ng app. Aabisuhan ka namin kapag handa na ito.",
     "ready_title": "Handa na ang update",
     "ready_message": "I-tap para mag-restart at makuha ang mga pinakabagong pagpapabuti.",
     "close": "Isara",

@@ -998,6 +998,8 @@
     "empty_description": "Sé el primero en compartir una petición. La comunidad está aquí para ti."
   },
   "update": {
+    "downloading_title": "Descargando actualización",
+    "downloading_message": "Puedes seguir usando la app. Te avisaremos cuando esté lista.",
     "ready_title": "Actualización lista",
     "ready_message": "Toca para reiniciar y disfrutar las últimas mejoras.",
     "close": "Cerrar",

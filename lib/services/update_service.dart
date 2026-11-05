@@ -8,12 +8,16 @@ import 'package:in_app_update/in_app_update.dart';
 class UpdateService implements IUpdateService {
   final Duration _installTimeout;
   final ValueNotifier<bool> _updateReady = ValueNotifier(false);
+  final ValueNotifier<bool> _updateDownloading = ValueNotifier(false);
 
   StreamSubscription<InstallStatus>? _statusSubscription;
   bool _coldStartHandled = false;
   Future<bool>? _completing;
   Future<void>? _resuming;
   Completer<void>? _installFailed;
+  InstallStatus? _lastStatus;
+  bool _startingFlexible = false;
+  bool _disposed = false;
 
   /// Printed (not `developer.log`) so the lines also reach logcat in release
   /// builds, which is where Play update behaviour has to be diagnosed. Uses
@@ -25,8 +29,21 @@ class UpdateService implements IUpdateService {
   UpdateService({Duration installTimeout = const Duration(seconds: 45)})
       : _installTimeout = installTimeout;
 
+  // Play's dialog and status callbacks can answer after dispose; writing to a
+  // disposed notifier would throw.
+  void _setReady(bool value) {
+    if (!_disposed) _updateReady.value = value;
+  }
+
+  void _setDownloading(bool value) {
+    if (!_disposed) _updateDownloading.value = value;
+  }
+
   @override
   ValueListenable<bool> get updateReady => _updateReady;
+
+  @override
+  ValueListenable<bool> get updateDownloading => _updateDownloading;
 
   @override
   Future<void> onColdStart() {
@@ -56,9 +73,9 @@ class UpdateService implements IUpdateService {
           // Nothing on screen to lose at cold start; if the install fails the
           // banner lets the user retry.
           final applied = await applyDownloadedUpdate();
-          if (!applied) _updateReady.value = true;
+          if (!applied) _setReady(true);
         } else {
-          _updateReady.value = true;
+          _setReady(true);
         }
         return;
       }
@@ -74,8 +91,15 @@ class UpdateService implements IUpdateService {
         priority: info.updatePriority,
       );
       _log('decision=$action');
-      // A download already running: only listen for its end.
+      // A download already running: only listen for its end. Derived from
+      // every check so a download that ended without a status event (missed
+      // before the listener attached) cannot leave the spinner on.
       if (inProgress) _listenForDownload();
+      // Not while Play's accept dialog is open: its snapshot predates the
+      // download and would hide the spinner _startFlexibleUpdate sets.
+      if (!_startingFlexible) {
+        _setDownloading(inProgress && action != UpdateAction.resumeImmediate);
+      }
       if (action == UpdateAction.resumeImmediate) {
         await (_resuming ??= _resumeImmediate().whenComplete(
           () => _resuming = null,
@@ -106,15 +130,42 @@ class UpdateService implements IUpdateService {
 
   Future<void> _startFlexibleUpdate() async {
     _listenForDownload();
-    final result = await InAppUpdate.startFlexibleUpdate();
+    _lastStatus = null;
+    _startingFlexible = true;
+    final AppUpdateResult result;
+    try {
+      result = await InAppUpdate.startFlexibleUpdate();
+    } finally {
+      _startingFlexible = false;
+    }
     _log('startFlexibleUpdate result=$result');
+    // The call returns once the user accepts Play's dialog; the download then
+    // runs on its own. A download that already ended (or failed) while this
+    // call was pending has been reported by the listener.
+    if (result == AppUpdateResult.success &&
+        !_updateReady.value &&
+        _lastStatus != InstallStatus.failed) {
+      _setDownloading(true);
+    }
   }
 
   void _listenForDownload() {
     _statusSubscription ??= InAppUpdate.installUpdateListener.listen(
       (status) {
         _log('install status=$status');
-        if (status == InstallStatus.downloaded) _onDownloaded();
+        _lastStatus = status;
+        switch (status) {
+          case InstallStatus.pending:
+          case InstallStatus.downloading:
+            _setDownloading(true);
+          case InstallStatus.downloaded:
+            _onDownloaded();
+          case InstallStatus.failed:
+          case InstallStatus.canceled:
+            _setDownloading(false);
+          default:
+            break;
+        }
       },
       onError: (Object e) => _log('install status error: $e'),
     );
@@ -123,7 +174,10 @@ class UpdateService implements IUpdateService {
   /// Only raises the banner: for a download that finishes while the app is
   /// open, the restart that installs the update is the user's choice (at cold
   /// start an already downloaded update is installed automatically instead).
-  void _onDownloaded() => _updateReady.value = true;
+  void _onDownloaded() {
+    _setDownloading(false);
+    _setReady(true);
+  }
 
   /// Repeated taps share one native completion. Cleared afterwards so a failed
   /// install can be retried.
@@ -135,7 +189,7 @@ class UpdateService implements IUpdateService {
     try {
       _log('completing flexible update');
       await _untilInstallEnds();
-      _updateReady.value = false;
+      _setReady(false);
       return true;
     } catch (e) {
       _log('could not complete flexible update: $e');
@@ -180,7 +234,10 @@ class UpdateService implements IUpdateService {
   }
 
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     _statusSubscription?.cancel();
     _updateReady.dispose();
+    _updateDownloading.dispose();
   }
 }

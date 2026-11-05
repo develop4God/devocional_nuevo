@@ -1,4 +1,4 @@
-import 'package:devocional_nuevo/widgets/green_banner_card.dart';
+import 'package:devocional_nuevo/widgets/notice_banner_card.dart';
 import 'package:flutter/material.dart';
 
 /// One-time notice for English readers explaining the KJV/KJ2000 relabeling
@@ -19,12 +19,12 @@ class KjvKj2000Banner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return GreenBannerCard(
+    return NoticeBannerCard(
       onTap: onOpenDrawer,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline_rounded, color: kBannerGreen, size: 20),
+          const Icon(Icons.info_outline_rounded, color: kNoticeIcon, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text.rich(

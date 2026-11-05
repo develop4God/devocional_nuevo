@@ -21,6 +21,7 @@ void main() {
   late List<int> emittedStatuses;
   late String? startFlexibleError;
   late String? immediateError;
+  Completer<void>? startGate;
   late UpdateService service;
 
   Map<String, Object?> info({
@@ -52,11 +53,13 @@ void main() {
     emittedStatuses = [];
     startFlexibleError = null;
     immediateError = null;
+    startGate = null;
     service = UpdateService();
 
     messenger.setMockMethodCallHandler(methods, (call) async {
       calls.add(call.method);
       if (call.method == 'checkForUpdate') return playInfo;
+      if (call.method == 'startFlexibleUpdate') await startGate?.future;
       if (call.method == 'startFlexibleUpdate' && startFlexibleError != null) {
         throw PlatformException(code: startFlexibleError!);
       }
@@ -77,6 +80,108 @@ void main() {
     service.dispose();
     messenger.setMockMethodCallHandler(methods, null);
     messenger.setMockStreamHandler(events, null);
+  });
+
+  group('download progress state', () {
+    // 2 = downloading, 5 = failed, 6 = canceled, 11 = downloaded
+    test('is downloading once the user accepts the flexible update', () async {
+      emittedStatuses = [2];
+
+      await service.onColdStart();
+
+      expect(service.updateDownloading.value, isTrue);
+      expect(service.updateReady.value, isFalse);
+    });
+
+    test('is not downloading when the user denies the update', () async {
+      startFlexibleError = 'USER_DENIED_UPDATE';
+
+      await service.onColdStart();
+
+      expect(service.updateDownloading.value, isFalse);
+    });
+
+    test('stops downloading and raises the banner when downloaded', () async {
+      emittedStatuses = [2, 11];
+
+      await service.onColdStart();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(service.updateDownloading.value, isFalse);
+      expect(service.updateReady.value, isTrue);
+    });
+
+    test('stops downloading when the download fails or is canceled', () async {
+      for (final terminal in [5, 6]) {
+        service.dispose();
+        service = UpdateService();
+        emittedStatuses = [2, terminal];
+
+        await service.onColdStart();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(service.updateDownloading.value, isFalse, reason: '$terminal');
+      }
+    });
+
+    test('stops downloading when a later check finds no download running',
+        () async {
+      playInfo = info(availability: 3, installStatus: 2);
+      await service.onColdStart();
+      expect(service.updateDownloading.value, isTrue);
+
+      // 1 = updateNotAvailable: the download ended without a status event.
+      playInfo = info(availability: 1);
+      await service.onResume();
+
+      expect(service.updateDownloading.value, isFalse);
+    });
+
+    test('a resume check while the accept dialog is open keeps the spinner',
+        () async {
+      emittedStatuses = [2];
+      startGate = Completer<void>();
+      final coldStart = service.onColdStart();
+      await Future<void>.delayed(Duration.zero);
+      expect(service.updateDownloading.value, isTrue);
+
+      // The snapshot predates the download: it must not hide the spinner.
+      playInfo = info(availability: 2);
+      await service.onResume();
+
+      expect(service.updateDownloading.value, isTrue);
+      startGate!.complete();
+      await coldStart;
+    });
+
+    test('a dialog answered after dispose does not touch the notifiers',
+        () async {
+      startGate = Completer<void>();
+      final logs = <String>[];
+      await runZoned(
+        () async {
+          final coldStart = service.onColdStart();
+          await Future<void>.delayed(Duration.zero);
+          service.dispose();
+          startGate!.complete();
+          await coldStart;
+        },
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) => logs.add(line),
+        ),
+      );
+
+      expect(logs.where((l) => l.contains('error checking')), isEmpty);
+    });
+
+    test('follows a download already running from a previous session',
+        () async {
+      playInfo = info(availability: 3, installStatus: 2);
+
+      await service.onColdStart();
+
+      expect(service.updateDownloading.value, isTrue);
+    });
   });
 
   group('cold start', () {

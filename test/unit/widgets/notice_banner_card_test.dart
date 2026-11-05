@@ -2,7 +2,7 @@
 library;
 
 import 'package:devocional_nuevo/widgets/bible/kjv_kj2000_banner.dart';
-import 'package:devocional_nuevo/widgets/green_banner_card.dart';
+import 'package:devocional_nuevo/widgets/notice_banner_card.dart';
 import 'package:devocional_nuevo/widgets/update_ready_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,7 +14,7 @@ void main() {
     final container = tester.widget<Container>(
       find
           .descendant(
-            of: find.byType(GreenBannerCard),
+            of: find.byType(NoticeBannerCard),
             matching: find.byType(Container),
           )
           .first,
@@ -25,7 +25,7 @@ void main() {
   testWidgets('renders its child and reports taps', (tester) async {
     var taps = 0;
     await tester.pumpWidget(
-      host(GreenBannerCard(onTap: () => taps++, child: const Text('hello'))),
+      host(NoticeBannerCard(onTap: () => taps++, child: const Text('hello'))),
     );
 
     await tester.tap(find.text('hello'));
@@ -36,39 +36,40 @@ void main() {
 
   for (final theme in [ThemeData.light(), ThemeData.dark()]) {
     testWidgets(
-        'fill is opaque and the tint blended over the surface '
+        'fill is the opaque theme surface '
         '(${theme.brightness.name})', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: theme,
           home: Scaffold(
-            body: GreenBannerCard(onTap: () {}, child: const Text('x')),
+            body: NoticeBannerCard(onTap: () {}, child: const Text('x')),
           ),
         ),
       );
 
       final color = cardDecoration(tester).color!;
       expect(color.a, 1.0);
-      expect(
-        color,
-        Color.alphaBlend(
-          kBannerGreen.withValues(alpha: 0.14),
-          theme.colorScheme.surface,
-        ),
-      );
+      expect(color, theme.colorScheme.surface);
     });
   }
 
-  testWidgets('uses the shared green tint and border', (tester) async {
+  testWidgets('has a shadow, a hairline outline and a green accent edge',
+      (tester) async {
     await tester.pumpWidget(
-      host(GreenBannerCard(onTap: () {}, child: const Text('x'))),
+      host(NoticeBannerCard(onTap: () {}, child: const Text('x'))),
     );
 
     final decoration = cardDecoration(tester);
-    expect(decoration.color!.a, 1.0);
+    expect(decoration.border, isNotNull);
+    expect(decoration.boxShadow, isNotEmpty);
     expect(
-      (decoration.border! as Border).top.color,
-      kBannerGreen.withValues(alpha: 0.6),
+      find.descendant(
+        of: find.byType(NoticeBannerCard),
+        matching: find.byWidgetPredicate(
+          (w) => w is ColoredBox && w.color == kNoticeAccent,
+        ),
+      ),
+      findsOneWidget,
     );
   });
 
@@ -77,13 +78,10 @@ void main() {
       host(KjvKj2000Banner(onDismiss: () {}, onOpenDrawer: () {})),
     );
 
-    expect(find.byType(GreenBannerCard), findsOneWidget);
+    expect(find.byType(NoticeBannerCard), findsOneWidget);
     expect(
       cardDecoration(tester).color,
-      Color.alphaBlend(
-        kBannerGreen.withValues(alpha: 0.14),
-        ThemeData.light().colorScheme.surface,
-      ),
+      ThemeData.light().colorScheme.surface,
     );
   });
 
@@ -104,13 +102,10 @@ void main() {
       ),
     );
 
-    expect(find.byType(GreenBannerCard), findsOneWidget);
+    expect(find.byType(NoticeBannerCard), findsOneWidget);
     expect(
       cardDecoration(tester).color,
-      Color.alphaBlend(
-        kBannerGreen.withValues(alpha: 0.14),
-        ThemeData.light().colorScheme.surface,
-      ),
+      ThemeData.light().colorScheme.surface,
     );
   });
 

@@ -159,6 +159,8 @@ class _DebugPageState extends State<DebugPage> {
               updateMessage: 'update.ready_message'.tr(),
               updateCloseTooltip: 'update.close'.tr(),
               updateRestartFailedMessage: 'update.restart_failed'.tr(),
+              updateDownloadingTitle: 'update.downloading_title'.tr(),
+              updateDownloadingMessage: 'update.downloading_message'.tr(),
             ),
             const SizedBox(height: 32),
           ],

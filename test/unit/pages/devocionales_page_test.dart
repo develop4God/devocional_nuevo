@@ -150,6 +150,9 @@ class FakeUpdateService implements IUpdateService {
   final ValueNotifier<bool> updateReady = ValueNotifier(false);
 
   @override
+  final ValueNotifier<bool> updateDownloading = ValueNotifier(false);
+
+  @override
   Future<void> onColdStart() async => coldStarts++;
 
   @override

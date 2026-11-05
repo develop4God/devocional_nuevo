@@ -6,6 +6,10 @@ abstract class IUpdateService {
   /// restart to take effect.
   ValueListenable<bool> get updateReady;
 
+  /// True while a flexible update is downloading in the background. Play shows
+  /// no progress of its own for it, so the app has to.
+  ValueListenable<bool> get updateDownloading;
+
   /// First check of the process. Installs an already downloaded update right
   /// away (falling back to [updateReady] if the install fails), or starts a
   /// background download. Only an update Play marks urgent is shown as a

@@ -10,6 +10,8 @@ class DebugBannersSection extends StatefulWidget {
   final String updateMessage;
   final String updateCloseTooltip;
   final String updateRestartFailedMessage;
+  final String updateDownloadingTitle;
+  final String updateDownloadingMessage;
 
   const DebugBannersSection({
     super.key,
@@ -17,6 +19,8 @@ class DebugBannersSection extends StatefulWidget {
     required this.updateMessage,
     required this.updateCloseTooltip,
     required this.updateRestartFailedMessage,
+    required this.updateDownloadingTitle,
+    required this.updateDownloadingMessage,
   });
 
   @override
@@ -25,12 +29,14 @@ class DebugBannersSection extends StatefulWidget {
 
 class _DebugBannersSectionState extends State<DebugBannersSection> {
   final ValueNotifier<bool> _updateReady = ValueNotifier(true);
+  final ValueNotifier<bool> _updateDownloading = ValueNotifier(false);
   bool _showUpdate = false;
   bool _showKjv = false;
 
   @override
   void dispose() {
     _updateReady.dispose();
+    _updateDownloading.dispose();
     super.dispose();
   }
 
@@ -54,9 +60,22 @@ class _DebugBannersSectionState extends State<DebugBannersSection> {
         ),
         const SizedBox(height: 12),
         OutlinedButton(
-          onPressed: () => setState(() => _showUpdate = !_showUpdate),
+          onPressed: () => setState(() {
+            _updateReady.value = true;
+            _updateDownloading.value = false;
+            _showUpdate = !_showUpdate;
+          }),
           child:
               Text(_showUpdate ? 'Hide update banner' : 'Show update banner'),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: () => setState(() {
+            _updateReady.value = false;
+            _updateDownloading.value = true;
+            _showUpdate = true;
+          }),
+          child: const Text('Show downloading banner'),
         ),
         const SizedBox(height: 8),
         OutlinedButton(
@@ -73,6 +92,11 @@ class _DebugBannersSectionState extends State<DebugBannersSection> {
                 height: 420,
                 child: UpdateReadyBanner(
                   updateReady: _updateReady,
+                  download: UpdateDownloadNotice(
+                    downloading: _updateDownloading,
+                    title: widget.updateDownloadingTitle,
+                    message: widget.updateDownloadingMessage,
+                  ),
                   onRestart: () async {
                     _report('Restart tapped (preview only)');
                     return true;

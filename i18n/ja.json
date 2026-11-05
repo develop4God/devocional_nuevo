@@ -998,6 +998,8 @@
     "empty_description": "最初にリクエストを共有してください。コミュニティがあなたのためにここにいます。"
   },
   "update": {
+    "downloading_title": "アップデートをダウンロード中",
+    "downloading_message": "アプリはそのままお使いいただけます。準備ができたらお知らせします。",
     "ready_title": "アップデートの準備ができました",
     "ready_message": "タップして再起動し、最新の改善を適用しましょう。",
     "close": "閉じる",

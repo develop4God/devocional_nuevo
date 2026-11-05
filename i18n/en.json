@@ -998,6 +998,8 @@
     "empty_description": "Be the first to share a prayer request. The community is here for you."
   },
   "update": {
+    "downloading_title": "Downloading update",
+    "downloading_message": "You can keep using the app. We'll let you know when it's ready.",
     "ready_title": "Update ready",
     "ready_message": "Tap to restart and get the latest improvements.",
     "close": "Close",
