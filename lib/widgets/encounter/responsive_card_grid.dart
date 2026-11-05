@@ -3,29 +3,29 @@ import 'package:flutter/material.dart';
 /// Height of an encounter card.
 const encounterCardHeight = 272.0;
 
-/// Aspect ratio (width / height) of the encounter cover artwork (1024x559).
-const encounterArtworkAspectRatio = 1024 / 559;
-
-/// Widest a card gets: the width at which the artwork fills the card exactly,
-/// so a wider card would only crop it into a thin strip.
-const encounterCardMaxWidth = encounterCardHeight * encounterArtworkAspectRatio;
+/// Narrowest a card may get: a 360dp phone minus the side padding. Below this
+/// the title, badge row and metadata no longer fit comfortably.
+const encounterCardMinWidth = 320.0;
 
 /// Scrollable [header] followed by cards laid out in as many columns as fit.
 ///
-/// Cards keep a fixed [cardHeight] and never grow wider than [maxCardWidth];
-/// extra horizontal space becomes extra columns instead of stretched cards,
-/// so phones get one column and larger or landscape screens get more.
+/// Cards keep a fixed [cardHeight] and never get narrower than
+/// [minCardWidth]: the column count is the most that still respects that
+/// minimum, so wider or landscape screens get more columns instead of
+/// stretched cards, and phones get one.
 class ResponsiveCardGrid extends StatelessWidget {
   static const _spacing = 20.0;
   static const _mainAxisSpacing = 24.0;
-  static const _padding = EdgeInsets.symmetric(horizontal: 20, vertical: 24);
+
+  // Extra room under the last card keeps it clear of the gesture bar.
+  static const _padding = EdgeInsets.fromLTRB(20, 24, 20, 48);
 
   final ScrollController controller;
   final Widget header;
   final int itemCount;
   final IndexedWidgetBuilder itemBuilder;
   final double cardHeight;
-  final double maxCardWidth;
+  final double minCardWidth;
 
   const ResponsiveCardGrid({
     super.key,
@@ -34,8 +34,12 @@ class ResponsiveCardGrid extends StatelessWidget {
     required this.itemCount,
     required this.itemBuilder,
     this.cardHeight = encounterCardHeight,
-    this.maxCardWidth = encounterCardMaxWidth,
+    this.minCardWidth = encounterCardMinWidth,
   });
+
+  /// Most columns whose cards are still at least [minCardWidth] wide.
+  int _columnsFor(double width) =>
+      ((width + _spacing) / (minCardWidth + _spacing)).floor().clamp(1, 1000);
 
   @override
   Widget build(BuildContext context) {
@@ -48,16 +52,18 @@ class ResponsiveCardGrid extends StatelessWidget {
           sliver: SliverMainAxisGroup(
             slivers: [
               SliverToBoxAdapter(child: header),
-              SliverGrid(
-                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: maxCardWidth,
-                  mainAxisExtent: cardHeight,
-                  crossAxisSpacing: _spacing,
-                  mainAxisSpacing: _mainAxisSpacing,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  itemBuilder,
-                  childCount: itemCount,
+              SliverLayoutBuilder(
+                builder: (context, constraints) => SliverGrid(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: _columnsFor(constraints.crossAxisExtent),
+                    mainAxisExtent: cardHeight,
+                    crossAxisSpacing: _spacing,
+                    mainAxisSpacing: _mainAxisSpacing,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    itemBuilder,
+                    childCount: itemCount,
+                  ),
                 ),
               ),
             ],

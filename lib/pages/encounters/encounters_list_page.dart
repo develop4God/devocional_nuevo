@@ -306,7 +306,7 @@ class _EncountersListPageState extends State<EncountersListPage>
               }
 
               if (entry.id == nextLockedId) {
-                cardWidget = GoldShimmer(child: cardWidget);
+                cardWidget = GoldShimmer(isolateChild: true, child: cardWidget);
               }
 
               return cardWidget;

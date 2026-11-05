@@ -20,16 +20,21 @@ const goldOnGold = Color(0xFF3E2A00);
 /// With [filled] false only a thin border ring is painted over the child;
 /// with [filled] true the gradient fills the shape behind the child.
 /// The sweep is frozen when the platform asks to reduce animations.
+///
+/// Set [isolateChild] for large children (cards) so only the ring repaints
+/// each frame; small ones (buttons, pills) skip the extra compositing layer.
 class GoldShimmer extends StatefulWidget {
   final Widget child;
   final double borderRadius;
   final bool filled;
+  final bool isolateChild;
 
   const GoldShimmer({
     super.key,
     required this.child,
     this.borderRadius = 32,
     this.filled = false,
+    this.isolateChild = false,
   });
 
   @override
@@ -63,8 +68,9 @@ class _GoldShimmerState extends State<GoldShimmer>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _controller,
-      // The ring repaints every frame; keep the child out of that repaint.
-      child: RepaintBoundary(child: widget.child),
+      child: widget.isolateChild
+          ? RepaintBoundary(child: widget.child)
+          : widget.child,
       builder: (context, child) {
         final painter = _GoldShimmerPainter(
           progress: _controller.value,

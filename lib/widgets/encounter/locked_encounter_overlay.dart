@@ -27,7 +27,7 @@ enum LockedOverlayStyle {
     pillPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     showPlainHint: true,
     animatedPill: true,
-    titleMaxLines: null,
+    titleMaxLines: 4,
   ),
 
   /// Small card in the encounter grid; the card's ring already shimmers, so
@@ -65,8 +65,8 @@ enum LockedOverlayStyle {
   final bool showPlainHint;
   final bool animatedPill;
 
-  /// Cap for the prerequisite title; null lets it wrap freely.
-  final int? titleMaxLines;
+  /// Cap for the prerequisite title (ellipsis beyond it).
+  final int titleMaxLines;
 
   const LockedOverlayStyle({
     required this.radius,
@@ -121,7 +121,8 @@ class GoldLockBadge extends StatelessWidget {
 /// encounters get the plain dark overlay. Content is scaled down rather than
 /// overflowing when the card is small or the text scale is large. Pass
 /// [offersUnlock] false when tapping the card opens nothing, so the overlay
-/// does not promise a tap action.
+/// does not promise a tap action. Must be laid out with bounded constraints
+/// (for example inside `Positioned.fill`).
 class LockedEncounterOverlay extends StatelessWidget {
   final String prerequisiteTitle;
   final bool highlight;
@@ -162,9 +163,7 @@ class LockedEncounterOverlay extends StatelessWidget {
                   }),
                   textAlign: TextAlign.center,
                   maxLines: style.titleMaxLines,
-                  overflow: style.titleMaxLines == null
-                      ? null
-                      : TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: highlight

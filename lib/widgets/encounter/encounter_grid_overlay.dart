@@ -14,6 +14,10 @@ import 'package:flutter/material.dart';
 
 enum EncounterFilter { all, pending, completed }
 
+/// Margin Material's Card applies when the theme sets none (Flutter does not
+/// expose it).
+const _materialCardMargin = EdgeInsets.all(4);
+
 class EncounterGridOverlay extends StatefulWidget {
   final EncounterLoaded state;
   final List<EncounterIndexEntry> entries;
@@ -514,8 +518,10 @@ class _EncounterGridCard extends StatelessWidget {
     // The gap Card would apply by default (its theme margin) is kept outside
     // the ring so the ring hugs the visible card edge.
     return Padding(
-      padding: theme.cardTheme.margin ?? const EdgeInsets.all(4),
-      child: isNextLocked ? GoldShimmer(borderRadius: 24, child: card) : card,
+      padding: theme.cardTheme.margin ?? _materialCardMargin,
+      child: isNextLocked
+          ? GoldShimmer(borderRadius: 24, isolateChild: true, child: card)
+          : card,
     );
   }
 }

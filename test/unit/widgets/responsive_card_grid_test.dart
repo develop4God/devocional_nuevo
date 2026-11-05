@@ -67,17 +67,42 @@ void main() {
   });
 
   group('card geometry', () {
-    for (final width in [200.0, 360.0, 411.0, 800.0, 1280.0, 2560.0]) {
-      testWidgets('width $width: height fixed, width never above the max', (
+    for (final width in [
+      200.0,
+      360.0,
+      411.0,
+      499.0,
+      520.0,
+      600.0,
+      699.0,
+      700.0,
+      800.0,
+      1280.0,
+      2560.0,
+    ]) {
+      testWidgets('width $width: fixed height, never narrower than the min', (
         t,
       ) async {
         await _pump(t, width: width);
+        final available = width - 40;
         for (var i = 0; i < 3; i++) {
           final r = _card(t, i);
           expect(r.height, encounterCardHeight);
-          expect(r.width, lessThanOrEqualTo(encounterCardMaxWidth + 0.01));
           expect(r.width, greaterThan(0));
+          if (available >= encounterCardMinWidth) {
+            expect(r.width, greaterThanOrEqualTo(encounterCardMinWidth - 0.01));
+          }
         }
+      });
+    }
+
+    for (final width in [499.0, 520.0, 600.0, 699.0]) {
+      testWidgets('width $width: stays one column instead of two narrow ones', (
+        t,
+      ) async {
+        await _pump(t, width: width);
+        expect(_columns(t, 4), 1);
+        expect(_card(t, 0).width, width - 40);
       });
     }
 
@@ -114,5 +139,13 @@ void main() {
       );
       expect(find.byKey(const ValueKey('card_11')), findsOneWidget);
     });
+  });
+
+  testWidgets('keeps 48 of space under the last card', (t) async {
+    await _pump(t, width: 360, itemCount: 3, height: 900);
+    final viewportBottom = t.getRect(find.byType(Scrollable)).bottom;
+    await t.drag(find.byType(Scrollable), const Offset(0, -2000));
+    await t.pumpAndSettle();
+    expect(viewportBottom - _card(t, 2).bottom, closeTo(48, 0.5));
   });
 }

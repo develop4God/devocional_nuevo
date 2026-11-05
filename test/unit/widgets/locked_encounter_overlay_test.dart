@@ -120,7 +120,7 @@ void main() {
     expect(hint.style?.fontSize, LockedOverlayStyle.list.hintFontSize);
   });
 
-  testWidgets('grid title is capped with an ellipsis, list is not', (t) async {
+  testWidgets('both styles cap the title with an ellipsis', (t) async {
     const longTitle =
         'A very long prerequisite title that keeps going and going and going';
     await _pump(t,
@@ -130,6 +130,7 @@ void main() {
     expect(title.overflow, TextOverflow.ellipsis);
     await _pump(t, highlight: true, title: longTitle);
     title = t.widget<Text>(find.text('encounters.complete_to_unlock'));
-    expect(title.maxLines, isNull);
+    expect(title.maxLines, LockedOverlayStyle.list.titleMaxLines);
+    expect(title.maxLines, isNotNull);
   });
 }

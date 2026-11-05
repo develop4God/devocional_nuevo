@@ -6,11 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('child sits in its own repaint boundary', (t) async {
+  testWidgets('isolateChild puts the child in its own repaint boundary',
+      (t) async {
     await t.pumpWidget(
       const MaterialApp(
         home: GoldShimmer(
-            child: SizedBox(key: ValueKey('child'), width: 50, height: 50)),
+          isolateChild: true,
+          child: SizedBox(key: ValueKey('child'), width: 50, height: 50),
+        ),
       ),
     );
     await t.pump();
@@ -27,20 +30,24 @@ void main() {
     );
   });
 
-  testWidgets('filled variant also isolates its child', (t) async {
+  testWidgets('small uses (buttons, pills) get no extra layer by default', (
+    t,
+  ) async {
     await t.pumpWidget(
       const MaterialApp(
         home: GoldShimmer(
           filled: true,
-          child: SizedBox(key: ValueKey('child'), width: 50, height: 50),
+          child: SizedBox(width: 50, height: 50),
         ),
       ),
     );
     await t.pump();
     expect(
       find.descendant(
-          of: find.byType(GoldShimmer), matching: find.byType(RepaintBoundary)),
-      findsOneWidget,
+        of: find.byType(GoldShimmer),
+        matching: find.byType(RepaintBoundary),
+      ),
+      findsNothing,
     );
   });
 }
