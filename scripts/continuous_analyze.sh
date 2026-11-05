@@ -4,6 +4,13 @@
 
 set -e  # Exit on any command failure
 
+# Git exports GIT_DIR / GIT_WORK_TREE / GIT_INDEX_FILE to hooks. Flutter runs git
+# inside its own SDK checkout to read its version; with these set it queries
+# this repo instead and reports "0.0.0-unknown", so `pub get` fails and every
+# push from a hook is rejected. Clear them before invoking dart/flutter.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR \
+  GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
+
 # Add Dart and Flutter to PATH for all environments (fixes Android Studio UI push)
 export PATH="$PATH:/home/develop4god/development/flutter/bin"
 
