@@ -147,7 +147,7 @@ class FeaturedTierCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 5),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [goldAccent, Color(0xFFFFE08A), goldAccent],
+              colors: [goldAccent, goldHighlight, goldAccent],
             ),
             boxShadow: [
               BoxShadow(

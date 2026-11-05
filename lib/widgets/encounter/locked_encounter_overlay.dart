@@ -9,9 +9,6 @@ const goldLockOverlayGradient = LinearGradient(
   colors: [Color(0xD9000000), Color(0xE62A2110)],
 );
 
-/// Lock icon colour on top of [goldLockOverlayGradient].
-const goldLockIconColor = Color(0xFFFFE08A);
-
 /// Where the overlay is drawn; each style carries its own sizes.
 enum LockedOverlayStyle {
   /// Full-size card in the encounters list.
@@ -26,10 +23,11 @@ enum LockedOverlayStyle {
     highlightTitleSize: 16,
     titleHeight: 1.4,
     hintGap: 8,
-    pillFontSize: 12,
+    hintFontSize: 12,
     pillPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     showPlainHint: true,
     animatedPill: true,
+    titleMaxLines: null,
   ),
 
   /// Small card in the encounter grid; the card's ring already shimmers, so
@@ -45,10 +43,11 @@ enum LockedOverlayStyle {
     highlightTitleSize: 10,
     titleHeight: 1.3,
     hintGap: 6,
-    pillFontSize: 10,
+    hintFontSize: 10,
     pillPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
     showPlainHint: false,
     animatedPill: false,
+    titleMaxLines: 3,
   );
 
   final double radius;
@@ -61,10 +60,13 @@ enum LockedOverlayStyle {
   final double highlightTitleSize;
   final double titleHeight;
   final double hintGap;
-  final double pillFontSize;
+  final double hintFontSize;
   final EdgeInsets pillPadding;
   final bool showPlainHint;
   final bool animatedPill;
+
+  /// Cap for the prerequisite title; null lets it wrap freely.
+  final int? titleMaxLines;
 
   const LockedOverlayStyle({
     required this.radius,
@@ -77,10 +79,11 @@ enum LockedOverlayStyle {
     required this.highlightTitleSize,
     required this.titleHeight,
     required this.hintGap,
-    required this.pillFontSize,
+    required this.hintFontSize,
     required this.pillPadding,
     required this.showPlainHint,
     required this.animatedPill,
+    required this.titleMaxLines,
   });
 }
 
@@ -99,11 +102,15 @@ class GoldLockBadge extends StatelessWidget {
         shape: BoxShape.circle,
         color: Colors.black.withValues(alpha: 0.5),
         border: Border.all(color: goldAccent, width: 2),
-        boxShadow: const [
-          BoxShadow(color: Color(0x66D9A62E), blurRadius: 18, spreadRadius: 2),
+        boxShadow: [
+          BoxShadow(
+            color: goldAccent.withValues(alpha: 0.4),
+            blurRadius: 18,
+            spreadRadius: 2,
+          ),
         ],
       ),
-      child: Icon(Icons.lock_rounded, color: goldLockIconColor, size: iconSize),
+      child: Icon(Icons.lock_rounded, color: goldHighlight, size: iconSize),
     );
   }
 }
@@ -112,17 +119,21 @@ class GoldLockBadge extends StatelessWidget {
 ///
 /// [highlight] marks the next waiting encounter (gold treatment); other locked
 /// encounters get the plain dark overlay. Content is scaled down rather than
-/// overflowing when the card is small or the text scale is large.
+/// overflowing when the card is small or the text scale is large. Pass
+/// [offersUnlock] false when tapping the card opens nothing, so the overlay
+/// does not promise a tap action.
 class LockedEncounterOverlay extends StatelessWidget {
   final String prerequisiteTitle;
   final bool highlight;
   final LockedOverlayStyle style;
+  final bool offersUnlock;
 
   const LockedEncounterOverlay({
     super.key,
     required this.prerequisiteTitle,
     required this.highlight,
     this.style = LockedOverlayStyle.list,
+    this.offersUnlock = true,
   });
 
   @override
@@ -150,6 +161,10 @@ class LockedEncounterOverlay extends StatelessWidget {
                     'title': prerequisiteTitle,
                   }),
                   textAlign: TextAlign.center,
+                  maxLines: style.titleMaxLines,
+                  overflow: style.titleMaxLines == null
+                      ? null
+                      : TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: highlight
@@ -183,19 +198,19 @@ class LockedEncounterOverlay extends StatelessWidget {
   }
 
   List<Widget> _buildHint() {
+    if (!offersUnlock || (!highlight && !style.showPlainHint)) return const [];
     final hint = 'encounters.read_now_hint'.tr();
     if (highlight) {
       return [
         SizedBox(height: style.hintGap),
         GoldHintPill(
           text: hint,
-          fontSize: style.pillFontSize,
+          fontSize: style.hintFontSize,
           padding: style.pillPadding,
           animated: style.animatedPill,
         ),
       ];
     }
-    if (!style.showPlainHint) return const [];
     return [
       SizedBox(height: style.hintGap),
       Text(
@@ -203,7 +218,7 @@ class LockedEncounterOverlay extends StatelessWidget {
         textAlign: TextAlign.center,
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.75),
-          fontSize: 12,
+          fontSize: style.hintFontSize,
           height: 1.4,
         ),
       ),

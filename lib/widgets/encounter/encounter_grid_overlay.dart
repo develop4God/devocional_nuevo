@@ -281,6 +281,7 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
             isCompleted: isCompleted,
             isUnlocked: isUnlocked,
             isNextLocked: entry.id == nextLockedId,
+            offersUnlock: widget.onLockedTap != null,
             prerequisiteTitle: prerequisiteTitle,
             isActive: isActive,
             onTap: (entry.isPublished && isUnlocked)
@@ -299,6 +300,9 @@ class _EncounterGridCard extends StatelessWidget {
   final bool isCompleted;
   final bool isUnlocked;
   final bool isNextLocked;
+
+  /// Whether tapping a locked card opens the unlock offer.
+  final bool offersUnlock;
   final String prerequisiteTitle;
   final bool isActive;
   final VoidCallback? onTap;
@@ -309,6 +313,7 @@ class _EncounterGridCard extends StatelessWidget {
     required this.isCompleted,
     required this.isUnlocked,
     required this.isNextLocked,
+    required this.offersUnlock,
     required this.prerequisiteTitle,
     required this.isActive,
     required this.onTap,
@@ -500,15 +505,16 @@ class _EncounterGridCard extends StatelessWidget {
                 prerequisiteTitle: prerequisiteTitle,
                 highlight: isNextLocked,
                 style: LockedOverlayStyle.grid,
+                offersUnlock: offersUnlock,
               ),
           ],
         ),
       ),
     );
-    // The 4px gap Card applies by default is kept outside the ring so the
-    // ring hugs the visible card edge.
+    // The gap Card would apply by default (its theme margin) is kept outside
+    // the ring so the ring hugs the visible card edge.
     return Padding(
-      padding: const EdgeInsets.all(4),
+      padding: theme.cardTheme.margin ?? const EdgeInsets.all(4),
       child: isNextLocked ? GoldShimmer(borderRadius: 24, child: card) : card,
     );
   }

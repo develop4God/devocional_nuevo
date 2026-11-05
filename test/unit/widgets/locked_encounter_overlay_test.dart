@@ -12,12 +12,15 @@ Future<void> _pump(
   WidgetTester tester, {
   required bool highlight,
   LockedOverlayStyle style = LockedOverlayStyle.list,
+  bool offersUnlock = true,
+  String title = 'Prev',
 }) async {
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
         body: LockedEncounterOverlay(
-          prerequisiteTitle: 'Prev',
+          prerequisiteTitle: title,
+          offersUnlock: offersUnlock,
           highlight: highlight,
           style: style,
         ),
@@ -100,4 +103,33 @@ void main() {
       expect(t.takeException(), isNull);
     });
   }
+
+  testWidgets('no pill and no hint when there is no unlock offer', (t) async {
+    await _pump(t, highlight: true, offersUnlock: false);
+    expect(find.byType(GoldLockBadge), findsOneWidget);
+    expect(find.byType(GoldHintPill), findsNothing);
+    await _pump(t, highlight: false, offersUnlock: false);
+    expect(find.text('encounters.read_now_hint'), findsNothing);
+  });
+
+  testWidgets('plain hint uses the style hint size, not a hard-coded one', (
+    t,
+  ) async {
+    await _pump(t, highlight: false);
+    final hint = t.widget<Text>(find.text('encounters.read_now_hint'));
+    expect(hint.style?.fontSize, LockedOverlayStyle.list.hintFontSize);
+  });
+
+  testWidgets('grid title is capped with an ellipsis, list is not', (t) async {
+    const longTitle =
+        'A very long prerequisite title that keeps going and going and going';
+    await _pump(t,
+        highlight: true, style: LockedOverlayStyle.grid, title: longTitle);
+    var title = t.widget<Text>(find.text('encounters.complete_to_unlock'));
+    expect(title.maxLines, LockedOverlayStyle.grid.titleMaxLines);
+    expect(title.overflow, TextOverflow.ellipsis);
+    await _pump(t, highlight: true, title: longTitle);
+    title = t.widget<Text>(find.text('encounters.complete_to_unlock'));
+    expect(title.maxLines, isNull);
+  });
 }

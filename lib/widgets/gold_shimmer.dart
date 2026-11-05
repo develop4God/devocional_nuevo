@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 const goldAccent = Color(0xFFD9A62E);
 const _goldShine = Color(0xFFFFF3C4);
 
+/// Light gold for icons and gradient highlights on dark gold surfaces.
+const goldHighlight = Color(0xFFFFE08A);
+
 /// Dark brown that stays readable on top of the gold gradient.
 const goldOnGold = Color(0xFF3E2A00);
 
@@ -60,7 +63,8 @@ class _GoldShimmerState extends State<GoldShimmer>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _controller,
-      child: widget.child,
+      // The ring repaints every frame; keep the child out of that repaint.
+      child: RepaintBoundary(child: widget.child),
       builder: (context, child) {
         final painter = _GoldShimmerPainter(
           progress: _controller.value,

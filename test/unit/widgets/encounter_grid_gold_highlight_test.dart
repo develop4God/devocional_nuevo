@@ -21,6 +21,8 @@ EncounterIndexEntry _entry(String id, {String status = 'published'}) =>
       estimatedReadingMinutes: {'en': 5},
     );
 
+void _noop() {}
+
 Future<void> _pumpGrid(
   WidgetTester tester,
   List<EncounterIndexEntry> entries, {
@@ -28,6 +30,8 @@ Future<void> _pumpGrid(
   bool allUnlocked = false,
   Size size = const Size(1080, 2400),
   double textScale = 1.0,
+  VoidCallback? onLockedTap = _noop,
+  ThemeData? theme,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -40,6 +44,7 @@ Future<void> _pumpGrid(
   addTearDown(controller.dispose);
   await tester.pumpWidget(
     MaterialApp(
+      theme: theme,
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(
           context,
@@ -55,6 +60,7 @@ Future<void> _pumpGrid(
           allUnlocked: allUnlocked,
           onEncounterSelected: (_, __) {},
           onClose: () {},
+          onLockedTap: onLockedTap,
           animation: controller,
         ),
       ),
@@ -88,7 +94,7 @@ void main() {
         .widgetList<Icon>(find.byIcon(Icons.lock_rounded))
         .map((i) => i.color)
         .toList();
-    expect(colors.where((c) => c == goldLockIconColor), hasLength(1));
+    expect(colors.where((c) => c == goldHighlight), hasLength(1));
     expect(colors.where((c) => c == Colors.white), hasLength(1));
   });
 
@@ -170,5 +176,43 @@ void main() {
         .widgetList<GoldShimmer>(find.byType(GoldShimmer))
         .where((w) => w.filled);
     expect(animated, isEmpty);
+  });
+
+  testWidgets('no hint pill when there is no unlock offer to open', (t) async {
+    await _pumpGrid(
+      t,
+      [_entry('a'), _entry('b'), _entry('c')],
+      onLockedTap: null,
+    );
+    // The card keeps its gold treatment but must not promise a tap action.
+    expect(find.byType(GoldLockBadge), findsOneWidget);
+    expect(find.byType(GoldHintPill), findsNothing);
+  });
+
+  testWidgets('spacing around cards follows the theme card margin', (t) async {
+    double gap() {
+      final cards = find.byType(Card);
+      final a = t.getRect(find
+          .descendant(of: cards.at(0), matching: find.byType(Material))
+          .first);
+      final b = t.getRect(find
+          .descendant(of: cards.at(1), matching: find.byType(Material))
+          .first);
+      return b.left - a.right;
+    }
+
+    final entries = [_entry('a'), _entry('b'), _entry('c')];
+    await _pumpGrid(t, entries);
+    final defaultGap = gap();
+    await _pumpGrid(
+      t,
+      entries,
+      theme:
+          ThemeData(cardTheme: const CardThemeData(margin: EdgeInsets.all(10))),
+    );
+    // ThemeData changes animate; let the margin settle (shimmer never settles).
+    await t.pump(const Duration(seconds: 1));
+    // Each side of the gap grows by (10 - 4) when the theme margin is 10.
+    expect(gap() - defaultGap, closeTo(12, 0.01));
   });
 }
