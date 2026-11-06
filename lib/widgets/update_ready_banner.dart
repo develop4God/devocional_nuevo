@@ -70,6 +70,10 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
   bool _wasHidden = false;
   bool _restarting = false;
 
+  /// Identifies the current restart call. Closing the card abandons a pending
+  /// call (Play may never answer it); its late result is ignored.
+  int _restartAttempt = 0;
+
   @override
   void initState() {
     super.initState();
@@ -98,14 +102,21 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
 
   Future<void> _restart() async {
     if (_restarting) return;
+    final attempt = ++_restartAttempt;
     setState(() => _restarting = true);
     final UpdateInstallResult result;
     try {
       result = await widget.onRestart();
     } finally {
-      if (mounted) setState(() => _restarting = false);
+      if (mounted && attempt == _restartAttempt) {
+        setState(() => _restarting = false);
+      }
     }
-    if (result != UpdateInstallResult.failed || !mounted) return;
+    if (result != UpdateInstallResult.failed ||
+        !mounted ||
+        attempt != _restartAttempt) {
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(widget.restartFailedMessage)),
     );
@@ -146,6 +157,9 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
   }
 
   void _dismiss(bool downloading) {
+    // Abandons a pending restart so the card is idle when it comes back.
+    _restartAttempt++;
+    _restarting = false;
     if (downloading) {
       _dismissedDownload = true;
     } else {
@@ -223,9 +237,7 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
               tooltip: widget.closeTooltip,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
-              onPressed: _restarting
-                  ? null
-                  : () => setState(() => _dismiss(downloading)),
+              onPressed: () => setState(() => _dismiss(downloading)),
             ),
           ],
         ),

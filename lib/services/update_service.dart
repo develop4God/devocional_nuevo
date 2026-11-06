@@ -2,10 +2,44 @@ import 'dart:async';
 
 import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/services/update_policy.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:in_app_update/in_app_update.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
+/// Reports a handled (non-fatal) error with a short reason.
+typedef UpdateErrorReporter = void Function(
+  Object error,
+  StackTrace stack,
+  String reason,
+);
 
 class UpdateService implements IUpdateService {
+  /// [installedBuild] resolves the installed build number (used to tell a real
+  /// downloaded update from a phantom one); [reportError] receives handled
+  /// failures. Both default to the platform implementations.
+  UpdateService({
+    Future<int> Function()? installedBuild,
+    UpdateErrorReporter? reportError,
+  })  : _installedBuild = installedBuild ?? _platformBuildNumber,
+        _reportError = reportError ?? _crashlyticsReport;
+
+  final Future<int> Function() _installedBuild;
+  final UpdateErrorReporter _reportError;
+
+  static Future<int> _platformBuildNumber() async =>
+      int.parse((await PackageInfo.fromPlatform()).buildNumber);
+
+  static void _crashlyticsReport(Object e, StackTrace s, String reason) {
+    FirebaseCrashlytics.instance.recordError(
+      e,
+      s,
+      fatal: false,
+      reason: reason,
+    );
+  }
+
   final ValueNotifier<bool> _updateReady = ValueNotifier(false);
   final ValueNotifier<bool> _updateDownloading = ValueNotifier(false);
 
@@ -17,6 +51,7 @@ class UpdateService implements IUpdateService {
   InstallStatus? _lastStatus;
   bool _startingFlexible = false;
   bool _disposed = false;
+  int? _installed;
 
   /// Printed (not `developer.log`) so the lines also reach logcat in release
   /// builds, which is where Play update behaviour has to be diagnosed. Uses
@@ -24,6 +59,54 @@ class UpdateService implements IUpdateService {
   /// set in main.dart.
   static void _log(String message) =>
       debugPrintSynchronously('[UpdateService] $message');
+
+  static void _logPhase(String phase, [String detail = '']) =>
+      _log('phase=$phase${detail.isEmpty ? '' : ' $detail'}');
+
+  /// Logs a failure with its context and sends it to the reporter. A reporter
+  /// failure must never break the update flow.
+  void _fail(
+    String phase,
+    Object error,
+    StackTrace stack, {
+    int? available,
+  }) {
+    _log(
+      'error in $phase: $error (installed=$_installed available=$available)',
+    );
+    _logPhase('failed', 'in=$phase');
+    try {
+      _reportError(error, stack, 'UpdateService $phase failed');
+    } catch (e) {
+      _log('could not report error: $e');
+    }
+  }
+
+  static bool _isUserDenial(Object e) =>
+      e is PlatformException && e.code == 'USER_DENIED_UPDATE';
+
+  /// Play can report `downloaded` for an install request it resolved to a
+  /// version that is not newer than the installed one (nothing downloaded).
+  /// Only a newer available version counts as a real download.
+  Future<bool> _isRealDownload(AppUpdateInfo info) async {
+    final installed = _installed = await _installedBuild();
+    final available = info.availableVersionCode ?? 0;
+    final real =
+        info.installStatus == InstallStatus.downloaded && available > installed;
+    if (real) {
+      _logPhase(
+          'downloaded-verified', 'installed=$installed available=$available');
+    } else {
+      _log(
+        'phantom downloaded ignored installStatus=${info.installStatus} '
+        'installed=$installed available=$available',
+      );
+      _setDownloading(false);
+      _setReady(false);
+      _logPhase('idle');
+    }
+    return real;
+  }
 
   // Play's dialog and status callbacks can answer after dispose; writing to a
   // disposed notifier would throw.
@@ -52,6 +135,8 @@ class UpdateService implements IUpdateService {
   Future<void> onResume() => _check(isColdStart: false);
 
   Future<void> _check({required bool isColdStart}) async {
+    var phase = 'check';
+    int? available;
     try {
       final info = await InAppUpdate.checkForUpdate();
       _log(
@@ -62,10 +147,14 @@ class UpdateService implements IUpdateService {
         'flexibleAllowed=${info.flexibleUpdateAllowed} '
         'availableVersionCode=${info.availableVersionCode}',
       );
+      available = info.availableVersionCode;
       _releaseStalledInstall(info.installStatus);
 
       if (info.installStatus == InstallStatus.downloaded) {
+        phase = 'verify';
+        if (!await _isRealDownload(info)) return;
         _setDownloading(false);
+        phase = 'install';
         if (isColdStart) {
           // Nothing on screen to lose at cold start; if the install fails the
           // banner lets the user retry.
@@ -98,6 +187,7 @@ class UpdateService implements IUpdateService {
         _setDownloading(inProgress && action != UpdateAction.resumeImmediate);
       }
       if (action == UpdateAction.resumeImmediate) {
+        phase = 'resume-immediate';
         await (_resuming ??= _resumeImmediate().whenComplete(
           () => _resuming = null,
         ));
@@ -110,16 +200,24 @@ class UpdateService implements IUpdateService {
         // until the next cold start: this is intentional, resume checks never
         // start a new blocking update.
         case UpdateAction.immediate:
+          phase = 'immediate';
           await InAppUpdate.performImmediateUpdate();
         case UpdateAction.flexible:
+          phase = 'flexible';
           await _startFlexibleUpdate();
         case UpdateAction.none:
         case UpdateAction.resumeImmediate:
           break;
       }
-    } catch (e) {
+    } catch (e, stack) {
       _log('error checking for updates: $e');
       _releasePendingInstall(UpdateInstallResult.unconfirmed);
+      _setDownloading(false);
+      if (_isUserDenial(e)) {
+        _logPhase('idle', 'userDenied in=$phase');
+      } else {
+        _fail(phase, e, stack, available: available);
+      }
     }
   }
 
@@ -139,13 +237,17 @@ class UpdateService implements IUpdateService {
       _startingFlexible = false;
     }
     _log('startFlexibleUpdate result=$result');
+    if (result != AppUpdateResult.success) {
+      _setDownloading(false);
+      _logPhase('idle', 'startFlexibleUpdate=$result');
+      return;
+    }
     // The call returns once the user accepts Play's dialog; the download then
     // runs on its own. A download that already ended (or failed) while this
     // call was pending has been reported by the listener.
-    if (result == AppUpdateResult.success &&
-        !_updateReady.value &&
-        _lastStatus != InstallStatus.failed) {
+    if (!_updateReady.value && _lastStatus != InstallStatus.failed) {
       _setDownloading(true);
+      _logPhase('downloading');
     }
   }
 
@@ -158,25 +260,41 @@ class UpdateService implements IUpdateService {
           case InstallStatus.pending:
           case InstallStatus.downloading:
             _setDownloading(true);
+            _logPhase('downloading', 'status=$status');
           case InstallStatus.downloaded:
             _onDownloaded();
           case InstallStatus.failed:
           case InstallStatus.canceled:
             _setDownloading(false);
+            _logPhase('failed', 'status=$status');
           default:
             break;
         }
       },
-      onError: (Object e) => _log('install status error: $e'),
+      onError: (Object e, StackTrace stack) {
+        _log('install status error: $e');
+        _setDownloading(false);
+        _fail('install-status', e, stack);
+      },
     );
   }
 
   /// Only raises the banner: for a download that finishes while the app is
   /// open, the restart that installs the update is the user's choice (at cold
   /// start an already downloaded update is installed automatically instead).
-  void _onDownloaded() {
-    _setDownloading(false);
-    _setReady(true);
+  Future<void> _onDownloaded() async {
+    int? available;
+    try {
+      final info = await InAppUpdate.checkForUpdate();
+      available = info.availableVersionCode;
+      if (!await _isRealDownload(info)) return;
+      _setDownloading(false);
+      _setReady(true);
+    } catch (e, stack) {
+      _setDownloading(false);
+      _setReady(false);
+      _fail('verify', e, stack, available: available);
+    }
   }
 
   /// Repeated taps share one native completion. Cleared afterwards so an
@@ -187,13 +305,16 @@ class UpdateService implements IUpdateService {
 
   Future<UpdateInstallResult> _completeUpdate() async {
     try {
+      _logPhase('installing');
       _log('completing flexible update');
       final result = await _untilInstallEnds();
       _log('completing flexible update result=$result');
       if (result == UpdateInstallResult.installing) _setReady(false);
+      if (result == UpdateInstallResult.unconfirmed) _logPhase('unconfirmed');
       return result;
-    } catch (e) {
+    } catch (e, stack) {
       _log('could not complete flexible update: $e');
+      _fail('install', e, stack);
       return UpdateInstallResult.failed;
     }
   }

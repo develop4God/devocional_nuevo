@@ -24,6 +24,18 @@ void main() {
   late String? immediateError;
   Completer<void>? startGate;
   late UpdateService service;
+  late List<String> reports;
+  late int installedBuild;
+  late Object? installedBuildError;
+  late Map<String, String> failingMethods;
+
+  UpdateService newService() => UpdateService(
+        installedBuild: () async {
+          if (installedBuildError != null) throw installedBuildError!;
+          return installedBuild;
+        },
+        reportError: (e, s, reason) => reports.add('$reason: $e'),
+      );
 
   Map<String, Object?> info({
     int availability = 2,
@@ -32,12 +44,13 @@ void main() {
     int priority = 0,
     int staleness = 0,
     int installStatus = 0,
+    int availableVersion = 100,
   }) =>
       {
         'updateAvailability': availability,
         'immediateAllowed': immediate,
         'flexibleAllowed': flexible,
-        'availableVersionCode': 100,
+        'availableVersionCode': availableVersion,
         'updatePriority': priority,
         'clientVersionStalenessDays': staleness,
         'installStatus': installStatus,
@@ -48,6 +61,16 @@ void main() {
   Map<String, Object?> downloadedInfo() =>
       info(availability: 3, installStatus: 11);
 
+  // The first check is [first]; later checks (the verification of a downloaded
+  // event) answer from [later].
+  void answerChecks(Map<String, Object?> later, {Map<String, Object?>? first}) {
+    var checks = 0;
+    messenger.setMockMethodCallHandler(methods, (call) async {
+      if (call.method != 'checkForUpdate') return null;
+      return ++checks == 1 ? (first ?? info()) : later;
+    });
+  }
+
   setUp(() async {
     calls = [];
     playInfo = info();
@@ -55,10 +78,16 @@ void main() {
     startFlexibleError = null;
     immediateError = null;
     startGate = null;
-    service = UpdateService();
+    reports = [];
+    installedBuild = 50;
+    installedBuildError = null;
+    failingMethods = {};
+    service = newService();
 
     messenger.setMockMethodCallHandler(methods, (call) async {
       calls.add(call.method);
+      final failure = failingMethods[call.method];
+      if (failure != null) throw PlatformException(code: failure);
       if (call.method == 'checkForUpdate') return playInfo;
       if (call.method == 'startFlexibleUpdate') await startGate?.future;
       if (call.method == 'startFlexibleUpdate' && startFlexibleError != null) {
@@ -104,6 +133,7 @@ void main() {
 
     test('stops downloading and raises the banner when downloaded', () async {
       emittedStatuses = [2, 11];
+      answerChecks(downloadedInfo());
 
       await service.onColdStart();
       await Future<void>.delayed(Duration.zero);
@@ -115,7 +145,7 @@ void main() {
     test('stops downloading when the download fails or is canceled', () async {
       for (final terminal in [5, 6]) {
         service.dispose();
-        service = UpdateService();
+        service = newService();
         emittedStatuses = [2, terminal];
 
         await service.onColdStart();
@@ -279,7 +309,7 @@ void main() {
       startFlexibleError = 'USER_DENIED_UPDATE';
       await service.onColdStart();
 
-      final later = UpdateService();
+      final later = newService();
       calls.clear();
       await later.onColdStart();
       later.dispose();
@@ -291,7 +321,7 @@ void main() {
       startFlexibleError = 'IN_APP_UPDATE_FAILED';
       await service.onColdStart();
 
-      final later = UpdateService();
+      final later = newService();
       calls.clear();
       await later.onColdStart();
       later.dispose();
@@ -315,7 +345,7 @@ void main() {
       immediateError = 'USER_DENIED_UPDATE';
       await service.onColdStart();
 
-      final later = UpdateService();
+      final later = newService();
       calls.clear();
       await later.onColdStart();
       later.dispose();
@@ -328,6 +358,7 @@ void main() {
   group('download ready signal', () {
     test('downloaded status from Play raises updateReady', () async {
       emittedStatuses = [2, 11];
+      answerChecks(downloadedInfo());
 
       await service.onColdStart();
       await pumpEventQueue();
@@ -347,6 +378,7 @@ void main() {
     test('downloaded status while hidden never installs, banner waits',
         () async {
       emittedStatuses = [2, 11];
+      answerChecks(downloadedInfo());
 
       await service.onColdStart();
       await pumpEventQueue();
@@ -357,6 +389,7 @@ void main() {
 
     test('downloaded status while visible only raises the banner', () async {
       emittedStatuses = [2, 11];
+      answerChecks(downloadedInfo());
 
       await service.onColdStart();
       await pumpEventQueue();
@@ -500,8 +533,8 @@ void main() {
 
     test('a critical in-progress update still listens for the download',
         () async {
-      playInfo = inProgressInfo(priority: 5);
       emittedStatuses = [11];
+      answerChecks(downloadedInfo(), first: inProgressInfo(priority: 5));
 
       await service.onResume();
       await pumpEventQueue();
@@ -511,8 +544,8 @@ void main() {
 
     test('cold start with a running flexible download listens for it',
         () async {
-      playInfo = inProgressInfo();
       emittedStatuses = [2, 11];
+      answerChecks(downloadedInfo(), first: inProgressInfo());
 
       await service.onColdStart();
       await pumpEventQueue();
@@ -776,6 +809,278 @@ void main() {
 
       expect(applied, UpdateInstallResult.failed);
       expect(service.updateReady.value, isTrue);
+    });
+  });
+
+  group('phantom download verification', () {
+    // 11 = downloaded, 5 = failed
+    test('downloaded event with availableVersionCode <= installed is ignored',
+        () async {
+      emittedStatuses = [2, 11];
+      answerChecks(
+        info(availability: 3, installStatus: 11, availableVersion: 50),
+      );
+
+      await service.onColdStart();
+      await pumpEventQueue();
+
+      expect(service.updateReady.value, isFalse);
+      expect(service.updateDownloading.value, isFalse);
+    });
+
+    test('downloaded event with a newer availableVersionCode raises ready',
+        () async {
+      emittedStatuses = [2, 11];
+      answerChecks(
+        info(availability: 3, installStatus: 11, availableVersion: 51),
+      );
+
+      await service.onColdStart();
+      await pumpEventQueue();
+
+      expect(service.updateReady.value, isTrue);
+      expect(service.updateDownloading.value, isFalse);
+    });
+
+    test('downloaded event whose re-check no longer says downloaded is ignored',
+        () async {
+      emittedStatuses = [11];
+      answerChecks(info(availability: 1));
+
+      await service.onColdStart();
+      await pumpEventQueue();
+
+      expect(service.updateReady.value, isFalse);
+    });
+
+    test('check throwing during verification shows nothing and reports',
+        () async {
+      emittedStatuses = [2, 11];
+      var checks = 0;
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        if (call.method != 'checkForUpdate') return null;
+        if (++checks == 1) return info();
+        throw PlatformException(code: 'boom');
+      });
+
+      await service.onColdStart();
+      await pumpEventQueue();
+
+      expect(service.updateReady.value, isFalse);
+      expect(service.updateDownloading.value, isFalse);
+      expect(reports, hasLength(1));
+      expect(reports.single, contains('boom'));
+    });
+
+    test('unknown installed build fails closed', () async {
+      installedBuildError = const FormatException('bad build');
+      playInfo = downloadedInfo();
+
+      await service.onResume();
+
+      expect(service.updateReady.value, isFalse);
+      expect(reports, hasLength(1));
+    });
+
+    test('cold start with unverified downloaded never completes the update',
+        () async {
+      playInfo = info(
+        availability: 3,
+        installStatus: 11,
+        availableVersion: 50,
+      );
+
+      await service.onColdStart();
+
+      expect(calls, isNot(contains('completeFlexibleUpdate')));
+      expect(service.updateReady.value, isFalse);
+      expect(service.updateDownloading.value, isFalse);
+    });
+
+    test('cold start with verified downloaded installs it', () async {
+      playInfo = downloadedInfo();
+
+      await service.onColdStart();
+
+      expect(calls, contains('completeFlexibleUpdate'));
+    });
+
+    test('resume with phantom downloaded clears a ready flag', () async {
+      playInfo = downloadedInfo();
+      await service.onResume();
+      expect(service.updateReady.value, isTrue);
+
+      playInfo = info(availability: 3, installStatus: 11, availableVersion: 50);
+      await service.onResume();
+
+      expect(service.updateReady.value, isFalse);
+    });
+
+    test('logs the phantom with both build numbers', () async {
+      final logs = <String>[];
+      playInfo = info(availability: 3, installStatus: 11, availableVersion: 50);
+
+      await runZoned(
+        () => service.onResume(),
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) => logs.add(line),
+        ),
+      );
+
+      final line = logs.firstWhere((l) => l.contains('phantom'));
+      expect(line, contains('available=50'));
+      expect(line, contains('installed=50'));
+    });
+  });
+
+  group('failure handling', () {
+    test('checkForUpdate PlatformException is reported and clears downloading',
+        () async {
+      playInfo = info(availability: 3, installStatus: 2);
+      await service.onColdStart();
+      expect(service.updateDownloading.value, isTrue);
+
+      failingMethods['checkForUpdate'] = 'boom';
+      await service.onResume();
+
+      expect(service.updateDownloading.value, isFalse);
+      expect(reports, hasLength(1));
+      expect(reports.single, contains('check'));
+    });
+
+    test('startFlexibleUpdate PlatformException is reported, not downloading',
+        () async {
+      failingMethods['startFlexibleUpdate'] = 'boom';
+
+      await service.onColdStart();
+
+      expect(service.updateDownloading.value, isFalse);
+      expect(reports, hasLength(1));
+    });
+
+    test('user denied flexible update clears downloading without a report',
+        () async {
+      emittedStatuses = [2];
+      failingMethods['startFlexibleUpdate'] = 'USER_DENIED_UPDATE';
+
+      await service.onColdStart();
+
+      expect(service.updateDownloading.value, isFalse);
+      expect(reports, isEmpty);
+    });
+
+    test('failed startFlexibleUpdate result clears downloading', () async {
+      emittedStatuses = [2];
+      failingMethods['startFlexibleUpdate'] = 'IN_APP_UPDATE_FAILED';
+
+      await service.onColdStart();
+
+      expect(service.updateDownloading.value, isFalse);
+    });
+
+    test('performImmediateUpdate PlatformException is reported', () async {
+      playInfo = info(priority: 5);
+      failingMethods['performImmediateUpdate'] = 'boom';
+
+      await service.onColdStart();
+
+      expect(reports, hasLength(1));
+      expect(reports.single, contains('boom'));
+    });
+
+    test('resume of an immediate update failing is reported', () async {
+      playInfo = info(availability: 3, installStatus: 2, priority: 5);
+      failingMethods['performImmediateUpdate'] = 'boom';
+
+      await service.onResume();
+
+      expect(reports, hasLength(1));
+    });
+
+    test('completeFlexibleUpdate PlatformException is reported and failed',
+        () async {
+      failingMethods['completeFlexibleUpdate'] = 'boom';
+
+      final result = await service.applyDownloadedUpdate();
+
+      expect(result, UpdateInstallResult.failed);
+      expect(reports, hasLength(1));
+      expect(reports.single, contains('boom'));
+    });
+
+    test('install can be requested again after a failure', () async {
+      failingMethods['completeFlexibleUpdate'] = 'boom';
+      await service.applyDownloadedUpdate();
+      failingMethods.clear();
+
+      final result = await service.applyDownloadedUpdate();
+
+      expect(result, UpdateInstallResult.installing);
+      expect(reports, hasLength(1));
+    });
+
+    test('listener error is reported and clears downloading', () async {
+      messenger.setMockStreamHandler(
+        events,
+        MockStreamHandler.inline(onListen: (args, sink) {
+          sink.success(2);
+          sink.error(code: 'stream', message: 'broken');
+        }),
+      );
+
+      await service.onColdStart();
+      await pumpEventQueue();
+
+      expect(service.updateDownloading.value, isFalse);
+      expect(reports, hasLength(1));
+    });
+
+    test('a failing reporter never escapes', () async {
+      service.dispose();
+      service = UpdateService(
+        installedBuild: () async => 50,
+        reportError: (e, s, reason) => throw StateError('no firebase'),
+      );
+      failingMethods['checkForUpdate'] = 'boom';
+
+      await service.onResume();
+
+      expect(service.updateReady.value, isFalse);
+    });
+
+    test('out-of-order: downloaded event after dispose is harmless', () async {
+      emittedStatuses = [11];
+      await service.onColdStart();
+      service.dispose();
+      await pumpEventQueue();
+
+      expect(reports, isEmpty);
+    });
+  });
+
+  group('phase logging', () {
+    test('logs a line for each phase transition', () async {
+      final logs = <String>[];
+      emittedStatuses = [2, 11];
+      answerChecks(downloadedInfo());
+      await runZoned(
+        () async {
+          await service.onColdStart();
+          await pumpEventQueue();
+          await service.applyDownloadedUpdate();
+        },
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) => logs.add(line),
+        ),
+      );
+
+      for (final phase in [
+        'downloading',
+        'downloaded-verified',
+        'installing'
+      ]) {
+        expect(logs, contains(contains('phase=$phase')), reason: phase);
+      }
     });
   });
 

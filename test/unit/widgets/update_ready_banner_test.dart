@@ -591,18 +591,91 @@ void main() {
       await tester.pump();
     });
 
-    testWidgets('close button is disabled while restarting', (tester) async {
+    testWidgets('close stays enabled while restarting and hides the card',
+        (tester) async {
       await pumpPending(tester);
 
       await tester.tap(find.text('Update ready'));
       await tester.pump();
-      await tester.tap(find.byTooltip('Close'), warnIfMissed: false);
+      final close = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.close),
+      );
+      expect(close.onPressed, isNotNull);
+      await tester.tap(find.byTooltip('Close'));
       await tester.pump();
 
-      expect(find.text('Update ready'), findsOneWidget);
+      expect(find.text('Update ready'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
 
+    testWidgets('the card returns idle and restart works again after resume',
+        (tester) async {
+      await pumpPending(tester);
+      await tester.tap(find.text('Update ready'));
+      await tester.pump();
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pump();
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+
+      expect(find.byIcon(Icons.download_done_outlined), findsOneWidget);
+      await tester.tap(find.text('Update ready'));
+      await tester.pump();
+      expect(restarts, 2);
+    });
+
+    testWidgets('a late failure of an abandoned restart shows nothing',
+        (tester) async {
+      await pumpPending(tester);
+      await tester.tap(find.text('Update ready'));
+      await tester.pump();
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pump();
+
+      release.complete(UpdateInstallResult.failed);
+      await tester.pump();
+
+      expect(find.text('Could not restart'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a late result of an abandoned restart leaves a newer attempt',
+        (tester) async {
+      await pumpPending(tester);
+      final first = release;
+      await tester.tap(find.text('Update ready'));
+      await tester.pump();
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      release = Completer<UpdateInstallResult>();
+      await tester.tap(find.text('Update ready'));
+      await tester.pump();
+
+      first.complete(UpdateInstallResult.unconfirmed);
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
       release.complete(UpdateInstallResult.installing);
       await tester.pump();
+    });
+
+    testWidgets('a late unconfirmed result of an abandoned restart is silent',
+        (tester) async {
+      await pumpPending(tester);
+      await tester.tap(find.text('Update ready'));
+      await tester.pump();
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pump();
+
+      release.complete(UpdateInstallResult.unconfirmed);
+      await tester.pump();
+
+      expect(find.byType(SnackBar), findsNothing);
     });
 
     testWidgets('failure restores the icon, shows the snackbar, allows retry',
