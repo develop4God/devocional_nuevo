@@ -87,7 +87,8 @@ class BibleDbService {
     final partPath = '$dbPath.part';
 
     try {
-      final bytes = GZipDecoder().decodeBytes(compressedBytes);
+      // archive >= 4.6.0 no longer throws on damaged data unless asked to.
+      final bytes = GZipDecoder().decodeBytes(compressedBytes, verify: true);
       await File(partPath).writeAsBytes(bytes, flush: true);
     } catch (e) {
       if (File(partPath).existsSync()) {
