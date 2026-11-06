@@ -28,7 +28,7 @@ import 'package:devocional_nuevo/services/i_analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/devocional_tts_sections.dart';
-import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/utils/devotional_share_helper.dart';
 import 'package:devocional_nuevo/utils/localized_date_formatter.dart';
 import 'package:devocional_nuevo/widgets/add_entry_choice_modal.dart';
@@ -201,7 +201,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      UpdateService.checkForUpdate();
+      getService<IUpdateService>().checkForUpdate();
     });
     _streakFuture = _loadStreak();
     _splashAnimController.initialize(
@@ -529,7 +529,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       }
 
       // Check for updates
-      UpdateService.checkForUpdate();
+      getService<IUpdateService>().checkForUpdate();
 
       // Refresh streak data to ensure fire lottie shows current value
       _streakFuture = _loadStreak();

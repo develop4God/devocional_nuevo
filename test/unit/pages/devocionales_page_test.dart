@@ -19,6 +19,8 @@ import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
+import 'package:devocional_nuevo/services/i_update_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart'; // for TtsState
 import 'package:flutter/material.dart';
@@ -176,13 +178,26 @@ Devocional _devocional(String id, {String version = 'RVR1960'}) => Devocional(
       language: 'es',
     );
 
+/// Counts update checks so the page wiring can be asserted.
+class FakeUpdateService implements IUpdateService {
+  int checkCount = 0;
+
+  @override
+  Future<void> checkForUpdate() async => checkCount++;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late MockDevocionalRepository repository;
+  late FakeUpdateService updateService;
 
   setUp(() async {
     await registerTestServicesWithFakes();
+    updateService = FakeUpdateService();
+    ServiceLocator()
+      ..unregister<IUpdateService>()
+      ..registerSingleton<IUpdateService>(updateService);
     await initializeDateFormatting('en');
     repository = MockDevocionalRepository();
   });
@@ -239,6 +254,24 @@ void main() {
       // Drain DevocionalesTracking's un-cancelable one-shot 2s self-test
       // Timer (started from initState) before the test ends, or FlutterTest
       // flags it as a leaked pending timer.
+      await tester.pump(const Duration(seconds: 3));
+    });
+
+    testWidgets('checks for an app update once after the first frame',
+        (tester) async {
+      when(() => repository.getAvailableYears())
+          .thenAnswer((_) async => <int>[2025]);
+      when(() => repository.fetchAll(any(), any(), any()))
+          .thenAnswer((_) async => <Devocional>[]);
+      when(() => repository.wasLastFetchOffline).thenReturn(false);
+
+      await tester.pumpWidget(host(repository));
+      expect(updateService.checkCount, 1);
+
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+      expect(updateService.checkCount, 1);
+
+      // Drain DevocionalesTracking's one-shot 2s self-test Timer.
       await tester.pump(const Duration(seconds: 3));
     });
 

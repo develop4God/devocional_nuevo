@@ -1,253 +1,208 @@
 @Tags(['critical', 'unit', 'services'])
 library;
 
-// test/critical_coverage/update_service_test.dart
+import 'dart:async';
 
+import 'package:devocional_nuevo/services/i_update_service.dart';
+import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// High-value tests for UpdateService
-/// Tests update check logic and update type decisions
-
 void main() {
-  group('UpdateService Update Logic', () {
-    group('Update Availability Check', () {
-      test('update available triggers update flow', () {
-        const updateAvailable = true;
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-        expect(updateAvailable, isTrue);
-      });
+  const channel = MethodChannel('de.ffuf.in_app_update/methods');
+  final methodCalls = <String>[];
 
-      test('no update available skips update flow', () {
-        const updateAvailable = false;
+  // UpdateAvailability values used by in_app_update.
+  const updateAvailable = 2;
+  const developerTriggeredUpdateInProgress = 3;
+  const updateNotAvailable = 1;
 
-        expect(updateAvailable, isFalse);
-      });
-    });
+  Map<String, Object?> info({
+    int availability = updateAvailable,
+    bool immediateAllowed = true,
+    int priority = 0,
+  }) =>
+      {
+        'updateAvailability': availability,
+        'immediateAllowed': immediateAllowed,
+        'flexibleAllowed': true,
+        'availableVersionCode': 100,
+        'updatePriority': priority,
+        'clientVersionStalenessDays': 30,
+        'installStatus': 0,
+        'packageName': 'com.example.app',
+      };
 
-    group('Update Type Decision', () {
-      test('immediate update preferred when allowed', () {
-        const updateAvailable = true;
-        const immediateAllowed = true;
-
-        // When immediate is allowed, it takes priority
-        final useImmediate = updateAvailable && immediateAllowed;
-        expect(useImmediate, isTrue);
-      });
-
-      test('flexible update used when immediate not allowed', () {
-        const updateAvailable = true;
-        const immediateAllowed = false;
-        const flexibleAllowed = true;
-
-        final useFlexible =
-            updateAvailable && !immediateAllowed && flexibleAllowed;
-        expect(useFlexible, isTrue);
-      });
-
-      test('no update when neither type allowed', () {
-        const updateAvailable = true;
-        const immediateAllowed = false;
-        const flexibleAllowed = false;
-
-        final canUpdate =
-            updateAvailable && (immediateAllowed || flexibleAllowed);
-        expect(canUpdate, isFalse);
-      });
-    });
-
-    group('Flexible Update Progress', () {
-      test('progress monitoring iterations', () {
-        // Service monitors progress in 10 iterations
-        const iterations = 10;
-        const delayPerIteration = Duration(seconds: 2);
-
-        // Total monitoring time
-        final totalTime = delayPerIteration * iterations;
-        expect(totalTime.inSeconds, equals(20));
-      });
-
-      test('progress percentage calculation', () {
-        for (int i = 1; i <= 10; i++) {
-          final progress = i * 10;
-          expect(progress, equals(i * 10));
-          expect(progress, lessThanOrEqualTo(100));
+  void mockChannel({
+    Map<String, Object?>? checkResult,
+    bool checkThrows = false,
+    bool immediateThrows = false,
+    Future<void> Function()? onImmediate,
+  }) {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      methodCalls.add(call.method);
+      if (call.method == 'checkForUpdate') {
+        if (checkThrows) {
+          throw PlatformException(code: 'ERROR', message: 'Platform error');
         }
-      });
-
-      test('completion attempt threshold at 80%', () {
-        // Service attempts completion after 80% progress
-        const completionThreshold = 8; // 80%
-
-        for (int i = 1; i <= 10; i++) {
-          final shouldAttemptCompletion = i >= completionThreshold;
-          if (i >= 8) {
-            expect(
-              shouldAttemptCompletion,
-              isTrue,
-              reason: 'Should attempt completion at ${i * 10}%',
-            );
-          } else {
-            expect(
-              shouldAttemptCompletion,
-              isFalse,
-              reason: 'Should not attempt completion at ${i * 10}%',
-            );
-          }
-        }
-      });
+        return checkResult;
+      }
+      if (call.method == 'performImmediateUpdate' && immediateThrows) {
+        throw PlatformException(code: 'ERROR', message: 'Update failed');
+      }
+      if (call.method == 'performImmediateUpdate' && onImmediate != null) {
+        await onImmediate();
+      }
+      return null;
     });
+  }
 
-    group('Update Info Map Structure', () {
-      test('successful update info has all required fields', () {
-        final updateInfo = {
-          'updateAvailable': true,
-          'immediateUpdateAllowed': true,
-          'flexibleUpdateAllowed': true,
-          'availableVersionCode': 10,
-          'updatePriority': 3,
-          'clientVersionStalenessDays': 7,
-        };
+  late IUpdateService service;
 
-        expect(updateInfo.containsKey('updateAvailable'), isTrue);
-        expect(updateInfo.containsKey('immediateUpdateAllowed'), isTrue);
-        expect(updateInfo.containsKey('flexibleUpdateAllowed'), isTrue);
-        expect(updateInfo.containsKey('availableVersionCode'), isTrue);
-        expect(updateInfo.containsKey('updatePriority'), isTrue);
-        expect(updateInfo.containsKey('clientVersionStalenessDays'), isTrue);
-      });
-
-      test('error update info has updateAvailable false', () {
-        final errorInfo = {'updateAvailable': false, 'error': 'Network error'};
-
-        expect(errorInfo['updateAvailable'], isFalse);
-        expect(errorInfo.containsKey('error'), isTrue);
-      });
-    });
-
-    group('Update Priority Levels', () {
-      test('priority 0 is lowest', () {
-        const priority = 0;
-        expect(priority, equals(0));
-      });
-
-      test('priority 5 is highest', () {
-        const priority = 5;
-        expect(priority, equals(5));
-      });
-
-      test('priority range is 0-5', () {
-        for (int p = 0; p <= 5; p++) {
-          expect(p, inInclusiveRange(0, 5));
-        }
-      });
-
-      test('high priority suggests immediate update', () {
-        const priority = 5;
-        const highPriorityThreshold = 4;
-
-        final isHighPriority = priority >= highPriorityThreshold;
-        expect(isHighPriority, isTrue);
-      });
-    });
-
-    group('Version Staleness', () {
-      test('staleness days calculation', () {
-        // If app version is 7 days old
-        const stalenessDays = 7;
-        const urgentThreshold = 30;
-
-        final isUrgent = stalenessDays > urgentThreshold;
-        expect(isUrgent, isFalse);
-      });
-
-      test('null staleness is handled', () {
-        const int? stalenessDays = null;
-
-        expect(stalenessDays, isNull);
-      });
-
-      test('very stale version triggers concern', () {
-        const stalenessDays = 90;
-        const urgentThreshold = 30;
-
-        final isVeryStale = stalenessDays > urgentThreshold;
-        expect(isVeryStale, isTrue);
-      });
-    });
-
-    group('Error Handling', () {
-      test('error during check does not crash', () {
-        // Service catches all errors and logs them
-        // Test validates expected behavior
-        try {
-          throw Exception('Test error');
-        } catch (e) {
-          expect(e, isA<Exception>());
-        }
-      });
-
-      test('error during immediate update does not crash', () {
-        try {
-          throw Exception('Immediate update failed');
-        } catch (e) {
-          expect(e.toString(), contains('Immediate update failed'));
-        }
-      });
-
-      test('error during flexible update does not crash', () {
-        try {
-          throw Exception('Flexible update failed');
-        } catch (e) {
-          expect(e.toString(), contains('Flexible update failed'));
-        }
-      });
-    });
-
-    group('Callback Status Messages', () {
-      test('status messages are localized (Spanish)', () {
-        final messages = [
-          'Iniciando actualización...',
-          'Descargando actualización...',
-          'Preparando instalación...',
-          'Actualización completada exitosamente',
-          'Error en actualización',
-        ];
-
-        for (final message in messages) {
-          expect(message, isNotEmpty);
-        }
-      });
-
-      test('progress messages include percentage', () {
-        for (int i = 1; i <= 10; i++) {
-          final message = 'Descargando... ${i * 10}%';
-          expect(message, contains('${i * 10}%'));
-        }
-      });
-    });
+  setUp(() {
+    methodCalls.clear();
+    service = UpdateService();
   });
 
-  group('UpdateService Static Methods', () {
-    test('checkForUpdate is static', () {
-      // Verify the method signature expectation
-      // UpdateService.checkForUpdate() should be callable statically
-      expect(true, isTrue); // Method exists
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
+  });
+
+  group('UpdateService.checkForUpdate', () {
+    test('urgent update starts exactly one immediate update', () async {
+      mockChannel(checkResult: info(priority: 4));
+
+      await service.checkForUpdate();
+
+      expect(methodCalls, ['checkForUpdate', 'performImmediateUpdate']);
     });
 
-    test('performImmediateUpdate is static', () {
-      expect(true, isTrue);
+    test('normal priority update never blocks nor starts a flexible update',
+        () async {
+      for (final priority in [0, 1, 2, 3]) {
+        methodCalls.clear();
+        mockChannel(checkResult: info(priority: priority));
+
+        await service.checkForUpdate();
+
+        expect(
+          methodCalls,
+          ['checkForUpdate'],
+          reason: 'priority $priority must be left to Play auto-update',
+        );
+      }
     });
 
-    test('performFlexibleUpdate is static', () {
-      expect(true, isTrue);
+    test('urgent update without immediate allowed does nothing', () async {
+      mockChannel(checkResult: info(priority: 5, immediateAllowed: false));
+
+      await service.checkForUpdate();
+
+      expect(methodCalls, ['checkForUpdate']);
     });
 
-    test('getUpdateInfo is static', () {
-      expect(true, isTrue);
+    test('no update available does nothing', () async {
+      mockChannel(
+        checkResult: info(availability: updateNotAvailable, priority: 5),
+      );
+
+      await service.checkForUpdate();
+
+      expect(methodCalls, ['checkForUpdate']);
     });
 
-    test('completeFlexibleUpdateIfAvailable is static', () {
-      expect(true, isTrue);
+    test('in-progress urgent update is resumed', () async {
+      mockChannel(
+        checkResult: info(
+          availability: developerTriggeredUpdateInProgress,
+          priority: 4,
+        ),
+      );
+
+      await service.checkForUpdate();
+
+      expect(methodCalls, ['checkForUpdate', 'performImmediateUpdate']);
+    });
+
+    test('in-progress urgent update without immediate allowed is not resumed',
+        () async {
+      mockChannel(
+        checkResult: info(
+          availability: developerTriggeredUpdateInProgress,
+          priority: 4,
+          immediateAllowed: false,
+        ),
+      );
+
+      await service.checkForUpdate();
+
+      expect(methodCalls, ['checkForUpdate']);
+    });
+
+    test('in-progress low priority update is not resumed', () async {
+      mockChannel(
+        checkResult: info(
+          availability: developerTriggeredUpdateInProgress,
+          priority: 0,
+        ),
+      );
+
+      await service.checkForUpdate();
+
+      expect(methodCalls, ['checkForUpdate']);
+    });
+
+    test('a never-completing immediate update does not block later checks',
+        () async {
+      // The plugin may never complete performImmediateUpdate.
+      mockChannel(
+        checkResult: info(priority: 5),
+        onImmediate: () => Completer<void>().future,
+      );
+
+      unawaited(service.checkForUpdate());
+      await pumpEventQueue();
+      unawaited(service.checkForUpdate());
+      await pumpEventQueue();
+
+      expect(
+        methodCalls.where((m) => m == 'performImmediateUpdate'),
+        hasLength(2),
+      );
+    });
+
+    test('user denying the update completes normally', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        methodCalls.add(call.method);
+        if (call.method == 'checkForUpdate') return info(priority: 5);
+        throw PlatformException(code: 'USER_DENIED_UPDATE');
+      });
+
+      await expectLater(service.checkForUpdate(), completes);
+
+      expect(methodCalls, ['checkForUpdate', 'performImmediateUpdate']);
+    });
+
+    test('checkForUpdate failure completes normally and does nothing else',
+        () async {
+      mockChannel(checkThrows: true);
+
+      await expectLater(service.checkForUpdate(), completes);
+
+      expect(methodCalls, ['checkForUpdate']);
+    });
+
+    test('performImmediateUpdate failure completes normally', () async {
+      mockChannel(checkResult: info(priority: 5), immediateThrows: true);
+
+      await expectLater(service.checkForUpdate(), completes);
+
+      expect(methodCalls, ['checkForUpdate', 'performImmediateUpdate']);
     });
   });
 }

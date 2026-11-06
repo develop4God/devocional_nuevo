@@ -778,6 +778,48 @@ void main() {
       },
     );
 
+    // ── UpdateService DI registration ─────────────────────────────────────────
+
+    test(
+        'UpdateService is registered as lazy singleton under IUpdateService '
+        'and has no static singleton or static API', () async {
+      final locator =
+          await File('lib/services/service_locator.dart').readAsString();
+      expect(
+        locator.contains(
+          'registerLazySingleton<IUpdateService>(() => UpdateService())',
+        ),
+        isTrue,
+        reason: 'IUpdateService should be registered as lazy singleton',
+      );
+
+      final service =
+          await File('lib/services/update_service.dart').readAsString();
+      expect(
+        service.contains('class UpdateService implements IUpdateService'),
+        isTrue,
+        reason: 'UpdateService should implement IUpdateService',
+      );
+      expect(service.contains('static UpdateService? _instance'), isFalse);
+      expect(service.contains('static UpdateService get instance'), isFalse);
+      expect(
+        service.contains('static Future<void> checkForUpdate'),
+        isFalse,
+        reason:
+            'checkForUpdate must be an instance method behind the interface',
+      );
+
+      final page =
+          await File('lib/pages/devocionales_page.dart').readAsString();
+      expect(page.contains('UpdateService()'), isFalse);
+      expect(page.contains('UpdateService.checkForUpdate'), isFalse);
+      expect(
+        page.contains('getService<IUpdateService>().checkForUpdate()'),
+        isTrue,
+        reason: 'DevocionalesPage should resolve IUpdateService from locator',
+      );
+    });
+
     // ── AnalyticsService DI registration ──────────────────────────────────────
 
     test(
