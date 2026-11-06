@@ -787,7 +787,8 @@ void main() {
           await File('lib/services/service_locator.dart').readAsString();
       expect(
         locator.contains(
-          'registerLazySingleton<IUpdateService>(() => UpdateService())',
+          'registerLazySingleton<IUpdateService>(\n'
+          '    () => UpdateService(preferences: locator.get<IUpdatePreferences>()),',
         ),
         isTrue,
         reason: 'IUpdateService should be registered as lazy singleton',
@@ -809,9 +810,30 @@ void main() {
             'checkForUpdate must be an instance method behind the interface',
       );
 
+      expect(
+        locator.contains(
+          'registerLazySingleton<IUpdatePreferences>(\n'
+          '    () => UpdatePreferences(),',
+        ),
+        isTrue,
+        reason: 'IUpdatePreferences should be registered as lazy singleton',
+      );
+      final prefs =
+          await File('lib/services/update_preferences.dart').readAsString();
+      expect(
+        prefs.contains('class UpdatePreferences implements IUpdatePreferences'),
+        isTrue,
+      );
+      expect(prefs.contains('static UpdatePreferences? _instance'), isFalse);
+      expect(
+        service.contains('UpdatePreferences()'),
+        isFalse,
+        reason: 'UpdateService must receive IUpdatePreferences via constructor',
+      );
+
       final page =
           await File('lib/pages/devocionales_page.dart').readAsString();
-      expect(page.contains('UpdateService()'), isFalse);
+      expect(page.contains('UpdateService('), isFalse);
       expect(page.contains('UpdateService.checkForUpdate'), isFalse);
       expect(
         page.contains('getService<IUpdateService>().checkForUpdate()'),
