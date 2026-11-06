@@ -70,7 +70,7 @@ void main() {
           'CORRUPT_en.SQLite3',
           targetDir: tempDir,
         ),
-        throwsA(anything),
+        throwsA(isA<ArchiveException>()),
       );
 
       final finalPath = '${tempDir.path}/CORRUPT_en.SQLite3';
@@ -90,12 +90,29 @@ void main() {
           'TRUNC_en.SQLite3',
           targetDir: tempDir,
         ),
-        throwsA(anything),
+        throwsA(isA<ArchiveException>()),
       );
 
       final finalPath = '${tempDir.path}/TRUNC_en.SQLite3';
       expect(File(finalPath).existsSync(), isFalse);
       expect(File('$finalPath.part').existsSync(), isFalse);
+    });
+
+    test('multi-member gzip bytes are decompressed in full', () async {
+      final first = List<int>.generate(300, (i) => i % 256);
+      final second = List<int>.generate(200, (i) => (i * 3) % 256);
+      final multiMember = [
+        ...GZipEncoder().encode(first),
+        ...GZipEncoder().encode(second),
+      ];
+
+      final resultPath = await BibleDbService.installFromGzipBytes(
+        multiMember,
+        'MULTI_en.SQLite3',
+        targetDir: tempDir,
+      );
+
+      expect(File(resultPath).readAsBytesSync(), [...first, ...second]);
     });
   });
 
