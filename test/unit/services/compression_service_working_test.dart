@@ -91,6 +91,8 @@ void main() {
       expect(result, isNull);
     });
 
+    // Smoke test: partial gzip output is also rejected by JSON parsing, so this
+    // does not isolate verify. The damaged-checksum test below does.
     test('decompressJson rejects a truncated gzip backup', () {
       final compressed = CompressionService.compressJson({
         'entries': List<int>.generate(2000, (i) => i),
