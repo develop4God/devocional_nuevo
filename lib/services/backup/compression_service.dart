@@ -35,7 +35,11 @@ class CompressionService {
   static Map<String, dynamic>? decompressJson(Uint8List compressedData) {
     try {
       // Try to decompress
-      final decompressed = GZipDecoder().decodeBytes(compressedData);
+      // verify: archive >= 4.6.0 no longer throws on damaged data by default.
+      final decompressed = GZipDecoder().decodeBytes(
+        compressedData,
+        verify: true,
+      );
 
       // Convert to string
       final jsonString = utf8.decode(decompressed);
@@ -109,7 +113,7 @@ class CompressionService {
   /// Extract files from compressed archive
   static Map<String, dynamic>? extractArchive(Uint8List archiveData) {
     try {
-      final archive = ZipDecoder().decodeBytes(archiveData);
+      final archive = ZipDecoder().decodeBytes(archiveData, verify: true);
       final extractedFiles = <String, dynamic>{};
 
       for (final file in archive) {

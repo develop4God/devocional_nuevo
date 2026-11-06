@@ -77,6 +77,26 @@ void main() {
       expect(File(finalPath).existsSync(), isFalse);
       expect(File('$finalPath.part').existsSync(), isFalse);
     });
+
+    test('truncated gzip bytes throw and leave no .part or final file behind',
+        () async {
+      final original = List<int>.generate(5000, (i) => (i * 31) % 256);
+      final compressed = GZipEncoder().encode(original);
+      final truncated = compressed.sublist(0, compressed.length ~/ 2);
+
+      await expectLater(
+        BibleDbService.installFromGzipBytes(
+          truncated,
+          'TRUNC_en.SQLite3',
+          targetDir: tempDir,
+        ),
+        throwsA(anything),
+      );
+
+      final finalPath = '${tempDir.path}/TRUNC_en.SQLite3';
+      expect(File(finalPath).existsSync(), isFalse);
+      expect(File('$finalPath.part').existsSync(), isFalse);
+    });
   });
 
   group('BibleDbService.ensureInstalled', () {

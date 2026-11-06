@@ -91,6 +91,29 @@ void main() {
       expect(result, isNull);
     });
 
+    test('decompressJson rejects a truncated gzip backup', () {
+      final compressed = CompressionService.compressJson({
+        'entries': List<int>.generate(2000, (i) => i),
+      });
+      final truncated = Uint8List.sublistView(
+        compressed,
+        0,
+        compressed.length ~/ 2,
+      );
+
+      expect(CompressionService.decompressJson(truncated), isNull);
+    });
+
+    test('decompressJson rejects a gzip backup with a damaged checksum', () {
+      final compressed = Uint8List.fromList(
+        CompressionService.compressJson({'favorites': 'abc', 'count': 42}),
+      );
+      // The last 8 bytes of a gzip member are CRC32 and size; damage the CRC.
+      compressed[compressed.length - 8] ^= 0xFF;
+
+      expect(CompressionService.decompressJson(compressed), isNull);
+    });
+
     // SCENARIO 5: Handle uncompressed JSON data (backward compatibility)
     test('decompressJson handles uncompressed JSON as fallback', () {
       final jsonData = {'test': 'value', 'number': 42};
@@ -212,6 +235,16 @@ void main() {
 
       // Implementation returns empty map or null on corruption
       expect(result == null || result.isEmpty, isTrue);
+    });
+
+    test('extractArchive rejects a truncated archive', () {
+      final archive = CompressionService.createArchive({
+        'a.json': {'values': List<int>.generate(2000, (i) => i)},
+        'b.json': {'values': List<int>.generate(2000, (i) => i * 2)},
+      });
+      final truncated = Uint8List.sublistView(archive, 0, archive.length ~/ 2);
+
+      expect(CompressionService.extractArchive(truncated), isNull);
     });
 
     // SCENARIO 15: Real-world backup data simulation
