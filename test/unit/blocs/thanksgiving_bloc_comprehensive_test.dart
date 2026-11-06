@@ -57,6 +57,20 @@ void main() {
       );
     });
 
+    /// Adds [event] and completes with the first state that satisfies
+    /// [until] (any new state by default). The bloc saves to real storage, so
+    /// a fixed sleep races with the disk instead of waiting for the result.
+    Future<ThanksgivingState> dispatch(
+      ThanksgivingEvent event, {
+      bool Function(ThanksgivingState)? until,
+    }) {
+      final next = bloc.stream
+          .firstWhere(until ?? (_) => true)
+          .timeout(const Duration(seconds: 5));
+      bloc.add(event);
+      return next;
+    }
+
     group('User Scenario: Adding thanksgivings', () {
       test('User adds valid thanksgiving', () async {
         bloc.add(LoadThanksgivings());
@@ -128,34 +142,31 @@ void main() {
 
     group('User Scenario: Editing thanksgivings', () {
       test('User edits existing thanksgiving', () async {
-        bloc.add(LoadThanksgivings());
-        await Future.delayed(const Duration(milliseconds: 100));
+        await dispatch(LoadThanksgivings(),
+            until: (s) => s is ThanksgivingLoaded);
 
-        bloc.add(AddThanksgiving('Original thanksgiving'));
-        await Future.delayed(const Duration(milliseconds: 100));
+        await dispatch(AddThanksgiving('Original thanksgiving'));
 
         var state = bloc.state as ThanksgivingLoaded;
         final thanksgivingId = state.thanksgivings.first.id;
 
-        bloc.add(EditThanksgiving(thanksgivingId, 'Updated thanksgiving'));
-        await Future.delayed(const Duration(milliseconds: 100));
+        await dispatch(
+            EditThanksgiving(thanksgivingId, 'Updated thanksgiving'));
 
         state = bloc.state as ThanksgivingLoaded;
         expect(state.thanksgivings.first.text, equals('Updated thanksgiving'));
       });
 
       test('Editing with empty text is rejected', () async {
-        bloc.add(LoadThanksgivings());
-        await Future.delayed(const Duration(milliseconds: 100));
+        await dispatch(LoadThanksgivings(),
+            until: (s) => s is ThanksgivingLoaded);
 
-        bloc.add(AddThanksgiving('Original text'));
-        await Future.delayed(const Duration(milliseconds: 100));
+        await dispatch(AddThanksgiving('Original text'));
 
         var state = bloc.state as ThanksgivingLoaded;
         final thanksgivingId = state.thanksgivings.first.id;
 
-        bloc.add(EditThanksgiving(thanksgivingId, '   '));
-        await Future.delayed(const Duration(milliseconds: 100));
+        await dispatch(EditThanksgiving(thanksgivingId, '   '));
 
         state = bloc.state as ThanksgivingLoaded;
         expect(state.thanksgivings.first.text, equals('Original text'));
