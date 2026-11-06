@@ -130,6 +130,32 @@ scripts/emulator_stop.sh
 It kills any running emulator/scrcpy processes immediately (no prompt) and
 reports each PID it stopped.
 
+## Internal storage
+
+`Pixel7_API35` and `PixelTablet_API35` use a 12 GB data partition
+(`disk.dataPartition.size=12G` in `~/.android/avd/<name>.avd/config.ini`);
+`SmallPhone_API35` still uses 6 GB. The default 6 GB filled up: a debug APK
+is about 290 MB and `adb install -r` needs roughly twice that free, so a
+nearly full device fails with `INSTALL_FAILED_INSUFFICIENT_STORAGE`.
+
+A size change only takes effect on a wipe, so it costs the device's data
+(installed apps, settings):
+
+```bash
+adb -s emulator-5554 emu kill                      # stop it cleanly
+sed -i 's/^disk.dataPartition.size=.*/disk.dataPartition.size=12G/' \
+  ~/.android/avd/Pixel7_API35.avd/config.ini
+__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia \
+  emulator -avd Pixel7_API35 -no-window -gpu host -wipe-data
+```
+
+Then re-run the one-time TTS setup above. Check free space with
+`adb shell df -h /data`.
+
+Two emulators can run side by side if each gets its own port
+(`emulator -avd <name> -port 5554` / `-port 5556`); the scripts above all
+assume `emulator-5554`, so start the second one by hand.
+
 ## Recreating an AVD from scratch
 
 If an AVD gets corrupted (bad snapshot, etc.), delete and recreate it:

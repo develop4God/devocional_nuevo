@@ -24,6 +24,8 @@ import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_grid_overlay.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_unlock_offer_sheet.dart';
+import 'package:devocional_nuevo/widgets/encounter/locked_encounter_overlay.dart';
+import 'package:devocional_nuevo/widgets/encounter/responsive_card_grid.dart';
 import 'package:devocional_nuevo/widgets/gold_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -249,14 +251,12 @@ class _EncountersListPageState extends State<EncountersListPage>
       children: [
         AppScrollbar(
           controller: _scrollController,
-          child: ListView.builder(
+          child: ResponsiveCardGrid(
             controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            itemCount: state.index.length + 1, // +1 for header
+            header: _buildHeader(),
+            itemCount: state.index.length,
             itemBuilder: (context, i) {
-              if (i == 0) return _buildHeader();
-              final entry = state.index[i - 1];
+              final entry = state.index[i];
               final isUnlocked = state.isUnlocked(
                 entry.id,
                 allUnlocked: allUnlocked,
@@ -269,7 +269,7 @@ class _EncountersListPageState extends State<EncountersListPage>
                 isCompleted: isCompleted,
                 onTap: (entry.isPublished && isUnlocked)
                     ? () {
-                        setState(() => _currentIndex = i - 1);
+                        setState(() => _currentIndex = i);
                         _openEncounter(entry, lang);
                       }
                     : null,
@@ -290,106 +290,9 @@ class _EncountersListPageState extends State<EncountersListPage>
                         key: ValueKey('encounter_locked_${entry.id}'),
                         behavior: HitTestBehavior.opaque,
                         onTap: _showUnlockOffer,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          decoration: BoxDecoration(
-                            color: highlight
-                                ? null
-                                : Colors.black.withValues(alpha: 0.65),
-                            gradient: highlight
-                                ? const LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Color(0xD9000000),
-                                      Color(0xE62A2110)
-                                    ],
-                                  )
-                                : null,
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (highlight)
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.black.withValues(alpha: 0.5),
-                                    border: Border.all(
-                                      color: goldAccent,
-                                      width: 2,
-                                    ),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                        color: Color(0x66D9A62E),
-                                        blurRadius: 18,
-                                        spreadRadius: 2,
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.lock_rounded,
-                                    color: Color(0xFFFFE08A),
-                                    size: 32,
-                                  ),
-                                )
-                              else
-                                const Icon(
-                                  Icons.lock_rounded,
-                                  color: Colors.white,
-                                  size: 40,
-                                ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'encounters.complete_to_unlock'.tr({
-                                  'title': prerequisiteTitle,
-                                }),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: highlight ? 16 : 14,
-                                  fontWeight: highlight
-                                      ? FontWeight.w900
-                                      : FontWeight.bold,
-                                  height: 1.4,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              if (highlight)
-                                GoldShimmer(
-                                  filled: true,
-                                  borderRadius: 20,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                    child: Text(
-                                      'encounters.read_now_hint'.tr(),
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        color: Color(0xFF3E2A00),
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w800,
-                                        height: 1.3,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              else
-                                Text(
-                                  'encounters.read_now_hint'.tr(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.75),
-                                    fontSize: 12,
-                                    height: 1.4,
-                                  ),
-                                ),
-                            ],
-                          ),
+                        child: LockedEncounterOverlay(
+                          prerequisiteTitle: prerequisiteTitle,
+                          highlight: highlight,
                         ),
                       ),
                     ),
@@ -403,13 +306,10 @@ class _EncountersListPageState extends State<EncountersListPage>
               }
 
               if (entry.id == nextLockedId) {
-                cardWidget = GoldShimmer(child: cardWidget);
+                cardWidget = GoldShimmer(isolateChild: true, child: cardWidget);
               }
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 24),
-                child: cardWidget,
-              );
+              return cardWidget;
             },
           ),
         ),
@@ -552,7 +452,7 @@ class _EncounterCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 272,
+        height: encounterCardHeight,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(32),
           color: accentColor.withValues(alpha: 0.15),
@@ -609,23 +509,31 @@ class _EncounterCard extends StatelessWidget {
                     Row(
                       children: [
                         if (isCompleted)
-                          _StatusBadge(
-                            label:
-                                'encounters.badge_completed'.tr().toUpperCase(),
-                            icon: Icons.verified_rounded,
-                            color: Colors.greenAccent,
+                          Flexible(
+                            child: _StatusBadge(
+                              label: 'encounters.badge_completed'
+                                  .tr()
+                                  .toUpperCase(),
+                              icon: Icons.verified_rounded,
+                              color: Colors.greenAccent,
+                            ),
                           )
                         else if (isToday)
-                          _StatusBadge(
-                            label: 'encounters.badge_today'.tr().toUpperCase(),
-                            icon: Icons.auto_awesome_rounded,
-                            color: Colors.yellowAccent,
+                          Flexible(
+                            child: _StatusBadge(
+                              label:
+                                  'encounters.badge_today'.tr().toUpperCase(),
+                              icon: Icons.auto_awesome_rounded,
+                              color: Colors.yellowAccent,
+                            ),
                           )
                         else if (isNew)
-                          _StatusBadge(
-                            label: 'encounters.badge_new'.tr().toUpperCase(),
-                            icon: Icons.new_releases_rounded,
-                            color: Colors.cyanAccent,
+                          Flexible(
+                            child: _StatusBadge(
+                              label: 'encounters.badge_new'.tr().toUpperCase(),
+                              icon: Icons.new_releases_rounded,
+                              color: Colors.cyanAccent,
+                            ),
                           ),
                         const Spacer(),
                         Container(
@@ -796,13 +704,17 @@ class _StatusBadge extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 12),
           const SizedBox(width: 5),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.0,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: color,
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.0,
+              ),
             ),
           ),
         ],

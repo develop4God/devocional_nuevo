@@ -8,9 +8,15 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/encounter_index_entry.dart';
 import 'package:devocional_nuevo/widgets/app_scrollbar.dart';
 import 'package:devocional_nuevo/widgets/encounter/encounter_image_widget.dart';
+import 'package:devocional_nuevo/widgets/encounter/locked_encounter_overlay.dart';
+import 'package:devocional_nuevo/widgets/gold_shimmer.dart';
 import 'package:flutter/material.dart';
 
 enum EncounterFilter { all, pending, completed }
+
+/// Margin Material's Card applies when the theme sets none (Flutter does not
+/// expose it).
+const _materialCardMargin = EdgeInsets.all(4);
 
 class EncounterGridOverlay extends StatefulWidget {
   final EncounterLoaded state;
@@ -245,6 +251,10 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
       );
     }
 
+    // Same rule as the default list: only the next waiting encounter is gold.
+    final nextLockedId =
+        widget.state.firstLocked(allUnlocked: widget.allUnlocked)?.id;
+
     return AppScrollbar(
       controller: _gridScrollController,
       child: GridView.builder(
@@ -274,6 +284,8 @@ class _EncounterGridOverlayState extends State<EncounterGridOverlay> {
             lang: widget.lang,
             isCompleted: isCompleted,
             isUnlocked: isUnlocked,
+            isNextLocked: entry.id == nextLockedId,
+            offersUnlock: widget.onLockedTap != null,
             prerequisiteTitle: prerequisiteTitle,
             isActive: isActive,
             onTap: (entry.isPublished && isUnlocked)
@@ -291,6 +303,10 @@ class _EncounterGridCard extends StatelessWidget {
   final String lang;
   final bool isCompleted;
   final bool isUnlocked;
+  final bool isNextLocked;
+
+  /// Whether tapping a locked card opens the unlock offer.
+  final bool offersUnlock;
   final String prerequisiteTitle;
   final bool isActive;
   final VoidCallback? onTap;
@@ -300,6 +316,8 @@ class _EncounterGridCard extends StatelessWidget {
     required this.lang,
     required this.isCompleted,
     required this.isUnlocked,
+    required this.isNextLocked,
+    required this.offersUnlock,
     required this.prerequisiteTitle,
     required this.isActive,
     required this.onTap,
@@ -321,7 +339,8 @@ class _EncounterGridCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final accentColor = _parseColor(entry.accentColor) ?? colorScheme.primary;
 
-    return Card(
+    final card = Card(
+      margin: EdgeInsets.zero,
       elevation: isActive ? 8 : 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
@@ -486,38 +505,23 @@ class _EncounterGridCard extends StatelessWidget {
               ),
             // Locked overlay (published but previous encounter not completed)
             if (entry.isPublished && !isUnlocked)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.65),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.lock_rounded,
-                      color: Colors.white,
-                      size: 32,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'encounters.complete_to_unlock'.tr({
-                        'title': prerequisiteTitle,
-                      }),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                ),
+              LockedEncounterOverlay(
+                prerequisiteTitle: prerequisiteTitle,
+                highlight: isNextLocked,
+                style: LockedOverlayStyle.grid,
+                offersUnlock: offersUnlock,
               ),
           ],
         ),
       ),
+    );
+    // The gap Card would apply by default (its theme margin) is kept outside
+    // the ring so the ring hugs the visible card edge.
+    return Padding(
+      padding: theme.cardTheme.margin ?? _materialCardMargin,
+      child: isNextLocked
+          ? GoldShimmer(borderRadius: 24, isolateChild: true, child: card)
+          : card,
     );
   }
 }

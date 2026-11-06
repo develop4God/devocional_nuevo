@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 const goldAccent = Color(0xFFD9A62E);
 const _goldShine = Color(0xFFFFF3C4);
 
+/// Light gold for icons and gradient highlights on dark gold surfaces.
+const goldHighlight = Color(0xFFFFE08A);
+
 /// Dark brown that stays readable on top of the gold gradient.
 const goldOnGold = Color(0xFF3E2A00);
 
@@ -17,16 +20,21 @@ const goldOnGold = Color(0xFF3E2A00);
 /// With [filled] false only a thin border ring is painted over the child;
 /// with [filled] true the gradient fills the shape behind the child.
 /// The sweep is frozen when the platform asks to reduce animations.
+///
+/// Set [isolateChild] for large children (cards) so only the ring repaints
+/// each frame; small ones (buttons, pills) skip the extra compositing layer.
 class GoldShimmer extends StatefulWidget {
   final Widget child;
   final double borderRadius;
   final bool filled;
+  final bool isolateChild;
 
   const GoldShimmer({
     super.key,
     required this.child,
     this.borderRadius = 32,
     this.filled = false,
+    this.isolateChild = false,
   });
 
   @override
@@ -60,7 +68,9 @@ class _GoldShimmerState extends State<GoldShimmer>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _controller,
-      child: widget.child,
+      child: widget.isolateChild
+          ? RepaintBoundary(child: widget.child)
+          : widget.child,
       builder: (context, child) {
         final painter = _GoldShimmerPainter(
           progress: _controller.value,
@@ -152,6 +162,54 @@ class GoldShimmerButton extends StatelessWidget {
         onPressed: onPressed,
         child: child,
       ),
+    );
+  }
+}
+
+/// Small gold pill carrying a short hint text.
+///
+/// Shimmers by default; pass [animated] false for a static gold fill when
+/// another shimmer already runs nearby (one animation per card).
+class GoldHintPill extends StatelessWidget {
+  static const _radius = 20.0;
+
+  final String text;
+  final double fontSize;
+  final EdgeInsetsGeometry padding;
+  final bool animated;
+
+  const GoldHintPill({
+    super.key,
+    required this.text,
+    this.fontSize = 12,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    this.animated = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final label = Padding(
+      padding: padding,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: goldOnGold,
+          fontSize: fontSize,
+          fontWeight: FontWeight.w800,
+          height: 1.3,
+        ),
+      ),
+    );
+    if (animated) {
+      return GoldShimmer(filled: true, borderRadius: _radius, child: label);
+    }
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: goldAccent,
+        borderRadius: BorderRadius.circular(_radius),
+      ),
+      child: label,
     );
   }
 }
