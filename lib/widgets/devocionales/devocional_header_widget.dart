@@ -67,24 +67,7 @@ class DevocionalHeaderWidget extends StatelessWidget {
           // 2. Date Text (Center)
           Expanded(
             child: showDate
-                ? Text(
-                    date,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: dateColor,
-                      shadows: onHeroImage
-                          ? const [
-                              Shadow(
-                                color: Colors.black45,
-                                blurRadius: 6,
-                              ),
-                            ]
-                          : null,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  )
+                ? _buildDate(context, textTheme, dateColor)
                 : const SizedBox.shrink(),
           ),
 
@@ -150,6 +133,50 @@ class DevocionalHeaderWidget extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// Smallest scale a long date may shrink to before it wraps instead.
+  static const double _minDateScale = 0.7;
+
+  /// Shrinks a long date onto one line (between the streak badge and the
+  /// action buttons) but never below [_minDateScale]: beyond that it wraps to
+  /// two lines, so the text stays legible.
+  Widget _buildDate(
+    BuildContext context,
+    TextTheme textTheme,
+    Color dateColor,
+  ) {
+    final style = textTheme.titleMedium?.copyWith(
+      fontWeight: FontWeight.bold,
+      color: dateColor,
+      shadows: onHeroImage
+          ? const [Shadow(color: Colors.black45, blurRadius: 6)]
+          : null,
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final painter = TextPainter(
+          text: TextSpan(text: date, style: style),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+          maxLines: 1,
+        )..layout();
+        final oneLineWidth = painter.width;
+        painter.dispose();
+        final fitsLegibly = oneLineWidth <= 0 ||
+            constraints.maxWidth / oneLineWidth >= _minDateScale;
+        final text = Text(
+          date,
+          style: style,
+          textAlign: TextAlign.center,
+          maxLines: fitsLegibly ? 1 : 2,
+          overflow: TextOverflow.ellipsis,
+        );
+        return fitsLegibly
+            ? FittedBox(fit: BoxFit.scaleDown, child: text)
+            : text;
+      },
     );
   }
 

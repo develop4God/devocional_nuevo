@@ -1,0 +1,180 @@
+@Tags(['unit', 'debug'])
+library;
+
+import 'package:devocional_nuevo/debug/sections/debug_banners_section.dart';
+import 'package:devocional_nuevo/widgets/bible/kjv_kj2000_banner.dart';
+import 'package:devocional_nuevo/widgets/update_ready_banner.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  Future<void> pumpSection(WidgetTester tester) {
+    return tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: DebugBannersSection(
+              updateTitle: 'Update ready',
+              updateMessage: 'Tap to restart and get the latest improvements.',
+              updateCloseTooltip: 'Close',
+              updateRestartFailedMessage: 'Could not restart',
+              updateDownloadingTitle: 'Downloading update',
+              updateDownloadingMessage: 'You can keep using the app.',
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  testWidgets('downloading preview shows the spinner banner', (tester) async {
+    await pumpSection(tester);
+
+    await tester.tap(find.text('Show downloading banner'));
+    await tester.pump();
+
+    expect(find.text('Downloading update'), findsOneWidget);
+    expect(find.text('Update ready'), findsNothing);
+  });
+
+  testWidgets('shows nothing until a banner is requested', (tester) async {
+    await pumpSection(tester);
+
+    expect(find.byType(UpdateReadyBanner), findsNothing);
+    expect(find.byType(KjvKj2000Banner), findsNothing);
+    expect(find.text('Show update banner'), findsOneWidget);
+    expect(find.text('Show KJV banner'), findsOneWidget);
+  });
+
+  testWidgets('update button shows the real update banner', (tester) async {
+    await pumpSection(tester);
+
+    await tester.tap(find.text('Show update banner'));
+    await tester.pump();
+
+    expect(find.byType(UpdateReadyBanner), findsOneWidget);
+    expect(find.text('Update ready'), findsOneWidget);
+    expect(find.byType(KjvKj2000Banner), findsNothing);
+  });
+
+  testWidgets('KJV button shows the real KJV banner', (tester) async {
+    await pumpSection(tester);
+
+    await tester.tap(find.text('Show KJV banner'));
+    await tester.pump();
+
+    expect(find.byType(KjvKj2000Banner), findsOneWidget);
+    expect(find.byType(UpdateReadyBanner), findsNothing);
+  });
+
+  testWidgets('both banners can be shown together', (tester) async {
+    await pumpSection(tester);
+
+    await tester.tap(find.text('Show update banner'));
+    await tester.tap(find.text('Show KJV banner'));
+    await tester.pump();
+
+    expect(find.byType(UpdateReadyBanner), findsOneWidget);
+    expect(find.byType(KjvKj2000Banner), findsOneWidget);
+  });
+
+  testWidgets('pressing a shown banner button again hides it', (tester) async {
+    await pumpSection(tester);
+
+    await tester.tap(find.text('Show update banner'));
+    await tester.pump();
+    await tester.tap(find.text('Hide update banner'));
+    await tester.pump();
+
+    expect(find.byType(UpdateReadyBanner), findsNothing);
+  });
+
+  testWidgets('tapping the update banner only reports, never installs',
+      (tester) async {
+    await pumpSection(tester);
+    await tester.tap(find.text('Show update banner'));
+    await tester.pump();
+
+    await tester.tap(find.text('Update ready'));
+    await tester.pump();
+
+    expect(find.textContaining('Restart tapped'), findsOneWidget);
+  });
+
+  testWidgets('tapping the KJV banner reports the drawer action',
+      (tester) async {
+    await pumpSection(tester);
+    await tester.tap(find.text('Show KJV banner'));
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.info_outline_rounded));
+    await tester.pump();
+
+    expect(find.textContaining('Open drawer tapped'), findsOneWidget);
+  });
+
+  testWidgets('closing the KJV banner hides it and shows the button again',
+      (tester) async {
+    await pumpSection(tester);
+    await tester.tap(find.text('Show KJV banner'));
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pump();
+
+    expect(find.byType(KjvKj2000Banner), findsNothing);
+    expect(find.text('Show KJV banner'), findsOneWidget);
+  });
+
+  group('update banner preview', () {
+    final hero = find.byKey(const Key('debug_banner_preview_hero'));
+
+    testWidgets('shows the fake page content together with the banner',
+        (tester) async {
+      await pumpSection(tester);
+      await tester.tap(find.text('Show update banner'));
+      await tester.pump();
+
+      expect(hero, findsOneWidget);
+      expect(find.byIcon(Icons.menu), findsOneWidget);
+      expect(find.byIcon(Icons.share_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+      expect(find.text('Update ready'), findsOneWidget);
+    });
+
+    testWidgets('preview area is phone-like sized', (tester) async {
+      await pumpSection(tester);
+      await tester.tap(find.text('Show update banner'));
+      await tester.pump();
+
+      final size = tester.getSize(find.byKey(
+        const Key('debug_banner_preview_area'),
+      ));
+      expect(size, const Size(360, 420));
+    });
+
+    testWidgets('hero keeps its size when the banner is closed',
+        (tester) async {
+      await pumpSection(tester);
+      await tester.tap(find.text('Show update banner'));
+      await tester.pump();
+      final withBanner = tester.getRect(hero);
+
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pump();
+
+      expect(find.text('Update ready'), findsNothing);
+      expect(tester.getRect(hero), withBanner);
+    });
+
+    testWidgets('hiding the preview removes the fake page', (tester) async {
+      await pumpSection(tester);
+      await tester.tap(find.text('Show update banner'));
+      await tester.pump();
+      await tester.tap(find.text('Hide update banner'));
+      await tester.pump();
+
+      expect(hero, findsNothing);
+    });
+  });
+}

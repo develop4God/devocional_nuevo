@@ -1,7 +1,9 @@
 // ignore_for_file: public_member_api_docs
-import 'dart:convert';
 
+import 'package:devocional_nuevo/debug/github_branch_lister.dart';
 import 'package:devocional_nuevo/debug/i_debug_spiritual_stats_service.dart';
+import 'package:devocional_nuevo/debug/sections/debug_banners_section.dart';
+import 'package:devocional_nuevo/debug/sections/debug_bible_versions_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_bulk_add_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_crashlytics_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_devotionals_section.dart';
@@ -11,12 +13,13 @@ import 'package:devocional_nuevo/debug/sections/debug_iap_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_onboarding_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_streak_section.dart';
 import 'package:devocional_nuevo/debug/sections/debug_tts_section.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/repositories/i_bible_index_debug_controls.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/debug/debug_backup_section.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 /// Debug page — visible in kDebugMode only.
 ///
@@ -33,6 +36,12 @@ class DebugPage extends StatefulWidget {
 class _DebugPageState extends State<DebugPage> {
   List<String> _branches = ['main', 'dev'];
   bool _loadingBranches = false;
+  // The Bible versions index lives in its own GitHub repo, so its branches
+  // are fetched separately from the Devocionales-json ones.
+  List<String> _bibleBranches = ['main'];
+  String? _bibleBranchWarning;
+  static const _activeBranchWindow = Duration(days: 90);
+  final _branchLister = GithubBranchLister();
 
   // Resolved once at composition time — debug page acts as a local
   // composition root (kDebugMode only, never shipped to production).
@@ -42,34 +51,38 @@ class _DebugPageState extends State<DebugPage> {
       getService<OnboardingService>();
 
   @override
+  void dispose() {
+    _branchLister.close();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     _fetchBranches();
   }
 
-  Future<void> _fetchBranches() async {
+  Future<void> _fetchBranches({bool forceRefresh = false}) async {
     setState(() => _loadingBranches = true);
-    try {
-      final response = await http.get(
-        Uri.parse(
-          'https://api.github.com/repos/develop4God/Devocionales-json/branches',
-        ),
-        headers: {'Accept': 'application/vnd.github.v3+json'},
-      );
-      if (response.statusCode == 200) {
-        final List branches = jsonDecode(response.body);
-        setState(
-          () => _branches = branches.map((b) => b['name'] as String).toList(),
-        );
-      } else if (response.statusCode == 403) {
-        debugPrint('⚠️ GitHub rate limit hit, using fallback branches');
-      } else {
-        debugPrint('⚠️ GitHub API error: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('❌ Error fetching branches: $e');
-    }
-    setState(() => _loadingBranches = false);
+    final results = await Future.wait([
+      _branchLister.fetch(
+        GithubBranchLister.devotionalsRepo,
+        forceRefresh: forceRefresh,
+      ),
+      _branchLister.fetch(
+        GithubBranchLister.bibleVersionsRepo,
+        activeWithin: _activeBranchWindow,
+        forceRefresh: forceRefresh,
+      ),
+    ]);
+    if (results[0].warning != null) debugPrint('⚠️ ${results[0].warning}');
+    if (!mounted) return;
+    setState(() {
+      _branches = results[0].branches ?? _branches;
+      _bibleBranches = results[1].branches ?? _bibleBranches;
+      _bibleBranchWarning = results[1].warning;
+      _loadingBranches = false;
+    });
   }
 
   @override
@@ -90,7 +103,7 @@ class _DebugPageState extends State<DebugPage> {
             DebugDiscoverySection(
               branches: _branches,
               loadingBranches: _loadingBranches,
-              onRefreshBranches: _fetchBranches,
+              onRefreshBranches: () => _fetchBranches(forceRefresh: true),
             ),
             const SizedBox(height: 32),
             DebugEncountersSection(
@@ -100,6 +113,13 @@ class _DebugPageState extends State<DebugPage> {
             const SizedBox(height: 32),
             DebugDevotionalsSection(
               branches: _branches,
+              loadingBranches: _loadingBranches,
+            ),
+            const SizedBox(height: 32),
+            DebugBibleVersionsSection(
+              controls: getService<IBibleIndexDebugControls>(),
+              branches: _bibleBranches,
+              branchWarning: _bibleBranchWarning,
               loadingBranches: _loadingBranches,
             ),
             const SizedBox(height: 32),
@@ -131,6 +151,17 @@ class _DebugPageState extends State<DebugPage> {
 
             // ── TTS debug (fallback toggle + voice explorer) ──
             const DebugTtsSection(),
+            const SizedBox(height: 32),
+
+            // ── Banner previews (update + KJV) ──
+            DebugBannersSection(
+              updateTitle: 'update.ready_title'.tr(),
+              updateMessage: 'update.ready_message'.tr(),
+              updateCloseTooltip: 'update.close'.tr(),
+              updateRestartFailedMessage: 'update.restart_failed'.tr(),
+              updateDownloadingTitle: 'update.downloading_title'.tr(),
+              updateDownloadingMessage: 'update.downloading_message'.tr(),
+            ),
             const SizedBox(height: 32),
           ],
         ),

@@ -3,7 +3,7 @@
 name: devocional_nuevo
 description: A new Flutter project.
 publish_to: 'none'
-version: 1.17.0+130
+version: 1.17.0+156
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -66,7 +66,7 @@ dependencies:
   google_sign_in: ^6.2.1
   extension_google_sign_in_as_googleapis_auth: ^2.0.12
   connectivity_plus: ^6.0.5
-  archive: ^4.0.0
+  archive: ^4.6.0
 
   # Modularización del proyecto
   bible_reader_core:

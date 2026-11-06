@@ -39,14 +39,19 @@
         android:icon="@mipmap/ic_launcher"
         android:label="Devocionales Cristianos">
 
-        <!-- Actividad principal -->
+        <!-- Actividad principal
+             Do NOT set android:taskAffinity here. After an update, Google Play
+             relaunches the app with NEW_TASK|CLEAR_TASK and needs the default
+             package affinity to reuse the existing task; an empty affinity
+             leaves a second "Devocionales" card in recents.
+             Trade-off accepted: the empty value is Flutter's template hardening
+             against StrandHogg task hijacking on Android below 11. -->
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:exported="true"
             android:hardwareAccelerated="true"
             android:launchMode="singleTop"
-            android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:windowSoftInputMode="adjustResize">
 

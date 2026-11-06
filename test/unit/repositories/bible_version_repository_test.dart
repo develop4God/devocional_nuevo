@@ -114,6 +114,69 @@ void main() {
     );
   }
 
+  group('refreshIndex', () {
+    void stub200(Map<String, dynamic> body, {String? etag}) {
+      when(() => mockHttpClient.send(any())).thenAnswer((inv) async {
+        final request = inv.positionalArguments[0] as http.Request;
+        // The ETag must have been dropped so a 304 cannot hide changes.
+        expect(request.headers.containsKey('If-None-Match'), isFalse);
+        return http.StreamedResponse(
+          Stream.value(utf8.encode(jsonEncode(body))),
+          200,
+          headers: etag == null ? {} : {'etag': etag},
+        );
+      });
+    }
+
+    test('sends no If-None-Match and lists versions per language', () async {
+      SharedPreferences.setMockInitialValues({
+        'bible_versions_index_etag_main': '"old"',
+      });
+      stub200(fullIndex);
+
+      final result = await repository.refreshIndex();
+
+      expect(result.servedFromCache, isFalse);
+      expect(result.versionsByLanguage['en'], contains('KJV'));
+      expect(result.versionsByLanguage.keys, containsAll(['en', 'fr']));
+    });
+
+    test('keeps the stored ETag when the refresh fails', () async {
+      SharedPreferences.setMockInitialValues({
+        'bible_versions_index_cache_main': jsonEncode(fullIndex),
+        'bible_versions_index_etag_main': '"old"',
+      });
+      when(() => mockHttpClient.send(any()))
+          .thenThrow(Exception('network down'));
+
+      await repository.refreshIndex();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('bible_versions_index_etag_main'), '"old"');
+    });
+
+    test('reports servedFromCache when the network fails', () async {
+      SharedPreferences.setMockInitialValues({
+        'bible_versions_index_cache_main': jsonEncode(fullIndex),
+        'bible_versions_index_etag_main': '"old"',
+      });
+      when(() => mockHttpClient.send(any()))
+          .thenThrow(Exception('network down'));
+
+      final result = await repository.refreshIndex();
+
+      expect(result.servedFromCache, isTrue);
+      expect(result.versionsByLanguage['en'], contains('KJV'));
+    });
+
+    test('rethrows when the network fails and nothing is cached', () async {
+      when(() => mockHttpClient.send(any()))
+          .thenThrow(Exception('network down'));
+
+      expect(repository.refreshIndex(), throwsException);
+    });
+  });
+
   group('fetchRemoteVersions', () {
     test('excludes versions already bundled as app assets', () async {
       stubIndexResponse(jsonEncode(fullIndex));
