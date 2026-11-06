@@ -6,15 +6,14 @@ import 'package:flutter/foundation.dart';
 import 'package:in_app_update/in_app_update.dart';
 
 class UpdateService implements IUpdateService {
-  final Duration _installTimeout;
   final ValueNotifier<bool> _updateReady = ValueNotifier(false);
   final ValueNotifier<bool> _updateDownloading = ValueNotifier(false);
 
   StreamSubscription<InstallStatus>? _statusSubscription;
   bool _coldStartHandled = false;
-  Future<bool>? _completing;
+  Future<UpdateInstallResult>? _completing;
   Future<void>? _resuming;
-  Completer<void>? _installFailed;
+  Completer<UpdateInstallResult>? _pendingInstall;
   InstallStatus? _lastStatus;
   bool _startingFlexible = false;
   bool _disposed = false;
@@ -25,9 +24,6 @@ class UpdateService implements IUpdateService {
   /// set in main.dart.
   static void _log(String message) =>
       debugPrintSynchronously('[UpdateService] $message');
-
-  UpdateService({Duration installTimeout = const Duration(seconds: 45)})
-      : _installTimeout = installTimeout;
 
   // Play's dialog and status callbacks can answer after dispose; writing to a
   // disposed notifier would throw.
@@ -66,14 +62,15 @@ class UpdateService implements IUpdateService {
         'flexibleAllowed=${info.flexibleUpdateAllowed} '
         'availableVersionCode=${info.availableVersionCode}',
       );
-      _failStalledInstall(info.installStatus);
+      _releaseStalledInstall(info.installStatus);
 
       if (info.installStatus == InstallStatus.downloaded) {
+        _setDownloading(false);
         if (isColdStart) {
           // Nothing on screen to lose at cold start; if the install fails the
           // banner lets the user retry.
-          final applied = await applyDownloadedUpdate();
-          if (!applied) _setReady(true);
+          final result = await applyDownloadedUpdate();
+          if (result != UpdateInstallResult.installing) _setReady(true);
         } else {
           _setReady(true);
         }
@@ -109,6 +106,9 @@ class UpdateService implements IUpdateService {
       if (!isColdStart) return;
 
       switch (action) {
+        // If the user backs out of a critical update they are not asked again
+        // until the next cold start: this is intentional, resume checks never
+        // start a new blocking update.
         case UpdateAction.immediate:
           await InAppUpdate.performImmediateUpdate();
         case UpdateAction.flexible:
@@ -119,7 +119,7 @@ class UpdateService implements IUpdateService {
       }
     } catch (e) {
       _log('error checking for updates: $e');
-      _failPendingInstall('update check failed');
+      _releasePendingInstall(UpdateInstallResult.unconfirmed);
     }
   }
 
@@ -179,58 +179,69 @@ class UpdateService implements IUpdateService {
     _setReady(true);
   }
 
-  /// Repeated taps share one native completion. Cleared afterwards so a failed
-  /// install can be retried.
+  /// Repeated taps share one native completion. Cleared afterwards so an
+  /// install that did not happen can be requested again.
   @override
-  Future<bool> applyDownloadedUpdate() =>
+  Future<UpdateInstallResult> applyDownloadedUpdate() =>
       _completing ??= _completeUpdate().whenComplete(() => _completing = null);
 
-  Future<bool> _completeUpdate() async {
+  Future<UpdateInstallResult> _completeUpdate() async {
     try {
       _log('completing flexible update');
-      await _untilInstallEnds();
-      _setReady(false);
-      return true;
+      final result = await _untilInstallEnds();
+      _log('completing flexible update result=$result');
+      if (result == UpdateInstallResult.installing) _setReady(false);
+      return result;
     } catch (e) {
       _log('could not complete flexible update: $e');
-      return false;
+      return UpdateInstallResult.failed;
     }
   }
 
   /// On success Play restarts the app. On failure the plugin never answers the
-  /// call, so the wait also ends on a failed or canceled install status, when
-  /// the app is back in the foreground with no install running (see
-  /// [_failStalledInstall]), or after [_installTimeout].
-  Future<void> _untilInstallEnds() {
-    final failed = _installFailed = Completer<void>();
+  /// call, so the wait also ends on a failed or canceled install status (a
+  /// failure) or when the app is back in the foreground with no install
+  /// running (see [_releaseStalledInstall], unconfirmed). There is no timeout:
+  /// only Play or the user returning to the app ends the wait.
+  Future<UpdateInstallResult> _untilInstallEnds() {
+    final released = _pendingInstall = Completer<UpdateInstallResult>();
     final subscription = InAppUpdate.installUpdateListener.listen((status) {
       if (status == InstallStatus.failed || status == InstallStatus.canceled) {
-        _failPendingInstall('install ended with $status');
+        _releasePendingInstall(UpdateInstallResult.failed);
       }
     });
-    return Future.any([InAppUpdate.completeFlexibleUpdate(), failed.future])
-        .timeout(_installTimeout)
-        .whenComplete(() {
+    return Future.any([
+      InAppUpdate.completeFlexibleUpdate()
+          .then((_) => UpdateInstallResult.installing),
+      released.future,
+    ]).whenComplete(() {
       subscription.cancel();
-      _installFailed = null;
+      _pendingInstall = null;
     });
   }
 
-  /// Still on screen after an install request and Play is not installing: it
-  /// did not restart the app. While Play reports the install as pending or
-  /// installing, coming back to the foreground is not a failure.
-  void _failStalledInstall(InstallStatus status) {
-    if (status == InstallStatus.installing || status == InstallStatus.pending) {
-      return;
+  /// Still on screen after an install request and Play is not installing: the
+  /// app was not restarted. While Play reports the install as pending or
+  /// installing, coming back to the foreground changes nothing. A failed or
+  /// canceled install is a failure; anything else (for instance Play still
+  /// reporting `downloaded`) is not confirmed either way, so it is released
+  /// without an error.
+  void _releaseStalledInstall(InstallStatus status) {
+    switch (status) {
+      case InstallStatus.installing:
+      case InstallStatus.pending:
+        return;
+      case InstallStatus.failed:
+      case InstallStatus.canceled:
+        _releasePendingInstall(UpdateInstallResult.failed);
+      default:
+        _releasePendingInstall(UpdateInstallResult.unconfirmed);
     }
-    _failPendingInstall('app is back in the foreground');
   }
 
-  void _failPendingInstall(String reason) {
-    final pending = _installFailed;
-    if (pending != null && !pending.isCompleted) {
-      pending.completeError(StateError(reason));
-    }
+  void _releasePendingInstall(UpdateInstallResult result) {
+    final pending = _pendingInstall;
+    if (pending != null && !pending.isCompleted) pending.complete(result);
   }
 
   void dispose() {

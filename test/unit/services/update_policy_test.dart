@@ -53,8 +53,13 @@ void main() {
           decide(priority: 5, immediateAllowed: false), UpdateAction.flexible);
     });
 
-    test('regular update with only immediate allowed does nothing', () {
-      expect(decide(flexibleAllowed: false), UpdateAction.none);
+    test('regular update with only immediate allowed falls back to immediate',
+        () {
+      expect(decide(flexibleAllowed: false), UpdateAction.immediate);
+    });
+
+    test('flexible is preferred over immediate for a regular update', () {
+      expect(decide(), UpdateAction.flexible);
     });
 
     test('neither type allowed does nothing, even when critical', () {

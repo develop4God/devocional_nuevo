@@ -3,6 +3,7 @@ library;
 
 import 'dart:async';
 
+import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -172,6 +173,18 @@ void main() {
       );
 
       expect(logs.where((l) => l.contains('error checking')), isEmpty);
+    });
+
+    test('a check reporting downloaded clears the downloading flag', () async {
+      playInfo = info(availability: 3, installStatus: 2);
+      await service.onColdStart();
+      expect(service.updateDownloading.value, isTrue);
+
+      playInfo = downloadedInfo();
+      await service.onResume();
+
+      expect(service.updateDownloading.value, isFalse);
+      expect(service.updateReady.value, isTrue);
     });
 
     test('follows a download already running from a previous session',
@@ -542,16 +555,23 @@ void main() {
         });
         calls.clear();
 
-        expect(await service.applyDownloadedUpdate(), isFalse);
-        expect(await service.applyDownloadedUpdate(), isFalse);
+        expect(
+          await service.applyDownloadedUpdate(),
+          UpdateInstallResult.failed,
+        );
+        expect(
+          await service.applyDownloadedUpdate(),
+          UpdateInstallResult.failed,
+        );
 
         expect(calls.where((c) => c == 'completeFlexibleUpdate'), hasLength(2));
         expect(service.updateReady.value, isTrue);
       });
     }
 
-    test('coming back to the foreground ends a wait Play never answers',
-        () async {
+    test(
+        'coming back to the foreground while Play still reports downloaded '
+        'releases the call as unconfirmed, without an error', () async {
       playInfo = downloadedInfo();
       await service.onResume();
       messenger.setMockMethodCallHandler(methods, (call) async {
@@ -567,8 +587,46 @@ void main() {
       await pumpEventQueue();
       await service.onResume();
 
-      expect(await applying, isFalse);
+      expect(await applying, UpdateInstallResult.unconfirmed);
       expect(service.updateReady.value, isTrue);
+    });
+
+    test('an unconfirmed install can be requested again', () async {
+      playInfo = downloadedInfo();
+      await service.onResume();
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        calls.add(call.method);
+        if (call.method == 'checkForUpdate') return playInfo;
+        if (call.method == 'completeFlexibleUpdate') {
+          return Completer<Object?>().future;
+        }
+        return null;
+      });
+      calls.clear();
+
+      for (var i = 0; i < 2; i++) {
+        final applying = service.applyDownloadedUpdate();
+        await pumpEventQueue();
+        await service.onResume();
+        expect(await applying, UpdateInstallResult.unconfirmed);
+      }
+
+      expect(calls.where((c) => c == 'completeFlexibleUpdate'), hasLength(2));
+      expect(service.updateReady.value, isTrue);
+    });
+
+    test('never gives up by itself, however long Play takes', () async {
+      playInfo = downloadedInfo();
+      await service.onResume();
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        return Completer<Object?>().future;
+      });
+
+      UpdateInstallResult? result;
+      unawaited(service.applyDownloadedUpdate().then((v) => result = v));
+      await Future<void>.delayed(const Duration(seconds: 1));
+
+      expect(result, isNull);
     });
 
     test('waits for the real outcome instead of giving up after a delay',
@@ -590,7 +648,7 @@ void main() {
       expect(done, isFalse);
 
       release.complete();
-      expect(await applying, isTrue);
+      expect(await applying, UpdateInstallResult.installing);
     });
 
     test('overlapping requests complete the update only once', () async {
@@ -609,8 +667,8 @@ void main() {
       await pumpEventQueue();
       release.complete();
 
-      expect(await first, isTrue);
-      expect(await second, isTrue);
+      expect(await first, UpdateInstallResult.installing);
+      expect(await second, UpdateInstallResult.installing);
       expect(calls.where((c) => c == 'completeFlexibleUpdate'), hasLength(1));
     });
 
@@ -627,35 +685,17 @@ void main() {
       });
       calls.clear();
 
-      expect(await service.applyDownloadedUpdate(), isFalse);
-      fail = false;
-      expect(await service.applyDownloadedUpdate(), isTrue);
-
-      expect(calls.where((c) => c == 'completeFlexibleUpdate'), hasLength(2));
-    });
-
-    test('a completion Play never answers times out so it can be retried',
-        () async {
-      service.dispose();
-      service = UpdateService(
-        installTimeout: const Duration(milliseconds: 50),
+      expect(
+        await service.applyDownloadedUpdate(),
+        UpdateInstallResult.failed,
       );
-      playInfo = downloadedInfo();
-      await service.onResume();
-      messenger.setMockMethodCallHandler(methods, (call) async {
-        calls.add(call.method);
-        if (call.method == 'completeFlexibleUpdate') {
-          return Completer<Object?>().future;
-        }
-        return null;
-      });
-      calls.clear();
-
-      expect(await service.applyDownloadedUpdate(), isFalse);
-      expect(await service.applyDownloadedUpdate(), isFalse);
+      fail = false;
+      expect(
+        await service.applyDownloadedUpdate(),
+        UpdateInstallResult.installing,
+      );
 
       expect(calls.where((c) => c == 'completeFlexibleUpdate'), hasLength(2));
-      expect(service.updateReady.value, isTrue);
     });
 
     group('foreground while Play is installing', () {
@@ -684,7 +724,7 @@ void main() {
         expect(done, isFalse);
 
         release.complete();
-        expect(await applying, isTrue);
+        expect(await applying, UpdateInstallResult.installing);
         expect(service.updateReady.value, isFalse);
       });
 
@@ -717,12 +757,12 @@ void main() {
 
       final applied = await service.applyDownloadedUpdate();
 
-      expect(applied, isTrue);
+      expect(applied, UpdateInstallResult.installing);
       expect(calls, contains('completeFlexibleUpdate'));
       expect(service.updateReady.value, isFalse);
     });
 
-    test('returns false and keeps updateReady when Play fails', () async {
+    test('returns failed and keeps updateReady when Play fails', () async {
       playInfo = downloadedInfo();
       await service.onResume();
       messenger.setMockMethodCallHandler(methods, (call) async {
@@ -734,7 +774,7 @@ void main() {
 
       final applied = await service.applyDownloadedUpdate();
 
-      expect(applied, isFalse);
+      expect(applied, UpdateInstallResult.failed);
       expect(service.updateReady.value, isTrue);
     });
   });

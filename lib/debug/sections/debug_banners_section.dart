@@ -1,3 +1,4 @@
+import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/widgets/bible/kjv_kj2000_banner.dart';
 import 'package:devocional_nuevo/widgets/update_ready_banner.dart';
 import 'package:flutter/material.dart';
@@ -99,7 +100,7 @@ class _DebugBannersSectionState extends State<DebugBannersSection> {
                   ),
                   onRestart: () async {
                     _report('Restart tapped (preview only)');
-                    return true;
+                    return UpdateInstallResult.installing;
                   },
                   title: widget.updateTitle,
                   message: widget.updateMessage,

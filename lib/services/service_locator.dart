@@ -3,7 +3,6 @@
 library;
 
 import 'package:bible_reader_core/bible_reader_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:devocional_nuevo/debug/i_debug_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
@@ -12,8 +11,8 @@ import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/encounter_repository.dart';
 import 'package:devocional_nuevo/repositories/devotional_image_repository.dart';
 import 'package:devocional_nuevo/repositories/bible_version_repository.dart';
-import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
 import 'package:devocional_nuevo/repositories/i_bible_index_debug_controls.dart';
+import 'package:devocional_nuevo/repositories/i_bible_notes_repository.dart';
 import 'package:devocional_nuevo/repositories/i_bible_version_repository.dart';
 import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
 import 'package:devocional_nuevo/repositories/i_prayer_wall_repository.dart';
@@ -62,6 +61,7 @@ import 'package:devocional_nuevo/services/i_user_recency_service.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/services/user_profile_store.dart';
 import 'package:devocional_nuevo/services/user_recency_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';

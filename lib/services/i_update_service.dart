@@ -1,5 +1,18 @@
 import 'package:flutter/foundation.dart';
 
+/// Outcome of asking Play to install a downloaded update.
+enum UpdateInstallResult {
+  /// Play accepted the request and restarts the app to install.
+  installing,
+
+  /// Play explicitly reported that the install failed or was canceled.
+  failed,
+
+  /// The app came back to the foreground and Play still reports the update as
+  /// downloaded: the install may be waiting, so nothing is reported as an error.
+  unconfirmed,
+}
+
 /// Handles Google Play in-app updates without interrupting the user.
 abstract class IUpdateService {
   /// True once a flexible update has finished downloading and only needs a
@@ -25,7 +38,7 @@ abstract class IUpdateService {
   Future<void> onResume();
 
   /// Installs the downloaded update, restarting the app. Only ever called by
-  /// the user (banner restart) or on a cold start. Returns false when Play
-  /// could not complete it.
-  Future<bool> applyDownloadedUpdate();
+  /// the user (banner restart) or on a cold start. See [UpdateInstallResult]
+  /// for the outcomes.
+  Future<UpdateInstallResult> applyDownloadedUpdate();
 }

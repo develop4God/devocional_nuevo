@@ -159,7 +159,8 @@ class FakeUpdateService implements IUpdateService {
   Future<void> onResume() async => resumes++;
 
   @override
-  Future<bool> applyDownloadedUpdate() async => true;
+  Future<UpdateInstallResult> applyDownloadedUpdate() async =>
+      UpdateInstallResult.installing;
 }
 
 /// Mirrors the FakeThemeBloc already duplicated across several widget test

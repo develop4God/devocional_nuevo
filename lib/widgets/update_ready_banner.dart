@@ -1,3 +1,4 @@
+import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/widgets/notice_banner_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -35,8 +36,9 @@ class UpdateReadyBanner extends StatefulWidget {
   /// Optional: without it no download card is shown.
   final UpdateDownloadNotice? download;
 
-  /// Resolves to false when the update could not be installed.
-  final Future<bool> Function() onRestart;
+  /// Only [UpdateInstallResult.failed] shows [restartFailedMessage]; an
+  /// unconfirmed install leaves the card up and tappable again, silently.
+  final Future<UpdateInstallResult> Function() onRestart;
   final String title;
   final String message;
   final String closeTooltip;
@@ -97,13 +99,13 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
   Future<void> _restart() async {
     if (_restarting) return;
     setState(() => _restarting = true);
-    final bool installed;
+    final UpdateInstallResult result;
     try {
-      installed = await widget.onRestart();
+      result = await widget.onRestart();
     } finally {
       if (mounted) setState(() => _restarting = false);
     }
-    if (installed || !mounted) return;
+    if (result != UpdateInstallResult.failed || !mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(widget.restartFailedMessage)),
     );

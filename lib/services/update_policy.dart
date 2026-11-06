@@ -2,7 +2,9 @@
 enum UpdateAction { none, flexible, immediate, resumeImmediate }
 
 /// Decides between a background (flexible) and a blocking (immediate) update.
-/// Only a release marked urgent in Play blocks the user.
+/// A release marked urgent in Play blocks the user whenever an immediate update
+/// is allowed. A regular release is flexible, and only falls back to a blocking
+/// immediate update when Play allows no flexible one.
 class UpdatePolicy {
   UpdatePolicy._();
 
@@ -26,6 +28,7 @@ class UpdatePolicy {
 
     if (critical && immediateAllowed) return UpdateAction.immediate;
     if (flexibleAllowed) return UpdateAction.flexible;
+    if (immediateAllowed) return UpdateAction.immediate;
     return UpdateAction.none;
   }
 }

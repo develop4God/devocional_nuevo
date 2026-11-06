@@ -3,6 +3,7 @@ library;
 
 import 'dart:async';
 
+import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/widgets/notice_banner_card.dart';
 import 'package:devocional_nuevo/widgets/update_ready_banner.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +36,7 @@ class _ProbeState extends State<_Probe> {
 void main() {
   late ValueNotifier<bool> ready;
   late int restarts;
-  late bool restartSucceeds;
+  late UpdateInstallResult restartResult;
 
   Future<void> pumpBanner(WidgetTester tester) {
     return tester.pumpWidget(
@@ -45,7 +46,7 @@ void main() {
             updateReady: ready,
             onRestart: () async {
               restarts++;
-              return restartSucceeds;
+              return restartResult;
             },
             title: 'Update ready',
             message: 'Tap to restart and get the latest improvements.',
@@ -63,7 +64,7 @@ void main() {
     _ProbeState.topPadding = null;
     ready = ValueNotifier(false);
     restarts = 0;
-    restartSucceeds = true;
+    restartResult = UpdateInstallResult.installing;
   });
 
   tearDown(() => ready.dispose());
@@ -84,7 +85,7 @@ void main() {
               ),
               onRestart: () async {
                 restarts++;
-                return true;
+                return UpdateInstallResult.installing;
               },
               title: 'Update ready',
               message: 'Tap to restart and get the latest improvements.',
@@ -214,7 +215,7 @@ void main() {
   testWidgets('a failed restart tells the user and keeps the banner',
       (tester) async {
     ready.value = true;
-    restartSucceeds = false;
+    restartResult = UpdateInstallResult.failed;
     await pumpBanner(tester);
 
     await tester.tap(find.text('Update ready'));
@@ -226,7 +227,7 @@ void main() {
 
   testWidgets('taps while a restart is in progress are ignored',
       (tester) async {
-    final release = Completer<bool>();
+    final release = Completer<UpdateInstallResult>();
     ready.value = true;
     await tester.pumpWidget(
       MaterialApp(
@@ -249,11 +250,32 @@ void main() {
 
     await tester.tap(find.text('Update ready'));
     await tester.tap(find.text('Update ready'));
-    release.complete(false);
+    release.complete(UpdateInstallResult.failed);
     await tester.pump();
 
     expect(restarts, 1);
     expect(find.text('Could not restart'), findsOneWidget);
+  });
+
+  testWidgets(
+      'an unconfirmed restart shows no error and the card is tappable again',
+      (tester) async {
+    ready.value = true;
+    restartResult = UpdateInstallResult.unconfirmed;
+    await pumpBanner(tester);
+
+    await tester.tap(find.text('Update ready'));
+    await tester.pump();
+
+    expect(find.text('Could not restart'), findsNothing);
+    expect(find.text('Update ready'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+
+    await tester.tap(find.text('Update ready'));
+    await tester.pump();
+
+    expect(restarts, 2);
+    expect(find.text('Could not restart'), findsNothing);
   });
 
   testWidgets('a restart that throws does not lock the banner', (tester) async {
@@ -383,7 +405,7 @@ void main() {
         home: Scaffold(
           body: UpdateReadyBanner(
             updateReady: ready,
-            onRestart: () async => true,
+            onRestart: () async => UpdateInstallResult.installing,
             title: 'Update ready',
             message: 'Tap to restart and get the latest improvements.',
             closeTooltip: 'Close',
@@ -417,7 +439,7 @@ void main() {
           home: Scaffold(
             body: UpdateReadyBanner(
               updateReady: ready,
-              onRestart: () async => true,
+              onRestart: () async => UpdateInstallResult.installing,
               title: 'Update ready',
               message: 'Restart',
               closeTooltip: 'Close',
@@ -513,10 +535,10 @@ void main() {
   });
 
   group('restart in progress', () {
-    late Completer<bool> release;
+    late Completer<UpdateInstallResult> release;
 
     Future<void> pumpPending(WidgetTester tester) {
-      release = Completer<bool>();
+      release = Completer<UpdateInstallResult>();
       ready.value = true;
       return tester.pumpWidget(
         MaterialApp(
@@ -550,7 +572,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(find.byIcon(Icons.download_done_outlined), findsNothing);
 
-      release.complete(true);
+      release.complete(UpdateInstallResult.installing);
       await tester.pump();
     });
 
@@ -565,7 +587,7 @@ void main() {
       );
       expect(indicator.semanticsLabel, 'Update ready');
 
-      release.complete(true);
+      release.complete(UpdateInstallResult.installing);
       await tester.pump();
     });
 
@@ -579,7 +601,7 @@ void main() {
 
       expect(find.text('Update ready'), findsOneWidget);
 
-      release.complete(true);
+      release.complete(UpdateInstallResult.installing);
       await tester.pump();
     });
 
@@ -589,20 +611,20 @@ void main() {
 
       await tester.tap(find.text('Update ready'));
       await tester.pump();
-      release.complete(false);
+      release.complete(UpdateInstallResult.failed);
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsNothing);
       expect(find.byIcon(Icons.download_done_outlined), findsOneWidget);
       expect(find.text('Could not restart'), findsOneWidget);
 
-      release = Completer<bool>();
+      release = Completer<UpdateInstallResult>();
       await tester.tap(find.text('Update ready'));
       await tester.pump();
 
       expect(restarts, 2);
 
-      release.complete(true);
+      release.complete(UpdateInstallResult.installing);
       await tester.pump();
     });
 
@@ -613,7 +635,7 @@ void main() {
       await tester.tap(find.text('Update ready'));
       await tester.pump();
       await tester.pumpWidget(const SizedBox());
-      release.complete(false);
+      release.complete(UpdateInstallResult.failed);
       await tester.pump();
 
       expect(tester.takeException(), isNull);

@@ -1,6 +1,7 @@
 @Tags(['unit', 'widgets'])
 library;
 
+import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/widgets/bible/kjv_kj2000_banner.dart';
 import 'package:devocional_nuevo/widgets/notice_banner_card.dart';
 import 'package:devocional_nuevo/widgets/update_ready_banner.dart';
@@ -92,7 +93,7 @@ void main() {
       host(
         UpdateReadyBanner(
           updateReady: ready,
-          onRestart: () async => true,
+          onRestart: () async => UpdateInstallResult.installing,
           title: 'Update ready',
           message: 'Tap to restart',
           closeTooltip: 'Close',
@@ -141,7 +142,7 @@ void main() {
             updateReady: ready,
             onRestart: () async {
               restarts++;
-              return true;
+              return UpdateInstallResult.installing;
             },
             title: 'Update ready',
             message: 'Tap to restart',
