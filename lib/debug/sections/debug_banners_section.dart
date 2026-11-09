@@ -81,7 +81,22 @@ class _DebugBannersSectionState extends State<DebugBannersSection> {
         ),
         const SizedBox(height: 8),
         OutlinedButton(
-          onPressed: () => setState(() => _restartFails = !_restartFails),
+          onPressed: () {
+            setState(() {
+              _restartFails = !_restartFails;
+              // Show the ready card so the next Restart tap can be tried.
+              if (!_showUpdate) {
+                _updateReady.value = true;
+                _updateDownloading.value = false;
+                _showUpdate = true;
+              }
+            });
+            _report(
+              _restartFails
+                  ? 'Next Restart tap will fail'
+                  : 'Next Restart tap will succeed',
+            );
+          },
           child: Text(
             'Simulate restart failure: ${_restartFails ? 'on' : 'off'}',
           ),
@@ -107,7 +122,12 @@ class _DebugBannersSectionState extends State<DebugBannersSection> {
                     message: widget.updateDownloadingMessage,
                   ),
                   onRestart: () async {
-                    if (_restartFails) return UpdateInstallResult.failed;
+                    if (_restartFails) {
+                      // The banner queues its failure snackbar; drop the
+                      // toggle hint so the failure shows right away.
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      return UpdateInstallResult.failed;
+                    }
                     _report('Restart tapped (preview only)');
                     return UpdateInstallResult.installing;
                   },

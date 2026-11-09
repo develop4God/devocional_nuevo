@@ -118,6 +118,40 @@ void main() {
     expect(find.textContaining('Restart tapped'), findsNothing);
   });
 
+  testWidgets('failure toggle explains itself and shows the ready preview',
+      (tester) async {
+    await pumpSection(tester);
+    expect(find.byType(UpdateReadyBanner), findsNothing);
+
+    await tester.tap(find.text('Simulate restart failure: off'));
+    await tester.pump();
+
+    expect(find.text('Next Restart tap will fail'), findsOneWidget);
+    expect(find.byType(UpdateReadyBanner), findsOneWidget);
+    expect(find.text('Update ready'), findsOneWidget);
+
+    await tester.tap(find.text('Update ready'));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Could not restart'), findsOneWidget);
+  });
+
+  testWidgets('failure toggle off announces success and restart succeeds',
+      (tester) async {
+    await pumpSection(tester);
+    await tester.tap(find.text('Simulate restart failure: off'));
+    await tester.pump();
+    await tester.tap(find.text('Simulate restart failure: on'));
+    await tester.pump();
+
+    expect(find.text('Next Restart tap will succeed'), findsOneWidget);
+
+    await tester.tap(find.text('Update ready'));
+    await tester.pump();
+    expect(find.textContaining('Restart tapped'), findsOneWidget);
+    expect(find.text('Could not restart'), findsNothing);
+  });
+
   testWidgets('tapping the KJV banner reports the drawer action',
       (tester) async {
     await pumpSection(tester);
