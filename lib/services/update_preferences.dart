@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class UpdatePreferences implements IUpdatePreferences {
   static const String declinedVersionCodeKey =
       'update_declined_flexible_version_code';
+  static const String restartPendingKey = 'update_restart_pending';
 
   @override
   Future<int?> getDeclinedVersionCode() async {
@@ -16,5 +17,17 @@ class UpdatePreferences implements IUpdatePreferences {
   Future<void> setDeclinedVersionCode(int versionCode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(declinedVersionCodeKey, versionCode);
+  }
+
+  @override
+  Future<bool> getRestartPending() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(restartPendingKey) ?? false;
+  }
+
+  @override
+  Future<void> setRestartPending(bool pending) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(restartPendingKey, pending);
   }
 }

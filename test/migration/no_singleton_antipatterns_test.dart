@@ -788,7 +788,10 @@ void main() {
       expect(
         locator.contains(
           'registerLazySingleton<IUpdateService>(\n'
-          '    () => UpdateService(preferences: locator.get<IUpdatePreferences>()),',
+          '    () => UpdateService(\n'
+          '      preferences: locator.get<IUpdatePreferences>(),\n'
+          '      staleTaskCleaner: locator.get<IStaleTaskCleaner>(),\n'
+          '    ),',
         ),
         isTrue,
         reason: 'IUpdateService should be registered as lazy singleton',
@@ -830,6 +833,22 @@ void main() {
         isFalse,
         reason: 'UpdateService must receive IUpdatePreferences via constructor',
       );
+
+      expect(
+        locator.contains(
+          'registerLazySingleton<IStaleTaskCleaner>(() => StaleTaskCleaner())',
+        ),
+        isTrue,
+        reason: 'IStaleTaskCleaner should be registered under its interface',
+      );
+      final cleaner =
+          await File('lib/services/stale_task_cleaner.dart').readAsString();
+      expect(
+        cleaner.contains('class StaleTaskCleaner implements IStaleTaskCleaner'),
+        isTrue,
+      );
+      expect(cleaner.contains('static StaleTaskCleaner'), isFalse);
+      expect(service.contains('StaleTaskCleaner()'), isFalse);
 
       final page =
           await File('lib/pages/devocionales_page.dart').readAsString();

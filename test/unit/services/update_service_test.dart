@@ -4,6 +4,7 @@ library;
 import 'dart:async';
 
 import 'package:devocional_nuevo/services/i_update_preferences.dart';
+import 'package:devocional_nuevo/services/i_stale_task_cleaner.dart';
 import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:flutter/services.dart';
@@ -15,6 +16,8 @@ class FakeUpdatePreferences implements IUpdatePreferences {
   bool throwOnRead = false;
   bool throwOnWrite = false;
   int writeCount = 0;
+  bool restartPending = false;
+  bool throwOnRestartWrite = false;
 
   @override
   Future<int?> getDeclinedVersionCode() async {
@@ -27,6 +30,31 @@ class FakeUpdatePreferences implements IUpdatePreferences {
     writeCount++;
     if (throwOnWrite) throw Exception('prefs write failure');
     declined = versionCode;
+  }
+
+  @override
+  Future<bool> getRestartPending() async => restartPending;
+
+  @override
+  Future<void> setRestartPending(bool pending) async {
+    if (throwOnRestartWrite) throw Exception('restart write failure');
+    restartPending = pending;
+  }
+}
+
+class FakeStaleTaskCleaner implements IStaleTaskCleaner {
+  int calls = 0;
+  int removed = 2;
+  bool throws = false;
+  FakeUpdatePreferences? observed;
+  bool? flagDuringCall;
+
+  @override
+  Future<int> removeStaleAppTasks() async {
+    calls++;
+    flagDuringCall = observed?.restartPending;
+    if (throws) throw Exception('cleanup failure');
+    return removed;
   }
 }
 
@@ -129,6 +157,7 @@ void main() {
   late FakeUpdatePreferences preferences;
   late IUpdateService service;
   late DateTime clock;
+  late FakeStaleTaskCleaner cleaner;
 
   setUp(() {
     methodCalls.clear();
@@ -139,7 +168,12 @@ void main() {
     mockInstallEvents();
     preferences = FakeUpdatePreferences();
     clock = DateTime(2026, 1, 1);
-    service = UpdateService(preferences: preferences, now: () => clock);
+    cleaner = FakeStaleTaskCleaner()..observed = preferences;
+    service = UpdateService(
+      preferences: preferences,
+      staleTaskCleaner: cleaner,
+      now: () => clock,
+    );
   });
 
   tearDown(() {
@@ -356,7 +390,10 @@ void main() {
     test('priority 2 and 3 start exactly one flexible update', () async {
       for (final priority in [2, 3]) {
         methodCalls.clear();
-        service = UpdateService(preferences: FakeUpdatePreferences());
+        service = UpdateService(
+          preferences: FakeUpdatePreferences(),
+          staleTaskCleaner: FakeStaleTaskCleaner(),
+        );
         mockChannel(checkResult: info(priority: priority));
 
         await service.checkForUpdate();
@@ -927,6 +964,21 @@ void main() {
       );
     });
 
+    test('unconfirmed apply clears the flag so a cold start never cleans',
+        () async {
+      mockApply();
+      final pending = service.applyDownloadedUpdate();
+      await pumpEventQueue();
+      expect(preferences.restartPending, isTrue);
+
+      await service.checkForUpdate();
+      expect(await pending, UpdateInstallResult.unconfirmed);
+      expect(preferences.restartPending, isFalse);
+
+      await service.checkForUpdate(source: 'initState');
+      expect(cleaner.calls, 0);
+    });
+
     test('returning to foreground still downloaded reports unconfirmed',
         () async {
       mockApply();
@@ -986,6 +1038,104 @@ void main() {
       await service.checkForUpdate();
 
       expect(methodCalls, isNot(contains('completeFlexibleUpdate')));
+    });
+  });
+
+  group('UpdateService stale task cleanup', () {
+    test('flag is set before completeFlexibleUpdate reaches Play', () async {
+      bool? flagAtCall;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'completeFlexibleUpdate') {
+          flagAtCall = preferences.restartPending;
+        }
+        return null;
+      });
+
+      unawaited(service.applyDownloadedUpdate());
+      await pumpEventQueue();
+
+      expect(flagAtCall, isTrue);
+    });
+
+    test('apply failure does not leave the flag set', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'completeFlexibleUpdate') {
+          throw PlatformException(code: 'ERROR');
+        }
+        return null;
+      });
+
+      final result = await service.applyDownloadedUpdate();
+
+      expect(result, UpdateInstallResult.failed);
+      expect(preferences.restartPending, isFalse);
+    });
+
+    test('flag write failure does not block the apply', () async {
+      preferences.throwOnRestartWrite = true;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        methodCalls.add(call.method);
+        return null;
+      });
+
+      unawaited(service.applyDownloadedUpdate());
+      await pumpEventQueue();
+
+      expect(methodCalls, contains('completeFlexibleUpdate'));
+    });
+
+    test('flag set: cleanup runs once and the flag is cleared first', () async {
+      preferences.restartPending = true;
+      mockChannel(checkResult: info(availability: updateNotAvailable));
+
+      await service.checkForUpdate(source: 'initState');
+
+      expect(cleaner.calls, 1);
+      expect(cleaner.flagDuringCall, isFalse);
+      expect(preferences.restartPending, isFalse);
+    });
+
+    test('flag not set: cleanup is never called', () async {
+      mockChannel(checkResult: info(availability: updateNotAvailable));
+
+      await service.checkForUpdate(source: 'initState');
+
+      expect(cleaner.calls, 0);
+    });
+
+    test('non-initState checks never run cleanup', () async {
+      preferences.restartPending = true;
+      mockChannel(checkResult: info(availability: updateNotAvailable));
+
+      await service.checkForUpdate(source: 'resume');
+
+      expect(cleaner.calls, 0);
+      expect(preferences.restartPending, isTrue);
+    });
+
+    test('cleanup failure does not break startup and flag stays cleared',
+        () async {
+      preferences.restartPending = true;
+      cleaner.throws = true;
+      mockChannel(checkResult: info(priority: 4));
+
+      await expectLater(service.checkForUpdate(source: 'initState'), completes);
+
+      expect(preferences.restartPending, isFalse);
+      expect(methodCalls, contains('performImmediateUpdate'));
+    });
+
+    test('second start after cleanup does not clean again', () async {
+      preferences.restartPending = true;
+      mockChannel(checkResult: info(availability: updateNotAvailable));
+
+      await service.checkForUpdate(source: 'initState');
+      await service.checkForUpdate(source: 'initState');
+
+      expect(cleaner.calls, 1);
     });
   });
 }

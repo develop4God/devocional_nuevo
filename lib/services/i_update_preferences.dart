@@ -5,4 +5,11 @@ abstract class IUpdatePreferences {
 
   /// Remembers [versionCode] as declined so it is not offered again.
   Future<void> setDeclinedVersionCode(int versionCode);
+
+  /// Whether a flexible-update restart was requested and not yet followed by
+  /// a cold start cleanup.
+  Future<bool> getRestartPending();
+
+  /// Records or clears the restart-requested marker.
+  Future<void> setRestartPending(bool pending);
 }

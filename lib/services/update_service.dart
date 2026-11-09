@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:devocional_nuevo/services/i_stale_task_cleaner.dart';
 import 'package:devocional_nuevo/services/i_update_preferences.dart';
 import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/services/update_policy.dart';
@@ -28,14 +29,17 @@ import 'package:in_app_update/in_app_update.dart';
 class UpdateService implements IUpdateService {
   UpdateService({
     required IUpdatePreferences preferences,
+    required IStaleTaskCleaner staleTaskCleaner,
     DateTime Function() now = DateTime.now,
   })  : _preferences = preferences,
+        _staleTaskCleaner = staleTaskCleaner,
         _now = now;
 
   static const String _logName = 'UpdateService';
   static const Duration _immediateWindow = Duration(minutes: 1);
 
   final IUpdatePreferences _preferences;
+  final IStaleTaskCleaner _staleTaskCleaner;
   final DateTime Function() _now;
   DateTime? _immediateLaunchedAt;
   bool _flexibleInFlight = false;
@@ -58,6 +62,7 @@ class UpdateService implements IUpdateService {
   @override
   Future<void> checkForUpdate({String source = 'unknown'}) async {
     _log('checkForUpdate from $source');
+    if (source == 'initState') await _cleanStaleTasksAfterRestart();
     final AppUpdateInfo info;
     try {
       info = await InAppUpdate.checkForUpdate();
@@ -201,7 +206,8 @@ class UpdateService implements IUpdateService {
     _updateDownloading.value = false;
     _updateReady.value = true;
     // Back in the foreground and still downloaded: a pending restart request
-    // was not honored.
+    // was not honored, so no restart cleanup may follow on a later cold start.
+    if (_pendingApply != null) unawaited(_setRestartPending(false));
     _completePendingApply(UpdateInstallResult.unconfirmed);
   }
 
@@ -229,14 +235,39 @@ class UpdateService implements IUpdateService {
     _log('completing flexible update');
     // The plugin never replies on success, so the call is not awaited.
     unawaited(
-      InAppUpdate.completeFlexibleUpdate().then<void>((_) {
+      _setRestartPending(true)
+          .then((_) => InAppUpdate.completeFlexibleUpdate())
+          .then<void>((_) {
         _completePendingApply(UpdateInstallResult.installing);
-      }).catchError((Object e) {
+      }).catchError((Object e) async {
         _logError('Error completing flexible update: $e');
+        await _setRestartPending(false);
         _completePendingApply(UpdateInstallResult.failed);
       }),
     );
     return pending.future;
+  }
+
+  /// After a Play-driven restart Android can keep a stale recents card of the
+  /// pre-update task. The marker is cleared first so cleanup runs at most
+  /// once, and no failure here may affect startup.
+  Future<void> _cleanStaleTasksAfterRestart() async {
+    try {
+      if (!await _preferences.getRestartPending()) return;
+      await _preferences.setRestartPending(false);
+      final removed = await _staleTaskCleaner.removeStaleAppTasks();
+      _log('removed $removed stale app task(s)');
+    } catch (e) {
+      _logError('Error removing stale app tasks: $e');
+    }
+  }
+
+  Future<void> _setRestartPending(bool pending) async {
+    try {
+      await _preferences.setRestartPending(pending);
+    } catch (e) {
+      _logError('Error saving restart pending flag: $e');
+    }
   }
 
   Future<void> _saveDeclined(int versionCode) async {

@@ -55,9 +55,11 @@ import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/utils/tts_chunk_processor.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
+import 'package:devocional_nuevo/services/i_stale_task_cleaner.dart';
 import 'package:devocional_nuevo/services/i_update_preferences.dart';
 import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/services/i_user_recency_service.dart';
+import 'package:devocional_nuevo/services/stale_task_cleaner.dart';
 import 'package:devocional_nuevo/services/update_preferences.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/services/user_profile_store.dart';
@@ -161,8 +163,12 @@ Future<void> setupServiceLocator() async {
   locator.registerLazySingleton<IUpdatePreferences>(
     () => UpdatePreferences(),
   );
+  locator.registerLazySingleton<IStaleTaskCleaner>(() => StaleTaskCleaner());
   locator.registerLazySingleton<IUpdateService>(
-    () => UpdateService(preferences: locator.get<IUpdatePreferences>()),
+    () => UpdateService(
+      preferences: locator.get<IUpdatePreferences>(),
+      staleTaskCleaner: locator.get<IStaleTaskCleaner>(),
+    ),
   );
   locator.registerLazySingleton<IUserProfileStore>(
     () => FirestoreUserProfileStore(),
