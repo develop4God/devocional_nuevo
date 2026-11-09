@@ -1,4 +1,5 @@
 import 'package:devocional_nuevo/services/i_update_service.dart';
+import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/notice_banner_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -117,8 +118,10 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
         attempt != _restartAttempt) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(widget.restartFailedMessage)),
+    AppSnackBar.show(
+      context,
+      widget.restartFailedMessage,
+      type: AppSnackBarType.error,
     );
   }
 

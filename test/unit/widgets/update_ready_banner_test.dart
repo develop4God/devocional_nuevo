@@ -225,6 +225,22 @@ void main() {
     expect(find.text('Update ready'), findsOneWidget);
   });
 
+  testWidgets('the failure message uses the shared floating error snackbar',
+      (tester) async {
+    ready.value = true;
+    restartResult = UpdateInstallResult.failed;
+    await pumpBanner(tester);
+
+    await tester.tap(find.text('Update ready'));
+    await tester.pump();
+
+    final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
+    final scheme = Theme.of(tester.element(find.byType(Scaffold))).colorScheme;
+    expect(snackBar.behavior, SnackBarBehavior.floating);
+    expect(snackBar.backgroundColor, scheme.error);
+    expect(find.text('Could not restart'), findsOneWidget);
+  });
+
   testWidgets('taps while a restart is in progress are ignored',
       (tester) async {
     final release = Completer<UpdateInstallResult>();
