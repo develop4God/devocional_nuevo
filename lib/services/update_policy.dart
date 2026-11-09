@@ -1,18 +1,13 @@
 /// Action to take after checking the store for an app update.
-enum UpdateAction {
-  none,
-  immediate,
-  resumeImmediate,
-  flexible,
-  completeFlexible
-}
+enum UpdateAction { none, immediate, resumeImmediate, flexible, markReady }
 
 /// Decides how an app update is applied.
 ///
 /// Urgent releases (Play update priority >= [criticalPriority]) block.
 /// Medium releases (>= [flexiblePriority]) download in the background after
 /// Play's own consent dialog, unless the user declined that version. A
-/// downloaded flexible update is completed. All other releases are left to
+/// downloaded update is only marked ready for the user to restart; it is never
+/// installed automatically. All other releases are left to
 /// Play Store auto-update.
 class UpdatePolicy {
   const UpdatePolicy._();
@@ -43,7 +38,7 @@ class UpdatePolicy {
     if (updateAvailable && urgent && immediateAllowed) {
       return UpdateAction.immediate;
     }
-    if (downloaded) return UpdateAction.completeFlexible;
+    if (downloaded) return UpdateAction.markReady;
     if (updateAvailable &&
         !urgent &&
         priority >= flexiblePriority &&

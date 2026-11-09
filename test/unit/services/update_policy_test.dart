@@ -145,25 +145,34 @@ void main() {
       );
     });
 
-    test('downloaded flexible update is completed', () {
+    test('downloaded update is only marked ready', () {
       expect(
         decide(updateAvailable: false, downloaded: true, priority: 2),
-        UpdateAction.completeFlexible,
+        UpdateAction.markReady,
       );
       expect(
         decide(downloaded: true, priority: 2, flexibleAllowed: true),
-        UpdateAction.completeFlexible,
+        UpdateAction.markReady,
       );
     });
 
-    test('downloaded update is completed even if declined or low priority', () {
+    test('downloaded update is marked ready even if declined or low priority',
+        () {
       expect(
         decide(downloaded: true, priority: 0, declinedForThisVersion: true),
-        UpdateAction.completeFlexible,
+        UpdateAction.markReady,
       );
     });
 
-    test('urgent update beats completing a downloaded flexible update', () {
+    test('downloaded update is marked ready even without immediate allowed',
+        () {
+      expect(
+        decide(downloaded: true, immediateAllowed: false, priority: 2),
+        UpdateAction.markReady,
+      );
+    });
+
+    test('urgent update beats marking a downloaded update ready', () {
       expect(
         decide(downloaded: true, priority: 4),
         UpdateAction.immediate,

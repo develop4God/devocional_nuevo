@@ -393,96 +393,7 @@ void main() {
       expect(installListenCount, 1);
     });
 
-    test('update downloaded mid-session is never completed in that session',
-        () async {
-      mockChannel(checkResult: info(priority: 2));
-
-      await service.checkForUpdate();
-      installSink!.success(installStatusDownloaded);
-      await pumpEventQueue();
-      goToBackground();
-      await pumpEventQueue();
-      goToForeground();
-      // Play now reports the download on every check.
-      mockChannel(
-        checkResult: info(installStatus: installStatusDownloaded, priority: 2),
-      );
-      await service.checkForUpdate();
-      goToBackground();
-      await pumpEventQueue();
-
-      expect(methodCalls, isNot(contains('completeFlexibleUpdate')));
-      expect(installCancelCount, 1, reason: 'listener cancelled when done');
-      expect(
-        methodCalls.where((m) => m == 'startFlexibleUpdate'),
-        hasLength(1),
-      );
-    });
-
-    test('a fresh instance completes an update downloaded last session',
-        () async {
-      mockChannel(checkResult: info(priority: 2));
-      await service.checkForUpdate();
-      installSink!.success(installStatusDownloaded);
-      await pumpEventQueue();
-
-      // A new process creates a new lazy singleton; Play now reports the
-      // download.
-      methodCalls.clear();
-      mockChannel(
-        checkResult: info(installStatus: installStatusDownloaded, priority: 2),
-      );
-      await UpdateService(preferences: preferences).checkForUpdate();
-
-      expect(methodCalls, ['checkForUpdate', 'completeFlexibleUpdate']);
-    });
-
-    test('first check completes an update downloaded on a previous launch',
-        () async {
-      mockChannel(
-        checkResult: info(
-          availability: updateNotAvailable,
-          installStatus: installStatusDownloaded,
-          priority: 2,
-        ),
-      );
-
-      await service.checkForUpdate();
-
-      expect(methodCalls, ['checkForUpdate', 'completeFlexibleUpdate']);
-    });
-
-    test('later checks in the same process do not complete a download',
-        () async {
-      mockChannel(
-        checkResult: info(installStatus: installStatusDownloaded, priority: 2),
-      );
-
-      await service.checkForUpdate();
-      await service.checkForUpdate();
-      await service.checkForUpdate();
-
-      expect(
-        methodCalls.where((m) => m == 'completeFlexibleUpdate'),
-        hasLength(1),
-      );
-      expect(methodCalls, isNot(contains('startFlexibleUpdate')));
-    });
-
-    test('a failed first check still lets the next check complete', () async {
-      mockChannel(checkThrows: true);
-      await service.checkForUpdate();
-
-      mockChannel(
-        checkResult: info(installStatus: installStatusDownloaded, priority: 2),
-      );
-      await service.checkForUpdate();
-
-      expect(methodCalls, contains('completeFlexibleUpdate'));
-    });
-
-    test('urgent update beats completing a download on the first check',
-        () async {
+    test('urgent update beats a downloaded update', () async {
       mockChannel(
         checkResult: info(installStatus: installStatusDownloaded, priority: 4),
       );
@@ -502,21 +413,6 @@ void main() {
 
       await expectLater(service.checkForUpdate(), completes);
       expect(preferences.declined, isNull);
-    });
-
-    test('completeFlexibleUpdate platform error is swallowed', () async {
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-        methodCalls.add(call.method);
-        if (call.method == 'checkForUpdate') {
-          return info(installStatus: installStatusDownloaded, priority: 2);
-        }
-        throw PlatformException(code: 'ERROR');
-      });
-
-      await expectLater(service.checkForUpdate(), completes);
-
-      expect(methodCalls, contains('completeFlexibleUpdate'));
     });
 
     test('install listener error is swallowed and allows a new flow', () async {
@@ -547,48 +443,6 @@ void main() {
       await service.checkForUpdate();
 
       expect(methodCalls, ['checkForUpdate', 'performImmediateUpdate']);
-    });
-
-    test('preferences read failure still completes a downloaded update',
-        () async {
-      preferences.throwOnRead = true;
-      mockChannel(
-        checkResult: info(installStatus: installStatusDownloaded, priority: 2),
-      );
-
-      await service.checkForUpdate();
-
-      expect(methodCalls, contains('completeFlexibleUpdate'));
-    });
-
-    test('a never-replying completeFlexibleUpdate does not block a new flow',
-        () async {
-      // The real plugin never replies to completeFlexibleUpdate.
-      var versionCode = 100;
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-        methodCalls.add(call.method);
-        if (call.method == 'checkForUpdate') {
-          return info(
-            versionCode: versionCode,
-            installStatus: versionCode == 100
-                ? installStatusDownloaded
-                : installStatusUnknown,
-            priority: 2,
-          );
-        }
-        if (call.method == 'completeFlexibleUpdate') {
-          return Completer<Object?>().future;
-        }
-        return null;
-      });
-
-      unawaited(service.checkForUpdate());
-      await pumpEventQueue();
-      versionCode = 101;
-      await service.checkForUpdate();
-
-      expect(methodCalls, contains('startFlexibleUpdate'));
     });
 
     test('decline write failure is logged and not asked again this session',
@@ -670,6 +524,315 @@ void main() {
       await service.checkForUpdate();
 
       expect(methodCalls, contains('performImmediateUpdate'));
+    });
+  });
+  group('UpdateService downloaded update', () {
+    Map<String, Object?> downloaded({int priority = 2, int availability = 2}) =>
+        info(
+          availability: availability,
+          installStatus: installStatusDownloaded,
+          priority: priority,
+        );
+
+    test('downloaded on cold start is ready with no platform install call',
+        () async {
+      mockChannel(
+        checkResult: downloaded(availability: updateNotAvailable),
+      );
+
+      await service.checkForUpdate();
+      await pumpEventQueue();
+
+      expect(service.updateReady.value, isTrue);
+      expect(service.updateDownloading.value, isFalse);
+      expect(methodCalls, ['checkForUpdate']);
+    });
+
+    test('downloaded on a later check (resume) is ready', () async {
+      mockChannel(checkResult: info(availability: updateNotAvailable));
+      await service.checkForUpdate();
+      expect(service.updateReady.value, isFalse);
+
+      mockChannel(checkResult: downloaded());
+      await service.checkForUpdate();
+
+      expect(service.updateReady.value, isTrue);
+      expect(methodCalls, isNot(contains('completeFlexibleUpdate')));
+      expect(methodCalls, isNot(contains('performImmediateUpdate')));
+    });
+
+    test('downloaded even if declined or low priority is ready', () async {
+      preferences.declined = 100;
+      mockChannel(checkResult: downloaded(priority: 0));
+
+      await service.checkForUpdate();
+
+      expect(service.updateReady.value, isTrue);
+    });
+
+    test('download finishing mid-session raises ready, never installs',
+        () async {
+      mockChannel(checkResult: info(priority: 2));
+
+      await service.checkForUpdate();
+      installSink!.success(installStatusDownloading);
+      await pumpEventQueue();
+      expect(service.updateDownloading.value, isTrue);
+      expect(service.updateReady.value, isFalse);
+
+      installSink!.success(installStatusDownloaded);
+      await pumpEventQueue();
+      goToBackground();
+      await pumpEventQueue();
+      goToForeground();
+
+      expect(service.updateDownloading.value, isFalse);
+      expect(service.updateReady.value, isTrue);
+      expect(methodCalls, isNot(contains('completeFlexibleUpdate')));
+      expect(methodCalls, isNot(contains('performImmediateUpdate')));
+      expect(installCancelCount, 1, reason: 'listener cancelled when done');
+    });
+
+    test('failed or canceled download clears downloading, not ready', () async {
+      mockChannel(checkResult: info(priority: 2));
+
+      await service.checkForUpdate();
+      installSink!.success(installStatusDownloading);
+      await pumpEventQueue();
+      installSink!.success(5); // failed
+      await pumpEventQueue();
+
+      expect(service.updateDownloading.value, isFalse);
+      expect(service.updateReady.value, isFalse);
+    });
+
+    test('download already running on cold start is followed to ready',
+        () async {
+      mockChannel(
+        checkResult: info(
+          availability: developerTriggeredUpdateInProgress,
+          installStatus: installStatusDownloading,
+          priority: 2,
+        ),
+      );
+
+      await service.checkForUpdate();
+      expect(service.updateDownloading.value, isTrue);
+      expect(installListenCount, 1);
+      expect(methodCalls, ['checkForUpdate']);
+
+      installSink!.success(installStatusDownloaded);
+      await pumpEventQueue();
+
+      expect(service.updateDownloading.value, isFalse);
+      expect(service.updateReady.value, isTrue);
+    });
+
+    test('a second check while following a download adds no listener',
+        () async {
+      mockChannel(
+        checkResult: info(
+          availability: developerTriggeredUpdateInProgress,
+          installStatus: installStatusDownloading,
+          priority: 2,
+        ),
+      );
+
+      await service.checkForUpdate();
+      await service.checkForUpdate();
+
+      expect(installListenCount, 1);
+    });
+
+    test('nothing is ready or downloading without a download', () async {
+      mockChannel(checkResult: info(priority: 1));
+
+      await service.checkForUpdate();
+
+      expect(service.updateReady.value, isFalse);
+      expect(service.updateDownloading.value, isFalse);
+    });
+
+    test('urgent update does not raise ready', () async {
+      mockChannel(checkResult: downloaded(priority: 4));
+
+      await service.checkForUpdate();
+
+      expect(service.updateReady.value, isFalse);
+      expect(methodCalls, ['checkForUpdate', 'performImmediateUpdate']);
+    });
+
+    test('downloaded with immediate not allowed is still ready', () async {
+      mockChannel(
+        checkResult: info(
+          installStatus: installStatusDownloaded,
+          immediateAllowed: false,
+          flexibleAllowed: false,
+          priority: 2,
+        ),
+      );
+
+      await service.checkForUpdate();
+
+      expect(service.updateReady.value, isTrue);
+    });
+
+    test('preferences read failure still raises ready', () async {
+      preferences.throwOnRead = true;
+      mockChannel(checkResult: downloaded());
+
+      await service.checkForUpdate();
+
+      expect(service.updateReady.value, isTrue);
+    });
+
+    test('a downloaded check starts no flexible flow', () async {
+      mockChannel(checkResult: downloaded());
+
+      await service.checkForUpdate();
+      await service.checkForUpdate();
+
+      expect(methodCalls, isNot(contains('startFlexibleUpdate')));
+    });
+  });
+
+  group('UpdateService flexible spinner', () {
+    test('consent reply without a downloading event leaves no stale spinner',
+        () async {
+      mockChannel(checkResult: info(priority: 2));
+
+      await service.checkForUpdate();
+
+      expect(service.updateDownloading.value, isFalse);
+      installSink!.success(installStatusDownloading);
+      await pumpEventQueue();
+      expect(service.updateDownloading.value, isTrue);
+    });
+
+    test('retry after a failed download handles each event once', () async {
+      mockChannel(checkResult: info(priority: 2));
+      await service.checkForUpdate();
+      installSink!.success(installStatusDownloading);
+      await pumpEventQueue();
+      installSink!.success(5); // failed
+      await pumpEventQueue();
+      expect(service.updateDownloading.value, isFalse);
+
+      await service.checkForUpdate();
+      installSink!.success(installStatusDownloading);
+      await pumpEventQueue();
+      installSink!.success(installStatusDownloaded);
+      installSink!.success(installStatusDownloaded);
+      await pumpEventQueue();
+
+      expect(installListenCount, 2);
+      expect(installCancelCount, 2);
+      expect(service.updateReady.value, isTrue);
+      expect(service.updateDownloading.value, isFalse);
+    });
+  });
+
+  group('UpdateService.applyDownloadedUpdate', () {
+    void mockApply({bool throws = false}) {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        methodCalls.add(call.method);
+        if (call.method == 'checkForUpdate') {
+          return info(
+            installStatus: installStatusDownloaded,
+            priority: 2,
+          );
+        }
+        if (call.method == 'completeFlexibleUpdate') {
+          if (throws) throw PlatformException(code: 'ERROR');
+          // The real plugin never replies.
+          return Completer<Object?>().future;
+        }
+        return null;
+      });
+    }
+
+    test('calls completeFlexibleUpdate once even on double tap', () async {
+      mockApply();
+
+      final first = service.applyDownloadedUpdate();
+      final second = service.applyDownloadedUpdate();
+      await pumpEventQueue();
+
+      expect(
+        methodCalls.where((m) => m == 'completeFlexibleUpdate'),
+        hasLength(1),
+      );
+      expect(identical(first, second), isTrue);
+    });
+
+    test('does not wait for a reply and is not completed by the plugin',
+        () async {
+      mockApply();
+      var done = false;
+      unawaited(service.applyDownloadedUpdate().then((_) => done = true));
+      await pumpEventQueue();
+
+      expect(done, isFalse);
+    });
+
+    test('platform error returns failed and allows another tap', () async {
+      mockApply(throws: true);
+
+      final result = await service.applyDownloadedUpdate();
+      await service.applyDownloadedUpdate();
+
+      expect(result, UpdateInstallResult.failed);
+      expect(
+        methodCalls.where((m) => m == 'completeFlexibleUpdate'),
+        hasLength(2),
+      );
+    });
+
+    test('returning to foreground still downloaded reports unconfirmed',
+        () async {
+      mockApply();
+      final pending = service.applyDownloadedUpdate();
+      await pumpEventQueue();
+
+      await service.checkForUpdate();
+
+      expect(await pending, UpdateInstallResult.unconfirmed);
+      expect(service.updateReady.value, isTrue);
+
+      // The card is tappable again.
+      unawaited(service.applyDownloadedUpdate());
+      await pumpEventQueue();
+      expect(
+        methodCalls.where((m) => m == 'completeFlexibleUpdate'),
+        hasLength(2),
+      );
+    });
+
+    test('tap, abandon, resume without a check, tap again calls Play again',
+        () async {
+      mockApply();
+
+      unawaited(service.applyDownloadedUpdate());
+      await pumpEventQueue();
+      goToBackground();
+      goToForeground();
+      unawaited(service.applyDownloadedUpdate());
+      await pumpEventQueue();
+
+      expect(
+        methodCalls.where((m) => m == 'completeFlexibleUpdate'),
+        hasLength(2),
+      );
+    });
+
+    test('is never called by checkForUpdate', () async {
+      mockApply();
+
+      await service.checkForUpdate();
+      await service.checkForUpdate();
+
+      expect(methodCalls, isNot(contains('completeFlexibleUpdate')));
     });
   });
 }

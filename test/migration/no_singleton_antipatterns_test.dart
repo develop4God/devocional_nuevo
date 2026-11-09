@@ -836,9 +836,17 @@ void main() {
       expect(page.contains('UpdateService('), isFalse);
       expect(page.contains('UpdateService.checkForUpdate'), isFalse);
       expect(
-        page.contains('getService<IUpdateService>().checkForUpdate()'),
+        page.contains(
+          'late final IUpdateService _updateService = '
+          'getService<IUpdateService>();',
+        ),
         isTrue,
         reason: 'DevocionalesPage should resolve IUpdateService from locator',
+      );
+      expect(
+        '_updateService.checkForUpdate()'.allMatches(page).length,
+        2,
+        reason: 'cold start and resume must both check through the interface',
       );
     });
 
