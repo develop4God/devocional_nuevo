@@ -190,7 +190,8 @@ class FakeUpdateService implements IUpdateService {
   final ValueNotifier<bool> updateDownloading = ValueNotifier<bool>(false);
 
   @override
-  Future<void> checkForUpdate() async => checkCount++;
+  Future<void> checkForUpdate({String source = 'unknown'}) async =>
+      checkCount++;
 
   @override
   Future<UpdateInstallResult> applyDownloadedUpdate() async =>

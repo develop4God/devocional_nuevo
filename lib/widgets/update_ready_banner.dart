@@ -1,4 +1,5 @@
 import 'package:devocional_nuevo/services/i_update_service.dart';
+import 'package:devocional_nuevo/utils/release_log.dart';
 import 'package:devocional_nuevo/widgets/app_snack_bar.dart';
 import 'package:devocional_nuevo/widgets/notice_banner_card.dart';
 import 'package:flutter/foundation.dart';
@@ -71,6 +72,9 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
   bool _wasHidden = false;
   bool _restarting = false;
 
+  /// Last "shown" state logged, so rebuilds do not repeat the log.
+  String? _loggedShown;
+
   /// Identifies the current restart call. Closing the card abandons a pending
   /// call (Play may never answer it); its late result is ignored.
   int _restartAttempt = 0;
@@ -104,20 +108,22 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
   Future<void> _restart() async {
     if (_restarting) return;
     final attempt = ++_restartAttempt;
+    _log('restart tapped');
     setState(() => _restarting = true);
-    final UpdateInstallResult result;
+    UpdateInstallResult result;
     try {
       result = await widget.onRestart();
+    } catch (e) {
+      _log('restart threw: $e');
+      result = UpdateInstallResult.failed;
     } finally {
       if (mounted && attempt == _restartAttempt) {
         setState(() => _restarting = false);
       }
     }
-    if (result != UpdateInstallResult.failed ||
-        !mounted ||
-        attempt != _restartAttempt) {
-      return;
-    }
+    if (!mounted || attempt != _restartAttempt) return;
+    _log('restart result: ${result.name}');
+    if (result != UpdateInstallResult.failed) return;
     AppSnackBar.show(
       context,
       widget.restartFailedMessage,
@@ -140,6 +146,11 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
         if (!downloading) _dismissedDownload = false;
         final visible =
             ready ? !_dismissedReady : downloading && !_dismissedDownload;
+        final shown = visible ? (downloading ? 'downloading' : 'ready') : null;
+        if (shown != _loggedShown) {
+          _loggedShown = shown;
+          if (shown != null) _log('shown ($shown)');
+        }
         // The child stays the first Stack child in both states so its State
         // survives.
         return Stack(
@@ -159,7 +170,10 @@ class _UpdateReadyBannerState extends State<UpdateReadyBanner>
     );
   }
 
+  void _log(String message) => logRelease('UpdateReadyBanner', message);
+
   void _dismiss(bool downloading) {
+    _log('dismissed ${downloading ? 'downloading' : 'ready'} card');
     // Abandons a pending restart so the card is idle when it comes back.
     _restartAttempt++;
     _restarting = false;

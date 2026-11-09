@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/services/i_update_preferences.dart';
 import 'package:devocional_nuevo/services/i_update_service.dart';
 import 'package:devocional_nuevo/services/update_policy.dart';
+import 'package:devocional_nuevo/utils/release_log.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_update/in_app_update.dart';
 
@@ -14,8 +14,11 @@ import 'package:in_app_update/in_app_update.dart';
 /// and is lost on process death, so the resume path via [UpdatePolicy] stays.
 ///
 /// A pending performImmediateUpdate future may never complete (plugin
-/// limitation), so no in-flight state is kept; a later check simply launches
-/// again.
+/// limitation), and Play's immediate UI pauses/resumes the activity, which
+/// triggers another check. A plain in-flight flag could therefore block
+/// forever, so launches are only de-duplicated for [_immediateWindow]: a check
+/// inside the window is skipped, a later one launches again. The window is
+/// cleared as soon as the plugin future completes.
 ///
 /// Flexible updates are guarded: Play's consent dialog pauses and resumes the
 /// activity, which triggers another check, so only one flexible flow runs at
@@ -23,12 +26,18 @@ import 'package:in_app_update/in_app_update.dart';
 /// that sees it raises [updateReady], and only the user's tap
 /// ([applyDownloadedUpdate]) completes it.
 class UpdateService implements IUpdateService {
-  UpdateService({required IUpdatePreferences preferences})
-      : _preferences = preferences;
+  UpdateService({
+    required IUpdatePreferences preferences,
+    DateTime Function() now = DateTime.now,
+  })  : _preferences = preferences,
+        _now = now;
 
   static const String _logName = 'UpdateService';
+  static const Duration _immediateWindow = Duration(minutes: 1);
 
   final IUpdatePreferences _preferences;
+  final DateTime Function() _now;
+  DateTime? _immediateLaunchedAt;
   bool _flexibleInFlight = false;
 
   /// Declined version kept in memory so a failed write cannot cause the
@@ -47,7 +56,8 @@ class UpdateService implements IUpdateService {
   ValueListenable<bool> get updateDownloading => _updateDownloading;
 
   @override
-  Future<void> checkForUpdate() async {
+  Future<void> checkForUpdate({String source = 'unknown'}) async {
+    _log('checkForUpdate from $source');
     final AppUpdateInfo info;
     try {
       info = await InAppUpdate.checkForUpdate();
@@ -58,6 +68,7 @@ class UpdateService implements IUpdateService {
     // A read failure must not block urgent or downloaded updates, so it is
     // treated as "not declined".
     int? declined = _sessionDeclinedVersionCode;
+    final declinedInSession = declined != null;
     try {
       declined ??= await _preferences.getDeclinedVersionCode();
     } catch (e) {
@@ -77,7 +88,14 @@ class UpdateService implements IUpdateService {
       priority: info.updatePriority,
     );
 
-    _logRelease(
+    if (declined != null && declined == info.availableVersionCode) {
+      _log(
+        'declined version skip: code $declined '
+        '(${declinedInSession ? 'session' : 'prefs'})',
+      );
+    }
+
+    _log(
       'decision: ${action.name} '
       '(availability: ${info.updateAvailability.name}, '
       'priority: ${info.updatePriority}, '
@@ -103,20 +121,33 @@ class UpdateService implements IUpdateService {
     }
   }
 
+  /// Launches the Play immediate update unless one was launched within
+  /// [_immediateWindow]. Trade-off: if the Play UI is dismissed without the
+  /// plugin future ever completing, a resume inside that window is skipped.
   Future<void> _performImmediate() async {
+    final launchedAt = _immediateLaunchedAt;
+    final now = _now();
+    if (launchedAt != null && now.difference(launchedAt) < _immediateWindow) {
+      _log('immediate update already launched, skipping');
+      return;
+    }
+    _immediateLaunchedAt = now;
     try {
       final result = await InAppUpdate.performImmediateUpdate();
-      _logRelease('immediate update result: ${result.name}');
+      _log('immediate update result: ${result.name}');
     } catch (e) {
       _logError('Error performing immediate update: $e');
     }
+    // A stale completion of an older launch must not clear a newer guard.
+    if (_immediateLaunchedAt == now) _immediateLaunchedAt = null;
   }
 
   Future<void> _startFlexible(int? versionCode) async {
     if (_flexibleInFlight) {
-      _logRelease('flexible update already in flight, skipping');
+      _log('flexible update already in flight, skipping');
       return;
     }
+    _log('starting flexible update versionCode=$versionCode');
     // Listen before starting so no install event is missed. The plugin
     // registers a native listener per startFlexibleUpdate and never removes
     // it, so the in-flight and declined guards must stay strict: they are
@@ -131,7 +162,7 @@ class UpdateService implements IUpdateService {
       _endFlexibleFlow();
       return;
     }
-    _logRelease('flexible update result: ${result.name}');
+    _log('flexible update result: ${result.name}');
     // plugin 5.0.0 only completes startFlexibleUpdate once the download
     // finished, so the spinner comes from the install-status stream, not from
     // this reply.
@@ -143,6 +174,7 @@ class UpdateService implements IUpdateService {
   }
 
   void _listenToInstallStatus() {
+    _log('listening to install status');
     _flexibleInFlight = true;
     _installSubscription = InAppUpdate.installUpdateListener.listen(
       _onInstallStatus,
@@ -150,17 +182,22 @@ class UpdateService implements IUpdateService {
         _logError('Error listening to install status: $e');
         _endFlexibleFlow();
       },
-      onDone: _endFlexibleFlow,
+      onDone: () {
+        _log('install stream done');
+        _endFlexibleFlow();
+      },
     );
   }
 
   void _followDownload() {
+    _log('following a download started earlier');
     _updateDownloading.value = true;
     if (_flexibleInFlight) return;
     _listenToInstallStatus();
   }
 
   void _markReady() {
+    _log('update ready raised');
     _updateDownloading.value = false;
     _updateReady.value = true;
     // Back in the foreground and still downloaded: a pending restart request
@@ -171,7 +208,10 @@ class UpdateService implements IUpdateService {
   void _completePendingApply(UpdateInstallResult result) {
     final pending = _pendingApply;
     _pendingApply = null;
-    if (pending != null && !pending.isCompleted) pending.complete(result);
+    if (pending != null && !pending.isCompleted) {
+      _log('pending apply completed as ${result.name}');
+      pending.complete(result);
+    }
   }
 
   @override
@@ -181,11 +221,12 @@ class UpdateService implements IUpdateService {
     // taps again. The banner itself blocks taps while its restart is pending.
     final duplicate = _applyThisTick;
     if (duplicate != null) return duplicate.future;
-    final pending = Completer<UpdateInstallResult>();
+    // Reuse an unanswered earlier request so its future is never orphaned.
+    final pending = _pendingApply ?? Completer<UpdateInstallResult>();
     _applyThisTick = pending;
     _pendingApply = pending;
     scheduleMicrotask(() => _applyThisTick = null);
-    _logRelease('completing flexible update');
+    _log('completing flexible update');
     // The plugin never replies on success, so the call is not awaited.
     unawaited(
       InAppUpdate.completeFlexibleUpdate().then<void>((_) {
@@ -200,6 +241,7 @@ class UpdateService implements IUpdateService {
 
   Future<void> _saveDeclined(int versionCode) async {
     _sessionDeclinedVersionCode = versionCode;
+    _log('saved declined versionCode $versionCode');
     try {
       await _preferences.setDeclinedVersionCode(versionCode);
     } catch (e) {
@@ -208,7 +250,7 @@ class UpdateService implements IUpdateService {
   }
 
   void _onInstallStatus(InstallStatus status) {
-    _logRelease('install status: ${status.name}');
+    _log('install status: ${status.name}');
     switch (status) {
       case InstallStatus.downloading:
         _updateDownloading.value = true;
@@ -228,7 +270,11 @@ class UpdateService implements IUpdateService {
     }
   }
 
+  /// Ends the flexible flow and clears the spinner, unless the flow ended
+  /// because the download finished ([_markReady] already settled the state).
   void _endFlexibleFlow() {
+    _log('flow ended');
+    if (!_updateReady.value) _updateDownloading.value = false;
     _cancelInstallSubscription();
     _flexibleInFlight = false;
   }
@@ -238,15 +284,7 @@ class UpdateService implements IUpdateService {
     _installSubscription = null;
   }
 
-  void _logError(String message) {
-    developer.log(message, name: _logName);
-    _logRelease(message);
-  }
+  void _logError(String message) => _log(message);
 
-  // print() is the only logger that reaches adb logcat in release builds
-  // (see _startupLog in main.dart).
-  void _logRelease(String message) {
-    // ignore: avoid_print
-    print('[UpdateService] $message');
-  }
+  void _log(String message) => logRelease(_logName, message);
 }

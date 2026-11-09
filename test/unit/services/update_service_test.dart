@@ -128,6 +128,7 @@ void main() {
 
   late FakeUpdatePreferences preferences;
   late IUpdateService service;
+  late DateTime clock;
 
   setUp(() {
     methodCalls.clear();
@@ -137,7 +138,8 @@ void main() {
     binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     mockInstallEvents();
     preferences = FakeUpdatePreferences();
-    service = UpdateService(preferences: preferences);
+    clock = DateTime(2026, 1, 1);
+    service = UpdateService(preferences: preferences, now: () => clock);
   });
 
   tearDown(() {
@@ -240,9 +242,9 @@ void main() {
       expect(methodCalls, ['checkForUpdate']);
     });
 
-    test('a never-completing immediate update does not block later checks',
-        () async {
-      // The plugin may never complete performImmediateUpdate.
+    test('overlapping checks launch one immediate update', () async {
+      // The plugin may never complete performImmediateUpdate, and Play's
+      // immediate UI pauses/resumes the activity, which re-checks.
       mockChannel(
         checkResult: info(priority: 5),
         onImmediate: () => Completer<void>().future,
@@ -252,6 +254,66 @@ void main() {
       await pumpEventQueue();
       unawaited(service.checkForUpdate());
       await pumpEventQueue();
+
+      expect(
+        methodCalls.where((m) => m == 'performImmediateUpdate'),
+        hasLength(1),
+      );
+    });
+
+    test('a never-completing immediate update is relaunched after the window',
+        () async {
+      mockChannel(
+        checkResult: info(priority: 5),
+        onImmediate: () => Completer<void>().future,
+      );
+
+      unawaited(service.checkForUpdate());
+      await pumpEventQueue();
+      clock = clock.add(const Duration(minutes: 5));
+      unawaited(service.checkForUpdate());
+      await pumpEventQueue();
+
+      expect(
+        methodCalls.where((m) => m == 'performImmediateUpdate'),
+        hasLength(2),
+      );
+    });
+
+    test('a stale completion of an old launch keeps the newer launch guarded',
+        () async {
+      final completers = <Completer<void>>[];
+      mockChannel(
+        checkResult: info(priority: 5),
+        onImmediate: () {
+          final completer = Completer<void>();
+          completers.add(completer);
+          return completer.future;
+        },
+      );
+
+      unawaited(service.checkForUpdate()); // launch A, never completes yet
+      await pumpEventQueue();
+      clock = clock.add(const Duration(minutes: 5));
+      unawaited(service.checkForUpdate()); // launch B after the window
+      await pumpEventQueue();
+      completers.first.complete(); // A finishes late
+      await pumpEventQueue();
+      unawaited(service.checkForUpdate()); // must still be guarded by B
+      await pumpEventQueue();
+
+      expect(
+        methodCalls.where((m) => m == 'performImmediateUpdate'),
+        hasLength(2),
+      );
+    });
+
+    test('a completed immediate update does not block the next check',
+        () async {
+      mockChannel(checkResult: info(priority: 5));
+
+      await service.checkForUpdate();
+      await service.checkForUpdate();
 
       expect(
         methodCalls.where((m) => m == 'performImmediateUpdate'),
@@ -709,6 +771,82 @@ void main() {
       expect(service.updateDownloading.value, isTrue);
     });
 
+    // Emits `downloading` while startFlexibleUpdate is pending, then ends it.
+    void mockFlexibleAfterDownloading({
+      String? errorCode,
+      Future<void> Function()? onEnd,
+    }) {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        methodCalls.add(call.method);
+        if (call.method == 'checkForUpdate') return info(priority: 2);
+        if (call.method == 'startFlexibleUpdate') {
+          installSink!.success(installStatusDownloading);
+          await pumpEventQueue();
+          if (onEnd != null) await onEnd();
+          if (errorCode != null) throw PlatformException(code: errorCode);
+        }
+        return null;
+      });
+    }
+
+    test('install stream error after downloading clears the spinner', () async {
+      mockChannel(checkResult: info(priority: 2));
+      await service.checkForUpdate();
+      installSink!.success(installStatusDownloading);
+      await pumpEventQueue();
+      expect(service.updateDownloading.value, isTrue);
+
+      installSink!.error(code: 'ERROR');
+      await pumpEventQueue();
+
+      expect(service.updateDownloading.value, isFalse);
+    });
+
+    test('install stream closing after downloading clears the spinner',
+        () async {
+      mockChannel(checkResult: info(priority: 2));
+      await service.checkForUpdate();
+      installSink!.success(installStatusDownloading);
+      await pumpEventQueue();
+
+      installSink!.endOfStream();
+      await pumpEventQueue();
+
+      expect(service.updateDownloading.value, isFalse);
+    });
+
+    test('startFlexibleUpdate throwing after downloading clears the spinner',
+        () async {
+      mockFlexibleAfterDownloading(errorCode: 'IN_APP_UPDATE_FAILED');
+
+      await service.checkForUpdate();
+
+      expect(service.updateDownloading.value, isFalse);
+    });
+
+    test('user denied result after downloading clears the spinner', () async {
+      mockFlexibleAfterDownloading(errorCode: 'USER_DENIED_UPDATE');
+
+      await service.checkForUpdate();
+
+      expect(service.updateDownloading.value, isFalse);
+    });
+
+    test('a ready update keeps the spinner off when the stream then closes',
+        () async {
+      mockChannel(checkResult: info(priority: 2));
+      await service.checkForUpdate();
+      installSink!.success(installStatusDownloading);
+      installSink!.success(installStatusDownloaded);
+      await pumpEventQueue();
+      installSink!.endOfStream();
+      await pumpEventQueue();
+
+      expect(service.updateReady.value, isTrue);
+      expect(service.updateDownloading.value, isFalse);
+    });
+
     test('retry after a failed download handles each event once', () async {
       mockChannel(checkResult: info(priority: 2));
       await service.checkForUpdate();
@@ -824,6 +962,21 @@ void main() {
         methodCalls.where((m) => m == 'completeFlexibleUpdate'),
         hasLength(2),
       );
+    });
+
+    test('a second tap in a later tick does not orphan the first future',
+        () async {
+      mockApply();
+
+      final first = service.applyDownloadedUpdate();
+      await pumpEventQueue();
+      final second = service.applyDownloadedUpdate();
+      await pumpEventQueue();
+
+      await service.checkForUpdate();
+
+      expect(await first, UpdateInstallResult.unconfirmed);
+      expect(await second, UpdateInstallResult.unconfirmed);
     });
 
     test('is never called by checkForUpdate', () async {

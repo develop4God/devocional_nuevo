@@ -25,6 +25,24 @@ void main() {
       );
 
   group('UpdatePolicy.decide', () {
+    test('priority boundaries: 0-1 none, 2-3 flexible, 4-5 immediate', () {
+      const expected = {
+        0: UpdateAction.none,
+        1: UpdateAction.none,
+        2: UpdateAction.flexible,
+        3: UpdateAction.flexible,
+        4: UpdateAction.immediate,
+        5: UpdateAction.immediate,
+      };
+      expected.forEach((priority, action) {
+        expect(
+          decide(priority: priority, flexibleAllowed: true),
+          action,
+          reason: 'priority $priority',
+        );
+      });
+    });
+
     test('critical priority is 4', () {
       expect(UpdatePolicy.criticalPriority, 4);
     });

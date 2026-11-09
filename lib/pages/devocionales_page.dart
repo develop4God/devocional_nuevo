@@ -204,7 +204,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateService.checkForUpdate();
+      _updateService.checkForUpdate(source: 'initState');
     });
     _streakFuture = _loadStreak();
     _splashAnimController.initialize(
@@ -532,7 +532,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       }
 
       // Check for updates
-      _updateService.checkForUpdate();
+      _updateService.checkForUpdate(source: 'resume');
 
       // Refresh streak data to ensure fire lottie shows current value
       _streakFuture = _loadStreak();

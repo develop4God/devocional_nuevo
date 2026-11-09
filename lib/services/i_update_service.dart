@@ -26,8 +26,9 @@ abstract class IUpdateService {
 
   /// Checks for an update and starts a blocking update only when required.
   /// Never installs a downloaded update: it only raises [updateReady].
+  /// [source] only labels the trigger (e.g. initState, resume) in the logs.
   /// Never throws.
-  Future<void> checkForUpdate();
+  Future<void> checkForUpdate({String source = 'unknown'});
 
   /// Installs the downloaded update, restarting the app. Only ever called by
   /// the user (banner restart). The plugin never replies on success, so the

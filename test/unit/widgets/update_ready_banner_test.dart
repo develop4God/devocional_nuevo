@@ -37,6 +37,7 @@ void main() {
   late ValueNotifier<bool> ready;
   late int restarts;
   late UpdateInstallResult restartResult;
+  Object? restartError;
 
   Future<void> pumpBanner(WidgetTester tester) {
     return tester.pumpWidget(
@@ -46,6 +47,7 @@ void main() {
             updateReady: ready,
             onRestart: () async {
               restarts++;
+              if (restartError != null) throw restartError!;
               return restartResult;
             },
             title: 'Update ready',
@@ -65,6 +67,7 @@ void main() {
     ready = ValueNotifier(false);
     restarts = 0;
     restartResult = UpdateInstallResult.installing;
+    restartError = null;
   });
 
   tearDown(() => ready.dispose());
@@ -191,6 +194,25 @@ void main() {
     expect(find.byIcon(Icons.download_done_outlined), findsOneWidget);
   });
 
+  testWidgets('logs shown once per state, not on every rebuild',
+      (tester) async {
+    final logs = <String>[];
+    await runZoned(
+      () async {
+        await pumpBanner(tester);
+        ready.value = true;
+        await tester.pump();
+        await pumpBanner(tester); // parent rebuild, same state
+        await tester.pump();
+      },
+      zoneSpecification: ZoneSpecification(
+        print: (self, parent, zone, line) => logs.add(line),
+      ),
+    );
+
+    expect(logs.where((l) => l.contains('shown (ready)')), hasLength(1));
+  });
+
   testWidgets('tapping the message restarts and offers no Later action',
       (tester) async {
     ready.value = true;
@@ -223,6 +245,20 @@ void main() {
 
     expect(find.text('Could not restart'), findsOneWidget);
     expect(find.text('Update ready'), findsOneWidget);
+  });
+
+  testWidgets('a thrown restart error shows the failed message and re-enables',
+      (tester) async {
+    ready.value = true;
+    restartError = StateError('boom');
+    await pumpBanner(tester);
+
+    await tester.tap(find.text('Update ready'));
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Could not restart'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
   testWidgets('the failure message uses the shared floating error snackbar',
@@ -294,7 +330,8 @@ void main() {
     expect(find.text('Could not restart'), findsNothing);
   });
 
-  testWidgets('a restart that throws does not lock the banner', (tester) async {
+  testWidgets('a restart that throws does not lock the banner nor escape',
+      (tester) async {
     ready.value = true;
     var attempts = 0;
     await tester.pumpWidget(
@@ -325,7 +362,7 @@ void main() {
     }
 
     expect(attempts, 2);
-    expect(errors, hasLength(2));
+    expect(errors, isEmpty, reason: 'a thrown error maps to the failed result');
   });
 
   testWidgets('a successful restart shows no error', (tester) async {

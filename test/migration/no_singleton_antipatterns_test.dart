@@ -844,7 +844,7 @@ void main() {
         reason: 'DevocionalesPage should resolve IUpdateService from locator',
       );
       expect(
-        '_updateService.checkForUpdate()'.allMatches(page).length,
+        '_updateService.checkForUpdate('.allMatches(page).length,
         2,
         reason: 'cold start and resume must both check through the interface',
       );
