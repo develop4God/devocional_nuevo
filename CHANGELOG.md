@@ -14,6 +14,7 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - Add encounters unlock product to supporter tiers
 - Open-all-encounters supporter option with soft unlock offer
 - *(encounters,supporter)* Gold highlight for the unlock offer and a featured support card ([#341](https://github.com/develop4God/devocional_nuevo/issues/341))
+- *(encounters)* Gold next-card highlight in grid + responsive tablet layout + dark-theme button fix ([#354](https://github.com/develop4God/devocional_nuevo/issues/354))
 
 ### 🐛 Bug Fixes
 
@@ -26,6 +27,10 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - *(bible)* Sync bundled versions and let the index update them ([#340](https://github.com/develop4God/devocional_nuevo/issues/340))
 - Long verses and meditate items cut off on small/medium screens ([#342](https://github.com/develop4God/devocional_nuevo/issues/342))
 - *(firestore)* Close Prayer Wall rules and sync users rules with production ([#348](https://github.com/develop4God/devocional_nuevo/issues/348))
+- *(deps)* Override @grpc/grpc-js and minimatch to patched versions in dev tooling ([#350](https://github.com/develop4God/devocional_nuevo/issues/350))
+- *(deps)* Override minimatch 9.x to 11 in functions dev tooling ([#351](https://github.com/develop4God/devocional_nuevo/issues/351))
+- *(header)* Keep the devotional date on one line, plus test and tooling cleanup ([#359](https://github.com/develop4God/devocional_nuevo/issues/359))
+- *(archive)* Verify gzip and zip data after the archive 4.6.0 upgrade ([#360](https://github.com/develop4God/devocional_nuevo/issues/360))
 
 ### 🚜 Refactor
 

@@ -371,7 +371,8 @@ jobs:
         if: success() && github.event_name == 'push'
         run: |
           SUMMARY=$(lcov --ignore-errors unused --summary coverage/lcov_filtered.info 2>&1)
-          COVERAGE=$(echo "$SUMMARY" | grep -oP 'lines......: \K[\d.]+')
+          # lcov pads the label with a version-dependent number of dots.
+          COVERAGE=$(echo "$SUMMARY" | grep -oP 'lines\.+:\s*\K[\d.]+')
           TEST_COUNT=$(grep -oP '\+(\d+):' test_output.txt | tail -1 | grep -oP '\d+')
 
           python3 scripts/update_readme_stats.py \
