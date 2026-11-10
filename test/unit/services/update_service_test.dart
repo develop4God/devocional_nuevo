@@ -1137,5 +1137,65 @@ void main() {
 
       expect(cleaner.calls, 1);
     });
+
+    Future<List<String>> captureLogs(Future<void> Function() body) async {
+      final logs = <String>[];
+      await runZoned(
+        body,
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) => logs.add(line),
+        ),
+      );
+      return logs;
+    }
+
+    test('flag not set: logs the skip line', () async {
+      mockChannel(checkResult: info(availability: updateNotAvailable));
+
+      final logs =
+          await captureLogs(() => service.checkForUpdate(source: 'initState'));
+
+      expect(
+          logs.where((l) => l.contains('restartPending=false')), hasLength(1));
+      expect(
+          logs.any((l) => l.contains('cleanup skipped (no restart pending)')),
+          isTrue);
+      expect(
+          logs.any((l) => l.contains('running stale task cleanup')), isFalse);
+    });
+
+    test('flag set and tasks removed: logs running and needed', () async {
+      preferences.restartPending = true;
+      cleaner.removed = 1;
+      mockChannel(checkResult: info(availability: updateNotAvailable));
+
+      final logs =
+          await captureLogs(() => service.checkForUpdate(source: 'initState'));
+
+      expect(logs.any((l) => l.contains('restartPending=true')), isTrue);
+      expect(
+          logs.any(
+              (l) => l.contains('restart pending, running stale task cleanup')),
+          isTrue);
+      expect(
+          logs.any((l) =>
+              l.contains('removed 1') && l.contains('cleanup was needed')),
+          isTrue);
+    });
+
+    test('flag set and nothing removed: logs nothing to remove', () async {
+      preferences.restartPending = true;
+      cleaner.removed = 0;
+      mockChannel(checkResult: info(availability: updateNotAvailable));
+
+      final logs =
+          await captureLogs(() => service.checkForUpdate(source: 'initState'));
+
+      expect(
+          logs.any((l) =>
+              l.contains('removed 0') &&
+              l.contains('cleanup found nothing to remove')),
+          isTrue);
+    });
   });
 }

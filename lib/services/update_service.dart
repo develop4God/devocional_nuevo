@@ -235,9 +235,14 @@ class UpdateService implements IUpdateService {
     _log('completing flexible update');
     // The plugin never replies on success, so the call is not awaited.
     unawaited(
-      _setRestartPending(true)
-          .then((_) => InAppUpdate.completeFlexibleUpdate())
-          .then<void>((_) {
+      _setRestartPending(true).then((persisted) {
+        _log(
+          persisted
+              ? 'restart requested, restartPending=true persisted'
+              : 'restartPending write failed',
+        );
+        return InAppUpdate.completeFlexibleUpdate();
+      }).then<void>((_) {
         _completePendingApply(UpdateInstallResult.installing);
       }).catchError((Object e) async {
         _logError('Error completing flexible update: $e');
@@ -253,20 +258,31 @@ class UpdateService implements IUpdateService {
   /// once, and no failure here may affect startup.
   Future<void> _cleanStaleTasksAfterRestart() async {
     try {
-      if (!await _preferences.getRestartPending()) return;
+      final restartPending = await _preferences.getRestartPending();
+      _log('restartPending=$restartPending');
+      if (!restartPending) {
+        _log('stale task cleanup skipped (no restart pending)');
+        return;
+      }
+      _log('restart pending, running stale task cleanup');
       await _preferences.setRestartPending(false);
       final removed = await _staleTaskCleaner.removeStaleAppTasks();
-      _log('removed $removed stale app task(s)');
+      _log(
+        'removed $removed stale app task(s), ${removed > 0 ? 'cleanup was needed' : 'cleanup found nothing to remove'}',
+      );
     } catch (e) {
-      _logError('Error removing stale app tasks: $e');
+      _logError('Error in stale task cleanup (reading flag or cleaning): $e');
     }
   }
 
-  Future<void> _setRestartPending(bool pending) async {
+  /// Returns whether the flag was persisted.
+  Future<bool> _setRestartPending(bool pending) async {
     try {
       await _preferences.setRestartPending(pending);
+      return true;
     } catch (e) {
       _logError('Error saving restart pending flag: $e');
+      return false;
     }
   }
 

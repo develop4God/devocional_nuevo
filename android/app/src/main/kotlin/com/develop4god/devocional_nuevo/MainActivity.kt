@@ -83,6 +83,11 @@ class MainActivity : FlutterActivity() {
         // Importante: inicializa Flutter después de configurar edge-to-edge
         super.onCreate(savedInstanceState)
 
+        Log.d(
+            STALE_TASKS_TAG,
+            "created taskId=$taskId isTaskRoot=$isTaskRoot savedState=${savedInstanceState != null}"
+        )
+
         reportStaleResumeMarkerIfAny()
 
         // Check if app was launched with a deep link
@@ -315,6 +320,11 @@ class MainActivity : FlutterActivity() {
             pendingWarmLink = initialLink
             initialLink = null
         }
+    }
+
+    override fun onDestroy() {
+        Log.d(STALE_TASKS_TAG, "destroyed taskId=$taskId isFinishing=$isFinishing")
+        super.onDestroy()
     }
 
     override fun onPause() {
