@@ -19,8 +19,11 @@ import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:devocional_nuevo/repositories/i_notes_repository.dart';
+import 'package:devocional_nuevo/services/i_update_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart'; // for TtsState
+import 'package:devocional_nuevo/widgets/update_ready_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -176,13 +179,37 @@ Devocional _devocional(String id, {String version = 'RVR1960'}) => Devocional(
       language: 'es',
     );
 
+/// Counts update checks so the page wiring can be asserted.
+class FakeUpdateService implements IUpdateService {
+  int checkCount = 0;
+
+  @override
+  final ValueNotifier<bool> updateReady = ValueNotifier<bool>(false);
+
+  @override
+  final ValueNotifier<bool> updateDownloading = ValueNotifier<bool>(false);
+
+  @override
+  Future<void> checkForUpdate({String source = 'unknown'}) async =>
+      checkCount++;
+
+  @override
+  Future<UpdateInstallResult> applyDownloadedUpdate() async =>
+      UpdateInstallResult.installing;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late MockDevocionalRepository repository;
+  late FakeUpdateService updateService;
 
   setUp(() async {
     await registerTestServicesWithFakes();
+    updateService = FakeUpdateService();
+    ServiceLocator()
+      ..unregister<IUpdateService>()
+      ..registerSingleton<IUpdateService>(updateService);
     await initializeDateFormatting('en');
     repository = MockDevocionalRepository();
   });
@@ -242,6 +269,24 @@ void main() {
       await tester.pump(const Duration(seconds: 3));
     });
 
+    testWidgets('checks for an app update once after the first frame',
+        (tester) async {
+      when(() => repository.getAvailableYears())
+          .thenAnswer((_) async => <int>[2025]);
+      when(() => repository.fetchAll(any(), any(), any()))
+          .thenAnswer((_) async => <Devocional>[]);
+      when(() => repository.wasLastFetchOffline).thenReturn(false);
+
+      await tester.pumpWidget(host(repository));
+      expect(updateService.checkCount, 1);
+
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+      expect(updateService.checkCount, 1);
+
+      // Drain DevocionalesTracking's one-shot 2s self-test Timer.
+      await tester.pump(const Duration(seconds: 3));
+    });
+
     testWidgets('retry button re-runs initialization after a failed load',
         (tester) async {
       var callCount = 0;
@@ -272,6 +317,44 @@ void main() {
       // Drain DevocionalesTracking's un-cancelable one-shot 2s self-test
       // Timer (started from initState) before the test ends, or FlutterTest
       // flags it as a leaked pending timer.
+      await tester.pump(const Duration(seconds: 3));
+    });
+
+    testWidgets(
+        'renders the update banner and lets taps outside the card reach the '
+        'page', (tester) async {
+      final loaded = [_devocional('d1'), _devocional('d2')];
+      when(() => repository.getAvailableYears())
+          .thenAnswer((_) async => <int>[2025]);
+      when(() => repository.fetchAll(any(), any(), any()))
+          .thenAnswer((_) async => loaded);
+      when(() => repository.wasLastFetchOffline).thenReturn(false);
+      when(() => repository.filterByVersion(any(), any())).thenAnswer(
+          (invocation) =>
+              invocation.positionalArguments[0] as List<Devocional>);
+      when(() => repository.findFirstUnreadDevocionalIndex(any(), any()))
+          .thenReturn(0);
+
+      await tester.pumpWidget(host(repository));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.byType(UpdateReadyBanner), findsOneWidget);
+      expect(find.text('update.ready_title'.tr()), findsNothing);
+
+      updateService.updateReady.value = true;
+      await tester.pump();
+      expect(find.text('update.ready_title'.tr()), findsOneWidget);
+
+      // The menu button sits outside the floating card.
+      expect(find.byType(Drawer), findsNothing);
+      await tester.tap(find.byIcon(Icons.menu).first);
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(Drawer), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 3));
     });
 

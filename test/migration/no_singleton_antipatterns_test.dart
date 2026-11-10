@@ -778,6 +778,97 @@ void main() {
       },
     );
 
+    // ── UpdateService DI registration ─────────────────────────────────────────
+
+    test(
+        'UpdateService is registered as lazy singleton under IUpdateService '
+        'and has no static singleton or static API', () async {
+      final locator =
+          await File('lib/services/service_locator.dart').readAsString();
+      expect(
+        locator.contains(
+          'registerLazySingleton<IUpdateService>(\n'
+          '    () => UpdateService(\n'
+          '      preferences: locator.get<IUpdatePreferences>(),\n'
+          '      staleTaskCleaner: locator.get<IStaleTaskCleaner>(),\n'
+          '    ),',
+        ),
+        isTrue,
+        reason: 'IUpdateService should be registered as lazy singleton',
+      );
+
+      final service =
+          await File('lib/services/update_service.dart').readAsString();
+      expect(
+        service.contains('class UpdateService implements IUpdateService'),
+        isTrue,
+        reason: 'UpdateService should implement IUpdateService',
+      );
+      expect(service.contains('static UpdateService? _instance'), isFalse);
+      expect(service.contains('static UpdateService get instance'), isFalse);
+      expect(
+        service.contains('static Future<void> checkForUpdate'),
+        isFalse,
+        reason:
+            'checkForUpdate must be an instance method behind the interface',
+      );
+
+      expect(
+        locator.contains(
+          'registerLazySingleton<IUpdatePreferences>(\n'
+          '    () => UpdatePreferences(),',
+        ),
+        isTrue,
+        reason: 'IUpdatePreferences should be registered as lazy singleton',
+      );
+      final prefs =
+          await File('lib/services/update_preferences.dart').readAsString();
+      expect(
+        prefs.contains('class UpdatePreferences implements IUpdatePreferences'),
+        isTrue,
+      );
+      expect(prefs.contains('static UpdatePreferences? _instance'), isFalse);
+      expect(
+        service.contains('UpdatePreferences()'),
+        isFalse,
+        reason: 'UpdateService must receive IUpdatePreferences via constructor',
+      );
+
+      expect(
+        locator.contains(
+          'registerLazySingleton<IStaleTaskCleaner>(() => StaleTaskCleaner())',
+        ),
+        isTrue,
+        reason: 'IStaleTaskCleaner should be registered under its interface',
+      );
+      final cleaner =
+          await File('lib/services/stale_task_cleaner.dart').readAsString();
+      expect(
+        cleaner.contains('class StaleTaskCleaner implements IStaleTaskCleaner'),
+        isTrue,
+      );
+      expect(cleaner.contains('static StaleTaskCleaner'), isFalse);
+      expect(service.contains('StaleTaskCleaner()'), isFalse);
+
+      final page =
+          await File('lib/pages/devocionales_page.dart').readAsString();
+      expect(page.contains('UpdateService('), isFalse);
+      expect(page.contains('UpdateService.checkForUpdate'), isFalse);
+      expect(
+        page.contains(
+          'late final IUpdateService _updateService = '
+          'getService<IUpdateService>();',
+        ),
+        isTrue,
+        reason: 'DevocionalesPage should resolve IUpdateService from locator',
+      );
+      expect(
+        '_updateService.checkForUpdate('.allMatches(page).length,
+        2,
+        reason: 'cold start and resume must both check through the interface',
+      );
+    });
+
     // ── AnalyticsService DI registration ──────────────────────────────────────
 
     test(

@@ -4,12 +4,15 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.android.FlutterSurfaceView
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.core.view.WindowCompat
 import com.google.firebase.crashlytics.FirebaseCrashlytics // ¡Añade esta importación!
 
@@ -19,6 +22,7 @@ class MainActivity : FlutterActivity() {
     private val CRASHLYTICS_CHANNEL = "com.develop4god.devocional_nuevo/crashlytics"
     private val GENERAL_CHANNEL = "com.devocional_nuevo.test_channel"
     private val DEEP_LINK_CHANNEL = "com.develop4god.devocional/deeplink"
+    private val STALE_TASKS_TAG = "StaleTasks"
     private val RESUME_WATCHDOG_CHANNEL = "com.develop4god.devocional_nuevo/resume_watchdog"
 
     // Store initial deep link (cold-start, read via getInitialLink channel call)
@@ -78,6 +82,11 @@ class MainActivity : FlutterActivity() {
 
         // Importante: inicializa Flutter después de configurar edge-to-edge
         super.onCreate(savedInstanceState)
+
+        Log.d(
+            STALE_TASKS_TAG,
+            "created taskId=$taskId isTaskRoot=$isTaskRoot savedState=${savedInstanceState != null}"
+        )
 
         reportStaleResumeMarkerIfAny()
 
@@ -207,6 +216,38 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    /**
+     * Finishes and removes every app task except this activity's own, clearing
+     * the stale recents card left behind after a Play in-app update restart.
+     * Returns the number of tasks removed; 0 on old APIs or any failure.
+     */
+    private fun removeStaleAppTasks(): Int {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return 0
+        return try {
+            val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            var removed = 0
+            for (task in manager.appTasks) {
+                try {
+                    val id = task.taskInfo.taskId
+                    val isCurrent = id == taskId
+                    Log.d(STALE_TASKS_TAG, "task id=$id current=$isCurrent")
+                    if (!isCurrent) {
+                        task.finishAndRemoveTask()
+                        removed++
+                        Log.d(STALE_TASKS_TAG, "removed task id=$id")
+                    }
+                } catch (e: Exception) {
+                    Log.w(STALE_TASKS_TAG, "failed to remove a task", e)
+                }
+            }
+            Log.d(STALE_TASKS_TAG, "removed $removed stale task(s)")
+            removed
+        } catch (e: Exception) {
+            Log.w(STALE_TASKS_TAG, "removeStaleAppTasks failed", e)
+            0
+        }
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
@@ -215,6 +256,8 @@ class MainActivity : FlutterActivity() {
             if (call.method == "getInitialIntentAction") {
                 val action = intent.action
                 result.success(action)
+            } else if (call.method == "removeStaleAppTasks") {
+                result.success(removeStaleAppTasks())
             } else {
                 result.notImplemented()
             }
@@ -277,6 +320,11 @@ class MainActivity : FlutterActivity() {
             pendingWarmLink = initialLink
             initialLink = null
         }
+    }
+
+    override fun onDestroy() {
+        Log.d(STALE_TASKS_TAG, "destroyed taskId=$taskId isFinishing=$isFinishing")
+        super.onDestroy()
     }
 
     override fun onPause() {

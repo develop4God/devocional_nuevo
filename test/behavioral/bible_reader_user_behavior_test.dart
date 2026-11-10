@@ -24,7 +24,9 @@ import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/widgets/bible/bible_reader_selector_bar.dart';
 import 'package:devocional_nuevo/widgets/bible/kjv_kj2000_banner.dart';
+import 'package:devocional_nuevo/widgets/notice_banner_card.dart';
 import '../helpers/test_helpers.dart';
 
 /// Hand-written fake so the drawer download flow can be driven
@@ -625,6 +627,20 @@ void main() {
           await pumpEnglishBiblePage(tester, totalDevocionalesRead: 5);
 
           expect(find.byType(KjvKj2000Banner), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'leaves a gap between the banner card and the selector bar',
+        (tester) async {
+          await pumpEnglishBiblePage(tester, totalDevocionalesRead: 5);
+
+          final bannerBottom =
+              tester.getBottomLeft(find.byType(NoticeBannerCard)).dy;
+          final selectorTop =
+              tester.getTopLeft(find.byType(BibleReaderSelectorBar)).dy;
+
+          expect(selectorTop - bannerBottom, greaterThanOrEqualTo(8));
         },
       );
 
