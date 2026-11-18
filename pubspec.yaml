@@ -135,3 +135,6 @@ flutter:
     #       weight: 400
     #     - asset: assets/fonts/Poppins-Bold.ttf
     #       weight: 700
+
+dependency_overrides:
+  shared_preferences_android: 2.4.28
