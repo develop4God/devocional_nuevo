@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 class FloatingFontControlButtons extends StatelessWidget {
   static const Key decreaseButtonKey = Key('font_decrease_button');
   static const Key increaseButtonKey = Key('font_increase_button');
+  static const Key appBarGlyphKey = Key('font_app_bar_glyph');
 
   static const double _buttonSize = 64;
   static const double _smallGlyphSize = 18;
   static const double _bigGlyphSize = 32;
   static const double _minTouchTarget = 56;
+  static const double _appBarGlyphSize = 24;
 
   /// i18n keys of the step names, aligned with [FontSizeController.fontSizeStops]
   static const List<String> _stepNameKeys = [
@@ -24,10 +26,27 @@ class FloatingFontControlButtons extends StatelessWidget {
   static final RegExp _latinLetter = RegExp(r'[A-Za-z]');
 
   /// App bar icon that opens this panel. The default icon draws a Latin "A+",
-  /// so languages whose translated glyph is not Latin get a neutral icon.
-  static IconData appBarIcon() => _latinLetter.hasMatch('bible.font_glyph'.tr())
-      ? Icons.text_increase_outlined
-      : Icons.zoom_in;
+  /// so languages whose translated glyph is not Latin show that same glyph
+  /// used by the panel's step buttons, followed by "+".
+  static Widget appBarIcon({required Color color}) {
+    final glyph = 'bible.font_glyph'.tr();
+    if (_latinLetter.hasMatch(glyph)) {
+      return Icon(Icons.text_increase_outlined, color: color);
+    }
+    return Text(
+      '$glyph+',
+      key: appBarGlyphKey,
+      // Keep the "+" right next to the glyph, also in RTL languages.
+      textDirection: TextDirection.ltr,
+      // Fixed size so large system text scales cannot overflow the app bar.
+      textScaler: TextScaler.noScaling,
+      style: TextStyle(
+        color: color,
+        fontSize: _appBarGlyphSize,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
 
   final double currentFontSize;
   final ValueChanged<double> onSizeSelected;

@@ -1177,10 +1177,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                   ),
                   // Font size button (middle position)
                   IconButton(
-                    icon: Icon(
-                      FloatingFontControlButtons.appBarIcon(),
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
+                    icon: FloatingFontControlButtons.appBarIcon(
+                        color: Theme.of(context).colorScheme.onPrimary),
                     tooltip: 'bible.adjust_font_size'.tr(),
                     onPressed: () => _controller.toggleFontControls(),
                   ),

@@ -276,18 +276,35 @@ void main() {
       expect(t.getCenter(decrease).dx, lessThan(t.getCenter(increase).dx));
     });
 
-    testWidgets('app bar icon is A+ for Latin languages', (t) async {
+    testWidgets('app bar icon is the A+ icon for Latin languages', (t) async {
       await pumpPanel(t, language: 'en');
-      expect(
-        FloatingFontControlButtons.appBarIcon(),
-        Icons.text_increase_outlined,
+      await t.pumpWidget(
+        MaterialApp(
+          home: FloatingFontControlButtons.appBarIcon(color: Colors.white),
+        ),
       );
+      expect(find.byIcon(Icons.text_increase_outlined), findsOneWidget);
+      expect(
+          find.byKey(FloatingFontControlButtons.appBarGlyphKey), findsNothing);
     });
 
-    for (final lang in ['hi', 'ar', 'ja', 'zh']) {
-      testWidgets('app bar icon avoids Latin A+ for $lang', (t) async {
-        await pumpPanel(t, language: lang);
-        expect(FloatingFontControlButtons.appBarIcon(), Icons.zoom_in);
+    for (final entry in {'hi': 'अ', 'ar': 'خط', 'ja': 'あ', 'zh': '字'}.entries) {
+      testWidgets('app bar shows the panel glyph plus + for ${entry.key}',
+          (t) async {
+        await pumpPanel(t, language: entry.key);
+        await t.pumpWidget(
+          MaterialApp(
+            home: FloatingFontControlButtons.appBarIcon(color: Colors.white),
+          ),
+        );
+        expect(find.byIcon(Icons.text_increase_outlined), findsNothing);
+        final glyph = t.widget<Text>(
+          find.byKey(FloatingFontControlButtons.appBarGlyphKey),
+        );
+        expect(glyph.data, '${entry.value}+');
+        expect(glyph.textDirection, TextDirection.ltr);
+        expect(glyph.textScaler, TextScaler.noScaling);
+        expect(glyph.style?.color, Colors.white);
       });
     }
 
@@ -308,5 +325,46 @@ void main() {
       expect(shape.side.width, greaterThanOrEqualTo(2));
       expect(material.shadowColor, primary);
     });
+
+    for (final lang in [
+      'ar',
+      'de',
+      'en',
+      'es',
+      'fil',
+      'fr',
+      'hi',
+      'ja',
+      'pt',
+      'zh'
+    ]) {
+      testWidgets('sanity: panel + app bar icon render for $lang', (t) async {
+        await pumpPanel(t, language: lang, fontSize: 28.0, textScale: 1.5);
+        expect(t.takeException(), isNull);
+        expect(increase, findsOneWidget);
+        await t.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              appBar: AppBar(
+                actions: [
+                  IconButton(
+                    icon: FloatingFontControlButtons.appBarIcon(
+                      color: Colors.white,
+                    ),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        expect(t.takeException(), isNull);
+        final latin = ['de', 'en', 'es', 'fil', 'fr', 'pt'].contains(lang);
+        expect(
+          find.byKey(FloatingFontControlButtons.appBarGlyphKey),
+          latin ? findsNothing : findsOneWidget,
+        );
+      });
+    }
   });
 }

@@ -1026,10 +1026,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           ),
                           actions: [
                             IconButton(
-                              icon: Icon(
-                                FloatingFontControlButtons.appBarIcon(),
-                                color: colorScheme.onPrimary,
-                              ),
+                              icon: FloatingFontControlButtons.appBarIcon(
+                                  color: colorScheme.onPrimary),
                               tooltip: 'bible.adjust_font_size'.tr(),
                               onPressed: _fontSizeController.toggleControls,
                             ),
@@ -1100,10 +1098,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   ),
                                   actions: [
                                     IconButton(
-                                      icon: Icon(
-                                        FloatingFontControlButtons.appBarIcon(),
-                                        color: Colors.white,
-                                      ),
+                                      icon:
+                                          FloatingFontControlButtons.appBarIcon(
+                                              color: Colors.white),
                                       tooltip: 'bible.adjust_font_size'.tr(),
                                       onPressed:
                                           _fontSizeController.toggleControls,
