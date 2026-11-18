@@ -127,7 +127,14 @@ class DevotionalImageRepository {
   /// indefinitely — [cacheManager.downloadFile] has no timeout of its own.
   Future<bool> _warm(String url) async {
     try {
-      await cacheManager.downloadFile(url).timeout(_networkTimeout);
+      final info =
+          await cacheManager.downloadFile(url).timeout(_networkTimeout);
+      if (await info.file.length() == 0) {
+        await cacheManager.removeFile(url);
+        debugPrint(
+            '⚠️ DevotionalImage: downloaded file is empty, removed $url');
+        return false;
+      }
       debugPrint('🖼️ DevotionalImage: warmed $url');
       return true;
     } catch (e) {
@@ -194,8 +201,14 @@ class DevotionalImageRepository {
         debugPrint('🖼️ DevotionalImage: restore miss — no saved image');
         return false;
       }
-      if (await cacheManager.getFileFromCache(url) == null) {
+      final cached = await cacheManager.getFileFromCache(url);
+      if (cached == null) {
         debugPrint('🖼️ DevotionalImage: restore miss — not in disk cache');
+        return false;
+      }
+      if (await cached.file.length() == 0) {
+        await cacheManager.removeFile(url);
+        debugPrint('🖼️ DevotionalImage: restore miss — empty cached file');
         return false;
       }
       currentImageUrl = url;
