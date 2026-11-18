@@ -10,6 +10,7 @@ import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_event.dart'
 import 'package:devocional_nuevo/blocs/bible_versions/bible_versions_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
+import 'package:devocional_nuevo/controllers/font_size_controller.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/controllers/tts_auto_scroll_driver.dart';
 import 'package:devocional_nuevo/controllers/tts_scroll_target.dart';
@@ -138,6 +139,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       allVersions: widget.versions,
       readerService: readerService,
       preferencesService: preferencesService,
+      fontSizeSnapper: FontSizeController.snapToStop,
     );
 
     final versionsLanguageCode = widget.versions.isNotEmpty
@@ -1176,7 +1178,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                   // Font size button (middle position)
                   IconButton(
                     icon: Icon(
-                      Icons.text_increase_outlined,
+                      FloatingFontControlButtons.appBarIcon(),
                       color: Theme.of(context).colorScheme.onPrimary,
                     ),
                     tooltip: 'bible.adjust_font_size'.tr(),
@@ -1305,8 +1307,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                 if (state.showFontControls)
                   FloatingFontControlButtons(
                     currentFontSize: state.fontSize,
-                    onIncrease: _controller.increaseFontSize,
-                    onDecrease: _controller.decreaseFontSize,
+                    onSizeSelected: _controller.setFontSize,
+                    onReset: () => _controller.setFontSize(
+                      FontSizeController.defaultFontSize,
+                    ),
                     onClose: () => _controller.setFontControlsVisibility(false),
                   ),
               ],

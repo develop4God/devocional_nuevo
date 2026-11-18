@@ -1027,7 +1027,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           actions: [
                             IconButton(
                               icon: Icon(
-                                Icons.text_increase_outlined,
+                                FloatingFontControlButtons.appBarIcon(),
                                 color: colorScheme.onPrimary,
                               ),
                               tooltip: 'bible.adjust_font_size'.tr(),
@@ -1036,14 +1036,18 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           ],
                         )
                       : null,
-                  floatingActionButton: AnimatedFabWithText(
-                    onPressed: _showAddPrayerOrThanksgivingChoice,
-                    text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
-                    fabColor: colorScheme.primary,
-                    backgroundColor: colorScheme.secondary,
-                    textColor: colorScheme.onPrimaryContainer,
-                    iconColor: colorScheme.onPrimary,
-                  ),
+                  // Hidden while the font panel is open so it cannot cover the
+                  // panel's increase button.
+                  floatingActionButton: _fontSizeController.showControls
+                      ? null
+                      : AnimatedFabWithText(
+                          onPressed: _showAddPrayerOrThanksgivingChoice,
+                          text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
+                          fabColor: colorScheme.primary,
+                          backgroundColor: colorScheme.secondary,
+                          textColor: colorScheme.onPrimaryContainer,
+                          iconColor: colorScheme.onPrimary,
+                        ),
                   floatingActionButtonLocation:
                       Directionality.of(context) == TextDirection.rtl
                           ? FloatingActionButtonLocation.startFloat
@@ -1096,8 +1100,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   ),
                                   actions: [
                                     IconButton(
-                                      icon: const Icon(
-                                        Icons.text_increase_outlined,
+                                      icon: Icon(
+                                        FloatingFontControlButtons.appBarIcon(),
                                         color: Colors.white,
                                       ),
                                       tooltip: 'bible.adjust_font_size'.tr(),
@@ -1153,8 +1157,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           if (_fontSizeController.showControls)
                             FloatingFontControlButtons(
                               currentFontSize: _fontSizeController.fontSize,
-                              onIncrease: _fontSizeController.increase,
-                              onDecrease: _fontSizeController.decrease,
+                              onSizeSelected: _fontSizeController.setFontSize,
+                              onReset: _fontSizeController.reset,
                               onClose: _fontSizeController.hideControls,
                             ),
                           if (_splashAnimController.isVisible)

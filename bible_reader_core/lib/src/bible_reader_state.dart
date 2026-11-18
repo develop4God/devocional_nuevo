@@ -39,7 +39,7 @@ class BibleReaderState {
     this.sectionTitles = const [],
     this.selectedVerses = const {},
     this.persistentlyMarkedVerses = const {},
-    this.fontSize = 18.0,
+    this.fontSize = 16.0,
     this.showFontControls = false,
     this.isLoading = false,
     this.isSearching = false,

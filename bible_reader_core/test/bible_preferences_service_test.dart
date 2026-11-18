@@ -15,7 +15,7 @@ void main() {
 
         final fontSize = await service.getFontSize();
 
-        expect(fontSize, equals(18.0));
+        expect(fontSize, equals(16.0));
       });
 
       test('should save and retrieve font size', () async {
