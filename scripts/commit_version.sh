@@ -36,7 +36,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: $0 [--type major|minor|patch] [--message \"commit message\"] [--yes]"
+            echo "Usage: $0 [--type major|minor|patch] [--message \"commit/tag message\"] [--yes]  (the message is required; --yes needs --message)"
             exit 1
             ;;
     esac
@@ -123,6 +123,11 @@ VERSION=$(echo "$VERSION_LINE" | cut -d ' ' -f2)
 CURRENT_VERSION_NAME=$(echo "$VERSION" | cut -d '+' -f1)
 CURRENT_BUILD_NUMBER=$(echo "$VERSION" | cut -d '+' -f2)
 
+if [[ ! "$CURRENT_BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+    print_error "Invalid build number: $CURRENT_BUILD_NUMBER (expected digits only)"
+    exit 1
+fi
+
 # Parse semantic version
 if [[ ! "$CURRENT_VERSION_NAME" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
     print_error "Invalid version format: $CURRENT_VERSION_NAME (expected: MAJOR.MINOR.PATCH)"
@@ -205,16 +210,40 @@ echo ""
 print_info "New version will be: ${GREEN}${NEW_FULL_VERSION}${NC}"
 echo ""
 
-# 7. Get commit message
+# 7. Get the message (mandatory: used for both the commit and the annotated tag)
+# The en-US release notes are shown as a hint and attached to the tag message.
+RELEASE_NOTES_EN=""
+if [[ -f "RELEASE_NOTES.md" ]]; then
+    RELEASE_NOTES_EN=$(awk '/^<en-US>/{f=1;next} /^<\/en-US>/{f=0} f' RELEASE_NOTES.md)
+fi
+
 if [[ -n "$ARG_MESSAGE" ]]; then
     COMMIT_MESSAGE="$ARG_MESSAGE"
 else
-    # shellcheck disable=SC2162
-    read -p "Commit message: " COMMIT_MESSAGE
+    if [[ -n "$ARG_YES" ]]; then
+        print_error "--message is required together with --yes"
+        exit 1
+    fi
+    if [[ -n "$RELEASE_NOTES_EN" ]]; then
+        print_info "Release notes (en-US) to base the message on:"
+        echo "$RELEASE_NOTES_EN"
+        echo ""
+    fi
+    COMMIT_MESSAGE=""
+    while [[ -z "${COMMIT_MESSAGE//[[:space:]]/}" ]]; do
+        # shellcheck disable=SC2162
+        read -p "Commit/tag message (required): " COMMIT_MESSAGE || {
+            print_error "No message provided"
+            exit 1
+        }
+        if [[ -z "${COMMIT_MESSAGE//[[:space:]]/}" ]]; then
+            print_error "Message cannot be empty"
+        fi
+    done
 fi
 
-if [[ -z "$COMMIT_MESSAGE" ]]; then
-    print_error "Commit message cannot be empty"
+if [[ -z "${COMMIT_MESSAGE//[[:space:]]/}" ]]; then
+    print_error "Message cannot be empty"
     exit 1
 fi
 
@@ -227,7 +256,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "Preview:"
 echo "  Version:  ${CURRENT_VERSION_NAME}+${CURRENT_BUILD_NUMBER} → ${GREEN}${NEW_FULL_VERSION}${NC}"
 echo "  Commit:   \"${FULL_COMMIT_MESSAGE}\""
-echo "  Tag:      v${NEW_FULL_VERSION}"
+echo "  Tag:      v${NEW_FULL_VERSION} (annotated: same message + en-US release notes)"
 echo "  Push to:  origin/${CURRENT_BRANCH}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
@@ -256,8 +285,12 @@ git add pubspec.yaml
 print_info "Creating commit..."
 git commit -m "$FULL_COMMIT_MESSAGE"
 
-print_info "Creating tag..."
-git tag "v$NEW_FULL_VERSION"
+print_info "Creating annotated tag..."
+TAG_ARGS=(-a "v$NEW_FULL_VERSION" -m "$FULL_COMMIT_MESSAGE")
+if [[ -n "$RELEASE_NOTES_EN" ]]; then
+    TAG_ARGS+=(-m "$RELEASE_NOTES_EN")
+fi
+git tag "${TAG_ARGS[@]}"
 
 print_info "Pushing to origin/${CURRENT_BRANCH}..."
 git push origin "$CURRENT_BRANCH"
