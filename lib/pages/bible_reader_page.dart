@@ -1261,7 +1261,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                 SafeArea(
                   child: Column(
                     children: [
-                      if (_showKjvBanner)
+                      if (_showKjvBanner) ...[
                         Builder(
                           builder: (context) => KjvKj2000Banner(
                             onDismiss: _dismissKjvBanner,
@@ -1269,6 +1269,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 Scaffold.of(context).openEndDrawer(),
                           ),
                         ),
+                        // The card has no bottom margin of its own.
+                        const SizedBox(height: 8),
+                      ],
                       BibleReaderSelectorBar(
                         state: state,
                         chapterPrefix: getChapterPrefix,
