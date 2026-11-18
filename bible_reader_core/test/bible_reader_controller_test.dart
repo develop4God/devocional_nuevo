@@ -1,6 +1,8 @@
 @Tags(['unit', 'controllers'])
 library;
 
+import 'dart:async';
+
 import 'package:bible_reader_core/src/bible_db_service.dart';
 import 'package:bible_reader_core/src/bible_preferences_service.dart';
 import 'package:bible_reader_core/src/bible_reader_controller.dart';
@@ -53,6 +55,15 @@ class _FakeBibleDbService extends BibleDbService {
     required int chapter,
   }) async =>
       [];
+}
+
+class _SlowSavePreferencesService extends BiblePreferencesService {
+  final _saveGate = Completer<void>();
+
+  void completeSave() => _saveGate.complete();
+
+  @override
+  Future<void> saveFontSize(double size) => _saveGate.future;
 }
 
 void main() {
@@ -110,7 +121,7 @@ void main() {
       expect(controller.state.isLoading, false);
       expect(controller.state.availableVersions, isEmpty);
       expect(controller.state.selectedVersion, isNull);
-      expect(controller.state.fontSize, 18.0);
+      expect(controller.state.fontSize, 16.0);
     });
 
     test('should have a state stream', () {
@@ -131,57 +142,77 @@ void main() {
   });
 
   group('BibleReaderController Font Size Tests', () {
-    test('should increase font size', () async {
-      final initialSize = controller.state.fontSize;
-
-      await controller.increaseFontSize();
-
-      expect(controller.state.fontSize, initialSize + 2);
+    test('state defaults to the 16.0 Normal stop', () {
+      expect(const BibleReaderState().fontSize, 16.0);
     });
 
-    test('should decrease font size', () async {
-      final initialSize = controller.state.fontSize;
+    test('setFontSize sets the exact size and persists it', () async {
+      await controller.setFontSize(32.0);
 
-      await controller.decreaseFontSize();
-
-      expect(controller.state.fontSize, initialSize - 2);
+      expect(controller.state.fontSize, 32.0);
+      expect(await preferencesService.getFontSize(), 32.0);
     });
 
-    test('should not increase font size beyond 30', () async {
-      // Set font size to 30
-      await preferencesService.saveFontSize(30);
+    test('setFontSize snaps its input through the injected snapper', () async {
       controller = BibleReaderController(
         allVersions: testVersions,
         readerService: readerService,
         preferencesService: preferencesService,
-        initialState: controller.state.copyWith(fontSize: 30),
+        fontSizeSnapper: (size) => size.roundToDouble(),
       );
 
-      await controller.increaseFontSize();
+      await controller.setFontSize(17.3);
 
-      expect(controller.state.fontSize, 30);
+      expect(controller.state.fontSize, 17.0);
+      expect(await preferencesService.getFontSize(), 17.0);
     });
 
-    test('should not decrease font size below 12', () async {
-      // Set font size to 12
-      await preferencesService.saveFontSize(12);
+    test('setFontSize is a no-op when the snapped size is unchanged', () async {
       controller = BibleReaderController(
         allVersions: testVersions,
         readerService: readerService,
         preferencesService: preferencesService,
-        initialState: controller.state.copyWith(fontSize: 12),
+        fontSizeSnapper: (size) => size.roundToDouble(),
       );
+      final states = <BibleReaderState>[];
+      controller.stateStream.listen(states.add);
 
-      await controller.decreaseFontSize();
+      await controller.setFontSize(16.2); // snaps to 16 == default state
 
-      expect(controller.state.fontSize, 12);
+      await Future.delayed(Duration.zero);
+      expect(states, isEmpty);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getDouble('bible_font_size'), isNull);
     });
 
-    test('should persist font size changes', () async {
-      await controller.increaseFontSize();
-      final savedSize = await preferencesService.getFontSize();
+    test('setFontSize emits the new state before persisting', () async {
+      final slowPrefs = _SlowSavePreferencesService();
+      controller = BibleReaderController(
+        allVersions: testVersions,
+        readerService: readerService,
+        preferencesService: slowPrefs,
+      );
 
-      expect(savedSize, controller.state.fontSize);
+      final pending = controller.setFontSize(28.0);
+      // The save has not completed yet, but the UI state is already updated.
+      expect(controller.state.fontSize, 28.0);
+      slowPrefs.completeSave();
+      await pending;
+    });
+
+    test('setFontSize does not throw when disposed during the save', () async {
+      final slowPrefs = _SlowSavePreferencesService();
+      controller = BibleReaderController(
+        allVersions: testVersions,
+        readerService: readerService,
+        preferencesService: slowPrefs,
+      );
+
+      final pending = controller.setFontSize(28.0);
+      controller.dispose();
+      slowPrefs.completeSave();
+
+      await expectLater(pending, completes);
     });
   });
 
@@ -469,13 +500,12 @@ void main() {
       final states = <BibleReaderState>[];
       final subscription = controller.stateStream.listen(states.add);
 
-      await controller.increaseFontSize();
-      await controller.decreaseFontSize();
+      await controller.setFontSize(20.0);
       controller.toggleFontControls();
 
       await Future.delayed(const Duration(milliseconds: 50));
 
-      expect(states.length, greaterThanOrEqualTo(3));
+      expect(states.length, greaterThanOrEqualTo(2));
 
       await subscription.cancel();
     });
@@ -533,7 +563,7 @@ void main() {
       'should maintain consistent state through multiple operations',
       () async {
         // Perform multiple operations
-        await controller.increaseFontSize();
+        await controller.setFontSize(20.0);
         controller.toggleFontControls();
         controller.toggleVerseSelection('Genesis|1|1');
 

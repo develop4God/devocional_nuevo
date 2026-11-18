@@ -84,6 +84,7 @@ dependencies:
   firebase_app_installations: ^0.4.3
 
 dev_dependencies:
+  file: ^7.0.1
   flutter_test:
     sdk: flutter
   integration_test:

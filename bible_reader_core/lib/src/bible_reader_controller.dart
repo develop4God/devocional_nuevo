@@ -16,11 +16,17 @@ import 'package:bible_reader_core/src/bible_reader_service.dart';
 import 'package:bible_reader_core/src/bible_reader_state.dart';
 import 'package:bible_reader_core/src/bible_version.dart';
 
+double _identity(double size) => size;
+
 class BibleReaderController {
   BibleReaderState _state;
   final List<BibleVersion> allVersions;
   final BibleReaderService readerService;
   final BiblePreferencesService preferencesService;
+
+  /// Maps a saved font size onto a valid one (e.g. legacy values onto the
+  /// app's font size stops). Injected because the stops live in the app.
+  final double Function(double) fontSizeSnapper;
 
   final _stateController = StreamController<BibleReaderState>.broadcast();
   bool _isDisposed = false;
@@ -36,6 +42,7 @@ class BibleReaderController {
     required this.readerService,
     required this.preferencesService,
     BibleReaderState? initialState,
+    this.fontSizeSnapper = _identity,
   }) : _state = initialState ?? const BibleReaderState();
 
   void dispose() {
@@ -81,7 +88,7 @@ class BibleReaderController {
     await _initializeVersionService(selectedVersion);
 
     // Load preferences
-    final fontSize = await preferencesService.getFontSize();
+    final fontSize = fontSizeSnapper(await preferencesService.getFontSize());
     final markedVerses = await preferencesService.getMarkedVerses();
 
     _emit(
@@ -555,22 +562,15 @@ class BibleReaderController {
     _emit(_state.copyWith(persistentlyMarkedVerses: markedVerses));
   }
 
-  /// Increase font size
-  Future<void> increaseFontSize() async {
-    if (_state.fontSize < 30) {
-      final newSize = _state.fontSize + 2;
-      await preferencesService.saveFontSize(newSize);
-      _emit(_state.copyWith(fontSize: newSize));
-    }
-  }
-
-  /// Decrease font size
-  Future<void> decreaseFontSize() async {
-    if (_state.fontSize > 12) {
-      final newSize = _state.fontSize - 2;
-      await preferencesService.saveFontSize(newSize);
-      _emit(_state.copyWith(fontSize: newSize));
-    }
+  /// Set an exact font size (used by the stop-based font size panel).
+  /// [size] is snapped first; unchanged sizes are ignored (the slider fires
+  /// on every drag tick). Emits first so the UI updates immediately, then
+  /// persists.
+  Future<void> setFontSize(double size) async {
+    final snapped = fontSizeSnapper(size);
+    if (snapped == _state.fontSize) return;
+    _emit(_state.copyWith(fontSize: snapped));
+    await preferencesService.saveFontSize(snapped);
   }
 
   /// Toggle font controls visibility

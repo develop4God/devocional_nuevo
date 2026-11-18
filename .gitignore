@@ -103,3 +103,6 @@ test_results.json
 extract_failures.sh
 /thanksgivings.json
 /android/.kotlin/
+
+# Playwright MCP output (screenshots/snapshots)
+.playwright-mcp/
