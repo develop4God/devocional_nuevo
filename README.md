@@ -1,9 +1,9 @@
 # Devocionales Cristianos / Christian Devotionals
 
-[![Flutter](https://img.shields.io/badge/Flutter-3.41.9-blue.svg)](https://flutter.dev/)
+[![Flutter](https://img.shields.io/badge/Flutter-3.47.0-blue.svg)](https://flutter.dev/)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Tests](https://img.shields.io/badge/Tests-35+-brightgreen.svg)](#-testing--pruebas)
-[![Coverage](https://img.shields.io/badge/Coverage-77.4%25-brightgreen.svg)](#-testing--pruebas)
+[![Tests](https://img.shields.io/badge/Tests-72+-brightgreen.svg)](#-testing--pruebas)
+[![Coverage](https://img.shields.io/badge/Coverage-77.7%25-brightgreen.svg)](#-testing--pruebas)
 [![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](#)
 
 ---
@@ -50,7 +50,7 @@ favorites, spiritual tracking, and intelligent review system.
 
 ### 🛠️ Technologies
 
-- **Flutter 3.41.9**: Main framework
+- **Flutter 3.47.0**: Main framework
 - **Flutter BLoC**: Complex state management
 - **Provider**: Simple state management
 - **Firebase**: Notifications, auth, and analytics
@@ -62,9 +62,9 @@ favorites, spiritual tracking, and intelligent review system.
 
 | Metric              | Value                        |
 |---------------------|------------------------------|
-| Source Files (lib/) | 297 Dart files               |
-| Test Files          | 337 test files               |
-| Total Tests         | 35 tests (100% passing ✅) |
+| Source Files (lib/) | 307 Dart files               |
+| Test Files          | 343 test files               |
+| Total Tests         | 72 tests (100% passing ✅) |
 | Test Coverage       | 51.9% (10,725/20,666 lines)   |
 | Supported Languages | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Static Analysis     | ✅ All checks passing         |
@@ -79,16 +79,16 @@ concerns:
 lib/
 ├── blocs/  (47 files)
 ├── controllers/  (7 files)
-├── debug/  (11 files)
+├── debug/  (12 files)
 ├── extensions/  (1 files)
 ├── helpers/  (1 files)
 ├── models/  (20 files)
 ├── pages/  (30 files)
 ├── providers/  (2 files)
 ├── repositories/  (17 files)
-├── services/  (57 files)
-├── utils/  (18 files)
-└── widgets/  (84 files)
+├── services/  (63 files)
+├── utils/  (19 files)
+└── widgets/  (86 files)
 ```
 <!-- /README-STATS:lib-tree-en -->
 
@@ -103,13 +103,13 @@ test/
 ├── integration/  (10 tests)
 ├── migration/  (2 tests)
 ├── models/  (1 tests)
-└── unit/  (314 tests)
+└── unit/  (320 tests)
 ```
 <!-- /README-STATS:test-tree-en -->
 
 ### 📱 Requirements
 
-- Flutter 3.41.9 or higher
+- Flutter 3.47.0 or higher
 - Dart SDK >=3.0.0 <4.0.0
 - Android SDK 21+ (Android 5.0+)
 - Android compileSdk 34+ (for Android 15 compatibility)
@@ -174,7 +174,7 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 
 ### 🛠️ Tecnologías
 
-- **Flutter 3.41.9**: Framework principal
+- **Flutter 3.47.0**: Framework principal
 - **Flutter BLoC**: Gestión de estado complejo
 - **Provider**: Gestión de estado simple
 - **Firebase**: Notificaciones, autenticación y analytics
@@ -186,10 +186,10 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 
 | Métrica                | Valor                              |
 |------------------------|------------------------------------|
-| Archivos Fuente (lib/) | 297 archivos Dart                  |
-| Archivos de Test       | 337 archivos                       |
-| Total de Tests         | 35 tests (100% aprobados ✅)     |
-| Cobertura de Tests     | 77.4% (17,711/22,878 líneas)        |
+| Archivos Fuente (lib/) | 307 archivos Dart                  |
+| Archivos de Test       | 343 archivos                       |
+| Total de Tests         | 72 tests (100% aprobados ✅)     |
+| Cobertura de Tests     | 77.7% (17,940/23,101 líneas)        |
 | Idiomas Soportados     | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Análisis Estático      | ✅ Todas las verificaciones pasando |
 
@@ -206,7 +206,7 @@ See the Testing section above (folder structure is language-agnostic).
 
 ### 📱 Requisitos
 
-- Flutter 3.41.9 o superior
+- Flutter 3.47.0 o superior
 - Dart SDK >=3.0.0 <4.0.0
 - Android SDK 21+ (Android 5.0+)
 - Android compileSdk 34+ (para compatibilidad con Android 15)
@@ -315,6 +315,6 @@ Website / Sitio web: https://www.develop4God.com
 
 ---
 
-App Version: 1.17.0+156
+App Version: 1.17.0+165
 
 © 2026 develop4God

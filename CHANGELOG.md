@@ -15,6 +15,7 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - Open-all-encounters supporter option with soft unlock offer
 - *(encounters,supporter)* Gold highlight for the unlock offer and a featured support card ([#341](https://github.com/develop4God/devocional_nuevo/issues/341))
 - *(encounters)* Gold next-card highlight in grid + responsive tablet layout + dark-theme button fix ([#354](https://github.com/develop4God/devocional_nuevo/issues/354))
+- *(update)* Urgent-only blocking updates plus tap-to-restart flexible updates ([#362](https://github.com/develop4God/devocional_nuevo/issues/362))
 
 ### 🐛 Bug Fixes
 
