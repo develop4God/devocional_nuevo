@@ -286,7 +286,8 @@ void main() {
         expect(find.byType(FloatingFontControlButtons), findsOneWidget);
 
         // WHEN: User increases font size
-        final increaseButton = find.text('A+');
+        final increaseButton =
+            find.byKey(FloatingFontControlButtons.increaseButtonKey);
         await tester.tap(increaseButton);
         // Same reason as above — no pumpAndSettle(), use pump() instead
         await tester.pump();

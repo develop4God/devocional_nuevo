@@ -10,6 +10,7 @@ library;
 // search state corruption, stream disposal leaks.
 
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/controllers/font_size_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -116,6 +117,7 @@ BibleReaderController _makeController({
     readerService: readerService ??
         BibleReaderService(dbService: fakeDb, positionService: positionService),
     preferencesService: preferencesService ?? BiblePreferencesService(),
+    fontSizeSnapper: FontSizeController.snapToStop,
   );
 }
 
@@ -300,87 +302,36 @@ void main() {
 
     // ── Font size ────────────────────────────────────────────────────────
 
-    group('Font size — boundary enforcement', () {
-      test('Default font size is 18.0', () async {
+    group('Font size — legacy snapping on load', () {
+      test('Default saved size 18.0 snaps to the Normal stop 16.0', () async {
         final controller = _makeController();
         await controller.initialize('es');
-
-        expect(controller.state.fontSize, equals(18.0));
-        controller.dispose();
-      });
-
-      test('Increase font size adds 2', () async {
-        final controller = _makeController();
-        await controller.initialize('es');
-
-        await controller.increaseFontSize();
-
-        expect(controller.state.fontSize, equals(20.0));
-        controller.dispose();
-      });
-
-      test('Decrease font size subtracts 2', () async {
-        final controller = _makeController();
-        await controller.initialize('es');
-
-        await controller.decreaseFontSize();
 
         expect(controller.state.fontSize, equals(16.0));
         controller.dispose();
       });
 
-      test('Font size does not exceed 30', () async {
+      test('Saved legacy size 22.0 snaps to a stop (20.0)', () async {
+        SharedPreferences.setMockInitialValues({'bible_font_size': 22.0});
         final controller = _makeController();
         await controller.initialize('es');
 
-        // Hammer increase
-        for (int i = 0; i < 20; i++) {
-          await controller.increaseFontSize();
-        }
-
-        expect(
-          controller.state.fontSize,
-          lessThanOrEqualTo(30),
-          reason: 'Font size must not exceed max boundary of 30',
-        );
+        expect(controller.state.fontSize, equals(20.0));
         controller.dispose();
       });
 
-      test('Font size does not go below 12', () async {
-        final controller = _makeController();
-        await controller.initialize('es');
-
-        // Hammer decrease
-        for (int i = 0; i < 20; i++) {
-          await controller.decreaseFontSize();
-        }
-
-        expect(
-          controller.state.fontSize,
-          greaterThanOrEqualTo(12),
-          reason: 'Font size must not go below min boundary of 12',
-        );
-        controller.dispose();
-      });
-
-      test('Font size persists across controller reinitialize', () async {
+      test('setFontSize persists across controller reinitialize', () async {
         final prefs = BiblePreferencesService();
         final controller = _makeController(preferencesService: prefs);
         await controller.initialize('es');
 
-        await controller.increaseFontSize();
-        await controller.increaseFontSize();
+        await controller.setFontSize(28.0);
         controller.dispose();
 
-        // New controller — same prefs service — should restore 22.0
         final controller2 = _makeController(preferencesService: prefs);
         await controller2.initialize('es');
 
-        expect(
-          controller2.state.fontSize,
-          equals(22.0),
-          reason: 'Font size must persist via SharedPreferences',
-        );
+        expect(controller2.state.fontSize, equals(28.0));
         controller2.dispose();
       });
     });

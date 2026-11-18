@@ -3,7 +3,7 @@
 
 📖 Los versículos largos, incluido "Para Meditar", ya no se cortan en pantallas pequeñas.
 
-📤 Lo que compartes ahora termina con una breve nota de descarga.
+🔠 Tamaño de letra más fácil: panel nuevo con pasos claros y botones grandes.
 
 🌟 Encuentros: el próximo brilla en dorado en la cuadrícula y la fecha cabe en una línea.
 
@@ -16,7 +16,7 @@
 
 📖 Los versículos largos, incluido "Para Meditar", ya no se cortan en pantallas pequeñas.
 
-📤 Lo que compartís ahora termina con una breve nota de descarga.
+🔠 Tamaño de letra más fácil: panel nuevo con pasos claros y botones grandes.
 
 🌟 Encuentros: el próximo brilla en dorado en la cuadrícula y la fecha cabe en una línea.
 
@@ -29,7 +29,7 @@
 
 📖 تم إصلاح الآيات الطويلة التي كانت تُقطع على الشاشات الصغيرة والمتوسطة، بما في ذلك قسم "للتأمل": تظهر الآن كاملة.
 
-📤 عدّلنا نص المشاركة: تنتهي التأملات والدراسات المشتركة الآن بملاحظة تنزيل قصيرة.
+🔠 تغيير حجم الخط أصبح أسهل: لوحة جديدة بخطوات واضحة وأزرار كبيرة.
 
 🌟 اللقاءات: يتوهج اللقاء التالي بالذهبي في عرض الشبكة أيضًا، وتبدو القائمة أفضل على الأجهزة اللوحية. تاريخ التأمل يظهر الآن في سطر واحد.
 
@@ -42,7 +42,7 @@
 
 📖 Lange Verse, auch „Zum Nachdenken“, werden auf kleinen Bildschirmen nicht mehr abgeschnitten.
 
-📤 Geteilte Inhalte enden jetzt mit einem kurzen Download-Hinweis.
+🔠 Schriftgröße einfacher einstellen: neues Panel mit klaren Stufen und großen Tasten.
 
 🌟 Begegnungen: Die nächste leuchtet im Raster golden, das Datum passt in eine Zeile.
 
@@ -55,7 +55,7 @@
 
 📖 Long verses, including "To Meditate", are no longer cut off on small screens.
 
-📤 Shared devotionals and studies now end with a short download note.
+🔠 Easier font size: a new panel with clear steps and big buttons.
 
 🌟 Encounters: the next one glows gold in the grid and the date fits on one line.
 
@@ -68,7 +68,7 @@
 
 📖 Les versets longs, dont « Pour Méditer », ne sont plus coupés sur petits écrans.
 
-📤 Les partages se terminent par une courte note de téléchargement.
+🔠 Taille de police plus simple : nouveau panneau avec paliers clairs et grands boutons.
 
 🌟 Rencontres : la suivante brille en doré dans la grille, la date tient sur une ligne.
 
@@ -81,7 +81,7 @@
 
 📖 छोटी स्क्रीन पर कटने वाले लंबे वचन, "मनन" सहित, अब पूरे दिखते हैं।
 
-📤 साझा सामग्री अब छोटे डाउनलोड नोट के साथ समाप्त होती है।
+🔠 फ़ॉन्ट आकार बदलना आसान: स्पष्ट चरणों और बड़े बटनों वाला नया पैनल।
 
 🌟 मुलाकातें: अगली मुलाकात ग्रिड में सुनहरी दिखती है, तारीख एक पंक्ति में आती है।
 
@@ -94,7 +94,7 @@
 
 📖 小・中サイズの画面で長い聖句が途切れてしまう問題を修正しました（「黙想」セクションを含む）。全文が表示されるようになりました。
 
-📤 共有メッセージを調整しました。共有したデボーションと聖書研究は、短いダウンロード案内で終わるようになりました。
+🔠 文字サイズの変更がかんたんに：わかりやすい段階と大きなボタンの新しいパネル。
 
 🌟 エンカウンター：次のエンカウンターがグリッドでも金色で表示され、タブレットでの一覧も見やすくなりました。日付は1行に収まります。
 
@@ -109,7 +109,7 @@
 
 📖 Versículos longos, inclusive "Para Meditar", não são mais cortados em telas pequenas.
 
-📤 O que você compartilha agora termina com uma breve nota de download.
+🔠 Tamanho da fonte mais fácil: novo painel com etapas claras e botões grandes.
 
 🌟 Encontros: o próximo brilha em dourado na grade e a data cabe em uma linha.
 
@@ -122,7 +122,7 @@
 
 📖 修复了较长经文在小屏和中屏上被截断的问题（包括“默想”部分），现在可完整显示。
 
-📤 调整了分享内容：分享的灵修和查经现在以简短的下载提示结尾。
+🔠 调整字体大小更简单：全新面板，档位清晰、按钮更大。
 
 🌟 相遇：下一个相遇在网格中也以金色显示，列表在平板上更美观。灵修日期现在显示在一行内。
 
@@ -135,7 +135,7 @@
 
 📖 Hindi na napuputol ang mahahabang talata, kasama ang "Para Pag-isipan", sa maliliit na screen.
 
-📤 Ang mga ibinahagi ay nagtatapos na sa maikling paalala sa pag-download.
+🔠 Mas madaling laki ng font: bagong panel na may malilinaw na hakbang at malalaking button.
 
 🌟 Mga Pagtatagpo: ginto na rin ang susunod sa grid, kasya sa isang linya ang petsa.
 

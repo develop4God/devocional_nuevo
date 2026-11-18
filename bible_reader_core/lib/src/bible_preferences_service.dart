@@ -5,10 +5,10 @@ class BiblePreferencesService {
   static const String _keyFontSize = 'bible_font_size';
   static const String _keyMarkedVerses = 'bible_marked_verses';
 
-  /// Get the saved font size, defaults to 18.0
+  /// Get the saved font size, defaults to 16.0 (the Normal font size stop)
   Future<double> getFontSize() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getDouble(_keyFontSize) ?? 18.0;
+    return prefs.getDouble(_keyFontSize) ?? 16.0;
   }
 
   /// Save the font size preference

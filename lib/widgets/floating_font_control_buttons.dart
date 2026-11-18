@@ -1,29 +1,75 @@
+import 'package:devocional_nuevo/controllers/font_size_controller.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 
+/// Bottom panel to pick the devotional font size among named stops.
 class FloatingFontControlButtons extends StatelessWidget {
+  static const Key decreaseButtonKey = Key('font_decrease_button');
+  static const Key increaseButtonKey = Key('font_increase_button');
+  static const Key appBarGlyphKey = Key('font_app_bar_glyph');
+
+  static const double _buttonSize = 64;
+  static const double _smallGlyphSize = 18;
+  static const double _bigGlyphSize = 32;
+  static const double _minTouchTarget = 56;
+  static const double _appBarGlyphSize = 24;
+
+  /// i18n keys of the step names, aligned with [FontSizeController.fontSizeStops]
+  static const List<String> _stepNameKeys = [
+    'bible.font_step_normal',
+    'bible.font_step_large',
+    'bible.font_step_larger',
+    'bible.font_step_very_large',
+    'bible.font_step_maximum',
+  ];
+
+  static final RegExp _latinLetter = RegExp(r'[A-Za-z]');
+
+  /// App bar icon that opens this panel. The default icon draws a Latin "A+",
+  /// so languages whose translated glyph is not Latin show that same glyph
+  /// used by the panel's step buttons, followed by "+".
+  static Widget appBarIcon({required Color color}) {
+    final glyph = 'bible.font_glyph'.tr();
+    if (_latinLetter.hasMatch(glyph)) {
+      return Icon(Icons.text_increase_outlined, color: color);
+    }
+    return Text(
+      '$glyph+',
+      key: appBarGlyphKey,
+      // Keep the "+" right next to the glyph, also in RTL languages.
+      textDirection: TextDirection.ltr,
+      // Fixed size so large system text scales cannot overflow the app bar.
+      textScaler: TextScaler.noScaling,
+      style: TextStyle(
+        color: color,
+        fontSize: _appBarGlyphSize,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
   final double currentFontSize;
-  final VoidCallback onIncrease;
-  final VoidCallback onDecrease;
+  final ValueChanged<double> onSizeSelected;
+  final VoidCallback onReset;
   final VoidCallback onClose;
-  final double minFontSize;
-  final double maxFontSize;
 
   const FloatingFontControlButtons({
     super.key,
     required this.currentFontSize,
-    required this.onIncrease,
-    required this.onDecrease,
+    required this.onSizeSelected,
+    required this.onReset,
     required this.onClose,
-    this.minFontSize = 12.0,
-    this.maxFontSize = 28.0,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final canIncrease = currentFontSize < maxFontSize;
-    final canDecrease = currentFontSize > minFontSize;
+    final stops = FontSizeController.fontSizeStops;
+    final index = stops.indexOf(FontSizeController.snapToStop(currentFontSize));
+    final canIncrease = index < stops.length - 1;
+    final canDecrease = index > 0;
+    final title = 'bible.font_size_label'.tr();
+    final stepName = _stepNameKeys[index].tr();
 
     return Stack(
       children: [
@@ -36,135 +82,153 @@ class FloatingFontControlButtons extends StatelessWidget {
           ),
         ),
         Positioned(
-          right: 24,
-          top: 100,
+          left: 0,
+          right: 0,
+          bottom: 0,
           child: Material(
-            color: Colors.transparent,
-            elevation: 0,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // Close button (small circle)
-                GestureDetector(
-                  onTap: onClose,
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                      border: Border.all(
-                        color: colorScheme.error.withAlpha(90),
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.close_outlined,
-                      size: 25,
-                      color: colorScheme.error.withValues(alpha: 0.9),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                // Increase font (big circle)
-                GestureDetector(
-                  onTap: canIncrease ? onIncrease : null,
-                  child: Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: canIncrease
-                          ? colorScheme.primary
-                          : colorScheme.surfaceContainerHighest,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.12),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                      border: Border.all(
-                        color: colorScheme.primary.withValues(alpha: 0.12),
-                        width: 2,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'A+',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: canIncrease
-                              ? colorScheme.onPrimary
-                              : colorScheme.onSurface.withValues(alpha: 0.3),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Lottie animation for tap feedback
-                Lottie.asset(
-                  'assets/lottie/tap_screen.json',
-                  height: 80,
-                  repeat: true,
-                  animate: true,
-                ),
-
-                // Decrease font (smaller circle) - centrado con los botones más grandes
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(end: 8),
-                  child: GestureDetector(
-                    onTap: canDecrease ? onDecrease : null,
-                    child: Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: canDecrease
-                            ? colorScheme.primary
-                            : colorScheme.surfaceContainerHighest,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                        border: Border.all(
-                          color: colorScheme.primary.withValues(alpha: 0.12),
-                          width: 2,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'A-',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: canDecrease
-                                ? colorScheme.onPrimary
-                                : colorScheme.onSurface.withValues(alpha: 0.3),
+            elevation: 16,
+            color: colorScheme.surface,
+            shadowColor: colorScheme.primary,
+            shape: RoundedRectangleBorder(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(28)),
+              side: BorderSide(color: colorScheme.primary, width: 2),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(20, 14, 20, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 2,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                stepName,
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
+                        IconButton(
+                          constraints: const BoxConstraints(
+                            minWidth: _minTouchTarget,
+                            minHeight: _minTouchTarget,
+                          ),
+                          tooltip: 'bible.font_reset'.tr(),
+                          onPressed: onReset,
+                          icon: const Icon(Icons.undo),
+                        ),
+                        IconButton(
+                          constraints: const BoxConstraints(
+                            minWidth: _minTouchTarget,
+                            minHeight: _minTouchTarget,
+                          ),
+                          iconSize: 28,
+                          tooltip: 'bible.close'.tr(),
+                          onPressed: onClose,
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
                     ),
-                  ),
+                    Row(
+                      children: [
+                        _stepButton(
+                          key: decreaseButtonKey,
+                          tooltip: 'bible.decrease_font'.tr(),
+                          glyphSize: _smallGlyphSize,
+                          onPressed: canDecrease
+                              ? () => onSizeSelected(stops[index - 1])
+                              : null,
+                        ),
+                        Expanded(
+                          child: SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              trackHeight: 12,
+                              thumbShape: const RoundSliderThumbShape(
+                                enabledThumbRadius: 16,
+                              ),
+                              tickMarkShape: const RoundSliderTickMarkShape(
+                                tickMarkRadius: 4,
+                              ),
+                            ),
+                            child: MergeSemantics(
+                              child: Semantics(
+                                label: title,
+                                child: Slider(
+                                  min: 0,
+                                  max: (stops.length - 1).toDouble(),
+                                  divisions: stops.length - 1,
+                                  value: index.toDouble(),
+                                  semanticFormatterCallback: (_) => stepName,
+                                  onChanged: (v) =>
+                                      onSizeSelected(stops[v.round()]),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        _stepButton(
+                          key: increaseButtonKey,
+                          tooltip: 'bible.increase_font'.tr(),
+                          glyphSize: _bigGlyphSize,
+                          onPressed: canIncrease
+                              ? () => onSizeSelected(stops[index + 1])
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _stepButton({
+    required Key key,
+    required String tooltip,
+    required double glyphSize,
+    required VoidCallback? onPressed,
+  }) {
+    return SizedBox(
+      width: _buttonSize,
+      height: _buttonSize,
+      child: Tooltip(
+        message: tooltip,
+        child: FilledButton(
+          key: key,
+          style: FilledButton.styleFrom(
+            padding: EdgeInsets.zero,
+            shape: const CircleBorder(),
+          ),
+          onPressed: onPressed,
+          child: Text(
+            'bible.font_glyph'.tr(),
+            style: TextStyle(fontSize: glyphSize, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
     );
   }
 }
