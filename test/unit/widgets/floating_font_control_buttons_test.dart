@@ -254,17 +254,25 @@ void main() {
       expect(step.left - title.right, lessThan(16));
     });
 
-    testWidgets('title stays on one line on a narrow screen', (t) async {
-      t.view.physicalSize = const Size(360, 800);
-      t.view.devicePixelRatio = 1.0;
-      addTearDown(t.view.reset);
-      await pumpPanel(t, fontSize: 16.0, textScale: 1.3);
-      final text = t.widget<Text>(find.text('Font size'));
-      expect(text.maxLines, 1);
-      expect(text.overflow, TextOverflow.ellipsis);
-      expect(t.getSize(find.text('Font size')).height, lessThan(40));
-      expect(t.takeException(), isNull);
-    });
+    for (final lang in ['es', 'pt', 'fr', 'ja', 'de']) {
+      for (final scale in [1.0, 1.5]) {
+        testWidgets('$lang title is never ellipsized at ${scale}x', (t) async {
+          t.view.physicalSize = const Size(360, 800);
+          t.view.devicePixelRatio = 1.0;
+          addTearDown(t.view.reset);
+          await pumpPanel(t, language: lang, textScale: scale);
+          final l10n = getService<LocalizationService>();
+          final titleText = l10n.translate('bible.font_size_label');
+          final stepText = l10n.translate('bible.font_step_normal');
+
+          final title = t.widget<Text>(find.text(titleText));
+          expect(title.maxLines, isNull);
+          expect(title.overflow, isNull);
+          expect(find.text(stepText), findsOneWidget);
+          expect(t.takeException(), isNull);
+        });
+      }
+    }
 
     testWidgets('German at 1.5x text scale has no overflow', (t) async {
       await pumpPanel(t, language: 'de', fontSize: 28.0, textScale: 1.5);
