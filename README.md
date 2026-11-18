@@ -2,8 +2,8 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.47.0-blue.svg)](https://flutter.dev/)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Tests](https://img.shields.io/badge/Tests-72+-brightgreen.svg)](#-testing--pruebas)
-[![Coverage](https://img.shields.io/badge/Coverage-77.7%25-brightgreen.svg)](#-testing--pruebas)
+[![Tests](https://img.shields.io/badge/Tests-218+-brightgreen.svg)](#-testing--pruebas)
+[![Coverage](https://img.shields.io/badge/Coverage-77.8%25-brightgreen.svg)](#-testing--pruebas)
 [![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](#)
 
 ---
@@ -63,8 +63,8 @@ favorites, spiritual tracking, and intelligent review system.
 | Metric              | Value                        |
 |---------------------|------------------------------|
 | Source Files (lib/) | 307 Dart files               |
-| Test Files          | 343 test files               |
-| Total Tests         | 72 tests (100% passing ✅) |
+| Test Files          | 344 test files               |
+| Total Tests         | 218 tests (100% passing ✅) |
 | Test Coverage       | 51.9% (10,725/20,666 lines)   |
 | Supported Languages | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Static Analysis     | ✅ All checks passing         |
@@ -103,7 +103,7 @@ test/
 ├── integration/  (10 tests)
 ├── migration/  (2 tests)
 ├── models/  (1 tests)
-└── unit/  (320 tests)
+└── unit/  (321 tests)
 ```
 <!-- /README-STATS:test-tree-en -->
 
@@ -187,9 +187,9 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 | Métrica                | Valor                              |
 |------------------------|------------------------------------|
 | Archivos Fuente (lib/) | 307 archivos Dart                  |
-| Archivos de Test       | 343 archivos                       |
-| Total de Tests         | 72 tests (100% aprobados ✅)     |
-| Cobertura de Tests     | 77.7% (17,940/23,101 líneas)        |
+| Archivos de Test       | 344 archivos                       |
+| Total de Tests         | 218 tests (100% aprobados ✅)     |
+| Cobertura de Tests     | 77.8% (17,991/23,133 líneas)        |
 | Idiomas Soportados     | 10 (es, en, pt, fr, ja, zh, de, hi, ar, fil) |
 | Análisis Estático      | ✅ Todas las verificaciones pasando |
 
@@ -315,6 +315,6 @@ Website / Sitio web: https://www.develop4God.com
 
 ---
 
-App Version: 1.17.0+165
+App Version: 1.18.0+166
 
 © 2026 develop4God

@@ -7,7 +7,7 @@ Internal, developer-facing history generated from commit messages via
 Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 
 <!-- git-cliff: end of header -->
-## [unreleased]
+## [1.18.0+166] - 2026-11-18
 
 ### 🚀 Features
 
@@ -16,6 +16,7 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - *(encounters,supporter)* Gold highlight for the unlock offer and a featured support card ([#341](https://github.com/develop4God/devocional_nuevo/issues/341))
 - *(encounters)* Gold next-card highlight in grid + responsive tablet layout + dark-theme button fix ([#354](https://github.com/develop4God/devocional_nuevo/issues/354))
 - *(update)* Urgent-only blocking updates plus tap-to-restart flexible updates ([#362](https://github.com/develop4God/devocional_nuevo/issues/362))
+- *(font)* Bottom font size panel replacing floating A+/A- ([#364](https://github.com/develop4God/devocional_nuevo/issues/364))
 
 ### 🐛 Bug Fixes
 
@@ -49,6 +50,9 @@ Regenerate with `git-cliff -o CHANGELOG.md` before tagging a release.
 - *(deps)* Bump the npm_and_yarn group across 1 directory with 3 updates
 - Bible auto-update, unlock-all Encounters option, faster home page on slow connections (background image downloads), internal stability and diagnostic improvements.
 - *(deps)* Bump body-parser ([#347](https://github.com/develop4God/devocional_nuevo/issues/347))
+- *(deps)* Bump fast-xml-parser ([#363](https://github.com/develop4God/devocional_nuevo/issues/363))
+- New font size panel, hero image cache fix
+- *(android)* Pin shared_preferences_android to 2.4.28
 ## [1.16.6+127] - 2026-09-14
 
 ### 🐛 Bug Fixes
