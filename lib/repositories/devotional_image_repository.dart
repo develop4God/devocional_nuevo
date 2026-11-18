@@ -122,6 +122,23 @@ class DevotionalImageRepository {
     return Constants.getDevotionalImageUrl(filename);
   }
 
+  /// A cached image is usable only when its file exists and is non-empty (a
+  /// killed download can leave a 0-byte file that cannot be decoded). Unusable
+  /// entries are evicted so they can re-download; failures while checking or
+  /// evicting are swallowed so callers just see "not usable".
+  Future<bool> _isUsable(String url, FileInfo info) async {
+    try {
+      if (await info.file.exists() && await info.file.length() > 0) {
+        return true;
+      }
+      debugPrint('⚠️ DevotionalImage: unusable cached file, evicting $url');
+      await cacheManager.removeFile(url);
+    } catch (e) {
+      debugPrint('⚠️ DevotionalImage: cache check/evict failed for $url: $e');
+    }
+    return false;
+  }
+
   /// Downloads and caches [url], returning whether it succeeded. Bounded by
   /// [_networkTimeout] so a non-responding host can't hang the caller
   /// indefinitely — [cacheManager.downloadFile] has no timeout of its own.
@@ -129,12 +146,7 @@ class DevotionalImageRepository {
     try {
       final info =
           await cacheManager.downloadFile(url).timeout(_networkTimeout);
-      if (await info.file.length() == 0) {
-        await cacheManager.removeFile(url);
-        debugPrint(
-            '⚠️ DevotionalImage: downloaded file is empty, removed $url');
-        return false;
-      }
+      if (!await _isUsable(url, info)) return false;
       debugPrint('🖼️ DevotionalImage: warmed $url');
       return true;
     } catch (e) {
@@ -206,9 +218,8 @@ class DevotionalImageRepository {
         debugPrint('🖼️ DevotionalImage: restore miss — not in disk cache');
         return false;
       }
-      if (await cached.file.length() == 0) {
-        await cacheManager.removeFile(url);
-        debugPrint('🖼️ DevotionalImage: restore miss — empty cached file');
+      if (!await _isUsable(url, cached)) {
+        debugPrint('🖼️ DevotionalImage: restore miss — unusable cached file');
         return false;
       }
       currentImageUrl = url;
