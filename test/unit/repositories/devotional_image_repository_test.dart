@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:devocional_nuevo/repositories/devotional_image_repository.dart';
+import 'package:file/file.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -16,7 +17,24 @@ class MockHttpClient extends Mock implements http.Client {}
 
 class MockBaseCacheManager extends Mock implements BaseCacheManager {}
 
-class MockFileInfo extends Mock implements FileInfo {}
+class FakeSizedFile extends Fake implements File {
+  FakeSizedFile(this._length, {this.present = true});
+  final int _length;
+  final bool present;
+
+  @override
+  Future<bool> exists() async => present;
+
+  @override
+  Future<int> length() async => _length;
+}
+
+/// Cached file of [length] bytes; non-empty by default.
+class MockFileInfo extends Mock implements FileInfo {
+  MockFileInfo({int length = 1, bool present = true}) {
+    when(() => file).thenReturn(FakeSizedFile(length, present: present));
+  }
+}
 
 /// Always returns index 0 — deterministic for assertions.
 class ZeroRandom implements Random {
@@ -166,6 +184,48 @@ void main() {
       },
       timeout: const Timeout(Duration(seconds: 20)),
     );
+  });
+
+  group('warming a downloaded image', () {
+    test('fails and removes the entry when the file is 0 bytes', () async {
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+      when(() => mockCacheManager.downloadFile(any()))
+          .thenAnswer((_) async => MockFileInfo(length: 0));
+      when(() => mockCacheManager.removeFile(any())).thenAnswer((_) async {});
+
+      await repository.prepareInitial();
+
+      expect(repository.currentImageUrl, isNull);
+      verify(() => mockCacheManager.removeFile(
+            'https://raw.githubusercontent.com/develop4God/Devocionales-assets/main/images/devotionals/blue_mountains.webp',
+          )).called(greaterThan(0));
+    });
+
+    test('fails when the file is missing on disk, even if removal throws',
+        () async {
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+      when(() => mockCacheManager.downloadFile(any()))
+          .thenAnswer((_) async => MockFileInfo(present: false));
+      when(() => mockCacheManager.removeFile(any()))
+          .thenThrow(Exception('disk error'));
+
+      await repository.prepareInitial();
+
+      expect(repository.currentImageUrl, isNull);
+      verify(() => mockCacheManager.removeFile(any())).called(greaterThan(0));
+    });
+
+    test('succeeds when the file is non-empty', () async {
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+
+      await repository.prepareInitial();
+
+      expect(repository.currentImageUrl, contains('blue_mountains'));
+      verifyNever(() => mockCacheManager.removeFile(any()));
+    });
   });
 
   group('advance', () {
@@ -422,6 +482,49 @@ void main() {
       await repository.prepareInitial();
 
       expect(repository.currentImageUrl, lastSessionUrl);
+    });
+
+    test('is a miss, and evicted, when the cached file is 0 bytes', () async {
+      SharedPreferences.setMockInitialValues({persistedUrlKey: lastSessionUrl});
+      when(() => mockCacheManager.getFileFromCache(lastSessionUrl))
+          .thenAnswer((_) async => MockFileInfo(length: 0));
+      when(() => mockCacheManager.removeFile(any())).thenAnswer((_) async {});
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+
+      await repository.prepareInitial();
+
+      expect(repository.currentImageUrl, endsWith('blue_mountains.webp'));
+      verify(() => mockCacheManager.removeFile(lastSessionUrl)).called(1);
+      verify(() => mockCacheManager.downloadFile(any())).called(greaterThan(0));
+    });
+
+    test('is a miss, and evicted, when the file is gone from disk', () async {
+      SharedPreferences.setMockInitialValues({persistedUrlKey: lastSessionUrl});
+      when(() => mockCacheManager.getFileFromCache(lastSessionUrl))
+          .thenAnswer((_) async => MockFileInfo(present: false));
+      when(() => mockCacheManager.removeFile(any())).thenAnswer((_) async {});
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+
+      await repository.prepareInitial();
+
+      expect(repository.currentImageUrl, isNot(lastSessionUrl));
+      verify(() => mockCacheManager.removeFile(lastSessionUrl)).called(1);
+    });
+
+    test('is a miss when evicting the unusable file throws', () async {
+      SharedPreferences.setMockInitialValues({persistedUrlKey: lastSessionUrl});
+      when(() => mockCacheManager.getFileFromCache(lastSessionUrl))
+          .thenAnswer((_) async => MockFileInfo(length: 0));
+      when(() => mockCacheManager.removeFile(any()))
+          .thenThrow(Exception('disk error'));
+      when(() => mockHttpClient.get(any()))
+          .thenAnswer((_) async => okResponse());
+
+      await repository.prepareInitial();
+
+      expect(repository.currentImageUrl, isNot(lastSessionUrl));
     });
 
     test('is ignored when evicted from the disk cache', () async {
